@@ -4,34 +4,38 @@ Dynamic Legend Values Example for streamlit-lightweight-charts.
 This example demonstrates the enhanced legend functionality that allows users
 to display and dynamically update values in the legend based on crosshair position.
 """
+# pylint: disable=no-member
 
 import numpy as np
 import pandas as pd
 import streamlit as st
 
-from streamlit_lightweight_charts_pro import Chart, LineSeries, CandlestickSeries
+from streamlit_lightweight_charts_pro import CandlestickSeries, Chart, LineSeries
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
-from streamlit_lightweight_charts_pro.data import LineData, CandlestickData
+from streamlit_lightweight_charts_pro.data import CandlestickData, LineData
 
 # Page configuration
 st.set_page_config(page_title="Dynamic Legend Values", page_icon="📊", layout="wide")
 
 st.title("📊 Dynamic Legend Values Example")
-st.markdown("""
+st.markdown(
+    """
 This example demonstrates the enhanced legend functionality that allows you to:
 - **Display current values** in the legend that update as you move the crosshair
 - **Control value formatting** (number of decimal places)
 - **Enable/disable dynamic updates** based on crosshair position
 - **Combine with custom templates** for advanced styling
-""")
+"""
+)
+
 
 # Generate sample data
 @st.cache_data
 def generate_sample_data():
     """Generate sample data for demonstration."""
     dates = pd.date_range(start="2024-01-01", periods=50, freq="D")
-    
+
     # Price data with some volatility
     prices = []
     base_price = 100
@@ -42,15 +46,17 @@ def generate_sample_data():
         high_price = base_price + abs(np.random.normal(0, 3))
         low_price = base_price - abs(np.random.normal(0, 3))
         close_price = base_price + np.random.normal(0, 1)
-        
-        prices.append(CandlestickData(
-            time=date.strftime("%Y-%m-%d"),
-            open=round(open_price, 2),
-            high=round(high_price, 2),
-            low=round(low_price, 2),
-            close=round(close_price, 2)
-        ))
-    
+
+        prices.append(
+            CandlestickData(
+                time=date.strftime("%Y-%m-%d"),
+                open=round(open_price, 2),
+                high=round(high_price, 2),
+                low=round(low_price, 2),
+                close=round(close_price, 2),
+            )
+        )
+
     # Moving averages
     ma20_data = []
     ma50_data = []
@@ -58,49 +64,77 @@ def generate_sample_data():
         if i >= 19:  # 20-day MA
             ma20 = sum([prices[j].close for j in range(i - 19, i + 1)]) / 20
             ma20_data.append(LineData(time=date.strftime("%Y-%m-%d"), value=round(ma20, 3)))
-        
+
         if i >= 49:  # 50-day MA
             ma50 = sum([prices[j].close for j in range(i - 49, i + 1)]) / 50
             ma50_data.append(LineData(time=date.strftime("%Y-%m-%d"), value=round(ma50, 3)))
-    
+
     return prices, ma20_data, ma50_data
+
 
 # Generate data
 prices, ma20_data, ma50_data = generate_sample_data()
 
 # Example 1: Basic Dynamic Legend
 st.header("1. Basic Dynamic Legend")
-st.markdown("Simple legend with dynamic values enabled by default. Move your mouse over the chart to see values update!")
+st.markdown(
+    "Simple legend with dynamic values enabled by default. Move your mouse over the chart to see"
+    " values update!"
+)
 
 basic_chart = Chart(
     options=ChartOptions(
         width=800,
         height=400,
-        legends={
-            0: LegendOptions(
-                visible=True,
-                position="top-right",
-                show_values=True,  # Enable dynamic values (default: True)
-                value_format=".2f",  # 2 decimal places (default)
-                update_on_crosshair=True,  # Update on crosshair move (default: True)
-                background_color="rgba(255, 255, 255, 0.95)",
-                border_color="#e1e3e6",
-                border_width=1,
-                padding=8
-            ),
-        },
     ),
     series=[
-        CandlestickSeries(data=prices).set_title("Stock Price"),
-        LineSeries(data=ma20_data).set_title("20-Day MA"),
-        LineSeries(data=ma50_data).set_title("50-Day MA"),
+        CandlestickSeries(data=prices)
+        .set_title("Stock Price")
+        .set_legend(LegendOptions(
+            visible=True,
+            position="top-right",
+            show_values=True,  # Enable dynamic values (default: True)
+            value_format=".2f",  # 2 decimal places (default)
+            update_on_crosshair=True,  # Update on crosshair move (default: True)
+            background_color="rgba(255, 255, 255, 0.95)",
+            border_color="#e1e3e6",
+            border_width=1,
+            padding=8,
+        )),
+        LineSeries(data=ma20_data)
+        .set_title("20-Day MA")
+        .set_legend(LegendOptions(
+            visible=True,
+            position="top-right",
+            show_values=True,
+            value_format=".2f",
+            update_on_crosshair=True,
+            background_color="rgba(255, 255, 255, 0.95)",
+            border_color="#e1e3e6",
+            border_width=1,
+            padding=8,
+        )),
+        LineSeries(data=ma50_data)
+        .set_title("50-Day MA")
+        .set_legend(LegendOptions(
+            visible=True,
+            position="top-right",
+            show_values=True,
+            value_format=".2f",
+            update_on_crosshair=True,
+            background_color="rgba(255, 255, 255, 0.95)",
+            border_color="#e1e3e6",
+            border_width=1,
+            padding=8,
+        )),
     ],
 )
 
 basic_chart.render(key="basic_dynamic_legend")
 
 with st.expander("💻 Code for Basic Dynamic Legend"):
-    st.code("""
+    st.code(
+        """
 # Basic dynamic legend - values update automatically as you move the crosshair!
 legend_options = LegendOptions(
     visible=True,
@@ -118,7 +152,9 @@ chart = Chart(
         LineSeries(data=ma50_data).set_title("50-Day MA"),
     ]
 )
-""", language="python")
+""",
+        language="python",
+    )
 
 # Example 2: Customized Value Formatting
 st.header("2. Custom Value Formatting")
@@ -132,8 +168,10 @@ with col1:
         options=ChartOptions(
             width=400,
             height=300,
-            legends={
-                0: LegendOptions(
+        ),
+        series=[LineSeries(data=ma20_data)
+                .set_title("Precise MA20")
+                .set_legend(LegendOptions(
                     visible=True,
                     position="top-left",
                     show_values=True,
@@ -141,11 +179,8 @@ with col1:
                     background_color="rgba(255, 255, 255, 0.9)",
                     border_color="#4CAF50",
                     border_width=2,
-                    padding=6
-                ),
-            },
-        ),
-        series=[LineSeries(data=ma20_data).set_title("Precise MA20")],
+                    padding=6,
+                ))],
     )
     precise_chart.render(key="precise_legend")
 
@@ -155,8 +190,10 @@ with col2:
         options=ChartOptions(
             width=400,
             height=300,
-            legends={
-                0: LegendOptions(
+        ),
+        series=[LineSeries(data=ma50_data)
+                .set_title("Rounded MA50")
+                .set_legend(LegendOptions(
                     visible=True,
                     position="bottom-right",
                     show_values=True,
@@ -164,11 +201,8 @@ with col2:
                     background_color="rgba(255, 255, 255, 0.9)",
                     border_color="#FF9800",
                     border_width=2,
-                    padding=6
-                ),
-            },
-        ),
-        series=[LineSeries(data=ma50_data).set_title("Rounded MA50")],
+                    padding=6,
+                ))],
     )
     integer_chart.render(key="integer_legend")
 
@@ -180,10 +214,14 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     show_values = st.checkbox("Show Values", value=True, help="Display current values in legend")
-    update_on_crosshair = st.checkbox("Update on Crosshair", value=True, help="Update values as crosshair moves")
+    update_on_crosshair = st.checkbox(
+        "Update on Crosshair", value=True, help="Update values as crosshair moves"
+    )
 
 with col2:
-    position = st.selectbox("Position", ["top-left", "top-right", "bottom-left", "bottom-right"], index=1)
+    position = st.selectbox(
+        "Position", ["top-left", "top-right", "bottom-left", "bottom-right"], index=1
+    )
     decimal_places = st.slider("Decimal Places", 0, 4, 2, help="Number of decimal places to show")
 
 with col3:
@@ -195,23 +233,34 @@ interactive_chart = Chart(
     options=ChartOptions(
         width=800,
         height=400,
-        legends={
-            0: LegendOptions(
-                visible=True,
-                position=position,
-                show_values=show_values,
-                value_format=f".{decimal_places}f",
-                update_on_crosshair=update_on_crosshair,
-                background_color=f"rgba(255, 255, 255, {bg_opacity})",
-                border_color=border_color,
-                border_width=1,
-                padding=8
-            ),
-        },
     ),
     series=[
-        CandlestickSeries(data=prices).set_title("Interactive Price"),
-        LineSeries(data=ma20_data).set_title("MA20"),
+        CandlestickSeries(data=prices)
+        .set_title("Interactive Price")
+        .set_legend(LegendOptions(
+            visible=True,
+            position=position,
+            show_values=show_values,
+            value_format=f".{decimal_places}f",
+            update_on_crosshair=update_on_crosshair,
+            background_color=f"rgba(255, 255, 255, {bg_opacity})",
+            border_color=border_color,
+            border_width=1,
+            padding=8,
+        )),
+        LineSeries(data=ma20_data)
+        .set_title("MA20")
+        .set_legend(LegendOptions(
+            visible=True,
+            position=position,
+            show_values=show_values,
+            value_format=f".{decimal_places}f",
+            update_on_crosshair=update_on_crosshair,
+            background_color=f"rgba(255, 255, 255, {bg_opacity})",
+            border_color=border_color,
+            border_width=1,
+            padding=8,
+        )),
     ],
 )
 
@@ -225,37 +274,56 @@ template_chart = Chart(
     options=ChartOptions(
         width=800,
         height=400,
-        legends={
-            0: LegendOptions(
-                visible=True,
-                position="top-right",
-                show_values=True,
-                value_format=".3f",
-                update_on_crosshair=True,
-                text="""
-                <div style='padding: 8px; font-family: "Consolas", monospace; background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(50,50,50,0.9)); color: white; border-radius: 8px; border: 1px solid #2196f3; box-shadow: 0 4px 8px rgba(0,0,0,0.2);'>
-                    <div style='display: flex; align-items: center; margin-bottom: 6px;'>
-                        <div style='width: 16px; height: 3px; background: #2196f3; margin-right: 8px; border-radius: 2px;'></div>
-                        <span style='font-weight: bold; font-size: 14px; color: #2196f3;'>Stock Price</span>
-                    </div>
-                    <div style='font-size: 12px; color: #ccc; margin-left: 24px;'>
-                        💰 Value: <span style='color: #2196f3; font-weight: bold;'>$$value$$</span>
-                    </div>
-                </div>
-                """
-            ),
-        },
     ),
     series=[
-        CandlestickSeries(data=prices).set_title("Styled Price"),
-        LineSeries(data=ma20_data).set_title("Styled MA20"),
+        CandlestickSeries(data=prices)
+        .set_title("Styled Price")
+        .set_legend(LegendOptions(
+            visible=True,
+            position="top-right",
+            show_values=True,
+            value_format=".3f",
+            update_on_crosshair=True,
+            text="""
+            <div style='padding: 8px; font-family: "Consolas", monospace; background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(50,50,50,0.9)); color: white; border-radius: 8px; border: 1px solid #2196f3; box-shadow: 0 4px 8px rgba(0,0,0,0.2);'>
+                <div style='display: flex; align-items: center; margin-bottom: 6px;'>
+                    <div style='width: 16px; height: 3px; background: #2196f3; margin-right: 8px; border-radius: 2px;'></div>
+                    <span style='font-weight: bold; font-size: 14px; color: #2196f3;'>Stock Price</span>
+                </div>
+                <div style='font-size: 12px; color: #ccc; margin-left: 24px;'>
+                    💰 Value: <span style='color: #2196f3; font-weight: bold;'>$$value$$</span>
+                </div>
+            </div>
+            """,
+        )),
+        LineSeries(data=ma20_data)
+        .set_title("Styled MA20")
+        .set_legend(LegendOptions(
+            visible=True,
+            position="top-right",
+            show_values=True,
+            value_format=".3f",
+            update_on_crosshair=True,
+            text="""
+            <div style='padding: 8px; font-family: "Consolas", monospace; background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(50,50,50,0.9)); color: white; border-radius: 8px; border: 1px solid #2196f3; box-shadow: 0 4px 8px rgba(0,0,0,0.2);'>
+                <div style='display: flex; align-items: center; margin-bottom: 6px;'>
+                    <div style='width: 16px; height: 3px; background: #2196f3; margin-right: 8px; border-radius: 2px;'></div>
+                    <span style='font-weight: bold; font-size: 14px; color: #2196f3;'>MA20</span>
+                </div>
+                <div style='font-size: 12px; color: #ccc; margin-left: 24px;'>
+                    💰 Value: <span style='color: #2196f3; font-weight: bold;'>$$value$$</span>
+                </div>
+            </div>
+            """,
+        )),
     ],
 )
 
 template_chart.render(key="template_legend")
 
 with st.expander("💻 Code for Custom Template"):
-    st.code("""
+    st.code(
+        """
 # Custom template with dynamic values
 legend_options = LegendOptions(
     visible=True,
@@ -276,7 +344,9 @@ legend_options = LegendOptions(
     </div>
     '''
 )
-""", language="python")
+""",
+        language="python",
+    )
 
 # Example 5: Static vs Dynamic Comparison
 st.header("5. Static vs Dynamic Comparison")
@@ -287,13 +357,15 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("Static Legend")
     st.markdown("Values don't change as you move the crosshair")
-    
+
     static_chart = Chart(
         options=ChartOptions(
             width=400,
             height=300,
-            legends={
-                0: LegendOptions(
+        ),
+        series=[LineSeries(data=ma20_data)
+                .set_title("Static MA20")
+                .set_legend(LegendOptions(
                     visible=True,
                     position="top-right",
                     show_values=True,
@@ -301,24 +373,23 @@ with col1:
                     update_on_crosshair=False,  # Disable dynamic updates
                     background_color="rgba(255, 255, 255, 0.9)",
                     border_color="#f44336",
-                    border_width=2
-                ),
-            },
-        ),
-        series=[LineSeries(data=ma20_data).set_title("Static MA20")],
+                    border_width=2,
+                ))],
     )
     static_chart.render(key="static_legend")
 
 with col2:
     st.subheader("Dynamic Legend")
     st.markdown("Values update as you move the crosshair")
-    
+
     dynamic_chart = Chart(
         options=ChartOptions(
             width=400,
             height=300,
-            legends={
-                0: LegendOptions(
+        ),
+        series=[LineSeries(data=ma20_data)
+                .set_title("Dynamic MA20")
+                .set_legend(LegendOptions(
                     visible=True,
                     position="top-right",
                     show_values=True,
@@ -326,17 +397,15 @@ with col2:
                     update_on_crosshair=True,  # Enable dynamic updates
                     background_color="rgba(255, 255, 255, 0.9)",
                     border_color="#4CAF50",
-                    border_width=2
-                ),
-            },
-        ),
-        series=[LineSeries(data=ma20_data).set_title("Dynamic MA20")],
+                    border_width=2,
+                ))],
     )
     dynamic_chart.render(key="dynamic_legend")
 
 # Summary
 st.header("📋 Summary")
-st.markdown("""
+st.markdown(
+    """
 ### New Dynamic Legend Options
 
 The enhanced `LegendOptions` class now includes three new options for better control over dynamic value display:
@@ -370,6 +439,9 @@ LegendOptions(show_values=False)
 ### Backward Compatibility
 
 All existing legend configurations continue to work unchanged. The new options are additive and have sensible defaults that maintain the current behavior.
-""")
+"""
+)
 
-st.success("🎉 Try moving your mouse over the charts above to see the dynamic legend values in action!")
+st.success(
+    "🎉 Try moving your mouse over the charts above to see the dynamic legend values in action!"
+)

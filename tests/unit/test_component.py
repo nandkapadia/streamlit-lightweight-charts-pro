@@ -7,7 +7,6 @@ for the Streamlit Lightweight Charts Pro component.
 
 from unittest.mock import Mock, patch
 
-
 from streamlit_lightweight_charts_pro.component import (
     _RELEASE,
     _component_func,

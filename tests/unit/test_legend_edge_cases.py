@@ -6,6 +6,7 @@ validation, and boundary conditions.
 """
 
 import pytest
+
 from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
 from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
 
@@ -386,7 +387,7 @@ class TestLegendMemoryAndPerformance:
 
         start_time = time.time()
         for _ in range(1000):
-            result = legend.asdict()
+            legend.asdict()
         end_time = time.time()
 
         # Should complete in reasonable time (less than 0.1 seconds)

@@ -46,7 +46,7 @@
     "build:size": "GENERATE_SOURCEMAP=false ANALYZE=true craco build",
     "analyze:size": "npx webpack-bundle-analyzer build/static/js/*.js --mode=static --report-filename=bundle-report.html",
     "build:optimized": "GENERATE_SOURCEMAP=false NODE_ENV=production craco build",
-    "test": "craco test",
+    "test": "react-scripts test --watch --testLocationInResults",
     "eject": "react-scripts eject",
     "type-check": "tsc --noEmit",
     "build:prod": "GENERATE_SOURCEMAP=false NODE_ENV=production craco build",

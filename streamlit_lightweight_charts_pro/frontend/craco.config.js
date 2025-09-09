@@ -5,7 +5,7 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 
 module.exports = {
   webpack: {
-    configure: (webpackConfig, { env, paths }) => {
+    configure: (webpackConfig, {env, paths}) => {
       if (env === 'production') {
         // Enable aggressive tree shaking
         webpackConfig.optimization = {
@@ -19,7 +19,7 @@ module.exports = {
             new TerserPlugin({
               terserOptions: {
                 compress: {
-                  drop_console: false,       // Keep console.error and console.warn, remove only via pure_funcs
+                  drop_console: false, // Keep console.error and console.warn, remove only via pure_funcs
                   drop_debugger: true,
                   pure_funcs: [],
                   passes: 2,
@@ -29,17 +29,17 @@ module.exports = {
                   unsafe_math: true,
                   unsafe_proto: true,
                   unsafe_regexp: true,
-                  unsafe_undefined: true,
+                  unsafe_undefined: true
                 },
                 mangle: {
-                  safari10: true,
+                  safari10: true
                 },
                 format: {
-                  comments: false,
-                },
+                  comments: false
+                }
               },
-              extractComments: false,
-            }),
+              extractComments: false
+            })
           ],
           splitChunks: {
             chunks: 'all',
@@ -51,21 +51,21 @@ module.exports = {
                 name: 'vendors',
                 chunks: 'all',
                 priority: 10,
-                enforce: true,
+                enforce: true
               },
               lightweightCharts: {
                 test: /[\\/]node_modules[\\/]lightweight-charts[\\/]/,
                 name: 'lightweight-charts',
                 chunks: 'all',
                 priority: 20,
-                enforce: true,
+                enforce: true
               },
               react: {
                 test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
                 name: 'react',
                 chunks: 'all',
                 priority: 30,
-                enforce: true,
+                enforce: true
               },
               common: {
                 name: 'common',
@@ -73,10 +73,10 @@ module.exports = {
                 chunks: 'all',
                 priority: 5,
                 reuseExistingChunk: true,
-                enforce: true,
-              },
-            },
-          },
+                enforce: true
+              }
+            }
+          }
         }
 
         // Add compression plugin
@@ -87,23 +87,23 @@ module.exports = {
             test: /\.(js|css|html|svg)$/,
             threshold: 8192,
             minRatio: 0.8,
-            deleteOriginalAssets: false,
+            deleteOriginalAssets: false
           })
         )
 
         // Enable scope hoisting
         webpackConfig.optimization.concatenateModules = true
-        
+
         // Set production mode explicitly
         webpackConfig.mode = 'production'
-        
+
         // Optimize module resolution
         webpackConfig.resolve = {
           ...webpackConfig.resolve,
           extensions: ['.tsx', '.ts', '.jsx', '.js'],
           alias: {
-            ...webpackConfig.resolve.alias,
-          },
+            ...webpackConfig.resolve.alias
+          }
         }
 
         // Add bundle analyzer in production
@@ -112,13 +112,13 @@ module.exports = {
             new BundleAnalyzerPlugin({
               analyzerMode: 'static',
               openAnalyzer: false,
-              reportFilename: 'bundle-report.html',
+              reportFilename: 'bundle-report.html'
             })
           )
         }
       }
 
       return webpackConfig
-    },
-  },
+    }
+  }
 }

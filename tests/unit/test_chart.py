@@ -342,9 +342,7 @@ class TestChartPriceVolumeSeries:
             "volume": "volume",
         }
 
-        chart.add_price_volume_series(
-            data=data, column_mapping=column_mapping, price_type="line"
-        )
+        chart.add_price_volume_series(data=data, column_mapping=column_mapping, price_type="line")
         price_series = chart.series[0]
         volume_series = chart.series[1]
 

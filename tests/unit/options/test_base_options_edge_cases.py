@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional
 
-
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
 
 

@@ -1,7 +1,13 @@
 import React from 'react'
 import {render, screen, waitFor} from '@testing-library/react'
 import '@testing-library/jest-dom'
-import {createChart, LineSeries, AreaSeries, CandlestickSeries, HistogramSeries} from 'lightweight-charts'
+import {
+  createChart,
+  LineSeries,
+  AreaSeries,
+  CandlestickSeries,
+  HistogramSeries
+} from 'lightweight-charts'
 import LightweightCharts from '../LightweightCharts'
 import {ComponentConfig} from '../types'
 
@@ -12,7 +18,7 @@ function generateData() {
   for (let i = 0; i < 500; ++i) {
     res.push({
       time: time.getTime() / 1000,
-      value: i,
+      value: i
     })
     time.setUTCDate(time.getUTCDate() + 1)
   }
@@ -27,7 +33,7 @@ function generateCandlestickData() {
     const close = open + (Math.random() - 0.5) * 10
     const high = Math.max(open, close) + Math.random() * 5
     const low = Math.min(open, close) - Math.random() * 5
-    
+
     res.push({
       time: time.getTime() / 1000,
       open,
@@ -72,10 +78,10 @@ describe('Graphics Tests', () => {
 
   describe('Line Series Graphics', () => {
     it('should render line series with basic data', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const lineSeries = chart.addSeries(LineSeries, {
         lineWidth: 1,
-        color: '#ff0000',
+        color: '#ff0000'
       })
 
       lineSeries.setData(generateData())
@@ -88,7 +94,7 @@ describe('Graphics Tests', () => {
     })
 
     it('should render line series with custom styling', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const lineSeries = chart.addSeries(LineSeries, {
         lineWidth: 2,
         color: '#00ff00',
@@ -107,7 +113,7 @@ describe('Graphics Tests', () => {
     })
 
     it('should render line series with point markers', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const lineSeries = chart.addSeries(LineSeries, {
         lineWidth: 1,
         color: '#ff0000',
@@ -127,7 +133,7 @@ describe('Graphics Tests', () => {
 
   describe('Area Series Graphics', () => {
     it('should render area series with basic data', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const areaSeries = chart.addSeries(AreaSeries, {
         topColor: 'rgba(255, 0, 0, 0.4)',
         bottomColor: 'rgba(255, 0, 0, 0.1)',
@@ -145,7 +151,7 @@ describe('Graphics Tests', () => {
     })
 
     it('should render area series with gradient', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const areaSeries = chart.addSeries(AreaSeries, {
         topColor: 'rgba(0, 255, 0, 0.8)',
         bottomColor: 'rgba(0, 255, 0, 0.2)',
@@ -163,7 +169,7 @@ describe('Graphics Tests', () => {
     })
 
     it('should render area series with inverted fill', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const areaSeries = chart.addSeries(AreaSeries, {
         topColor: 'rgba(0, 255, 0, 0.4)',
         bottomColor: 'rgba(0, 255, 0, 0.1)',
@@ -183,7 +189,7 @@ describe('Graphics Tests', () => {
 
   describe('Candlestick Series Graphics', () => {
     it('should render candlestick series with OHLC data', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const candlestickSeries = chart.addSeries(CandlestickSeries, {
         upColor: '#00ff00',
         downColor: '#ff0000',
@@ -201,7 +207,7 @@ describe('Graphics Tests', () => {
     })
 
     it('should render candlestick series with custom colors', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const candlestickSeries = chart.addSeries(CandlestickSeries, {
         upColor: '#00ff00',
         downColor: '#ff0000',
@@ -221,7 +227,7 @@ describe('Graphics Tests', () => {
     })
 
     it('should render candlestick series with thin bars', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const candlestickSeries = chart.addSeries(CandlestickSeries, {
         upColor: '#00ff00',
         downColor: '#ff0000',
@@ -240,7 +246,7 @@ describe('Graphics Tests', () => {
 
   describe('Histogram Series Graphics', () => {
     it('should render histogram series with volume data', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const histogramSeries = chart.addSeries(HistogramSeries, {
         color: '#888888',
         priceFormat: {
@@ -259,7 +265,7 @@ describe('Graphics Tests', () => {
     })
 
     it('should render histogram series with custom colors', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const histogramSeries = chart.addSeries(HistogramSeries, {
         color: '#888888',
         priceFormat: {
@@ -284,13 +290,13 @@ describe('Graphics Tests', () => {
 
   describe('Chart Integration Graphics', () => {
     it('should render multiple series on same chart', async () => {
-      const chart = createChart(container, { layout: { attributionLogo: false } })
-      
+      const chart = createChart(container, {layout: {attributionLogo: false}})
+
       const lineSeries = chart.addSeries(LineSeries, {
         color: '#ff0000',
         lineWidth: 2
       })
-      
+
       const areaSeries = chart.addSeries(AreaSeries, {
         topColor: 'rgba(0, 255, 0, 0.4)',
         bottomColor: 'rgba(0, 255, 0, 0.1)',
@@ -311,17 +317,17 @@ describe('Graphics Tests', () => {
       const chart = createChart(container, {
         layout: {
           attributionLogo: false,
-          background: { color: '#f0f0f0' },
+          background: {color: '#f0f0f0'},
           textColor: '#333333'
         },
         grid: {
-          vertLines: { color: '#e0e0e0' },
-          horzLines: { color: '#e0e0e0' }
+          vertLines: {color: '#e0e0e0'},
+          horzLines: {color: '#e0e0e0'}
         },
         crosshair: {
           mode: 1,
-          vertLine: { color: '#666666' },
-          horzLine: { color: '#666666' }
+          vertLine: {color: '#666666'},
+          horzLine: {color: '#666666'}
         }
       })
 
@@ -341,7 +347,7 @@ describe('Graphics Tests', () => {
 
     it('should render chart with time scale options', async () => {
       const chart = createChart(container, {
-        layout: { attributionLogo: false },
+        layout: {attributionLogo: false},
         timeScale: {
           timeVisible: true,
           secondsVisible: false,
@@ -366,7 +372,7 @@ describe('Graphics Tests', () => {
 
     it('should render chart with price scale options', async () => {
       const chart = createChart(container, {
-        layout: { attributionLogo: false },
+        layout: {attributionLogo: false},
         rightPriceScale: {
           visible: true,
           borderVisible: true,
@@ -539,7 +545,7 @@ describe('Graphics Tests', () => {
         value: 100 + Math.random() * 20
       }))
 
-      const chart = createChart(container, { layout: { attributionLogo: false } })
+      const chart = createChart(container, {layout: {attributionLogo: false}})
       const lineSeries = chart.addSeries(LineSeries, {
         color: '#ff0000',
         lineWidth: 1
@@ -564,10 +570,10 @@ describe('Graphics Tests', () => {
         value: 100 + Math.random() * 20
       }))
 
-      const chart = createChart(container, { layout: { attributionLogo: false } })
-      
-      const lineSeries = chart.addSeries(LineSeries, { color: '#ff0000' })
-      const areaSeries = chart.addSeries(AreaSeries, { 
+      const chart = createChart(container, {layout: {attributionLogo: false}})
+
+      const lineSeries = chart.addSeries(LineSeries, {color: '#ff0000'})
+      const areaSeries = chart.addSeries(AreaSeries, {
         topColor: 'rgba(0, 255, 0, 0.4)',
         bottomColor: 'rgba(0, 255, 0, 0.1)'
       })

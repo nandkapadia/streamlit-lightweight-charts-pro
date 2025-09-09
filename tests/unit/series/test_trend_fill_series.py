@@ -6,7 +6,6 @@ that supports both single and dual trend line modes.
 """
 
 import pandas as pd
-import pytest
 
 from streamlit_lightweight_charts_pro.charts.series.trend_fill import TrendFillSeries
 from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData

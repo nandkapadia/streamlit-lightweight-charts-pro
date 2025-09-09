@@ -107,7 +107,8 @@ def main():
         st.write("**Volume Metrics:**")
         st.write(f"Average volume: {sum(values) / len(values):.2f}")
         st.write(
-            f"Volume variance: {sum((v - sum(values)/len(values))**2 for v in values) / len(values):.2f}"
+            "Volume variance:"
+            f" {sum((v - sum(values)/len(values))**2 for v in values) / len(values):.2f}"
         )
         st.write(f"Volume range: {max(values) - min(values):.2f}")
 

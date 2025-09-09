@@ -193,7 +193,9 @@ export class ChartCoordinateService {
           const size = chart.paneSize(i)
           if (size && typeof size.height === 'number') {
             offsetY += size.height
-            console.log(`[ChartCoordinateService] Pane ${i} height: ${size.height}, cumulative offset: ${offsetY}`)
+            console.log(
+              `[ChartCoordinateService] Pane ${i} height: ${size.height}, cumulative offset: ${offsetY}`
+            )
           }
         } catch (error) {
           console.warn(
@@ -203,7 +205,7 @@ export class ChartCoordinateService {
           // Continue with other panes even if one fails
         }
       }
-      
+
       console.log(`[ChartCoordinateService] Final offsetY for pane ${paneId}: ${offsetY}`)
 
       // Get chart element for price scale width
@@ -223,7 +225,7 @@ export class ChartCoordinateService {
         paneSize.width || getFallback('paneWidth'),
         paneSize.height
       )
-      
+
       console.log(`[ChartCoordinateService] Pane ${paneId} bounds:`, {
         top: bounds.top,
         left: bounds.left,

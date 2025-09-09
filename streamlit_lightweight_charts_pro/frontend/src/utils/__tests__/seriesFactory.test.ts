@@ -2,108 +2,115 @@ import {createSeries} from '../seriesFactory'
 
 // Mock lightweight-charts
 jest.mock('lightweight-charts', () => {
-  console.log('Mock factory function called');
+  console.log('Mock factory function called')
   const mockChart = {
     addSeries: jest.fn().mockImplementation((seriesType, options, paneId) => {
-      console.log('Mock addSeries called with seriesType:', seriesType, 'options:', options, 'paneId:', paneId);
+      console.log(
+        'Mock addSeries called with seriesType:',
+        seriesType,
+        'options:',
+        options,
+        'paneId:',
+        paneId
+      )
       return {
-      setData: jest.fn(),
-      update: jest.fn(),
-      applyOptions: jest.fn(),
-      priceFormatter: jest.fn().mockReturnValue((value) => value.toFixed(2)),
-      priceToCoordinate: jest.fn().mockReturnValue(100),
-      coordinateToPrice: jest.fn().mockReturnValue(50),
-      barsInLogicalRange: jest.fn().mockReturnValue({ barsBefore: 0, barsAfter: 0 }),
-      data: jest.fn().mockReturnValue([]),
-      dataByIndex: jest.fn().mockReturnValue(null),
-      subscribeDataChanged: jest.fn(),
-      unsubscribeDataChanged: jest.fn(),
-      seriesType: jest.fn().mockReturnValue('Line'),
-      attachPrimitive: jest.fn(),
-      detachPrimitive: jest.fn(),
-      getPane: jest.fn().mockReturnValue({
-        getHeight: jest.fn().mockReturnValue(400),
-        setHeight: jest.fn(),
-        getStretchFactor: jest.fn().mockReturnValue(1),
-        setStretchFactor: jest.fn(),
-        paneIndex: jest.fn().mockReturnValue(0),
-        moveTo: jest.fn(),
-        getSeries: jest.fn().mockReturnValue([]),
-        getHTMLElement: jest.fn().mockReturnValue({}),
+        setData: jest.fn(),
+        update: jest.fn(),
+        applyOptions: jest.fn(),
+        priceFormatter: jest.fn().mockReturnValue(value => value.toFixed(2)),
+        priceToCoordinate: jest.fn().mockReturnValue(100),
+        coordinateToPrice: jest.fn().mockReturnValue(50),
+        barsInLogicalRange: jest.fn().mockReturnValue({barsBefore: 0, barsAfter: 0}),
+        data: jest.fn().mockReturnValue([]),
+        dataByIndex: jest.fn().mockReturnValue(null),
+        subscribeDataChanged: jest.fn(),
+        unsubscribeDataChanged: jest.fn(),
+        seriesType: jest.fn().mockReturnValue('Line'),
         attachPrimitive: jest.fn(),
         detachPrimitive: jest.fn(),
-        priceScale: jest.fn().mockReturnValue({
+        getPane: jest.fn().mockReturnValue({
+          getHeight: jest.fn().mockReturnValue(400),
+          setHeight: jest.fn(),
+          getStretchFactor: jest.fn().mockReturnValue(1),
+          setStretchFactor: jest.fn(),
+          paneIndex: jest.fn().mockReturnValue(0),
+          moveTo: jest.fn(),
+          getSeries: jest.fn().mockReturnValue([]),
+          getHTMLElement: jest.fn().mockReturnValue({}),
+          attachPrimitive: jest.fn(),
+          detachPrimitive: jest.fn(),
+          priceScale: jest.fn().mockReturnValue({
+            applyOptions: jest.fn(),
+            options: jest.fn().mockReturnValue({}),
+            width: jest.fn().mockReturnValue(100),
+            setVisibleRange: jest.fn(),
+            getVisibleRange: jest.fn().mockReturnValue({from: 0, to: 100}),
+            setAutoScale: jest.fn()
+          }),
+          setPreserveEmptyPane: jest.fn(),
+          preserveEmptyPane: jest.fn().mockReturnValue(false),
+          addCustomSeries: jest.fn(),
+          addSeries: jest.fn()
+        }),
+        moveToPane: jest.fn(),
+        seriesOrder: jest.fn().mockReturnValue(0),
+        setSeriesOrder: jest.fn(),
+        createPriceLine: jest.fn().mockReturnValue({
           applyOptions: jest.fn(),
           options: jest.fn().mockReturnValue({}),
-          width: jest.fn().mockReturnValue(100),
-          setVisibleRange: jest.fn(),
-          getVisibleRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
-          setAutoScale: jest.fn(),
+          remove: jest.fn()
         }),
-        setPreserveEmptyPane: jest.fn(),
-        preserveEmptyPane: jest.fn().mockReturnValue(false),
-        addCustomSeries: jest.fn(),
-        addSeries: jest.fn(),
-      }),
-      moveToPane: jest.fn(),
-      seriesOrder: jest.fn().mockReturnValue(0),
-      setSeriesOrder: jest.fn(),
-      createPriceLine: jest.fn().mockReturnValue({
-        applyOptions: jest.fn(),
-        options: jest.fn().mockReturnValue({}),
-        remove: jest.fn(),
-      }),
-      removePriceLine: jest.fn(),
-      priceLines: jest.fn().mockReturnValue([]),
-    };
+        removePriceLine: jest.fn(),
+        priceLines: jest.fn().mockReturnValue([])
+      }
     }),
     removeSeries: jest.fn(),
     addCustomSeries: jest.fn().mockReturnValue({
       setData: jest.fn(),
       update: jest.fn(),
       applyOptions: jest.fn(),
-      seriesType: jest.fn().mockReturnValue('Custom'),
+      seriesType: jest.fn().mockReturnValue('Custom')
     }),
     remove: jest.fn(),
     resize: jest.fn(),
     applyOptions: jest.fn(),
     options: jest.fn().mockReturnValue({
       layout: {
-        background: { type: 'solid', color: '#FFFFFF' },
+        background: {type: 'solid', color: '#FFFFFF'},
         textColor: '#191919',
         fontSize: 12,
-        fontFamily: 'Arial',
+        fontFamily: 'Arial'
       },
       crosshair: {
         mode: 1,
-        vertLine: { visible: true },
-        horzLine: { visible: true },
+        vertLine: {visible: true},
+        horzLine: {visible: true}
       },
       grid: {
-        vertLines: { visible: true },
-        horzLines: { visible: true },
+        vertLines: {visible: true},
+        horzLines: {visible: true}
       },
       timeScale: {
         visible: true,
         timeVisible: false,
-        secondsVisible: false,
+        secondsVisible: false
       },
       rightPriceScale: {
         visible: true,
-        autoScale: true,
+        autoScale: true
       },
       leftPriceScale: {
         visible: false,
-        autoScale: true,
-      },
+        autoScale: true
+      }
     }),
     timeScale: jest.fn().mockReturnValue({
       scrollPosition: jest.fn().mockReturnValue(0),
       scrollToPosition: jest.fn(),
       scrollToRealTime: jest.fn(),
-      getVisibleRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
+      getVisibleRange: jest.fn().mockReturnValue({from: 0, to: 100}),
       setVisibleRange: jest.fn(),
-      getVisibleLogicalRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
+      getVisibleLogicalRange: jest.fn().mockReturnValue({from: 0, to: 100}),
       setVisibleLogicalRange: jest.fn(),
       resetTimeScale: jest.fn(),
       fitContent: jest.fn(),
@@ -123,16 +130,16 @@ jest.mock('lightweight-charts', () => {
       applyOptions: jest.fn(),
       options: jest.fn().mockReturnValue({
         barSpacing: 6,
-        rightOffset: 0,
-      }),
+        rightOffset: 0
+      })
     }),
     priceScale: jest.fn().mockReturnValue({
       applyOptions: jest.fn(),
       options: jest.fn().mockReturnValue({}),
       width: jest.fn().mockReturnValue(100),
       setVisibleRange: jest.fn(),
-      getVisibleRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
-      setAutoScale: jest.fn(),
+      getVisibleRange: jest.fn().mockReturnValue({from: 0, to: 100}),
+      setAutoScale: jest.fn()
     }),
     subscribeClick: jest.fn(),
     unsubscribeClick: jest.fn(),
@@ -157,97 +164,111 @@ jest.mock('lightweight-charts', () => {
         options: jest.fn().mockReturnValue({}),
         width: jest.fn().mockReturnValue(100),
         setVisibleRange: jest.fn(),
-        getVisibleRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
-        setAutoScale: jest.fn(),
+        getVisibleRange: jest.fn().mockReturnValue({from: 0, to: 100}),
+        setAutoScale: jest.fn()
       }),
       setPreserveEmptyPane: jest.fn(),
       preserveEmptyPane: jest.fn().mockReturnValue(false),
       addCustomSeries: jest.fn(),
-      addSeries: jest.fn(),
+      addSeries: jest.fn()
     }),
     removePane: jest.fn(),
     swapPanes: jest.fn(),
     autoSizeActive: jest.fn().mockReturnValue(false),
     chartElement: jest.fn().mockReturnValue({}),
     panes: jest.fn().mockReturnValue([]),
-    paneSize: jest.fn().mockReturnValue({ width: 800, height: 400 }),
+    paneSize: jest.fn().mockReturnValue({width: 800, height: 400}),
     setCrosshairPosition: jest.fn(),
     clearCrosshairPosition: jest.fn(),
     horzBehaviour: jest.fn().mockReturnValue({
       options: jest.fn().mockReturnValue({}),
-      setOptions: jest.fn(),
-    }),
-  };
+      setOptions: jest.fn()
+    })
+  }
 
   return {
     createChart: (container, options) => {
-      console.log('Mock createChart called with container:', container, 'options:', options);
-      console.log('Mock createChart returning mockChart:', mockChart);
-      return mockChart;
+      console.log('Mock createChart called with container:', container, 'options:', options)
+      console.log('Mock createChart returning mockChart:', mockChart)
+      return mockChart
     },
     createChartEx: jest.fn().mockImplementation((container, horzScaleBehavior, options) => {
-      console.log('Mock createChartEx called with container:', container, 'horzScaleBehavior:', horzScaleBehavior, 'options:', options);
-      return mockChart;
+      console.log(
+        'Mock createChartEx called with container:',
+        container,
+        'horzScaleBehavior:',
+        horzScaleBehavior,
+        'options:',
+        options
+      )
+      return mockChart
     }),
     createSeries: jest.fn().mockImplementation((chart, seriesType, options) => {
-      console.log('Mock createSeries called with chart:', chart, 'seriesType:', seriesType, 'options:', options);
-      return mockChart.addSeries(seriesType, options);
+      console.log(
+        'Mock createSeries called with chart:',
+        chart,
+        'seriesType:',
+        seriesType,
+        'options:',
+        options
+      )
+      return mockChart.addSeries(seriesType, options)
     }),
-    isBusinessDay: jest.fn().mockImplementation((time) => {
-      return typeof time === 'object' && time.year && time.month && time.day;
+    isBusinessDay: jest.fn().mockImplementation(time => {
+      return typeof time === 'object' && time.year && time.month && time.day
     }),
-    isUTCTimestamp: jest.fn().mockImplementation((time) => {
-      return typeof time === 'number' && time > 0;
+    isUTCTimestamp: jest.fn().mockImplementation(time => {
+      return typeof time === 'number' && time > 0
     }),
     ColorType: {
       Solid: 'solid',
-      VerticalGradient: 'gradient',
+      VerticalGradient: 'gradient'
     },
     CrosshairMode: {
       Normal: 0,
-      Hidden: 1,
+      Hidden: 1
     },
     LineStyle: {
       Solid: 0,
       Dotted: 1,
       Dashed: 2,
       LargeDashed: 3,
-      SparseDotted: 4,
+      SparseDotted: 4
     },
     LineType: {
       Simple: 0,
       WithSteps: 1,
-      Curved: 2,
+      Curved: 2
     },
     PriceScaleMode: {
       Normal: 0,
       Logarithmic: 1,
       Percentage: 2,
-      IndexedTo100: 3,
+      IndexedTo100: 3
     },
     TickMarkType: {
       Year: 0,
       Month: 1,
       DayOfMonth: 2,
       Time: 3,
-      TimeWithSeconds: 4,
+      TimeWithSeconds: 4
     },
     TrackingModeExitMode: {
       OnTouchEnd: 0,
-      OnMouseLeave: 1,
+      OnMouseLeave: 1
     },
     LastPriceAnimationMode: {
       Disabled: 0,
       Continuous: 1,
-      OnDataUpdate: 2,
+      OnDataUpdate: 2
     },
     PriceLineSource: {
       LastBar: 0,
-      LastVisible: 1,
+      LastVisible: 1
     },
     MismatchDirection: {
       NearestLeft: 0,
-      NearestRight: 1,
+      NearestRight: 1
     },
     AreaSeries: 'Area',
     BarSeries: 'Bar',
@@ -256,15 +277,15 @@ jest.mock('lightweight-charts', () => {
     HistogramSeries: 'Histogram',
     LineSeries: 'Line',
     customSeriesDefaultOptions: {
-      color: '#2196f3',
+      color: '#2196f3'
     },
     version: '5.0.8',
     defaultHorzScaleBehavior: {
       options: jest.fn().mockReturnValue({}),
-      setOptions: jest.fn(),
-    },
-  };
-});
+      setOptions: jest.fn()
+    }
+  }
+})
 
 import {createChart} from 'lightweight-charts'
 
@@ -275,18 +296,18 @@ const mockChart = {
     update: jest.fn(),
     applyOptions: jest.fn(),
     options: jest.fn().mockReturnValue({}),
-    priceFormatter: jest.fn().mockReturnValue((value) => value.toFixed(2)),
+    priceFormatter: jest.fn().mockReturnValue(value => value.toFixed(2)),
     priceToCoordinate: jest.fn().mockReturnValue(50),
     coordinateToPrice: jest.fn().mockReturnValue(100),
-    barsInLogicalRange: jest.fn().mockReturnValue({ barsBefore: 0, barsAfter: 0 }),
-    dataByIndex: jest.fn().mockReturnValue({ time: '2024-01-01', value: 100 }),
+    barsInLogicalRange: jest.fn().mockReturnValue({barsBefore: 0, barsAfter: 0}),
+    dataByIndex: jest.fn().mockReturnValue({time: '2024-01-01', value: 100}),
     data: jest.fn().mockReturnValue([]),
     subscribeDataChanged: jest.fn(),
     unsubscribeDataChanged: jest.fn(),
     createPriceLine: jest.fn().mockReturnValue({
       applyOptions: jest.fn(),
       options: jest.fn().mockReturnValue({}),
-      remove: jest.fn(),
+      remove: jest.fn()
     }),
     removePriceLine: jest.fn(),
     priceLines: jest.fn().mockReturnValue([]),
@@ -309,17 +330,17 @@ const mockChart = {
         options: jest.fn().mockReturnValue({}),
         width: jest.fn().mockReturnValue(100),
         setVisibleRange: jest.fn(),
-        getVisibleRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
-        setAutoScale: jest.fn(),
+        getVisibleRange: jest.fn().mockReturnValue({from: 0, to: 100}),
+        setAutoScale: jest.fn()
       }),
       setPreserveEmptyPane: jest.fn(),
       preserveEmptyPane: jest.fn().mockReturnValue(false),
       addCustomSeries: jest.fn(),
-      addSeries: jest.fn(),
+      addSeries: jest.fn()
     }),
     moveToPane: jest.fn(),
     seriesOrder: jest.fn().mockReturnValue(0),
-    setSeriesOrder: jest.fn(),
+    setSeriesOrder: jest.fn()
   }),
   remove: jest.fn(),
   resize: jest.fn(),
@@ -342,24 +363,24 @@ const mockChart = {
       options: jest.fn().mockReturnValue({}),
       width: jest.fn().mockReturnValue(100),
       setVisibleRange: jest.fn(),
-      getVisibleRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
-      setAutoScale: jest.fn(),
+      getVisibleRange: jest.fn().mockReturnValue({from: 0, to: 100}),
+      setAutoScale: jest.fn()
     }),
     setPreserveEmptyPane: jest.fn(),
     preserveEmptyPane: jest.fn().mockReturnValue(false),
     addCustomSeries: jest.fn(),
-    addSeries: jest.fn(),
+    addSeries: jest.fn()
   }),
   removePane: jest.fn(),
   swapPanes: jest.fn(),
   autoSizeActive: jest.fn().mockReturnValue(false),
   chartElement: jest.fn().mockReturnValue({}),
   panes: jest.fn().mockReturnValue([]),
-  paneSize: jest.fn().mockReturnValue({ height: 400, width: 800 }),
+  paneSize: jest.fn().mockReturnValue({height: 400, width: 800}),
   setCrosshairPosition: jest.fn(),
   clearCrosshairPosition: jest.fn(),
-  horzBehaviour: jest.fn().mockReturnValue({}),
-};
+  horzBehaviour: jest.fn().mockReturnValue({})
+}
 
 // Create a real chart instance for testing
 const createTestChart = () => {
@@ -367,7 +388,7 @@ const createTestChart = () => {
   container.style.width = '800px'
   container.style.height = '400px'
   document.body.appendChild(container)
-  
+
   console.log('createChart import:', createChart)
   console.log('createChart type:', typeof createChart)
   console.log('Calling createChart with container:', container)
@@ -377,7 +398,7 @@ const createTestChart = () => {
     }
   })
   console.log('createChart returned:', chart)
-  
+
   return {chart, container}
 }
 
@@ -410,7 +431,7 @@ describe('Series Factory', () => {
       console.log('Testing mock createChart directly...')
       const testChart = createChart(document.createElement('div'), {})
       console.log('Direct createChart call result:', testChart)
-      
+
       const seriesConfig = {
         type: 'Line' as const,
         data: [

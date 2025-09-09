@@ -60,7 +60,8 @@ def generate_sample_data():
 def main():
     st.title("Comprehensive Error Handling Test")
     st.write(
-        "This example tests all the error handling improvements to ensure the library handles various error scenarios gracefully."
+        "This example tests all the error handling improvements to ensure the library handles"
+        " various error scenarios gracefully."
     )
 
     # Generate sample data

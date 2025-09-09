@@ -61,7 +61,8 @@ def generate_sample_data():
 def main():
     st.title("Annotation Structure Test")
     st.write(
-        "This example tests the annotation structure handling to ensure that annotations from the Python AnnotationManager are properly processed by the frontend."
+        "This example tests the annotation structure handling to ensure that annotations from the"
+        " Python AnnotationManager are properly processed by the frontend."
     )
 
     # Generate sample data
@@ -70,7 +71,8 @@ def main():
     # Test 1: Chart with AnnotationManager structure (from Python side)
     st.subheader("Test 1: Chart with AnnotationManager Structure")
     st.write(
-        "This chart uses the AnnotationManager from the Python side, which creates a 'layers' structure."
+        "This chart uses the AnnotationManager from the Python side, which creates a 'layers'"
+        " structure."
     )
 
     chart_with_manager = Chart(ChartOptions(width=800, height=400))

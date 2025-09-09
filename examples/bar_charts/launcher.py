@@ -15,7 +15,9 @@ st.write("Select an example to explore different bar chart features and configur
 examples = {
     "Basic Bar Chart": {
         "file": "basic_bar_chart.py",
-        "description": "Learn the fundamentals of creating bar charts with BarSeries using sample data.",
+        "description": (
+            "Learn the fundamentals of creating bar charts with BarSeries using sample data."
+        ),
         "features": [
             "Basic OHLC data",
             "DataFrame integration",
@@ -25,7 +27,10 @@ examples = {
     },
     "Customized Bar Chart": {
         "file": "customized_bar_chart.py",
-        "description": "Explore advanced styling options including colors, visibility settings, and price movement analysis.",
+        "description": (
+            "Explore advanced styling options including colors, visibility settings, and price"
+            " movement analysis."
+        ),
         "features": [
             "Color customization",
             "Visibility controls",

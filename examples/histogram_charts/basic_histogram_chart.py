@@ -24,7 +24,8 @@ def main():
     """Demonstrate basic HistogramSeries functionality."""
     st.title("Basic Histogram Chart Example")
     st.write(
-        "This example shows how to create a simple histogram chart using HistogramSeries with sample data."
+        "This example shows how to create a simple histogram chart using HistogramSeries with"
+        " sample data."
     )
 
     # Get sample data

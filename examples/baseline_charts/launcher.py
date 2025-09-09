@@ -15,7 +15,10 @@ st.write("Select an example to explore different baseline chart features and con
 examples = {
     "Basic Baseline Chart": {
         "file": "basic_baseline_chart.py",
-        "description": "Learn the fundamentals of creating baseline charts with BaselineSeries using sample data.",
+        "description": (
+            "Learn the fundamentals of creating baseline charts with BaselineSeries using sample"
+            " data."
+        ),
         "features": [
             "Basic baseline data",
             "DataFrame integration",
@@ -25,7 +28,10 @@ examples = {
     },
     "Customized Baseline Chart": {
         "file": "customized_baseline_chart.py",
-        "description": "Explore advanced styling options including colors, baseline values, and area customization.",
+        "description": (
+            "Explore advanced styling options including colors, baseline values, and area"
+            " customization."
+        ),
         "features": [
             "Color customization",
             "Baseline value settings",

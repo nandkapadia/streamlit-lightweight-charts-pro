@@ -112,7 +112,7 @@ addopts = [
     "--cov=streamlit_lightweight_charts_pro",
     "--cov-report=term-missing",
     "--cov-report=html:htmlcov",
-    "-n auto",
+    "-n 4",
     "--dist=loadfile"
 ]
 testpaths = ["tests"]
@@ -142,7 +142,6 @@ filterwarnings = [
     "ignore::FutureWarning:numpy.*"
 ]
 minversion = "6.0"
-timeout = 300
 
 [tool.pylint.format]
 max-line-length = 100

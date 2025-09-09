@@ -53,7 +53,8 @@ st.subheader("Data Summary")
 st.write(f"**Total data points:** {len(line_data)}")
 st.write(f"**Time range:** {line_data[0].time} to {line_data[-1].time}")
 st.write(
-    f"**Value range:** {min(d.value for d in line_data):.2f} to {max(d.value for d in line_data):.2f}"
+    f"**Value range:** {min(d.value for d in line_data):.2f} to"
+    f" {max(d.value for d in line_data):.2f}"
 )
 
 st.markdown("---")

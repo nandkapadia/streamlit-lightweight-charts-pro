@@ -169,19 +169,15 @@ class TestChartSeriesIntegration:
     def test_series_z_index_ordering(self):
         """Test series ordering by z-index within each pane."""
         # Create series with different z-index values in the same pane
-        line_series = LineSeries(
-            data=[LineData(time=1640995200, value=100)]
-        )
+        line_series = LineSeries(data=[LineData(time=1640995200, value=100)])
         line_series.z_index = 10  # Higher z-index (renders on top)
-        
+
         candlestick_series = CandlestickSeries(
             data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)]
         )
         candlestick_series.z_index = 5  # Lower z-index (renders behind)
-        
-        area_series = AreaSeries(
-            data=[LineData(time=1640995200, value=100)]
-        )
+
+        area_series = AreaSeries(data=[LineData(time=1640995200, value=100)])
         area_series.z_index = 15  # Highest z-index (renders on top)
 
         chart = Chart(series=[line_series, candlestick_series, area_series])
@@ -190,7 +186,7 @@ class TestChartSeriesIntegration:
         config = chart.to_frontend_config()
         series_configs = config["charts"][0]["series"]
         assert len(series_configs) == 3
-        
+
         # Should be ordered by z-index: candlestick(5), line(10), area(15)
         assert series_configs[0]["zIndex"] == 5
         assert series_configs[1]["zIndex"] == 10
@@ -199,28 +195,20 @@ class TestChartSeriesIntegration:
     def test_series_z_index_ordering_multiple_panes(self):
         """Test series ordering by z-index across multiple panes."""
         # Create series in different panes with different z-index values
-        line_series = LineSeries(
-            data=[LineData(time=1640995200, value=100)],
-            pane_id=0
-        )
+        line_series = LineSeries(data=[LineData(time=1640995200, value=100)], pane_id=0)
         line_series.z_index = 20  # Higher z-index in pane 0
-        
+
         candlestick_series = CandlestickSeries(
-            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)],
-            pane_id=0
+            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)], pane_id=0
         )
         candlestick_series.z_index = 10  # Lower z-index in pane 0
-        
+
         area_series = AreaSeries(
-            data=[LineData(time=1640995200, value=100)],
-            pane_id=1  # Different pane
+            data=[LineData(time=1640995200, value=100)], pane_id=1  # Different pane
         )
         area_series.z_index = 5  # Lower z-index in pane 1
-        
-        histogram_series = HistogramSeries(
-            data=[LineData(time=1640995200, value=100)],
-            pane_id=1
-        )
+
+        histogram_series = HistogramSeries(data=[LineData(time=1640995200, value=100)], pane_id=1)
         histogram_series.z_index = 15  # Higher z-index in pane 1
 
         chart = Chart(series=[line_series, candlestick_series, area_series, histogram_series])
@@ -229,17 +217,19 @@ class TestChartSeriesIntegration:
         config = chart.to_frontend_config()
         series_configs = config["charts"][0]["series"]
         assert len(series_configs) == 4
-        
+
         # Pane 0: candlestick(10), line(20) - ordered by z-index
         # Pane 1: area(5), histogram(15) - ordered by z-index
         # Overall order should maintain pane grouping and z-index sorting
-        
+
         # Find series by type to verify ordering
-        candlestick_idx = next(i for i, s in enumerate(series_configs) if s["type"] == "candlestick")
+        candlestick_idx = next(
+            i for i, s in enumerate(series_configs) if s["type"] == "candlestick"
+        )
         line_idx = next(i for i, s in enumerate(series_configs) if s["type"] == "line")
         area_idx = next(i for i, s in enumerate(series_configs) if s["type"] == "area")
         histogram_idx = next(i for i, s in enumerate(series_configs) if s["type"] == "histogram")
-        
+
         # Within pane 0: candlestick should come before line
         assert candlestick_idx < line_idx
         # Within pane 1: area should come before histogram

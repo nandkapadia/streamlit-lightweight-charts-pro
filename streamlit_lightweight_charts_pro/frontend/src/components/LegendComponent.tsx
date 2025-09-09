@@ -74,19 +74,19 @@ export const LegendComponent: React.FC<LegendComponentProps> = ({
       }}
       data-debug="legend"
     >
-           {legendConfig.text ? (
-             <div
-               data-legend-text
-               dangerouslySetInnerHTML={{__html: legendConfig.text}}
-               aria-label={textContent}
-               style={{
-                 display: 'block',
-                 color: legendConfig.textColor
-               }}
-             />
-           ) : (
-             <span style={{color: '#666', fontStyle: 'italic'}}>No content</span>
-           )}
+      {legendConfig.text ? (
+        <div
+          data-legend-text
+          dangerouslySetInnerHTML={{__html: legendConfig.text}}
+          aria-label={textContent}
+          style={{
+            display: 'block',
+            color: legendConfig.textColor
+          }}
+        />
+      ) : (
+        <span style={{color: '#666', fontStyle: 'italic'}}>No content</span>
+      )}
     </div>
   )
 }

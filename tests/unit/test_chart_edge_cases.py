@@ -321,9 +321,7 @@ class TestChartPriceVolumeSeriesEdgeCases:
         chart = Chart()
 
         with pytest.raises(TypeError):
-            chart.add_price_volume_series(
-                data=None, column_mapping={}, price_type="candlestick"
-            )
+            chart.add_price_volume_series(data=None, column_mapping={}, price_type="candlestick")
 
     def test_create_price_volume_series_with_empty_data(self):
         """Test creating price-volume series with empty data."""
@@ -348,9 +346,7 @@ class TestChartPriceVolumeSeriesEdgeCases:
         data = [OhlcvData("2024-01-01", 100, 102, 99, 101, 1000)]
 
         with pytest.raises(TypeError):
-            chart.add_price_volume_series(
-                data=data, column_mapping=None, price_type="candlestick"
-            )
+            chart.add_price_volume_series(data=data, column_mapping=None, price_type="candlestick")
 
     def test_create_price_volume_series_with_invalid_price_type(self):
         """Test creating price-volume series with invalid price type."""
@@ -358,9 +354,7 @@ class TestChartPriceVolumeSeriesEdgeCases:
         data = [OhlcvData("2024-01-01", 100, 102, 99, 101, 1000)]
 
         with pytest.raises(ValueError):
-            chart.add_price_volume_series(
-                data=data, column_mapping={}, price_type="invalid_type"
-            )
+            chart.add_price_volume_series(data=data, column_mapping={}, price_type="invalid_type")
 
     def test_create_price_volume_series_with_missing_columns(self):
         """Test creating price-volume series with missing DataFrame columns."""
@@ -401,9 +395,7 @@ class TestChartPriceVolumeSeriesEdgeCases:
         # Test that None data raises TypeError when adding price-volume series
         chart = Chart()
         with pytest.raises(TypeError):
-            chart.add_price_volume_series(
-                data=None, column_mapping={}, price_type="candlestick"
-            )
+            chart.add_price_volume_series(data=None, column_mapping={}, price_type="candlestick")
 
     def test_from_price_volume_dataframe_with_invalid_data_type(self):
         """Test from_price_volume_dataframe with invalid data type."""

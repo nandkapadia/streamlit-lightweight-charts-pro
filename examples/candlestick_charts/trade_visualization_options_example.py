@@ -223,11 +223,11 @@ def main():
             {
                 "Trade #": i + 1,
                 "Type": trade.trade_type.value.upper(),
-                "Entry Time": datetime.fromtimestamp(trade.entry_timestamp).strftime(
-                    "%Y-%m-%d %H:%M"
+                "Entry Time": (
+                    datetime.fromtimestamp(trade.entry_timestamp).strftime("%Y-%m-%d %H:%M")
                 ),
-                "Exit Time": datetime.fromtimestamp(trade.exit_timestamp).strftime(
-                    "%Y-%m-%d %H:%M"
+                "Exit Time": (
+                    datetime.fromtimestamp(trade.exit_timestamp).strftime("%Y-%m-%d %H:%M")
                 ),
                 "Entry Price": f"${trade.entry_price:.2f}",
                 "Exit Price": f"${trade.exit_price:.2f}",

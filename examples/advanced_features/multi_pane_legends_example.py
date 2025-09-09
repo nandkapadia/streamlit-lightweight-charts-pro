@@ -199,7 +199,13 @@ multi_pane_chart = Chart(
                 padding=5,
                 margin=4,
                 z_index=1000,
-                text="<div style='display: flex; align-items: center; margin-bottom: 4px;'><span style='width: 12px; height: 2px; background-color: #2196f3; margin-right: 6px; display: inline-block;'></span><span style='font-weight: bold;'>MA20</span><span style='margin-left: 8px; color: #2196f3; font-weight: bold;'>$$value$$</span></div>",
+                text=(
+                    "<div style='display: flex; align-items: center; margin-bottom: 4px;'><span"
+                    " style='width: 12px; height: 2px; background-color: #2196f3; margin-right:"
+                    " 6px; display: inline-block;'></span><span style='font-weight:"
+                    " bold;'>MA20</span><span style='margin-left: 8px; color: #2196f3; font-weight:"
+                    " bold;'>$$value$$</span></div>"
+                ),
             ),
             1: LegendOptions(
                 visible=True,
@@ -211,7 +217,10 @@ multi_pane_chart = Chart(
                 padding=5,
                 margin=4,
                 z_index=1000,
-                text="<div style='color: #9c27b0; font-size: 11px;'><strong>RSI (14)</strong>: $$value$$</div>",
+                text=(
+                    "<div style='color: #9c27b0; font-size: 11px;'><strong>RSI (14)</strong>:"
+                    " $$value$$</div>"
+                ),
             ),
             2: LegendOptions(
                 visible=True,
@@ -223,7 +232,12 @@ multi_pane_chart = Chart(
                 padding=5,
                 margin=4,
                 z_index=1000,
-                text="<div style='display: flex; align-items: center;'><span style='width: 8px; height: 8px; background-color: #ff5722; margin-right: 4px; border-radius: 2px;'></span><span>Volume MA</span><span style='margin-left: 6px; color: #ff5722;'>$$value$$</span></div>",
+                text=(
+                    "<div style='display: flex; align-items: center;'><span style='width: 8px;"
+                    " height: 8px; background-color: #ff5722; margin-right: 4px; border-radius:"
+                    " 2px;'></span><span>Volume MA</span><span style='margin-left: 6px; color:"
+                    " #ff5722;'>$$value$$</span></div>"
+                ),
             ),
         },
     ),

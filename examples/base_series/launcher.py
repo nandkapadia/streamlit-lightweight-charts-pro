@@ -19,8 +19,9 @@ def main():
 
     st.title("📊 Base Series Examples")
     st.write(
-        "This collection demonstrates the fundamental Series functionality that all series types share. "
-        "These examples show common patterns and capabilities using LineSeries as a concrete implementation."
+        "This collection demonstrates the fundamental Series functionality that all series types"
+        " share. These examples show common patterns and capabilities using LineSeries as a"
+        " concrete implementation."
     )
 
     st.markdown("---")

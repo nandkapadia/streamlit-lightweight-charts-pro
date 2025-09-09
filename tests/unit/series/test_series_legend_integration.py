@@ -6,6 +6,7 @@ covering property access, method chaining, serialization, and edge cases.
 """
 
 import pytest
+
 from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
 from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
 from streamlit_lightweight_charts_pro.data.line_data import LineData
@@ -23,7 +24,7 @@ class TestSeriesLegendProperty:
         """Test direct assignment of legend property."""
         series = LineSeries(data=[])
         legend = LegendOptions(position="top-left", visible=True)
-        
+
         series.legend = legend
         assert series.legend == legend
         assert series.legend.position == "top-left"
@@ -34,10 +35,10 @@ class TestSeriesLegendProperty:
         series = LineSeries(data=[])
         legend = LegendOptions(position="top-left")
         series.legend = legend
-        
+
         # Verify it was set
         assert series.legend is not None
-        
+
         # Set to None
         series.legend = None
         assert series.legend is None
@@ -45,14 +46,14 @@ class TestSeriesLegendProperty:
     def test_legend_property_type_validation(self):
         """Test that legend property only accepts LegendOptions or None."""
         series = LineSeries(data=[])
-        
+
         # Valid assignments
         series.legend = LegendOptions()
         assert isinstance(series.legend, LegendOptions)
-        
+
         series.legend = None
         assert series.legend is None
-        
+
         # Note: Currently no type validation is implemented for legend property
         # This test documents the current behavior
         series.legend = "invalid"
@@ -61,11 +62,11 @@ class TestSeriesLegendProperty:
     def test_legend_property_chainable_methods(self):
         """Test chainable methods for legend property."""
         series = LineSeries(data=[])
-        
+
         # Test set_legend method
         legend = LegendOptions(position="top-right")
         result = series.set_legend(legend)
-        
+
         # Should return self for chaining
         assert result is series
         assert series.legend == legend
@@ -74,10 +75,10 @@ class TestSeriesLegendProperty:
         """Test setting legend to None via chainable method."""
         series = LineSeries(data=[])
         series.legend = LegendOptions()
-        
+
         # Verify it was set
         assert series.legend is not None
-        
+
         # Set to None via chainable method
         result = series.set_legend(None)
         assert result is series
@@ -94,17 +95,17 @@ class TestSeriesLegendSerialization:
             visible=True,
             position="top-left",
             background_color="rgba(255, 0, 0, 0.5)",
-            text="<span>MA20: $$value$$</span>"
+            text="<span>MA20: $$value$$</span>",
         )
         series.legend = legend
-        
+
         # Get series configuration
         config = series.asdict()
-        
+
         # Check that legend is included in serialization
         assert "legend" in config
         legend_config = config["legend"]
-        
+
         # Verify legend properties are serialized correctly
         assert legend_config["visible"] is True
         assert legend_config["position"] == "top-left"
@@ -115,9 +116,9 @@ class TestSeriesLegendSerialization:
         """Test serialization of series without legend."""
         series = LineSeries(data=[])
         # legend should be None by default
-        
+
         config = series.asdict()
-        
+
         # Legend should not be included in serialization when None
         assert "legend" not in config
 
@@ -135,13 +136,13 @@ class TestSeriesLegendSerialization:
             price_format=".2f",
             show_values=True,
             value_format=".3f",
-            update_on_crosshair=True
+            update_on_crosshair=True,
         )
         series.legend = legend
-        
+
         config = series.asdict()
         legend_config = config["legend"]
-        
+
         # Check camelCase conversion
         assert "backgroundColor" in legend_config
         assert "borderColor" in legend_config
@@ -163,9 +164,9 @@ class TestSeriesLegendSerialization:
         ]
         series = LineSeries(data=data)
         series.legend = LegendOptions(position="top-right", visible=True)
-        
+
         config = series.asdict()
-        
+
         # Should have both data and legend
         assert "data" in config
         assert "legend" in config
@@ -180,18 +181,15 @@ class TestSeriesLegendMethodChaining:
         """Test chaining legend with other series properties."""
         data = [LineData(time="2023-01-01", value=100)]
         series = LineSeries(data=data)
-        
+
         legend = LegendOptions(position="top-left")
-        
+
         # Chain multiple property setters
-        result = (series
-                 .set_visible(False)
-                 .set_legend(legend)
-                 .set_price_scale_id("right"))
-        
+        result = series.set_visible(False).set_legend(legend).set_price_scale_id("right")
+
         # Should return self for chaining
         assert result is series
-        
+
         # Verify all properties were set
         assert series.visible is False
         assert series.legend == legend
@@ -201,13 +199,10 @@ class TestSeriesLegendMethodChaining:
         """Test chaining legend property with legend method chaining."""
         series = LineSeries(data=[])
         legend = LegendOptions()
-        
+
         # Chain legend property with legend methods
-        result = (series
-                 .set_legend(legend)
-                 .legend.set_visible(False)
-                 .set_position("bottom-right"))
-        
+        result = series.set_legend(legend).legend.set_visible(False).set_position("bottom-right")
+
         # Should return the legend object for further chaining
         assert result is legend
         assert series.legend.visible is False
@@ -216,17 +211,19 @@ class TestSeriesLegendMethodChaining:
     def test_legend_chainable_fluent_api(self):
         """Test fluent API usage with legend configuration."""
         series = LineSeries(data=[])
-        
+
         # Create and configure legend in one fluent chain
-        legend = (LegendOptions()
-                 .set_visible(True)
-                 .set_position("top-left")
-                 .set_background_color("rgba(0, 0, 0, 0.8)")
-                 .set_text("<span>{title}: {value}</span>"))
-        
+        legend = (
+            LegendOptions()
+            .set_visible(True)
+            .set_position("top-left")
+            .set_background_color("rgba(0, 0, 0, 0.8)")
+            .set_text("<span>{title}: {value}</span>")
+        )
+
         # Set legend on series
         series.legend = legend
-        
+
         # Verify configuration
         assert series.legend.visible is True
         assert series.legend.position == "top-left"
@@ -242,7 +239,7 @@ class TestSeriesLegendEdgeCases:
         series = LineSeries(data=[])
         legend = LegendOptions(position="top-right")
         series.legend = legend
-        
+
         config = series.asdict()
         assert "legend" in config
         assert config["legend"]["position"] == "top-right"
@@ -254,7 +251,7 @@ class TestSeriesLegendEdgeCases:
         series = LineSeries(data=data)
         legend = LegendOptions(position="top-left", visible=True)
         series.legend = legend
-        
+
         config = series.asdict()
         assert "legend" in config
         assert len(config["data"]) == 31  # Updated to match the actual data size
@@ -266,7 +263,7 @@ class TestSeriesLegendEdgeCases:
         special_text = "<div>Price: ${value} | Time: {time} | Type: {type}</div>"
         legend = LegendOptions(text=special_text, position="top-right")
         series.legend = legend
-        
+
         config = series.asdict()
         assert config["legend"]["text"] == special_text
 
@@ -276,7 +273,7 @@ class TestSeriesLegendEdgeCases:
         unicode_text = "📈 Price: {value} | 📅 Time: {time}"
         legend = LegendOptions(text=unicode_text, position="top-left")
         series.legend = legend
-        
+
         config = series.asdict()
         assert config["legend"]["text"] == unicode_text
 
@@ -285,10 +282,10 @@ class TestSeriesLegendEdgeCases:
         series = LineSeries(data=[])
         original_legend = LegendOptions(position="top-left", visible=True)
         series.legend = original_legend
-        
+
         # Modify the legend through the series
         series.legend.set_visible(False)
-        
+
         # Note: The legend object is shared, so changes affect the original
         # This is the current behavior - the same object is referenced
         assert original_legend.visible is False  # Changed because it's the same object
@@ -298,12 +295,12 @@ class TestSeriesLegendEdgeCases:
     def test_legend_property_replacement(self):
         """Test replacing one legend with another."""
         series = LineSeries(data=[])
-        
+
         # Set first legend
         legend1 = LegendOptions(position="top-left", visible=True)
         series.legend = legend1
         assert series.legend == legend1
-        
+
         # Replace with second legend
         legend2 = LegendOptions(position="bottom-right", visible=False)
         series.legend = legend2
@@ -320,7 +317,7 @@ class TestSeriesLegendIntegration:
         series = LineSeries(data=data)
         legend = LegendOptions(position="top-right")
         series.legend = legend
-        
+
         config = series.asdict()
         assert config["type"] == "line"
         assert "legend" in config
@@ -329,12 +326,12 @@ class TestSeriesLegendIntegration:
         """Test legend integration with CandlestickSeries."""
         from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
         from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
-        
+
         data = [CandlestickData(time="2023-01-01", open=100, high=105, low=95, close=102)]
         series = CandlestickSeries(data=data)
         legend = LegendOptions(position="top-left")
         series.legend = legend
-        
+
         config = series.asdict()
         assert config["type"] == "candlestick"
         assert "legend" in config
@@ -343,12 +340,12 @@ class TestSeriesLegendIntegration:
         """Test legend integration with AreaSeries."""
         from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
         from streamlit_lightweight_charts_pro.data.area_data import AreaData
-        
+
         data = [AreaData(time="2023-01-01", value=100)]
         series = AreaSeries(data=data)
         legend = LegendOptions(position="bottom-right")
         series.legend = legend
-        
+
         config = series.asdict()
         assert config["type"] == "area"
         assert "legend" in config

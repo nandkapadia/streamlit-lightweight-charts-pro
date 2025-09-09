@@ -6,6 +6,7 @@ covering chart options, series legends, and frontend integration.
 """
 
 import pytest
+
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.options.chart_options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
@@ -151,20 +152,20 @@ class TestChartLegendSerialization:
         chart = Chart(options=ChartOptions(), series=[series1, series2])
 
         config = chart.to_frontend_config()
-        
+
         # Should have charts with both series and their respective legends
         assert "charts" in config
         assert len(config["charts"]) == 1
-        
+
         chart_config = config["charts"][0]
         assert "series" in chart_config
         assert len(chart_config["series"]) == 2
-        
+
         series1_config = chart_config["series"][0]
         assert "legend" in series1_config
         assert series1_config["legend"]["position"] == "top-left"
         assert series1_config["legend"]["visible"] is True
-        
+
         series2_config = chart_config["series"][1]
         assert "legend" in series2_config
         assert series2_config["legend"]["position"] == "bottom-right"
@@ -187,7 +188,7 @@ class TestChartLegendSerialization:
 
         config = chart.to_frontend_config()
         legend_config = config["charts"][0]["series"][0]["legend"]
-        
+
         # Check camelCase conversion
         assert "backgroundColor" in legend_config
         assert "borderColor" in legend_config
@@ -263,10 +264,10 @@ class TestChartLegendEdgeCases:
         # Get initial config
         initial_config = chart.to_frontend_config()
         initial_position = initial_config["charts"][0]["series"][0]["legend"]["position"]
-        
+
         # Modify legend
         series.legend.set_position("bottom-right")
-        
+
         # Get new config
         new_config = chart.to_frontend_config()
         new_position = new_config["charts"][0]["series"][0]["legend"]["position"]
@@ -286,10 +287,10 @@ class TestChartLegendEdgeCases:
         # Initial config should have legend
         initial_config = chart.to_frontend_config()
         assert "legend" in initial_config["charts"][0]["series"][0]
-        
+
         # Set legend to None
         series.legend = None
-        
+
         # New config should not have legend
         new_config = chart.to_frontend_config()
         assert "legend" not in new_config["charts"][0]["series"][0]

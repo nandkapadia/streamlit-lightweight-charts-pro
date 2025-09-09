@@ -13,19 +13,22 @@ The key point is that ChartManager provides the chart data and sync configuratio
 but positioning is handled by the user's layout system.
 """
 
-import streamlit as st
 import numpy as np
-from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager, SyncOptions
+import streamlit as st
+
 from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager, SyncOptions
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data.line_data import LineData
+
 
 # Generate sample data
 def generate_data(base_price=100, days=30):
     """Generate sample price data."""
-    dates = np.arange('2024-01-01', f'2024-01-{days+1}', dtype='datetime64[D]')
+    dates = np.arange("2024-01-01", f"2024-01-{days+1}", dtype="datetime64[D]")
     prices = np.random.randn(days).cumsum() + base_price
     return [LineData(time=str(d), value=float(p)) for d, p in zip(dates, prices)]
+
 
 # Create sample series
 price_data = generate_data(100, 30)
@@ -37,11 +40,13 @@ volume_series = LineSeries(data=volume_data).set_title("Volume")
 rsi_series = LineSeries(data=rsi_data).set_title("RSI")
 
 st.title("Chart Positioning Examples")
-st.markdown("""
+st.markdown(
+    """
 This example shows how to position charts anywhere using ChartManager.
 The ChartManager handles chart data and synchronization, while positioning
 is controlled by your layout system.
-""")
+"""
+)
 
 # Example 1: Side-by-side using Streamlit columns
 st.header("1. Side-by-Side Layout (Streamlit Columns)")
@@ -54,12 +59,12 @@ with col1:
     price_manager = ChartManager()
     price_chart = Chart(series=[price_series], chart_group_id=1)
     price_manager.add_chart(price_chart, "price_chart")
-    
+
     # Set sync config for price group
-    price_manager.set_sync_group_config("1", SyncOptions(
-        enabled=True, crosshair=True, time_range=True
-    ))
-    
+    price_manager.set_sync_group_config(
+        "1", SyncOptions(enabled=True, crosshair=True, time_range=True)
+    )
+
     # Render the chart
     price_manager.render()
 
@@ -69,12 +74,12 @@ with col2:
     volume_manager = ChartManager()
     volume_chart = Chart(series=[volume_series], chart_group_id=1)
     volume_manager.add_chart(volume_chart, "volume_chart")
-    
+
     # Set sync config for volume group
-    volume_manager.set_sync_group_config("1", SyncOptions(
-        enabled=True, crosshair=True, time_range=True
-    ))
-    
+    volume_manager.set_sync_group_config(
+        "1", SyncOptions(enabled=True, crosshair=True, time_range=True)
+    )
+
     # Render the chart
     volume_manager.render()
 
@@ -92,9 +97,7 @@ manager.add_chart(chart1, "chart1")
 manager.add_chart(chart2, "chart2")
 
 # Set sync config for the group
-manager.set_sync_group_config("1", SyncOptions(
-    enabled=True, crosshair=True, time_range=True
-))
+manager.set_sync_group_config("1", SyncOptions(enabled=True, crosshair=True, time_range=True))
 
 with col1:
     st.subheader("Price Chart")
@@ -119,9 +122,9 @@ stacked_manager.add_chart(volume_chart2, "volume_chart2")
 stacked_manager.add_chart(rsi_chart2, "rsi_chart2")
 
 # Set sync config for stacked group
-stacked_manager.set_sync_group_config("2", SyncOptions(
-    enabled=True, crosshair=True, time_range=True
-))
+stacked_manager.set_sync_group_config(
+    "2", SyncOptions(enabled=True, crosshair=True, time_range=True)
+)
 
 # Render all charts in the manager
 stacked_manager.render()
@@ -129,13 +132,16 @@ stacked_manager.render()
 # Example 3: Custom CSS positioning
 st.header("3. Custom CSS Positioning")
 
-st.markdown("""
+st.markdown(
+    """
 You can also use custom CSS to position charts. Here's an example using
 Streamlit's `st.markdown` with custom CSS:
-""")
+"""
+)
 
 # Custom CSS for positioning
-st.markdown("""
+st.markdown(
+    """
 <style>
 .chart-container {
     display: flex;
@@ -151,7 +157,9 @@ st.markdown("""
     background-color: #f9f9f9;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Create chart manager for custom positioning
 custom_manager = ChartManager()
@@ -162,27 +170,30 @@ custom_manager.add_chart(custom_price_chart, "custom_price")
 custom_manager.add_chart(custom_volume_chart, "custom_volume")
 
 # Set sync config for custom group
-custom_manager.set_sync_group_config("3", SyncOptions(
-    enabled=True, crosshair=True, time_range=True
-))
+custom_manager.set_sync_group_config(
+    "3", SyncOptions(enabled=True, crosshair=True, time_range=True)
+)
 
 # Render with custom positioning
 st.markdown('<div class="chart-container">', unsafe_allow_html=True)
 st.markdown('<div class="chart-item">', unsafe_allow_html=True)
 st.markdown("**Price Chart**")
 custom_manager.render()
-st.markdown('</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # Example 4: Grid layout
 st.header("4. Grid Layout")
 
-st.markdown("""
+st.markdown(
+    """
 You can also use CSS Grid for more complex layouts:
-""")
+"""
+)
 
 # CSS Grid example
-st.markdown("""
+st.markdown(
+    """
 <style>
 .chart-grid {
     display: grid;
@@ -203,7 +214,9 @@ st.markdown("""
     background-color: #f9f9f9;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Create chart manager for grid layout
 grid_manager = ChartManager()
@@ -216,9 +229,7 @@ grid_manager.add_chart(grid_volume_chart, "grid_volume")
 grid_manager.add_chart(grid_rsi_chart, "grid_rsi")
 
 # Set sync config for grid group
-grid_manager.set_sync_group_config("4", SyncOptions(
-    enabled=True, crosshair=True, time_range=True
-))
+grid_manager.set_sync_group_config("4", SyncOptions(enabled=True, crosshair=True, time_range=True))
 
 # Render with grid positioning
 st.markdown('<div class="chart-grid">', unsafe_allow_html=True)
@@ -226,23 +237,24 @@ st.markdown('<div class="chart-grid">', unsafe_allow_html=True)
 st.markdown('<div class="grid-item-1 grid-chart">', unsafe_allow_html=True)
 st.markdown("**Price Chart (Main)**")
 grid_manager.render()
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown('<div class="grid-item-2 grid-chart">', unsafe_allow_html=True)
 st.markdown("**Volume Chart (Sidebar)**")
 grid_manager.render()
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown('<div class="grid-item-3 grid-chart">', unsafe_allow_html=True)
 st.markdown("**RSI Chart (Bottom)**")
 grid_manager.render()
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # Summary
 st.header("Summary")
-st.markdown("""
+st.markdown(
+    """
 ## Key Points:
 
 1. **ChartManager handles data and sync**: The `ChartManager` provides chart data
@@ -287,4 +299,5 @@ with col2:
 # OR render all charts at once
 manager.render()  # Renders all charts in the manager
 ```
-""")
+"""
+)

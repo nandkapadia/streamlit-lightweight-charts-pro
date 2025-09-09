@@ -49,12 +49,12 @@ describe('Visual Regression Tests', () => {
 
   describe('Line Series Visual Consistency', () => {
     it('should render line series with consistent styling', async () => {
-      const chart = createChart(container, { 
-        layout: { attributionLogo: false },
+      const chart = createChart(container, {
+        layout: {attributionLogo: false},
         width: 800,
         height: 400
       })
-      
+
       const lineSeries = chart.addSeries(LineSeries, {
         lineWidth: 2,
         color: '#ff0000',
@@ -68,19 +68,19 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
     })
 
     it('should render dashed line series consistently', async () => {
-      const chart = createChart(container, { 
-        layout: { attributionLogo: false },
+      const chart = createChart(container, {
+        layout: {attributionLogo: false},
         width: 800,
         height: 400
       })
-      
+
       const lineSeries = chart.addSeries(LineSeries, {
         lineWidth: 2,
         color: '#00ff00',
@@ -94,19 +94,19 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
     })
 
     it('should render dotted line series consistently', async () => {
-      const chart = createChart(container, { 
-        layout: { attributionLogo: false },
+      const chart = createChart(container, {
+        layout: {attributionLogo: false},
         width: 800,
         height: 400
       })
-      
+
       const lineSeries = chart.addSeries(LineSeries, {
         lineWidth: 3,
         color: '#0000ff',
@@ -120,7 +120,7 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
@@ -129,12 +129,12 @@ describe('Visual Regression Tests', () => {
 
   describe('Area Series Visual Consistency', () => {
     it('should render area series with consistent gradient', async () => {
-      const chart = createChart(container, { 
-        layout: { attributionLogo: false },
+      const chart = createChart(container, {
+        layout: {attributionLogo: false},
         width: 800,
         height: 400
       })
-      
+
       const areaSeries = chart.addSeries(AreaSeries, {
         topColor: 'rgba(255, 0, 0, 0.4)',
         bottomColor: 'rgba(255, 0, 0, 0.1)',
@@ -147,19 +147,19 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
     })
 
     it('should render area series with solid colors consistently', async () => {
-      const chart = createChart(container, { 
-        layout: { attributionLogo: false },
+      const chart = createChart(container, {
+        layout: {attributionLogo: false},
         width: 800,
         height: 400
       })
-      
+
       const areaSeries = chart.addSeries(AreaSeries, {
         topColor: 'rgba(0, 255, 0, 0.8)',
         bottomColor: 'rgba(0, 255, 0, 0.2)',
@@ -173,19 +173,19 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
     })
 
     it('should render inverted area series consistently', async () => {
-      const chart = createChart(container, { 
-        layout: { attributionLogo: false },
+      const chart = createChart(container, {
+        layout: {attributionLogo: false},
         width: 800,
         height: 400
       })
-      
+
       const areaSeries = chart.addSeries(AreaSeries, {
         topColor: 'rgba(0, 0, 255, 0.4)',
         bottomColor: 'rgba(0, 0, 255, 0.1)',
@@ -199,7 +199,7 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
@@ -208,12 +208,12 @@ describe('Visual Regression Tests', () => {
 
   describe('Candlestick Series Visual Consistency', () => {
     it('should render candlestick series with consistent colors', async () => {
-      const chart = createChart(container, { 
-        layout: { attributionLogo: false },
+      const chart = createChart(container, {
+        layout: {attributionLogo: false},
         width: 800,
         height: 400
       })
-      
+
       const candlestickSeries = chart.addSeries(CandlestickSeries, {
         upColor: '#00ff00',
         downColor: '#ff0000',
@@ -230,19 +230,19 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
     })
 
     it('should render candlestick series with thin bars consistently', async () => {
-      const chart = createChart(container, { 
-        layout: { attributionLogo: false },
+      const chart = createChart(container, {
+        layout: {attributionLogo: false},
         width: 800,
         height: 400
       })
-      
+
       const candlestickSeries = chart.addSeries(CandlestickSeries, {
         upColor: '#00ff00',
         downColor: '#ff0000',
@@ -256,7 +256,7 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
@@ -268,17 +268,17 @@ describe('Visual Regression Tests', () => {
       const chart = createChart(container, {
         layout: {
           attributionLogo: false,
-          background: { color: '#1e1e1e' },
+          background: {color: '#1e1e1e'},
           textColor: '#ffffff'
         },
         grid: {
-          vertLines: { color: '#333333' },
-          horzLines: { color: '#333333' }
+          vertLines: {color: '#333333'},
+          horzLines: {color: '#333333'}
         },
         crosshair: {
           mode: 1,
-          vertLine: { color: '#666666' },
-          horzLine: { color: '#666666' }
+          vertLine: {color: '#666666'},
+          horzLine: {color: '#666666'}
         },
         width: 800,
         height: 400
@@ -294,7 +294,7 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
@@ -304,17 +304,17 @@ describe('Visual Regression Tests', () => {
       const chart = createChart(container, {
         layout: {
           attributionLogo: false,
-          background: { color: '#ffffff' },
+          background: {color: '#ffffff'},
           textColor: '#000000'
         },
         grid: {
-          vertLines: { color: '#e0e0e0' },
-          horzLines: { color: '#e0e0e0' }
+          vertLines: {color: '#e0e0e0'},
+          horzLines: {color: '#e0e0e0'}
         },
         crosshair: {
           mode: 1,
-          vertLine: { color: '#cccccc' },
-          horzLine: { color: '#cccccc' }
+          vertLine: {color: '#cccccc'},
+          horzLine: {color: '#cccccc'}
         },
         width: 800,
         height: 400
@@ -330,7 +330,7 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
@@ -338,7 +338,7 @@ describe('Visual Regression Tests', () => {
 
     it('should render chart with consistent time scale', async () => {
       const chart = createChart(container, {
-        layout: { attributionLogo: false },
+        layout: {attributionLogo: false},
         timeScale: {
           timeVisible: true,
           secondsVisible: false,
@@ -361,7 +361,7 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
@@ -369,7 +369,7 @@ describe('Visual Regression Tests', () => {
 
     it('should render chart with consistent price scale', async () => {
       const chart = createChart(container, {
-        layout: { attributionLogo: false },
+        layout: {attributionLogo: false},
         rightPriceScale: {
           visible: true,
           borderVisible: true,
@@ -393,7 +393,7 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const canvas = container.querySelector('canvas')
         expect(canvas).toBeInTheDocument()
-        expect(canvas).toHaveStyle({ width: '800px', height: '400px' })
+        expect(canvas).toHaveStyle({width: '800px', height: '400px'})
       })
 
       chart.remove()
@@ -442,7 +442,7 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const chartContainer = document.querySelector('[id^="chart-container-"]')
         expect(chartContainer).toBeInTheDocument()
-        expect(chartContainer).toHaveStyle({ width: '800px', height: '400px' })
+        expect(chartContainer).toHaveStyle({width: '800px', height: '400px'})
       })
     })
 
@@ -496,7 +496,7 @@ describe('Visual Regression Tests', () => {
       await waitFor(() => {
         const chartContainer = document.querySelector('[id^="chart-container-"]')
         expect(chartContainer).toBeInTheDocument()
-        expect(chartContainer).toHaveStyle({ width: '800px', height: '400px' })
+        expect(chartContainer).toHaveStyle({width: '800px', height: '400px'})
       })
     })
   })
@@ -504,10 +504,10 @@ describe('Visual Regression Tests', () => {
   describe('Responsive Design Visual Consistency', () => {
     it('should maintain visual consistency across different sizes', async () => {
       const sizes = [
-        { width: 400, height: 200 },
-        { width: 600, height: 300 },
-        { width: 800, height: 400 },
-        { width: 1000, height: 500 }
+        {width: 400, height: 200},
+        {width: 600, height: 300},
+        {width: 800, height: 400},
+        {width: 1000, height: 500}
       ]
 
       for (const size of sizes) {
@@ -516,8 +516,8 @@ describe('Visual Regression Tests', () => {
         testContainer.style.height = `${size.height}px`
         document.body.appendChild(testContainer)
 
-        const chart = createChart(testContainer, { 
-          layout: { attributionLogo: false },
+        const chart = createChart(testContainer, {
+          layout: {attributionLogo: false},
           width: size.width,
           height: size.height
         })
@@ -532,9 +532,9 @@ describe('Visual Regression Tests', () => {
         await waitFor(() => {
           const canvas = testContainer.querySelector('canvas')
           expect(canvas).toBeInTheDocument()
-          expect(canvas).toHaveStyle({ 
-            width: `${size.width}px`, 
-            height: `${size.height}px` 
+          expect(canvas).toHaveStyle({
+            width: `${size.width}px`,
+            height: `${size.height}px`
           })
         })
 

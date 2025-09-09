@@ -26,7 +26,6 @@ from streamlit_lightweight_charts_pro.charts.options.time_scale_options import T
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
 from streamlit_lightweight_charts_pro.utils import chainable_field
 
 

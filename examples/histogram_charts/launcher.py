@@ -15,7 +15,10 @@ st.write("Select an example to explore different histogram chart features and co
 examples = {
     "Basic Histogram Chart": {
         "file": "basic_histogram_chart.py",
-        "description": "Learn the fundamentals of creating histogram charts with HistogramSeries using sample data.",
+        "description": (
+            "Learn the fundamentals of creating histogram charts with HistogramSeries using sample"
+            " data."
+        ),
         "features": [
             "Basic volume data",
             "DataFrame integration",
@@ -25,7 +28,10 @@ examples = {
     },
     "Customized Histogram Chart": {
         "file": "customized_histogram_chart.py",
-        "description": "Explore advanced styling options including colors, base values, and volume trend analysis.",
+        "description": (
+            "Explore advanced styling options including colors, base values, and volume trend"
+            " analysis."
+        ),
         "features": [
             "Color customization",
             "Base value settings",

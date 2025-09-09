@@ -29,7 +29,6 @@ import pandas as pd
 from streamlit_lightweight_charts_pro.charts.options import (
     PriceLineOptions,
 )
-from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
 from streamlit_lightweight_charts_pro.data import Data
 from streamlit_lightweight_charts_pro.data.data import classproperty
 from streamlit_lightweight_charts_pro.data.marker import MarkerBase

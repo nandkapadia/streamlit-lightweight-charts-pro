@@ -190,16 +190,19 @@ with col1:
     st.markdown("**Core Documentation:**")
     st.markdown("- [TradingView API](https://tradingview.github.io/lightweight-charts/docs/api)")
     st.markdown(
-        "- [Line Series](https://tradingview.github.io/lightweight-charts/docs/api/interfaces/LineStyleOptions)"
+        "- [Line"
+        " Series](https://tradingview.github.io/lightweight-charts/docs/api/interfaces/LineStyleOptions)"
     )
 
 with col2:
     st.markdown("**Features:**")
     st.markdown(
-        "- [Price Lines](https://tradingview.github.io/lightweight-charts/tutorials/how_to/price-line)"
+        "- [Price"
+        " Lines](https://tradingview.github.io/lightweight-charts/tutorials/how_to/price-line)"
     )
     st.markdown(
-        "- [Series Markers](https://tradingview.github.io/lightweight-charts/tutorials/how_to/series-markers)"
+        "- [Series"
+        " Markers](https://tradingview.github.io/lightweight-charts/tutorials/how_to/series-markers)"
     )
 
 with col3:

@@ -56,7 +56,8 @@ def generate_sample_data():
 def main():
     st.title("Fit Content Test")
     st.write(
-        "This example tests the fitContent functionality to ensure charts properly rescale to show all data on load."
+        "This example tests the fitContent functionality to ensure charts properly rescale to show"
+        " all data on load."
     )
 
     # Generate sample data

@@ -94,7 +94,10 @@ def main():
     up_color_rgba = (
         f"rgba({int(up_color[1:3], 16)}, {int(up_color[3:5], 16)}, {int(up_color[5:7], 16)}, 0.5)"
     )
-    down_color_rgba = f"rgba({int(down_color[1:3], 16)}, {int(down_color[3:5], 16)}, {int(down_color[5:7], 16)}, 0.5)"
+    down_color_rgba = (
+        f"rgba({int(down_color[1:3], 16)}, {int(down_color[3:5], 16)}, {int(down_color[5:7], 16)},"
+        " 0.5)"
+    )
 
     # Chart options
     st.sidebar.subheader("Chart Options")

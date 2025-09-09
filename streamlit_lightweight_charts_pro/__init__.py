@@ -65,12 +65,6 @@ License: MIT
 import warnings
 from pathlib import Path
 
-try:
-    from importlib.metadata import distribution
-except ImportError:
-    # Fallback for Python < 3.8
-    from importlib_metadata import distribution
-
 from streamlit_lightweight_charts_pro.charts import (
     Chart,
     ChartManager,
@@ -133,6 +127,13 @@ from streamlit_lightweight_charts_pro.type_definitions.enums import (
     TradeVisualization,
 )
 
+try:
+    from importlib.metadata import distribution
+except ImportError:
+    # Fallback for Python < 3.8
+    from importlib_metadata import distribution
+
+
 # Version information
 __version__ = "0.1.0"
 
@@ -144,7 +145,9 @@ def _check_frontend_build():
     try:
         # Use importlib.metadata instead of deprecated pkg_resources
         dist = distribution("streamlit_lightweight_charts_pro")
-        if dist.locate_file("") and Path(dist.locate_file("")).samefile(Path(__file__).parent.parent):
+        if dist.locate_file("") and Path(dist.locate_file("")).samefile(
+            Path(__file__).parent.parent
+        ):
             # This is a development install, check frontend
             frontend_dir = Path(__file__).parent / "frontend"
             build_dir = frontend_dir / "build"

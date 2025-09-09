@@ -15,7 +15,10 @@ st.write("Select an example to explore different candlestick chart features and 
 examples = {
     "Basic Candlestick Chart": {
         "file": "basic_candlestick_chart.py",
-        "description": "Learn the fundamentals of creating candlestick charts with CandlestickSeries using sample data.",
+        "description": (
+            "Learn the fundamentals of creating candlestick charts with CandlestickSeries using"
+            " sample data."
+        ),
         "features": [
             "Basic OHLC data",
             "DataFrame integration",
@@ -25,7 +28,10 @@ examples = {
     },
     "Customized Candlestick Chart": {
         "file": "customized_candlestick_chart.py",
-        "description": "Explore advanced styling options including colors, visibility settings, and pattern analysis.",
+        "description": (
+            "Explore advanced styling options including colors, visibility settings, and pattern"
+            " analysis."
+        ),
         "features": [
             "Color customization",
             "Visibility controls",

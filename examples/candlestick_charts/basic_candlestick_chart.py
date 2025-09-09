@@ -23,7 +23,8 @@ def main():
     """Demonstrate basic CandlestickSeries functionality."""
     st.title("Basic Candlestick Chart Example")
     st.write(
-        "This example shows how to create a simple candlestick chart using CandlestickSeries with sample data."
+        "This example shows how to create a simple candlestick chart using CandlestickSeries with"
+        " sample data."
     )
 
     # Get sample data

@@ -218,5 +218,6 @@ st.markdown(
 
 st.markdown("---")
 st.markdown(
-    "**This example demonstrates the powerful DataFrame integration capabilities of the line chart component.**"
+    "**This example demonstrates the powerful DataFrame integration capabilities of the line chart"
+    " component.**"
 )

@@ -11,10 +11,8 @@ import streamlit as st
 
 from streamlit_lightweight_charts_pro import (
     AreaSeries,
-    CandlestickSeries,
     Chart,
     ChartOptions,
-    HistogramSeries,
     LineSeries,
 )
 from streamlit_lightweight_charts_pro.charts.options.layout_options import (
@@ -28,7 +26,10 @@ from streamlit_lightweight_charts_pro.data import AreaData, CandlestickData, His
 st.set_page_config(page_title="Legend Examples", page_icon="📊", layout="wide")
 
 st.title("📊 Legend Examples for Multi-Pane Charts")
-st.markdown("This example demonstrates legends for each pane in multi-pane charts with custom HTML templates.")
+st.markdown(
+    "This example demonstrates legends for each pane in multi-pane charts with custom HTML"
+    " templates."
+)
 
 
 # Generate sample data
@@ -293,7 +294,13 @@ custom_template_chart = Chart(
                 border_width=1,
                 border_radius=4,
                 padding=5,
-                text="<div style='display: flex; align-items: center; margin-bottom: 4px;'><span style='width: 12px; height: 2px; background-color: #2196f3; margin-right: 6px; display: inline-block;'></span><span style='font-weight: bold;'>20-Day MA</span><span style='margin-left: 8px; color: #2196f3; font-weight: bold;'>$$value$$</span></div>",
+                text=(
+                    "<div style='display: flex; align-items: center; margin-bottom: 4px;'><span"
+                    " style='width: 12px; height: 2px; background-color: #2196f3; margin-right:"
+                    " 6px; display: inline-block;'></span><span style='font-weight: bold;'>20-Day"
+                    " MA</span><span style='margin-left: 8px; color: #2196f3; font-weight:"
+                    " bold;'>$$value$$</span></div>"
+                ),
             ),
         },
     ),
@@ -435,8 +442,9 @@ area_data = [
         time=date.time,
         value=date.value,
         topColor="rgba(33, 150, 243, 0.3)",
-        bottomColor="rgba(33, 150, 243, 0.1)"
-    ) for date in ma20_data
+        bottomColor="rgba(33, 150, 243, 0.1)",
+    )
+    for date in ma20_data
 ]
 
 area_chart = Chart(
@@ -452,7 +460,12 @@ area_chart = Chart(
                 border_width=1,
                 border_radius=4,
                 padding=5,
-                text="<div style='display: flex; align-items: center;'><span style='width: 8px; height: 8px; background-color: #ff5722; margin-right: 4px; border-radius: 2px;'></span><span>Volume</span><span style='margin-left: 6px; color: #ff5722;'>$$value$$</span></div>",
+                text=(
+                    "<div style='display: flex; align-items: center;'><span style='width: 8px;"
+                    " height: 8px; background-color: #ff5722; margin-right: 4px; border-radius:"
+                    " 2px;'></span><span>Volume</span><span style='margin-left: 6px; color:"
+                    " #ff5722;'>$$value$$</span></div>"
+                ),
             ),
         },
     ),

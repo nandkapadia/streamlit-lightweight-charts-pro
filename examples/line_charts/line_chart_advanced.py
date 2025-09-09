@@ -270,5 +270,6 @@ with col2:
 
 st.markdown("---")
 st.markdown(
-    "**This example showcases the full power and flexibility of the line chart component with all available features and customization options.**"
+    "**This example showcases the full power and flexibility of the line chart component with all"
+    " available features and customization options.**"
 )

@@ -24,7 +24,8 @@ def main():
     """Demonstrate basic BaselineSeries functionality."""
     st.title("Basic Baseline Chart Example")
     st.write(
-        "This example shows how to create a simple baseline chart using BaselineSeries with sample data."
+        "This example shows how to create a simple baseline chart using BaselineSeries with sample"
+        " data."
     )
 
     # Get sample data

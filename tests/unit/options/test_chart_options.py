@@ -68,7 +68,6 @@ class TestChartOptionsConstruction:
         assert options.handle_scale is False
         assert options.add_default_pane is False
 
-
     def test_left_price_scale_default_visibility(self):
         """Test that left price scale is None by default."""
         options = ChartOptions()

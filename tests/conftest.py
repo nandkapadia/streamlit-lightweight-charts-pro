@@ -6,19 +6,28 @@ that can be used across all test modules with improved coverage and organization
 """
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import strategies as st
 
 # Import modules only when needed to avoid import errors during test discovery
 try:
     from streamlit_lightweight_charts_pro.charts.options import (
         ChartOptions,
-        LayoutOptions,
         CrosshairOptions,
+        LayoutOptions,
+    )
+    from streamlit_lightweight_charts_pro.charts.series import (
+        AreaSeries,
+        BandSeries,
+        BarSeries,
+        BaselineSeries,
+        CandlestickSeries,
+        HistogramSeries,
+        LineSeries,
     )
     from streamlit_lightweight_charts_pro.data import (
         AreaData,
@@ -30,15 +39,6 @@ try:
         LineData,
         Marker,
         OhlcvData,
-    )
-    from streamlit_lightweight_charts_pro.charts.series import (
-        AreaSeries,
-        BandSeries,
-        BarSeries,
-        BaselineSeries,
-        CandlestickSeries,
-        HistogramSeries,
-        LineSeries,
     )
 
     IMPORTS_AVAILABLE = True
@@ -69,6 +69,7 @@ except ImportError:
 # =============================================================================
 # Enhanced Test Data Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def sample_timestamps():
@@ -128,10 +129,7 @@ def sample_line_data(sample_timestamps, sample_values):
     """Generate sample line data for testing."""
     if not IMPORTS_AVAILABLE:
         pytest.skip("LineData not available")
-    return [
-        LineData(time=ts, value=val)
-        for ts, val in zip(sample_timestamps, sample_values)
-    ]
+    return [LineData(time=ts, value=val) for ts, val in zip(sample_timestamps, sample_values)]
 
 
 @pytest.fixture
@@ -153,71 +151,60 @@ def sample_candlestick_data(sample_timestamps, sample_ohlc_data):
 
 @pytest.fixture
 def sample_area_data(sample_timestamps, sample_values):
-        """Generate sample area data for testing."""
-        return [
-            AreaData(time=ts, value=val)
-            for ts, val in zip(sample_timestamps, sample_values)
-        ]
+    """Generate sample area data for testing."""
+    return [AreaData(time=ts, value=val) for ts, val in zip(sample_timestamps, sample_values)]
 
 
 @pytest.fixture
 def sample_histogram_data(sample_timestamps, sample_values):
-        """Generate sample histogram data for testing."""
-        return [
-            HistogramData(time=ts, value=val)
-            for ts, val in zip(sample_timestamps, sample_values)
-        ]
+    """Generate sample histogram data for testing."""
+    return [HistogramData(time=ts, value=val) for ts, val in zip(sample_timestamps, sample_values)]
 
 
 @pytest.fixture
 def sample_bar_data(sample_timestamps, sample_values):
-        """Generate sample bar data for testing."""
-        return [
-            BarData(time=ts, value=val)
-            for ts, val in zip(sample_timestamps, sample_values)
-        ]
+    """Generate sample bar data for testing."""
+    return [BarData(time=ts, value=val) for ts, val in zip(sample_timestamps, sample_values)]
 
 
 @pytest.fixture
 def sample_baseline_data(sample_timestamps, sample_values):
-        """Generate sample baseline data for testing."""
-        return [
-            BaselineData(time=ts, value=val)
-            for ts, val in zip(sample_timestamps, sample_values)
-        ]
+    """Generate sample baseline data for testing."""
+    return [BaselineData(time=ts, value=val) for ts, val in zip(sample_timestamps, sample_values)]
 
 
 @pytest.fixture
 def sample_band_data(sample_timestamps, sample_values):
-        """Generate sample band data for testing."""
-        return [
-            BandData(
-                upper=val + 10,
-                middle=val,
-                lower=val - 10,
-            )
-            for ts, val in zip(sample_timestamps, sample_values)
-        ]
+    """Generate sample band data for testing."""
+    return [
+        BandData(
+            upper=val + 10,
+            middle=val,
+            lower=val - 10,
+        )
+        for ts, val in zip(sample_timestamps, sample_values)
+    ]
 
 
 @pytest.fixture
 def sample_marker_data(sample_timestamps, sample_values):
-        """Generate sample marker data for testing."""
-        return [
-            Marker(
-                time=ts,
-                position="aboveBar",
-                color="#FF0000",
-                shape="arrowDown",
-                text=f"Marker {i}",
-            )
-            for i, (ts, val) in enumerate(zip(sample_timestamps, sample_values))
-        ]
+    """Generate sample marker data for testing."""
+    return [
+        Marker(
+            time=ts,
+            position="aboveBar",
+            color="#FF0000",
+            shape="arrowDown",
+            text=f"Marker {i}",
+        )
+        for i, (ts, val) in enumerate(zip(sample_timestamps, sample_values))
+    ]
 
 
 # =============================================================================
 # Edge Case and Error Testing Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def edge_case_data():
@@ -266,6 +253,7 @@ def malformed_data():
 # Performance Testing Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def large_dataset():
     """Generate large dataset for performance testing."""
@@ -273,11 +261,8 @@ def large_dataset():
     base_timestamp = int(datetime(2023, 1, 1).timestamp())
     timestamps = [base_timestamp + i * 60 for i in range(n_points)]  # 60 seconds = 1 minute
     values = np.random.randn(n_points).cumsum() + 100
-    
-    return [
-        LineData(time=ts, value=val)
-        for ts, val in zip(timestamps, values)
-    ]
+
+    return [LineData(time=ts, value=val) for ts, val in zip(timestamps, values)]
 
 
 @pytest.fixture
@@ -287,21 +272,19 @@ def wide_dataset():
     n_series = 100
     base_timestamp = int(datetime(2023, 1, 1).timestamp())
     timestamps = [base_timestamp + i * 3600 for i in range(n_points)]  # 3600 seconds = 1 hour
-    
+
     series_data = []
     for j in range(n_series):
         values = np.random.randn(n_points).cumsum() + 100 + j * 10
-        series_data.append([
-            LineData(time=ts, value=val)
-            for ts, val in zip(timestamps, values)
-        ])
-    
+        series_data.append([LineData(time=ts, value=val) for ts, val in zip(timestamps, values)])
+
     return series_data
 
 
 # =============================================================================
 # Chart Configuration Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def basic_chart_options():
@@ -341,6 +324,7 @@ def advanced_chart_options():
 # Test Utility Functions
 # =============================================================================
 
+
 def assert_data_equality(actual: Any, expected: Any, tolerance: float = 1e-10):
     """Assert data equality with tolerance for floating point values."""
     if isinstance(actual, (list, tuple)) and isinstance(expected, (list, tuple)):
@@ -372,32 +356,30 @@ def generate_random_data(
     """Generate random time series data for testing."""
     if not IMPORTS_AVAILABLE:
         pytest.skip("LineData not available")
-        
+
     if start_date is None:
         start_date = datetime(2023, 1, 1)
-    
+
     timestamps = [start_date + timedelta(hours=i) for i in range(n_points)]
-    
+
     # Generate random walk with trend
     np.random.seed(42)  # For reproducible tests
     returns = np.random.normal(trend, volatility, n_points)
     values = base_value * np.exp(np.cumsum(returns))
-    
-    return [
-        LineData(time=ts, value=val)
-        for ts, val in zip(timestamps, values)
-    ]
+
+    return [LineData(time=ts, value=val) for ts, val in zip(timestamps, values)]
 
 
 def create_test_chart_with_series(series_list: List, options: ChartOptions = None):
     """Create a test chart with the given series."""
     if not IMPORTS_AVAILABLE:
         pytest.skip("Chart not available")
-        
+
     if options is None:
         options = basic_chart_options()
-    
+
     from streamlit_lightweight_charts_pro.charts.chart import Chart
+
     return Chart(series=series_list, options=options)
 
 
@@ -405,12 +387,13 @@ def create_test_chart_with_series(series_list: List, options: ChartOptions = Non
 # Hypothesis Strategies for Property-Based Testing
 # =============================================================================
 
+
 @st.composite
 def line_data_strategy(draw):
     """Generate LineData objects for property-based testing."""
     if not IMPORTS_AVAILABLE:
         pytest.skip("LineData not available")
-        
+
     time = draw(st.datetimes())
     value = draw(st.floats(min_value=-1e6, max_value=1e6, allow_nan=False, allow_infinity=False))
     return LineData(time=time, value=value)
@@ -421,13 +404,21 @@ def candlestick_data_strategy(draw):
     """Generate CandlestickData objects for property-based testing."""
     if not IMPORTS_AVAILABLE:
         pytest.skip("CandlestickData not available")
-        
+
     time = draw(st.datetimes())
-    open_price = draw(st.floats(min_value=0.01, max_value=1e6, allow_nan=False, allow_infinity=False))
-    high_price = draw(st.floats(min_value=open_price, max_value=1e6, allow_nan=False, allow_infinity=False))
-    low_price = draw(st.floats(min_value=0.01, max_value=open_price, allow_nan=False, allow_infinity=False))
-    close_price = draw(st.floats(min_value=0.01, max_value=1e6, allow_nan=False, allow_infinity=False))
-    
+    open_price = draw(
+        st.floats(min_value=0.01, max_value=1e6, allow_nan=False, allow_infinity=False)
+    )
+    high_price = draw(
+        st.floats(min_value=open_price, max_value=1e6, allow_nan=False, allow_infinity=False)
+    )
+    low_price = draw(
+        st.floats(min_value=0.01, max_value=open_price, allow_nan=False, allow_infinity=False)
+    )
+    close_price = draw(
+        st.floats(min_value=0.01, max_value=1e6, allow_nan=False, allow_infinity=False)
+    )
+
     return CandlestickData(
         time=time,
         open=open_price,
@@ -442,10 +433,10 @@ def chart_options_strategy(draw):
     """Generate ChartOptions objects for property-based testing."""
     if not IMPORTS_AVAILABLE:
         pytest.skip("ChartOptions not available")
-        
+
     height = draw(st.integers(min_value=100, max_value=2000))
     width = draw(st.integers(min_value=100, max_value=2000))
-    
+
     return ChartOptions(
         height=height,
         width=width,
@@ -456,38 +447,39 @@ def chart_options_strategy(draw):
 # Test Data Validation Functions
 # =============================================================================
 
+
 def validate_data_integrity(data: List[Any]) -> bool:
     """Validate data integrity for testing."""
     if not isinstance(data, list):
         return False
-    
+
     for item in data:
-        if not hasattr(item, 'time') or not hasattr(item, 'value'):
+        if not hasattr(item, "time") or not hasattr(item, "value"):
             return False
-        
+
         if not isinstance(item.time, datetime):
             return False
-        
+
         if not isinstance(item.value, (int, float, np.number)):
             return False
-        
+
         if np.isnan(item.value) or np.isinf(item.value):
             return False
-    
+
     return True
 
 
 def validate_series_properties(series: Any) -> bool:
     """Validate series properties for testing."""
-    required_attrs = ['data', 'options', 'to_dict', 'asdict']
-    
+    required_attrs = ["data", "options", "to_dict", "asdict"]
+
     for attr in required_attrs:
         if not hasattr(series, attr):
             return False
-    
+
     if not isinstance(series.data, list):
         return False
-    
+
     return True
 
 
@@ -495,14 +487,15 @@ def validate_series_properties(series: Any) -> bool:
 # Performance Benchmarking Utilities
 # =============================================================================
 
+
 def benchmark_function(func, *args, **kwargs):
     """Benchmark function execution time."""
     import time
-    
+
     start_time = time.perf_counter()
     result = func(*args, **kwargs)
     end_time = time.perf_counter()
-    
+
     execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
     return result, execution_time
 
@@ -510,17 +503,18 @@ def benchmark_function(func, *args, **kwargs):
 def assert_performance_target(func, *args, max_time_ms: float = 100.0, **kwargs):
     """Assert that function meets performance target."""
     result, execution_time = benchmark_function(func, *args, **kwargs)
-    
-    assert execution_time <= max_time_ms, (
-        f"Function execution time {execution_time:.2f}ms exceeds target {max_time_ms}ms"
-    )
-    
+
+    assert (
+        execution_time <= max_time_ms
+    ), f"Function execution time {execution_time:.2f}ms exceeds target {max_time_ms}ms"
+
     return result
 
 
 # =============================================================================
 # Error Testing Utilities
 # =============================================================================
+
 
 def test_error_handling(func, *args, expected_error: type = Exception, **kwargs):
     """Test that function properly handles errors."""
@@ -538,34 +532,35 @@ def test_error_messages(func, *args, expected_error: type, expected_message: str
 # Mock and Stub Utilities
 # =============================================================================
 
+
 class MockDataManager:
     """Mock data manager for testing."""
-    
+
     def __init__(self, data: Dict[str, Any] = None):
         self.data = data or {}
-    
+
     def get_data(self, key: str) -> Any:
         return self.data.get(key)
-    
+
     def set_data(self, key: str, value: Any):
         self.data[key] = value
 
 
 class MockChartRenderer:
     """Mock chart renderer for testing."""
-    
+
     def __init__(self):
         self.render_calls = []
         self.config_calls = []
-    
+
     def render(self, config: Dict[str, Any]):
         self.render_calls.append(config)
-    
+
     def configure(self, options: Dict[str, Any]):
         self.config_calls.append(options)
-    
+
     def get_render_count(self) -> int:
         return len(self.render_calls)
-    
+
     def get_config_count(self) -> int:
         return len(self.config_calls)

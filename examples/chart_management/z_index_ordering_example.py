@@ -6,7 +6,14 @@ within each pane to ensure proper layering in the frontend.
 """
 
 import streamlit as st
-from streamlit_lightweight_charts_pro import Chart, LineSeries, CandlestickSeries, AreaSeries
+
+from streamlit_lightweight_charts_pro import (
+    AreaSeries,
+    CandlestickSeries,
+    Chart,
+    HistogramSeries,
+    LineSeries,
+)
 from streamlit_lightweight_charts_pro.data import LineData, OhlcvData
 
 st.set_page_config(page_title="Z-Index Ordering Example", layout="wide")
@@ -130,7 +137,6 @@ histogram_data = [
     LineData(time=1641340800, value=65),
 ]
 
-from streamlit_lightweight_charts_pro import HistogramSeries
 
 histogram_series_pane1 = HistogramSeries(data=histogram_data, pane_id=1)
 histogram_series_pane1.z_index = 15

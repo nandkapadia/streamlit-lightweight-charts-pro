@@ -57,12 +57,12 @@ class LegendOptions(Options):
     Dynamic Value Display:
     When show_values=True, the legend will automatically display current values
     at the crosshair position without needing to specify a custom template.
-    
+
     Example templates:
     - "<span style='color: #2196f3'>MA20: $$value$$</span>"
     - "<div><strong>Price</strong><br/>Value: $$value$$</div>"
     - "<span class='legend-item'>RSI: $$value$$</span>"
-    
+
     Example with dynamic values:
     LegendOptions(show_values=True, value_format=".2f", update_on_crosshair=True)
     """

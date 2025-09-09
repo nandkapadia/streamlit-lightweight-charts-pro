@@ -90,7 +90,10 @@ def main():
                 data=dynamic_data_1,
                 pane_id=0,
                 top_color=color_1,
-                bottom_color=f"rgba({int(color_1[1:3], 16)}, {int(color_1[3:5], 16)}, {int(color_1[5:7], 16)}, {transparency})",
+                bottom_color=(
+                    f"rgba({int(color_1[1:3], 16)}, {int(color_1[3:5], 16)},"
+                    f" {int(color_1[5:7], 16)}, {transparency})"
+                ),
                 line_options=LineOptions(color=color_1, line_width=line_width),
             )
             chart.add_series(area1)
@@ -100,7 +103,10 @@ def main():
                 data=dynamic_data_2,
                 pane_id=1 if show_data_1 else 0,
                 top_color=color_2,
-                bottom_color=f"rgba({int(color_2[1:3], 16)}, {int(color_2[3:5], 16)}, {int(color_2[5:7], 16)}, {transparency})",
+                bottom_color=(
+                    f"rgba({int(color_2[1:3], 16)}, {int(color_2[3:5], 16)},"
+                    f" {int(color_2[5:7], 16)}, {transparency})"
+                ),
                 line_options=LineOptions(color=color_2, line_width=line_width),
             )
             chart.add_series(area2)
@@ -116,7 +122,10 @@ def main():
             area1 = AreaSeries(
                 data=dynamic_data_1,
                 top_color=color_1,
-                bottom_color=f"rgba({int(color_1[1:3], 16)}, {int(color_1[3:5], 16)}, {int(color_1[5:7], 16)}, {transparency})",
+                bottom_color=(
+                    f"rgba({int(color_1[1:3], 16)}, {int(color_1[3:5], 16)},"
+                    f" {int(color_1[5:7], 16)}, {transparency})"
+                ),
                 line_options=LineOptions(color=color_1, line_width=line_width),
             )
             chart.add_series(area1)
@@ -124,10 +133,19 @@ def main():
         if show_data_2:
             area2 = AreaSeries(
                 data=dynamic_data_2,
-                top_color=f"rgba({int(color_2[1:3], 16)}, {int(color_2[3:5], 16)}, {int(color_2[5:7], 16)}, {transparency + 0.2})",
-                bottom_color=f"rgba({int(color_2[1:3], 16)}, {int(color_2[3:5], 16)}, {int(color_2[5:7], 16)}, {transparency * 0.5})",
+                top_color=(
+                    f"rgba({int(color_2[1:3], 16)}, {int(color_2[3:5], 16)},"
+                    f" {int(color_2[5:7], 16)}, {transparency + 0.2})"
+                ),
+                bottom_color=(
+                    f"rgba({int(color_2[1:3], 16)}, {int(color_2[3:5], 16)},"
+                    f" {int(color_2[5:7], 16)}, {transparency * 0.5})"
+                ),
                 line_options=LineOptions(
-                    color=f"rgba({int(color_2[1:3], 16)}, {int(color_2[3:5], 16)}, {int(color_2[5:7], 16)}, 0.8)",
+                    color=(
+                        f"rgba({int(color_2[1:3], 16)}, {int(color_2[3:5], 16)},"
+                        f" {int(color_2[5:7], 16)}, 0.8)"
+                    ),
                     line_width=line_width - 1,
                     line_style=LineStyle.DOTTED,
                 ),
@@ -145,7 +163,10 @@ def main():
             area1 = AreaSeries(
                 data=dynamic_data_1,
                 top_color=color_1,
-                bottom_color=f"rgba({int(color_1[1:3], 16)}, {int(color_1[3:5], 16)}, {int(color_1[5:7], 16)}, {transparency})",
+                bottom_color=(
+                    f"rgba({int(color_1[1:3], 16)}, {int(color_1[3:5], 16)},"
+                    f" {int(color_1[5:7], 16)}, {transparency})"
+                ),
                 line_options=LineOptions(color=color_1, line_width=line_width),
             )
 
@@ -166,7 +187,10 @@ def main():
             area2 = AreaSeries(
                 data=dynamic_data_2,
                 top_color=color_2,
-                bottom_color=f"rgba({int(color_2[1:3], 16)}, {int(color_2[3:5], 16)}, {int(color_2[5:7], 16)}, {transparency})",
+                bottom_color=(
+                    f"rgba({int(color_2[1:3], 16)}, {int(color_2[3:5], 16)},"
+                    f" {int(color_2[5:7], 16)}, {transparency})"
+                ),
                 line_options=LineOptions(color=color_2, line_width=line_width),
             )
 
