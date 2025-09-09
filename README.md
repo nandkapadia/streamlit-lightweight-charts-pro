@@ -11,10 +11,9 @@ Streamlit Lightweight Charts Pro is a comprehensive Python library that brings T
 
 ## 📚 Documentation
 
-- **[Complete Documentation](docs/)** - Comprehensive guides and examples
-- **[Installation Guide](README_INSTALL.md)** - Detailed setup instructions
-- **[Examples](docs/examples/)** - Code examples and tutorials
-- **[API Reference](docs/)** - Complete API documentation
+- **[Examples](examples/)** - Comprehensive code examples and tutorials
+- **[GitHub Repository](https://github.com/nandkapadia/streamlit-lightweight-charts-pro)** - Source code and issue tracking
+- **[PyPI Package](https://pypi.org/project/streamlit-lightweight-charts-pro/)** - Installation and package info
 
 ## ✨ Features
 

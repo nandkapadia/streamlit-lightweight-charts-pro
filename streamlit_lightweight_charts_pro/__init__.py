@@ -44,10 +44,11 @@ Example Usage:
     chart.render(key="my_chart")
     ```
 
-For detailed documentation and examples, visit the project repository.
+For detailed documentation and examples, visit the project repository:
+https://github.com/nandkapadia/streamlit-lightweight-charts-pro
 
 Version: 0.1.0
-Author: Streamlit Lightweight Charts Contributors
+Author: Nand Kapadia
 License: MIT
 """
 
