@@ -1,0 +1,121 @@
+/* Pane Collapse Button Styles */
+.pane-collapse-button {
+  position: absolute !important;
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #787b86;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: #787b86;
+  z-index: 1000;
+  transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  pointer-events: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  /* Smooth positioning transitions */
+  transition:
+    top 0.08s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    left 0.08s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
+  /* Enable hardware acceleration for smoother animations */
+  will-change: top, left;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.pane-collapse-button:hover {
+  background: rgba(255, 255, 255, 1);
+  color: #131722;
+  border-color: #131722;
+  transform: scale(1.05);
+}
+
+.pane-collapse-button:active {
+  transform: scale(0.95);
+}
+
+.pane-collapse-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Pane Collapse Tooltip Styles */
+.pane-collapse-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1001;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.pane-collapse-tooltip.show {
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pane-collapse-button {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+  }
+
+  .pane-collapse-tooltip {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .pane-collapse-button {
+    border-width: 2px;
+    background: white;
+    color: black;
+  }
+
+  .pane-collapse-tooltip {
+    background: black;
+    color: white;
+    border: 2px solid white;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .pane-collapse-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e1e3e6;
+    border-color: #e1e3e6;
+  }
+
+  .pane-collapse-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-color: white;
+  }
+
+  .pane-collapse-tooltip {
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    border: 1px solid #e1e3e6;
+  }
+}

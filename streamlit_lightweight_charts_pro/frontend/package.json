@@ -1,0 +1,73 @@
+{
+  "name": "streamlit_lightweight_charts_pro",
+  "version": "0.1.0",
+  "private": false,
+  "license": "MIT",
+  "dependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.1.0",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "lightweight-charts": "^5.0.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "^5.0.1",
+    "streamlit-component-lib": "^2.0.0",
+    "streamlit-component-lib-react-hooks": "^1.2.8"
+  },
+  "devDependencies": {
+    "@craco/craco": "^7.1.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.5",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/chai": "^5.2.2",
+    "chai": "^6.0.1",
+    "compression-webpack-plugin": "^10.0.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "prettier": "^3.6.2",
+    "terser-webpack-plugin": "^5.3.7",
+    "ts-jest": "^29.4.1",
+    "typescript": "^4.9.5",
+    "webpack-bundle-analyzer": "^4.9.0"
+  },
+  "resolutions": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "overrides": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "scripts": {
+    "start": "craco start",
+    "build": "GENERATE_SOURCEMAP=false craco build",
+    "build:analyze": "GENERATE_SOURCEMAP=false ANALYZE=true craco build",
+    "build:size": "GENERATE_SOURCEMAP=false ANALYZE=true craco build",
+    "analyze:size": "npx webpack-bundle-analyzer build/static/js/*.js --mode=static --report-filename=bundle-report.html",
+    "build:optimized": "GENERATE_SOURCEMAP=false NODE_ENV=production craco build",
+    "test": "craco test",
+    "eject": "react-scripts eject",
+    "type-check": "tsc --noEmit",
+    "build:prod": "GENERATE_SOURCEMAP=false NODE_ENV=production craco build",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx}\"",
+    "format:fix": "prettier --write --fix \"src/**/*.{ts,tsx,js,jsx}\""
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "homepage": "."
+}

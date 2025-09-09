@@ -1,0 +1,178 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["setup"]
+
+[project]
+name = "streamlit_lightweight_charts_pro"
+version = "0.1.0"
+description = "Enhanced Streamlit wrapper for TradingView's lightweight-charts with ultra-simplified API and performance optimizations"
+authors = [{ name = "Nand Kapadia", email = "nand.kapadia@gmail.com" }]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "streamlit>=1.0",
+    "pandas>=1.0",
+    "numpy>=1.19"
+]
+keywords = ["streamlit", "tradingview", "charts", "visualization", "trading", "financial"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers", 
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Visualization"
+]
+
+[project.scripts]
+streamlit-lightweight-charts-pro = "streamlit_lightweight_charts_pro.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "pylint>=3.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["streamlit_lightweight_charts_pro*"]
+
+# Black code formatter configuration
+[tool.black]
+line-length = 100
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | frontend
+)/
+'''
+
+# isort import sorting configuration
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+known_first_party = ["streamlit_lightweight_charts_pro"]
+known_third_party = ["streamlit", "pandas", "numpy", "yfinance"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+default_section = "THIRDPARTY"
+
+# Pylint configuration
+[tool.pylint.messages_control]
+disable = [
+    "C0114",  # missing-module-docstring
+    "C0115",  # missing-class-docstring
+    "C0116",  # missing-function-docstring
+    "R0903",  # too-few-public-methods
+    "R0913",  # too-many-arguments
+    "R0914",  # too-many-locals
+    "R0915",  # too-many-statements
+    "W0621",  # redefined-outer-name
+    "W0622",  # redefined-builtin
+    "W0703",  # broad-except
+    "W0612",  # unused-variable
+    "W0613",  # unused-argument
+]
+
+# Pytest configuration
+[tool.pytest.ini_options]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--tb=short",
+    "--maxfail=10",
+    "--durations=10",
+    "--cov=streamlit_lightweight_charts_pro",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "-n auto",
+    "--dist=loadfile"
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "performance: Performance tests",
+    "e2e: End-to-end tests",
+    "slow: Slow running tests",
+    "fast: Fast running tests",
+    "data: Data class tests",
+    "series: Series class tests",
+    "options: Options class tests",
+    "frontend: Frontend integration tests",
+    "type_definitions: Type definitions tests",
+    "utils: Utils module tests",
+    "component: Component module tests",
+    "logging_tests: Logging module tests"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::UserWarning:pandas.*",
+    "ignore::FutureWarning:numpy.*"
+]
+minversion = "6.0"
+timeout = 300
+
+[tool.pylint.format]
+max-line-length = 100
+good-names = ["i", "j", "k", "ex", "Run", "_", "id", "db"]
+
+[tool.pylint.design]
+max-args = 10
+max-attributes = 10
+max-bool-expr = 5
+max-branches = 12
+max-locals = 15
+max-parents = 7
+max-public-methods = 20
+max-returns = 6
+max-statements = 50
+
+[tool.pylint.similarities]
+min-similarity-lines = 4
+ignore-comments = "yes"
+ignore-docstrings = "yes"
+ignore-imports = "yes"
+
+[tool.pylint.basic]
+good-names = ["i", "j", "k", "ex", "Run", "_", "id", "db"]
+
+[tool.pylint.master]
+persistent = "yes"
+load-plugins = []
+
+[tool.pylint.reports]
+output-format = "text"
+reports = "no"
+score = "yes"

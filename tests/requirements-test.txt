@@ -1,0 +1,30 @@
+# Test dependencies for Streamlit Lightweight Charts Pro
+# Install with: pip install -r tests/requirements-test.txt
+
+# Core testing framework
+pytest>=6.0.0
+pytest-cov>=4.0.0
+pytest-xdist>=2.0.0
+
+# Property-based testing
+hypothesis>=6.0.0
+
+# Performance monitoring
+psutil>=5.8.0
+
+# Data generation and manipulation
+numpy>=1.20.0
+pandas>=1.3.0
+
+# Optional: Advanced profiling tools
+# line_profiler>=3.3.0
+# memory_profiler>=0.60.0
+# snakeviz>=2.1.0
+
+# Optional: Browser testing for E2E tests
+# selenium>=4.0.0
+# webdriver-manager>=3.8.0
+
+# Optional: Visual regression testing
+# pytest-image-diff>=1.0.0
+# pillow>=8.0.0
