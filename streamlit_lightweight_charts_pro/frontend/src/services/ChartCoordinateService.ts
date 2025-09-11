@@ -151,8 +151,6 @@ export class ChartCoordinateService {
 
       return coordinates
     } catch (error) {
-      console.error('Error calculating coordinates:', error)
-
       if (fallbackOnError) {
         return sanitizeCoordinates({})
       }
@@ -168,7 +166,6 @@ export class ChartCoordinateService {
     try {
       // Validate inputs
       if (!chart || typeof paneId !== 'number' || paneId < 0) {
-        console.warn(`[ChartCoordinateService] Invalid inputs: chart=${!!chart}, paneId=${paneId}`)
         return null
       }
 
@@ -177,12 +174,10 @@ export class ChartCoordinateService {
       try {
         paneSize = chart.paneSize(paneId)
       } catch (error) {
-        console.warn(`[ChartCoordinateService] Error getting pane size for pane ${paneId}:`, error)
         return null
       }
 
       if (!paneSize || typeof paneSize.height !== 'number' || typeof paneSize.width !== 'number') {
-        console.warn(`[ChartCoordinateService] Invalid pane size for pane ${paneId}:`, paneSize)
         return null
       }
 
@@ -193,20 +188,12 @@ export class ChartCoordinateService {
           const size = chart.paneSize(i)
           if (size && typeof size.height === 'number') {
             offsetY += size.height
-            console.log(
-              `[ChartCoordinateService] Pane ${i} height: ${size.height}, cumulative offset: ${offsetY}`
-            )
           }
         } catch (error) {
-          console.warn(
-            `[ChartCoordinateService] Error getting pane size for pane ${i} during offset calculation:`,
-            error
-          )
           // Continue with other panes even if one fails
         }
       }
 
-      console.log(`[ChartCoordinateService] Final offsetY for pane ${paneId}: ${offsetY}`)
 
       // Get chart element for price scale width
       // Get chart element (used for price scale width calculation)
@@ -226,14 +213,6 @@ export class ChartCoordinateService {
         paneSize.height
       )
 
-      console.log(`[ChartCoordinateService] Pane ${paneId} bounds:`, {
-        top: bounds.top,
-        left: bounds.left,
-        width: bounds.width,
-        height: bounds.height,
-        offsetY,
-        paneSize: paneSize
-      })
 
       // Calculate content area (excluding scales) relative to chart element
       // This is where the actual chart content starts (after price scale)
@@ -262,7 +241,6 @@ export class ChartCoordinateService {
         margins
       }
     } catch (error) {
-      console.error(`Error getting pane coordinates for pane ${paneId}:`, error)
       return null
     }
   }
@@ -364,7 +342,6 @@ export class ChartCoordinateService {
         margins
       }
     } catch (error) {
-      console.error(`❌ Error getting pane ${paneId} coordinates from DOM:`, error)
       return null
     }
   }
@@ -430,11 +407,9 @@ export class ChartCoordinateService {
       if (this.areChartDimensionsValid(coordinates, options.minWidth, options.minHeight)) {
         return coordinates
       } else {
-        console.warn('⚠️ Chart dimensions below minimum threshold')
         return null
       }
     } catch (error) {
-      console.error('❌ Failed to get validated chart coordinates:', error)
       return null
     }
   }
@@ -533,7 +508,6 @@ export class ChartCoordinateService {
         container: chartSize
       }
     } catch (error) {
-      console.error('❌ Error getting chart dimensions from API:', error)
       throw error
     }
   }
@@ -560,7 +534,6 @@ export class ChartCoordinateService {
         width = rect.width
         height = rect.height
       } catch (error) {
-        console.error('⚠️ getBoundingClientRect failed, trying offset dimensions')
       }
 
       // Method 2: offset dimensions
@@ -594,7 +567,6 @@ export class ChartCoordinateService {
         timeScaleHeight = timeScale.height() || 35
         timeScaleWidth = timeScale.width() || width
       } catch (error) {
-        console.error('⚠️ Time scale height failed, using defaults')
       }
 
       // Get price scale width
@@ -604,7 +576,6 @@ export class ChartCoordinateService {
         const priceScale = chart.priceScale('left')
         priceScaleWidth = priceScale.width() || 70
       } catch (error) {
-        console.error('⚠️ Price scale width failed, using defaults')
       }
 
       return {
@@ -623,7 +594,6 @@ export class ChartCoordinateService {
         container: {width, height}
       }
     } catch (error) {
-      console.error('❌ Error getting chart dimensions from DOM:', error)
       throw error
     }
   }
@@ -674,11 +644,10 @@ export class ChartCoordinateService {
       if (this.areChartDimensionsObjectValid(dimensions, options.minWidth, options.minHeight)) {
         return dimensions
       } else {
-        console.warn('⚠️ Chart dimensions below minimum threshold')
         return null
       }
     } catch (error) {
-      console.error('❌ Failed to get validated chart dimensions:', error)
+
       return null
     }
   }
@@ -833,7 +802,6 @@ export class ChartCoordinateService {
 
           resolve(coordinates)
         } catch (error) {
-          console.error('Error in calculateCoordinates:', error)
           resolve(sanitizeCoordinates({}))
         }
       })
@@ -1029,7 +997,6 @@ export class ChartCoordinateService {
         try {
           callback()
         } catch (error) {
-          console.error('Error in coordinate update callback:', error)
         }
       })
     }
@@ -1185,7 +1152,6 @@ export class ChartCoordinateService {
           try {
             callback()
           } catch (error) {
-            console.error('Error in coordinate refresh callback:', error)
           }
         })
       }

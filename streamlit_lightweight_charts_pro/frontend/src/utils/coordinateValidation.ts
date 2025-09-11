@@ -297,15 +297,15 @@ export function areCoordinatesStale(coordinates: ChartCoordinates, maxAge: numbe
 export function logValidationResult(result: ValidationResult, context: string = ''): void {
   if (process.env.NODE_ENV !== 'development') return
 
-  const prefix = context ? `[${context}] ` : ''
+  // const prefix = context ? `[${context}] ` : ''
 
   if (!result.isValid) {
-    console.error(`${prefix}Coordinate validation failed:`)
-    result.errors.forEach(error => console.error(`  ❌ ${error}`))
+
+
   }
 
   if (result.warnings.length > 0) {
-    console.warn(`${prefix}Coordinate validation warnings:`)
-    result.warnings.forEach(warning => console.warn(`  ⚠️ ${warning}`))
+
+
   }
 }

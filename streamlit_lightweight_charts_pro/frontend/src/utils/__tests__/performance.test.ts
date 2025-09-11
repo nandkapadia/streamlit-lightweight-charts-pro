@@ -18,15 +18,15 @@ Object.defineProperty(window, 'performance', {
 // Mock console methods
 const originalConsole = {...console}
 beforeEach(() => {
-  console.log = jest.fn()
-  console.warn = jest.fn()
-  console.error = jest.fn()
+
+
+
 })
 
 afterEach(() => {
-  console.log = originalConsole.log
-  console.warn = originalConsole.warn
-  console.error = originalConsole.error
+
+
+
 })
 
 describe('performance', () => {
@@ -53,7 +53,7 @@ describe('performance', () => {
       })
 
       expect(mockPerformance.now).toHaveBeenCalled()
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('test-operation'))
+
     })
 
     it('should handle errors gracefully', () => {
@@ -111,7 +111,7 @@ describe('performance', () => {
       const result = perfLog('no-performance', () => 'result')
 
       expect(result).toBe('result')
-      expect(console.log).not.toHaveBeenCalled()
+
     })
   })
 

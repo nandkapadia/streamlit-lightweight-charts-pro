@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Chart Error Boundary caught an error:', error, errorInfo)
+
 
     if (this.props.onError) {
       this.props.onError(error, errorInfo)
@@ -76,7 +76,7 @@ export function useErrorHandler() {
   const [error, setError] = React.useState<Error | null>(null)
 
   const handleError = React.useCallback((error: Error) => {
-    console.error('Chart error caught:', error)
+
     setError(error)
   }, [])
 

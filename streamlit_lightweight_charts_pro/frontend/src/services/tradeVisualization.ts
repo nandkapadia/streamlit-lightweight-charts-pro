@@ -34,7 +34,7 @@ function parseTime(time: string | number): UTCTimestamp | null {
         // ISO format - parse directly to avoid local timezone conversion
         const date = new Date(time)
         if (isNaN(date.getTime())) {
-          console.warn(`Failed to parse ISO time: ${time}`)
+
           return null
         }
         // Use UTC timestamp directly - no timezone conversion
@@ -44,7 +44,7 @@ function parseTime(time: string | number): UTCTimestamp | null {
       // Regular date string parsing as fallback
       const date = new Date(time)
       if (isNaN(date.getTime())) {
-        console.warn(`Failed to parse time: ${time}`)
+
         return null
       }
       return Math.floor(date.getTime() / 1000) as UTCTimestamp
@@ -52,7 +52,7 @@ function parseTime(time: string | number): UTCTimestamp | null {
 
     return null
   } catch (error) {
-    console.error(`Error parsing time ${time}:`, error)
+
     return null
   }
 }
@@ -442,9 +442,7 @@ export function createTradeRectanglePrimitives(
   chart?: any,
   series?: any
 ): any[] {
-  console.warn(
-    '[tradeVisualization] This createTradeRectanglePrimitives is deprecated. Use the one from TradeRectanglePrimitive instead.'
-  )
+
   return []
 }
 

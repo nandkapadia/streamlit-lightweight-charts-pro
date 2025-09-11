@@ -16,10 +16,6 @@ export const createAnnotationVisualElements = (
 
   // Immediate return if annotations is null, undefined, or not an object
   if (!annotations || typeof annotations !== 'object') {
-    console.warn(
-      'createAnnotationVisualElements: annotations is null, undefined, or not an object:',
-      annotations
-    )
     return {markers, shapes, texts}
   }
 
@@ -27,21 +23,17 @@ export const createAnnotationVisualElements = (
   try {
     // Validate that annotations is an array
     if (!Array.isArray(annotations)) {
-      console.warn('createAnnotationVisualElements: annotations is not an array:', annotations)
+
       return {markers, shapes, texts}
     }
 
     // Additional safety check - ensure annotations is actually an array
     try {
       if (typeof annotations.forEach !== 'function') {
-        console.warn(
-          'createAnnotationVisualElements: annotations.forEach is not a function:',
-          annotations
-        )
         return {markers, shapes, texts}
       }
     } catch (error) {
-      console.warn('createAnnotationVisualElements: Error checking annotations.forEach:', error)
+
       return {markers, shapes, texts}
     }
 
@@ -50,16 +42,12 @@ export const createAnnotationVisualElements = (
     try {
       annotationsArray = Array.from(annotations)
     } catch (error) {
-      console.warn('createAnnotationVisualElements: Error converting to array:', error)
+
       return {markers, shapes, texts}
     }
 
     // Final safety check
     if (!Array.isArray(annotationsArray) || typeof annotationsArray.forEach !== 'function') {
-      console.error(
-        'createAnnotationVisualElements: annotationsArray is still not a proper array:',
-        annotationsArray
-      )
       return {markers, shapes, texts}
     }
 
@@ -69,7 +57,7 @@ export const createAnnotationVisualElements = (
         try {
           // Validate annotation object
           if (!annotation || typeof annotation !== 'object') {
-            console.warn(`Invalid annotation at index ${index}:`, annotation)
+
             return
           }
 
@@ -121,19 +109,14 @@ export const createAnnotationVisualElements = (
             texts.push(text)
           }
         } catch (error) {
-          console.warn(`Error processing annotation at index ${index}:`, error, annotation)
+
         }
       })
     } catch (forEachError) {
-      console.error('Error in annotations.forEach:', forEachError, 'annotations:', annotations)
+
     }
   } catch (outerError) {
-    console.error(
-      'Critical error in createAnnotationVisualElements:',
-      outerError,
-      'annotations:',
-      annotations
-    )
+
   }
 
   return {markers, shapes, texts}

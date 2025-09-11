@@ -2,17 +2,8 @@ import {createSeries} from '../seriesFactory'
 
 // Mock lightweight-charts
 jest.mock('lightweight-charts', () => {
-  console.log('Mock factory function called')
   const mockChart = {
     addSeries: jest.fn().mockImplementation((seriesType, options, paneId) => {
-      console.log(
-        'Mock addSeries called with seriesType:',
-        seriesType,
-        'options:',
-        options,
-        'paneId:',
-        paneId
-      )
       return {
         setData: jest.fn(),
         update: jest.fn(),
@@ -188,30 +179,12 @@ jest.mock('lightweight-charts', () => {
 
   return {
     createChart: (container, options) => {
-      console.log('Mock createChart called with container:', container, 'options:', options)
-      console.log('Mock createChart returning mockChart:', mockChart)
       return mockChart
     },
     createChartEx: jest.fn().mockImplementation((container, horzScaleBehavior, options) => {
-      console.log(
-        'Mock createChartEx called with container:',
-        container,
-        'horzScaleBehavior:',
-        horzScaleBehavior,
-        'options:',
-        options
-      )
       return mockChart
     }),
     createSeries: jest.fn().mockImplementation((chart, seriesType, options) => {
-      console.log(
-        'Mock createSeries called with chart:',
-        chart,
-        'seriesType:',
-        seriesType,
-        'options:',
-        options
-      )
       return mockChart.addSeries(seriesType, options)
     }),
     isBusinessDay: jest.fn().mockImplementation(time => {
@@ -389,15 +362,11 @@ const createTestChart = () => {
   container.style.height = '400px'
   document.body.appendChild(container)
 
-  console.log('createChart import:', createChart)
-  console.log('createChart type:', typeof createChart)
-  console.log('Calling createChart with container:', container)
   const chart = createChart(container, {
     layout: {
       attributionLogo: false
     }
   })
-  console.log('createChart returned:', chart)
 
   return {chart, container}
 }
@@ -411,9 +380,6 @@ describe('Series Factory', () => {
     const testChart = createTestChart()
     chart = testChart.chart
     container = testChart.container
-    console.log('Chart in beforeEach:', chart)
-    console.log('Chart type:', typeof chart)
-    console.log('Chart addSeries:', chart?.addSeries)
   })
 
   afterEach(() => {
@@ -428,9 +394,7 @@ describe('Series Factory', () => {
   describe('Line Series', () => {
     it('should create line series with basic data', () => {
       // First test if the mock is working
-      console.log('Testing mock createChart directly...')
       const testChart = createChart(document.createElement('div'), {})
-      console.log('Direct createChart call result:', testChart)
 
       const seriesConfig = {
         type: 'Line' as const,

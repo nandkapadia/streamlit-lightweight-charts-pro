@@ -198,7 +198,7 @@ export class ChartReadyDetector {
     }
 
     // All attempts failed
-    console.warn(`Chart readiness check failed after ${maxAttempts} attempts`)
+
     return false
   }
 

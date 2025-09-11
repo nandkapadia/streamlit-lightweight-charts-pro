@@ -10,16 +10,8 @@ export const LegendComponent: React.FC<LegendComponentProps> = ({
   legendConfig,
   isPanePrimitive = false
 }) => {
-  console.log(`[LegendComponent] isPanePrimitive: ${isPanePrimitive}`)
   const [isVisible, setIsVisible] = useState(legendConfig.visible ?? true)
   const legendRef = useRef<HTMLDivElement>(null)
-
-  // Debug logging
-  console.log(`🔍 [LegendComponent] Rendering:`, {
-    visible: legendConfig.visible,
-    position: legendConfig.position,
-    text: legendConfig.text?.substring(0, 50) + '...'
-  })
 
   // Handle visibility
   useEffect(() => {
@@ -27,11 +19,8 @@ export const LegendComponent: React.FC<LegendComponentProps> = ({
   }, [legendConfig.visible])
 
   if (!isVisible) {
-    console.log(`❌ [LegendComponent] Not visible`)
     return null
   }
-
-  console.log(`✅ [LegendComponent] Rendering legend`)
 
   // Extract text content from HTML for accessibility
   const getTextContent = (html: string): string => {
@@ -50,7 +39,6 @@ export const LegendComponent: React.FC<LegendComponentProps> = ({
 
       return text
     } catch (error) {
-      console.warn(`⚠️ Error extracting text from HTML:`, error)
       // Fallback: return the HTML as-is if parsing fails
       return html.replace(/<[^>]*>/g, '').trim()
     }

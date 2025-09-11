@@ -136,7 +136,7 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
   private createCollapseButton(chartElement: HTMLElement, paneId: number): void {
     // Check if chart is ready by trying to get pane count
     if (!this.chartApi) {
-      console.warn(`[PaneCollapse] Chart API not available for pane ${paneId}`)
+
       return
     }
 
@@ -144,13 +144,13 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
       // Test if chart is ready by checking if we can get panes
       const panes = this.chartApi.panes()
       if (!panes || panes.length === 0) {
-        console.warn(`[PaneCollapse] Chart not ready, no panes available for pane ${paneId}`)
+
         // Retry after a delay
         setTimeout(() => this.createCollapseButton(chartElement, paneId), 300)
         return
       }
     } catch (error) {
-      console.warn(`[PaneCollapse] Chart not ready, error getting panes for pane ${paneId}:`, error)
+
       // Retry after a delay
       setTimeout(() => this.createCollapseButton(chartElement, paneId), 300)
       return
@@ -197,7 +197,7 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
       // Try to position immediately like legends do, but with retry mechanism
       this.positionButton(buttonContainer, paneId)
     } catch (error) {
-      console.error(`❌ Error adding collapse button to pane ${paneId}:`, error)
+
     }
   }
 
@@ -213,18 +213,12 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
       const paneCoords = coordinateService.getPaneCoordinates(this.chartApi, paneId)
 
       if (!paneCoords) {
-        console.warn(
-          `[PaneCollapse] Pane coordinates not available for pane ${paneId}, retrying...`
-        )
         // Simple retry like legends do - retry after 100ms, but limit retries
         const retryCount = (button as any).__retryCount || 0
         if (retryCount < 5) {
           ;(button as any).__retryCount = retryCount + 1
           setTimeout(() => this.positionButton(button, paneId), 100)
         } else {
-          console.warn(
-            `[PaneCollapse] Max retries reached for pane ${paneId}, using fallback positioning`
-          )
           // Use fallback positioning
           button.style.top = '10px'
           button.style.left = '10px'
@@ -275,7 +269,7 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
         }
       }
     } catch (error) {
-      console.warn(`Failed to position button for pane ${paneId}:`, error)
+
       // Simple fallback positioning (exactly like legends)
       button.style.top = '10px'
       button.style.left = '10px'
@@ -316,7 +310,7 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
       // Default to top-left if we can't determine (since user specified it)
       return 'top-left'
     } catch (error) {
-      console.error('Error determining legend position:', error)
+
       return 'top-left'
     }
   }
@@ -411,7 +405,7 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
         this.collapsePane(paneId)
       }
     } catch (error) {
-      console.error(`Error toggling pane ${paneId} collapse state:`, error)
+
     }
   }
 
@@ -431,15 +425,12 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
 
             // Re-apply minimal stretch factor if it's been lost
             if (currentStretch > 0.1) {
-              console.log(`[PaneCollapse] Preserving collapsed state for pane ${paneId}`)
+
               pane.setStretchFactor(0.05)
             }
           }
         } catch (error) {
-          console.error(
-            `[PaneCollapse] Error preserving collapsed state for pane ${paneId}:`,
-            error
-          )
+          // Error preserving collapsed state
         }
       }
     }
@@ -455,12 +446,12 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
     if (!state || state.isCollapsed) return
 
     try {
-      console.log(`[PaneCollapse] Collapsing pane ${paneId} using stretch factor approach`)
+
 
       // Store original stretch factor and pane size
       const panes = this.chartApi.panes()
       if (paneId >= panes.length) {
-        console.error(`[PaneCollapse] Invalid pane ID ${paneId}`)
+
         return
       }
 
@@ -474,9 +465,6 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
         state.originalHeight = paneSize.height
       }
 
-      console.log(
-        `[PaneCollapse] Storing stretch factor: ${currentStretchFactor}, height: ${paneSize?.height}px for pane ${paneId}`
-      )
 
       // Collapse pane to minimal height (show only legends/buttons)
       const minimalStretchFactor = 0.05 // Very small but not 0 to keep pane active
@@ -486,7 +474,7 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
       state.isCollapsed = true
       state.collapsedHeight = 45 // Enough for legend and button
 
-      console.log(`[PaneCollapse] Pane ${paneId} collapsed to minimal height`)
+
 
       // Trigger chart layout recalculation
       const chartElement = this.chartApi.chartElement()
@@ -518,7 +506,7 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
         this.positionButton(state.buttonElement, paneId)
       }, 100)
     } catch (error) {
-      console.error(`Error collapsing pane ${paneId}:`, error)
+
     }
   }
 
@@ -532,21 +520,19 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
     if (!state || !state.isCollapsed) return
 
     try {
-      console.log(`[PaneCollapse] Expanding pane ${paneId} using stretch factor approach`)
+
 
       // Restore original stretch factor
       const panes = this.chartApi.panes()
       if (paneId >= panes.length) {
-        console.error(`[PaneCollapse] Invalid pane ID ${paneId}`)
+
         return
       }
 
       const pane = panes[paneId]
       const originalStretchFactor = state.originalStretchFactor || 0.2 // Fallback
 
-      console.log(
-        `[PaneCollapse] Restoring stretch factor: ${originalStretchFactor} for pane ${paneId}`
-      )
+
 
       // Restore original stretch factor
       pane.setStretchFactor(originalStretchFactor)
@@ -589,7 +575,7 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
       // Reposition button to stay anchored
       this.positionButton(state.buttonElement, paneId)
     } catch (error) {
-      console.error(`Error expanding pane ${paneId}:`, error)
+
     }
   }
 
@@ -631,7 +617,7 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
         }
       })
     } catch (error) {
-      console.error(`Error capturing pane states:`, error)
+
     }
   }
 

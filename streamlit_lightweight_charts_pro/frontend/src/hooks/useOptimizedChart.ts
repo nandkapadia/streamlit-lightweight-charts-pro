@@ -100,7 +100,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
             chartRefs.current.chart.resize(width, height)
           }
         } catch (error) {
-          console.warn(`❌ Resize failed for chart ${chartId}:`, error)
+
         }
       }
     }, debounceMs)
@@ -142,7 +142,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
 
       // ResizeObserver set up successfully
     } catch (error) {
-      console.warn(`⚠️ Failed to setup resize observer for chart ${chartId}:`, error)
+
     }
   }, [autoResize, enhancedResizeObserverCallback, chartId, throttleMs, debounceMs])
 
@@ -180,7 +180,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
 
         return chart
       } catch (error) {
-        console.error(`❌ Failed to create chart ${chartId}:`, error)
+
         if (performanceTimer.current) {
           performanceTimer.current.end()
         }
@@ -214,7 +214,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
 
         return series
       } catch (error) {
-        console.error(`❌ Failed to add series to chart ${chartId}:`, error)
+
         if (performanceTimer.current) {
           performanceTimer.current.end()
         }
@@ -268,7 +268,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
             chartRefs.current.chart.resize(width, height)
           }
         } catch (error) {
-          console.warn(`❌ Manual resize failed for chart ${chartId}:`, error)
+
         }
       }
     },
@@ -288,7 +288,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
       try {
         chartRefs.current.chart.remove()
       } catch (error) {
-        console.warn(`⚠️ Error removing chart ${chartId}:`, error)
+
       }
     }
 
@@ -378,7 +378,7 @@ function createChartFromOptions(container: HTMLElement, options: any): IChartApi
     const chart = createChart(container, options)
     return chart
   } catch (error) {
-    console.error('❌ Failed to create chart:', error)
+
     return null
   }
 }

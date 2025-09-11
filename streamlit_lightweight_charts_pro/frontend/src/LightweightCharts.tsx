@@ -141,28 +141,14 @@ const createLegendForSeries = async (
     const primitiveKey = `${chartId}-${seriesIndex}`
     ;(window as any).legendPrimitives[primitiveKey] = legendPrimitive
 
-    console.log(`✅ [Legend] Stored legend primitive:`, {
-      key: primitiveKey,
-      chartId: chartId,
-      seriesIndex: seriesIndex,
-      hasText: !!seriesConfig.legend.text,
-      text: seriesConfig.legend.text,
-      containsPlaceholder: seriesConfig.legend.text?.includes('$$value$$')
-    })
-
     // Attach the primitive to the pane (like minimize buttons do)
     const panes = chart.panes()
     if (paneId < panes.length) {
       const pane = panes[paneId]
       pane.attachPrimitive(legendPrimitive)
-      console.log(
-        `✅ [Legend] Attached legend primitive for series ${seriesIndex} to pane ${paneId}`
-      )
-    } else {
-      console.warn(`[Legend] Pane ${paneId} not found for series ${seriesIndex}`)
     }
   } catch (error) {
-    console.error(`❌ [Legend] Error creating legend for series ${seriesIndex}:`, error)
+
   }
 }
 
@@ -519,7 +505,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     const setupPaneCollapseSupport = useCallback(
       (chart: IChartApi, chartId: string, paneCount: number) => {
         try {
-          console.log(`[PaneSetup] Setting up collapse support for ${paneCount} panes`)
+
 
           // Initialize pane wrapper registry for collapse plugin to use
           ;(window as any).paneWrappers = (window as any).paneWrappers || {}
@@ -529,9 +515,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           ;(window as any).chartInstances = (window as any).chartInstances || {}
           ;(window as any).chartInstances[chartId] = chart
 
-          console.log(`[PaneSetup] Collapse support ready for ${paneCount} panes`)
+
         } catch (error) {
-          console.error('[PaneSetup] Error setting up pane collapse support:', error)
+
         }
       },
       []
@@ -859,10 +845,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               try {
                 series.attachPrimitive(primitive)
               } catch (error) {
-                console.error(
-                  `❌ [addTradeVisualization] Error attaching primitive ${index}:`,
-                  error
-                )
+                // Error attaching primitive
               }
             })
           }
@@ -945,7 +928,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 // Use createSeriesMarkers instead of setMarkers for compatibility
                 createSeriesMarkers(series, markers)
               } catch (error) {
-                console.error('❌ [addTradeVisualization] Error adding markers:', error)
+
               }
             }
           }
@@ -956,12 +939,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             options.style === 'arrows' ||
             options.style === 'zones'
           ) {
-            console.warn(
-              `🚧 [addTradeVisualization] Style '${options.style}' is not yet implemented. Available: rectangles, markers, both`
-            )
+            // Style not yet implemented
           }
         } catch (error) {
-          console.error('❌ [addTradeVisualization] Error in trade visualization:', error)
+
         }
       },
       []
@@ -1027,10 +1008,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
         // Additional safety check before calling createAnnotationVisualElements
         if (!Array.isArray(validAnnotations) || typeof validAnnotations.forEach !== 'function') {
-          console.error(
-            'addAnnotations: validAnnotations is still not a proper array:',
-            validAnnotations
-          )
           return
         }
 
@@ -1143,10 +1120,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               window.chartPlugins.set(chart, tooltipPlugin)
             })
             .catch(error => {
-              console.error('🎯 [addModularTooltip] Error loading tooltip plugin:', error)
+
             })
         } catch (error) {
-          console.error('🎯 [addModularTooltip] Error setting up tooltip:', error)
+
         }
       },
       []
@@ -1210,15 +1187,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     // Function to update legend values based on crosshair position
     const updateLegendValues = useCallback(
       (chart: IChartApi, chartId: string, param: MouseEventParams) => {
-        console.log(`🔍 [updateLegendValues] Called for chart ${chartId}:`, {
-          hasTime: !!param.time,
-          time: param.time,
-          hasLegendSeriesData: !!legendSeriesDataRef.current.get(chartId)
-        })
 
         const legendSeriesData = legendSeriesDataRef.current.get(chartId)
         if (!legendSeriesData || !param.time) {
-          console.log(`❌ [updateLegendValues] No legend series data or time for chart ${chartId}`)
+
           return
         }
 
@@ -1234,7 +1206,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   seriesOptions = series.options
                 }
               } catch (error) {
-                console.warn('Could not get series options:', error)
+
               }
 
               // Safely get series type
@@ -1246,7 +1218,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   seriesType = series.seriesType as any
                 }
               } catch (error) {
-                console.warn('Could not get series type:', error)
+
               }
 
               // Get data point at crosshair time
@@ -1317,25 +1289,16 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               // Update legend primitive if it exists
               // Use the seriesIndex from the legendSeriesData to match the storage key
               const legendPrimitiveKey = `${chartId}-${seriesIndex}`
-              console.log(`🔍 [Crosshair] Looking for legend primitive:`, {
-                key: legendPrimitiveKey,
-                seriesIndex: seriesIndex,
-                hasPrimitives: !!(window as any).legendPrimitives,
-                primitiveExists: !!(window as any).legendPrimitives?.[legendPrimitiveKey],
-                value: templateData.value
-              })
 
               if (
                 (window as any).legendPrimitives &&
                 (window as any).legendPrimitives[legendPrimitiveKey]
               ) {
                 const legendPrimitive = (window as any).legendPrimitives[legendPrimitiveKey]
-                console.log(`✅ [Crosshair] Found legend primitive, calling updateValue`)
+
                 legendPrimitive.updateValue(templateData.value)
               } else {
-                console.log(
-                  `❌ [Crosshair] Legend primitive not found for key: ${legendPrimitiveKey}`
-                )
+                // Legend primitive not found
               }
 
               // Find and update the legend element
@@ -1460,7 +1423,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 }
               })
             } catch (error) {
-              console.error('❌ Error updating legend for series:', error)
+
             }
           }
         )
@@ -1474,11 +1437,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         legendsConfig: {[paneId: string]: LegendConfig},
         seriesList: ISeriesApi<any>[]
       ) => {
-        console.log(`🔍 [addLegend] Called with:`, {
-          chartId: chart.chartElement().id,
-          legendsConfig,
-          seriesListLength: seriesList.length
-        })
+
 
         // Import the positioning engine (not currently used but kept for future use)
 
@@ -1559,7 +1518,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           if (error instanceof Error && error.message === 'Component disposed during retry') {
             // Component disposed during retry
           } else {
-            console.error('❌ Failed to wait for chart API:', error)
+
           }
           return
         }
@@ -1598,7 +1557,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               // Remove the incorrectly positioned legend
               kstLegend.remove()
             } catch (error) {
-              console.error(`❌ Failed to remove "Know Sure Thing" legend:`, error)
+
             }
           }
         }
@@ -1618,7 +1577,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               seriesOptions = series.options
             }
           } catch (error) {
-            console.warn('Could not get series options:', error)
+
           }
 
           // Get the paneId from the series configuration (backend sets this)
@@ -1687,11 +1646,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             }
 
             if (!paneApi) {
-              console.error(`❌ Pane ${paneId} not found in chart API`)
+
               return
             }
           } catch (error) {
-            console.error(`❌ Error accessing pane ${paneId} in chart API:`, error)
+
             return
           }
 
@@ -1723,25 +1682,18 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
         // Setup crosshair event handling for legend updates
         // Debug: Log the legendsConfig to see what we're working with
-        console.log(`🔍 [Legend] legendsConfig for chart ${chartId}:`, legendsConfig)
-        console.log(`🔍 [Legend] Object.values(legendsConfig):`, Object.values(legendsConfig))
+
+
 
         // Check if any legend has crosshair updates enabled OR contains $$value$$ placeholders
         const hasUpdateOnCrosshair = Object.values(legendsConfig).some(config => {
           const hasUpdate = config.updateOnCrosshair !== false
           const hasPlaceholder = config.text && config.text.includes('$$value$$')
-          console.log(`🔍 [Legend] Checking config:`, {
-            updateOnCrosshair: config.updateOnCrosshair,
-            hasUpdate,
-            text: config.text,
-            hasPlaceholder,
-            result: hasUpdate || hasPlaceholder
-          })
           return hasUpdate || hasPlaceholder
         })
 
         if (hasUpdateOnCrosshair) {
-          console.log(`🔍 [Crosshair] Setting up crosshair subscription for chart ${chartId}`)
+
 
           // Initialize legends with blank values (no crosshair data yet)
           Object.entries(legendsConfig).forEach(([seriesName, legendConfig]) => {
@@ -1761,11 +1713,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           })
 
           chart.subscribeCrosshairMove(param => {
-            console.log(`🔍 [Crosshair] Crosshair moved for chart ${chartId}:`, {
-              time: param.time,
-              point: param.point,
-              hasTime: !!param.time
-            })
 
             if (!param.time || !param.point) {
               // Crosshair left the chart - clear all legend values by calling updateLegendValues with null param
@@ -1776,7 +1723,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             }
           })
         } else {
-          console.log(`ℹ️ [Crosshair] No crosshair updates enabled for chart ${chartId}`)
+
         }
       },
       [updateLegendValues]
@@ -2124,10 +2071,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                               legendResizeObserverRefs
                             )
                           } else {
-                            console.warn(
-                              `[Legend] Chart not ready for series ${seriesIndex}, retrying...`
-                            )
-                            // Retry after a delay like minimize buttons
+                            // Chart not ready, retrying after a delay
                             setTimeout(() => {
                               ChartReadyDetector.waitForChartReady(chart, chart.chartElement(), {
                                 minWidth: 200,
@@ -2147,10 +2091,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                           }
                         })
                       } catch (error) {
-                        console.error(
-                          `❌ [Legend] Error creating legend for series ${seriesIndex}:`,
-                          error
-                        )
+                        // Error creating legend
                       }
                     }
 
@@ -2204,7 +2145,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                                 seriesConfig.data
                               )
                             } else {
-                              console.error('❌ [initializeCharts] Chart readiness check timed out')
+
                               // Try to attach primitives anyway - sometimes coordinates work even if tests fail
 
                               try {
@@ -2216,24 +2157,15 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                                   seriesConfig.data
                                 )
                               } catch (attachError) {
-                                console.error(
-                                  '❌ [initializeCharts] Primitive attachment also failed:',
-                                  attachError
-                                )
+
                               }
                             }
                           } catch (error) {
-                            console.error(
-                              '❌ [initializeCharts] Error in chart readiness or trade visualization:',
-                              error
-                            )
+                            // Error in chart readiness or trade visualization
                           }
                         }, 50) // Small delay to let chart initialization complete
                       } catch (error) {
-                        console.error(
-                          '❌ [initializeCharts] Error setting up trade visualization:',
-                          error
-                        )
+                        // Error setting up trade visualization
                       }
                     } else {
                     }
@@ -2246,10 +2178,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     // Failed to create series
                   }
                 } catch (seriesError) {
-                  console.error(
-                    `Error creating series at index ${seriesIndex} for chart ${chartId}:`,
-                    seriesError
-                  )
+                  // Error creating series
                 }
               })
             } else {
@@ -2325,10 +2254,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                               }
                             }, 50)
                           } else {
-                            console.warn('⚠️ Trade rectangles: Chart readiness timeout')
+
                           }
                         } catch (error) {
-                          console.warn('⚠️ Trade rectangles: Error during readiness check:', error)
+
                         }
                       }
 
@@ -2433,7 +2362,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
                   // Legends are now handled at series level through direct DOM manipulation
                 } catch (error) {
-                  console.warn('Error during chart initialization:', error)
+
                 }
 
                 // Legend positioning is now handled automatically by pane primitives
@@ -2459,7 +2388,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       })
                     }
                   } catch (error) {
-                    console.warn('Error refreshing legends after initialization:', error)
+
                   }
                 }, 500) // Wait 500ms for legends to be fully created
               }
@@ -2517,9 +2446,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
                 // Only show minimize buttons when there are multiple panes
                 if (allPanes.length > 1) {
-                  console.log(
-                    `[PaneSetup] Creating individual containers for ${allPanes.length} panes`
-                  )
+                  // Creating individual containers for multiple panes
 
                   // Set up pane collapse support
                   setupPaneCollapseSupport(chart, chartId, allPanes.length)
@@ -2542,7 +2469,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   })
                 }
               } catch (error) {
-                console.error('Error adding pane collapse plugins:', error)
+
               }
             }
 
@@ -2565,7 +2492,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               }, 100)
             }
           } catch (error) {
-            console.error('Error creating chart:', error)
+
           }
         })
 

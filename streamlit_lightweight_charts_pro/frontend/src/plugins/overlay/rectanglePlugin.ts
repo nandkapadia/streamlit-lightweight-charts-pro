@@ -65,14 +65,14 @@ export class RectangleOverlayPlugin {
     if (this.isInitialized) {
       this.render()
     } else {
-      console.warn('[RectanglePlugin] Plugin not initialized, storing rectangles for later render')
+
       // Store rectangles and they will be rendered once the plugin is initialized
     }
   }
 
   private render(): void {
     if (!this.canvas || !this.ctx) {
-      console.warn('[RectanglePlugin] Canvas or context not available for rendering')
+
       return
     }
 
@@ -110,7 +110,7 @@ export class RectangleOverlayPlugin {
       })
 
       if (!isReady) {
-        console.warn('⚠️ Chart not ready after timeout, proceeding with fallback initialization')
+
       }
 
       this.container = container
@@ -124,7 +124,7 @@ export class RectangleOverlayPlugin {
         this.render()
       }
     } catch (error) {
-      console.error('❌ Failed to initialize rectangle plugin:', error)
+
     }
   }
 
@@ -157,7 +157,7 @@ export class RectangleOverlayPlugin {
       // Set initial canvas size
       this.resizeCanvas()
     } catch (error) {
-      console.error('❌ Failed to create canvas:', error)
+
     }
   }
 
@@ -205,7 +205,7 @@ export class RectangleOverlayPlugin {
         }
       })
     } catch (error) {
-      console.warn('⚠️ Failed to set up some event listeners:', error)
+
     }
   }
 
@@ -235,7 +235,7 @@ export class RectangleOverlayPlugin {
         this.scheduleRedraw()
       }
     } catch (error) {
-      console.error('❌ Error resizing canvas with consolidated service, using fallback:', error)
+
 
       // Fallback to manual dimension calculation
       this.fallbackResizeCanvas()
@@ -297,7 +297,7 @@ export class RectangleOverlayPlugin {
         this.scheduleRedraw()
       }
     } catch (error) {
-      console.error('❌ Error in fallback canvas resize:', error)
+
     }
   }
 
@@ -307,7 +307,7 @@ export class RectangleOverlayPlugin {
     try {
       await this.resizeCanvas()
     } catch (error) {
-      console.error('❌ Error handling resize:', error)
+
     }
   }
 
@@ -335,7 +335,7 @@ export class RectangleOverlayPlugin {
         this.drawRectangle(rect)
       })
     } catch (error) {
-      console.error('❌ Error during redraw:', error)
+
     }
   }
 
@@ -385,7 +385,7 @@ export class RectangleOverlayPlugin {
         this.drawLabel(rect, rectX, rectY, rectX + rectWidth, rectY + rectHeight)
       }
     } catch (error) {
-      console.error('❌ Error drawing rectangle:', error)
+
     }
   }
 
@@ -406,7 +406,7 @@ export class RectangleOverlayPlugin {
         ay2: y2
       }
     } catch (error) {
-      console.error('❌ Error calculating coordinates:', error)
+
       return null
     }
   }
@@ -441,7 +441,7 @@ export class RectangleOverlayPlugin {
       // Draw label text
       this.ctx.fillText(rect.label, labelX, labelY)
     } catch (error) {
-      console.error('❌ Error drawing label:', error)
+
     }
   }
 

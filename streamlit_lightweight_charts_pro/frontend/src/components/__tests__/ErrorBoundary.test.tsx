@@ -6,13 +6,13 @@ import {ErrorBoundary} from '../ErrorBoundary'
 // Mock console methods
 const originalConsole = {...console}
 beforeEach(() => {
-  console.error = jest.fn()
-  console.log = jest.fn()
+
+
 })
 
 afterEach(() => {
-  console.error = originalConsole.error
-  console.log = originalConsole.log
+
+
 })
 
 // Component that throws an error
@@ -83,7 +83,7 @@ describe('ErrorBoundary Component', () => {
       )
 
       expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument()
-      expect(console.error).toHaveBeenCalled()
+
     })
 
     it('should display custom error message', () => {

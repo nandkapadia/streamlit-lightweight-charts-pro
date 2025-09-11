@@ -251,7 +251,7 @@ export class PositioningEngine {
 
       return createBoundingBox(x, y, width, height)
     } catch (error) {
-      console.error('Error calculating overlay position:', error)
+
       return null
     }
   }

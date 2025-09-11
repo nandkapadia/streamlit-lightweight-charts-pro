@@ -13,31 +13,25 @@ export const perfLog = {
   },
   warn: (...args: any[]) => {
     if (isDevelopment) {
-      console.warn(...args)
+
     }
   },
   error: (...args: any[]) => {
     // Always log errors, even in production
-    console.error(...args)
+
   }
 }
 
 // Performance logging function for timing operations
 export function perfLogFn(operationName: string, fn: () => any): any {
-  const start = performance?.now ? performance.now() : Date.now()
   try {
     const result = fn()
     // Performance measurement completed (logging removed for production)
-
     return result
   } catch (error) {
-    const end = performance?.now ? performance.now() : Date.now()
-    const duration = end - start
-
     if ((isDevelopment || process.env.NODE_ENV === 'test') && performance?.now) {
-      console.error(`[Performance] ${operationName} failed after ${duration.toFixed(2)}ms:`, error)
+      // Performance measurement failed
     }
-
     throw error
   }
 }

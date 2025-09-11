@@ -150,7 +150,7 @@ function parseTime(time: string | number): UTCTimestamp {
       // Try to parse as date string
       const date = new Date(time)
       if (isNaN(date.getTime())) {
-        console.warn(`Failed to parse time: ${time}`)
+
         return 0 as UTCTimestamp
       }
       return Math.floor(date.getTime() / 1000) as UTCTimestamp
@@ -158,7 +158,7 @@ function parseTime(time: string | number): UTCTimestamp {
 
     return 0 as UTCTimestamp
   } catch (error) {
-    console.error(`Error parsing time ${time}:`, error)
+
     return 0 as UTCTimestamp
   }
 }
@@ -453,7 +453,7 @@ class TrendFillPrimitivePaneView implements IPrimitivePaneView {
     // Get the price scale from the dummy series
     const dummySeries = this._source.getDummySeries()
     if (!dummySeries) {
-      console.warn('[TrendFillSeries] No dummy series found')
+
       return
     }
 
@@ -497,7 +497,7 @@ class TrendFillPrimitivePaneView implements IPrimitivePaneView {
     priceScale: any
   ): TrendFillRenderData[] {
     if (!timeScale || !priceScale) {
-      console.warn('[TrendFillSeries] Missing timeScale or priceScale for coordinate conversion')
+
       return []
     }
 
@@ -734,7 +734,7 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
     try {
       this.chart.removeSeries(this.dummySeries)
     } catch (error) {
-      console.warn('Failed to remove trend fill series:', error)
+
     }
   }
 

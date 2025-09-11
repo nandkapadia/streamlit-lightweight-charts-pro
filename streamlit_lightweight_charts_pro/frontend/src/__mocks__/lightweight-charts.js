@@ -1,12 +1,9 @@
 // Mock for lightweight-charts library
 // This mock provides a working implementation for testing
 
-console.log('Lightweight-charts mock loaded')
-
 // Helper function to create mock functions
 const createMockFn = returnValue => {
   const fn = function (...args) {
-    console.log('Mock function called with args:', args)
     return typeof returnValue === 'function' ? returnValue(...args) : returnValue
   }
   fn.mockReturnValue = value => {
@@ -196,34 +193,16 @@ const mockChart = {
 
 // Mock createChart function
 const createChart = (container, options) => {
-  console.log('Mock createChart called with container:', container, 'options:', options)
-  console.log('Mock createChart returning mockChart:', mockChart)
   return mockChart
 }
 
 // Mock createChartEx function
 const createChartEx = (container, horzScaleBehavior, options) => {
-  console.log(
-    'Mock createChartEx called with container:',
-    container,
-    'horzScaleBehavior:',
-    horzScaleBehavior,
-    'options:',
-    options
-  )
   return mockChart
 }
 
 // Mock series factory functions
 const createSeries = (chart, seriesType, options) => {
-  console.log(
-    'Mock createSeries called with chart:',
-    chart,
-    'seriesType:',
-    seriesType,
-    'options:',
-    options
-  )
   return mockChart.addSeries(seriesType, options)
 }
 

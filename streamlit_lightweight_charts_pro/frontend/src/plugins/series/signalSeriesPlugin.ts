@@ -451,7 +451,6 @@ export class SignalSeries implements ISeriesPrimitive<Time> {
         // Try to parse as date string
         const date = new Date(time)
         if (isNaN(date.getTime())) {
-          console.warn(`Failed to parse time: ${time}`)
           return 0 as UTCTimestamp
         }
         return Math.floor(date.getTime() / 1000) as UTCTimestamp
@@ -459,7 +458,6 @@ export class SignalSeries implements ISeriesPrimitive<Time> {
 
       return 0 as UTCTimestamp
     } catch (error) {
-      console.error(`Error parsing time ${time}:`, error)
       return 0 as UTCTimestamp
     }
   }

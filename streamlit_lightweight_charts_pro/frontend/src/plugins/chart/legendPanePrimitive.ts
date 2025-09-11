@@ -111,7 +111,7 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
     // Get chart element (like minimize buttons do)
     const chartElement = this.chartApi.chartElement()
     if (!chartElement) {
-      console.warn(`[LegendPrimitive] Chart element not available for series ${this.seriesIndex}`)
+
       return
     }
 
@@ -132,7 +132,7 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
 
       // Create React root and render legend component (like minimize buttons do)
       const reactRoot = createRoot(legendContainer)
-      console.log(`[LegendPanePrimitive] Creating LegendComponent with isPanePrimitive: true`)
+
 
       // Process legend config to replace $$value$$ with blank initially
       const processedConfig = {...this.config}
@@ -160,10 +160,7 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
       // Position the legend (like minimize buttons do)
       this.positionLegend()
     } catch (error) {
-      console.error(
-        `❌ [LegendPrimitive] Error creating legend for series ${this.seriesIndex}:`,
-        error
-      )
+      // Error creating legend
     }
   }
 
@@ -178,18 +175,12 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
       const paneCoords = this.coordinateService.getPaneCoordinates(this.chartApi, this.paneId)
 
       if (!paneCoords) {
-        console.warn(
-          `[LegendPrimitive] Pane coordinates not available for pane ${this.paneId}, retrying...`
-        )
         // Simple retry like minimize buttons do - retry after 100ms, but limit retries
         const retryCount = (this.legendState.legendElement as any).__retryCount || 0
         if (retryCount < 5) {
           ;(this.legendState.legendElement as any).__retryCount = retryCount + 1
           setTimeout(() => this.positionLegend(), 100)
         } else {
-          console.warn(
-            `[LegendPrimitive] Max retries reached for pane ${this.paneId}, using fallback positioning`
-          )
           // Use fallback positioning
           this.legendState.legendElement.style.top = '10px'
           this.legendState.legendElement.style.left = '10px'
@@ -248,14 +239,6 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
           }
         }
 
-        console.log(`[Legend ${this.seriesIndex}] Height calculation:`, {
-          previousLegendsCount: previousLegends.length,
-          cumulativeHeight,
-          individualHeights: previousLegends.map((legend, idx) => ({
-            seriesIndex: legend.seriesIndex,
-            height: legend.getHeight()
-          }))
-        })
 
         // Position this legend
         top = paneCoords.bounds.top + margin + cumulativeHeight
@@ -269,18 +252,7 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
       const legendBottom = top + currentLegendHeight
       const isWithinBounds = legendBottom <= paneCoords.bounds.bottom
 
-      console.log(`[Legend ${this.seriesIndex}] Bounds check:`, {
-        calculatedTop: top,
-        currentLegendHeight,
-        legendBottom,
-        paneBounds: {
-          top: paneCoords.bounds.top,
-          bottom: paneCoords.bounds.bottom,
-          height: paneCoords.bounds.height
-        },
-        isWithinBounds,
-        willHide: !isWithinBounds
-      })
+
 
       // Apply positioning and visibility based on bounds check
       if (isWithinBounds) {
@@ -293,18 +265,11 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
       } else {
         // Legend would overflow outside pane bounds - hide it completely
         this.legendState.legendElement.style.display = 'none'
-        console.log(`[Legend ${this.seriesIndex}] Hidden - would overflow pane bounds`)
+
       }
 
-      console.log(`[Legend ${this.seriesIndex}] Coordinates:`, {
-        top: `${top}px`,
-        left: `${left}px`,
-        paneTop: paneCoords.bounds.top,
-        paneBottom: paneCoords.bounds.bottom,
-        margin: margin
-      })
     } catch (error) {
-      console.warn(`Failed to position legend for pane ${this.paneId}:`, error)
+
       // Simple fallback positioning (exactly like minimize buttons)
       if (this.legendState) {
         this.legendState.legendElement.style.top = '10px'
@@ -318,7 +283,7 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
    */
   public getHeight(): number {
     if (!this.legendState?.legendElement) {
-      console.log(`[Legend ${this.seriesIndex}] getHeight: No legend element, returning 0`)
+
       return 0
     }
 
@@ -330,14 +295,6 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
     const clientHeight = element.clientHeight
     const scrollHeight = element.scrollHeight
 
-    console.log(`[Legend ${this.seriesIndex}] getHeight:`, {
-      boundingRect: {height: rect.height, width: rect.width, top: rect.top, left: rect.left},
-      offsetHeight,
-      clientHeight,
-      scrollHeight,
-      element: element.className,
-      computedStyle: window.getComputedStyle(element).height
-    })
 
     // Use the first non-zero height we find
     if (rect.height > 0) return rect.height
@@ -421,7 +378,7 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
    * Called when the pane is resized - reposition the legend
    */
   public updateAllViews(): void {
-    console.log(`[Legend ${this.seriesIndex}] updateAllViews called - repositioning legend`)
+
     this.positionLegend()
   }
 }

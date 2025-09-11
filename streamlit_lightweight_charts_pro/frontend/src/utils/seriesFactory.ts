@@ -256,7 +256,6 @@ export function createSeries(
           }
         } as unknown as ISeriesApi<any>
       } catch (error) {
-        console.error('Error creating ribbon series:', error)
         return null
       }
     }
@@ -585,7 +584,7 @@ export function createSeries(
       try {
         series.createPriceLine(priceLine)
       } catch (error) {
-        console.warn(`❌ Failed to create price line ${index + 1} for series:`, error)
+        // Failed to create price line
       }
     })
   }
@@ -615,29 +614,12 @@ export function createSeries(
 
     // Add legend directly to the correct PaneLegendManager
     try {
-      console.log(
-        `🔍 Debug: Looking for legend manager - chartId: ${chartId}, finalPaneId: ${finalPaneId}`
-      )
-      console.log(`🔍 Debug: paneLegendManagers exists:`, !!(window as any).paneLegendManagers)
-      console.log(`🔍 Debug: chartId exists:`, !!(window as any).paneLegendManagers?.[chartId])
-      console.log(
-        `🔍 Debug: Available pane IDs:`,
-        Object.keys((window as any).paneLegendManagers?.[chartId] || {})
-      )
-
       const legendManager = (window as any).paneLegendManagers?.[chartId]?.[finalPaneId]
       if (legendManager) {
         legendManager.addSeriesLegend(seriesId, seriesConfig)
-        console.log(`✅ Added legend for series ${seriesId} to pane ${finalPaneId}`)
-      } else {
-        console.warn(`❌ No legend manager found for pane ${finalPaneId} (chartId: ${chartId})`)
-        console.warn(
-          `❌ Available panes:`,
-          Object.keys((window as any).paneLegendManagers?.[chartId] || {})
-        )
       }
     } catch (error) {
-      console.error(`❌ Error adding legend for series ${seriesId}:`, error)
+      // Error adding legend
     }
   }
 
@@ -670,7 +652,7 @@ export function createSeries(
         })
       }
     } catch (error) {
-      console.error(`❌ [seriesFactory] Error processing trades:`, error)
+      // Error processing trades
     }
   }
 

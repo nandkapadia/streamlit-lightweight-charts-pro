@@ -66,7 +66,7 @@ export class ResizeObserverManager {
       this.observers.set(id, observer)
       this.callbacks.set(id, callback)
     } catch (error) {
-      console.error(`❌ Failed to create ResizeObserver for ${id}:`, error)
+
     }
   }
 
@@ -81,7 +81,7 @@ export class ResizeObserverManager {
         this.observers.delete(id)
         this.callbacks.delete(id)
       } catch (error) {
-        console.warn(`⚠️ Error removing ResizeObserver for ${id}:`, error)
+
       }
     }
   }
@@ -108,7 +108,7 @@ export class ResizeObserverManager {
       try {
         observer.disconnect()
       } catch (error) {
-        console.warn(`⚠️ Error cleaning up ResizeObserver ${id}:`, error)
+
       }
     })
 
@@ -131,7 +131,7 @@ export class ResizeObserverManager {
       try {
         observer.disconnect()
       } catch (error) {
-        console.warn(`⚠️ Error pausing ResizeObserver ${id}:`, error)
+
       }
     })
   }

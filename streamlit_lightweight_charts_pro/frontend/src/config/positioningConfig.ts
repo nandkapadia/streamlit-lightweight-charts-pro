@@ -155,10 +155,9 @@ export function getFallback(type: keyof typeof FALLBACKS): number {
  */
 export function validateConfiguration(): boolean {
   // Ensure all dimensions are positive
-  for (const [key, value] of Object.entries(DIMENSIONS)) {
-    for (const [prop, val] of Object.entries(value)) {
+  for (const [, value] of Object.entries(DIMENSIONS)) {
+    for (const [, val] of Object.entries(value)) {
       if (typeof val === 'number' && val < 0) {
-        console.error(`Invalid dimension: ${key}.${prop} = ${val}`)
         return false
       }
     }
@@ -166,12 +165,10 @@ export function validateConfiguration(): boolean {
 
   // Ensure min values are less than max values
   if (DIMENSIONS.timeAxis.minHeight > DIMENSIONS.timeAxis.maxHeight) {
-    console.error('Invalid time axis height range')
     return false
   }
 
   if (DIMENSIONS.priceScale.minWidth > DIMENSIONS.priceScale.maxWidth) {
-    console.error('Invalid price scale width range')
     return false
   }
 

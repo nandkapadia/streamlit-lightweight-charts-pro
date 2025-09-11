@@ -579,7 +579,7 @@ describe('Index Component', () => {
       chartsReadyBtn.click()
 
       await waitFor(() => {
-        expect(Streamlit.setFrameHeight).toHaveBeenCalledWith(620) // 600 + 20 padding
+        expect(Streamlit.setFrameHeight).toHaveBeenCalledWith(600) // No padding needed
       })
     })
   })

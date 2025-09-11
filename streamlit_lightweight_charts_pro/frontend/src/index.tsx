@@ -77,7 +77,7 @@ const App: React.FC = () => {
       // Calculate total height with improved logic to prevent loops
       const totalHeight = Math.max(containerHeight, chartHeight)
 
-      // Only add padding if we haven't already done so to prevent infinite loops
+      // Use the calculated height directly without adding arbitrary padding
       let finalHeight = totalHeight
 
       // Check if this height is different from what we last reported
@@ -85,10 +85,7 @@ const App: React.FC = () => {
 
       // Only report if height has changed significantly (more than 5px to account for small variations)
       if (heightDifference > 5 && pendingHeightReport.current !== finalHeight) {
-        // Add padding only once, not on every calculation
-        if (finalHeight === chartHeight) {
-          finalHeight = totalHeight + 20 // Add padding only for base chart height
-        }
+        // No padding needed - use the actual calculated height
 
         // Store the height we're about to report to prevent loops
         pendingHeightReport.current = finalHeight

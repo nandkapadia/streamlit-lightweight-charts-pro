@@ -367,7 +367,7 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
       chart.timeScale().subscribeVisibleTimeRangeChange(this._timeScaleCallback)
       chart.subscribeCrosshairMove(this._crosshairCallback)
     } catch (error) {
-      console.warn('⚠️ [TradeRectanglePrimitive] Failed to set up some event listeners:', error)
+
     }
 
     // Request initial update
@@ -381,7 +381,7 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
         this._chart.timeScale().unsubscribeVisibleTimeRangeChange(this._timeScaleCallback)
         this._timeScaleCallback = null
       } catch (error) {
-        console.warn('⚠️ [TradeRectanglePrimitive] Failed to unsubscribe time scale:', error)
+
       }
     }
 
@@ -390,7 +390,7 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
         this._chart.unsubscribeCrosshairMove(this._crosshairCallback)
         this._crosshairCallback = null
       } catch (error) {
-        console.warn('⚠️ [TradeRectanglePrimitive] Failed to unsubscribe crosshair:', error)
+
       }
     }
 
