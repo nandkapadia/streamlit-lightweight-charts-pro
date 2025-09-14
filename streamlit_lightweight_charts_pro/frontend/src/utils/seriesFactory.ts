@@ -318,54 +318,53 @@ export function createSeries(
     }
     case 'trend_fill': {
       try {
-        const trendFillSeries = createTrendFillSeriesPlugin(chart, {
-          type: 'trend_fill',
-          data: data || [],
-          options: {
-            uptrendFillColor: cleanedOptions.uptrendFillColor || '#4CAF50',
-            downtrendFillColor: cleanedOptions.downtrendFillColor || '#F44336',
-            trendLine: {
-              color: cleanedOptions.trendLine?.color || '#F44336',
-              lineWidth: cleanedOptions.trendLine?.lineWidth || 2,
-              lineStyle: cleanedOptions.trendLine?.lineStyle || 0,
-              visible: cleanedOptions.trendLine?.visible !== false
-            },
-            baseLine: {
-              color: cleanedOptions.baseLine?.color || '#666666',
-              lineWidth: cleanedOptions.baseLine?.lineWidth || 1,
-              lineStyle: cleanedOptions.baseLine?.lineStyle || 1,
-              visible: cleanedOptions.baseLine?.visible !== false
-            },
-            visible: cleanedOptions.visible !== false
+        // Create the trend fill series directly (following band series pattern)
+        const trendFillOptions = {
+          uptrendFillColor: cleanedOptions.uptrendFillColor || 'rgba(76, 175, 80, 0.3)',
+          downtrendFillColor: cleanedOptions.downtrendFillColor || 'rgba(244, 67, 54, 0.3)',
+          trendLine: {
+            color: cleanedOptions.trendLine?.color || '#4CAF50',
+            lineWidth: cleanedOptions.trendLine?.lineWidth || 2,
+            lineStyle: cleanedOptions.trendLine?.lineStyle || 0,
+            visible: cleanedOptions.trendLine?.visible !== false
           },
-          paneId: finalPaneId
-        })
-
-        // Set the data immediately
-        if (data && data.length > 0) {
-          trendFillSeries.setData(data)
+          baseLine: {
+            color: cleanedOptions.baseLine?.color || '#666666',
+            lineWidth: cleanedOptions.baseLine?.lineWidth || 1,
+            lineStyle: cleanedOptions.baseLine?.lineStyle || 1,
+            visible: cleanedOptions.baseLine?.visible !== false
+          },
+          visible: cleanedOptions.visible !== false,
+          priceScaleId: cleanedOptions.priceScaleId || 'right'
         }
+
+        // Create the primitive series directly (no dummy series needed)
+        const { TrendFillSeries } = require('../plugins/series/trendFillSeriesPlugin')
+        const trendFillSeries = new TrendFillSeries(chart, trendFillOptions, 0)
+
+        // Set the data
+        trendFillSeries.setData(data || [])
 
         return {
           setData: (newData: any[]) => {
             try {
               trendFillSeries.setData(newData)
             } catch (error) {
-              // Error handling
+              console.error('Error setting trend fill data:', error)
             }
           },
           update: (newData: any) => {
             try {
               trendFillSeries.updateData([newData])
             } catch (error) {
-              // Error handling
+              console.error('Error updating trend fill data:', error)
             }
           },
           applyOptions: (options: any) => {
             try {
               trendFillSeries.applyOptions(options)
             } catch (error) {
-              // Error handling
+              console.error('Error applying trend fill options:', error)
             }
           },
           priceScale: () => {
@@ -379,7 +378,7 @@ export function createSeries(
             try {
               trendFillSeries.destroy()
             } catch (error) {
-              // Error handling
+              console.error('Error removing trend fill series:', error)
             }
           }
         } as unknown as ISeriesApi<any>

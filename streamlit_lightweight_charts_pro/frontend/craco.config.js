@@ -21,7 +21,7 @@ module.exports = {
                 compress: {
                   drop_console: false, // Keep console.error and console.warn, remove only via pure_funcs
                   drop_debugger: true,
-                  pure_funcs: [],
+                  pure_funcs: ['console.log', 'console.info', 'console.debug'],
                   passes: 2,
                   unsafe: true,
                   unsafe_comps: true,

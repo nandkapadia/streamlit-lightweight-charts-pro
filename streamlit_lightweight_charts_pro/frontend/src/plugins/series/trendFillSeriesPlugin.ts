@@ -24,12 +24,16 @@ import {
   LineSeries
 } from 'lightweight-charts'
 
-// Data structure for trend fill series
+// Data structure for trend fill series (matching Python snake_case fields)
 export interface TrendFillData {
   time: number | string
-  baseLine?: number | null
-  trendLine?: number | null
-  trendDirection?: number | null
+  // Support both snake_case (Python) and camelCase (JavaScript) field names
+  base_line?: number | null
+  trend_line?: number | null
+  trend_direction?: number | null
+  baseLine?: number | null  // camelCase fallback
+  trendLine?: number | null  // camelCase fallback
+  trendDirection?: number | null  // camelCase fallback
 }
 
 // Options for trend fill series
@@ -96,30 +100,6 @@ interface TrendFillViewData {
   options: TrendFillOptions
 }
 
-// Style cache for efficient rendering (like BaseLineSeries)
-class TrendFillStyleCache {
-  private _cache = new Map<
-    string,
-    CanvasRenderingContext2D['fillStyle'] | CanvasRenderingContext2D['strokeStyle']
-  >()
-
-  get(
-    key: string,
-    factory: () => CanvasRenderingContext2D['fillStyle'] | CanvasRenderingContext2D['strokeStyle']
-  ): CanvasRenderingContext2D['fillStyle'] | CanvasRenderingContext2D['strokeStyle'] {
-    if (this._cache.has(key)) {
-      return this._cache.get(key)!
-    }
-    const style = factory()
-    this._cache.set(key, style)
-    return style
-  }
-
-  clear(): void {
-    this._cache.clear()
-  }
-}
-
 /**
  * Parse time value to timestamp
  * Handles both string dates and numeric timestamps
@@ -150,7 +130,6 @@ function parseTime(time: string | number): UTCTimestamp {
       // Try to parse as date string
       const date = new Date(time)
       if (isNaN(date.getTime())) {
-
         return 0 as UTCTimestamp
       }
       return Math.floor(date.getTime() / 1000) as UTCTimestamp
@@ -158,7 +137,6 @@ function parseTime(time: string | number): UTCTimestamp {
 
     return 0 as UTCTimestamp
   } catch (error) {
-
     return 0 as UTCTimestamp
   }
 }
@@ -166,14 +144,15 @@ function parseTime(time: string | number): UTCTimestamp {
 // Optimized Trend Fill Pane Renderer (following BaseLineSeries pattern)
 class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
   _viewData: TrendFillViewData
-  private readonly _styleCache: TrendFillStyleCache = new TrendFillStyleCache()
 
   constructor(data: TrendFillViewData) {
     this._viewData = data
   }
 
-  draw(target: any) {
-    // Batch all rendering operations (like BaseLineSeries)
+  draw() {}
+
+  drawBackground(target: any) {
+    // Batch all rendering operations (following band series pattern)
     target.useBitmapCoordinateSpace((scope: any) => {
       const ctx = scope.context
       ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio)
@@ -181,9 +160,9 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
       // Save context state once
       ctx.save()
 
-      // Draw all elements efficiently
+      // Draw all elements efficiently - fills in background, lines in foreground
       this._drawTrendFills(ctx, scope)
-      this._drawTrendLines(ctx, scope)
+      this._drawTrendLines(ctx, scope) // Re-enabled with proper color handling
 
       // Restore context state once
       ctx.restore()
@@ -193,10 +172,12 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
   private _drawTrendFills(ctx: CanvasRenderingContext2D, scope: any): void {
     const {items, visibleRange, barWidth} = this._viewData.data
 
-    if (items.length === 0 || visibleRange === null) return
+    if (items.length === 0 || visibleRange === null) {
+      return
+    }
 
-    // Use BaseLineSeries-style efficient rendering
-    this._walkLineForFills(ctx, scope, items, visibleRange, barWidth)
+    // Group consecutive items by trend direction and fill color to draw continuous fills
+    this._drawContinuousFills(ctx, items, visibleRange, scope.horizontalPixelRatio, scope.verticalPixelRatio)
   }
 
   private _drawTrendLines(ctx: CanvasRenderingContext2D, scope: any): void {
@@ -210,174 +191,216 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
     ctx.lineWidth = lineWidth
     this._setLineStyle(ctx, lineStyle)
 
-    // Use BaseLineSeries-style efficient rendering
-    this._walkLineForLines(ctx, scope, items, visibleRange, barWidth)
+    // Group consecutive items by trend direction to draw continuous lines
+    this._drawContinuousTrendLines(ctx, items, visibleRange, scope.horizontalPixelRatio, scope.verticalPixelRatio)
   }
 
-  // Efficient line walking (following BaseLineSeries walkLine pattern)
-  private _walkLineForFills(
+  private _drawContinuousFills(
     ctx: CanvasRenderingContext2D,
-    scope: any,
     items: TrendFillRenderData[],
     visibleRange: {from: number; to: number},
-    barWidth: number
+    hRatio: number,
+    vRatio: number
   ): void {
-    const {horizontalPixelRatio, verticalPixelRatio} = scope
-
-    if (visibleRange.to - visibleRange.from < 2) {
-      // Handle single point case
-      const item = items[visibleRange.from]
-      if (this._isValidCoordinates(item)) {
-        this._drawSinglePointFill(ctx, item, horizontalPixelRatio, verticalPixelRatio)
-      }
+    if (visibleRange.to <= visibleRange.from) {
       return
     }
 
-    // Walk through visible range efficiently
-    let currentItem = items[visibleRange.from]
-    if (!this._isValidCoordinates(currentItem)) return
+    // Draw individual fills between consecutive points only
+    for (let i = visibleRange.from; i < visibleRange.to - 1; i++) {
+      const currentItem = items[i]
+      const nextItem = items[i + 1]
 
+      // Skip if either point has invalid coordinates
+      if (!this._isValidCoordinates(currentItem) || !this._isValidCoordinates(nextItem)) {
+        continue
+      }
+
+      // Only draw fill if both points have the same trend direction and fill color
+      if (currentItem.trendDirection === nextItem.trendDirection &&
+          currentItem.fillColor === nextItem.fillColor &&
+          currentItem.trendDirection !== 0) {
+
+        // Check if points are reasonably close (no huge gaps)
+        const xDistance = Math.abs(nextItem.x! - currentItem.x!)
+        const maxGap = 100 // Maximum pixel gap to consider "consecutive"
+
+        if (xDistance <= maxGap) {
+          this._drawFillBetweenTwoPoints(ctx, currentItem, nextItem, hRatio, vRatio)
+        }
+      }
+    }
+  }
+
+  private _drawFillBetweenTwoPoints(
+    ctx: CanvasRenderingContext2D,
+    point1: TrendFillRenderData,
+    point2: TrendFillRenderData,
+    hRatio: number,
+    vRatio: number
+  ): void {
+    ctx.fillStyle = point1.fillColor
+
+    // Create a trapezoid fill between the two points
     ctx.beginPath()
-    ctx.moveTo(currentItem.x! * horizontalPixelRatio, currentItem.baseLineY! * verticalPixelRatio)
 
-    for (let i = visibleRange.from + 1; i < visibleRange.to; i++) {
-      const nextItem = items[i]
-      if (!this._isValidCoordinates(nextItem)) continue
+    // Start from point1's baseline
+    ctx.moveTo(point1.x!, point1.baseLineY!)
 
-      // Draw fill area between current and next point
-      this._drawFillSegment(ctx, currentItem, nextItem, horizontalPixelRatio, verticalPixelRatio)
-      currentItem = nextItem
-    }
+    // Go to point2's baseline
+    ctx.lineTo(point2.x!, point2.baseLineY!)
+
+    // Go to point2's trend line
+    ctx.lineTo(point2.x!, point2.trendLineY!)
+
+    // Go to point1's trend line
+    ctx.lineTo(point1.x!, point1.trendLineY!)
+
+    // Close back to point1's baseline
+    ctx.closePath()
+    ctx.fill()
   }
 
-  private _walkLineForLines(
+  private _drawFillGroup(
     ctx: CanvasRenderingContext2D,
-    scope: any,
-    items: TrendFillRenderData[],
-    visibleRange: {from: number; to: number},
-    barWidth: number
+    group: TrendFillRenderData[],
+    hRatio: number,
+    vRatio: number,
+    fillColor: string
   ): void {
-    const {horizontalPixelRatio, verticalPixelRatio} = scope
-
-    if (visibleRange.to - visibleRange.from < 2) {
-      // Handle single point case
-      const item = items[visibleRange.from]
-      if (this._isValidCoordinates(item)) {
-        this._drawSinglePointLine(ctx, item, horizontalPixelRatio, verticalPixelRatio)
-      }
+    if (group.length === 0) {
       return
     }
 
-    // Walk through visible range efficiently
+    ctx.fillStyle = fillColor
+
+    // NOW THAT WE KNOW COORDINATES WORK: Create smooth continuous fills
+    if (group.length === 1) {
+      // Single point - draw a small rectangle fill
+      const item = group[0]
+      const x = item.x!
+      const baseLineY = item.baseLineY!
+      const trendLineY = item.trendLineY!
+
+      const rectX = Math.max(0, x - 1)
+      const rectY = Math.min(baseLineY, trendLineY)
+      const rectWidth = 2
+      const rectHeight = Math.abs(baseLineY - trendLineY)
+
+      ctx.fillRect(rectX, rectY, rectWidth, rectHeight)
+    } else {
+      // Multiple points - draw continuous fill area using path
+      ctx.beginPath()
+
+      // Start from the first point's baseline
+      const firstItem = group[0]
+      ctx.moveTo(firstItem.x!, firstItem.baseLineY!)
+
+      // Draw along the baseline to all points
+      for (let i = 1; i < group.length; i++) {
+        const item = group[i]
+        ctx.lineTo(item.x!, item.baseLineY!)
+      }
+
+      // Connect to the last point's trend line
+      const lastItem = group[group.length - 1]
+      ctx.lineTo(lastItem.x!, lastItem.trendLineY!)
+
+      // Draw along the trend line back to start (reverse order)
+      for (let i = group.length - 2; i >= 0; i--) {
+        const item = group[i]
+        ctx.lineTo(item.x!, item.trendLineY!)
+      }
+
+      // Connect back to the first point's trend line and then to baseline
+      ctx.lineTo(firstItem.x!, firstItem.trendLineY!)
+      ctx.lineTo(firstItem.x!, firstItem.baseLineY!)
+
+      ctx.fill()
+    }
+
+    // Smooth fills drawn
+  }
+
+  private _drawContinuousTrendLines(
+    ctx: CanvasRenderingContext2D,
+    items: TrendFillRenderData[],
+    visibleRange: {from: number; to: number},
+    hRatio: number,
+    vRatio: number
+  ): void {
+    if (visibleRange.to <= visibleRange.from) return
+
+    // Group consecutive points by trend direction and color
+    let currentGroup: TrendFillRenderData[] = []
+    let currentTrendDirection: number | null = null
+    let currentColor: string | null = null
+
     for (let i = visibleRange.from; i < visibleRange.to; i++) {
       const item = items[i]
       if (!this._isValidCoordinates(item)) continue
 
-      this._drawTrendLine(ctx, item, horizontalPixelRatio, verticalPixelRatio)
+      const itemColor = item.lineColor
+      const itemTrendDirection = item.trendDirection
+
+      // Start new group if trend direction or color changes
+      if (currentTrendDirection !== itemTrendDirection || currentColor !== itemColor) {
+        // Draw the current group before starting new one
+        if (currentGroup.length > 0) {
+          this._drawLineGroup(ctx, currentGroup, hRatio, vRatio, currentColor!)
+        }
+
+        // Start new group
+        currentGroup = [item]
+        currentTrendDirection = itemTrendDirection
+        currentColor = itemColor
+      } else {
+        // Add to current group
+        currentGroup.push(item)
+      }
+    }
+
+    // Draw the final group
+    if (currentGroup.length > 0 && currentColor) {
+      this._drawLineGroup(ctx, currentGroup, hRatio, vRatio, currentColor)
     }
   }
 
-  private _drawFillSegment(
+  private _drawLineGroup(
     ctx: CanvasRenderingContext2D,
-    current: TrendFillRenderData,
-    next: TrendFillRenderData,
+    group: TrendFillRenderData[],
     hRatio: number,
-    vRatio: number
+    vRatio: number,
+    color: string
   ): void {
-    // Get cached fill style (like BaseLineSeries)
-    const fillStyle = this._getCachedFillStyle(current)
-    ctx.fillStyle = fillStyle
+    if (group.length === 0) return
 
-    // Draw fill area between trend line and base line
-    // For both uptrend and downtrend: fill from base line to trend line
-    const currentTrendLineY = current.trendLineY!
-    const nextTrendLineY = next.trendLineY!
 
-    ctx.lineTo(next.x! * hRatio, next.baseLineY! * vRatio)
-    ctx.lineTo(next.x! * hRatio, nextTrendLineY * vRatio)
-    ctx.lineTo(current.x! * hRatio, currentTrendLineY * vRatio)
-    ctx.closePath()
-    ctx.fill()
+    ctx.strokeStyle = color
+    ctx.lineWidth = group[0].lineWidth || 2
+    this._setLineStyle(ctx, group[0].lineStyle || 0)
 
-    // Start new path for next segment
-    ctx.beginPath()
-    ctx.moveTo(next.x! * hRatio, next.baseLineY! * vRatio)
-  }
+    if (group.length === 1) {
+      // Single point - draw a small circle
+      const item = group[0]
+      const trendLineY = item.trendLineY!
+      ctx.fillStyle = color
+      ctx.beginPath()
+      ctx.arc(item.x!, trendLineY, 1.5, 0, 2 * Math.PI)
+      ctx.fill()
+    } else {
+      // Multiple points - draw continuous line
+      ctx.beginPath()
+      const firstItem = group[0]
+      ctx.moveTo(firstItem.x!, firstItem.trendLineY!)
 
-  private _drawSinglePointFill(
-    ctx: CanvasRenderingContext2D,
-    item: TrendFillRenderData,
-    hRatio: number,
-    vRatio: number
-  ): void {
-    const fillStyle = this._getCachedFillStyle(item)
-    ctx.fillStyle = fillStyle
+      for (let i = 1; i < group.length; i++) {
+        const item = group[i]
+        ctx.lineTo(item.x!, item.trendLineY!)
+      }
 
-    // Draw fill area between trend line and base line
-    // For both uptrend and downtrend: fill from base line to trend line
-    const halfBarWidth = 2
-    const trendLineY = item.trendLineY!
-
-    ctx.beginPath()
-    ctx.moveTo((item.x! - halfBarWidth) * hRatio, item.baseLineY! * vRatio)
-    ctx.lineTo((item.x! + halfBarWidth) * hRatio, item.baseLineY! * vRatio)
-    ctx.lineTo((item.x! + halfBarWidth) * hRatio, trendLineY * vRatio)
-    ctx.lineTo((item.x! - halfBarWidth) * hRatio, trendLineY * vRatio)
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  private _drawTrendLine(
-    ctx: CanvasRenderingContext2D,
-    item: TrendFillRenderData,
-    hRatio: number,
-    vRatio: number
-  ): void {
-    // Get cached stroke style (like BaseLineSeries)
-    const strokeStyle = this._getCachedStrokeStyle(item)
-    ctx.strokeStyle = strokeStyle
-
-    // Draw trend line at the appropriate level based on trend direction
-    // For both uptrend and downtrend: trend line is at trendLineY level
-    const trendLineY = item.trendLineY!
-
-    ctx.beginPath()
-    ctx.arc(item.x! * hRatio, trendLineY * vRatio, 2, 0, 2 * Math.PI)
-    ctx.fill()
-  }
-
-  private _drawSinglePointLine(
-    ctx: CanvasRenderingContext2D,
-    item: TrendFillRenderData,
-    hRatio: number,
-    vRatio: number
-  ): void {
-    const strokeStyle = this._getCachedStrokeStyle(item)
-    ctx.strokeStyle = strokeStyle
-
-    // Draw trend line at the appropriate level based on trend direction
-    // For both uptrend and downtrend: trend line is at trendLineY level
-    const trendLineY = item.trendLineY!
-
-    ctx.beginPath()
-    ctx.arc(item.x! * hRatio, trendLineY * vRatio, 2, 0, 2 * Math.PI)
-    ctx.fill()
-  }
-
-  // Style caching (like BaseLineSeries)
-  private _getCachedFillStyle(item: TrendFillRenderData): CanvasRenderingContext2D['fillStyle'] {
-    const key = `fill_${item.fillColor}`
-    return this._styleCache.get(key, () => {
-      // Return the color as-is since opacity is handled in the color value
-      return item.fillColor
-    })
-  }
-
-  private _getCachedStrokeStyle(
-    item: TrendFillRenderData
-  ): CanvasRenderingContext2D['strokeStyle'] {
-    const key = `stroke_${item.lineColor}_${item.lineWidth}_${item.lineStyle}`
-    return this._styleCache.get(key, () => item.lineColor)
+      ctx.stroke()
+    }
   }
 
   private _setLineStyle(ctx: CanvasRenderingContext2D, lineStyle: number): void {
@@ -450,16 +473,16 @@ class TrendFillPrimitivePaneView implements IPrimitivePaneView {
       return
     }
 
-    // Get the price scale from the dummy series
-    const dummySeries = this._source.getDummySeries()
-    if (!dummySeries) {
-
+    // Get the price scales using the real line series (following band series pattern)
+    const baseLineSeries = this._source.getBaseLineSeries()
+    const trendLineSeries = this._source.getTrendLineSeries()
+    if (!baseLineSeries || !trendLineSeries) {
       return
     }
 
-    // Update view data
+    // Update view data with the real line series which have the correct price scale
     this._data.data.timeScale = timeScale
-    this._data.data.priceScale = dummySeries
+    this._data.data.priceScale = baseLineSeries
 
     // Get chart dimensions
     this._data.data.chartWidth = chartElement?.clientWidth || 800
@@ -479,7 +502,7 @@ class TrendFillPrimitivePaneView implements IPrimitivePaneView {
 
     // Batch coordinate conversion (like BaseLineSeries)
     const items = this._source.getProcessedData()
-    const convertedItems = this._batchConvertCoordinates(items, timeScale, dummySeries)
+    const convertedItems = this._batchConvertCoordinates(items, timeScale, baseLineSeries, trendLineSeries)
 
     // Set visible range (like BaseLineSeries)
     this._data.data.visibleRange = this._calculateVisibleRange(convertedItems)
@@ -488,26 +511,32 @@ class TrendFillPrimitivePaneView implements IPrimitivePaneView {
     this._data.data.items = convertedItems
     this._data.data.lineWidth = this._source.getOptions().trendLine.lineWidth
     this._data.data.lineStyle = this._source.getOptions().trendLine.lineStyle
+
   }
 
-  // Batch coordinate conversion (like BaseLineSeries)
+  // Batch coordinate conversion (following band series pattern)
   private _batchConvertCoordinates(
     items: TrendFillItem[],
     timeScale: any,
-    priceScale: any
+    baseLineSeries: any,
+    trendLineSeries: any
   ): TrendFillRenderData[] {
-    if (!timeScale || !priceScale) {
 
+    if (!timeScale || !baseLineSeries || !trendLineSeries) {
       return []
     }
 
     return items
-      .map(item => {
+      .map((item, index) => {
         try {
-          // Convert coordinates using native methods with error handling
+          // Convert coordinates using the real line series (following band series pattern)
           const x = timeScale.timeToCoordinate(item.time)
-          const baseLineY = priceScale.priceToCoordinate(item.baseLine)
-          const trendLineY = priceScale.priceToCoordinate(item.trendLine)
+
+
+          // Use the real line series for coordinate conversion (following band series approach)
+          const baseLineY = baseLineSeries.priceToCoordinate(item.baseLine)
+          const trendLineY = trendLineSeries.priceToCoordinate(item.trendLine)
+
 
           // Validate coordinates
           if (x === null || baseLineY === null || trendLineY === null) {
@@ -556,10 +585,11 @@ class TrendFillPrimitivePaneView implements IPrimitivePaneView {
   }
 }
 
-// Trend Fill Series Class (following BaseLineSeries pattern but using primitives)
+// Trend Fill Series Class (following BandSeries pattern)
 export class TrendFillSeries implements ISeriesPrimitive<Time> {
   private chart: IChartApi
-  private dummySeries: ISeriesApi<'Line'>
+  private baseLineSeries: ISeriesApi<'Line'>
+  private trendLineSeries: ISeriesApi<'Line'>
   private options: TrendFillOptions
   private data: TrendFillData[] = []
   private _paneViews: TrendFillPrimitivePaneView[]
@@ -571,10 +601,10 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
   constructor(
     chart: IChartApi,
     options: TrendFillOptions = {
-      uptrendFillColor: '#4CAF50',
-      downtrendFillColor: '#F44336',
+      uptrendFillColor: 'rgba(76, 175, 80, 0.3)', // Green with transparency for uptrend fill
+      downtrendFillColor: 'rgba(244, 67, 54, 0.3)', // Red with transparency for downtrend fill
       trendLine: {
-        color: '#F44336',
+        color: '#4CAF50', // Default green (will be overridden by trend direction)
         lineWidth: 2,
         lineStyle: 0,
         visible: true
@@ -593,63 +623,62 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
     this.chart = chart
     this.options = {...options}
     this.paneId = paneId
-    this._paneViews = []
-
-    // Initialize after chart is ready
-    this.waitForChartReady()
-  }
-
-  private waitForChartReady(): void {
-    const checkReady = () => {
-      try {
-        const timeScale = this.chart.timeScale()
-        if (timeScale) {
-          this._initializeSeries()
-        } else {
-          setTimeout(checkReady, 50)
-        }
-      } catch (error) {
-        setTimeout(checkReady, 50)
-      }
-    }
-    setTimeout(checkReady, 100)
-  }
-
-  private _initializeSeries(): void {
-    // Create pane views
     this._paneViews = [new TrendFillPrimitivePaneView(this)]
 
-    // Create a dummy line series to attach the primitive to
-    this.dummySeries = this.chart.addSeries(
-      LineSeries,
-      {
-        color: 'transparent',
-        lineWidth: 0 as any,
-        visible: false,
-        priceScaleId: this.options.priceScaleId || 'right' // Use options priceScaleId
-      },
-      this.paneId
-    )
+    // Create the two line series (following band series pattern) - make them transparent for coordinate conversion only
+    this.baseLineSeries = chart.addSeries(LineSeries, {
+      color: 'rgba(0,0,0,0)', // Fully transparent
+      lineStyle: 0,
+      lineWidth: 1,
+      visible: true, // Must be visible for primitive to render and coordinate conversion
+      priceScaleId: this.options.priceScaleId,
+      lastValueVisible: false,
+      priceLineVisible: false
+    })
 
-    // Add minimal dummy data to ensure the time scale is properly initialized
-    const dummyData = [
-      {
-        time: Math.floor(Date.now() / 1000) as UTCTimestamp,
-        value: 0
-      }
-    ]
-    this.dummySeries.setData(dummyData)
+    this.trendLineSeries = chart.addSeries(LineSeries, {
+      color: 'rgba(0,0,0,0)', // Fully transparent
+      lineStyle: 0,
+      lineWidth: 1,
+      visible: true, // Must be visible for coordinate conversion
+      priceScaleId: this.options.priceScaleId,
+      lastValueVisible: false,
+      priceLineVisible: false
+    })
 
-    // Attach the primitive to the dummy series for rendering
-    this.dummySeries.attachPrimitive(this)
+    // Attach the primitive to the base line series for rendering
+    this.baseLineSeries.attachPrimitive(this)
+  }
 
-    // Initial update
-    this.updateAllViews()
+  public setDummySeries(series: any): void {
+    // No longer needed - we have real line series
   }
 
   public setData(data: TrendFillData[]): void {
     this.data = data
     this.processData()
+
+    // Extract baseline and trendline data for the real line series
+    if (this.data.length > 0) {
+      const baseLineData = this.data.map(item => ({
+        time: parseTime(item.time),
+        value: (item.base_line ?? item.baseLine) || 0
+      })).filter(item => item.time > 0)
+
+      const trendLineData = this.data.map(item => ({
+        time: parseTime(item.time),
+        value: (item.trend_line ?? item.trendLine) || 0
+      })).filter(item => item.time > 0 && item.value !== 0)
+
+      // Set data for the real line series
+      if (baseLineData.length > 0) {
+        this.baseLineSeries.setData(baseLineData)
+      }
+      if (trendLineData.length > 0) {
+        this.trendLineSeries.setData(trendLineData)
+      }
+    }
+
     this.updateAllViews()
   }
 
@@ -660,7 +689,10 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
   private processData(): void {
     this.trendFillItems = []
 
-    if (!this.data || this.data.length === 0) return
+    if (!this.data || this.data.length === 0) {
+      return
+    }
+
 
     // Sort data by time
     const sortedData = [...this.data].sort((a, b) => {
@@ -669,40 +701,52 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
       return timeA - timeB
     })
 
+    // Count trend directions in raw data
+    const trendDirectionCounts = { '-1': 0, '0': 0, '1': 0, 'null': 0, 'undefined': 0 }
+    sortedData.forEach((item, i) => {
+      const trendDirection = item.trend_direction ?? item.trendDirection
+      const key = trendDirection === null ? 'null' : trendDirection === undefined ? 'undefined' : String(trendDirection)
+      trendDirectionCounts[key] = (trendDirectionCounts[key] || 0) + 1
+    })
+
     // Process each data point
-    for (const item of sortedData) {
+    for (let i = 0; i < sortedData.length; i++) {
+      const item = sortedData[i]
       const time = parseTime(item.time)
-      const baseLine = item.baseLine
-      const trendLine = item.trendLine
-      const trendDirection = item.trendDirection
+      // Handle both camelCase and snake_case field names for backwards compatibility
+      const baseLine = item.base_line ?? item.baseLine
+      const trendLine = item.trend_line ?? item.trendLine
+      const trendDirection = item.trend_direction ?? item.trendDirection
+
 
       if (
         baseLine === null ||
         baseLine === undefined ||
-        trendLine === null ||
-        trendLine === undefined ||
         trendDirection === null ||
         trendDirection === undefined
       ) {
         continue
       }
 
+      // Skip neutral trends (they don't have trend lines to draw)
+      if (trendDirection === 0 || trendLine === null || trendLine === undefined) {
+        continue
+      }
+
       // Determine colors and styles based on trend direction
       const isUptrend = trendDirection > 0
 
-      // Use trend line colors and styles
+      // Use different colors for uptrend and downtrend
       const fillColor = isUptrend ? this.options.uptrendFillColor : this.options.downtrendFillColor
 
-      // For both uptrend and downtrend: use trend line and base line
-      const lineColor = isUptrend ? this.options.trendLine.color : this.options.trendLine.color
+      // Use different line colors for uptrend (green) and downtrend (red) - matching the image
+      const lineColor = isUptrend
+        ? this._getSolidColorFromFill(this.options.uptrendFillColor) // Green line for uptrend
+        : this._getSolidColorFromFill(this.options.downtrendFillColor) // Red line for downtrend
 
-      const lineWidth = isUptrend
-        ? this.options.trendLine.lineWidth
-        : this.options.trendLine.lineWidth
 
-      const lineStyle = isUptrend
-        ? this.options.trendLine.lineStyle
-        : this.options.trendLine.lineStyle
+      const lineWidth = this.options.trendLine.lineWidth
+      const lineStyle = this.options.trendLine.lineStyle
 
       // Create trend fill item (like BaseLineSeries data structure)
       this.trendFillItems.push({
@@ -716,12 +760,30 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
         lineStyle
       })
     }
+
   }
 
   public applyOptions(options: Partial<TrendFillOptions>): void {
     this.options = {...this.options, ...options}
     this.processData()
     this.updateAllViews()
+  }
+
+  private _getSolidColorFromFill(fillColor: string): string {
+    // Convert fill colors (which may have transparency) to solid line colors
+    if (fillColor.includes('rgba')) {
+      // Convert rgba to solid color by setting alpha to 1
+      return fillColor.replace(/,\s*[0-9.]+\s*\)/, ', 1)')
+    } else if (fillColor.includes('rgb')) {
+      // Already solid rgb
+      return fillColor
+    } else if (fillColor.startsWith('#')) {
+      // Hex color - already solid
+      return fillColor
+    } else {
+      // Named color or other format - return as is
+      return fillColor
+    }
   }
 
   public setVisible(visible: boolean): void {
@@ -732,9 +794,10 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
 
   public destroy(): void {
     try {
-      this.chart.removeSeries(this.dummySeries)
+      this.chart.removeSeries(this.baseLineSeries)
+      this.chart.removeSeries(this.trendLineSeries)
     } catch (error) {
-
+      // Ignore errors during cleanup
     }
   }
 
@@ -751,8 +814,12 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
     return this.trendFillItems
   }
 
-  getDummySeries(): ISeriesApi<'Line'> {
-    return this.dummySeries
+  getBaseLineSeries(): ISeriesApi<'Line'> {
+    return this.baseLineSeries
+  }
+
+  getTrendLineSeries(): ISeriesApi<'Line'> {
+    return this.trendLineSeries
   }
 
   // ISeriesPrimitive implementation
@@ -773,41 +840,48 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
   }
 }
 
-// Factory function to create trend fill series
+// Custom Series View for compatibility with series factory
+class TrendFillSeriesView {
+  private _data: TrendFillData[] = []
+  private _options: TrendFillOptions
+  private _trendFillSeries: TrendFillSeries | null = null
+
+  constructor(data: TrendFillData[], options: TrendFillOptions) {
+    this._data = data
+    this._options = options
+  }
+
+  processData() {
+    return this._data
+  }
+
+  setData(newData: TrendFillData[]) {
+    this._data = newData
+    if (this._trendFillSeries) {
+      this._trendFillSeries.setData(newData)
+    }
+  }
+
+  getData() {
+    return this._data
+  }
+
+  getOptions() {
+    return this._options
+  }
+
+  // This method will be called by addCustomSeries
+  createSeries(chart: IChartApi, paneId?: number) {
+    this._trendFillSeries = new TrendFillSeries(chart, this._options, paneId || 0)
+    this._trendFillSeries.setData(this._data)
+    return this._trendFillSeries
+  }
+}
+
+// Factory function to create trend fill series (matching the series factory call pattern)
 export function createTrendFillSeriesPlugin(
-  chart: IChartApi,
-  config: {
-    type: string
-    data: TrendFillData[]
-    options?: TrendFillOptions
-    paneId?: number
-  }
-): TrendFillSeries {
-  // Merge options with defaults, ensuring priceScaleId is properly set
-  const defaultOptions: TrendFillOptions = {
-    uptrendFillColor: '#4CAF50',
-    downtrendFillColor: '#F44336',
-    trendLine: {
-      color: '#F44336',
-      lineWidth: 2,
-      lineStyle: 0,
-      visible: true
-    },
-    baseLine: {
-      color: '#666666',
-      lineWidth: 1,
-      lineStyle: 1,
-      visible: false
-    },
-    visible: true,
-    priceScaleId: 'right' // Default priceScaleId
-  }
-
-  const mergedOptions = {...defaultOptions, ...config.options}
-
-  const series = new TrendFillSeries(chart, mergedOptions, config.paneId || 0)
-  if (config.data) {
-    series.setData(config.data)
-  }
-  return series
+  data: TrendFillData[],
+  options: TrendFillOptions
+): TrendFillSeriesView {
+  return new TrendFillSeriesView(data, options)
 }
