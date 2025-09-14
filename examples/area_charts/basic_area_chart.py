@@ -12,9 +12,9 @@ import sys
 
 import streamlit as st
 
-from examples.data_samples import get_dataframe_line_data, get_line_data
+from examples.utilities.data_samples import get_dataframe_line_data, get_line_data
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
+from streamlit_lightweight_charts_pro.charts.series import AreaSeries
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -47,10 +47,10 @@ def main():
 
     area_series_df = AreaSeries(data=df_data, column_mapping={"time": "datetime", "value": "value"})
 
-    chart2 = Chart()
-    chart2.add_series(area_series_df)
+    dataframe_chart = Chart()
+    dataframe_chart.add_series(area_series_df)
 
-    chart2.render(key="basic_area_2")
+    dataframe_chart.render(key="basic_area_2")
 
     # Show data info
     st.subheader("Data Information")
@@ -63,9 +63,9 @@ def main():
     # Show series properties
     st.subheader("Series Properties")
     st.write(f"Chart type: {area_series.chart_type}")
-    st.write(f"Visible: {area_series._visible}")
-    st.write(f"Price scale ID: {area_series.price_scale_id}")
-    st.write(f"Pane ID: {area_series.pane_id}")
+    st.write(f"Visible: {area_series.visible}")  # pylint: disable=no-member
+    st.write(f"Price scale ID: {area_series.price_scale_id}")  # pylint: disable=no-member
+    st.write(f"Pane ID: {area_series.pane_id}")  # pylint: disable=no-member
 
     # Show data statistics
     st.subheader("Data Statistics")

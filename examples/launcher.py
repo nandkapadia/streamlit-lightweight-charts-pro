@@ -23,8 +23,48 @@ EXAMPLES_DIR = Path(__file__).parent
 
 # Example categories and their descriptions
 EXAMPLE_CATEGORIES = {
+    "📚 Tutorials": {
+        "description": "Step-by-step tutorials for complete beginners. Start here if you're new to the library!",
+        "examples": {
+            "tutorial_01_hello_world.py": {
+                "title": "Tutorial 1: Hello World",
+                "description": "Create your very first chart - perfect for absolute beginners.",
+                "path": "tutorials/tutorial_01_hello_world.py",
+            },
+            "tutorial_02_data_formats.py": {
+                "title": "Tutorial 2: Data Formats",
+                "description": "Learn about different ways to provide data to charts.",
+                "path": "tutorials/tutorial_02_data_formats.py",
+            },
+            "tutorial_03_customizing_charts.py": {
+                "title": "Tutorial 3: Customizing Charts",
+                "description": "Learn how to customize colors, styles, and layouts.",
+                "path": "tutorials/tutorial_03_customizing_charts.py",
+            },
+        },
+    },
+    "⚡ Quick Start": {
+        "description": "Copy-paste ready examples for immediate use. Perfect for testing your installation!",
+        "examples": {
+            "minimal_example.py": {
+                "title": "Minimal Example",
+                "description": "The absolute minimum code needed to create a chart.",
+                "path": "quick_start/minimal_example.py",
+            },
+            "from_csv.py": {
+                "title": "Load from CSV",
+                "description": "Load data from a CSV file and create a chart.",
+                "path": "quick_start/from_csv.py",
+            },
+            "candlestick_example.py": {
+                "title": "Candlestick Chart",
+                "description": "Create a professional candlestick chart for financial data.",
+                "path": "quick_start/candlestick_example.py",
+            },
+        },
+    },
     "🚀 Getting Started": {
-        "description": "Start here! Basic examples to get you up and running quickly.",
+        "description": "Basic examples to get you up and running quickly.",
         "examples": {
             "pane_heights_example.py": {
                 "title": "Multi-Pane Charts",
@@ -33,51 +73,85 @@ EXAMPLE_CATEGORIES = {
                 ),
                 "path": "getting_started/pane_heights_example.py",
             },
-            "simple_linked_charts_demo.py": {
-                "title": "Simple Linked Charts",
-                "description": "Basic example of creating linked charts with synchronization.",
-                "path": "getting_started/simple_linked_charts_demo.py",
+        },
+    },
+    "🎯 Common Patterns": {
+        "description": "Real-world patterns and solutions for common use cases.",
+        "examples": {
+            "dashboard_layout.py": {
+                "title": "Dashboard Layout",
+                "description": "Create professional multi-chart dashboard layouts.",
+                "path": "common_patterns/dashboard_layout.py",
             },
         },
     },
     "📊 Chart Types": {
         "description": "Examples for each supported chart type with various configurations.",
         "examples": {
-            "line_charts/": {
-                "title": "Line Charts",
-                "description": "Basic and advanced line chart examples.",
-                "path": "line_charts/",
-                "is_directory": True,
+            "line_chart_basic.py": {
+                "title": "Basic Line Chart",
+                "description": "Simple line chart with default styling and sample data.",
+                "path": "line_charts/line_chart_basic.py",
             },
-            "candlestick_charts/": {
-                "title": "Candlestick Charts",
-                "description": "OHLC data visualization examples.",
-                "path": "candlestick_charts/",
-                "is_directory": True,
+            "line_chart_advanced.py": {
+                "title": "Advanced Line Chart",
+                "description": "Line chart with markers, price lines, and custom styling.",
+                "path": "line_charts/line_chart_advanced.py",
             },
-            "bar_charts/": {
-                "title": "Bar Charts",
-                "description": "Bar and histogram visualization examples.",
-                "path": "bar_charts/",
-                "is_directory": True,
+            "line_chart_dataframe.py": {
+                "title": "Line Chart from DataFrame",
+                "description": "Create line charts from pandas DataFrames with column mapping.",
+                "path": "line_charts/line_chart_dataframe.py",
             },
-            "area_charts/": {
-                "title": "Area Charts",
-                "description": "Filled area chart examples.",
-                "path": "area_charts/",
-                "is_directory": True,
+            "basic_candlestick_chart.py": {
+                "title": "Basic Candlestick Chart",
+                "description": "OHLC data visualization with candlestick series.",
+                "path": "candlestick_charts/basic_candlestick_chart.py",
             },
-            "histogram_charts/": {
-                "title": "Histogram Charts",
-                "description": "Volume and distribution chart examples.",
-                "path": "histogram_charts/",
-                "is_directory": True,
+            "customized_candlestick_chart.py": {
+                "title": "Customized Candlestick Chart",
+                "description": "Advanced candlestick chart with custom colors and styling.",
+                "path": "candlestick_charts/customized_candlestick_chart.py",
             },
-            "baseline_charts/": {
-                "title": "Baseline Charts",
-                "description": "Baseline comparison chart examples.",
-                "path": "baseline_charts/",
-                "is_directory": True,
+            "basic_bar_chart.py": {
+                "title": "Basic Bar Chart",
+                "description": "Bar chart with OHLC data and DataFrame integration.",
+                "path": "bar_charts/basic_bar_chart.py",
+            },
+            "customized_bar_chart.py": {
+                "title": "Customized Bar Chart",
+                "description": "Advanced bar chart with custom styling and colors.",
+                "path": "bar_charts/customized_bar_chart.py",
+            },
+            "basic_area_chart.py": {
+                "title": "Basic Area Chart",
+                "description": "Filled area chart with sample data and DataFrame support.",
+                "path": "area_charts/basic_area_chart.py",
+            },
+            "customized_area_chart.py": {
+                "title": "Customized Area Chart",
+                "description": "Advanced area chart with custom colors and styling.",
+                "path": "area_charts/customized_area_chart.py",
+            },
+            "basic_histogram_chart.py": {
+                "title": "Basic Histogram Chart",
+                "description": "Volume and distribution chart with sample data.",
+                "path": "histogram_charts/basic_histogram_chart.py",
+            },
+            "customized_histogram_chart.py": {
+                "title": "Customized Histogram Chart",
+                "description": "Advanced histogram chart with custom styling.",
+                "path": "histogram_charts/customized_histogram_chart.py",
+            },
+            "basic_baseline_chart.py": {
+                "title": "Basic Baseline Chart",
+                "description": "Baseline comparison chart with sample data.",
+                "path": "baseline_charts/basic_baseline_chart.py",
+            },
+            "customized_baseline_chart.py": {
+                "title": "Customized Baseline Chart",
+                "description": "Advanced baseline chart with custom styling.",
+                "path": "baseline_charts/customized_baseline_chart.py",
             },
         },
     },

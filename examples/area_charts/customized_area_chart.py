@@ -12,11 +12,11 @@ import sys
 
 import streamlit as st
 
-from examples.data_samples import get_line_data
+from examples.utilities.data_samples import get_line_data
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
+from streamlit_lightweight_charts_pro.charts.options import LineOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
-from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
+from streamlit_lightweight_charts_pro.charts.series import AreaSeries
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))

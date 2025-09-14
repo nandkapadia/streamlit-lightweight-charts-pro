@@ -12,9 +12,9 @@ import sys
 
 import streamlit as st
 
-from examples.data_samples import get_candlestick_data
+from examples.utilities.data_samples import get_candlestick_data
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
+from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -133,9 +133,9 @@ def main():
     st.json(
         {
             "chart_type": candlestick_series.chart_type,
-            "visible": candlestick_series._visible,
-            "price_scale_id": candlestick_series.price_scale_id,
-            "pane_id": candlestick_series.pane_id,
+            "visible": candlestick_series.visible  # pylint: disable=no-member,
+            "price_scale_id": candlestick_series.price_scale_id  # pylint: disable=no-member,
+            "pane_id": candlestick_series.pane_id  # pylint: disable=no-member,
             "up_color": candlestick_series.up_color,
             "down_color": candlestick_series.down_color,
             "border_color": candlestick_series.border_color,

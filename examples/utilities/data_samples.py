@@ -30,9 +30,8 @@ from typing import Dict, List, Union
 
 import pandas as pd
 
-from streamlit_lightweight_charts_pro.data.line_data import LineData
-from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
-from streamlit_lightweight_charts_pro.type_definitions import ColumnNames
+from streamlit_lightweight_charts_pro.data import LineData, CandlestickData, BarData
+from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames
 
 # =============================================================================
 # RAW DATA DICTIONARIES (for backward compatibility)
@@ -398,12 +397,12 @@ def get_line_data() -> List[LineData]:
     ]
 
 
-def get_bar_data() -> List[OhlcData]:
+def get_bar_data() -> List[BarData]:
     """
-    Get sample bar chart data as OhlcData objects.
+    Get sample bar chart data as BarData objects.
 
     Returns:
-        List[OhlcData]: List of OHLC data points for bar charts.
+        List[BarData]: List of OHLC data points for bar charts.
 
     Example:
         ```python
@@ -414,7 +413,7 @@ def get_bar_data() -> List[OhlcData]:
         ```
     """
     return [
-        OhlcData(
+        BarData(
             time=item[ColumnNames.DATETIME],
             open=item[ColumnNames.OPEN],
             high=item[ColumnNames.HIGH],
@@ -425,12 +424,12 @@ def get_bar_data() -> List[OhlcData]:
     ]
 
 
-def get_candlestick_data() -> List[OhlcData]:
+def get_candlestick_data() -> List[CandlestickData]:
     """
-    Get sample candlestick chart data as OhlcData objects.
+    Get sample candlestick chart data as CandlestickData objects.
 
     Returns:
-        List[OhlcData]: List of OHLC data points for candlestick charts.
+        List[CandlestickData]: List of OHLC data points for candlestick charts.
 
     Example:
         ```python
@@ -441,7 +440,7 @@ def get_candlestick_data() -> List[OhlcData]:
         ```
     """
     return [
-        OhlcData(
+        CandlestickData(
             time=item[ColumnNames.DATETIME],
             open=item[ColumnNames.OPEN],
             high=item[ColumnNames.HIGH],

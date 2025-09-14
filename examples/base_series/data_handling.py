@@ -13,7 +13,7 @@ import sys
 import pandas as pd
 import streamlit as st
 
-from examples.data_samples import (
+from examples.utilities.data_samples import (
     get_dataframe_line_data,
     get_line_data,
 )
@@ -42,7 +42,7 @@ def main():
     st.write(f"First data point: {series_from_objects.data[0]}")
 
     chart = Chart(series=series_from_objects)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("2. DataFrame Input")
     st.write("Create series with pandas DataFrame:")
@@ -61,7 +61,7 @@ def main():
     st.write(f"Data type: {type(series_from_df.data[0])}")
 
     chart = Chart(series=series_from_df)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("3. Series Input")
     st.write("Create series with pandas Series:")
@@ -82,7 +82,7 @@ def main():
     st.write(f"Number of data points: {len(series_from_series.data)}")
 
     chart = Chart(series=series_from_series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("4. Column Mapping Examples")
     st.write("Demonstrate different column mapping configurations:")
@@ -105,7 +105,7 @@ def main():
     )
 
     chart = Chart(series=series_custom_mapping)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("5. Data Validation")
     st.write("Show data validation and error handling:")
@@ -162,7 +162,7 @@ def main():
     st.write(f"Filtered data points: {len(filtered_data)}")
 
     chart = Chart(series=filtered_series)
-    chart.render()
+    chart.render(key="chart")
 
     # Sorted data
     st.subheader("Sorted Data")
@@ -172,7 +172,7 @@ def main():
     st.write(f"Sorted by value (descending): {len(sorted_data)} points")
 
     chart = Chart(series=sorted_series)
-    chart.render()
+    chart.render(key="chart")
 
 
 if __name__ == "__main__":

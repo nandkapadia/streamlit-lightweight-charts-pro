@@ -356,7 +356,7 @@ chart.update_options(**chart_options.asdict())
 
 # Add trade visualization
 chart.add_trade_visualization(trades)
-chart.render()
+chart.render(key="chart")
     """,
         language="python",
     )

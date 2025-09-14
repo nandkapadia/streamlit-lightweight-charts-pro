@@ -5,14 +5,13 @@ This example demonstrates the Supertrend indicator using the new TrendFill serie
 that creates smooth, continuous fills exactly like the image visualization.
 """
 
-
 import numpy as np
 import pandas as pd
 import streamlit as st
 
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.series.trend_fill import TrendFillSeries
-from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData
+from streamlit_lightweight_charts_pro.charts.series import TrendFillSeries, CandlestickSeries
+from streamlit_lightweight_charts_pro.data import TrendFillData, CandlestickData
 
 
 # Create realistic OHLCV data similar to the image
@@ -51,10 +50,14 @@ def create_supertrend_data():
         # Create realistic OHLC from base price
         volatility = max(0.5, abs(price) * 0.02)  # 2% volatility
 
-        open_price = price + np.random.normal(0, volatility * 0.3)
-        high_price = max(open_price, price) + np.random.uniform(0, volatility)
-        low_price = min(open_price, price) - np.random.uniform(0, volatility)
-        close_price = price + np.random.normal(0, volatility * 0.3)
+        open_price = max(0.01, price + np.random.normal(0, volatility * 0.3))
+        close_price = max(0.01, price + np.random.normal(0, volatility * 0.3))
+
+        # Ensure high is highest and low is lowest
+        high_price = max(open_price, close_price, price) + np.random.uniform(0, volatility)
+        low_price = max(
+            0.01, min(open_price, close_price, price) - np.random.uniform(0, volatility)
+        )
         volume = np.random.randint(50000, 200000)
 
         data.append(
@@ -105,7 +108,7 @@ def create_mock_trend_fill_data(df):
             TrendFillData(
                 time=int(df.iloc[i]["datetime"].timestamp()),
                 base_line=round(ohlc4, 2),
-                trendLine=trendLine,
+                trend_line=trendLine,
                 trend_direction=trend_direction,
                 uptrend_fill_color="#26A69A",  # Green for uptrend
                 downtrend_fill_color="#EF5350",  # Red for downtrend
@@ -127,99 +130,43 @@ def main():
     chart = Chart()
 
     # Add candlestick series for price data
-    candlestick_series = chart.add_candlestick_series(
-        data=df,
-        column_mapping={
-            "time": "datetime",
-            "open": "open",
-            "high": "high",
-            "low": "low",
-            "close": "close",
-        },
-        title="Price",
-    )
+    candlestick_data = [
+        CandlestickData(
+            time=int(row["datetime"].timestamp()),
+            open=row["open"],
+            high=row["high"],
+            low=row["low"],
+            close=row["close"],
+        )
+        for _, row in df.iterrows()
+    ]
+
+    candlestick_series = CandlestickSeries(data=candlestick_data, price_scale_id="right")
 
     # Add TrendFill series
     trend_fill_series = TrendFillSeries(
-        data=trend_fill_data, uptrend_fill_color="#26A69A", downtrend_fill_color="#EF5350"
+        data=trend_fill_data,
+        uptrend_fill_color="#26A69A",
+        downtrend_fill_color="#EF5350",
+        price_scale_id="right",
     )
 
-    # Configure the chart
-    chart_config = {
-        "chart": {
-            "width": 1000,
-            "height": 600,
-            "layout": {
-                "background": {"type": "solid", "color": "#ffffff"},
-                "textColor": "#333333",
-            },
-            "grid": {
-                "vertLines": {"color": "#e6e6e6"},
-                "horzLines": {"color": "#e6e6e6"},
-            },
-            "crosshair": {"mode": 1},
-            "rightPriceScale": {"borderColor": "#cccccc"},
-            "timeScale": {
-                "borderColor": "#cccccc",
-                "timeVisible": True,
-            },
-        },
-        "series": [
-            {
-                "type": "candlestick",
-                "data": df.to_dict("records"),
-                "columnMapping": {
-                    "time": "datetime",
-                    "open": "open",
-                    "high": "high",
-                    "low": "low",
-                    "close": "close",
-                },
-            },
-            {
-                "type": "trend_fill",
-                "data": [
-                    {
-                        "time": item.time,
-                        "base_line": item.base_line,
-                        "trend_line": item.trend_line,
-                        "trend_direction": item.trend_direction,
-                        "uptrend_fill_color": item.uptrend_fill_color,
-                        "downtrend_fill_color": item.downtrend_fill_color,
-                    }
-                    for item in trend_fill_data
-                ],
-                "options": {
-                    "uptrend_fill_color": "#26A69A",
-                    "downtrend_fill_color": "#EF5350",
-                    "fillOpacity": 0.25,
-                    "trendLine": {
-                        "color": "#EF5350",
-                        "lineWidth": 2,
-                        "lineStyle": 0,
-                        "visible": True,
-                    },
-                    "baseLine": {
-                        "color": "#666666",
-                        "lineWidth": 1,
-                        "lineStyle": 1,
-                        "visible": False,
-                    },
-                },
-            },
-        ],
-    }
+    # Configure chart options
+    chart.update_options(width=1000, height=600)
 
     # Add series to chart
+    chart.add_series(candlestick_series)
     chart.add_series(trend_fill_series)
 
     # Display the chart
     st.subheader("Supertrend Chart with TrendFill")
-    chart.display()
+    chart.render(key="supertrend_chart")
 
-    # Display configuration
-    st.subheader("Chart Configuration")
-    st.json(chart_config)
+    # Display chart information
+    st.subheader("Chart Information")
+    st.write(
+        f"**Data Points:** {len(candlestick_data)} candlesticks, {len(trend_fill_data)} trend fill points"
+    )
 
     # Display sample data
     st.subheader("Sample TrendFill Data")
@@ -256,6 +203,8 @@ def main():
     st.write("✅ **Seamless Integration**: Overlays perfectly on candlestick charts")
     st.write("✅ **Performance Optimized**: Single area series per trend direction")
     st.write("✅ **Realistic Data**: Simulates actual market patterns")
+
+    st.write(chart.to_frontend_config())
 
 
 if __name__ == "__main__":

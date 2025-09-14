@@ -14,10 +14,10 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from examples.data_samples import get_multi_area_data_1, get_multi_area_data_2
+from examples.utilities.data_samples import get_multi_area_data_1, get_multi_area_data_2
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
-from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
+from streamlit_lightweight_charts_pro.charts.options import LineOptions
+from streamlit_lightweight_charts_pro.charts.series import AreaSeries
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     LineStyle,
     MarkerPosition,

@@ -12,9 +12,9 @@ import sys
 
 import streamlit as st
 
-from examples.data_samples import get_baseline_data
+from examples.utilities.data_samples import get_baseline_data
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.series.baseline import BaselineSeries
+from streamlit_lightweight_charts_pro.charts.series import BaselineSeries
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -51,14 +51,14 @@ def main():
     baseline_series = BaselineSeries(data=baseline_data)
 
     # Apply customizations
-    baseline_series.base_value = {"type": "price", "price": baseline_value}
-    baseline_series.relative_gradient = relative_gradient
-    baseline_series.top_fill_color1 = top_fill_color1
-    baseline_series.top_fill_color2 = top_fill_color2
-    baseline_series.top_line_color = top_line_color
-    baseline_series.bottom_fill_color1 = bottom_fill_color1
-    baseline_series.bottom_fill_color2 = bottom_fill_color2
-    baseline_series.bottom_line_color = bottom_line_color
+    baseline_series.base_value = {"type": "price", "price": baseline_value}  # pylint: disable=no-member
+    baseline_series.relative_gradient = relative_gradient  # pylint: disable=no-member
+    baseline_series.top_fill_color1 = top_fill_color1  # pylint: disable=no-member
+    baseline_series.top_fill_color2 = top_fill_color2  # pylint: disable=no-member
+    baseline_series.top_line_color = top_line_color  # pylint: disable=no-member
+    baseline_series.bottom_fill_color1 = bottom_fill_color1  # pylint: disable=no-member
+    baseline_series.bottom_fill_color2 = bottom_fill_color2  # pylint: disable=no-member
+    baseline_series.bottom_line_color = bottom_line_color  # pylint: disable=no-member
 
     # Create chart
     chart = Chart()
@@ -133,17 +133,17 @@ def main():
     st.json(
         {
             "chart_type": baseline_series.chart_type,
-            "visible": baseline_series._visible,
-            "price_scale_id": baseline_series.price_scale_id,
-            "pane_id": baseline_series.pane_id,
-            "base_value": baseline_series.base_value,
-            "relative_gradient": baseline_series.relative_gradient,
-            "top_fill_color1": baseline_series.top_fill_color1,
-            "top_fill_color2": baseline_series.top_fill_color2,
-            "top_line_color": baseline_series.top_line_color,
-            "bottom_fill_color1": baseline_series.bottom_fill_color1,
-            "bottom_fill_color2": baseline_series.bottom_fill_color2,
-            "bottom_line_color": baseline_series.bottom_line_color,
+            "visible": baseline_series.visible,  # pylint: disable=no-member
+            "price_scale_id": baseline_series.price_scale_id,  # pylint: disable=no-member
+            "pane_id": baseline_series.pane_id,  # pylint: disable=no-member
+            "base_value": baseline_series.base_value,  # pylint: disable=no-member
+            "relative_gradient": baseline_series.relative_gradient,  # pylint: disable=no-member
+            "top_fill_color1": baseline_series.top_fill_color1,  # pylint: disable=no-member
+            "top_fill_color2": baseline_series.top_fill_color2,  # pylint: disable=no-member
+            "top_line_color": baseline_series.top_line_color,  # pylint: disable=no-member
+            "bottom_fill_color1": baseline_series.bottom_fill_color1,  # pylint: disable=no-member
+            "bottom_fill_color2": baseline_series.bottom_fill_color2,  # pylint: disable=no-member
+            "bottom_line_color": baseline_series.bottom_line_color,  # pylint: disable=no-member
         }
     )
 

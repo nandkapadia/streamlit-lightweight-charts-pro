@@ -207,7 +207,7 @@ chart = Chart.from_price_volume_dataframe(
 )
 
 # Method 2: Using HistogramSeries.create_volume_series directly
-from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
+from streamlit_lightweight_charts_pro.charts.series import HistogramSeries
 
 volume_series = HistogramSeries.create_volume_series(
     data=df,  # DataFrame with OHLCV data
@@ -224,7 +224,7 @@ volume_series = HistogramSeries.create_volume_series(
 )
 
 # Method 3: Using OHLCV data objects
-from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+from streamlit_lightweight_charts_pro.data import OhlcvData
 
 ohlcv_data = [
     OhlcvData('2024-01-01', 100, 105, 98, 105, 1000),

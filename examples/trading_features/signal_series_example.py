@@ -17,20 +17,13 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from streamlit_lightweight_charts_pro import (
-    CandlestickSeries,
-    Chart,
-    ChartOptions,
-    HistogramData,
-    HistogramSeries,
-    LayoutOptions,
-    LineData,
-    LineSeries,
-    OhlcvData,
-    PaneHeightOptions,
-    SignalData,
-    SignalSeries,
-)
+from streamlit_lightweight_charts_pro.charts import Chart
+from streamlit_lightweight_charts_pro.charts.options import ChartOptions
+from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries, HistogramSeries
+from streamlit_lightweight_charts_pro.data import HistogramData, LineData, OhlcvData
+from streamlit_lightweight_charts_pro.charts.options import LayoutOptions, PaneHeightOptions
+from streamlit_lightweight_charts_pro.charts.series import LineSeries, SignalSeries
+from streamlit_lightweight_charts_pro.data import SignalData
 
 # Page configuration
 st.set_page_config(
@@ -331,19 +324,19 @@ with tab3:
 
     # Add candlestick series (pane 0)
     candlestick_series = CandlestickSeries(data=ohlc_data)
-    candlestick_series.pane_id = 0
+    candlestick_series.pane_id  # pylint: disable=no-member = 0
     chart.add_series(candlestick_series)
 
     # Add volume series (pane 1)
     volume_series = HistogramSeries(data=volume_data)
-    volume_series.pane_id = 1
+    volume_series.pane_id  # pylint: disable=no-member = 1
     chart.add_series(volume_series)
 
     # Add SMA line series (pane 2)
     sma_series = LineSeries(data=sma_data)
     sma_series.color = "#FF9800"
     sma_series.line_width = 2
-    sma_series.pane_id = 2
+    sma_series.pane_id  # pylint: disable=no-member = 2
     chart.add_series(sma_series)
 
     # Add signal series (spans all panes)

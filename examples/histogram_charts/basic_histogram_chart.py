@@ -15,9 +15,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import streamlit as st
 
-from examples.data_samples import get_dataframe_line_data, get_volume_data
+from examples.utilities.data_samples import get_dataframe_line_data, get_volume_data
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
+from streamlit_lightweight_charts_pro.charts.series import HistogramSeries
 
 
 def main():
@@ -51,10 +51,10 @@ def main():
         data=df_data, column_mapping={"time": "datetime", "value": "value"}
     )
 
-    chart2 = Chart()
-    chart2.add_series(histogram_series_df)
+    dataframe_chart = Chart()
+    dataframe_chart.add_series(histogram_series_df)
 
-    chart2.render(key="basic_histogram_2")
+    dataframe_chart.render(key="basic_histogram_2")
 
     # Show data info
     st.subheader("Data Information")
@@ -67,9 +67,9 @@ def main():
     # Show series properties
     st.subheader("Series Properties")
     st.write(f"Chart type: {histogram_series.chart_type}")
-    st.write(f"Visible: {histogram_series._visible}")
-    st.write(f"Price scale ID: {histogram_series.price_scale_id}")
-    st.write(f"Pane ID: {histogram_series.pane_id}")
+    st.write(f"Visible: {histogram_series.visible}")  # pylint: disable=no-member
+    st.write(f"Price scale ID: {histogram_series.price_scale_id}")  # pylint: disable=no-member
+    st.write(f"Pane ID: {histogram_series.pane_id}")  # pylint: disable=no-member
 
     # Show data statistics
     st.subheader("Data Statistics")

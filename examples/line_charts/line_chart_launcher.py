@@ -153,8 +153,8 @@ pip install streamlit-lightweight-charts-pro pandas streamlit
 ```python
 import streamlit as st
 from streamlit_lightweight_charts_pro import Chart
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-from examples.data_samples import get_line_data
+from streamlit_lightweight_charts_pro.charts.series import LineSeries
+from examples.utilities.data_samples import get_line_data
 
 # Get sample data
 line_data = get_line_data()

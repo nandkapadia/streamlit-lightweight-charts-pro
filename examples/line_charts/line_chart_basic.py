@@ -12,10 +12,10 @@ import sys
 
 import streamlit as st
 
-from examples.data_samples import get_line_data
-from streamlit_lightweight_charts_pro import Chart
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
+from examples.utilities.data_samples import get_line_data
+from streamlit_lightweight_charts_pro.charts import Chart
+from streamlit_lightweight_charts_pro.charts.options import LineOptions
+from streamlit_lightweight_charts_pro.charts.series import LineSeries
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -30,8 +30,7 @@ st.markdown("A simple line chart with default styling.")
 line_data = get_line_data()
 
 # Create line series with default options
-line_options = LineOptions()
-line_series = LineSeries(data=line_data, line_options=line_options)
+line_series = LineSeries(data=line_data)
 
 # Create chart
 chart = Chart(series=line_series)

@@ -105,9 +105,9 @@ def main():
     # Show series configuration
     st.write("### Series Configuration")
     st.write(f"Chart Type: {ribbon_series.chart_type}")
-    st.write(f"Visible: {ribbon_series.visible}")
-    st.write(f"Price Scale ID: {ribbon_series.price_scale_id}")
-    st.write(f"Pane ID: {ribbon_series.pane_id}")
+    st.write(f"Visible: {ribbon_series.visible  # pylint: disable=no-member}")
+    st.write(f"Price Scale ID: {ribbon_series.price_scale_id  # pylint: disable=no-member}")
+    st.write(f"Pane ID: {ribbon_series.pane_id  # pylint: disable=no-member}")
     st.write(f"Fill Visible: {ribbon_series.fill_visible}")
     st.write(f"Fill Color: {ribbon_series.fill}")
     st.write(f"Line Color: {ribbon_series.color}")

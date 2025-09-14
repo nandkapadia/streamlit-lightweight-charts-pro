@@ -8,9 +8,9 @@ for both Options and Series classes, including nested object handling.
 import streamlit as st
 
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-from streamlit_lightweight_charts_pro.data.line_data import LineData
+from streamlit_lightweight_charts_pro.charts.options import LineOptions
+from streamlit_lightweight_charts_pro.charts.series import LineSeries
+from streamlit_lightweight_charts_pro.data import LineData
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 
 # Sample data
@@ -66,9 +66,9 @@ def main():
     series.update({"visible": False, "price_scale_id": "left", "pane_id": 1})
 
     st.write("**Updated Series Properties:**")
-    st.write(f"- Visible: {series._visible}")
-    st.write(f"- Price Scale ID: {series.price_scale_id}")
-    st.write(f"- Pane ID: {series.pane_id}")
+    st.write(f"- Visible: {series.visible  # pylint: disable=no-member}")
+    st.write(f"- Price Scale ID: {series.price_scale_id  # pylint: disable=no-member}")
+    st.write(f"- Pane ID: {series.pane_id  # pylint: disable=no-member}")
 
     # Nested options updates
     series.update(
@@ -90,8 +90,8 @@ def main():
     )
 
     st.write("**After Complex Updates:**")
-    st.write(f"- Visible: {series._visible}")
-    st.write(f"- Price Scale ID: {series.price_scale_id}")
+    st.write(f"- Visible: {series.visible  # pylint: disable=no-member}")
+    st.write(f"- Price Scale ID: {series.price_scale_id  # pylint: disable=no-member}")
     st.write(f"- Line Color: {series.line_options.color}")
 
     st.header("3. Method Chaining")
@@ -110,9 +110,9 @@ def main():
     )
 
     st.write("**After Method Chaining:**")
-    st.write(f"- Visible: {chain_series._visible}")
-    st.write(f"- Price Scale ID: {chain_series.price_scale_id}")
-    st.write(f"- Pane ID: {chain_series.pane_id}")
+    st.write(f"- Visible: {chain_series.visible  # pylint: disable=no-member}")
+    st.write(f"- Price Scale ID: {chain_series.price_scale_id  # pylint: disable=no-member}")
+    st.write(f"- Pane ID: {chain_series.pane_id  # pylint: disable=no-member}")
     st.write(f"- Line Color: {chain_series.line_options.color}")
     st.write(f"- Result is same object: {result is chain_series}")
 
@@ -190,7 +190,7 @@ def main():
 
     # Create and display chart
     chart = Chart(series=final_series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("7. Usage Patterns")
     st.write("Common usage patterns:")

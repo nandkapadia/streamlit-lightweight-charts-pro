@@ -12,7 +12,7 @@ import sys
 
 import streamlit as st
 
-from examples.data_samples import get_line_data
+from examples.utilities.data_samples import get_line_data
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 
@@ -34,7 +34,7 @@ def main():
     series = LineSeries(data=data, visible=True, price_scale_id="right", pane_id=0)
 
     chart = Chart(series=series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("2. Series Visibility Control")
     st.write("Control series visibility:")
@@ -45,13 +45,13 @@ def main():
         st.subheader("Visible Series")
         visible_series = LineSeries(data=data, visible=True)
         visible_chart = Chart(series=visible_series)
-        visible_chart.render()
+        visible_chart.render(key="chart")
 
     with col2:
         st.subheader("Hidden Series")
         hidden_series = LineSeries(data=data, visible=False)
         hidden_chart = Chart(series=hidden_series)
-        hidden_chart.render()
+        hidden_chart.render(key="chart")
 
     st.header("3. Price Scale Configuration")
     st.write("Configure different price scales:")
@@ -62,13 +62,13 @@ def main():
         st.subheader("Right Price Scale")
         right_scale_series = LineSeries(data=data, price_scale_id="right")
         right_chart = Chart(series=right_scale_series)
-        right_chart.render()
+        right_chart.render(key="chart")
 
     with col2:
         st.subheader("Left Price Scale")
         left_scale_series = LineSeries(data=data, price_scale_id="left")
         left_chart = Chart(series=left_scale_series)
-        left_chart.render()
+        left_chart.render(key="chart")
 
     st.header("4. Series Properties")
     st.write("Access and modify series properties:")
@@ -77,9 +77,9 @@ def main():
     series = LineSeries(data=data)
 
     st.write(f"**Series Properties:**")
-    st.write(f"- Visible: {series._visible}")
-    st.write(f"- Price Scale ID: {series.price_scale_id}")
-    st.write(f"- Pane ID: {series.pane_id}")
+    st.write(f"- Visible: {series.visible  # pylint: disable=no-member}")
+    st.write(f"- Price Scale ID: {series.price_scale_id  # pylint: disable=no-member}")
+    st.write(f"- Pane ID: {series.pane_id  # pylint: disable=no-member}")
     st.write(f"- Data Points: {len(series.data)}")
 
     # Method chaining example
@@ -87,7 +87,7 @@ def main():
     chained_series = LineSeries(data=data).set_visible(True)
 
     chart = Chart(series=chained_series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("5. Data Access")
     st.write("Access series data and configuration:")

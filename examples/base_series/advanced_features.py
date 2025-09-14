@@ -13,7 +13,7 @@ import sys
 
 import streamlit as st
 
-from examples.data_samples import get_line_data
+from examples.utilities.data_samples import get_line_data
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.options.price_format_options import PriceFormatOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
@@ -43,12 +43,12 @@ def main():
     )
 
     st.write("**Method chaining result:**")
-    st.write(f"Visible: {chained_series._visible}")
+    st.write(f"Visible: {chained_series.visible  # pylint: disable=no-member}")
     st.write(f"Markers: {len(chained_series.markers)}")
     st.write(f"Price lines: {len(chained_series.price_lines)}")
 
     chart = Chart(series=chained_series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("2. Price Format Configuration")
     st.write("Configure price formatting options:")
@@ -65,7 +65,7 @@ def main():
     st.write(f"Min Move: {series_with_format.price_format.min_move}")
 
     chart = Chart(series=series_with_format)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("3. Series Configuration Management")
     st.write("Manage series configuration programmatically:")
@@ -84,14 +84,14 @@ def main():
     config_series.add_price_line(PriceLineOptions(price=20.0, color="#00FF00", title="Support"))
 
     st.write("**Full Configuration:**")
-    st.write(f"Visible: {config_series._visible}")
-    st.write(f"Price Scale ID: {config_series.price_scale_id}")
-    st.write(f"Pane ID: {config_series.pane_id}")
+    st.write(f"Visible: {config_series.visible  # pylint: disable=no-member}")
+    st.write(f"Price Scale ID: {config_series.price_scale_id  # pylint: disable=no-member}")
+    st.write(f"Pane ID: {config_series.pane_id  # pylint: disable=no-member}")
     st.write(f"Markers: {len(config_series.markers)}")
     st.write(f"Price Lines: {len(config_series.price_lines)}")
 
     chart = Chart(series=config_series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("4. Series Serialization")
     st.write("Serialize series to different formats:")
@@ -151,10 +151,10 @@ def main():
 
     st.write("**Series from factory method:**")
     st.write(f"Data points: {len(factory_series.data)}")
-    st.write(f"Price scale ID: {factory_series.price_scale_id}")
+    st.write(f"Price scale ID: {factory_series.price_scale_id  # pylint: disable=no-member}")
 
     chart = Chart(series=factory_series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("7. Series Comparison")
     st.write("Compare different series configurations:")
@@ -165,7 +165,7 @@ def main():
         st.subheader("Basic Series")
         basic_series = LineSeries(data=data)
         basic_chart = Chart(series=basic_series)
-        basic_chart.render()
+        basic_chart.render(key="chart")
 
     with col2:
         st.subheader("Enhanced Series")
@@ -177,7 +177,7 @@ def main():
             .add_price_line(PriceLineOptions(price=30.0, color="#FF0000", title="Resistance"))
         )
         enhanced_chart = Chart(series=enhanced_series)
-        enhanced_chart.render()
+        enhanced_chart.render(key="chart")
 
     st.header("8. Series Data Access Patterns")
     st.write("Different ways to access series data:")
