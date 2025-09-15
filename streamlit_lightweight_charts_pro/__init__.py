@@ -58,7 +58,7 @@ License: MIT
 # FIXME: Currently the legend is not aware of the minimise button. So if the legend is
 # positioned to top-right and minimise is also top-right then they will overlap.
 # FIXME: The trendfill series is not working as expected.
-# TODO: Need to test and fix the gradient ribbon series and gradient band seriess
+# TODO: Need to test and fix the gradient ribbon series
 
 # Import core components
 # Import for development mode detection
@@ -84,7 +84,6 @@ from streamlit_lightweight_charts_pro.charts.series import (
     BarSeries,
     BaselineSeries,
     CandlestickSeries,
-    GradientBandSeries,
     GradientRibbonSeries,
     HistogramSeries,
     LineSeries,
@@ -186,7 +185,6 @@ __all__ = [
     "GradientRibbonSeries",
     "TrendFillSeries",
     "RibbonSeries",
-    "GradientBandSeries",
     "BandSeries",
     # Options
     "ChartOptions",

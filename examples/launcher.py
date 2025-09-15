@@ -229,6 +229,11 @@ EXAMPLE_CATEGORIES = {
                 "description": "Ribbon chart visualization example.",
                 "path": "advanced_features/ribbon_example.py",
             },
+            "gradient_ribbon_example.py": {
+                "title": "Gradient Ribbon Example",
+                "description": "Gradient ribbon series with dynamic color transitions based on data values.",
+                "path": "advanced_features/gradient_ribbon_example.py",
+            },
             "auto_size_example.py": {
                 "title": "Auto Sizing",
                 "description": "Dynamic chart sizing based on container.",

@@ -72,7 +72,6 @@ from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickDa
 
 # Import base data classes
 from streamlit_lightweight_charts_pro.data.data import Data
-from streamlit_lightweight_charts_pro.data.gradient_band import GradientBandData
 from streamlit_lightweight_charts_pro.data.gradient_ribbon import GradientRibbonData
 from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
 
@@ -133,7 +132,6 @@ __all__ = [
     # Band data classes
     "BandData",
     "RibbonData",
-    "GradientBandData",
     "GradientRibbonData",
     "TrendFillData",
     # Marker classes

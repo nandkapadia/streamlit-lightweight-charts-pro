@@ -15,6 +15,7 @@ import {createBandSeries, BandData} from '../plugins/series/bandSeriesPlugin'
 import {SignalSeries, createSignalSeriesPlugin} from '../plugins/series/signalSeriesPlugin'
 import {createTrendFillSeriesPlugin} from '../plugins/series/trendFillSeriesPlugin'
 import {RibbonSeries} from '../plugins/series/ribbonSeriesPlugin'
+import {createGradientRibbonSeries, GradientRibbonData} from '../plugins/series/gradientRibbonSeriesPlugin'
 import {cleanLineStyleOptions} from './lineStyle'
 import {createTradeVisualElements} from '../services/tradeVisualization'
 
@@ -252,6 +253,75 @@ export function createSeries(
             try {
               // For primitives, we need to detach from the series
               // The series will handle cleanup when removed
+            } catch {}
+          }
+        } as unknown as ISeriesApi<any>
+      } catch (error) {
+        return null
+      }
+    }
+    case 'gradient_ribbon': {
+      try {
+        // Map backend property names to frontend expected names
+        const mapLineOptions = (lineOpts: any, defaultColor: string = '#4CAF50') => {
+          if (!lineOpts) return {
+            color: defaultColor,
+            lineStyle: 0,
+            lineWidth: 2,
+            visible: true
+          }
+          return {
+            color: lineOpts.color || defaultColor,
+            lineStyle: lineOpts.lineStyle !== undefined ? lineOpts.lineStyle : (lineOpts.lineType || 0),
+            lineWidth: lineOpts.lineWidth || 2,
+            visible: lineOpts.visible !== undefined ? lineOpts.visible : (lineOpts.lineVisible !== false)
+          }
+        }
+
+        const gradientRibbonSeriesOptions: any = {
+          upperLine: mapLineOptions(cleanedOptions.upperLine, '#4CAF50'),
+          lowerLine: mapLineOptions(cleanedOptions.lowerLine, '#F44336'),
+          fill: cleanedOptions.fill || 'rgba(76, 175, 80, 0.3)',
+          fillVisible: cleanedOptions.fillVisible !== false,
+          gradientStartColor: cleanedOptions.gradientStartColor || '#4CAF50',
+          gradientEndColor: cleanedOptions.gradientEndColor || '#F44336',
+          normalizeGradients: cleanedOptions.normalizeGradients || false,
+          priceScaleId: priceScaleId || 'right',
+          visible: cleanedOptions.visible !== false,
+          zIndex: cleanedOptions.zIndex || 100
+        }
+
+        const gradientRibbonSeries = createGradientRibbonSeries(chart, gradientRibbonSeriesOptions)
+        if (data && data.length > 0) {
+          gradientRibbonSeries.setData(data as GradientRibbonData[])
+        }
+
+        return {
+          setData: (newData: any[]) => {
+            try {
+              gradientRibbonSeries.setData(newData as GradientRibbonData[])
+            } catch {}
+          },
+          update: (newData: any) => {
+            try {
+              gradientRibbonSeries.updateData([newData])
+            } catch {}
+          },
+          applyOptions: (options: any) => {
+            try {
+              gradientRibbonSeries.applyOptions(cleanLineStyleOptions(options))
+            } catch {}
+          },
+          priceScale: () => {
+            try {
+              return chart.priceScale(priceScaleId || 'right')
+            } catch {
+              return null
+            }
+          },
+          remove: () => {
+            try {
+              gradientRibbonSeries.destroy()
             } catch {}
           }
         } as unknown as ISeriesApi<any>

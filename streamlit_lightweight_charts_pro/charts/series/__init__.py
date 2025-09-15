@@ -66,7 +66,6 @@ from streamlit_lightweight_charts_pro.charts.series.bar_series import BarSeries
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.charts.series.baseline import BaselineSeries
 from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
-from streamlit_lightweight_charts_pro.charts.series.gradient_band import GradientBandSeries
 from streamlit_lightweight_charts_pro.charts.series.gradient_ribbon import GradientRibbonSeries
 from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
 from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
@@ -85,7 +84,6 @@ __all__ = [
     "BaselineSeries",
     "RibbonSeries",
     "GradientRibbonSeries",
-    "GradientBandSeries",
     "TrendFillSeries",
     "SignalSeries",
 ]
