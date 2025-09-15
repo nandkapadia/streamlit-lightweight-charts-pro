@@ -130,15 +130,10 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
       if (!ctx) return
 
       ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio)
-      ctx.save()
-
       this._drawExtendedLines(ctx, scope)
-
-      ctx.restore()
     })
   }
   drawBackground(target: any) {
-
     if (!this._viewData.options.fillVisible) return
 
     target.useBitmapCoordinateSpace((scope: any) => {
@@ -148,11 +143,7 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
       }
 
       ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio)
-      ctx.save()
-
       this._drawGradientFills(ctx, scope)
-
-      ctx.restore()
     })
   }
 
@@ -163,7 +154,7 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
       return
     }
 
-    // Create smooth gradient fill with proper bar width positioning
+    // First draw a smooth gradient path between data points
     this._drawSmoothGradientPath(ctx, items, visibleRange)
   }
 
@@ -172,9 +163,11 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
     items: GradientRibbonRenderData[],
     visibleRange: {from: number; to: number}
   ): void {
-    // Get valid items within visible range
     const validItems = []
-    for (let i = visibleRange.from; i < visibleRange.to; i++) {
+    const searchStart = Math.max(0, visibleRange.from - 1)
+    const searchEnd = Math.min(items.length, visibleRange.to + 1)
+
+    for (let i = searchStart; i < searchEnd; i++) {
       const item = items[i]
       if (this._isValidCoordinates(item)) {
         validItems.push(item)
@@ -185,62 +178,44 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
       return
     }
 
-    // Get bar width for proper edge coverage
     const barWidth = this._viewData.data.barWidth || 6
     const halfBarWidth = barWidth / 2
 
-    // Draw gradient fill with proper bar width coverage
     if (validItems.length >= 2) {
       ctx.beginPath()
 
-      // Start from left edge of first bar
       const firstItem = validItems[0]
       const lastItem = validItems[validItems.length - 1]
 
-      const fillStartX = firstItem.x! - halfBarWidth
-      const fillEndX = lastItem.x! + halfBarWidth
+      const fillStartX = firstItem.x! - halfBarWidth - 50
+      const fillEndX = lastItem.x! + halfBarWidth + 50
 
-      // Move to the left edge of first bar at upper level
       ctx.moveTo(fillStartX, firstItem.upperY!)
 
-      // Draw the upper boundary through all visible points
       for (let i = 0; i < validItems.length; i++) {
         ctx.lineTo(validItems[i].x!, validItems[i].upperY!)
       }
 
-      // Extend to right edge of last bar at upper level
       ctx.lineTo(fillEndX, lastItem.upperY!)
-
-      // Go down to lower level at right edge
       ctx.lineTo(fillEndX, lastItem.lowerY!)
 
-      // Draw the lower boundary back through all visible points (reverse order)
       for (let i = validItems.length - 1; i >= 0; i--) {
         ctx.lineTo(validItems[i].x!, validItems[i].lowerY!)
       }
 
-      // Connect back to left edge of first bar at lower level
       ctx.lineTo(fillStartX, firstItem.lowerY!)
-
       ctx.closePath()
 
-      // Create horizontal linear gradient for fill
       const gradient = ctx.createLinearGradient(fillStartX, 0, fillEndX, 0)
-
-
-      // Sort items by x position for proper gradient order
       const sortedItems = [...validItems].sort((a, b) => a.x! - b.x!)
 
-      // Add color stops based on data points with proper positioning
       for (let i = 0; i < sortedItems.length; i++) {
         const item = sortedItems[i]
         const position = (item.x! - fillStartX) / (fillEndX - fillStartX)
         const clampedPosition = Math.max(0, Math.min(1, position))
-
         gradient.addColorStop(clampedPosition, item.fillColor)
       }
 
-      // Ensure edge colors are set
       if (sortedItems.length > 0) {
         gradient.addColorStop(0, sortedItems[0].fillColor)
         gradient.addColorStop(1, sortedItems[sortedItems.length - 1].fillColor)
@@ -249,12 +224,10 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
       ctx.fillStyle = gradient
       ctx.fill()
     } else if (validItems.length === 1) {
-      // Handle single point case
       const item = validItems[0]
-      const singleStartX = item.x! - halfBarWidth
-      // Use the item's fill color for single point
+      const singleStartX = item.x! - halfBarWidth - 50
       ctx.fillStyle = item.fillColor
-      ctx.fillRect(singleStartX, Math.min(item.upperY!, item.lowerY!), barWidth, Math.abs(item.upperY! - item.lowerY!))
+      ctx.fillRect(singleStartX, Math.min(item.upperY!, item.lowerY!), barWidth + 100, Math.abs(item.upperY! - item.lowerY!))
     }
   }
 
@@ -265,9 +238,11 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
       return
     }
 
-    // Get valid items within visible range
     const validItems = []
-    for (let i = visibleRange.from; i < visibleRange.to; i++) {
+    const searchStart = Math.max(0, visibleRange.from - 1)
+    const searchEnd = Math.min(items.length, visibleRange.to + 1)
+
+    for (let i = searchStart; i < searchEnd; i++) {
       const item = items[i]
       if (this._isValidCoordinates(item)) {
         validItems.push(item)
@@ -276,47 +251,38 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
 
     if (validItems.length === 0) return
 
-    // Get bar width for proper edge coverage (same as fill)
     const barWidth = this._viewData.data.barWidth || 6
     const halfBarWidth = barWidth / 2
 
     const firstItem = validItems[0]
     const lastItem = validItems[validItems.length - 1]
 
-    const lineStartX = firstItem.x! - halfBarWidth
-    const lineEndX = lastItem.x! + halfBarWidth
+    const lineStartX = firstItem.x! - halfBarWidth - 50
+    const lineEndX = lastItem.x! + halfBarWidth + 50
 
-    // Draw upper line if visible
     if (options.upperLine.visible) {
       ctx.beginPath()
       ctx.moveTo(lineStartX, firstItem.upperY!)
 
-      // Draw through all data points
       for (const item of validItems) {
         ctx.lineTo(item.x!, item.upperY!)
       }
 
-      // Extend to the right edge
       ctx.lineTo(lineEndX, lastItem.upperY!)
-
       ctx.strokeStyle = options.upperLine.color
       ctx.lineWidth = options.upperLine.lineWidth
       ctx.stroke()
     }
 
-    // Draw lower line if visible
     if (options.lowerLine.visible) {
       ctx.beginPath()
       ctx.moveTo(lineStartX, firstItem.lowerY!)
 
-      // Draw through all data points
       for (const item of validItems) {
         ctx.lineTo(item.x!, item.lowerY!)
       }
 
-      // Extend to the right edge
       ctx.lineTo(lineEndX, lastItem.lowerY!)
-
       ctx.strokeStyle = options.lowerLine.color
       ctx.lineWidth = options.lowerLine.lineWidth
       ctx.stroke()
