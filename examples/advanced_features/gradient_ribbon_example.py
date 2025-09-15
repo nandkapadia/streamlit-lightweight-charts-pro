@@ -5,6 +5,7 @@ This script demonstrates how to create and use the GradientRibbonSeries
 with gradient color transitions based on data values. The gradient ribbon
 shows upper and lower bands with dynamic color fills.
 """
+# pylint: disable=no-member
 
 import pandas as pd
 import streamlit as st
@@ -112,13 +113,13 @@ def main():
     )
 
     # Customize the series styling
-    gradient_ribbon_series.upper_line.color = "#2196F3"  # pylint: disable=no-member
-    gradient_ribbon_series.upper_line.line_width = 2  # pylint: disable=no-member
-    gradient_ribbon_series.upper_line.line_style = "solid"  # pylint: disable=no-member
+    gradient_ribbon_series.upper_line.color = "#2196F3"
+    gradient_ribbon_series.upper_line.line_width = 2
+    gradient_ribbon_series.upper_line.line_style = "solid"
 
-    gradient_ribbon_series.lower_line.color = "#9C27B0"  # pylint: disable=no-member
-    gradient_ribbon_series.lower_line.line_width = 2  # pylint: disable=no-member
-    gradient_ribbon_series.lower_line.line_style = "solid"  # pylint: disable=no-member
+    gradient_ribbon_series.lower_line.color = "#9C27B0"
+    gradient_ribbon_series.lower_line.line_width = 2
+    gradient_ribbon_series.lower_line.line_style = "solid"
 
     gradient_ribbon_series.fill_visible = True
 
