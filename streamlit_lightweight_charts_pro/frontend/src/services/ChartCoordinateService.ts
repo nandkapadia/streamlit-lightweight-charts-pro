@@ -28,7 +28,8 @@ import {
   TIMING,
   Z_INDEX,
   getFallback,
-  getMargins
+  getMargins,
+  getDimensions
 } from '../config/positioningConfig'
 
 /**
@@ -653,6 +654,170 @@ export class ChartCoordinateService {
   }
 
   /**
+   * Calculate range switcher position for the entire chart
+   */
+  getRangeSwitcherPosition(
+    chart: IChartApi,
+    position: ElementPosition,
+    containerDimensions?: { width: number; height: number }
+  ): LegendCoordinates | null {
+    try {
+      // Get main pane coordinates (pane 0) for reference
+      const paneCoords = this.getPaneCoordinates(chart, 0)
+      if (!paneCoords) return null
+
+      // Get container dimensions
+      const chartElement = chart.chartElement()
+      const container = containerDimensions || {
+        width: chartElement.clientWidth || chartElement.offsetWidth || 800,
+        height: chartElement.clientHeight || chartElement.offsetHeight || 600
+      }
+
+      // Get chart layout to account for price scale and time scale dimensions
+      let chartLayout
+      try {
+        chartLayout = chart.chartElement().querySelector('.tv-lightweight-charts')?.getBoundingClientRect()
+      } catch (e) {
+        chartLayout = null
+      }
+
+      // Get actual chart dimensions using lightweight-charts API
+      let actualTimeScaleHeight = 35 // Fallback
+      let actualPriceScaleWidth = 70 // Fallback
+
+      try {
+        // Get actual time scale height from chart API
+        actualTimeScaleHeight = chart.timeScale().height()
+
+        // Get actual price scale width - try right scale first, then left scale
+        const rightPriceScale = chart.priceScale('right')
+        if (rightPriceScale) {
+          actualPriceScaleWidth = rightPriceScale.width()
+        } else {
+          const leftPriceScale = chart.priceScale('left')
+          if (leftPriceScale) {
+            actualPriceScaleWidth = leftPriceScale.width()
+          }
+        }
+      } catch (e) {
+        // Use fallback values if API calls fail
+      }
+
+      const priceScaleLabelHeight = 20 // Estimated height for price scale labels (e.g., "161.75")
+
+      // Helper function to count total number of panes
+      const getTotalPaneCount = (): number => {
+        let paneCount = 0
+        try {
+          // Keep trying to get pane sizes until we find a non-existent pane
+          while (true) {
+            const paneSize = chart.paneSize(paneCount)
+            if (!paneSize || typeof paneSize.height !== 'number') {
+              break
+            }
+            paneCount++
+          }
+        } catch (error) {
+          // When paneSize() throws an error, we've reached the end
+        }
+        return paneCount
+      }
+
+      const totalPanes = getTotalPaneCount()
+
+      // Calculate position-specific margins
+      const getMarginForPosition = (pos: string) => {
+        const baseMargin = 8
+        const margins = {
+          top: baseMargin + priceScaleLabelHeight, // Add space for price scale labels at top
+          right: baseMargin + actualPriceScaleWidth, // Add space for price scale width
+          bottom: baseMargin, // Base margin for bottom
+          left: baseMargin
+        }
+
+        // Only add time scale height margin for bottom positions when:
+        // 1. It's a bottom position AND
+        // 2. There's only one pane (single-pane chart where X-axis is at bottom of pane 0)
+        // In multi-pane charts, the X-axis is only at the very bottom of the last pane, not pane 0
+        if (pos.includes('bottom') && totalPanes === 1) {
+          margins.bottom += actualTimeScaleHeight // X-axis height only for single-pane charts
+        }
+
+        return margins
+      }
+
+      const margins = getMarginForPosition(position)
+      const rangeSwitcherDimensions = { width: 200, height: 40 } // Estimated dimensions
+
+      let top = 0
+      let left: number | undefined = 0
+      let right: number | undefined
+      let bottom: number | undefined
+
+      // Calculate position based on alignment
+      // Range switcher only supports corner positions
+      // For bottom positions, position relative to pane 0 (main price chart)
+      // For top positions, position relative to entire chart container
+      switch (position) {
+        case 'top-left':
+          top = margins.top
+          left = margins.left
+          right = undefined
+          break
+
+        case 'top-right':
+          top = margins.top
+          left = undefined
+          right = margins.right
+          break
+
+        case 'bottom-left':
+          // Position at bottom of pane 0, not entire chart
+          // This ensures range switcher is positioned at the bottom of the main price chart pane
+          top = paneCoords.bounds.bottom - margins.bottom - rangeSwitcherDimensions.height
+          left = margins.left
+          right = undefined
+          bottom = undefined
+          break
+
+        case 'bottom-right':
+          // Position at bottom of pane 0, not entire chart
+          // This ensures range switcher is positioned at the bottom of the main price chart pane
+          top = paneCoords.bounds.bottom - margins.bottom - rangeSwitcherDimensions.height
+          left = undefined
+          right = margins.right
+          bottom = undefined
+          break
+
+        default:
+          // Default to bottom-right for range switcher
+          top = paneCoords.bounds.bottom - margins.bottom - rangeSwitcherDimensions.height
+          left = undefined
+          right = margins.right
+          break
+      }
+
+      // Convert bottom to top if needed
+      if (bottom !== undefined && top === 0) {
+        top = container.height - bottom - rangeSwitcherDimensions.height
+        bottom = undefined
+      }
+
+      return {
+        top,
+        left,
+        right,
+        bottom,
+        width: rangeSwitcherDimensions.width,
+        height: rangeSwitcherDimensions.height,
+        zIndex: 1000
+      }
+    } catch (error) {
+      return null
+    }
+  }
+
+  /**
    * Calculate legend position within a pane
    */
   getLegendPosition(
@@ -683,6 +848,11 @@ export class ChartCoordinateService {
         right = margins.right
         break
 
+      case 'top-center':
+        top = paneCoords.contentArea.top + margins.top
+        left = paneCoords.contentArea.left + (paneCoords.contentArea.width - legendDimensions.defaultWidth) / 2
+        break
+
       case 'bottom-left':
         bottom = margins.bottom
         left = paneCoords.contentArea.left + margins.left
@@ -691,6 +861,11 @@ export class ChartCoordinateService {
       case 'bottom-right':
         bottom = margins.bottom
         right = margins.right
+        break
+
+      case 'bottom-center':
+        bottom = margins.bottom
+        left = paneCoords.contentArea.left + (paneCoords.contentArea.width - legendDimensions.defaultWidth) / 2
         break
 
       case 'center':
@@ -1186,5 +1361,223 @@ export class ChartCoordinateService {
     }
 
     return false
+  }
+
+  /**
+   * Integration with CornerLayoutManager
+   * Get chart dimensions for layout manager
+   */
+  getChartDimensionsForLayout(chart: IChartApi): { width: number; height: number } | null {
+    try {
+      const chartElement = chart.chartElement()
+      if (!chartElement) return null
+
+      const rect = chartElement.getBoundingClientRect()
+      return {
+        width: rect.width || chartElement.offsetWidth || 800,
+        height: rect.height || chartElement.offsetHeight || 600
+      }
+    } catch (error) {
+      return null
+    }
+  }
+
+  /**
+   * Get chart layout dimensions including axis information for layout manager
+   */
+  getChartLayoutDimensionsForManager(chart: IChartApi): any {
+    try {
+      const chartElement = chart.chartElement()
+      if (!chartElement) return null
+
+      const rect = chartElement.getBoundingClientRect()
+      const container = {
+        width: rect.width || chartElement.offsetWidth || 800,
+        height: rect.height || chartElement.offsetHeight || 600
+      }
+
+      // Get axis dimensions
+      let leftPriceScaleWidth = 0
+      let rightPriceScaleWidth = 0
+      let timeScaleHeight = 0
+
+      try {
+        // Get time scale height
+        const timeScale = chart.timeScale()
+        timeScaleHeight = timeScale.height() || 35
+
+        // Get left price scale width
+        const leftPriceScale = chart.priceScale('left')
+        if (leftPriceScale) {
+          leftPriceScaleWidth = leftPriceScale.width() || 0
+        }
+
+        // Get right price scale width
+        const rightPriceScale = chart.priceScale('right')
+        if (rightPriceScale) {
+          rightPriceScaleWidth = rightPriceScale.width() || 0
+        }
+
+        // If no price scales are visible, default to right scale
+        if (leftPriceScaleWidth === 0 && rightPriceScaleWidth === 0) {
+          rightPriceScaleWidth = 70 // Default right price scale width
+        }
+      } catch (scaleError) {
+        // Fallback values
+        rightPriceScaleWidth = 70
+        timeScaleHeight = 35
+      }
+
+      return {
+        container,
+        axis: {
+          priceScale: {
+            left: {
+              width: leftPriceScaleWidth,
+              height: container.height - timeScaleHeight
+            },
+            right: {
+              width: rightPriceScaleWidth,
+              height: container.height - timeScaleHeight
+            }
+          },
+          timeScale: {
+            width: container.width,
+            height: timeScaleHeight
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Error getting chart layout dimensions:', error)
+      return {
+        container: { width: 800, height: 600 },
+        axis: {
+          priceScale: {
+            left: { width: 0, height: 565 },
+            right: { width: 70, height: 565 }
+          },
+          timeScale: { width: 800, height: 35 }
+        }
+      }
+    }
+  }
+
+  /**
+   * Convert ElementPosition to Corner for layout manager
+   */
+  positionToCorner(position: ElementPosition): string {
+    // Map supported positions to corners, with fallbacks for unsupported positions
+    switch (position) {
+      case 'top-left':
+        return 'top-left'
+      case 'top-right':
+        return 'top-right'
+      case 'bottom-left':
+        return 'bottom-left'
+      case 'bottom-right':
+        return 'bottom-right'
+      case 'top-center':
+        return 'top-right' // Fallback to top-right
+      case 'bottom-center':
+        return 'bottom-right' // Fallback to bottom-right
+      case 'center':
+        return 'top-right' // Fallback to top-right
+      default:
+        return 'top-right'
+    }
+  }
+
+  /**
+   * Setup automatic layout manager updates when chart dimensions change
+   */
+  setupLayoutManagerIntegration(chart: IChartApi, layoutManager: any): void {
+    const updateLayoutManager = () => {
+      const layoutDimensions = this.getChartLayoutDimensionsForManager(chart)
+      if (layoutDimensions) {
+        layoutManager.updateChartLayout(layoutDimensions)
+      }
+    }
+
+    // Use the same timing pattern as legacy implementation
+    // Initial setup with delay to ensure chart is ready
+    setTimeout(() => {
+      updateLayoutManager()
+
+      // Retry after a bit more time to ensure everything is stable
+      setTimeout(() => {
+        updateLayoutManager()
+      }, 200)
+    }, 100)
+
+    // Watch for chart element resize and pane changes
+    try {
+      const chartElement = chart.chartElement()
+      if (chartElement && typeof ResizeObserver !== 'undefined') {
+        const resizeObserver = new ResizeObserver(() => {
+          // Add slight delay for resize events to avoid rapid firing
+          setTimeout(updateLayoutManager, 50)
+        })
+        resizeObserver.observe(chartElement)
+      }
+
+      // Watch for pane size changes using periodic checks
+      // This is necessary because LightweightCharts doesn't provide pane resize events
+      let lastPaneSizes: Array<{ width: number; height: number }> = []
+
+      const checkPaneChanges = () => {
+        try {
+          const currentPaneSizes: Array<{ width: number; height: number }> = []
+
+          // Get current pane sizes
+          for (let i = 0; i < 10; i++) { // Check up to 10 panes
+            try {
+              const paneSize = chart.paneSize(i)
+              if (paneSize) {
+                currentPaneSizes[i] = { width: paneSize.width, height: paneSize.height }
+              }
+            } catch {
+              break // No more panes
+            }
+          }
+
+          // Compare with last known sizes
+          let changed = currentPaneSizes.length !== lastPaneSizes.length
+          if (!changed) {
+            for (let i = 0; i < currentPaneSizes.length; i++) {
+              const current = currentPaneSizes[i]
+              const last = lastPaneSizes[i]
+              if (!last || current.width !== last.width || current.height !== last.height) {
+                changed = true
+                break
+              }
+            }
+          }
+
+          if (changed) {
+            lastPaneSizes = currentPaneSizes
+            updateLayoutManager()
+          }
+        } catch (error) {
+          // Ignore errors in pane change detection
+        }
+      }
+
+      // Check for pane changes every 100ms for responsive UI
+      const paneCheckInterval = setInterval(checkPaneChanges, 100)
+
+      // Clean up interval after a reasonable time
+      setTimeout(() => {
+        clearInterval(paneCheckInterval)
+      }, 300000) // 5 minutes
+
+    } catch (error) {
+      // Fallback to periodic checks if ResizeObserver not available
+      const intervalId = setInterval(updateLayoutManager, 1000)
+
+      // Clean up interval on chart destruction
+      setTimeout(() => {
+        clearInterval(intervalId)
+      }, 60000) // Clean up after 1 minute as fallback
+    }
   }
 }

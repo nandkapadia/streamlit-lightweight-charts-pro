@@ -57,8 +57,6 @@ License: MIT
 # TODO: Need to test and implement the RangeSwitcher
 # FIXME: Currently the legend is not aware of the minimise button. So if the legend is
 # positioned to top-right and minimise is also top-right then they will overlap.
-# FIXME: The trendfill series is not working as expected.
-# TODO: Need to test and fix the gradient ribbon series
 
 # Import core components
 # Import for development mode detection

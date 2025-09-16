@@ -247,15 +247,17 @@ export interface ChartConfig {
 
 // Range Switcher Configuration
 export interface RangeConfig {
-  label: string
+  text: string
+  tooltip?: string
   seconds: number | null
 }
 
 export interface RangeSwitcherConfig {
   ranges: RangeConfig[]
-  position: string
+  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   visible: boolean
   defaultRange?: string
+  interval?: string // Data interval (e.g., '1m', '5m', '1h', '1d') for accurate range calculations
 }
 
 // Legend Configuration

@@ -930,9 +930,50 @@ class Chart:
         )
         # Ensure rightPriceScale, PriceScaleOptions, PriceScaleOptionss are present and dicts
         if self.options and self.options.right_price_scale is not None:
-            chart_config["rightPriceScale"] = self.options.right_price_scale.asdict()
+            try:
+                chart_config["rightPriceScale"] = self.options.right_price_scale.asdict()
+                # Validate price scale ID is a string if provided
+                if (self.options.right_price_scale.price_scale_id is not None and
+                    not isinstance(self.options.right_price_scale.price_scale_id, str)):
+                    raise TypeError(
+                        f"right_price_scale.price_scale_id must be a string, "
+                        f"got {type(self.options.right_price_scale.price_scale_id).__name__}"
+                    )
+            except AttributeError as e:
+                if isinstance(self.options.right_price_scale, bool):
+                    raise TypeError(
+                        f"right_price_scale must be a PriceScaleOptions object, not a boolean. "
+                        f"To enable the right price scale, use: "
+                        f"right_price_scale=PriceScaleOptions(visible=True) or remove the parameter "
+                        f"(it's enabled by default)."
+                    ) from e
+                else:
+                    raise TypeError(
+                        f"right_price_scale must be a PriceScaleOptions object, "
+                        f"got {type(self.options.right_price_scale).__name__}"
+                    ) from e
         if self.options and self.options.left_price_scale is not None:
-            chart_config["leftPriceScale"] = self.options.left_price_scale.asdict()
+            try:
+                chart_config["leftPriceScale"] = self.options.left_price_scale.asdict()
+                # Validate price scale ID is a string if provided
+                if (self.options.left_price_scale.price_scale_id is not None and
+                    not isinstance(self.options.left_price_scale.price_scale_id, str)):
+                    raise TypeError(
+                        f"left_price_scale.price_scale_id must be a string, "
+                        f"got {type(self.options.left_price_scale.price_scale_id).__name__}"
+                    )
+            except AttributeError as e:
+                if isinstance(self.options.left_price_scale, bool):
+                    raise TypeError(
+                        f"left_price_scale must be a PriceScaleOptions object, not a boolean. "
+                        f"To enable the left price scale, use: "
+                        f"left_price_scale=PriceScaleOptions(visible=True)"
+                    ) from e
+                else:
+                    raise TypeError(
+                        f"left_price_scale must be a PriceScaleOptions object, "
+                        f"got {type(self.options.left_price_scale).__name__}"
+                    ) from e
 
         if self.options and self.options.overlay_price_scales is not None:
             chart_config["overlayPriceScales"] = {
@@ -953,6 +994,7 @@ class Chart:
             "series": series_configs,
             "annotations": annotations_config,
         }
+
 
         # Add trades to chart configuration if they exist
         if trades_config:

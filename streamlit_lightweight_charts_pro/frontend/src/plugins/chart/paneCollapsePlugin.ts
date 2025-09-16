@@ -1,14 +1,11 @@
 /**
  * Pane Collapse/Expand Plugin
- * Provides TradingView-style pane collapse and expand functionality
+ * Provides TradingView-style pane collapse and expand functionality using ChartWidgetManager
  */
 
 import {IChartApi, IPanePrimitive, PaneAttachedParameter, Time} from 'lightweight-charts'
-import {ChartCoordinateService} from '../../services/ChartCoordinateService'
 import {PaneCollapseConfig} from '../../types'
-import React from 'react'
-import {createRoot} from 'react-dom/client'
-import {CollapseButtonComponent} from '../../components/CollapseButtonComponent'
+import {ChartWidgetManager} from '../../services/ChartWidgetManager'
 
 /**
  * Pane state management
@@ -17,14 +14,12 @@ interface PaneState {
   isCollapsed: boolean
   originalHeight: number
   collapsedHeight: number
-  buttonElement: HTMLElement
-  tooltipElement?: HTMLElement
-  reactRoot?: ReturnType<typeof createRoot>
-  originalStretchFactor?: number // Store original stretch factor
+  originalStretchFactor?: number
+  collapseButtonWidget?: { destroy: () => void; updateState: (collapsed: boolean) => void }
 }
 
 /**
- * Pane Collapse Plugin using Pane Primitives
+ * Pane Collapse Plugin using ChartWidgetManager
  */
 export class PaneCollapsePlugin implements IPanePrimitive<Time> {
   private _paneViews: any[]
@@ -32,13 +27,13 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
   private paneId: number
   private config: PaneCollapseConfig
   private paneStates = new Map<number, PaneState>()
-  private coordinateService: ChartCoordinateService
-  private resizeObserver: ResizeObserver | null = null
-  private preservationTimer: NodeJS.Timeout | null = null
+  private widgetManager: ChartWidgetManager | null = null
+  private chartId: string
 
   constructor(paneId: number, config: PaneCollapseConfig = {}) {
     this._paneViews = []
     this.paneId = paneId
+    this.chartId = '' // Will be set when attached
     this.config = {
       enabled: true,
       buttonSize: 16,
@@ -54,7 +49,6 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
       },
       ...config
     }
-    this.coordinateService = ChartCoordinateService.getInstance()
   }
 
   /**
@@ -66,13 +60,8 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
         {
           renderer: () => ({
             draw: (ctx: CanvasRenderingContext2D) => {
-              // This gets called during pane resizing
-              // Update button position for smooth movement
-              if (this.chartApi) {
-                requestAnimationFrame(() => {
-                  this.updateButtonPositions()
-                })
-              }
+              // React components will handle repositioning automatically
+              // No manual positioning needed
             }
           })
         }
@@ -82,309 +71,70 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
   }
 
   /**
-   * Initialize the plugin with chart
+   * Initialize the plugin with chart using ChartWidgetManager
    */
   attached(param: PaneAttachedParameter<Time>): void {
     this.chartApi = param.chart
-    this.setupPaneCollapse()
+
+    if (this.chartApi) {
+      const chartElement = this.chartApi.chartElement()
+      if (chartElement && chartElement.id) {
+        this.chartId = chartElement.id
+        this.widgetManager = ChartWidgetManager.getInstance(this.chartApi, this.chartId)
+        this.setupPaneCollapse()
+      }
+    }
   }
 
   /**
-   * Cleanup resources
+   * Cleanup resources using ChartWidgetManager
    */
   detached(): void {
-    // Remove all button elements
+    // Cleanup collapse button widgets
     this.paneStates.forEach(state => {
-      if (state.buttonElement && state.buttonElement.parentNode) {
-        state.buttonElement.parentNode.removeChild(state.buttonElement)
-      }
-      if (state.tooltipElement && state.tooltipElement.parentNode) {
-        state.tooltipElement.parentNode.removeChild(state.tooltipElement)
-      }
-      if (state.reactRoot) {
-        state.reactRoot.unmount()
+      if (state.collapseButtonWidget) {
+        state.collapseButtonWidget.destroy()
       }
     })
 
     // Clear pane states
     this.paneStates.clear()
 
-    // Reset chart API
+    // Reset references
     this.chartApi = null
+    this.widgetManager = null
   }
 
   /**
-   * Setup pane collapse functionality
+   * Setup pane collapse functionality using ChartWidgetManager
    */
-  private setupPaneCollapse(): void {
-    if (!this.chartApi || !this.config.enabled) return
+  private async setupPaneCollapse(): Promise<void> {
+    if (!this.chartApi || !this.config.enabled || !this.widgetManager) return
 
-    // Get chart element
-    const chartElement = this.chartApi.chartElement()
-    if (!chartElement) return
-
-    // Delay button creation to allow chart to stabilize
-    // This helps avoid the "Value is undefined" errors during initialization
-    setTimeout(() => {
-      this.createCollapseButton(chartElement, this.paneId)
-    }, 200) // Wait 200ms for chart to stabilize
-  }
-
-  /**
-   * Create collapse/expand button for a pane
-   */
-  private createCollapseButton(chartElement: HTMLElement, paneId: number): void {
-    // Check if chart is ready by trying to get pane count
-    if (!this.chartApi) {
-
-      return
-    }
-
+    // Create collapse button using ChartWidgetManager
     try {
-      // Test if chart is ready by checking if we can get panes
-      const panes = this.chartApi.panes()
-      if (!panes || panes.length === 0) {
-
-        // Retry after a delay
-        setTimeout(() => this.createCollapseButton(chartElement, paneId), 300)
-        return
-      }
-    } catch (error) {
-
-      // Retry after a delay
-      setTimeout(() => this.createCollapseButton(chartElement, paneId), 300)
-      return
-    }
-
-    // Create button container (like legends do)
-    const buttonContainer = document.createElement('div')
-    buttonContainer.className = `pane-collapse-button-container-${paneId}`
-    buttonContainer.style.position = 'absolute'
-    buttonContainer.style.zIndex = (this.config.zIndex || 1000).toString()
-    buttonContainer.style.pointerEvents = 'auto'
-
-    try {
-      // Append button container to chart element (like legends do)
-      chartElement.appendChild(buttonContainer)
-
-      // Create React root and render button component (like legends do)
-      const reactRoot = createRoot(buttonContainer)
-      reactRoot.render(
-        React.createElement(CollapseButtonComponent, {
-          paneId: paneId,
-          isCollapsed: false,
-          onClick: () => {
-            this.togglePaneCollapse(paneId)
-          },
-          config: this.config
-        })
+      const collapseButtonWidget = await this.widgetManager.addCollapseButton(
+        this.paneId,
+        false, // initial collapsed state
+        () => this.togglePaneCollapse(this.paneId),
+        this.config
       )
 
-      // Store button container reference
-      if (!this.paneStates.has(paneId)) {
-        this.paneStates.set(paneId, {
+      // Store widget reference
+      if (!this.paneStates.has(this.paneId)) {
+        this.paneStates.set(this.paneId, {
           isCollapsed: false,
           originalHeight: 0,
-          collapsedHeight: 45, // Height to show legend and button
-          buttonElement: buttonContainer,
-          reactRoot: reactRoot
+          collapsedHeight: 45,
+          collapseButtonWidget: collapseButtonWidget
         })
       } else {
-        this.paneStates.get(paneId)!.buttonElement = buttonContainer
-        this.paneStates.get(paneId)!.reactRoot = reactRoot
+        this.paneStates.get(this.paneId)!.collapseButtonWidget = collapseButtonWidget
       }
 
-      // Try to position immediately like legends do, but with retry mechanism
-      this.positionButton(buttonContainer, paneId)
     } catch (error) {
-
+      console.error('Error setting up pane collapse:', error)
     }
-  }
-
-  /**
-   * Position button using the exact same pattern as legends
-   */
-  private positionButton(button: HTMLElement, paneId: number): void {
-    if (!this.chartApi) return
-
-    try {
-      // Use the same coordinate service approach as legends
-      const coordinateService = ChartCoordinateService.getInstance()
-      const paneCoords = coordinateService.getPaneCoordinates(this.chartApi, paneId)
-
-      if (!paneCoords) {
-        // Simple retry like legends do - retry after 100ms, but limit retries
-        const retryCount = (button as any).__retryCount || 0
-        if (retryCount < 5) {
-          ;(button as any).__retryCount = retryCount + 1
-          setTimeout(() => this.positionButton(button, paneId), 100)
-        } else {
-          // Use fallback positioning
-          button.style.top = '10px'
-          button.style.left = '10px'
-        }
-        return
-      }
-
-      // Get legend position to determine button placement
-      const legendPosition = this.getLegendPosition(paneId)
-      const margin = 8
-      const buttonSize = this.config.buttonSize || 16
-
-      // Calculate position relative to pane using configuration
-      let top: number, left: number
-
-      // Rule 1: If legend is top-right, button goes top-left
-      // Rule 2: For all other legend positions, button goes top-right
-      if (legendPosition === 'top-right') {
-        top = paneCoords.bounds.top + margin
-        left = paneCoords.bounds.left + margin
-      } else {
-        top = paneCoords.bounds.top + margin
-        left = paneCoords.bounds.right - buttonSize - margin
-      }
-
-      // Apply positioning directly (exactly like legends)
-      button.style.top = `${top}px`
-      button.style.left = `${left}px`
-      button.style.position = 'absolute'
-      button.style.zIndex = '1000'
-
-      // Update button text based on current state
-      const state = this.paneStates.get(paneId)
-      if (state) {
-        // The button text is now managed by the CollapseButtonComponent
-        // We need to re-render the component to update its text
-        if (state.reactRoot) {
-          state.reactRoot.render(
-            React.createElement(CollapseButtonComponent, {
-              paneId: paneId,
-              isCollapsed: state.isCollapsed,
-              onClick: () => {
-                this.togglePaneCollapse(paneId)
-              },
-              config: this.config
-            })
-          )
-        }
-      }
-    } catch (error) {
-
-      // Simple fallback positioning (exactly like legends)
-      button.style.top = '10px'
-      button.style.left = '10px'
-    }
-  }
-
-  /**
-   * Get legend position for this pane to avoid button overlap
-   */
-  private getLegendPosition(paneId: number): string {
-    try {
-      // Use the actual legend config if available
-      if (this.config.legendConfig && this.config.legendConfig.position) {
-        return this.config.legendConfig.position
-      }
-
-      // Fallback: check if legend exists in DOM
-      const chartElement = this.chartApi?.chartElement()
-      if (chartElement) {
-        // Look for legend elements in the chart
-        const legendElements = chartElement.querySelectorAll('.pane-legend, [data-legend-pane]')
-        for (const legend of legendElements) {
-          const legendPaneId = legend.getAttribute('data-legend-pane')
-          if (legendPaneId === paneId.toString()) {
-            // Check if legend is visible and positioned
-            const computedStyle = window.getComputedStyle(legend)
-            const display = computedStyle.display
-            const visibility = computedStyle.visibility
-
-            if (display !== 'none' && visibility !== 'hidden') {
-              // If legend exists and is visible, assume it's at top-left for now
-              return 'top-left'
-            }
-          }
-        }
-      }
-
-      // Default to top-left if we can't determine (since user specified it)
-      return 'top-left'
-    } catch (error) {
-
-      return 'top-left'
-    }
-  }
-
-  /**
-   * Show tooltip for the button
-   */
-  private showTooltip(button: HTMLElement, paneId: number): void {
-    const state = this.paneStates.get(paneId)
-    if (!state || !this.config.showTooltip) return
-
-    // Remove existing tooltip
-    this.hideTooltip()
-
-    // Create tooltip element
-    const tooltip = document.createElement('div')
-    tooltip.className = 'pane-collapse-tooltip'
-    tooltip.textContent = state.isCollapsed
-      ? this.config.tooltipText?.expand || 'Expand pane'
-      : this.config.tooltipText?.collapse || 'Collapse pane'
-
-    tooltip.style.cssText = `
-      position: absolute;
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      white-space: nowrap;
-      z-index: 1001;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    `
-
-    // Position tooltip above the button
-    const buttonRect = button.getBoundingClientRect()
-    const chartElement = this.chartApi?.chartElement()
-    if (chartElement) {
-      const chartRect = chartElement.getBoundingClientRect()
-
-      tooltip.style.left = `${buttonRect.left - chartRect.left - tooltip.offsetWidth / 2 + button.offsetWidth / 2}px`
-      tooltip.style.top = `${buttonRect.top - chartRect.top - tooltip.offsetHeight - 8}px`
-    }
-
-    // Append tooltip to chart element
-    if (this.chartApi?.chartElement()) {
-      this.chartApi.chartElement()!.appendChild(tooltip)
-
-      // Store tooltip reference
-      state.tooltipElement = tooltip
-
-      // Show tooltip with animation
-      setTimeout(() => {
-        tooltip.style.opacity = '1'
-      }, 10)
-    }
-  }
-
-  /**
-   * Hide tooltip
-   */
-  private hideTooltip(): void {
-    this.paneStates.forEach(state => {
-      if (state.tooltipElement && state.tooltipElement.parentNode) {
-        state.tooltipElement.style.opacity = '0'
-        setTimeout(() => {
-          if (state.tooltipElement && state.tooltipElement.parentNode) {
-            state.tooltipElement.parentNode.removeChild(state.tooltipElement)
-            state.tooltipElement = undefined
-          }
-        }, 200)
-      }
-    })
   }
 
   /**
@@ -398,14 +148,12 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
 
     try {
       if (state.isCollapsed) {
-        // Expand the pane
         this.expandPane(paneId)
       } else {
-        // Collapse the pane
         this.collapsePane(paneId)
       }
     } catch (error) {
-
+      console.error('Error toggling pane collapse:', error)
     }
   }
 
@@ -424,9 +172,8 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
             const currentStretch = pane.getStretchFactor()
 
             // Re-apply minimal stretch factor if it's been lost
-            if (currentStretch > 0.1) {
-
-              pane.setStretchFactor(0.05)
+            if (currentStretch > 0.2) {
+              pane.setStretchFactor(0.15)
             }
           }
         } catch (error) {
@@ -467,14 +214,15 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
 
 
       // Collapse pane to minimal height (show only legends/buttons)
-      const minimalStretchFactor = 0.05 // Very small but not 0 to keep pane active
+      const minimalStretchFactor = 0.15 // Small but visible for collapsed state
       pane.setStretchFactor(minimalStretchFactor)
+
+      // Hide canvas elements for collapsed pane
+      this.setCanvasVisibility(paneId, false)
 
       // Update state
       state.isCollapsed = true
       state.collapsedHeight = 45 // Enough for legend and button
-
-
 
       // Trigger chart layout recalculation
       const chartElement = this.chartApi.chartElement()
@@ -482,29 +230,15 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
         this.chartApi.resize(chartElement.clientWidth, chartElement.clientHeight)
       }
 
-      // Update button text
-      if (state.reactRoot) {
-        state.reactRoot.render(
-          React.createElement(CollapseButtonComponent, {
-            paneId: paneId,
-            isCollapsed: true,
-            onClick: () => {
-              this.togglePaneCollapse(paneId)
-            },
-            config: this.config
-          })
-        )
+      // Update button state through widget manager
+      if (state.collapseButtonWidget) {
+        state.collapseButtonWidget.updateState(true)
       }
 
       // Notify callback
       if (this.config.onPaneCollapse) {
         this.config.onPaneCollapse(paneId, true)
       }
-
-      // Reposition button after collapse
-      setTimeout(() => {
-        this.positionButton(state.buttonElement, paneId)
-      }, 100)
     } catch (error) {
 
     }
@@ -537,6 +271,9 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
       // Restore original stretch factor
       pane.setStretchFactor(originalStretchFactor)
 
+      // Show canvas elements for expanded pane
+      this.setCanvasVisibility(paneId, true)
+
       // Update state
       state.isCollapsed = false
 
@@ -546,92 +283,68 @@ export class PaneCollapsePlugin implements IPanePrimitive<Time> {
         this.chartApi.resize(chartElement.clientWidth, chartElement.clientHeight)
       }
 
-      // Wait a bit for layout to settle, then reposition the button
-      setTimeout(() => {
-        this.positionButton(state.buttonElement, paneId)
-      }, 100)
-
-      // Update button text
-      // The button text is now managed by the CollapseButtonComponent
-      // We need to re-render the component to update its text
-      if (state.reactRoot) {
-        state.reactRoot.render(
-          React.createElement(CollapseButtonComponent, {
-            paneId: paneId,
-            isCollapsed: false,
-            onClick: () => {
-              this.togglePaneCollapse(paneId)
-            },
-            config: this.config
-          })
-        )
+      // Update button state through widget manager
+      if (state.collapseButtonWidget) {
+        state.collapseButtonWidget.updateState(false)
       }
 
       // Notify callback
       if (this.config.onPaneExpand) {
         this.config.onPaneExpand(paneId, false)
       }
-
-      // Reposition button to stay anchored
-      this.positionButton(state.buttonElement, paneId)
     } catch (error) {
 
     }
   }
 
+
   /**
-   * Capture the current state of all panes.
-   * This is needed because when a pane is collapsed, its stretch factor is set to a very small value,
-   * and we need to remember the original stretch factor to restore it.
+   * Set canvas visibility and pane height for a specific pane
    */
-  private captureAllPaneStates(paneId: number): void {
+  private setCanvasVisibility(paneId: number, visible: boolean): void {
     if (!this.chartApi) return
 
     try {
-      // Get all panes
-      const allPanes = this.chartApi.panes()
-      const totalChartHeight = this.chartApi.chartElement()?.clientHeight || 600
+      // Get the specific pane from the API
+      const panes = this.chartApi.panes()
+      if (paneId >= panes.length) return
 
-      // Capture the state of ALL panes (not just the one being collapsed)
-      allPanes.forEach((pane, index) => {
-        const paneSize = this.chartApi.paneSize(index)
-        if (paneSize) {
-          // Store the actual height
-          if (!this.paneStates.has(index)) {
-            this.paneStates.set(index, {
-              isCollapsed: false,
-              originalHeight: 0,
-              collapsedHeight: 45,
-              buttonElement: document.createElement('div'), // Placeholder
-              tooltipElement: undefined,
-              reactRoot: undefined
-            })
-          }
+      const pane = panes[paneId]
+      const paneElement = pane.getHTMLElement()
 
-          const state = this.paneStates.get(index)!
-          state.originalHeight = paneSize.height
+      if (!paneElement) return
 
-          // Calculate and store the stretch factor
-          const stretchFactor = paneSize.height / totalChartHeight
-          state.originalStretchFactor = stretchFactor
+      // Set pane container height when collapsing/expanding
+      if (!visible) {
+        // Collapsed: set height to 30px
+        paneElement.style.height = '30px'
+        paneElement.style.minHeight = '30px'
+        paneElement.style.maxHeight = '30px'
+      } else {
+        // Expanded: restore original height
+        paneElement.style.height = ''
+        paneElement.style.minHeight = ''
+        paneElement.style.maxHeight = ''
+      }
+
+      // Find all canvas elements within this specific pane
+      const canvases = paneElement.querySelectorAll('canvas')
+
+      canvases.forEach((canvas) => {
+        const canvasElement = canvas as HTMLCanvasElement
+        if (visible) {
+          canvasElement.style.visibility = ''
+          canvasElement.style.display = ''
+          canvasElement.removeAttribute('aria-hidden')
+        } else {
+          canvasElement.style.visibility = 'hidden'
+          canvasElement.style.display = 'none'
+          canvasElement.setAttribute('aria-hidden', 'true')
         }
       })
     } catch (error) {
-
+      // Silently handle canvas visibility errors
     }
-  }
-
-  /**
-   * Update button positions during pane resizing
-   */
-  private updateButtonPositions(): void {
-    if (!this.chartApi) return
-
-    this.paneStates.forEach((state, paneId) => {
-      if (state.buttonElement) {
-        this.positionButton(state.buttonElement, paneId)
-      }
-    })
   }
 }
 

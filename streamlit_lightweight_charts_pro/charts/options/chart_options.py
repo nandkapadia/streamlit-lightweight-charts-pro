@@ -26,6 +26,9 @@ from streamlit_lightweight_charts_pro.charts.options.time_scale_options import T
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
+from streamlit_lightweight_charts_pro.charts.options.ui_options import (
+    RangeSwitcherOptions,
+)
 from streamlit_lightweight_charts_pro.utils import chainable_field
 
 
@@ -49,6 +52,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_field
 @chainable_field("localization", LocalizationOptions)
 @chainable_field("add_default_pane", bool)
 @chainable_field("trade_visualization", TradeVisualizationOptions)
+@chainable_field("range_switcher", RangeSwitcherOptions)
 class ChartOptions(Options):
     """
     Configuration options for chart display and behavior.
@@ -79,6 +83,8 @@ class ChartOptions(Options):
         add_default_pane (bool): Whether to add a default pane to the chart.
         trade_visualization (Optional[TradeVisualizationOptions]): Trade visualization
             configuration options.
+        range_switcher (Optional[RangeSwitcherOptions]): Range switcher configuration
+            for time range selection.
         sync (Optional[SyncOptions]): Synchronization options for linked charts.
 
     Raises:
@@ -129,4 +135,52 @@ class ChartOptions(Options):
     # Trade visualization options
     trade_visualization: Optional[TradeVisualizationOptions] = None
 
+    # UI options
+    range_switcher: Optional[RangeSwitcherOptions] = None
+
     # Synchronization options
+
+    def __post_init__(self):
+        """Validate chart options after initialization."""
+        # Validate price scale options
+        if self.right_price_scale is not None and not isinstance(self.right_price_scale, PriceScaleOptions):
+            if isinstance(self.right_price_scale, bool):
+                raise TypeError(
+                    f"right_price_scale must be a PriceScaleOptions object, not a boolean. "
+                    f"To enable the right price scale, use: "
+                    f"right_price_scale=PriceScaleOptions(visible=True) or remove the parameter "
+                    f"(it's enabled by default)."
+                )
+            else:
+                raise TypeError(
+                    f"right_price_scale must be a PriceScaleOptions object, "
+                    f"got {type(self.right_price_scale).__name__}"
+                )
+
+        if self.left_price_scale is not None and not isinstance(self.left_price_scale, PriceScaleOptions):
+            if isinstance(self.left_price_scale, bool):
+                raise TypeError(
+                    f"left_price_scale must be a PriceScaleOptions object, not a boolean. "
+                    f"To enable the left price scale, use: "
+                    f"left_price_scale=PriceScaleOptions(visible=True)"
+                )
+            else:
+                raise TypeError(
+                    f"left_price_scale must be a PriceScaleOptions object, "
+                    f"got {type(self.left_price_scale).__name__}"
+                )
+
+        # Validate price scale IDs are strings
+        if self.right_price_scale is not None and self.right_price_scale.price_scale_id is not None:
+            if not isinstance(self.right_price_scale.price_scale_id, str):
+                raise TypeError(
+                    f"right_price_scale.price_scale_id must be a string, "
+                    f"got {type(self.right_price_scale.price_scale_id).__name__}"
+                )
+
+        if self.left_price_scale is not None and self.left_price_scale.price_scale_id is not None:
+            if not isinstance(self.left_price_scale.price_scale_id, str):
+                raise TypeError(
+                    f"left_price_scale.price_scale_id must be a string, "
+                    f"got {type(self.left_price_scale.price_scale_id).__name__}"
+                )

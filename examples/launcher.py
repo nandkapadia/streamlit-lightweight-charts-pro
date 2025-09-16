@@ -234,6 +234,11 @@ EXAMPLE_CATEGORIES = {
                 "description": "Gradient ribbon series with dynamic color transitions based on data values.",
                 "path": "advanced_features/gradient_ribbon_example.py",
             },
+            "rangeswitcher_example.py": {
+                "title": "Range Switcher Example",
+                "description": "Professional time range switching functionality for financial charts.",
+                "path": "advanced_features/rangeswitcher_example.py",
+            },
             "auto_size_example.py": {
                 "title": "Auto Sizing",
                 "description": "Dynamic chart sizing based on container.",

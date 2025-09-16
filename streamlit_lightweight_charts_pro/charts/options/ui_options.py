@@ -1,7 +1,7 @@
 """UI option classes for streamlit-lightweight-charts."""
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Literal
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
 from streamlit_lightweight_charts_pro.utils import chainable_field
@@ -10,21 +10,29 @@ from streamlit_lightweight_charts_pro.utils import chainable_field
 @dataclass
 @chainable_field("text", str)
 @chainable_field("tooltip", str)
+@chainable_field("seconds", (int, type(None)))
 class RangeConfig(Options):
     """Range configuration for range switcher."""
 
     text: str = ""
     tooltip: str = ""
+    seconds: int | None = None
 
 
 @dataclass
 @chainable_field("visible", bool)
 @chainable_field("ranges", list)
+@chainable_field("position", str)
 class RangeSwitcherOptions(Options):
-    """Range switcher configuration."""
+    """Range switcher configuration.
+
+    Range switcher supports only corner positions: top-left, top-right,
+    bottom-left, bottom-right. Center positions are not supported.
+    """
 
     visible: bool = True
     ranges: List[RangeConfig] = field(default_factory=list)
+    position: Literal["top-left", "top-right", "bottom-left", "bottom-right"] = "bottom-right"
 
 
 @dataclass

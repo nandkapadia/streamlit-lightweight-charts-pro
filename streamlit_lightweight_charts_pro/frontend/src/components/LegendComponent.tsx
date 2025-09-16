@@ -1,80 +1,59 @@
-import React, {useState, useRef, useEffect} from 'react'
-import {LegendConfig} from '../types'
+import React, { useState, useRef, useEffect } from 'react'
+import { LegendConfig } from '../types'
+import { LegendWidget } from './LegendWidget'
+import { usePositionableWidget } from './base/PositionableWidget'
 
 interface LegendComponentProps {
   legendConfig: LegendConfig
   isPanePrimitive?: boolean // Flag to indicate if used as a pane primitive
+  layoutManager: any
 }
 
 export const LegendComponent: React.FC<LegendComponentProps> = ({
   legendConfig,
-  isPanePrimitive = false
+  isPanePrimitive = false,
+  layoutManager
 }) => {
-  const [isVisible, setIsVisible] = useState(legendConfig.visible ?? true)
   const legendRef = useRef<HTMLDivElement>(null)
+  const [forceUpdate, setForceUpdate] = useState(0)
+  const [displayText, setDisplayText] = useState('')
 
-  // Handle visibility
+  // Create widget with layout manager integration
+  const widget = usePositionableWidget(
+    () => new LegendWidget(legendConfig, layoutManager),
+    [legendConfig]
+  )
+
+  // Update widget state when props change
   useEffect(() => {
-    setIsVisible(legendConfig.visible ?? true)
-  }, [legendConfig.visible])
+    widget.updateConfig(legendConfig)
+    setDisplayText(widget.displayText) // Initialize React state
+    widget.setUpdateCallback(() => {
+      setDisplayText(widget.displayText) // Update React state
+      setForceUpdate(prev => prev + 1)
+    })
+  }, [widget, legendConfig])
 
-  if (!isVisible) {
+  // Update widget element reference
+  useEffect(() => {
+    widget.setElement(legendRef.current)
+  }, [widget, legendRef.current])
+
+  // Don't render if not visible
+  if (!widget.isVisible) {
     return null
   }
 
-  // Extract text content from HTML for accessibility
-  const getTextContent = (html: string): string => {
-    try {
-      const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = html
-
-      // Try multiple methods to extract text
-      let text = tempDiv.textContent || tempDiv.innerText || ''
-
-      // If still empty, try to clean up the HTML and extract manually
-      if (!text.trim()) {
-        // Remove HTML tags and extract text
-        text = html.replace(/<[^>]*>/g, '').trim()
-      }
-
-      return text
-    } catch (error) {
-      // Fallback: return the HTML as-is if parsing fails
-      return html.replace(/<[^>]*>/g, '').trim()
-    }
-  }
-
-  const textContent = legendConfig.text ? getTextContent(legendConfig.text) : ''
+  const positionStyle = widget.getPositionStyle()
 
   return (
     <div
       ref={legendRef}
-      className="pane-legend"
-      style={{
-        // Use absolute positioning - parent (LegendPanePrimitive) handles all positioning
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        zIndex: legendConfig.zIndex || 1000,
-        pointerEvents: 'none',
-        // Ensure it's not clipped
-        overflow: 'visible'
-      }}
-      data-debug="legend"
-    >
-      {legendConfig.text ? (
-        <div
-          data-legend-text
-          dangerouslySetInnerHTML={{__html: legendConfig.text}}
-          aria-label={textContent}
-          style={{
-            display: 'block',
-            color: legendConfig.textColor
-          }}
-        />
-      ) : (
-        <span style={{color: '#666', fontStyle: 'italic'}}>No content</span>
-      )}
-    </div>
+      style={positionStyle}
+      role="img"
+      aria-label={`Legend: ${widget.textContent}`}
+      title={widget.textContent}
+      dangerouslySetInnerHTML={{ __html: displayText || '' }}
+    />
   )
 }

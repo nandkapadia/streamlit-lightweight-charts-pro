@@ -105,7 +105,7 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
   /**
    * Create legend element (like minimize buttons do)
    */
-  private createLegend(): void {
+  private async createLegend(): Promise<void> {
     if (!this.chartApi || !this.config.visible) return
 
     // Get chart element (like minimize buttons do)
@@ -140,10 +140,15 @@ export class LegendPanePrimitive implements IPanePrimitive<Time> {
         processedConfig.text = processedConfig.text.replace(/\$\$value\$\$/g, '')
       }
 
+      // Import CornerLayoutManager for V2 component
+      const { CornerLayoutManager } = await import('../../services/CornerLayoutManager')
+      const layoutManager = CornerLayoutManager.getInstance(this.chartId, this.paneId)
+
       reactRoot.render(
         React.createElement(LegendComponent, {
           legendConfig: processedConfig,
-          isPanePrimitive: true // Flag to indicate this is used as a pane primitive
+          isPanePrimitive: true, // Flag to indicate this is used as a pane primitive
+          layoutManager: layoutManager
         })
       )
 
@@ -389,6 +394,16 @@ export function createLegendPanePrimitive(
   chartId: string,
   config: LegendConfig,
   seriesData?: any
-): LegendPanePrimitive {
-  return new LegendPanePrimitive(paneId, seriesIndex, chartId, config, seriesData)
+): any {
+  // Legacy legend system completely disabled - legends now handled by ChartWidgetManager
+
+  // Return a completely inert dummy that doesn't create any DOM elements
+  return {
+    updateValue: () => {},
+    updatePosition: () => {},
+    attached: () => {},
+    detached: () => {},
+    updateAllViews: () => {},
+    paneViews: () => []
+  }
 }

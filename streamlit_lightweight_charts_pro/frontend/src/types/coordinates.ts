@@ -108,7 +108,7 @@ export interface ValidationResult {
 /**
  * Position types for elements
  */
-export type ElementPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
+export type ElementPosition = 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center' | 'center'
 
 /**
  * Coordinate calculation options

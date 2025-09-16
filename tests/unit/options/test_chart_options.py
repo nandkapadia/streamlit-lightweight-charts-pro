@@ -525,3 +525,100 @@ class TestChartOptionsEdgeCases:
         assert "ChartOptions" in repr_str
         assert "width=800" in repr_str
         assert "height=600" in repr_str
+
+
+class TestChartOptionsPriceScaleValidation:
+    """Test ChartOptions validation for price scale parameters."""
+
+    def test_right_price_scale_boolean_raises_error(self):
+        """Test that passing boolean to right_price_scale raises TypeError."""
+        with pytest.raises(TypeError, match="right_price_scale must be a PriceScaleOptions object, not a boolean"):
+            ChartOptions(right_price_scale=True)
+
+    def test_left_price_scale_boolean_raises_error(self):
+        """Test that passing boolean to left_price_scale raises TypeError."""
+        with pytest.raises(TypeError, match="left_price_scale must be a PriceScaleOptions object, not a boolean"):
+            ChartOptions(left_price_scale=True)
+
+    def test_right_price_scale_string_raises_error(self):
+        """Test that passing string to right_price_scale raises TypeError."""
+        with pytest.raises(TypeError, match="right_price_scale must be a PriceScaleOptions object"):
+            ChartOptions(right_price_scale="invalid")
+
+    def test_left_price_scale_string_raises_error(self):
+        """Test that passing string to left_price_scale raises TypeError."""
+        with pytest.raises(TypeError, match="left_price_scale must be a PriceScaleOptions object"):
+            ChartOptions(left_price_scale="invalid")
+
+    def test_right_price_scale_integer_raises_error(self):
+        """Test that passing integer to right_price_scale raises TypeError."""
+        with pytest.raises(TypeError, match="right_price_scale must be a PriceScaleOptions object"):
+            ChartOptions(right_price_scale=123)
+
+    def test_left_price_scale_integer_raises_error(self):
+        """Test that passing integer to left_price_scale raises TypeError."""
+        with pytest.raises(TypeError, match="left_price_scale must be a PriceScaleOptions object"):
+            ChartOptions(left_price_scale=123)
+
+    def test_valid_price_scale_options_accepted(self):
+        """Test that valid PriceScaleOptions objects are accepted."""
+        left_scale = PriceScaleOptions(visible=True)
+        right_scale = PriceScaleOptions(visible=False)
+
+        # Should not raise any errors
+        options = ChartOptions(
+            left_price_scale=left_scale,
+            right_price_scale=right_scale
+        )
+
+        assert options.left_price_scale == left_scale
+        assert options.right_price_scale == right_scale
+
+    def test_none_price_scale_options_accepted(self):
+        """Test that None values are accepted for price scale options."""
+        # Should not raise any errors
+        options = ChartOptions(
+            left_price_scale=None,
+            right_price_scale=None
+        )
+
+        assert options.left_price_scale is None
+        assert options.right_price_scale is None
+
+    def test_right_price_scale_id_must_be_string(self):
+        """Test that right_price_scale.price_scale_id must be a string."""
+        with pytest.raises(TypeError, match="right_price_scale.price_scale_id must be a string"):
+            ChartOptions(right_price_scale=PriceScaleOptions(price_scale_id=123))
+
+    def test_left_price_scale_id_must_be_string(self):
+        """Test that left_price_scale.price_scale_id must be a string."""
+        with pytest.raises(TypeError, match="left_price_scale.price_scale_id must be a string"):
+            ChartOptions(left_price_scale=PriceScaleOptions(price_scale_id=456))
+
+    def test_valid_price_scale_id_strings_accepted(self):
+        """Test that valid string price scale IDs are accepted."""
+        left_scale = PriceScaleOptions(price_scale_id="left-scale")
+        right_scale = PriceScaleOptions(price_scale_id="right-scale")
+
+        # Should not raise any errors
+        options = ChartOptions(
+            left_price_scale=left_scale,
+            right_price_scale=right_scale
+        )
+
+        assert options.left_price_scale.price_scale_id == "left-scale"
+        assert options.right_price_scale.price_scale_id == "right-scale"
+
+    def test_none_price_scale_id_accepted(self):
+        """Test that None price scale IDs are accepted."""
+        left_scale = PriceScaleOptions(price_scale_id=None)
+        right_scale = PriceScaleOptions(price_scale_id=None)
+
+        # Should not raise any errors
+        options = ChartOptions(
+            left_price_scale=left_scale,
+            right_price_scale=right_scale
+        )
+
+        assert options.left_price_scale.price_scale_id is None
+        assert options.right_price_scale.price_scale_id is None

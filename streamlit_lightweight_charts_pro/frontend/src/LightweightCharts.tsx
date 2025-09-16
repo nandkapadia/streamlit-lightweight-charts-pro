@@ -26,7 +26,9 @@ import {createPaneCollapsePlugin} from './plugins/chart/paneCollapsePlugin'
 // Legend management is now handled directly via DOM manipulation like minimize buttons
 import {ChartReadyDetector} from './utils/chartReadyDetection'
 import {ChartCoordinateService} from './services/ChartCoordinateService'
-import {createLegendPanePrimitive} from './plugins/chart/legendPanePrimitive'
+import {ChartWidgetManager} from './services/ChartWidgetManager'
+import {CornerLayoutManager} from './services/CornerLayoutManager'
+// Legacy legend system removed - now using ChartWidgetManager
 
 import './styles/paneCollapse.css'
 import {cleanLineStyleOptions} from './utils/lineStyle'
@@ -74,9 +76,7 @@ declare global {
   interface Window {
     chartApiMap: {[chartId: string]: IChartApi}
     chartResizeObservers: {[chartId: string]: ResizeObserver}
-    legendRefreshCallbacks: {[chartId: string]: (() => void)[]}
-    // Legend management is now handled directly via DOM manipulation like minimize buttons
-    // Legend management is now handled directly via DOM manipulation like minimize buttons
+    // Legend system removed - now handled by ChartWidgetManager
     paneCollapsePlugins: {[chartId: string]: any[]}
     chartGroupMap: {[chartId: string]: number}
     seriesRefsMap: {[chartId: string]: ISeriesApi<any>[]}
@@ -111,46 +111,7 @@ const retryWithBackoff = async (
   throw lastError
 }
 
-/**
- * Create legend for a series using pane primitive (like minimize buttons)
- */
-const createLegendForSeries = async (
-  chart: IChartApi,
-  seriesConfig: SeriesConfig,
-  chartId: string,
-  seriesIndex: number,
-  legendResizeObserverRefs: React.MutableRefObject<{[key: string]: ResizeObserver}>
-): Promise<void> => {
-  if (!seriesConfig.legend || !seriesConfig.legend.visible) return
-
-  try {
-    const paneId = seriesConfig.paneId || 0
-
-    // Create legend pane primitive (like minimize buttons do)
-    const legendPrimitive = createLegendPanePrimitive(
-      paneId,
-      seriesIndex,
-      chartId,
-      seriesConfig.legend
-    )
-
-    // Store the primitive reference for value updates
-    if (!(window as any).legendPrimitives) {
-      ;(window as any).legendPrimitives = {}
-    }
-    const primitiveKey = `${chartId}-${seriesIndex}`
-    ;(window as any).legendPrimitives[primitiveKey] = legendPrimitive
-
-    // Attach the primitive to the pane (like minimize buttons do)
-    const panes = chart.panes()
-    if (paneId < panes.length) {
-      const pane = panes[paneId]
-      pane.attachPrimitive(legendPrimitive)
-    }
-  } catch (error) {
-
-  }
-}
+// Legacy createLegendForSeries function removed - legends now handled by ChartWidgetManager
 
 interface LightweightChartsProps {
   config: ComponentConfig
@@ -399,6 +360,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           })
         }
 
+
         // Setup time range synchronization (TradingView's official approach)
         if (syncConfig.timeRange) {
           const timeScale = chart.timeScale()
@@ -517,8 +479,25 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
 
         } catch (error) {
-
         }
+
+        // Setup crosshair subscription for legend value updates
+        // This is independent of sync settings and always needed for $$value$$ placeholders
+        chart.subscribeCrosshairMove(param => {
+          try {
+            const widgetManager = ChartWidgetManager.getInstance(chart, chartId)
+
+            if (!param.time || !param.point) {
+              // Crosshair left the chart - clear all legend values
+              widgetManager.updateLegendValues({time: null, seriesData: new Map()})
+            } else {
+              // Crosshair is on the chart - update legend values with crosshair data
+              widgetManager.updateLegendValues({time: param.time, seriesData: param.seriesData})
+            }
+          } catch (error) {
+            console.warn('Error updating legends via ChartWidgetManager:', error)
+          }
+        })
       },
       []
     )
@@ -702,10 +681,52 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         ;(window as any).paneCollapsePlugins = {}
       }
 
+      // Clean up chart plugins (including RangeSwitcher)
+      if (window.chartPlugins) {
+        window.chartPlugins.forEach((plugins, chart) => {
+          try {
+            if (Array.isArray(plugins)) {
+              plugins.forEach((plugin: any) => {
+                try {
+                  if (plugin && typeof plugin.destroy === 'function') {
+                    plugin.destroy()
+                  }
+                } catch (error) {
+                  // Plugin already destroyed
+                }
+              })
+            }
+          } catch (error) {
+            // Plugins already cleaned up
+          }
+        })
+        window.chartPlugins.clear()
+      }
+
+      // Clean up widget managers
+      if (window.chartApiMap) {
+        Object.keys(window.chartApiMap).forEach(chartId => {
+          try {
+            ChartWidgetManager.cleanup(chartId)
+          } catch (error) {
+            // Widget manager already cleaned up
+          }
+        })
+      }
+
       // Unregister charts from coordinate service
       const coordinateService = ChartCoordinateService.getInstance()
       Object.keys(chartRefs.current).forEach(chartId => {
         coordinateService.unregisterChart(chartId)
+      })
+
+      // Clean up CornerLayoutManager instances to remove phantom widgets
+      Object.keys(chartRefs.current).forEach(chartId => {
+        try {
+          CornerLayoutManager.cleanup(chartId)
+        } catch (error) {
+          // CornerLayoutManager already cleaned up
+        }
       })
 
       // Remove all charts with better error handling
@@ -1129,9 +1150,28 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       []
     )
 
-    const addRangeSwitcher = useCallback((chart: IChartApi, rangeConfig: any) => {
-      // Range switcher implementation will be added here
-      // For now, this is a placeholder
+    const addRangeSwitcher = useCallback(async (chart: IChartApi, rangeConfig: any) => {
+      try {
+        const chartElement = chart.chartElement()
+        if (!chartElement) return
+
+        const chartId = chartElement.id || `chart-${Date.now()}`
+        const widgetManager = ChartWidgetManager.getInstance(chart, chartId)
+
+        // Add range switcher using new widget manager
+        const rangeSwitcherWidget = await widgetManager.addRangeSwitcher(rangeConfig)
+
+        // Register cleanup for this plugin
+        if (!window.chartPlugins) {
+          window.chartPlugins = new Map()
+        }
+        const existingPlugins = window.chartPlugins.get(chart) || []
+        existingPlugins.push(rangeSwitcherWidget)
+        window.chartPlugins.set(chart, existingPlugins)
+
+      } catch (error) {
+        console.error('Error adding RangeSwitcher:', error)
+      }
     }, [])
 
     // Function to update legend positions when pane heights change - now handled by plugins
@@ -1250,13 +1290,14 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               if (!closestDataPoint) {
                 // No data point found - clear legend values
                 const legendPrimitiveKey = `${chartId}-${seriesIndex}`
-                if (
-                  (window as any).legendPrimitives &&
-                  (window as any).legendPrimitives[legendPrimitiveKey]
-                ) {
-                  const legendPrimitive = (window as any).legendPrimitives[legendPrimitiveKey]
-                  legendPrimitive.updateValue(null) // Clear the value
-                }
+                // Legacy legend primitive system disabled
+                // if (
+                //   (window as any).legendPrimitives &&
+                //   (window as any).legendPrimitives[legendPrimitiveKey]
+                // ) {
+                //   const legendPrimitive = (window as any).legendPrimitives[legendPrimitiveKey]
+                //   legendPrimitive.updateValue(null) // Clear the value
+                // }
                 return
               }
 
@@ -1290,16 +1331,16 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               // Use the seriesIndex from the legendSeriesData to match the storage key
               const legendPrimitiveKey = `${chartId}-${seriesIndex}`
 
-              if (
-                (window as any).legendPrimitives &&
-                (window as any).legendPrimitives[legendPrimitiveKey]
-              ) {
-                const legendPrimitive = (window as any).legendPrimitives[legendPrimitiveKey]
-
-                legendPrimitive.updateValue(templateData.value)
-              } else {
-                // Legend primitive not found
-              }
+              // Legacy legend primitive system disabled - using ChartWidgetManager instead
+              // if (
+              //   (window as any).legendPrimitives &&
+              //   (window as any).legendPrimitives[legendPrimitiveKey]
+              // ) {
+              //   const legendPrimitive = (window as any).legendPrimitives[legendPrimitiveKey]
+              //   legendPrimitive.updateValue(templateData.value)
+              // } else {
+              //   // Legend primitive not found
+              // }
 
               // Find and update the legend element
               const legendElement = legendElementsRef.current.get(`${chartId}-pane-${paneId}`)
@@ -1434,12 +1475,35 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     const addLegend = useCallback(
       async (
         chart: IChartApi,
-        legendsConfig: {[paneId: string]: LegendConfig},
+        legendsConfig: {[legendKey: string]: {paneId: number, config: LegendConfig}},
         seriesList: ISeriesApi<any>[]
       ) => {
+        try {
+          // Use new ChartWidgetManager system for creating legends
+          const chartId = chart.chartElement()?.id || `chart-${Date.now()}`
+          const widgetManager = ChartWidgetManager.getInstance(chart, chartId)
 
 
-        // Import the positioning engine (not currently used but kept for future use)
+          // Create legends for each series (allowing multiple legends per pane)
+          for (const [legendKey, legendData] of Object.entries(legendsConfig)) {
+            const { paneId, config: legendConfig } = legendData
+            if (legendConfig.visible) {
+              try {
+                const legendWidget = await widgetManager.addLegend(legendConfig, false, paneId)
+              } catch (legendError) {
+                console.error(`addLegend: Error creating legend ${legendKey} for pane ${paneId}:`, legendError)
+              }
+            } else {
+            }
+          }
+
+          return
+        } catch (error) {
+          console.error('Error creating legends with ChartWidgetManager:', error)
+        }
+
+        // OLD SYSTEM BELOW - keeping as fallback but should not be reached
+        console.warn('addLegend: Falling back to old system - this should not happen')
 
         // Check if component is being disposed
         if (isDisposingRef.current) {
@@ -1612,11 +1676,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         })
 
         // Create legends only for panes that have explicit legend configurations
-        Object.keys(legendsConfig).forEach(paneIdStr => {
-          const paneId = parseInt(paneIdStr)
-          const legendConfig = legendsConfig[paneId]
+        Object.keys(legendsConfig).forEach(legendKey => {
+          const legendData = legendsConfig[legendKey]
+          const { paneId, config: legendConfig } = legendData
 
-          // Skip if no legend config exists for this pane
+          // Skip if no legend config exists
           if (!legendConfig) {
             return
           }
@@ -1686,45 +1750,15 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
 
         // Check if any legend has crosshair updates enabled OR contains $$value$$ placeholders
-        const hasUpdateOnCrosshair = Object.values(legendsConfig).some(config => {
+        const hasUpdateOnCrosshair = Object.values(legendsConfig).some(legendData => {
+          const { config } = legendData
           const hasUpdate = config.updateOnCrosshair !== false
           const hasPlaceholder = config.text && config.text.includes('$$value$$')
           return hasUpdate || hasPlaceholder
         })
 
-        if (hasUpdateOnCrosshair) {
-
-
-          // Initialize legends with blank values (no crosshair data yet)
-          Object.entries(legendsConfig).forEach(([seriesName, legendConfig]) => {
-            if (legendConfig.text && legendConfig.text.includes('$$value$$')) {
-              const seriesIndex = legendSeriesData.findIndex(s => s.seriesName === seriesName)
-              if (seriesIndex >= 0) {
-                const legendPrimitiveKey = `${chartId}-${seriesIndex}`
-                if (
-                  (window as any).legendPrimitives &&
-                  (window as any).legendPrimitives[legendPrimitiveKey]
-                ) {
-                  const legendPrimitive = (window as any).legendPrimitives[legendPrimitiveKey]
-                  legendPrimitive.updateValue(null) // Initialize with blank
-                }
-              }
-            }
-          })
-
-          chart.subscribeCrosshairMove(param => {
-
-            if (!param.time || !param.point) {
-              // Crosshair left the chart - clear all legend values by calling updateLegendValues with null param
-              updateLegendValues(chart, chartId, {time: null, point: null, seriesData: new Map()})
-            } else {
-              // Crosshair is on the chart - update legend values
-              updateLegendValues(chart, chartId, param)
-            }
-          })
-        } else {
-
-        }
+        // Legend crosshair updates are now handled in the main chart setup
+        // to avoid chicken-and-egg problem with subscription setup
       },
       [updateLegendValues]
     )
@@ -1758,6 +1792,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     // Initialize charts
     const initializeCharts = useCallback(
       (isInitialRender = false) => {
+
         // Prevent re-initialization if already initialized and not disposing
         if (isInitializedRef.current && !isDisposingRef.current) {
           return
@@ -1766,6 +1801,17 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         // Additional check to prevent disposal during initialization (but allow initial render)
         if (isDisposingRef.current && !isInitialRender) {
           return
+        }
+
+        // Clean up any existing CornerLayoutManager instances before initialization
+        if (processedChartConfigs && processedChartConfigs.length > 0) {
+          processedChartConfigs.forEach(chartConfig => {
+            try {
+              CornerLayoutManager.cleanup(chartConfig.chartId)
+            } catch (error) {
+              // Layout manager already cleaned up
+            }
+          })
         }
 
         // Check if we have charts to initialize
@@ -1893,13 +1939,13 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             // Legend management is now handled directly via DOM manipulation
 
-            // Initialize legend refresh callbacks for this chart
-            if (!(window as any).legendRefreshCallbacks) {
-              ;(window as any).legendRefreshCallbacks = {}
-            }
-            if (!(window as any).legendRefreshCallbacks[chartId]) {
-              ;(window as any).legendRefreshCallbacks[chartId] = []
-            }
+            // Legacy legend refresh callbacks disabled
+            // if (!(window as any).legendRefreshCallbacks) {
+            //   ;(window as any).legendRefreshCallbacks = {}
+            // }
+            // if (!(window as any).legendRefreshCallbacks[chartId]) {
+            //   ;(window as any).legendRefreshCallbacks[chartId] = []
+            // }
 
             // Add resize observer to reposition legends when container resizes
             const resizeObserver =
@@ -2054,46 +2100,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   if (series) {
                     seriesList.push(series)
 
-                    // Create legend for this series using the same pattern as minimize buttons
-                    if (seriesConfig.legend && seriesConfig.legend.visible) {
-                      try {
-                        // Wait for chart to be ready before creating legend (like minimize buttons)
-                        ChartReadyDetector.waitForChartReady(chart, chart.chartElement(), {
-                          minWidth: 200,
-                          minHeight: 200
-                        }).then(isReady => {
-                          if (isReady) {
-                            createLegendForSeries(
-                              chart,
-                              seriesConfig,
-                              chartId,
-                              seriesIndex,
-                              legendResizeObserverRefs
-                            )
-                          } else {
-                            // Chart not ready, retrying after a delay
-                            setTimeout(() => {
-                              ChartReadyDetector.waitForChartReady(chart, chart.chartElement(), {
-                                minWidth: 200,
-                                minHeight: 200
-                              }).then(retryReady => {
-                                if (retryReady) {
-                                  createLegendForSeries(
-                                    chart,
-                                    seriesConfig,
-                                    chartId,
-                                    seriesIndex,
-                                    legendResizeObserverRefs
-                                  )
-                                }
-                              })
-                            }, 300)
-                          }
-                        })
-                      } catch (error) {
-                        // Error creating legend
-                      }
-                    }
+                    // Legend will be created after chart is ready
 
                     // Apply overlay price scale configuration if this series uses one
                     if (
@@ -2330,69 +2337,73 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             // Add range switcher if configured
             if (chartConfig.chart?.rangeSwitcher && chartConfig.chart.rangeSwitcher.visible) {
-              // Add range switcher after a short delay to ensure chart is fully initialized
-              setTimeout(() => {
-                functionRefs.current.addRangeSwitcher(chart, chartConfig.chart.rangeSwitcher)
-              }, 100)
+              // Wait for chart to be ready before adding range switcher
+              ChartReadyDetector.waitForChartReady(chart, chart.chartElement(), {
+                minWidth: 200,
+                minHeight: 100
+              }).then(isReady => {
+                if (isReady) {
+                  functionRefs.current.addRangeSwitcher(chart, chartConfig.chart.rangeSwitcher)
+                }
+              })
             }
 
-            // Add legends and setup crosshair subscription
-            // Collect all legend configurations from series
-            const legendsConfig: {[paneId: string]: LegendConfig} = {}
-            seriesList.forEach((series, index) => {
-              const seriesConfig = chartConfig.series[index]
-              if (seriesConfig?.legend && seriesConfig.legend.visible) {
-                const paneId = seriesConfig.paneId || 0
-                legendsConfig[paneId.toString()] = seriesConfig.legend
-              }
-            })
+            // Legends will be created after chart readiness check
 
-            if (Object.keys(legendsConfig).length > 0) {
-              setTimeout(() => {
-                functionRefs.current.addLegend(chart, legendsConfig, seriesList)
-              }, 200)
-            }
-
-            // Ensure chart is properly initialized before adding legends and other features
-            setTimeout(() => {
-              if (!isDisposingRef.current && chartRefs.current[chartId]) {
+            // Wait for chart readiness before setting up legends and initialization
+            ChartReadyDetector.waitForChartReady(chart, chart.chartElement(), {
+              minWidth: 200,
+              minHeight: 100,
+              maxAttempts: 10,
+              baseDelay: 100
+            }).then(isReady => {
+              if (isReady && chart && !isDisposingRef.current && chartRefs.current[chartId]) {
                 try {
+                  // Create legends for each series after chart is ready
+                  const currentChartId = chart.chartElement()?.id || `chart-${Date.now()}`
+                  const widgetManager = ChartWidgetManager.getInstance(chart, currentChartId)
+
+                  seriesList.forEach((series, index) => {
+                    const seriesConfig = chartConfig.series[index]
+
+                    if (seriesConfig?.legend && seriesConfig.legend.visible) {
+                      const paneId = seriesConfig.paneId || 0
+
+                      // Create legend after chart is ready - ensures proper positioning
+                      // Pass series reference for crosshair value updates
+                      widgetManager.addLegend(seriesConfig.legend, false, paneId, series).catch(error => {
+                        console.error(`Error creating legend for series ${index}:`, error)
+                      })
+                    }
+                  })
+
                   // Force chart to fit content
                   chart.timeScale().fitContent()
 
-                  // Legends are now handled at series level through direct DOM manipulation
-                } catch (error) {
-
-                }
-
-                // Legend positioning is now handled automatically by pane primitives
-
-                // Observe the chart element for size changes
-                if (resizeObserver && typeof resizeObserver.observe === 'function') {
-                  const chartElement = chart.chartElement()
-                  if (chartElement) {
-                    resizeObserver.observe(chartElement)
-                  }
-                }
-
-                // Store the resize observer for cleanup
-                legendResizeObserverRefs.current[chartId] = resizeObserver
-
-                // Refresh all legends after chart is fully initialized
-                setTimeout(() => {
-                  try {
-                    // This will trigger legend refresh for all panes
-                    if (window.legendRefreshCallbacks && window.legendRefreshCallbacks[chartId]) {
-                      window.legendRefreshCallbacks[chartId].forEach((callback: () => void) => {
-                        callback()
-                      })
+                  // Observe the chart element for size changes
+                  if (resizeObserver && typeof resizeObserver.observe === 'function') {
+                    const chartElement = chart.chartElement()
+                    if (chartElement) {
+                      resizeObserver.observe(chartElement)
                     }
-                  } catch (error) {
-
                   }
-                }, 500) // Wait 500ms for legends to be fully created
+
+                  // Store the resize observer for cleanup
+                  legendResizeObserverRefs.current[chartId] = resizeObserver
+
+                  // Legacy legend refresh callbacks disabled
+                  // if (window.legendRefreshCallbacks && window.legendRefreshCallbacks[chartId]) {
+                  //   window.legendRefreshCallbacks[chartId].forEach((callback: () => void) => {
+                  //     callback()
+                  //   })
+                  // }
+                } catch (error) {
+                  // Error during chart initialization
+                }
               }
-            }, 200) // Increased delay to ensure chart is fully ready
+            }).catch(error => {
+              // Chart readiness detection failed, skip legend setup
+            })
 
             // Setup auto-sizing for the chart
             functionRefs.current.setupAutoSizing(chart, container, chartConfig)
@@ -2429,7 +2440,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             // Setup fitContent functionality
             functionRefs.current.setupFitContent(chart, chartConfig)
 
-            // Create individual pane containers and add collapse functionality
+            // Create individual pane containers and add collapse functionality (synchronous like working version)
             const paneCollapseConfig = chartConfig.paneCollapse || {enabled: true}
             if (paneCollapseConfig.enabled !== false) {
               try {
@@ -2446,8 +2457,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
                 // Only show minimize buttons when there are multiple panes
                 if (allPanes.length > 1) {
-                  // Creating individual containers for multiple panes
-
                   // Set up pane collapse support
                   setupPaneCollapseSupport(chart, chartId, allPanes.length)
 
@@ -2469,7 +2478,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   })
                 }
               } catch (error) {
-
+                // Ignore errors during pane collapse setup
               }
             }
 
@@ -2555,6 +2564,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     useEffect(() => {
       if (stableConfig && stableConfig.charts && stableConfig.charts.length > 0) {
         initializeCharts(true)
+      } else {
       }
     }, [stableConfig, initializeCharts])
 

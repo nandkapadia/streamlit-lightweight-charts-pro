@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import { CollapseButtonWidget } from './CollapseButtonWidget'
+import { usePositionableWidget } from './base/PositionableWidget'
 
 interface CollapseButtonComponentProps {
   paneId: number
@@ -12,65 +14,74 @@ interface CollapseButtonComponentProps {
     buttonHoverColor?: string
     buttonHoverBackground?: string
     showTooltip?: boolean
+    position?: string
   }
+  layoutManager: any
 }
 
 export const CollapseButtonComponent: React.FC<CollapseButtonComponentProps> = ({
   paneId,
   isCollapsed,
   onClick,
-  config
+  config,
+  layoutManager
 }) => {
-  const [isHovered, setIsHovered] = React.useState(false)
 
-  // Default values for optional config properties
-  const buttonSize = config.buttonSize || 16
-  const buttonColor = config.buttonColor || '#787B86'
-  const buttonBackground = config.buttonBackground || 'rgba(255, 255, 255, 0.9)'
-  const buttonBorderRadius = config.buttonBorderRadius || 3
-  const buttonHoverColor = config.buttonHoverColor || '#131722'
-  const buttonHoverBackground = config.buttonHoverBackground || 'rgba(255, 255, 255, 1)'
+  const buttonRef = useRef<HTMLDivElement>(null)
+  const [isHovered, setIsHovered] = useState(false)
+  const [forceUpdate, setForceUpdate] = useState(0)
 
-  const handleMouseEnter = () => {
-    setIsHovered(true)
+  // Create widget with layout manager integration
+  const widget = usePositionableWidget(
+    () => new CollapseButtonWidget(paneId, isCollapsed, onClick, config, layoutManager),
+    [paneId, onClick, config]
+  )
+
+  // Update widget state when props change
+  useEffect(() => {
+    widget.updateState(isCollapsed)
+    widget.updateConfig(config)
+    widget.setUpdateCallback(() => setForceUpdate(prev => prev + 1))
+  }, [widget, isCollapsed, config])
+
+  // Update widget element reference
+  useEffect(() => {
+    widget.setElement(buttonRef.current)
+  }, [widget, buttonRef.current])
+
+  const handleMouseEnter = () => setIsHovered(true)
+  const handleMouseLeave = () => setIsHovered(false)
+
+  const handleClick = () => {
+    widget.handleClick()
   }
 
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-  }
+  // Use widget positioning
+  const baseStyle = widget.getPositionStyle()
 
-  const buttonStyle: React.CSSProperties = {
-    position: 'absolute',
-    width: `${buttonSize}px`,
-    height: `${buttonSize}px`,
-    background: isHovered ? buttonHoverBackground : buttonBackground,
-    border: `1px solid ${isHovered ? buttonHoverColor : buttonColor}`,
-    borderRadius: `${buttonBorderRadius}px`,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '10px',
-    fontWeight: 'bold',
-    color: isHovered ? buttonHoverColor : buttonColor,
-    zIndex: 1000,
-    transition: 'all 0.2s ease',
-    userSelect: 'none'
-  }
+  const hoverStyle = isHovered ? widget.getHoverStyle() : {}
+  const buttonStyle = { ...baseStyle, ...hoverStyle }
 
   return (
     <div
-      className="pane-collapse-button"
+      ref={buttonRef}
+      className="collapse-button-icon"
       style={buttonStyle}
+      onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={e => {
-        e.preventDefault()
-        e.stopPropagation()
-        onClick()
+      title={widget.showTooltip ? widget.getTooltipText() : undefined}
+      role="button"
+      tabIndex={0}
+      aria-label={widget.getTooltipText()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleClick()
+        }
       }}
     >
-      {isCollapsed ? '+' : '−'}
+      {widget.getButtonSymbol()}
     </div>
   )
 }

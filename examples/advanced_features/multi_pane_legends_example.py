@@ -11,6 +11,7 @@ Each pane has its own legend configuration with custom templates.
 
 import pandas as pd
 import streamlit as st
+import numpy as np
 
 from streamlit_lightweight_charts_pro import (
     CandlestickSeries,
@@ -45,7 +46,6 @@ Each pane has its own legend configuration with custom HTML templates.
 
 def generate_market_data(days=60):
     """Generate sample market data."""
-    import numpy as np
 
     np.random.seed(42)
     dates = pd.date_range(start="2024-01-01", periods=days, freq="D")
@@ -188,58 +188,6 @@ multi_pane_chart = Chart(
                 2: PaneHeightOptions(factor=1.0),  # Volume
             }
         ),
-        legends={
-            0: LegendOptions(
-                visible=True,
-                position=legend_position_0,
-                background_color="rgba(255, 255, 255, 0.95)",
-                border_color="#e1e3e6",
-                border_width=1,
-                border_radius=4,
-                padding=5,
-                margin=4,
-                z_index=1000,
-                text=(
-                    "<div style='display: flex; align-items: center; margin-bottom: 4px;'><span"
-                    " style='width: 12px; height: 2px; background-color: #2196f3; margin-right:"
-                    " 6px; display: inline-block;'></span><span style='font-weight:"
-                    " bold;'>MA20</span><span style='margin-left: 8px; color: #2196f3; font-weight:"
-                    " bold;'>$$value$$</span></div>"
-                ),
-            ),
-            1: LegendOptions(
-                visible=True,
-                position=legend_position_1,
-                background_color="rgba(255, 255, 255, 0.9)",
-                border_color="#9c27b0",
-                border_width=1,
-                border_radius=4,
-                padding=5,
-                margin=4,
-                z_index=1000,
-                text=(
-                    "<div style='color: #9c27b0; font-size: 11px;'><strong>RSI (14)</strong>:"
-                    " $$value$$</div>"
-                ),
-            ),
-            2: LegendOptions(
-                visible=True,
-                position=legend_position_2,
-                background_color="rgba(255, 255, 255, 0.9)",
-                border_color="#ff5722",
-                border_width=1,
-                border_radius=4,
-                padding=5,
-                margin=4,
-                z_index=1000,
-                text=(
-                    "<div style='display: flex; align-items: center;'><span style='width: 8px;"
-                    " height: 8px; background-color: #ff5722; margin-right: 4px; border-radius:"
-                    " 2px;'></span><span>Volume MA</span><span style='margin-left: 6px; color:"
-                    " #ff5722;'>$$value$$</span></div>"
-                ),
-            ),
-        },
     ),
     series=[
         # Main chart pane (pane_id=0)
@@ -261,6 +209,60 @@ multi_pane_chart.series[2].title = "MA50"
 multi_pane_chart.series[3].title = "RSI (14)"
 multi_pane_chart.series[4].title = "Volume"
 multi_pane_chart.series[5].title = "Volume MA"
+
+# Set legends for each series
+multi_pane_chart.series[1].legend = LegendOptions(
+    visible=True,
+    position=legend_position_0,
+    background_color="rgba(255, 255, 255, 0.95)",
+    border_color="#e1e3e6",
+    border_width=1,
+    border_radius=4,
+    padding=5,
+    margin=4,
+    z_index=1000,
+    text=(
+        "<div style='display: flex; align-items: center; margin-bottom: 4px;'><span"
+        " style='width: 12px; height: 2px; background-color: #2196f3; margin-right:"
+        " 6px; display: inline-block;'></span><span style='font-weight:"
+        " bold;'>MA20</span><span style='margin-left: 8px; color: #2196f3; font-weight:"
+        " bold;'>$$value$$</span></div>"
+    ),
+)
+
+multi_pane_chart.series[3].legend = LegendOptions(
+    visible=True,
+    position=legend_position_1,
+    background_color="rgba(255, 255, 255, 0.9)",
+    border_color="#9c27b0",
+    border_width=1,
+    border_radius=4,
+    padding=5,
+    margin=4,
+    z_index=1000,
+    text=(
+        "<div style='color: #9c27b0; font-size: 11px;'><strong>RSI (14)</strong>:"
+        " $$value$$</div>"
+    ),
+)
+
+multi_pane_chart.series[5].legend = LegendOptions(
+    visible=True,
+    position=legend_position_2,
+    background_color="rgba(255, 255, 255, 0.9)",
+    border_color="#ff5722",
+    border_width=1,
+    border_radius=4,
+    padding=5,
+    margin=4,
+    z_index=1000,
+    text=(
+        "<div style='display: flex; align-items: center;'><span style='width: 8px;"
+        " height: 8px; background-color: #ff5722; margin-right: 4px; border-radius:"
+        " 2px;'></span><span>Volume MA</span><span style='margin-left: 6px; color:"
+        " #ff5722;'>$$value$$</span></div>"
+    ),
+)
 
 multi_pane_chart.series[1].line_options.color = "#2196f3"  # MA20
 multi_pane_chart.series[2].line_options.color = "#ff9800"  # MA50

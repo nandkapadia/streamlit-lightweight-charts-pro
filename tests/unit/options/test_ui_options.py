@@ -52,6 +52,7 @@ class TestRangeSwitcherOptions:
         options = RangeSwitcherOptions()
         assert options.visible is True
         assert options.ranges == []
+        assert options.position == "bottom-right"
 
     def test_custom_construction(self):
         """Test construction with custom values."""
@@ -72,14 +73,23 @@ class TestRangeSwitcherOptions:
         with pytest.raises(TypeError, match="ranges must be of type"):
             options.set_ranges("invalid")
 
+    def test_valid_corner_positions(self):
+        """Test that range switcher supports only corner positions."""
+        valid_positions = ["top-left", "top-right", "bottom-left", "bottom-right"]
+
+        for position in valid_positions:
+            options = RangeSwitcherOptions(position=position)
+            assert options.position == position
+
     def test_to_dict(self):
         """Test serialization."""
         ranges = [RangeConfig(text="1D", tooltip="1 Day")]
-        options = RangeSwitcherOptions(visible=False, ranges=ranges)
+        options = RangeSwitcherOptions(visible=False, ranges=ranges, position="top-left")
         result = options.asdict()
         assert result["visible"] is False
         assert len(result["ranges"]) == 1
         assert result["ranges"][0]["text"] == "1D"
+        assert result["position"] == "top-left"
 
 
 class TestLegendOptions:
@@ -89,8 +99,8 @@ class TestLegendOptions:
         """Test construction with default values."""
         options = LegendOptions()
         assert options.visible is True
-        assert options.position == "top-right"
-        assert options.padding == 8  # Updated default value
+        assert options.position == "top-left"
+        assert options.padding == 4  # Updated default value
         assert options.text == ""
 
     def test_custom_construction(self):
