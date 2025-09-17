@@ -110,6 +110,7 @@ export interface PaneCollapseConfig {
   buttonBackground?: string
   buttonHoverBackground?: string
   buttonBorderRadius?: number
+  position?: string // Corner position for the collapse button
   zIndex?: number // Z-index for button positioning
   showTooltip?: boolean
   tooltipText?: {

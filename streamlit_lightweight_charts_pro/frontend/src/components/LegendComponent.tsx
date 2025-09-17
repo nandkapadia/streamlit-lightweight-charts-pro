@@ -15,7 +15,7 @@ export const LegendComponent: React.FC<LegendComponentProps> = ({
   layoutManager
 }) => {
   const legendRef = useRef<HTMLDivElement>(null)
-  const [forceUpdate, setForceUpdate] = useState(0)
+  const [, setForceUpdate] = useState(0)
   const [displayText, setDisplayText] = useState('')
 
   // Create widget with layout manager integration
@@ -37,7 +37,7 @@ export const LegendComponent: React.FC<LegendComponentProps> = ({
   // Update widget element reference
   useEffect(() => {
     widget.setElement(legendRef.current)
-  }, [widget, legendRef.current])
+  }, [widget])
 
   // Don't render if not visible
   if (!widget.isVisible) {

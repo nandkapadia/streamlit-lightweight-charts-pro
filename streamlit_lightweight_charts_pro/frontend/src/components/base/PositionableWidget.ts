@@ -107,7 +107,7 @@ export function usePositionableWidget<T extends PositionableWidget>(
   widgetFactory: () => T,
   dependencies: React.DependencyList = []
 ): T {
-  const widget = React.useMemo(widgetFactory, dependencies)
+  const widget = React.useMemo(widgetFactory, [widgetFactory, ...dependencies])
 
   React.useEffect(() => {
     widget.register()

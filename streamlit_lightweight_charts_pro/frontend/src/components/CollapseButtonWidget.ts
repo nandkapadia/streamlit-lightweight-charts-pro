@@ -14,8 +14,10 @@ interface CollapseButtonConfig {
 
 /**
  * CollapseButton widget that integrates with CornerLayoutManager
+ * Follows the exact same pattern as LegendWidget
  */
 export class CollapseButtonWidget extends PositionableWidget {
+  private static instanceCounter = 0
   private paneId: number
   private isCollapsed: boolean
   private onClick: () => void
@@ -31,14 +33,17 @@ export class CollapseButtonWidget extends PositionableWidget {
     layoutManager: any
   ) {
     const corner = (config.position || 'top-right') as Corner
-    const id = `${WidgetType.MINIMIZE_BUTTON}-pane-${paneId}`
+
+    // Create deterministic ID that ensures proper registration order (same as LegendWidget)
+    CollapseButtonWidget.instanceCounter++
+    // Include chart ID from layout manager to make widget IDs unique per chart
+    const chartId = layoutManager?.getChartId?.() || 'unknown'
     super(
-      id,
+      `${WidgetType.MINIMIZE_BUTTON}-${chartId}-pane-${paneId}-${CollapseButtonWidget.instanceCounter}`,
       corner,
       WidgetPriority.MINIMIZE_BUTTON, // Highest priority
       layoutManager
     )
-
 
     this.paneId = paneId
     this.isCollapsed = isCollapsed
@@ -68,10 +73,27 @@ export class CollapseButtonWidget extends PositionableWidget {
   }
 
   /**
-   * Set the DOM element reference
+   * Set the DOM element reference (same pattern as LegendWidget.setElement)
    */
   public setElement(element: HTMLDivElement | null): void {
     this.element = element
+
+    if (element) {
+      // Wait for element to be properly sized before triggering layout update
+      setTimeout(() => {
+        if (this.updateCallback) {
+          this.updateCallback()
+        }
+      }, 50) // Small delay to ensure DOM is ready
+
+      // Register callback to update layout manager when element dimensions change
+      if (this.updateCallback && typeof ResizeObserver !== 'undefined') {
+        const resizeObserver = new ResizeObserver(() => {
+          this.updateCallback?.()
+        })
+        resizeObserver.observe(element)
+      }
+    }
   }
 
   /**

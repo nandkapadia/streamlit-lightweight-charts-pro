@@ -13,7 +13,6 @@ import {
 import {SeriesConfig} from '../types'
 import {createBandSeries, BandData} from '../plugins/series/bandSeriesPlugin'
 import {SignalSeries, createSignalSeriesPlugin} from '../plugins/series/signalSeriesPlugin'
-import {createTrendFillSeriesPlugin} from '../plugins/series/trendFillSeriesPlugin'
 import {RibbonSeries} from '../plugins/series/ribbonSeriesPlugin'
 import {createGradientRibbonSeries, GradientRibbonData} from '../plugins/series/gradientRibbonSeriesPlugin'
 import {cleanLineStyleOptions} from './lineStyle'

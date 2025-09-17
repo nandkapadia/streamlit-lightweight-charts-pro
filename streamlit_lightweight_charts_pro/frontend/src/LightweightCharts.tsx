@@ -21,7 +21,6 @@ import {
 import {createAnnotationVisualElements} from './services/annotationSystem'
 import {SignalSeries} from './plugins/series/signalSeriesPlugin'
 import {TradeRectanglePrimitive} from './plugins/trade/TradeRectanglePrimitive'
-import {createPaneCollapsePlugin} from './plugins/chart/paneCollapsePlugin'
 // Legend management is now handled directly via DOM manipulation like minimize buttons
 // Legend management is now handled directly via DOM manipulation like minimize buttons
 import {ChartReadyDetector} from './utils/chartReadyDetection'
@@ -77,7 +76,8 @@ declare global {
     chartApiMap: {[chartId: string]: IChartApi}
     chartResizeObservers: {[chartId: string]: ResizeObserver}
     // Legend system removed - now handled by ChartWidgetManager
-    paneCollapsePlugins: {[chartId: string]: any[]}
+    paneCollapsePlugins: {[chartId: string]: any[]} // Legacy - for backwards compatibility
+    paneCollapseWidgets: {[chartId: string]: any[]} // New widget-based approach
     chartGroupMap: {[chartId: string]: number}
     seriesRefsMap: {[chartId: string]: ISeriesApi<any>[]}
   }
@@ -644,7 +644,27 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
       // Legend cleanup is now handled automatically by pane primitives
 
-      // Clean up pane collapse plugins
+      // Clean up pane collapse widgets (new widget-based approach)
+      if ((window as any).paneCollapseWidgets) {
+        Object.entries((window as any).paneCollapseWidgets).forEach(
+          ([chartId, widgets]: [string, any]) => {
+            if (Array.isArray(widgets)) {
+              widgets.forEach((widget: any) => {
+                try {
+                  if (widget && typeof widget.destroy === 'function') {
+                    widget.destroy()
+                  }
+                } catch (error) {
+                  // Ignore cleanup errors
+                }
+              })
+            }
+          }
+        )
+        ;(window as any).paneCollapseWidgets = {}
+      }
+
+      // Clean up legacy pane collapse plugins (for backwards compatibility)
       if ((window as any).paneCollapsePlugins) {
         Object.entries((window as any).paneCollapsePlugins).forEach(
           ([chartId, plugins]: [string, any]) => {
@@ -1210,6 +1230,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     >(new Map())
 
     // Function to update legend values based on crosshair position
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const updateLegendValues = useCallback(
       (chart: IChartApi, chartId: string, param: MouseEventParams) => {
 
@@ -1274,7 +1295,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
               if (!closestDataPoint) {
                 // No data point found - clear legend values
-                const legendPrimitiveKey = `${chartId}-${seriesIndex}`
                 // Legacy legend primitive system disabled
                 // if (
                 //   (window as any).legendPrimitives &&
@@ -1314,7 +1334,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
               // Update legend primitive if it exists
               // Use the seriesIndex from the legendSeriesData to match the storage key
-              const legendPrimitiveKey = `${chartId}-${seriesIndex}`
 
               // Legacy legend primitive system disabled - using ChartWidgetManager instead
               // if (
@@ -1474,7 +1493,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             const { paneId, config: legendConfig } = legendData
             if (legendConfig.visible) {
               try {
-                const legendWidget = await widgetManager.addLegend(legendConfig, false, paneId)
+                await widgetManager.addLegend(legendConfig, false, paneId)
               } catch (legendError) {
                 console.error(`addLegend: Error creating legend ${legendKey} for pane ${paneId}:`, legendError)
               }
@@ -1735,17 +1754,12 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
 
         // Check if any legend has crosshair updates enabled OR contains $$value$$ placeholders
-        const hasUpdateOnCrosshair = Object.values(legendsConfig).some(legendData => {
-          const { config } = legendData
-          const hasUpdate = config.updateOnCrosshair !== false
-          const hasPlaceholder = config.text && config.text.includes('$$value$$')
-          return hasUpdate || hasPlaceholder
-        })
+        // This check is now handled in the ChartWidgetManager
 
         // Legend crosshair updates are now handled in the main chart setup
         // to avoid chicken-and-egg problem with subscription setup
       },
-      [updateLegendValues]
+      []
     )
 
     // Performance optimization: Memoized chart configuration processing
@@ -2460,25 +2474,72 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
                 // Only show minimize buttons when there are multiple panes
                 if (allPanes.length > 1) {
-                  // Set up pane collapse support
-                  setupPaneCollapseSupport(chart, chartId, allPanes.length)
+                  // Set up pane collapse support using ChartWidgetManager (no primitives)
+                  try {
+                    const widgetManager = ChartWidgetManager.getInstance(chart, chartId)
 
-                  allPanes.forEach((pane, paneId) => {
-                    // Create collapse plugin for the individual pane container
-                    const collapsePlugin = createPaneCollapsePlugin(paneId, {
-                      ...paneCollapseConfig
+                    // Create collapse buttons for each pane using widget manager
+                    allPanes.forEach(async (pane, paneId) => {
+                      // Create state management for this pane's collapse button
+                      let isCollapsed = false
+
+                      const togglePaneCollapse = () => {
+                        try {
+                          if (isCollapsed) {
+                            // Expand pane
+                            const originalStretchFactor = (pane as any)._originalStretchFactor || 0.2
+                            pane.setStretchFactor(originalStretchFactor)
+                            isCollapsed = false
+                          } else {
+                            // Collapse pane
+                            const currentStretchFactor = pane.getStretchFactor()
+                            ;(pane as any)._originalStretchFactor = currentStretchFactor
+                            pane.setStretchFactor(0.15) // Minimal height
+                            isCollapsed = true
+                          }
+
+                          // Update button state
+                          if (collapseButtonWidget?.updateState) {
+                            collapseButtonWidget.updateState(isCollapsed)
+                          }
+
+                          // Trigger chart layout recalculation
+                          const chartElement = chart.chartElement()
+                          if (chartElement) {
+                            chart.resize(chartElement.clientWidth, chartElement.clientHeight)
+                          }
+
+                          // Notify callbacks
+                          if (isCollapsed && paneCollapseConfig.onPaneCollapse) {
+                            paneCollapseConfig.onPaneCollapse(paneId, true)
+                          } else if (!isCollapsed && paneCollapseConfig.onPaneExpand) {
+                            paneCollapseConfig.onPaneExpand(paneId, false)
+                          }
+                        } catch (error) {
+                          console.error('Error toggling pane collapse:', error)
+                        }
+                      }
+
+                      // Add collapse button using widget manager
+                      const collapseButtonWidget = await widgetManager.addCollapseButton(
+                        paneId,
+                        isCollapsed,
+                        togglePaneCollapse,
+                        paneCollapseConfig
+                      )
+
+                      // Store widget reference for cleanup
+                      if (!(window as any).paneCollapseWidgets) {
+                        ;(window as any).paneCollapseWidgets = {}
+                      }
+                      if (!(window as any).paneCollapseWidgets[chartId]) {
+                        ;(window as any).paneCollapseWidgets[chartId] = []
+                      }
+                      ;(window as any).paneCollapseWidgets[chartId].push(collapseButtonWidget)
                     })
-                    pane.attachPrimitive(collapsePlugin)
-
-                    // Store plugin reference for cleanup
-                    if (!(window as any).paneCollapsePlugins) {
-                      ;(window as any).paneCollapsePlugins = {}
-                    }
-                    if (!(window as any).paneCollapsePlugins[chartId]) {
-                      ;(window as any).paneCollapsePlugins[chartId] = []
-                    }
-                    ;(window as any).paneCollapsePlugins[chartId].push(collapsePlugin)
-                  })
+                  } catch (error) {
+                    console.error('Error setting up pane collapse with ChartWidgetManager:', error)
+                  }
                 }
               } catch (error) {
                 // Ignore errors during pane collapse setup
@@ -2525,7 +2586,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         height,
         onChartsReady,
         addTradeVisualization,
-        setupPaneCollapseSupport
       ]
     )
 

@@ -18,7 +18,7 @@ export const RangeSwitcherComponent: React.FC<RangeSwitcherComponentProps> = ({
   layoutManager
 }) => {
   const rangeSwitcherRef = useRef<HTMLDivElement>(null)
-  const [forceUpdate, setForceUpdate] = useState(0)
+  const [, setForceUpdate] = useState(0)
 
   // Create widget with layout manager integration
   const widget = usePositionableWidget(
@@ -36,7 +36,7 @@ export const RangeSwitcherComponent: React.FC<RangeSwitcherComponentProps> = ({
   // Update widget element reference
   useEffect(() => {
     widget.setElement(rangeSwitcherRef.current)
-  }, [widget, rangeSwitcherRef.current])
+  }, [widget])
 
   // Don't render if not visible or no chart
   if (!chart || !widget.isVisible) {

@@ -28,8 +28,7 @@ import {
   TIMING,
   Z_INDEX,
   getFallback,
-  getMargins,
-  getDimensions
+  getMargins
 } from '../config/positioningConfig'
 
 /**
@@ -674,11 +673,10 @@ export class ChartCoordinateService {
       }
 
       // Get chart layout to account for price scale and time scale dimensions
-      let chartLayout
       try {
-        chartLayout = chart.chartElement().querySelector('.tv-lightweight-charts')?.getBoundingClientRect()
+        chart.chartElement().querySelector('.tv-lightweight-charts')?.getBoundingClientRect()
       } catch (e) {
-        chartLayout = null
+        // Layout check failed
       }
 
       // Get actual chart dimensions using lightweight-charts API

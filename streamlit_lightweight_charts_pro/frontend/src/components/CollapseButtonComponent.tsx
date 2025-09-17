@@ -29,12 +29,12 @@ export const CollapseButtonComponent: React.FC<CollapseButtonComponentProps> = (
 
   const buttonRef = useRef<HTMLDivElement>(null)
   const [isHovered, setIsHovered] = useState(false)
-  const [forceUpdate, setForceUpdate] = useState(0)
+  const [, setForceUpdate] = useState(0)
 
-  // Create widget with layout manager integration
+  // Create widget with layout manager integration (same pattern as legends)
   const widget = usePositionableWidget(
     () => new CollapseButtonWidget(paneId, isCollapsed, onClick, config, layoutManager),
-    [paneId, onClick, config]
+    [paneId, onClick, config, layoutManager]
   )
 
   // Update widget state when props change
@@ -44,10 +44,10 @@ export const CollapseButtonComponent: React.FC<CollapseButtonComponentProps> = (
     widget.setUpdateCallback(() => setForceUpdate(prev => prev + 1))
   }, [widget, isCollapsed, config])
 
-  // Update widget element reference
+  // Update widget element reference (same pattern as legends)
   useEffect(() => {
     widget.setElement(buttonRef.current)
-  }, [widget, buttonRef.current])
+  }, [widget])
 
   const handleMouseEnter = () => setIsHovered(true)
   const handleMouseLeave = () => setIsHovered(false)
@@ -67,6 +67,8 @@ export const CollapseButtonComponent: React.FC<CollapseButtonComponentProps> = (
       ref={buttonRef}
       className="collapse-button-icon"
       style={buttonStyle}
+      data-pane-id={paneId.toString()}
+      data-widget-type="collapse-button"
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

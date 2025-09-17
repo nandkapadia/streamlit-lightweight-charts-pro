@@ -170,7 +170,7 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
   }
 
   private _drawTrendFills(ctx: CanvasRenderingContext2D, scope: any): void {
-    const {items, visibleRange, barWidth} = this._viewData.data
+    const {items, visibleRange} = this._viewData.data
 
     if (items.length === 0 || visibleRange === null) {
       return
@@ -181,7 +181,7 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
   }
 
   private _drawTrendLines(ctx: CanvasRenderingContext2D, scope: any): void {
-    const {items, visibleRange, barWidth, lineWidth, lineStyle} = this._viewData.data
+    const {items, visibleRange, lineWidth, lineStyle} = this._viewData.data
 
     if (items.length === 0 || visibleRange === null) return
 
