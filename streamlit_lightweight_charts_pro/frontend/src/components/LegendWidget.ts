@@ -30,7 +30,7 @@ export class LegendWidget extends PositionableWidget {
     this.visible = config.visible ?? true
     this.originalTemplate = config.text || ''
 
-    // Initialize with $$value$$ replaced with empty string
+    // Initialize display text with $$value$$ replaced with empty string
     this.currentDisplayText = this.originalTemplate.replace(/\$\$value\$\$/g, '')
   }
 
@@ -42,7 +42,7 @@ export class LegendWidget extends PositionableWidget {
     this.setVisible(config.visible ?? true)
     this.originalTemplate = config.text || ''
 
-    // Re-initialize display text with current value
+    // Re-initialize display text with $$value$$ replaced with empty string
     this.currentDisplayText = this.originalTemplate.replace(/\$\$value\$\$/g, '')
 
     if (this.updateCallback) {
@@ -61,7 +61,17 @@ export class LegendWidget extends PositionableWidget {
     let displayValue = ''
     if (value !== null && value !== undefined) {
       if (typeof value === 'number') {
-        displayValue = value.toFixed(2)
+        // Use the specified value format or default to 2 decimal places
+        // Check both camelCase (TypeScript) and snake_case (Python) versions
+        const format = this.config.valueFormat || (this.config as any).value_format || '.2f'
+        if (format.includes('.') && format.includes('f')) {
+          // Extract decimal part before 'f' (e.g., '.2f' -> '2')
+          const decimalPart = format.split('.')[1].split('f')[0]
+          const decimals = decimalPart ? parseInt(decimalPart) : 2
+          displayValue = value.toFixed(decimals)
+        } else {
+          displayValue = value.toFixed(2)
+        }
       } else {
         displayValue = String(value)
       }
@@ -105,8 +115,18 @@ export class LegendWidget extends PositionableWidget {
 
       // Listen for crosshair value updates
       element.addEventListener('crosshairValueUpdate', () => {
-        const value = (element as any)._crosshairValue
-        this.updateValue(value)
+        const processedTemplate = (element as any)._processedTemplate
+        if (processedTemplate !== undefined) {
+          // Use the processed template directly (smart placeholder replacement already done)
+          this.currentDisplayText = processedTemplate || this.originalTemplate.replace(/\$\$[a-zA-Z]+\$\$/g, '')
+          if (this.updateCallback) {
+            this.updateCallback()
+          }
+        } else {
+          // Fallback to old behavior for backward compatibility
+          const value = (element as any)._crosshairValue
+          this.updateValue(value)
+        }
       })
     }
   }

@@ -481,23 +481,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         } catch (error) {
         }
 
-        // Setup crosshair subscription for legend value updates
-        // This is independent of sync settings and always needed for $$value$$ placeholders
-        chart.subscribeCrosshairMove(param => {
-          try {
-            const widgetManager = ChartWidgetManager.getInstance(chart, chartId)
-
-            if (!param.time || !param.point) {
-              // Crosshair left the chart - clear all legend values
-              widgetManager.updateLegendValues({time: null, seriesData: new Map()})
-            } else {
-              // Crosshair is on the chart - update legend values with crosshair data
-              widgetManager.updateLegendValues({time: param.time, seriesData: param.seriesData})
-            }
-          } catch (error) {
-            console.warn('Error updating legends via ChartWidgetManager:', error)
-          }
-        })
+        // Crosshair subscription for legend value updates is now handled
+        // in the main chart creation flow to ensure it works for all charts
       },
       []
     )
@@ -2454,6 +2439,24 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     allPanes = []
                   }
                 }
+
+                // Always set up crosshair subscription for legend value updates
+                // This is needed for $$value$$ placeholders regardless of pane count
+                chart.subscribeCrosshairMove(param => {
+                  try {
+                    const widgetManager = ChartWidgetManager.getInstance(chart, chartId)
+
+                    if (!param.time || !param.point) {
+                      // Crosshair left the chart - clear all legend values
+                      widgetManager.updateLegendValues({time: null, seriesData: new Map()})
+                    } else {
+                      // Crosshair is on the chart - update legend values with crosshair data
+                      widgetManager.updateLegendValues({time: param.time, seriesData: param.seriesData})
+                    }
+                  } catch (error) {
+                    console.warn('Error updating legends via ChartWidgetManager:', error)
+                  }
+                })
 
                 // Only show minimize buttons when there are multiple panes
                 if (allPanes.length > 1) {

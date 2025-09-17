@@ -11,6 +11,7 @@ import { RangeSwitcherConfig, LegendConfig } from '../types'
  */
 export class ChartWidgetManager {
   private static instances: Map<string, ChartWidgetManager> = new Map()
+  private static containerIdCounter: number = 0
 
   private chart: IChartApi
   private chartId: string
@@ -133,7 +134,8 @@ export class ChartWidgetManager {
    * Add legend with layout management
    */
   public async addLegend(config: LegendConfig, isPanePrimitive: boolean = false, paneId: number = 0, seriesReference?: any): Promise<{ destroy: () => void }> {
-    const containerId = `legend-${this.chartId}-${Date.now()}`
+    ChartWidgetManager.containerIdCounter++
+    const containerId = `legend-${this.chartId}-${ChartWidgetManager.containerIdCounter}`
 
     try {
       const chartElement = this.chart.chartElement()
@@ -172,10 +174,11 @@ export class ChartWidgetManager {
       this.widgetContainers.set(containerId, container)
       this.reactRoots.set(containerId, reactRoot)
 
-      // Store series reference for crosshair value updates
+      // Store series reference and legend config for crosshair value updates
       if (seriesReference) {
         (container as any)._seriesReference = seriesReference
       }
+      (container as any)._legendConfig = config
 
       // IMPORTANT: Register legend container for $$value$$ updates
       // The updateLegendValues function in LightweightCharts.tsx looks for legends
@@ -325,61 +328,56 @@ export class ChartWidgetManager {
    */
   public updateLegendValues(crosshairData: { time: any; seriesData: Map<any, any> }): void {
     try {
-      // Get all legend widgets and update their values
-      this.widgetContainers.forEach((container, containerId) => {
-        if (!containerId.startsWith('legend-')) {
-          return
-        }
+      // Collect all legend containers for consistent ordering
+      const legendContainers = Array.from(this.widgetContainers.entries())
+        .filter(([containerId]) => containerId.startsWith('legend-'))
+        .sort(([a], [b]) => a.localeCompare(b)) // Sort by container ID for consistent order
 
+      // Convert series data to consistent array
+      const availableSeries = Array.from(crosshairData.seriesData.entries())
+
+      // Process each legend container
+      legendContainers.forEach(([containerId, container], legendIndex) => {
         // Find the legend component instance
         const legendElement = container.querySelector('[role="img"]') as HTMLElement
         if (!legendElement) {
           return
         }
 
-        let displayValue = ''
+        // Get legend template and format from stored configuration
+        const legendConfig = (container as any)._legendConfig
+        const template = legendConfig?.text || '$$value$$'
+        const format = legendConfig?.valueFormat || legendConfig?.value_format || '.2f'
+
+        let processedTemplate = ''
 
         if (crosshairData.time && crosshairData.seriesData.size > 0) {
           // Get the series reference stored when legend was created
           const seriesReference = (container as any)._seriesReference
 
+          let seriesValue
           if (seriesReference && crosshairData.seriesData.has(seriesReference)) {
             // Use the specific series value for this legend
-            const seriesValue = crosshairData.seriesData.get(seriesReference)
-            displayValue = this.formatLegendValue(seriesValue)
+            seriesValue = crosshairData.seriesData.get(seriesReference)
           } else {
-            // Enhanced fallback strategy: try multiple approaches to find the right series
-            let foundValue = null
-            const availableSeries = Array.from(crosshairData.seriesData.entries())
-
-            // Strategy 1: Try to match by index if the container ID suggests an order
-            const containerMatch = containerId.match(/legend-.*-(\d+)$/)
-            if (containerMatch && !foundValue) {
-              const possibleIndex = parseInt(containerMatch[1], 10) % availableSeries.length
-              if (possibleIndex >= 0 && possibleIndex < availableSeries.length) {
-                foundValue = availableSeries[possibleIndex][1]
-              }
+            // Improved strategy: Map legends to series by order
+            // This ensures consistent mapping regardless of container IDs or timestamps
+            if (legendIndex < availableSeries.length) {
+              seriesValue = availableSeries[legendIndex][1]
+            } else {
+              // If we have more legends than series, use modulo to wrap around
+              const seriesIndex = legendIndex % availableSeries.length
+              seriesValue = availableSeries[seriesIndex][1]
             }
-
-            // Strategy 2: If we have exactly the same number of legends as series, use round-robin
-            if (!foundValue && availableSeries.length > 0) {
-              // Extract any numeric identifier from container ID for round-robin
-              const numMatch = containerId.match(/(\d+)/)
-              const containerNum = numMatch ? parseInt(numMatch[1], 10) : 0
-              const seriesIndex = containerNum % availableSeries.length
-              foundValue = availableSeries[seriesIndex][1]
-            }
-
-            // Strategy 3: Default to first available series
-            if (!foundValue && availableSeries.length > 0) {
-              foundValue = availableSeries[0][1]
-            }
-
-            displayValue = this.formatLegendValue(foundValue)
           }
 
-          // Store the value on the element for the widget to pick up
-          ;(legendElement as any)._crosshairValue = displayValue
+          // Format the legend using the smart placeholder system
+          if (seriesValue) {
+            processedTemplate = this.formatLegendValue(seriesValue, template, format)
+          }
+
+          // Store the processed template on the element for the widget to pick up
+          ;(legendElement as any)._processedTemplate = processedTemplate
         } else {
           // Clear value when crosshair is not on chart
           ;(legendElement as any)._crosshairValue = null
@@ -394,23 +392,101 @@ export class ChartWidgetManager {
   }
 
   /**
-   * Format legend value for display
+   * Extract specific value from series data based on placeholder
    */
-  private formatLegendValue(seriesValue: any): string {
+  private extractValueByPlaceholder(seriesValue: any, placeholder: string, format: string): string {
     if (!seriesValue) return ''
 
-    // Handle different series data structures
-    if (typeof seriesValue === 'object') {
-      // Candlestick data
-      if (seriesValue.close !== undefined) return seriesValue.close.toFixed(2)
-      if (seriesValue.value !== undefined) return seriesValue.value.toFixed(2)
-      if (seriesValue.high !== undefined) return seriesValue.high.toFixed(2)
+    let extractedValue: number | undefined
+
+    switch (placeholder) {
+      case '$$open$$':
+        extractedValue = seriesValue.open
+        break
+      case '$$high$$':
+        extractedValue = seriesValue.high
+        break
+      case '$$low$$':
+        extractedValue = seriesValue.low
+        break
+      case '$$close$$':
+        extractedValue = seriesValue.close
+        break
+      case '$$value$$':
+        // Smart fallback for $$value$$ based on series data structure
+        if (seriesValue.close !== undefined) {
+          // Candlestick series - use close
+          extractedValue = seriesValue.close
+        } else if (seriesValue.value !== undefined) {
+          // Line/Area series - use value
+          extractedValue = seriesValue.value
+        } else if (seriesValue.middle !== undefined) {
+          // Band series - use middle
+          extractedValue = seriesValue.middle
+        } else if (seriesValue.upper !== undefined && seriesValue.lower !== undefined) {
+          // Ribbon series - use average of upper and lower
+          extractedValue = (seriesValue.upper + seriesValue.lower) / 2
+        } else if (seriesValue.high !== undefined) {
+          // Fallback to high if available
+          extractedValue = seriesValue.high
+        }
+        break
+      case '$$upper$$':
+        extractedValue = seriesValue.upper
+        break
+      case '$$middle$$':
+        extractedValue = seriesValue.middle
+        break
+      case '$$lower$$':
+        extractedValue = seriesValue.lower
+        break
+      case '$$volume$$':
+        extractedValue = seriesValue.volume
+        break
+      default:
+        // Unknown placeholder
+        return ''
     }
 
-    // Simple numeric value
-    if (typeof seriesValue === 'number') return seriesValue.toFixed(2)
+    if (extractedValue !== undefined) {
+      return this.formatNumericValue(extractedValue, format)
+    }
 
-    return String(seriesValue)
+    return ''
+  }
+
+  /**
+   * Format numeric value according to format specification
+   */
+  private formatNumericValue(value: number, format: string): string {
+    if (format.includes('.') && format.includes('f')) {
+      // Extract decimal part before 'f' (e.g., '.2f' -> '2')
+      const decimalPart = format.split('.')[1].split('f')[0]
+      const decimals = decimalPart ? parseInt(decimalPart) : 2
+      return value.toFixed(decimals)
+    }
+    return value.toFixed(2) // Default to 2 decimal places
+  }
+
+  /**
+   * Format legend value for display with smart placeholder replacement
+   */
+  private formatLegendValue(seriesValue: any, template: string, format: string): string {
+    if (!seriesValue || !template) return ''
+
+    // Find all placeholders in the template
+    const placeholderRegex = /\$\$[a-zA-Z]+\$\$/g
+    const placeholders = template.match(placeholderRegex) || []
+
+    let result = template
+
+    // Replace each placeholder with its corresponding value
+    for (const placeholder of placeholders) {
+      const value = this.extractValueByPlaceholder(seriesValue, placeholder, format)
+      result = result.replace(new RegExp(placeholder.replace(/\$/g, '\\$'), 'g'), value)
+    }
+
+    return result
   }
 
   /**

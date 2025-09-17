@@ -36,8 +36,9 @@ st.set_page_config(
 st.title("🎨 Signal Series - Background Coloring")
 st.markdown(
     """
-This example demonstrates the new **SignalSeries** functionality that creates vertical background bands 
-colored based on signal values. Perfect for highlighting market conditions, trading signals, or events!
+This example demonstrates the new **SignalSeries** functionality that creates vertical 
+background bands colored based on signal values. Perfect for highlighting market conditions, 
+trading signals, or events!
 """
 )
 
@@ -324,19 +325,19 @@ with tab3:
 
     # Add candlestick series (pane 0)
     candlestick_series = CandlestickSeries(data=ohlc_data)
-    candlestick_series.pane_id  # pylint: disable=no-member = 0
+    candlestick_series.pane_id  = 0
     chart.add_series(candlestick_series)
 
     # Add volume series (pane 1)
     volume_series = HistogramSeries(data=volume_data)
-    volume_series.pane_id  # pylint: disable=no-member = 1
+    volume_series.pane_id = 0
     chart.add_series(volume_series)
 
     # Add SMA line series (pane 2)
     sma_series = LineSeries(data=sma_data)
     sma_series.color = "#FF9800"
     sma_series.line_width = 2
-    sma_series.pane_id  # pylint: disable=no-member = 2
+    sma_series.pane_id = 2
     chart.add_series(sma_series)
 
     # Add signal series (spans all panes)
@@ -438,14 +439,14 @@ with tab5:
         if i % 3 == 0:
             # Signal with individual color
             if value == 0:
-                individual_color = "#e8f5e8"  # Light green
+                INDIVIDUAL_COLOR = "#e8f5e8"  # Light green
             elif value == 1:
-                individual_color = "#ffe8e8"  # Light red
+                INDIVIDUAL_COLOR = "#ffe8e8"  # Light red
             else:
-                individual_color = "#e8e8ff"  # Light blue
+                INDIVIDUAL_COLOR = "#e8e8ff"  # Light blue
 
             mixed_signal_data.append(
-                SignalData(time=date.strftime("%Y-%m-%d"), value=value, color=individual_color)
+                SignalData(time=date.strftime("%Y-%m-%d"), value=value, color=INDIVIDUAL_COLOR)
             )
         else:
             # Signal without individual color (will use series-level colors)
