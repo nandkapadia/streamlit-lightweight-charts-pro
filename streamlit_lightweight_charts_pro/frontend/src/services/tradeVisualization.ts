@@ -386,14 +386,15 @@ export function convertTradeRectanglesToPluginFormat(
     return []
   }
 
-  // Import PositioningEngine dynamically to avoid circular dependencies
-  const {PositioningEngine} = require('../services/PositioningEngine')
+  // Import ChartCoordinateService dynamically to avoid circular dependencies
+  const {ChartCoordinateService} = require('../services/ChartCoordinateService')
+  const coordinateService = ChartCoordinateService.getInstance()
 
   return tradeRectangles
     .map((rect, index) => {
       try {
-        // Use PositioningEngine to calculate proper overlay position
-        const boundingBox = PositioningEngine.calculateOverlayPosition(
+        // Use ChartCoordinateService to calculate proper overlay position
+        const boundingBox = coordinateService.calculateOverlayPosition(
           rect.time1,
           rect.time2,
           rect.price1,

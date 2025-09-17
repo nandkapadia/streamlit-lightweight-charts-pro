@@ -244,109 +244,30 @@ export class CornerLayoutManager {
 
   /**
    * Calculate position for a widget at specific index in corner
+   * REFACTORED: Now delegates to ChartCoordinateService for single source of truth
    */
   private calculateWidgetPosition(corner: Corner, index: number, widget: IPositionableWidget): Position {
-    const isTopCorner = corner.startsWith('top')
-    const isRightCorner = corner.endsWith('right')
-    const { axis } = this.chartDimensions
-
-
-    // Try to get pane-specific coordinates first, especially for non-zero panes
-    let paneCoords = null
+    // Delegate to ChartCoordinateService for positioning calculations
     if (this.chartApi) {
-      paneCoords = this.coordinateService.getPaneCoordinates(this.chartApi, this.paneId)
-    }
+      const stackPosition = this.coordinateService.calculateWidgetStackPosition(
+        this.chartApi,
+        this.paneId,
+        corner,
+        this.cornerStates[corner].widgets.filter(w => w.visible),
+        index
+      )
 
-    // If we have pane coordinates, use them (this bypasses axis dimension requirements)
-    if (paneCoords) {
-      // Calculate cumulative offset from previous widgets
-      const visibleWidgets = this.cornerStates[corner].widgets.filter(w => w.visible)
-      let cumulativeHeight = 0
-
-      for (let i = 0; i < index; i++) {
-        const prevWidget = visibleWidgets[i]
-        if (prevWidget) {
-          const dims = prevWidget.getDimensions()
-          cumulativeHeight += dims.height + this.config.widgetGap
-        }
-      }
-
-      const position: Position = {
-        zIndex: this.config.baseZIndex + index
-      }
-
-      // Set horizontal position relative to pane bounds
-      if (isRightCorner) {
-        position.right = (this.chartDimensions.container.width - paneCoords.bounds.right) + this.config.edgePadding
-      } else {
-        position.left = paneCoords.bounds.left + this.config.edgePadding
-      }
-
-      // Set vertical position relative to pane bounds
-      if (isTopCorner) {
-        position.top = paneCoords.bounds.top + this.config.edgePadding + cumulativeHeight
-      } else {
-        position.bottom = (this.chartDimensions.container.height - paneCoords.bounds.bottom) + this.config.edgePadding + cumulativeHeight
-      }
-
-      return position
-    }
-
-    // If we don't have proper axis dimensions AND no pane coordinates, return a fallback position
-    if (!axis || (axis.priceScale.right.width === 0 && axis.priceScale.left.width === 0)) {
-
-      // Schedule a retry with the same timing pattern as legacy implementation
-      setTimeout(() => {
-        this.recalculateCornerLayout(corner)
-      }, 100)
-
-      return {
-        top: this.config.edgePadding,
-        left: this.config.edgePadding,
-        zIndex: this.config.baseZIndex + index
+      if (stackPosition) {
+        return stackPosition
       }
     }
 
-    // Fallback to axis-based positioning if no pane coordinates available
-    // Calculate cumulative offset from previous widgets
-    const visibleWidgets = this.cornerStates[corner].widgets.filter(w => w.visible)
-    let cumulativeHeight = 0
-
-
-    for (let i = 0; i < index; i++) {
-      const prevWidget = visibleWidgets[i]
-      if (prevWidget) {
-        const dims = prevWidget.getDimensions()
-        cumulativeHeight += dims.height + this.config.widgetGap
-      }
-    }
-
-
-    // Calculate base position using axis dimensions (chart container coordinates)
-    const position: Position = {
+    // Fallback position if ChartCoordinateService fails
+    return {
+      top: this.config.edgePadding,
+      left: this.config.edgePadding,
       zIndex: this.config.baseZIndex + index
     }
-
-
-    // Set horizontal position - respect price scale (Y-axis) width
-    if (isRightCorner) {
-      // Right corners: position from right edge, accounting for right price scale
-      position.right = this.config.edgePadding + axis.priceScale.right.width
-    } else {
-      // Left corners: position after left price scale width
-      position.left = this.config.edgePadding + axis.priceScale.left.width
-    }
-
-    // Set vertical position based on stacking direction - respect time scale (X-axis) height
-    if (isTopCorner) {
-      // Top corners stack downward from top edge
-      position.top = this.config.edgePadding + cumulativeHeight
-    } else {
-      // Bottom corners stack upward from bottom, accounting for time scale height
-      position.bottom = this.config.edgePadding + cumulativeHeight + axis.timeScale.height
-    }
-
-    return position
   }
 
   /**
@@ -377,43 +298,23 @@ export class CornerLayoutManager {
 
   /**
    * Detect widgets that would overflow the chart area
+   * REFACTORED: Now delegates to ChartCoordinateService for single source of truth
    */
   private detectOverflow(corner: Corner, widgets: IPositionableWidget[]): IPositionableWidget[] {
-    const overflowing: IPositionableWidget[] = []
-    const state = this.cornerStates[corner]
-    const { container, axis } = this.chartDimensions
-    const isLeftCorner = corner.startsWith('top-left') || corner.startsWith('bottom-left')
-
-    // Calculate available space considering axis dimensions
-    const availableHeight = container.height - axis.timeScale.height
-    const availableWidth = isLeftCorner
-      ? container.width - axis.priceScale.left.width
-      : container.width - axis.priceScale.right.width
-
-    // Check height overflow
-    if (state.totalHeight > availableHeight) {
-      // Find widgets that push beyond chart bounds
-      let cumulativeHeight = this.config.edgePadding
-
-      for (const widget of widgets) {
-        const widgetHeight = widget.getDimensions().height
-        const totalHeightRequired = cumulativeHeight + widgetHeight + this.config.edgePadding
-
-        if (totalHeightRequired > availableHeight) {
-          overflowing.push(widget)
-        }
-
-        cumulativeHeight += widgetHeight + this.config.widgetGap
-      }
+    // Delegate to ChartCoordinateService for overflow detection
+    const containerBounds = {
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      right: this.chartDimensions.container.width,
+      bottom: this.chartDimensions.container.height,
+      width: this.chartDimensions.container.width,
+      height: this.chartDimensions.container.height
     }
 
-    // Check width overflow
-    if (state.totalWidth > availableWidth) {
-      // All widgets in corner would overflow
-      overflowing.push(...widgets.filter(w => !overflowing.includes(w)))
-    }
-
-    return overflowing
+    const validation = this.coordinateService.validateStackingBounds(corner, widgets, containerBounds)
+    return validation.overflowingWidgets
   }
 
   /**

@@ -25,9 +25,9 @@ import {TradeRectanglePrimitive} from './plugins/trade/TradeRectanglePrimitive'
 // Legend management is now handled directly via DOM manipulation like minimize buttons
 import {ChartReadyDetector} from './utils/chartReadyDetection'
 import {ChartCoordinateService} from './services/ChartCoordinateService'
-import {ChartWidgetManager} from './services/ChartWidgetManager'
+import {ChartPrimitiveManager} from './services/ChartPrimitiveManager'
 import {CornerLayoutManager} from './services/CornerLayoutManager'
-// Legacy legend system removed - now using ChartWidgetManager
+// Legacy legend system removed - now using ChartPrimitiveManager
 
 import './styles/paneCollapse.css'
 import {cleanLineStyleOptions} from './utils/lineStyle'
@@ -75,7 +75,7 @@ declare global {
   interface Window {
     chartApiMap: {[chartId: string]: IChartApi}
     chartResizeObservers: {[chartId: string]: ResizeObserver}
-    // Legend system removed - now handled by ChartWidgetManager
+    // Legend system removed - now handled by ChartPrimitiveManager
     paneCollapsePlugins: {[chartId: string]: any[]} // Legacy - for backwards compatibility
     paneCollapseWidgets: {[chartId: string]: any[]} // New widget-based approach
     chartGroupMap: {[chartId: string]: number}
@@ -111,7 +111,7 @@ const retryWithBackoff = async (
   throw lastError
 }
 
-// Legacy createLegendForSeries function removed - legends now handled by ChartWidgetManager
+// Legacy createLegendForSeries function removed - legends now handled by ChartPrimitiveManager
 
 interface LightweightChartsProps {
   config: ComponentConfig
@@ -712,7 +712,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       if (window.chartApiMap) {
         Object.keys(window.chartApiMap).forEach(chartId => {
           try {
-            ChartWidgetManager.cleanup(chartId)
+            ChartPrimitiveManager.cleanup(chartId)
           } catch (error) {
             // Widget manager already cleaned up
           }
@@ -1161,10 +1161,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         if (!chartElement) return
 
         const chartId = chartElement.id || `chart-${Date.now()}`
-        const widgetManager = ChartWidgetManager.getInstance(chart, chartId)
+        const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId)
 
-        // Add range switcher using new widget manager
-        const rangeSwitcherWidget = await widgetManager.addRangeSwitcher(rangeConfig)
+        // Add range switcher using new primitive manager
+        const rangeSwitcherWidget = primitiveManager.addRangeSwitcher(rangeConfig)
 
         // Register cleanup for this plugin
         if (!window.chartPlugins) {
@@ -1335,7 +1335,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               // Update legend primitive if it exists
               // Use the seriesIndex from the legendSeriesData to match the storage key
 
-              // Legacy legend primitive system disabled - using ChartWidgetManager instead
+              // Legacy legend primitive system disabled - using ChartPrimitiveManager instead
               // if (
               //   (window as any).legendPrimitives &&
               //   (window as any).legendPrimitives[legendPrimitiveKey]
@@ -1483,17 +1483,16 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         seriesList: ISeriesApi<any>[]
       ) => {
         try {
-          // Use new ChartWidgetManager system for creating legends
+          // Use new ChartPrimitiveManager system for creating legends
           const chartId = chart.chartElement()?.id || `chart-${Date.now()}`
-          const widgetManager = ChartWidgetManager.getInstance(chart, chartId)
-
+          const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId)
 
           // Create legends for each series (allowing multiple legends per pane)
           for (const [legendKey, legendData] of Object.entries(legendsConfig)) {
             const { paneId, config: legendConfig } = legendData
             if (legendConfig.visible) {
               try {
-                await widgetManager.addLegend(legendConfig, false, paneId)
+                primitiveManager.addLegend(legendConfig, false, paneId)
               } catch (legendError) {
                 console.error(`addLegend: Error creating legend ${legendKey} for pane ${paneId}:`, legendError)
               }
@@ -1503,7 +1502,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
           return
         } catch (error) {
-          console.error('Error creating legends with ChartWidgetManager:', error)
+          console.error('Error creating legends with ChartPrimitiveManager:', error)
         }
 
         // OLD SYSTEM BELOW - keeping as fallback but should not be reached
@@ -1754,7 +1753,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
 
         // Check if any legend has crosshair updates enabled OR contains $$value$$ placeholders
-        // This check is now handled in the ChartWidgetManager
+        // This check is now handled in the ChartPrimitiveManager
 
         // Legend crosshair updates are now handled in the main chart setup
         // to avoid chicken-and-egg problem with subscription setup
@@ -2360,7 +2359,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 try {
                   // Create legends for each series after chart is ready
                   const currentChartId = chart.chartElement()?.id || `chart-${Date.now()}`
-                  const widgetManager = ChartWidgetManager.getInstance(chart, currentChartId)
+                  const primitiveManager = ChartPrimitiveManager.getInstance(chart, currentChartId)
 
                   seriesList.forEach((series, index) => {
                     const seriesConfig = chartConfig.series[index]
@@ -2370,9 +2369,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
                       // Create legend after chart is ready - ensures proper positioning
                       // Pass series reference for crosshair value updates
-                      widgetManager.addLegend(seriesConfig.legend, false, paneId, series).catch(error => {
+                      try {
+                        primitiveManager.addLegend(seriesConfig.legend, false, paneId, series)
+                      } catch (error) {
                         console.error(`Error creating legend for series ${index}:`, error)
-                      })
+                      }
                     }
                   })
 
@@ -2458,27 +2459,27 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 // This is needed for $$value$$ placeholders regardless of pane count
                 chart.subscribeCrosshairMove(param => {
                   try {
-                    const widgetManager = ChartWidgetManager.getInstance(chart, chartId)
+                    const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId)
 
                     if (!param.time || !param.point) {
                       // Crosshair left the chart - clear all legend values
-                      widgetManager.updateLegendValues({time: null, seriesData: new Map()})
+                      primitiveManager.updateLegendValues({time: null, seriesData: new Map()})
                     } else {
                       // Crosshair is on the chart - update legend values with crosshair data
-                      widgetManager.updateLegendValues({time: param.time, seriesData: param.seriesData})
+                      primitiveManager.updateLegendValues({time: param.time, seriesData: param.seriesData})
                     }
                   } catch (error) {
-                    console.warn('Error updating legends via ChartWidgetManager:', error)
+                    console.warn('Error updating legends via ChartPrimitiveManager:', error)
                   }
                 })
 
                 // Only show minimize buttons when there are multiple panes
                 if (allPanes.length > 1) {
-                  // Set up pane collapse support using ChartWidgetManager (no primitives)
+                  // Set up pane collapse support using ChartPrimitiveManager
                   try {
-                    const widgetManager = ChartWidgetManager.getInstance(chart, chartId)
+                    const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId)
 
-                    // Create collapse buttons for each pane using widget manager
+                    // Create collapse buttons for each pane using primitive manager
                     allPanes.forEach(async (pane, paneId) => {
                       // Create state management for this pane's collapse button
                       let isCollapsed = false
@@ -2520,8 +2521,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                         }
                       }
 
-                      // Add collapse button using widget manager
-                      const collapseButtonWidget = await widgetManager.addCollapseButton(
+                      // Add collapse button using primitive manager
+                      const collapseButtonWidget = primitiveManager.addCollapseButton(
                         paneId,
                         isCollapsed,
                         togglePaneCollapse,
@@ -2538,7 +2539,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       ;(window as any).paneCollapseWidgets[chartId].push(collapseButtonWidget)
                     })
                   } catch (error) {
-                    console.error('Error setting up pane collapse with ChartWidgetManager:', error)
+                    console.error('Error setting up pane collapse with ChartPrimitiveManager:', error)
                   }
                 }
               } catch (error) {

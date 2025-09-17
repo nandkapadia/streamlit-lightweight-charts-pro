@@ -6,12 +6,11 @@
  * - Multiple tooltip types (OHLC, single, multi, custom, trade, marker)
  * - Flexible positioning and styling
  * - Real-time data substitution
- * - Integration with ChartCoordinateService and PositioningEngine
+ * - Integration with ChartCoordinateService for positioning
  */
 
 import {IChartApi, ISeriesApi, SeriesType, Time} from 'lightweight-charts'
 import {ChartCoordinateService} from '../../services/ChartCoordinateService'
-import {PositioningEngine} from '../../services/PositioningEngine'
 
 export interface TooltipField {
   label: string
@@ -409,7 +408,7 @@ export class TooltipPlugin {
   }
 
   /**
-   * Position trade tooltip using PositioningEngine
+   * Position trade tooltip using ChartCoordinateService
    */
   private positionTradeTooltip(point: {x: number; y: number}, trade: any): void {
     if (!this.tooltipElement || !point) {
@@ -426,8 +425,8 @@ export class TooltipPlugin {
     const tooltipWidth = this.tooltipElement.offsetWidth || 200
     const tooltipHeight = this.tooltipElement.offsetHeight || 100
 
-    // Use PositioningEngine for optimal positioning
-    const position = PositioningEngine.calculateTooltipPosition(
+    // Use ChartCoordinateService for optimal positioning
+    const position = this.coordinateService.calculateTooltipPosition(
       point.x,
       point.y,
       tooltipWidth,
@@ -445,8 +444,8 @@ export class TooltipPlugin {
       'top' // Preferred anchor for trade tooltips
     )
 
-    // Apply position using PositioningEngine
-    PositioningEngine.applyPositionToElement(this.tooltipElement, {
+    // Apply position using ChartCoordinateService
+    this.coordinateService.applyPositionToElement(this.tooltipElement, {
       top: position.y,
       left: position.x
     })
@@ -759,7 +758,7 @@ export class TooltipPlugin {
   }
 
   /**
-   * Enhanced tooltip positioning using PositioningEngine
+   * Enhanced tooltip positioning using ChartCoordinateService
    */
   private positionTooltip(point: {x: number; y: number}): void {
     if (!this.tooltipElement || !point) {
@@ -776,8 +775,8 @@ export class TooltipPlugin {
     const tooltipWidth = this.tooltipElement.offsetWidth || 200
     const tooltipHeight = this.tooltipElement.offsetHeight || 100
 
-    // Use PositioningEngine for optimal positioning
-    const position = PositioningEngine.calculateTooltipPosition(
+    // Use ChartCoordinateService for optimal positioning
+    const position = this.coordinateService.calculateTooltipPosition(
       point.x,
       point.y,
       tooltipWidth,
@@ -795,8 +794,8 @@ export class TooltipPlugin {
       'top'
     )
 
-    // Apply position using PositioningEngine
-    PositioningEngine.applyPositionToElement(this.tooltipElement, {
+    // Apply position using ChartCoordinateService
+    this.coordinateService.applyPositionToElement(this.tooltipElement, {
       top: position.y,
       left: position.x
     })
