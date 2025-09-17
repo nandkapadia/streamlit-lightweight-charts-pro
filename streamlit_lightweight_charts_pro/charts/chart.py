@@ -178,6 +178,8 @@ class Chart:
         self._trades = []
         # Store tooltip manager
         self._tooltip_manager = None
+        # Track the frontend chart identifier so updates can be persisted
+        self._frontend_chart_id = f"chart-{id(self)}"
         # Add initial annotations if provided
         if annotations is not None:
             if not isinstance(annotations, list):
@@ -989,7 +991,7 @@ class Chart:
             trades_config = [trade.asdict() for trade in self._trades]
 
         chart_obj = {
-            "chartId": f"chart-{id(self)}",
+            "chartId": self.frontend_chart_id,
             "chart": chart_config,
             "series": series_configs,
             "annotations": annotations_config,
@@ -1121,4 +1123,82 @@ class Chart:
 
         kwargs["key"] = key
 
-        return component_func(**kwargs)
+        result = component_func(**kwargs)
+
+        # Persist any configuration changes coming from the frontend UI
+        self._handle_component_payload(result)
+
+        return result
+
+    @property
+    def frontend_chart_id(self) -> str:
+        """Return the identifier used by the frontend for this chart."""
+        return getattr(self, "_frontend_chart_id", f"chart-{id(self)}")
+
+    def set_frontend_chart_id(self, chart_id: str) -> None:
+        """Allow external managers to control the frontend identifier."""
+        if isinstance(chart_id, str) and chart_id:
+            self._frontend_chart_id = chart_id
+
+    def apply_series_updates_from_frontend(self, updates: Optional[List[Dict[str, Any]]]) -> None:
+        """Apply series option updates received from the frontend dialog."""
+        if not updates:
+            return
+
+        valid_ids = {self.frontend_chart_id, f"chart-{id(self)}"}
+
+        for update in updates:
+            if not isinstance(update, dict):
+                continue
+
+            target_chart_id = update.get("chartId")
+            if target_chart_id and target_chart_id not in valid_ids:
+                continue
+
+            series_index = update.get("seriesIndex")
+            try:
+                index_int = int(series_index)
+            except (TypeError, ValueError):
+                continue
+
+            if index_int < 0 or index_int >= len(self.series):
+                continue
+
+            series_obj = self.series[index_int]
+
+            # Update top-level attributes such as visibility or title
+            if "name" in update and update["name"] is not None:
+                try:
+                    series_obj.title = update["name"]
+                except Exception:
+                    # Ignore name updates if the series does not support titles
+                    pass
+
+            if "visible" in update and update["visible"] is not None:
+                try:
+                    series_obj.visible = bool(update["visible"])
+                except Exception:
+                    pass
+
+            options_update = update.get("options")
+            if isinstance(options_update, dict):
+                series_obj.update_from_frontend(options_update)
+
+            top_level_update = update.get("topLevel")
+            if isinstance(top_level_update, dict):
+                series_obj.update_from_frontend(top_level_update)
+
+    def _handle_component_payload(self, payload: Any) -> None:
+        """Handle payloads returned from the frontend component."""
+        if not isinstance(payload, dict):
+            return
+
+        event_type = payload.get("event")
+        if event_type != "series_settings_updated":
+            return
+
+        updates = payload.get("updates")
+        if not isinstance(updates, list):
+            return
+
+        self.apply_series_updates_from_frontend(updates)

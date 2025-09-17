@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useCallback, useMemo} from 'react'
+import React, {useEffect, useRef, useCallback, useMemo, useState} from 'react'
 import {
   createChart,
   IChartApi,
@@ -31,9 +31,13 @@ import {CornerLayoutManager} from './services/CornerLayoutManager'
 // Legacy legend system removed - now using ChartWidgetManager
 
 import './styles/paneCollapse.css'
+import './styles/seriesSettingsDialog.css'
 import {cleanLineStyleOptions} from './utils/lineStyle'
 import {createSeries} from './utils/seriesFactory'
 import {getCachedDOMElement, createOptimizedStylesAdvanced} from './utils/performance'
+import SeriesSettingsDialog, {isEditableStyleKey} from './components/SeriesSettingsDialog'
+import type {SeriesSettingsGroup, SeriesSettingsFieldSource} from './components/SeriesSettingsDialog'
+import {Streamlit} from 'streamlit-component-lib'
 import {ErrorBoundary} from './components/ErrorBoundary'
 
 // Helper function to find nearest available time in chart data
@@ -120,6 +124,31 @@ interface LightweightChartsProps {
   onChartsReady?: () => void
 }
 
+interface SeriesSettingsUpdate {
+  chartId: string
+  chartIndex: number
+  seriesIndex: number
+  seriesName?: string
+  seriesType?: string
+  options?: Record<string, any>
+  topLevel?: Record<string, any>
+}
+
+interface SeriesSettingsUpdatePayload {
+  event: 'series_settings_updated'
+  updates: SeriesSettingsUpdate[]
+}
+
+const cloneSeriesSettings = (groups: SeriesSettingsGroup[]): SeriesSettingsGroup[] =>
+  groups.map(group => ({
+    ...group,
+    series: group.series.map(series => ({
+      ...series,
+      options: {...series.options},
+      topLevel: {...series.topLevel}
+    }))
+  }))
+
 // Performance optimization: Memoize the component to prevent unnecessary re-renders
 const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
   ({config, height = 400, width = null, onChartsReady}) => {
@@ -138,6 +167,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     const prevConfigRef = useRef<ComponentConfig | null>(null)
     const chartContainersRef = useRef<{[key: string]: HTMLElement}>({})
     const debounceTimersRef = useRef<{[key: string]: NodeJS.Timeout}>({})
+
+    const [initialSeriesSettings, setInitialSeriesSettings] = useState<SeriesSettingsGroup[]>([])
+    const [draftSeriesSettings, setDraftSeriesSettings] = useState<SeriesSettingsGroup[]>([])
+    const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false)
 
     // Store function references to avoid dependency issues
     const functionRefs = useRef<{
@@ -167,6 +200,272 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       setupPaneCollapseSupport: null,
       cleanupCharts: null
     })
+
+    const buildSeriesSettings = useCallback((): SeriesSettingsGroup[] => {
+      if (!config || !config.charts) {
+        return []
+      }
+
+      return config.charts.map((chartConfig, chartIndex) => {
+        const safeChartConfig = chartConfig || ({} as ChartConfig)
+        const chartId = safeChartConfig.chartId || `chart-${chartIndex}`
+        const chartTitle =
+          (typeof safeChartConfig.chart?.title === 'string'
+            ? safeChartConfig.chart.title
+            : undefined) || chartId
+
+        const seriesList = (safeChartConfig.series || []).map((seriesConfig, seriesIndex) => {
+          const safeSeries = seriesConfig || ({} as SeriesConfig)
+          const options = {...(safeSeries.options || {})}
+          const topLevel: Record<string, any> = {}
+
+          Object.entries(safeSeries).forEach(([key, value]) => {
+            if (
+              key === 'options' ||
+              key === 'data' ||
+              key === 'markers' ||
+              key === 'priceLines' ||
+              key === 'trades' ||
+              key === 'annotations' ||
+              key === 'legend' ||
+              key === 'paneId' ||
+              key === 'priceScale' ||
+              key === 'priceScaleId' ||
+              key === 'tooltip' ||
+              key === 'signalData' ||
+              key === 'tradeVisualizationOptions'
+            ) {
+              return
+            }
+
+            if (isEditableStyleKey(key, value)) {
+              topLevel[key] = value
+            }
+          })
+
+          return {
+            index: seriesIndex,
+            name:
+              safeSeries.name ||
+              (typeof options.title === 'string' ? options.title : undefined) ||
+              `Series ${seriesIndex + 1}`,
+            type: safeSeries.type || 'series',
+            options,
+            topLevel
+          }
+        })
+
+        return {
+          chartId,
+          chartIndex,
+          chartTitle,
+          series: seriesList
+        }
+      })
+    }, [config])
+
+    useEffect(() => {
+      const groups = buildSeriesSettings()
+      setInitialSeriesSettings(groups)
+      setDraftSeriesSettings(cloneSeriesSettings(groups))
+    }, [buildSeriesSettings])
+
+    const hasAnySeries = useMemo(
+      () => draftSeriesSettings.some(group => (group.series || []).length > 0),
+      [draftSeriesSettings]
+    )
+
+    const hasPendingChanges = useMemo(() => {
+      if (initialSeriesSettings.length !== draftSeriesSettings.length) {
+        return true
+      }
+
+      const initialGroupMap = new Map(initialSeriesSettings.map(group => [group.chartId, group]))
+
+      for (const group of draftSeriesSettings) {
+        const initialGroup = initialGroupMap.get(group.chartId)
+        if (!initialGroup) {
+          if ((group.series || []).length > 0) {
+            return true
+          }
+          continue
+        }
+
+        const initialSeriesMap = new Map(
+          (initialGroup.series || []).map(series => [series.index, series])
+        )
+
+        for (const series of group.series || []) {
+          const initialSeries = initialSeriesMap.get(series.index)
+          if (!initialSeries) {
+            if (Object.keys(series.options || {}).length || Object.keys(series.topLevel || {}).length) {
+              return true
+            }
+            continue
+          }
+
+          const optionKeys = new Set([
+            ...Object.keys(initialSeries.options || {}),
+            ...Object.keys(series.options || {})
+          ])
+
+          for (const key of optionKeys) {
+            if ((initialSeries.options || {})[key] !== (series.options || {})[key]) {
+              return true
+            }
+          }
+
+          const topLevelKeys = new Set([
+            ...Object.keys(initialSeries.topLevel || {}),
+            ...Object.keys(series.topLevel || {})
+          ])
+
+          for (const key of topLevelKeys) {
+            if ((initialSeries.topLevel || {})[key] !== (series.topLevel || {})[key]) {
+              return true
+            }
+          }
+        }
+      }
+
+      return false
+    }, [initialSeriesSettings, draftSeriesSettings])
+
+    const handleSeriesFieldChange = useCallback(
+      (
+        chartId: string,
+        seriesIndex: number,
+        key: string,
+        value: any,
+        source: SeriesSettingsFieldSource
+      ) => {
+        setDraftSeriesSettings(prev =>
+          prev.map(group => {
+            if (group.chartId !== chartId) {
+              return group
+            }
+
+            return {
+              ...group,
+              series: (group.series || []).map(series => {
+                if (series.index !== seriesIndex) {
+                  return series
+                }
+
+                if (source === 'topLevel') {
+                  return {
+                    ...series,
+                    topLevel: {
+                      ...series.topLevel,
+                      [key]: value
+                    }
+                  }
+                }
+
+                return {
+                  ...series,
+                  options: {
+                    ...series.options,
+                    [key]: value
+                  }
+                }
+              })
+            }
+          })
+        )
+      },
+      []
+    )
+
+    const handleResetSeriesSettings = useCallback(() => {
+      setDraftSeriesSettings(cloneSeriesSettings(initialSeriesSettings))
+    }, [initialSeriesSettings])
+
+    const handleApplySeriesSettings = useCallback(() => {
+      if (draftSeriesSettings.length === 0) {
+        setIsSettingsOpen(false)
+        return
+      }
+
+      const updates: SeriesSettingsUpdate[] = []
+      const initialGroupMap = new Map(initialSeriesSettings.map(group => [group.chartId, group]))
+
+      draftSeriesSettings.forEach(group => {
+        const initialGroup = initialGroupMap.get(group.chartId)
+        const initialSeriesMap = new Map(
+          (initialGroup?.series || []).map(series => [series.index, series])
+        )
+
+        group.series.forEach(series => {
+          const initialSeries = initialSeriesMap.get(series.index)
+          const optionDiff: Record<string, any> = {}
+          const topLevelDiff: Record<string, any> = {}
+
+          const optionKeys = new Set([
+            ...Object.keys(series.options || {}),
+            ...Object.keys(initialSeries?.options || {})
+          ])
+
+          optionKeys.forEach(key => {
+            const currentValue = series.options?.[key]
+            const initialValue = initialSeries?.options?.[key]
+            if (currentValue !== initialValue) {
+              optionDiff[key] = currentValue
+            }
+          })
+
+          const topLevelKeys = new Set([
+            ...Object.keys(series.topLevel || {}),
+            ...Object.keys(initialSeries?.topLevel || {})
+          ])
+
+          topLevelKeys.forEach(key => {
+            const currentValue = series.topLevel?.[key]
+            const initialValue = initialSeries?.topLevel?.[key]
+            if (currentValue !== initialValue) {
+              topLevelDiff[key] = currentValue
+            }
+          })
+
+          if (Object.keys(optionDiff).length > 0 || Object.keys(topLevelDiff).length > 0) {
+            const update: SeriesSettingsUpdate = {
+              chartId: group.chartId,
+              chartIndex: group.chartIndex,
+              seriesIndex: series.index,
+              seriesName: series.name,
+              seriesType: series.type
+            }
+
+            if (Object.keys(optionDiff).length > 0) {
+              update.options = optionDiff
+            }
+
+            if (Object.keys(topLevelDiff).length > 0) {
+              update.topLevel = topLevelDiff
+            }
+
+            updates.push(update)
+          }
+        })
+      })
+
+      if (updates.length > 0) {
+        const payload: SeriesSettingsUpdatePayload = {
+          event: 'series_settings_updated',
+          updates
+        }
+
+        try {
+          Streamlit.setComponentValue(payload)
+        } catch (error) {
+          // Ignore Streamlit update errors outside of component runtime
+        }
+
+        setInitialSeriesSettings(cloneSeriesSettings(draftSeriesSettings))
+      }
+
+      setIsSettingsOpen(false)
+    }, [draftSeriesSettings, initialSeriesSettings])
 
     // Performance optimization: Memoize container dimensions calculation
     const getContainerDimensions = useCallback((container: HTMLElement) => {
@@ -2619,7 +2918,43 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
     return (
       <ErrorBoundary>
-        <div style={{display: 'flex', flexDirection: 'column'}}>{chartContainers}</div>
+        <div className="slwc-chart-wrapper">
+          {hasAnySeries && (
+            <div className="slwc-settings-trigger">
+              <button
+                type="button"
+                className="slwc-settings-button"
+                onClick={() => setIsSettingsOpen(true)}
+                title="Adjust series appearance"
+              >
+                <svg
+                  className="slwc-settings-button-icon"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M8.5 2.5h3l.5 2.2a4.5 4.5 0 0 1 1.8 1.04l2.2-.5 1.5 2.6-1.7 1.2a4.4 4.4 0 0 1 0 2.1l1.7 1.2-1.5 2.6-2.2-.5a4.5 4.5 0 0 1-1.8 1.04l-.5 2.2h-3l-.5-2.2a4.5 4.5 0 0 1-1.8-1.04l-2.2.5-1.5-2.6 1.7-1.2a4.4 4.4 0 0 1 0-2.1l-1.7-1.2 1.5-2.6 2.2.5a4.5 4.5 0 0 1 1.8-1.04l.5-2.2Z"
+                    fill="none"
+                    stroke="currentColor"
+                  />
+                  <circle cx="10" cy="10" r="2.6" fill="none" stroke="currentColor" />
+                </svg>
+                <span>Series settings</span>
+              </button>
+            </div>
+          )}
+          <div style={{display: 'flex', flexDirection: 'column'}}>{chartContainers}</div>
+          <SeriesSettingsDialog
+            open={isSettingsOpen}
+            groups={draftSeriesSettings}
+            hasChanges={hasPendingChanges}
+            onClose={() => setIsSettingsOpen(false)}
+            onReset={handleResetSeriesSettings}
+            onApply={handleApplySeriesSettings}
+            onFieldChange={handleSeriesFieldChange}
+          />
+        </div>
       </ErrorBoundary>
     )
   }

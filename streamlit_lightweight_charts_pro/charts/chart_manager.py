@@ -49,6 +49,7 @@ class ChartManager:
 
         # Set the ChartManager reference on the chart
         chart._chart_manager = self
+        chart.set_frontend_chart_id(chart_id)
 
         self.charts[chart_id] = chart
         return self
@@ -424,7 +425,46 @@ class ChartManager:
             unique_id = str(uuid.uuid4())[:8]
             key = f"chart_manager_{int(time.time() * 1000)}_{unique_id}"
         kwargs["key"] = key
-        return component_func(**kwargs)
+
+        result = component_func(**kwargs)
+
+        self._handle_component_payload(result)
+
+        return result
+
+    def _handle_component_payload(self, payload: Any) -> None:
+        """Apply series configuration updates returned from the frontend."""
+        if not isinstance(payload, dict):
+            return
+
+        if payload.get("event") != "series_settings_updated":
+            return
+
+        updates = payload.get("updates")
+        if not isinstance(updates, list):
+            return
+
+        # Group updates by chart identifier for efficient processing
+        grouped_updates: Dict[str, List[Dict[str, Any]]] = {}
+        for update in updates:
+            if not isinstance(update, dict):
+                continue
+            chart_id = update.get("chartId")
+            if chart_id is None and len(self.charts) == 1:
+                # If a chartId is not provided but there is only one chart, assume it
+                chart_id = next(iter(self.charts.keys()))
+                update["chartId"] = chart_id
+
+            if not isinstance(chart_id, str) or chart_id not in self.charts:
+                continue
+
+            grouped_updates.setdefault(chart_id, []).append(update)
+
+        for chart_id, chart_updates in grouped_updates.items():
+            chart = self.charts.get(chart_id)
+            if chart is None:
+                continue
+            chart.apply_series_updates_from_frontend(chart_updates)
 
     def __len__(self) -> int:
         """Return the number of charts in the manager."""

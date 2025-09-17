@@ -29,6 +29,7 @@ import pandas as pd
 from streamlit_lightweight_charts_pro.charts.options import (
     PriceLineOptions,
 )
+from streamlit_lightweight_charts_pro.charts.options.base_options import Options
 from streamlit_lightweight_charts_pro.data import Data
 from streamlit_lightweight_charts_pro.data.data import classproperty
 from streamlit_lightweight_charts_pro.data.marker import MarkerBase
@@ -938,6 +939,50 @@ class Series(ABC):
                 "top_level"
             ]  # pylint: disable=protected-access
         return False
+
+    def update_from_frontend(self, updates: Dict[str, Any]) -> None:
+        """Update series properties based on selections made in the frontend UI."""
+        if not isinstance(updates, dict) or not updates:
+            return
+
+        remaining_updates: Dict[str, Any] = {}
+
+        for key, value in updates.items():
+            if value is None:
+                continue
+
+            snake_key = self._camel_to_snake(key)
+
+            if self._is_chainable_property(snake_key):
+                try:
+                    setattr(self, snake_key, value)
+                    continue
+                except Exception:
+                    # If direct assignment fails, fall back to option objects
+                    pass
+
+            remaining_updates[key] = value
+
+        if not remaining_updates:
+            return
+
+        for attr_name in dir(self):
+            if attr_name.startswith("_"):
+                continue
+
+            try:
+                attr_value = getattr(self, attr_name)
+            except Exception:
+                continue
+
+            if isinstance(attr_value, Options):
+                try:
+                    attr_value.update(remaining_updates)
+                except Exception:
+                    continue
+            elif isinstance(attr_value, dict):
+                for option_key, option_value in remaining_updates.items():
+                    attr_value[option_key] = option_value
 
     @classproperty
     def data_class(cls) -> Type[Data]:  # pylint: disable=no-self-argument
