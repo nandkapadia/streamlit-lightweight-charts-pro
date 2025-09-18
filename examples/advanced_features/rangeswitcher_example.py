@@ -28,6 +28,7 @@ from streamlit_lightweight_charts_pro.charts.options.ui_options import (
     LegendOptions,
     RangeConfig,
     RangeSwitcherOptions,
+    TimeRange,
 )
 from streamlit_lightweight_charts_pro.data import (
     AreaData,
@@ -215,15 +216,15 @@ st.sidebar.subheader("Chart Styling")
 chart_height = st.sidebar.slider("Chart Height", 400, 1000, 700)
 chart_width = st.sidebar.selectbox("Chart Width", ["100%", "800px", "1000px", "1200px"], index=0)
 
-# Create range configurations
+# Create range configurations using the new TimeRange enum
 ranges = [
-    RangeConfig(text="1D", tooltip="1 Day", seconds=86400),
-    RangeConfig(text="1W", tooltip="1 Week", seconds=604800),
-    RangeConfig(text="1M", tooltip="1 Month", seconds=2592000),
-    RangeConfig(text="3M", tooltip="3 Months", seconds=7776000),
-    RangeConfig(text="6M", tooltip="6 Months", seconds=15552000),
-    RangeConfig(text="1Y", tooltip="1 Year", seconds=31536000),
-    RangeConfig(text="ALL", tooltip="All Data", seconds=None),
+    RangeConfig(text="1D", tooltip="1 Day", range=TimeRange.ONE_DAY),
+    RangeConfig(text="1W", tooltip="1 Week", range=TimeRange.ONE_WEEK),
+    RangeConfig(text="1M", tooltip="1 Month", range=TimeRange.ONE_MONTH),
+    RangeConfig(text="3M", tooltip="3 Months", range=TimeRange.THREE_MONTHS),
+    RangeConfig(text="6M", tooltip="6 Months", range=TimeRange.SIX_MONTHS),
+    RangeConfig(text="1Y", tooltip="1 Year", range=TimeRange.ONE_YEAR),
+    RangeConfig(text="ALL", tooltip="All Data", range=TimeRange.ALL),
 ]
 
 # Create range switcher options
@@ -341,16 +342,16 @@ from streamlit_lightweight_charts_pro import (
     HistogramSeries, LineSeries
 )
 from streamlit_lightweight_charts_pro.charts.options.ui_options import (
-    LegendOptions, RangeConfig, RangeSwitcherOptions
+    LegendOptions, RangeConfig, RangeSwitcherOptions, TimeRange
 )
 
-# Create range switcher
+# Create range switcher using TimeRange enum
 ranges = [
-    RangeConfig(text="1D", tooltip="1 Day", seconds=86400),
-    RangeConfig(text="1W", tooltip="1 Week", seconds=604800),
-    RangeConfig(text="1M", tooltip="1 Month", seconds=2592000),
-    RangeConfig(text="1Y", tooltip="1 Year", seconds=31536000),
-    RangeConfig(text="ALL", tooltip="All Data", seconds=None),
+    RangeConfig(text="1D", tooltip="1 Day", range=TimeRange.ONE_DAY),
+    RangeConfig(text="1W", tooltip="1 Week", range=TimeRange.ONE_WEEK),
+    RangeConfig(text="1M", tooltip="1 Month", range=TimeRange.ONE_MONTH),
+    RangeConfig(text="1Y", tooltip="1 Year", range=TimeRange.ONE_YEAR),
+    RangeConfig(text="ALL", tooltip="All Data", range=TimeRange.ALL),
 ]
 
 range_switcher = RangeSwitcherOptions(

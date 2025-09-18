@@ -12,7 +12,29 @@ import {
 import { PrimitiveStylingUtils, BaseStyleConfig } from './PrimitiveStylingUtils'
 
 /**
+ * Predefined time range values for easy configuration
+ */
+export enum TimeRange {
+  FIVE_MINUTES = 'FIVE_MINUTES',
+  FIFTEEN_MINUTES = 'FIFTEEN_MINUTES',
+  THIRTY_MINUTES = 'THIRTY_MINUTES',
+  ONE_HOUR = 'ONE_HOUR',
+  FOUR_HOURS = 'FOUR_HOURS',
+  ONE_DAY = 'ONE_DAY',
+  ONE_WEEK = 'ONE_WEEK',
+  TWO_WEEKS = 'TWO_WEEKS',
+  ONE_MONTH = 'ONE_MONTH',
+  THREE_MONTHS = 'THREE_MONTHS',
+  SIX_MONTHS = 'SIX_MONTHS',
+  ONE_YEAR = 'ONE_YEAR',
+  TWO_YEARS = 'TWO_YEARS',
+  FIVE_YEARS = 'FIVE_YEARS',
+  ALL = 'ALL'
+}
+
+/**
  * Range configuration for time switching
+ * Supports both enum values and custom seconds for flexibility
  */
 export interface RangeConfig {
   /**
@@ -21,14 +43,88 @@ export interface RangeConfig {
   text: string
 
   /**
-   * Range in seconds (null for "All" range)
+   * Time range - can be enum value or custom seconds
+   * Use TimeRange enum for predefined ranges, or number for custom seconds
+   * Use null or TimeRange.ALL for "All" range
    */
-  seconds: number | null
+  range: TimeRange | number | null
+
+  /**
+   * @deprecated Use 'range' instead. This is kept for backwards compatibility.
+   */
+  seconds?: number | null
 
   /**
    * Whether this is the active range
    */
   active?: boolean
+}
+
+/**
+ * Get the range value from a RangeConfig, supporting both new and legacy formats
+ */
+export function getRangeValue(rangeConfig: RangeConfig): TimeRange | number | null {
+  // Support new 'range' property first
+  if (rangeConfig.range !== undefined) {
+    return rangeConfig.range
+  }
+  // Fall back to legacy 'seconds' property for backwards compatibility
+  return rangeConfig.seconds || null
+}
+
+/**
+ * Check if a range represents "All" (show all data)
+ */
+export function isAllRange(rangeConfig: RangeConfig): boolean {
+  const range = getRangeValue(rangeConfig)
+  return range === null || range === TimeRange.ALL
+}
+
+/**
+ * Convert TimeRange enum or value to seconds
+ */
+export function getSecondsFromRange(range: TimeRange | number | null): number | null {
+  if (range === null || range === TimeRange.ALL) {
+    return null
+  }
+
+  if (typeof range === 'number') {
+    return range
+  }
+
+  // Map enum values to seconds using the existing TimeRangeSeconds constants
+  switch (range) {
+    case TimeRange.FIVE_MINUTES:
+      return TimeRangeSeconds.FIVE_MINUTES
+    case TimeRange.FIFTEEN_MINUTES:
+      return TimeRangeSeconds.FIFTEEN_MINUTES
+    case TimeRange.THIRTY_MINUTES:
+      return 1800 // 30 minutes
+    case TimeRange.ONE_HOUR:
+      return TimeRangeSeconds.ONE_HOUR
+    case TimeRange.FOUR_HOURS:
+      return TimeRangeSeconds.FOUR_HOURS
+    case TimeRange.ONE_DAY:
+      return TimeRangeSeconds.ONE_DAY
+    case TimeRange.ONE_WEEK:
+      return TimeRangeSeconds.ONE_WEEK
+    case TimeRange.TWO_WEEKS:
+      return TimeRangeSeconds.ONE_WEEK * 2
+    case TimeRange.ONE_MONTH:
+      return TimeRangeSeconds.ONE_MONTH
+    case TimeRange.THREE_MONTHS:
+      return TimeRangeSeconds.THREE_MONTHS
+    case TimeRange.SIX_MONTHS:
+      return TimeRangeSeconds.SIX_MONTHS
+    case TimeRange.ONE_YEAR:
+      return TimeRangeSeconds.ONE_YEAR
+    case TimeRange.TWO_YEARS:
+      return TimeRangeSeconds.ONE_YEAR * 2
+    case TimeRange.FIVE_YEARS:
+      return TimeRangeSeconds.FIVE_YEARS
+    default:
+      return null
+  }
 }
 
 /**
@@ -124,10 +220,14 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
 
   constructor(id: string, config: RangeSwitcherPrimitiveConfig) {
     // Set default priority and configuration for range switchers
+    // Find the index of the "All" range to set as default
+    const allRangeIndex = config.ranges.findIndex(range => isAllRange(range))
+    const defaultActiveIndex = allRangeIndex !== -1 ? allRangeIndex : config.ranges.length - 1
+
     const configWithDefaults: RangeSwitcherPrimitiveConfig = {
       priority: PrimitivePriority.RANGE_SWITCHER,
       visible: true,
-      activeRangeIndex: 0,
+      activeRangeIndex: defaultActiveIndex,
       style: {
         backgroundColor: 'transparent',
         padding: DefaultRangeSwitcherConfig.layout.CONTAINER_PADDING,
@@ -147,7 +247,7 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
           activeColor: ButtonColors.PRESSED_COLOR,
           border: ButtonEffects.DEFAULT_BORDER,
           borderRadius: ButtonDimensions.BORDER_RADIUS,
-          padding: '6px 12px',
+          padding: ButtonSpacing.RANGE_BUTTON_PADDING,
           margin: '0 2px',
           fontSize: ButtonDimensions.RANGE_FONT_SIZE,
           fontWeight: 500,
@@ -159,7 +259,7 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     }
 
     super(id, configWithDefaults)
-    this.activeRangeIndex = configWithDefaults.activeRangeIndex || 0
+    this.activeRangeIndex = configWithDefaults.activeRangeIndex || defaultActiveIndex
   }
 
   // ===== BasePanePrimitive Implementation =====
@@ -200,6 +300,14 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
 
     // Update active state
     this.updateActiveButton()
+
+    // Trigger layout recalculation after content is rendered to ensure proper positioning
+    // Use setTimeout to allow DOM to update dimensions first
+    setTimeout(() => {
+      if (this.layoutManager) {
+        this.layoutManager.recalculateAllLayouts()
+      }
+    }, 0)
   }
 
   /**
@@ -305,29 +413,34 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     const buttonConfig = this.config.style?.button
 
     if (buttonConfig) {
-      // Prepare base styles
+      // Prepare base styles with compact, professional appearance
       const baseStyles: BaseStyleConfig = {
-        border: buttonConfig.border || CommonValues.NONE,
-        borderRadius: buttonConfig.borderRadius || 0,
-        padding: buttonConfig.padding || ButtonSpacing.BUTTON_PADDING,
-        margin: buttonConfig.margin || ButtonSpacing.BUTTON_MARGIN,
-        fontSize: buttonConfig.fontSize || 12,
+        border: buttonConfig.border || ButtonEffects.RANGE_BORDER,
+        borderRadius: buttonConfig.borderRadius || 4, // Rounded corners for modern look
+        padding: buttonConfig.padding || ButtonSpacing.RANGE_BUTTON_PADDING,
+        margin: buttonConfig.margin || ButtonSpacing.RANGE_BUTTON_MARGIN,
+        fontSize: buttonConfig.fontSize || 11, // Slightly smaller font for compactness
         fontWeight: buttonConfig.fontWeight || CommonValues.FONT_WEIGHT_MEDIUM,
-        backgroundColor: buttonConfig.backgroundColor || ButtonColors.DEFAULT_BACKGROUND,
-        color: buttonConfig.color || ButtonColors.DEFAULT_COLOR,
+        backgroundColor: buttonConfig.backgroundColor || 'rgba(255, 255, 255, 0.9)',
+        color: buttonConfig.color || '#666',
         cursor: CommonValues.POINTER,
-        transition: ButtonEffects.DEFAULT_TRANSITION
+        transition: ButtonEffects.DEFAULT_TRANSITION,
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' // Subtle shadow for depth
       }
 
       // Prepare state-specific styles
       const stateStyles: BaseStyleConfig = {}
 
       if (isActive) {
-        stateStyles.backgroundColor = buttonConfig.activeBackgroundColor || ButtonColors.PRESSED_BACKGROUND
-        stateStyles.color = buttonConfig.activeColor || ButtonColors.PRESSED_COLOR
+        stateStyles.backgroundColor = buttonConfig.activeBackgroundColor || '#007AFF'
+        stateStyles.color = buttonConfig.activeColor || 'white'
+        stateStyles.border = '1px solid #007AFF'
+        stateStyles.boxShadow = '0 2px 4px rgba(0, 122, 255, 0.3)'
       } else if (isHover) {
-        stateStyles.backgroundColor = buttonConfig.hoverBackgroundColor || ButtonColors.HOVER_BACKGROUND
-        stateStyles.color = buttonConfig.hoverColor || ButtonColors.HOVER_COLOR
+        stateStyles.backgroundColor = buttonConfig.hoverBackgroundColor || 'rgba(255, 255, 255, 1)'
+        stateStyles.color = buttonConfig.hoverColor || '#333'
+        stateStyles.boxShadow = ButtonEffects.RANGE_HOVER_BOX_SHADOW
+        stateStyles.transform = 'translateY(-1px)' // Subtle lift effect
       }
 
       // Determine state for styling utils
@@ -393,23 +506,47 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
    * Apply range to chart time scale
    */
   private applyRangeToChart(range: RangeConfig): void {
-    if (!this.chart) return
+    if (!this.chart || !this.series) return
 
     try {
       const timeScale = this.chart.timeScale()
 
-      if (range.seconds === null) {
+      const rangeValue = getRangeValue(range)
+      const seconds = getSecondsFromRange(rangeValue)
+
+      if (seconds === null) {
         // "All" range - fit content
         timeScale.fitContent()
       } else {
-        // Specific time range
-        const now = Date.now() / 1000 // Current time in seconds
-        const fromTime = now - range.seconds
+        // Specific time range - use last bar as reference point
+        const data = this.series.data()
+        if (data && data.length > 0) {
+          // Get the last bar's time as the end point
+          const lastBarTime = data[data.length - 1].time
+          let endTime: number
 
-        timeScale.setVisibleRange({
-          from: fromTime as Time,
-          to: now as Time
-        })
+          if (typeof lastBarTime === 'string') {
+            endTime = new Date(lastBarTime).getTime() / 1000
+          } else {
+            endTime = lastBarTime as number
+          }
+
+          const fromTime = endTime - seconds
+
+          timeScale.setVisibleRange({
+            from: fromTime as Time,
+            to: endTime as Time
+          })
+        } else {
+          // Fallback to current time if no data available
+          const now = Date.now() / 1000
+          const fromTime = now - seconds
+
+          timeScale.setVisibleRange({
+            from: fromTime as Time,
+            to: now as Time
+          })
+        }
       }
     } catch (error) {
       console.warn('Failed to apply range to chart:', error)
@@ -547,52 +684,92 @@ export function createRangeSwitcherPrimitive(
 }
 
 /**
- * Default range configurations
+ * Default range configurations using the new enum system
+ * Easier to use and less error-prone than manual seconds configuration
  */
 export const DefaultRangeConfigs = {
   /**
-   * Standard trading ranges
+   * Standard trading ranges (using enum)
    */
   trading: [
-    { text: '1D', seconds: TimeRangeSeconds.ONE_DAY },
-    { text: '7D', seconds: TimeRangeSeconds.ONE_WEEK },
-    { text: '1M', seconds: TimeRangeSeconds.ONE_MONTH },
-    { text: '3M', seconds: TimeRangeSeconds.THREE_MONTHS },
-    { text: '1Y', seconds: TimeRangeSeconds.ONE_YEAR },
-    { text: 'All', seconds: null }
+    { text: '1D', range: TimeRange.ONE_DAY },
+    { text: '7D', range: TimeRange.ONE_WEEK },
+    { text: '1M', range: TimeRange.ONE_MONTH },
+    { text: '3M', range: TimeRange.THREE_MONTHS },
+    { text: '1Y', range: TimeRange.ONE_YEAR },
+    { text: 'All', range: TimeRange.ALL }
   ],
 
   /**
-   * Short-term trading ranges
+   * Short-term trading ranges (using enum)
    */
   shortTerm: [
-    { text: '5M', seconds: TimeRangeSeconds.FIVE_MINUTES },
-    { text: '15M', seconds: TimeRangeSeconds.FIFTEEN_MINUTES },
-    { text: '1H', seconds: TimeRangeSeconds.ONE_HOUR },
-    { text: '4H', seconds: TimeRangeSeconds.FOUR_HOURS },
-    { text: '1D', seconds: TimeRangeSeconds.ONE_DAY },
-    { text: 'All', seconds: null }
+    { text: '5M', range: TimeRange.FIVE_MINUTES },
+    { text: '15M', range: TimeRange.FIFTEEN_MINUTES },
+    { text: '30M', range: TimeRange.THIRTY_MINUTES },
+    { text: '1H', range: TimeRange.ONE_HOUR },
+    { text: '4H', range: TimeRange.FOUR_HOURS },
+    { text: '1D', range: TimeRange.ONE_DAY },
+    { text: 'All', range: TimeRange.ALL }
   ],
 
   /**
-   * Long-term investment ranges
+   * Long-term investment ranges (using enum)
    */
   longTerm: [
-    { text: '1M', seconds: TimeRangeSeconds.ONE_MONTH },
-    { text: '3M', seconds: TimeRangeSeconds.THREE_MONTHS },
-    { text: '6M', seconds: TimeRangeSeconds.SIX_MONTHS },
-    { text: '1Y', seconds: TimeRangeSeconds.ONE_YEAR },
-    { text: '5Y', seconds: TimeRangeSeconds.FIVE_YEARS },
-    { text: 'All', seconds: null }
+    { text: '1M', range: TimeRange.ONE_MONTH },
+    { text: '3M', range: TimeRange.THREE_MONTHS },
+    { text: '6M', range: TimeRange.SIX_MONTHS },
+    { text: '1Y', range: TimeRange.ONE_YEAR },
+    { text: '2Y', range: TimeRange.TWO_YEARS },
+    { text: '5Y', range: TimeRange.FIVE_YEARS },
+    { text: 'All', range: TimeRange.ALL }
   ],
 
   /**
-   * Custom minimal ranges
+   * Custom minimal ranges (using enum)
    */
   minimal: [
-    { text: '1D', seconds: TimeRangeSeconds.ONE_DAY },
-    { text: '1W', seconds: TimeRangeSeconds.ONE_WEEK },
-    { text: '1M', seconds: TimeRangeSeconds.ONE_MONTH },
-    { text: 'All', seconds: null }
-  ]
+    { text: '1D', range: TimeRange.ONE_DAY },
+    { text: '1W', range: TimeRange.ONE_WEEK },
+    { text: '1M', range: TimeRange.ONE_MONTH },
+    { text: 'All', range: TimeRange.ALL }
+  ],
+
+  /**
+   * @deprecated Legacy configurations (kept for backwards compatibility)
+   * Use the enum-based configurations above for new implementations
+   */
+  legacy: {
+    trading: [
+      { text: '1D', seconds: TimeRangeSeconds.ONE_DAY },
+      { text: '7D', seconds: TimeRangeSeconds.ONE_WEEK },
+      { text: '1M', seconds: TimeRangeSeconds.ONE_MONTH },
+      { text: '3M', seconds: TimeRangeSeconds.THREE_MONTHS },
+      { text: '1Y', seconds: TimeRangeSeconds.ONE_YEAR },
+      { text: 'All', seconds: null }
+    ],
+    shortTerm: [
+      { text: '5M', seconds: TimeRangeSeconds.FIVE_MINUTES },
+      { text: '15M', seconds: TimeRangeSeconds.FIFTEEN_MINUTES },
+      { text: '1H', seconds: TimeRangeSeconds.ONE_HOUR },
+      { text: '4H', seconds: TimeRangeSeconds.FOUR_HOURS },
+      { text: '1D', seconds: TimeRangeSeconds.ONE_DAY },
+      { text: 'All', seconds: null }
+    ],
+    longTerm: [
+      { text: '1M', seconds: TimeRangeSeconds.ONE_MONTH },
+      { text: '3M', seconds: TimeRangeSeconds.THREE_MONTHS },
+      { text: '6M', seconds: TimeRangeSeconds.SIX_MONTHS },
+      { text: '1Y', seconds: TimeRangeSeconds.ONE_YEAR },
+      { text: '5Y', seconds: TimeRangeSeconds.FIVE_YEARS },
+      { text: 'All', seconds: null }
+    ],
+    minimal: [
+      { text: '1D', seconds: TimeRangeSeconds.ONE_DAY },
+      { text: '1W', seconds: TimeRangeSeconds.ONE_WEEK },
+      { text: '1M', seconds: TimeRangeSeconds.ONE_MONTH },
+      { text: 'All', seconds: null }
+    ]
+  }
 } as const

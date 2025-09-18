@@ -226,6 +226,12 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
     // Apply styling
     this.updateButtonStyling()
 
+    // Update content based on state (for collapse buttons)
+    this.updateContentBasedOnState()
+
+    // Update CSS classes based on state (for collapse buttons)
+    this.updateCSSClassesBasedOnState()
+
     // Add event handlers
     this.setupButtonEventHandlers()
 
@@ -392,6 +398,11 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
 
     // Create flex container with standardized utilities
     PrimitiveStylingUtils.createFlexContainer(this.buttonElement, 'row', 'center', 'center')
+
+    // Apply specific padding for collapse buttons (pane action buttons need zero padding)
+    if (this.config.buttonType === 'collapse') {
+      this.buttonElement.style.padding = ButtonSpacing.PANE_ACTION_PADDING
+    }
   }
 
   /**
@@ -552,6 +563,12 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
     // Update styling
     this.updateButtonStyling()
 
+    // Update content based on state (for collapse buttons)
+    this.updateContentBasedOnState()
+
+    // Update CSS classes based on state (for collapse buttons)
+    this.updateCSSClassesBasedOnState()
+
     // Update aria label
     if (this.buttonElement) {
       this.buttonElement.setAttribute('aria-label', this.getAriaLabel())
@@ -587,6 +604,36 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
     this.config.content = content
     if (this.buttonElement) {
       this.buttonElement.innerHTML = content
+    }
+  }
+
+  /**
+   * Update button content based on state (for collapse buttons)
+   */
+  private updateContentBasedOnState(): void {
+    if (this.config.buttonType === 'collapse' && this.buttonElement) {
+      // SVG for uncollapsed state (showing both brackets)
+      const uncollapseIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="15" height="15" fill="none"><path stroke="currentColor" d="m4 5 3.5-3L11 5" class="bracket-up"></path><path stroke="currentColor" d="M11 10l-3.5 3L4 10" class="bracket-down"></path></svg>'
+
+      // SVG for collapsed state (showing single bracket pointing down)
+      const collapseIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="15" height="15" fill="none"><path stroke="currentColor" d="M11 10l-3.5 3L4 10" class="bracket-down"></path></svg>'
+
+      // Update content based on pressed state
+      this.buttonElement.innerHTML = this.currentState.pressed ? collapseIcon : uncollapseIcon
+    }
+  }
+
+  /**
+   * Update CSS classes based on button state (for collapse buttons)
+   */
+  private updateCSSClassesBasedOnState(): void {
+    if (this.config.buttonType === 'collapse' && this.buttonElement) {
+      // Add or remove 'collapsed' class based on pressed state
+      if (this.currentState.pressed) {
+        this.buttonElement.classList.add('collapsed')
+      } else {
+        this.buttonElement.classList.remove('collapsed')
+      }
     }
   }
 
@@ -646,7 +693,7 @@ export const ButtonFactories = {
   collapse: (id: string, paneId: number, corner: any, onClick?: ButtonPrimitiveConfig['onClick']) =>
     new ButtonPrimitive(id, {
       buttonType: 'collapse',
-      content: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="15" height="15" fill="none"><path fill="currentColor" d="M4.5 12A1.5 1.5 0 0 1 3 10.5V9H2v1.5A2.5 2.5 0 0 0 4.5 13h6a2.5 2.5 0 0 0 2.5-2.5V9h-1v1.5c0 .83-.67 1.5-1.5 1.5h-6z" class="bracket-up"></path><path fill="currentColor" d="M4.5 3C3.67 3 3 3.67 3 4.5V6H2V4.5A2.5 2.5 0 0 1 4.5 2h6A2.5 2.5 0 0 1 13 4.5V6h-1V4.5c0-.83-.67-1.5-1.5-1.5h-6z" class="bracket-down"></path></svg>',
+      content: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="15" height="15" fill="none"><path stroke="currentColor" d="m4 5 3.5-3L11 5" class="bracket-up"></path><path stroke="currentColor" d="M11 10l-3.5 3L4 10" class="bracket-down"></path></svg>',
       corner,
       priority: PrimitivePriority.MINIMIZE_BUTTON,
       isPanePrimitive: true,

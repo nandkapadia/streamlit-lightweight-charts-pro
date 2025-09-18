@@ -104,7 +104,7 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
       priority: PrimitivePriority.LEGEND,
       visible: true,
       isPanePrimitive: true,
-      paneId: 0,
+      paneId: config.paneId !== undefined ? config.paneId : 0, // Use provided paneId or default to 0
       valueFormat: FormatDefaults.VALUE_FORMAT,
       style: {
         backgroundColor: LegendColors.DEFAULT_BACKGROUND,
@@ -158,6 +158,13 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
     // Apply styling
     this.applyLegendStyling(legendElement)
 
+    // Trigger layout recalculation after content is rendered to ensure proper stacking
+    // Use setTimeout to allow DOM to update dimensions first
+    setTimeout(() => {
+      if (this.layoutManager) {
+        this.layoutManager.recalculateAllLayouts()
+      }
+    }, 0)
   }
 
   /**
@@ -220,7 +227,7 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
 
       // Ensure adequate padding for visibility
       if (!element.style.padding) {
-        element.style.setProperty('padding', '6px', 'important')
+        element.style.setProperty('padding', `${LegendDimensions.DEFAULT_PADDING}px`, 'important')
       }
 
       // Apply legend-specific layout constraints

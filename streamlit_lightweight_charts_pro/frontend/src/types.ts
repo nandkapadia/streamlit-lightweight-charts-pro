@@ -247,14 +247,13 @@ export interface ChartConfig {
 }
 
 // Range Switcher Configuration
-export interface RangeConfig {
-  text: string
-  tooltip?: string
-  seconds: number | null
-}
+// Import the improved RangeConfig and TimeRange from RangeSwitcherPrimitive
+import type { RangeConfig as ImportedRangeConfig } from './primitives/RangeSwitcherPrimitive'
+export type { RangeConfig } from './primitives/RangeSwitcherPrimitive'
+export { TimeRange } from './primitives/RangeSwitcherPrimitive'
 
 export interface RangeSwitcherConfig {
-  ranges: RangeConfig[]
+  ranges: ImportedRangeConfig[]
   position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   visible: boolean
   defaultRange?: string

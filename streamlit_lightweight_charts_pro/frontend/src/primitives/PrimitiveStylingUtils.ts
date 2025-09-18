@@ -23,6 +23,7 @@ export interface BaseStyleConfig {
   opacity?: number
   zIndex?: number
   boxShadow?: string
+  transform?: string
 }
 
 /**
@@ -116,6 +117,7 @@ export class PrimitiveStylingUtils {
 
     // Effects
     if (config.boxShadow) style.boxShadow = config.boxShadow
+    if (config.transform) style.transform = config.transform
   }
 
   /**

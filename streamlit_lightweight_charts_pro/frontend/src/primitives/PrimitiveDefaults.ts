@@ -24,6 +24,17 @@ export const TimeRangeSeconds = {
   FIVE_YEARS: 157680000
 } as const
 
+// ===== Common Layout Constants =====
+
+/**
+ * Universal padding and spacing constants
+ */
+export const UniversalSpacing = {
+  EDGE_PADDING: 2,  // Universal padding for widget edges and container spacing
+  WIDGET_GAP: 2,    // Gap between stacked widgets
+  BASE_Z_INDEX: 1000
+} as const
+
 // ===== Button Styling Constants =====
 
 /**
@@ -32,8 +43,8 @@ export const TimeRangeSeconds = {
 export const ButtonDimensions = {
   DEFAULT_WIDTH: 24,
   DEFAULT_HEIGHT: 24,
-  PANE_ACTION_WIDTH: 18,
-  PANE_ACTION_HEIGHT: 18,
+  PANE_ACTION_WIDTH: 16,
+  PANE_ACTION_HEIGHT: 16,
   MIN_WIDTH_RANGE: 40,
   BORDER_RADIUS: 4,
   PANE_ACTION_BORDER_RADIUS: 3,
@@ -45,13 +56,14 @@ export const ButtonDimensions = {
  * Button spacing constants
  */
 export const ButtonSpacing = {
-  CONTAINER_PADDING: 2,
-  CONTAINER_GAP: 4,
-  RANGE_CONTAINER_GAP: 4,
+  CONTAINER_PADDING: UniversalSpacing.EDGE_PADDING,
+  CONTAINER_GAP: 2, // Reduced from 4 for more compact layout
+  RANGE_CONTAINER_GAP: 2, // Reduced from 4 for tighter spacing
   BUTTON_PADDING: '6px 12px',
-  RANGE_BUTTON_PADDING: '6px 12px',
+  RANGE_BUTTON_PADDING: '3px 8px', // More compact padding for range buttons
+  PANE_ACTION_PADDING: '0',
   BUTTON_MARGIN: '0',
-  RANGE_BUTTON_MARGIN: '0 2px'
+  RANGE_BUTTON_MARGIN: '0 1px' // Reduced margin between buttons
 } as const
 
 /**
@@ -80,8 +92,10 @@ export const ButtonColors = {
  */
 export const ButtonEffects = {
   DEFAULT_BORDER: '1px solid rgba(255, 255, 255, 0.2)',
+  RANGE_BORDER: '1px solid rgba(0, 0, 0, 0.1)', // Subtle border for range buttons
   DEFAULT_TRANSITION: 'all 0.2s ease',
   HOVER_BOX_SHADOW: '0 2px 4px rgba(0, 0, 0, 0.1)',
+  RANGE_HOVER_BOX_SHADOW: '0 1px 3px rgba(0, 0, 0, 0.12)', // Subtle shadow for range buttons
   PRESSED_BOX_SHADOW: 'inset 0 2px 4px rgba(0, 0, 0, 0.1)',
   FOCUS_OUTLINE: '2px solid #007AFF'
 } as const
@@ -92,7 +106,7 @@ export const ButtonEffects = {
  * Legend dimensions and spacing
  */
 export const LegendDimensions = {
-  DEFAULT_PADDING: 6,
+  DEFAULT_PADDING: 2,
   OHLC_PADDING: 8,
   BAND_PADDING: 8,
   BORDER_RADIUS: 4,
@@ -100,6 +114,15 @@ export const LegendDimensions = {
   FONT_SIZE: 12,
   OHLC_FONT_SIZE: 11,
   BAND_FONT_SIZE: 11
+} as const
+
+/**
+ * Layout spacing constants
+ */
+export const LayoutSpacing = {
+  EDGE_PADDING: UniversalSpacing.EDGE_PADDING,
+  WIDGET_GAP: UniversalSpacing.WIDGET_GAP,
+  BASE_Z_INDEX: UniversalSpacing.BASE_Z_INDEX
 } as const
 
 /**
@@ -119,8 +142,8 @@ export const LegendColors = {
  * Range switcher layout constants
  */
 export const RangeSwitcherLayout = {
-  CONTAINER_PADDING: 4,
-  CONTAINER_GAP: 4,
+  CONTAINER_PADDING: UniversalSpacing.EDGE_PADDING,
+  CONTAINER_GAP: ButtonSpacing.RANGE_CONTAINER_GAP, // Use the compact gap setting
   FLEX_DIRECTION: 'row' as const,
   ALIGN_ITEMS: 'center',
   JUSTIFY_CONTENT: 'flex-end'

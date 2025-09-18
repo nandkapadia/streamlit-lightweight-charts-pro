@@ -181,6 +181,54 @@ export class ChartCoordinateService {
   }
 
   /**
+   * Get full pane bounds including price scale areas (for collapse buttons)
+   */
+  getFullPaneBounds(chart: IChartApi, paneId: number): any | null {
+    try {
+      // Validate inputs
+      if (!chart || typeof paneId !== 'number' || paneId < 0) {
+        return null
+      }
+
+      // Get pane size from chart with error handling
+      let paneSize: any = null
+      try {
+        paneSize = chart.paneSize(paneId)
+      } catch (error) {
+        return null
+      }
+
+      if (!paneSize || typeof paneSize.height !== 'number' || typeof paneSize.width !== 'number') {
+        return null
+      }
+
+      // Calculate cumulative offset for this pane
+      let offsetY = 0
+      for (let i = 0; i < paneId; i++) {
+        try {
+          const size = chart.paneSize(i)
+          if (size && typeof size.height === 'number') {
+            offsetY += size.height
+          }
+        } catch (error) {
+          // Continue with other panes even if one fails
+        }
+      }
+
+      // Return full pane bounds including all price scale areas
+      const paneWidth = paneSize.width || getFallback('paneWidth')
+      return createBoundingBox(
+        0, // Full pane starts at 0
+        offsetY,
+        paneWidth, // Full pane width including price scales
+        paneSize.height
+      )
+    } catch (error) {
+      return null
+    }
+  }
+
+  /**
    * Get coordinates for a specific pane
    */
   getPaneCoordinates(chart: IChartApi, paneId: number): PaneCoordinates | null {
@@ -218,19 +266,24 @@ export class ChartCoordinateService {
 
       // Get chart element for price scale width
       // Get chart element (used for price scale width calculation)
-      const priceScaleWidth = this.getPriceScaleWidth(chart)
       const timeScaleHeight = this.getTimeScaleHeight(chart)
+
+      // Get both left and right price scale widths for proper legend positioning
+      const axisDimensions = this.getAxisDimensions(chart)
 
       // For legend positioning, we need coordinates relative to the chart element itself
       // The legend is appended to the chart element, so coordinates should be relative to it
       const legendOffsetX = 0 // Legend is positioned relative to chart element
       const legendOffsetY = offsetY // Y offset for multi-pane charts
 
-      // Calculate bounds relative to chart element (for legend positioning)
+      // Calculate bounds relative to chart element (for pane primitive positioning)
+      // Pane primitives should get the full pane area without price scale adjustments
+      const paneWidth = paneSize.width || getFallback('paneWidth')
+
       const bounds = createBoundingBox(
         legendOffsetX,
         legendOffsetY,
-        paneSize.width || getFallback('paneWidth'),
+        paneWidth,  // Use full pane width - no price scale adjustment
         paneSize.height
       )
 
@@ -239,9 +292,9 @@ export class ChartCoordinateService {
       // This is where the actual chart content starts (after price scale)
       // The left Y-axis (price scale) takes up priceScaleWidth pixels from the left
       const contentArea = createBoundingBox(
-        priceScaleWidth, // Start after the left Y-axis (price scale)
+        axisDimensions.leftPriceScaleWidth, // Start after the left Y-axis (price scale)
         legendOffsetY,
-        bounds.width - priceScaleWidth, // Width is the remaining area after price scale
+        paneWidth - axisDimensions.leftPriceScaleWidth - axisDimensions.rightPriceScaleWidth, // Width excluding both price scales
         paneSize.height - (paneId === 0 ? 0 : timeScaleHeight)
       )
 
@@ -275,7 +328,7 @@ export class ChartCoordinateService {
     container: HTMLElement,
     options: PaneDimensionsOptions & ChartDimensionsOptions = {}
   ): Promise<PaneCoordinates | null> {
-    const {maxAttempts = 10, baseDelay = 100, ...paneOptions} = options
+    const {...paneOptions} = options
 
     // Method 1: Try chart API first
     let paneCoords = this.getPaneCoordinates(chart, paneId)
@@ -283,14 +336,10 @@ export class ChartCoordinateService {
       return paneCoords
     }
 
-    // Method 2: Wait and retry with exponential backoff
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt)))
-
-      paneCoords = this.getPaneCoordinates(chart, paneId)
-      if (paneCoords) {
-        return paneCoords
-      }
+    // Method 2: Single immediate retry without delay for resize performance
+    paneCoords = this.getPaneCoordinates(chart, paneId)
+    if (paneCoords) {
+      return paneCoords
     }
 
     // Method 3: DOM fallback
@@ -1977,15 +2026,37 @@ export class ChartCoordinateService {
     const isTopCorner = corner.startsWith('top')
     const isRightCorner = corner.endsWith('right')
 
+    // Get actual axis dimensions from lightweight-charts APIs
+    const axisDimensions = this.getAxisDimensions(chart)
+
     // Calculate cumulative offset from previous widgets
     let cumulativeHeight = 0
     for (let i = 0; i < index; i++) {
       const prevWidget = widgets[i]
       if (prevWidget && prevWidget.visible) {
         const dims = prevWidget.getDimensions()
-        cumulativeHeight += dims.height + 8 // 8px gap
+
+        // If dimensions are 0, use a reasonable fallback for legends/buttons
+        let height = dims.height
+        if (height === 0) {
+          // Estimate height based on widget type
+          if (prevWidget.getContainerClassName && prevWidget.getContainerClassName().includes('legend')) {
+            height = 24 // Default legend height
+          } else if (prevWidget.getContainerClassName && prevWidget.getContainerClassName().includes('button')) {
+            height = 16 // Default button height
+          } else {
+            height = 20 // Generic fallback
+          }
+        }
+
+        cumulativeHeight += height + 8 // 8px gap
+
+        // Temporary debugging
+        console.log(`Stacking widget ${i}/${index}: height=${height}, cumulative=${cumulativeHeight}, corner=${corner}`)
       }
     }
+
+    console.log(`Final cumulative height for widget ${index}: ${cumulativeHeight}`)
 
     const position: any = {
       zIndex: 1000 + index
@@ -1993,21 +2064,92 @@ export class ChartCoordinateService {
 
     const edgePadding = 8
 
-    // Set horizontal position relative to pane bounds
+    // Set horizontal position using actual Y-axis widths from price scale APIs
     if (isRightCorner) {
-      position.right = edgePadding
+      // For right corners, account for right price scale width
+      position.right = edgePadding + axisDimensions.rightPriceScaleWidth
     } else {
-      position.left = paneCoords.bounds.left + edgePadding
+      // For left corners, account for left price scale width
+      position.left = edgePadding + axisDimensions.leftPriceScaleWidth
     }
 
-    // Set vertical position relative to pane bounds
+    // Set vertical position using actual X-axis height from time scale API
     if (isTopCorner) {
       position.top = paneCoords.bounds.top + edgePadding + cumulativeHeight
     } else {
-      position.bottom = edgePadding + cumulativeHeight
+      // For bottom positioning, account for X-axis height on the last pane
+      let bottomOffset = edgePadding + cumulativeHeight
+
+      const isLastPane = this.isLastPane(chart, paneId)
+      if (isLastPane) {
+        // Add actual X-axis height from time scale API
+        bottomOffset += axisDimensions.timeScaleHeight
+      }
+
+      position.bottom = bottomOffset
     }
 
+    console.log(`Final position for widget ${index} in ${corner}:`, position)
     return position
+  }
+
+  /**
+   * Get actual axis dimensions from lightweight-charts APIs
+   */
+  private getAxisDimensions(chart: IChartApi): {
+    timeScaleHeight: number;
+    leftPriceScaleWidth: number;
+    rightPriceScaleWidth: number;
+  } {
+    let timeScaleHeight = 35 // Default fallback
+    let leftPriceScaleWidth = 0 // Default: no left scale
+    let rightPriceScaleWidth = 70 // Default fallback for right scale
+
+    try {
+      // Get X-axis (time scale) height using ITimeScaleApi
+      timeScaleHeight = chart.timeScale().height()
+    } catch (error) {
+      // Use fallback value
+    }
+
+    try {
+      // Get left Y-axis (price scale) width using IPriceScaleApi
+      const leftPriceScale = chart.priceScale('left')
+      if (leftPriceScale) {
+        leftPriceScaleWidth = leftPriceScale.width()
+      }
+    } catch (error) {
+      // Left scale doesn't exist or failed - keep default 0
+    }
+
+    try {
+      // Get right Y-axis (price scale) width using IPriceScaleApi
+      const rightPriceScale = chart.priceScale('right')
+      if (rightPriceScale) {
+        rightPriceScaleWidth = rightPriceScale.width()
+      }
+    } catch (error) {
+      // Use fallback value
+    }
+
+    return {
+      timeScaleHeight,
+      leftPriceScaleWidth,
+      rightPriceScaleWidth
+    }
+  }
+
+  /**
+   * Check if the given pane is the last pane in the chart
+   */
+  private isLastPane(chart: IChartApi, paneId: number): boolean {
+    try {
+      // Try to get the next pane - if it fails, this is the last pane
+      chart.paneSize(paneId + 1)
+      return false // If we get here, there's a next pane
+    } catch (error) {
+      return true // Error means no next pane exists
+    }
   }
 
   /**
@@ -2073,24 +2215,32 @@ export class ChartCoordinateService {
       }
     }
 
-    // Use the same timing pattern as legacy implementation
-    // Initial setup with delay to ensure chart is ready
-    setTimeout(() => {
-      updateLayoutManager()
-
-      // Retry after a bit more time to ensure everything is stable
-      setTimeout(() => {
+    // Fast synchronous update for resize events
+    const fastUpdateLayoutManager = () => {
+      // Use immediate dimension update for fast resize response
+      if (layoutManager.updateChartDimensionsFromElement) {
+        layoutManager.updateChartDimensionsFromElement()
+      } else {
+        // Fallback to async method
         updateLayoutManager()
-      }, 200)
-    }, 100)
+      }
+    }
+
+    // Immediate setup for fast resize performance
+    updateLayoutManager()
+
+    // Single follow-up using requestAnimationFrame for smooth updates
+    requestAnimationFrame(() => {
+      updateLayoutManager()
+    })
 
     // Watch for chart element resize and pane changes
     try {
       const chartElement = chart.chartElement()
       if (chartElement && typeof ResizeObserver !== 'undefined') {
         const resizeObserver = new ResizeObserver(() => {
-          // Add slight delay for resize events to avoid rapid firing
-          setTimeout(updateLayoutManager, 50)
+          // Use immediate synchronous update for instant resize response
+          fastUpdateLayoutManager()
         })
         resizeObserver.observe(chartElement)
       }

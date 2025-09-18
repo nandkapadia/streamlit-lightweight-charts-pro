@@ -73,6 +73,7 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   protected config: TConfig
   protected chart: IChartApi | null = null
   protected series: ISeriesApi<any> | null = null
+  protected requestUpdate: (() => void) | null = null
   protected layoutManager: CornerLayoutManager | null = null
   protected coordinateService: ChartCoordinateService
   protected templateEngine: TemplateEngine
@@ -113,6 +114,7 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   }): void {
     this.chart = params.chart
     this.series = params.series
+    this.requestUpdate = params.requestUpdate
 
     // Initialize layout management
     this.initializeLayoutManagement()
@@ -165,6 +167,27 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   }
 
   /**
+   * Required IPanePrimitive method - provides pane views for rendering
+   * This enables immediate response to pane resize/redraw events
+   */
+  public paneViews(): any[] {
+    return [
+      {
+        renderer: () => ({
+          draw: () => {
+            // This gets called during every pane redraw/resize event
+            // Trigger immediate layout update for responsive positioning
+            if (this.layoutManager && this.mounted) {
+              // Use immediate synchronous update for instant response
+              this.layoutManager.updateChartDimensionsFromElement()
+            }
+          }
+        })
+      }
+    ]
+  }
+
+  /**
    * Main primitive update method - handles rendering
    */
   public updateAllViews(): void {
@@ -195,19 +218,51 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
       return { width: 0, height: 0 }
     }
 
-    return {
-      width: this.containerElement.offsetWidth || 0,
-      height: this.containerElement.offsetHeight || 0
+    // Get actual dimensions
+    let width = this.containerElement.offsetWidth || 0
+    let height = this.containerElement.offsetHeight || 0
+
+    // Fallback for cases where element hasn't been rendered yet
+    if ((width === 0 || height === 0) && this.containerElement) {
+      // Force measurement by temporarily making element visible
+      const originalDisplay = this.containerElement.style.display
+      const originalVisibility = this.containerElement.style.visibility
+      const originalPosition = this.containerElement.style.position
+
+      this.containerElement.style.display = 'block'
+      this.containerElement.style.visibility = 'hidden'
+      this.containerElement.style.position = 'absolute'
+
+      width = this.containerElement.offsetWidth || width
+      height = this.containerElement.offsetHeight || height
+
+      // Restore original styles
+      this.containerElement.style.display = originalDisplay
+      this.containerElement.style.visibility = originalVisibility
+      this.containerElement.style.position = originalPosition
+
+      // If still zero, provide reasonable defaults based on content
+      if (width === 0) {
+        const textLength = this.containerElement.textContent?.length || 50
+        width = Math.max(100, textLength * 8) // Approximate character width
+      }
+      if (height === 0) {
+        height = 24 // Default height for one line of text with padding
+      }
     }
+
+    return { width, height }
   }
 
   /**
    * Called by layout manager to update position
+   * Now properly integrates with lightweight-charts coordinate updates
    */
   public updatePosition(position: Position): void {
     this.currentPosition = position
 
     if (this.containerElement) {
+      // Apply position immediately for instant response
       this.applyPositionToContainer(position)
     }
 
@@ -290,26 +345,31 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   }
 
   /**
-   * Apply position to container element
+   * Apply position to container element using lightweight-charts coordinate system
    */
   private applyPositionToContainer(position: Position): void {
     if (!this.containerElement) return
 
     const style = this.containerElement.style
 
-    // Reset positioning
+    // Use lightweight-charts coordinate system for positioning
     style.position = 'absolute'
     style.top = ''
     style.right = ''
     style.bottom = ''
     style.left = ''
 
-    // Apply new position
+    // Apply coordinates that will be managed by lightweight-charts coordinate transforms
     if (position.top !== undefined) style.top = `${position.top}px`
     if (position.right !== undefined) style.right = `${position.right}px`
     if (position.bottom !== undefined) style.bottom = `${position.bottom}px`
     if (position.left !== undefined) style.left = `${position.left}px`
     if (position.zIndex !== undefined) style.zIndex = position.zIndex.toString()
+
+    // Request chart update to synchronize with lightweight-charts coordinate system
+    if (this.requestUpdate) {
+      this.requestUpdate()
+    }
   }
 
   /**

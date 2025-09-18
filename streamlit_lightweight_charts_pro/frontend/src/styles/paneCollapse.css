@@ -26,7 +26,8 @@
     background 0.2s ease,
     color 0.2s ease,
     border-color 0.2s ease,
-    transform 0.1s ease;
+    transform 0.1s ease,
+    box-shadow 0.2s ease;
   /* Enable hardware acceleration for smoother animations */
   will-change: top, left;
   backface-visibility: hidden;
@@ -36,8 +37,26 @@
 .pane-collapse-button:hover {
   background: rgba(255, 255, 255, 1);
   color: #131722;
-  border-color: #131722;
+  border-color: #2962ff;
   transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(41, 98, 255, 0.2);
+}
+
+/* Enhanced styling for collapsed state - matches TradingView's expand button */
+.pane-collapse-button.collapsed {
+  background: #2962ff;
+  color: white;
+  border-color: #2962ff;
+  box-shadow: 0 2px 6px rgba(41, 98, 255, 0.3);
+  font-weight: 600;
+}
+
+.pane-collapse-button.collapsed:hover {
+  background: #1e53e5;
+  color: white;
+  border-color: #1e53e5;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(30, 83, 229, 0.4);
 }
 
 .pane-collapse-button:active {
@@ -82,6 +101,44 @@
     font-size: 11px;
     padding: 3px 6px;
   }
+}
+
+/* Collapsed pane styles - matches TradingView behavior */
+.pane-collapsed {
+  height: 33px !important;
+  min-height: 33px !important;
+  max-height: 33px !important;
+  overflow: hidden !important;
+  transition: height 0.2s ease-in-out;
+}
+
+/* Resize canvas elements to collapsed height and hide chart content */
+.pane-collapsed canvas {
+  height: 33px !important;
+  max-height: 33px !important;
+  transition: height 0.2s ease-in-out;
+  /* Hide the chart content while keeping canvas structure */
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Resize the chart container to collapsed height */
+.pane-collapsed .tv-lightweight-charts {
+  height: 33px !important;
+  max-height: 33px !important;
+  transition: height 0.2s ease-in-out;
+}
+
+/* Ensure collapsed pane container maintains structure */
+.pane-collapsed > div {
+  height: 33px !important;
+  max-height: 33px !important;
+}
+
+/* Ensure all child containers adapt to collapsed height */
+.pane-collapsed > div > * {
+  height: 33px !important;
+  max-height: 33px !important;
 }
 
 /* High contrast mode support */

@@ -21,6 +21,7 @@ export class ChartPrimitiveManager {
   private eventManager: PrimitiveEventManager
   private primitives: Map<string, any> = new Map()
   private collapseButtonStates: Map<number, boolean> = new Map()
+  private legendCounter: number = 0
 
   private constructor(chart: IChartApi, chartId: string) {
     this.chart = chart
@@ -93,7 +94,7 @@ export class ChartPrimitiveManager {
     paneId: number = 0,
     seriesReference?: ISeriesApi<any>
   ): { destroy: () => void } {
-    const primitiveId = `legend-${this.chartId}-${Date.now()}`
+    const primitiveId = `legend-${this.chartId}-${++this.legendCounter}`
 
     try {
       const legend = new LegendPrimitive(primitiveId, {
@@ -109,27 +110,18 @@ export class ChartPrimitiveManager {
         }
       })
 
-      // Series reference would be set through primitive event system for crosshair updates
-
-      // Attach to appropriate level (chart or pane)
-      if (isPanePrimitive && paneId > 0) {
-        // Get pane and attach to it
-        const panes = this.chart.panes()
-        if (panes.length > paneId) {
-          panes[paneId].attachPrimitive(legend)
-        } else {
-          // Fallback to first pane if pane doesn't exist
-          const fallbackPanes = this.chart.panes()
-          if (fallbackPanes.length > 0) {
-            fallbackPanes[0].attachPrimitive(legend)
-          }
+      // Attach to series if we have a series reference (preferred for legends)
+      if (seriesReference) {
+        try {
+          seriesReference.attachPrimitive(legend)
+        } catch (error) {
+          console.warn(`Failed to attach legend to series, falling back to pane attachment:`, error)
+          // Fallback to pane attachment if series attachment fails
+          this.attachToPaneAsFallback(legend, isPanePrimitive, paneId)
         }
       } else {
-        // Attach to first pane (chart-level)
-        const panes = this.chart.panes()
-        if (panes.length > 0) {
-          panes[0].attachPrimitive(legend)
-        }
+        // Attach to appropriate level (chart or pane) when no series reference
+        this.attachToPaneAsFallback(legend, isPanePrimitive, paneId)
       }
 
       this.primitives.set(primitiveId, legend)
@@ -283,5 +275,30 @@ export class ChartPrimitiveManager {
    */
   public getChartId(): string {
     return this.chartId
+  }
+
+  /**
+   * Helper method to attach primitive to pane as fallback
+   */
+  private attachToPaneAsFallback(primitive: any, isPanePrimitive: boolean, paneId: number): void {
+    if (isPanePrimitive && paneId >= 0) {
+      // Get pane and attach to it
+      const panes = this.chart.panes()
+      if (panes.length > paneId) {
+        panes[paneId].attachPrimitive(primitive)
+      } else {
+        // Fallback to first pane if pane doesn't exist
+        const fallbackPanes = this.chart.panes()
+        if (fallbackPanes.length > 0) {
+          fallbackPanes[0].attachPrimitive(primitive)
+        }
+      }
+    } else {
+      // Attach to first pane (chart-level)
+      const panes = this.chart.panes()
+      if (panes.length > 0) {
+        panes[0].attachPrimitive(primitive)
+      }
+    }
   }
 }

@@ -2,21 +2,44 @@
 
 from dataclasses import dataclass, field
 from typing import List, Literal
+from enum import Enum
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
 from streamlit_lightweight_charts_pro.utils import chainable_field
 
 
+class TimeRange(Enum):
+    """Time range constants in seconds for range switcher."""
+
+    FIVE_MINUTES = 300
+    FIFTEEN_MINUTES = 900
+    ONE_HOUR = 3600
+    FOUR_HOURS = 14400
+    ONE_DAY = 86400
+    ONE_WEEK = 604800
+    ONE_MONTH = 2592000
+    THREE_MONTHS = 7776000
+    SIX_MONTHS = 15552000
+    ONE_YEAR = 31536000
+    FIVE_YEARS = 157680000
+    ALL = None  # Special value for "all data"
+
+
 @dataclass
 @chainable_field("text", str)
 @chainable_field("tooltip", str)
-@chainable_field("seconds", (int, type(None)))
+@chainable_field("range", TimeRange)
 class RangeConfig(Options):
     """Range configuration for range switcher."""
 
     text: str = ""
     tooltip: str = ""
-    seconds: int | None = None
+    range: TimeRange = TimeRange.ONE_DAY
+
+    @property
+    def seconds(self) -> int | None:
+        """Get the time range in seconds."""
+        return self.range.value if self.range else None
 
 
 @dataclass
