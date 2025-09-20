@@ -51,6 +51,9 @@ class RangeSwitcherOptions(Options):
 
     Range switcher supports only corner positions: top-left, top-right,
     bottom-left, bottom-right. Center positions are not supported.
+
+    Range buttons are automatically hidden when they exceed the available
+    data timespan, providing a better user experience.
     """
 
     visible: bool = True

@@ -132,7 +132,6 @@ export interface RangeSwitcherPrimitiveConfig extends BasePrimitiveConfig {
    */
   ranges: RangeConfig[]
 
-
   /**
    * Callback when range changes
    */
@@ -206,6 +205,7 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
 
   private buttonElements: HTMLElement[] = []
   private buttonEventCleanupFunctions: (() => void)[] = []
+  private dataTimespan: number | null = null // Cached data timespan in seconds
 
   constructor(id: string, config: RangeSwitcherPrimitiveConfig) {
     // Set default priority and configuration for range switchers
@@ -270,10 +270,21 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     buttonContainer.className = 'range-switcher-container'
     this.applyContainerStyling(buttonContainer)
 
-    // Create buttons for each range
+    // Create buttons for each range and filter based on data availability
     this.config.ranges.forEach((range, index) => {
       const button = this.createRangeButton(range, index)
-      buttonContainer.appendChild(button)
+
+      // Check if this range should be visible based on data availability
+      if (this.isRangeValidForData(range)) {
+        button.style.display = '' // Show the button
+        buttonContainer.appendChild(button)
+      } else {
+        button.style.display = 'none' // Hide the button
+        button.setAttribute('data-hidden-reason', 'exceeds-data-range')
+        // Still append to container but hidden, so we can show/hide dynamically
+        buttonContainer.appendChild(button)
+      }
+
       this.buttonElements.push(button)
     })
 
@@ -307,6 +318,14 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     button.textContent = range.text
     button.setAttribute('data-range-index', index.toString())
     button.setAttribute('aria-label', `Switch to ${range.text} time range`)
+
+    // Add data attributes for debugging and testing
+    const rangeValue = getRangeValue(range)
+    const seconds = getSecondsFromRange(rangeValue)
+    if (seconds !== null) {
+      button.setAttribute('data-range-seconds', seconds.toString())
+    }
+
     return button
   }
 
@@ -489,6 +508,78 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
   }
 
   /**
+   * Get the timespan of available data in seconds
+   */
+  private getDataTimespan(): number | null {
+    if (!this.chart) return null
+
+    try {
+      const timeScale = this.chart.timeScale()
+
+      // Store current visible range to restore it later
+      const currentRange = timeScale.getVisibleRange()
+
+      // Temporarily fit content to get the full data range
+      timeScale.fitContent()
+      const fullRange = timeScale.getVisibleRange()
+
+      // Restore the original visible range
+      if (currentRange) {
+        timeScale.setVisibleRange(currentRange)
+      }
+
+      if (!fullRange || !fullRange.from || !fullRange.to) return null
+
+      // Calculate timespan in seconds
+      const timespanSeconds = (fullRange.to as number) - (fullRange.from as number)
+
+      // Cache the result for performance
+      this.dataTimespan = timespanSeconds
+
+      return timespanSeconds
+    } catch (error) {
+      // Return null if we can't determine data timespan
+      return null
+    }
+  }
+
+  /**
+   * Check if a range is valid for the current data
+   */
+  private isRangeValidForData(range: RangeConfig): boolean {
+    const rangeValue = getRangeValue(range)
+
+    // "All" range is always valid
+    if (isAllRange(range)) {
+      return true
+    }
+
+    const rangeSeconds = getSecondsFromRange(rangeValue)
+    if (rangeSeconds === null) {
+      return true // Unknown ranges are considered valid
+    }
+
+    const dataTimespan = this.getDataTimespan()
+    if (dataTimespan === null) {
+      return true // If we can't determine data timespan, show all ranges
+    }
+
+    // Hide ranges that are significantly larger than available data
+    // Add a 10% buffer to account for minor timing differences
+    const bufferMultiplier = 1.1
+    return rangeSeconds <= (dataTimespan * bufferMultiplier)
+  }
+
+  /**
+   * Get visible ranges based on data availability
+   */
+  private getVisibleRanges(): Array<{ range: RangeConfig; originalIndex: number }> {
+    return this.config.ranges
+      .map((range, index) => ({ range, originalIndex: index }))
+      .filter(({ range }) => this.isRangeValidForData(range))
+  }
+
+  /**
    * Get CSS class name for the container
    */
   protected getContainerClassName(): string {
@@ -523,6 +614,12 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
       this.handleTimeScaleChange(event)
     })
     this.eventSubscriptions.push(timeScaleSub)
+
+    // Subscribe to data updates to refresh range visibility
+    const dataUpdateSub = this.eventManager.subscribe('dataUpdate', () => {
+      this.handleDataUpdate()
+    })
+    this.eventSubscriptions.push(dataUpdateSub)
   }
 
   /**
@@ -534,11 +631,65 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
   }
 
   /**
+   * Handle data updates that might affect range visibility
+   */
+  private handleDataUpdate(): void {
+    if (this.mounted) {
+      this.invalidateDataTimespan()
+      // Update button visibility without full re-render
+      this.updateRangeButtonVisibility()
+    }
+  }
+
+  /**
+   * Update range button visibility based on current data
+   */
+  private updateRangeButtonVisibility(): void {
+    // Check each range and update button visibility
+    this.config.ranges.forEach((range, index) => {
+      const button = this.buttonElements[index]
+      if (button) {
+        if (this.isRangeValidForData(range)) {
+          button.style.display = '' // Show the button
+          button.removeAttribute('data-hidden-reason')
+        } else {
+          button.style.display = 'none' // Hide the button
+          button.setAttribute('data-hidden-reason', 'exceeds-data-range')
+        }
+      }
+    })
+  }
+
+  /**
    * Called when container is created
    */
   protected onContainerCreated(container: HTMLElement): void {
     // Ensure container allows pointer events for buttons
     container.style.pointerEvents = 'auto'
+
+    // Set up mutation observer to detect data changes
+    this.setupDataChangeObserver()
+  }
+
+  /**
+   * Set up observer to detect chart data changes
+   */
+  private setupDataChangeObserver(): void {
+    if (!this.chart) return
+
+    // Use a timeout to periodically check for data changes
+    // This is more reliable than trying to intercept all possible data update events
+    const checkDataChanges = () => {
+      if (this.mounted) {
+        const currentTimespan = this.getDataTimespan()
+        if (currentTimespan !== this.dataTimespan) {
+          this.updateRangeButtonVisibility()
+        }
+      }
+    }
+
+    // Check every 1 second for data changes
+    setInterval(checkDataChanges, 1000)
   }
 
   // ===== Public API =====
@@ -549,7 +700,8 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
   public addRange(range: RangeConfig): void {
     this.config.ranges.push(range)
     if (this.mounted) {
-      this.renderContent()
+      this.invalidateDataTimespan() // Clear cache when ranges change
+      this.renderContent() // Full re-render needed for new buttons
     }
   }
 
@@ -574,8 +726,65 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     this.config.ranges = ranges
 
     if (this.mounted) {
-      this.renderContent()
+      this.invalidateDataTimespan() // Clear cache when ranges change
+      this.renderContent() // Full re-render needed for new button set
     }
+  }
+
+
+  /**
+   * Invalidate cached data timespan (call when data changes)
+   */
+  public invalidateDataTimespan(): void {
+    this.dataTimespan = null
+  }
+
+  /**
+   * Get the current data timespan in seconds
+   */
+  public getDataTimespanSeconds(): number | null {
+    return this.getDataTimespan()
+  }
+
+  /**
+   * Force update of range button visibility
+   * Useful when called externally after data changes
+   */
+  public updateButtonVisibility(): void {
+    if (this.mounted) {
+      this.invalidateDataTimespan()
+      this.updateRangeButtonVisibility()
+    }
+  }
+
+  /**
+   * Get information about hidden ranges
+   */
+  public getHiddenRanges(): Array<{ range: RangeConfig; index: number; reason: string }> {
+    const hiddenRanges: Array<{ range: RangeConfig; index: number; reason: string }> = []
+
+    this.config.ranges.forEach((range, index) => {
+      if (!this.isRangeValidForData(range)) {
+        hiddenRanges.push({
+          range,
+          index,
+          reason: 'exceeds-data-range'
+        })
+      }
+    })
+
+    return hiddenRanges
+  }
+
+  /**
+   * Get information about visible ranges
+   */
+  public getVisibleRangeInfo(): Array<{ range: RangeConfig; index: number; dataTimespan: number | null }> {
+    const dataTimespan = this.getDataTimespan()
+
+    return this.config.ranges
+      .map((range, index) => ({ range, index, dataTimespan }))
+      .filter(({ range }) => this.isRangeValidForData(range))
   }
 
 
