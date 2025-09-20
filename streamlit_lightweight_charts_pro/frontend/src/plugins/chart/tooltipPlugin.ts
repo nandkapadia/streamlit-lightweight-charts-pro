@@ -11,6 +11,7 @@
 
 import {IChartApi, ISeriesApi, SeriesType, Time} from 'lightweight-charts'
 import {ChartCoordinateService} from '../../services/ChartCoordinateService'
+import {UniversalSpacing} from '../../primitives/PrimitiveDefaults'
 
 export interface TooltipField {
   label: string
@@ -505,7 +506,7 @@ export class TooltipPlugin {
         background-color: rgba(255, 255, 255, 0.95);
         border: 1px solid #e1e3e6;
         border-radius: 4px;
-        padding: 8px;
+        padding: ${UniversalSpacing.DEFAULT_PADDING}px;
         font-family: sans-serif;
         font-size: 12px;
         color: #131722;

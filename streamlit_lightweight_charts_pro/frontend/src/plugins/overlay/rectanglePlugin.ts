@@ -2,6 +2,7 @@ import {IChartApi} from 'lightweight-charts'
 import {ChartReadyDetector} from '../../utils/chartReadyDetection'
 import {ResizeObserverManager} from '../../utils/resizeObserverManager'
 import {ChartCoordinateService} from '../../services/ChartCoordinateService'
+import {UniversalSpacing} from '../../primitives/PrimitiveDefaults'
 
 export interface RectangleConfig {
   id: string
@@ -427,7 +428,7 @@ export class RectangleOverlayPlugin {
       // Draw label background if specified
       if (rect.labelBackground) {
         const textMetrics = this.ctx.measureText(rect.label)
-        const padding = rect.labelPadding || 4
+        const padding = rect.labelPadding || UniversalSpacing.DEFAULT_PADDING
         const bgWidth = textMetrics.width + padding * 2
         const bgHeight = (rect.labelFontSize || 12) + padding * 2
 

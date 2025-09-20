@@ -66,7 +66,6 @@ export class ChartPrimitiveManager {
         corner: config.position || 'top-right',
         priority: PrimitivePriority.RANGE_SWITCHER,
         ranges: config.ranges || [...DefaultRangeConfigs.trading],
-        activeRangeIndex: 0,
       })
 
       // Attach to first pane (chart-level primitives go to pane 0)

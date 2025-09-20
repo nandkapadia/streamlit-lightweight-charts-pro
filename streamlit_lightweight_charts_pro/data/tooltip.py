@@ -84,7 +84,7 @@ class TooltipStyle:
     border_color: str = "#e1e3e6"
     border_width: int = 1
     border_radius: int = 4
-    padding: int = 8
+    padding: int = 6
     font_size: int = 12
     font_family: str = "sans-serif"
     color: str = "#131722"

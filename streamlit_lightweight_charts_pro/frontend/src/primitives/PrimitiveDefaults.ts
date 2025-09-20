@@ -30,8 +30,10 @@ export const TimeRangeSeconds = {
  * Universal padding and spacing constants
  */
 export const UniversalSpacing = {
-  EDGE_PADDING: 2,  // Universal padding for widget edges and container spacing
-  WIDGET_GAP: 2,    // Gap between stacked widgets
+  EDGE_PADDING: 6,  // Universal padding for widget edges and container spacing
+  WIDGET_GAP: 6,    // Gap between stacked widgets
+  WIDGET_HORIZONTAL_GAP: 6, // Gap between horizontally stacked widgets
+  DEFAULT_PADDING: 6, // Default padding inside widgets
   BASE_Z_INDEX: 1000
 } as const
 
@@ -59,7 +61,7 @@ export const ButtonSpacing = {
   CONTAINER_PADDING: UniversalSpacing.EDGE_PADDING,
   CONTAINER_GAP: 2, // Reduced from 4 for more compact layout
   RANGE_CONTAINER_GAP: 2, // Reduced from 4 for tighter spacing
-  BUTTON_PADDING: '6px 12px',
+  BUTTON_PADDING: '4px 12px', // Standard button padding (not affected by 6px widget margin rule)
   RANGE_BUTTON_PADDING: '3px 8px', // More compact padding for range buttons
   PANE_ACTION_PADDING: '0',
   BUTTON_MARGIN: '0',
@@ -106,9 +108,9 @@ export const ButtonEffects = {
  * Legend dimensions and spacing
  */
 export const LegendDimensions = {
-  DEFAULT_PADDING: 2,
-  OHLC_PADDING: 8,
-  BAND_PADDING: 8,
+  DEFAULT_PADDING: UniversalSpacing.DEFAULT_PADDING,
+  OHLC_PADDING: UniversalSpacing.DEFAULT_PADDING,
+  BAND_PADDING: UniversalSpacing.DEFAULT_PADDING,
   BORDER_RADIUS: 4,
   MAX_WIDTH: 200,
   FONT_SIZE: 12,
@@ -142,7 +144,7 @@ export const LegendColors = {
  * Range switcher layout constants
  */
 export const RangeSwitcherLayout = {
-  CONTAINER_PADDING: UniversalSpacing.EDGE_PADDING,
+  CONTAINER_PADDING: 0, // No internal padding - edge margin is handled by positioning logic
   CONTAINER_GAP: ButtonSpacing.RANGE_CONTAINER_GAP, // Use the compact gap setting
   FLEX_DIRECTION: 'row' as const,
   ALIGN_ITEMS: 'center',

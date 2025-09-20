@@ -265,9 +265,13 @@ export class CornerLayoutManager {
     const widgetsBeforeThis = visibleWidgets.slice(0, index)
 
     // Calculate cumulative height of widgets above this one
+    // Add gaps between widgets only (not before the first widget)
     let cumulativeHeight = 0
-    for (const prevWidget of widgetsBeforeThis) {
-      cumulativeHeight += prevWidget.getDimensions().height + this.config.widgetGap
+    for (let i = 0; i < widgetsBeforeThis.length; i++) {
+      const prevWidget = widgetsBeforeThis[i]
+      cumulativeHeight += prevWidget.getDimensions().height
+      // Add gap after each widget (space before the next widget)
+      cumulativeHeight += this.config.widgetGap
     }
 
     // Calculate position based on corner

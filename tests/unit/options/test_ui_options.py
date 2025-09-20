@@ -100,7 +100,7 @@ class TestLegendOptions:
         options = LegendOptions()
         assert options.visible is True
         assert options.position == "top-left"
-        assert options.padding == 4  # Updated default value
+        assert options.padding == 6  # Default padding value
         assert options.text == ""
 
     def test_custom_construction(self):

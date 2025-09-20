@@ -3,33 +3,36 @@
  * Centralizes all positioning-related magic numbers and defaults
  */
 
+import {UniversalSpacing} from '../primitives/PrimitiveDefaults'
+
 /**
  * Standard margins used throughout the application
+ * All margins now use the centralized 6px constants for consistency
  */
 export const MARGINS = {
   legend: {
-    top: 20,
-    right: 20,
-    bottom: 20,
-    left: 20
+    top: UniversalSpacing.EDGE_PADDING,
+    right: UniversalSpacing.EDGE_PADDING,
+    bottom: UniversalSpacing.WIDGET_GAP,
+    left: UniversalSpacing.EDGE_PADDING
   },
   pane: {
-    top: 10,
-    right: 10,
-    bottom: 10,
-    left: 10
+    top: UniversalSpacing.EDGE_PADDING,
+    right: UniversalSpacing.EDGE_PADDING,
+    bottom: UniversalSpacing.EDGE_PADDING,
+    left: UniversalSpacing.EDGE_PADDING
   },
   content: {
-    top: 5,
-    right: 5,
-    bottom: 5,
-    left: 5
+    top: UniversalSpacing.EDGE_PADDING,
+    right: UniversalSpacing.EDGE_PADDING,
+    bottom: UniversalSpacing.EDGE_PADDING,
+    left: UniversalSpacing.EDGE_PADDING
   },
   tooltip: {
-    top: 10,
-    right: 10,
-    bottom: 10,
-    left: 10
+    top: UniversalSpacing.EDGE_PADDING,
+    right: UniversalSpacing.EDGE_PADDING,
+    bottom: UniversalSpacing.EDGE_PADDING,
+    left: UniversalSpacing.EDGE_PADDING
   }
 } as const
 

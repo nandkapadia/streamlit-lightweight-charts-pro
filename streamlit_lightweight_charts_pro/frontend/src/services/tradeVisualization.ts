@@ -1,5 +1,6 @@
 import {UTCTimestamp, SeriesMarker, Time} from 'lightweight-charts'
 import {TradeConfig, TradeVisualizationOptions} from '../types'
+import {UniversalSpacing} from '../primitives/PrimitiveDefaults'
 
 // CRITICAL: Timezone-agnostic parsing functions
 /**
@@ -357,7 +358,7 @@ export function createTradeVisualElements(
         fontSize: options.annotationFontSize || 12,
         backgroundColor: options.annotationBackground || 'rgba(255, 255, 255, 0.8)',
         color: '#000000',
-        padding: 4
+        padding: UniversalSpacing.DEFAULT_PADDING
       })
     })
   }

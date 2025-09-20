@@ -225,10 +225,10 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
         element.style.setProperty('color', baseStyles.color, 'important')
       }
 
-      // Ensure adequate padding for visibility
-      if (!element.style.padding) {
-        element.style.setProperty('padding', `${LegendDimensions.DEFAULT_PADDING}px`, 'important')
-      }
+      // Remove padding since inner content (span) handles its own padding
+      element.style.setProperty('padding', '0', 'important')
+      // Explicitly remove any margins since spacing is handled by layout manager
+      element.style.setProperty('margin', '0', 'important')
 
       // Apply legend-specific layout constraints
       const style = element.style
@@ -238,6 +238,10 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
       style.overflow = CommonValues.HIDDEN
       style.textOverflow = CommonValues.ELLIPSIS
       style.maxWidth = `${LegendDimensions.MAX_WIDTH}px`
+
+      // Ensure no browser defaults add extra spacing
+      style.lineHeight = '1'
+      style.boxSizing = 'border-box'
 
       // Apply text shadow directly since it's not handled by baseStyles
       if (config.textShadow) {

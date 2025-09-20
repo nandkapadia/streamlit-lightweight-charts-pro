@@ -397,7 +397,13 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
       if (configStyle.fontFamily) style.fontFamily = configStyle.fontFamily
       if (configStyle.borderRadius && !isLegend) style.borderRadius = `${configStyle.borderRadius}px`
       if (configStyle.padding && !isLegend) style.padding = `${configStyle.padding}px`
-      if (configStyle.margin) style.margin = `${configStyle.margin}px`
+
+      // For legends, force margin to 0 since spacing is handled by layout manager
+      if (isLegend) {
+        style.margin = '0'
+      } else if (configStyle.margin) {
+        style.margin = `${configStyle.margin}px`
+      }
       if (configStyle.zIndex) style.zIndex = configStyle.zIndex.toString()
 
       // Ensure container is transparent for legends

@@ -30,6 +30,7 @@ import {
   getFallback,
   getMargins
 } from '../config/positioningConfig'
+import {UniversalSpacing} from '../primitives/PrimitiveDefaults'
 
 /**
  * Configuration for chart dimensions validation
@@ -795,7 +796,7 @@ export class ChartCoordinateService {
 
       // Calculate position-specific margins
       const getMarginForPosition = (pos: string) => {
-        const baseMargin = 8
+        const baseMargin = UniversalSpacing.EDGE_PADDING
         const margins = {
           top: baseMargin + priceScaleLabelHeight, // Add space for price scale labels at top
           right: baseMargin + actualPriceScaleWidth, // Add space for price scale width
@@ -2049,20 +2050,17 @@ export class ChartCoordinateService {
           }
         }
 
-        cumulativeHeight += height + 8 // 8px gap
+        cumulativeHeight += height + UniversalSpacing.WIDGET_GAP // Widget gap between stacked legends
 
-        // Temporary debugging
-        console.log(`Stacking widget ${i}/${index}: height=${height}, cumulative=${cumulativeHeight}, corner=${corner}`)
       }
     }
 
-    console.log(`Final cumulative height for widget ${index}: ${cumulativeHeight}`)
 
     const position: any = {
       zIndex: 1000 + index
     }
 
-    const edgePadding = 8
+    const edgePadding = UniversalSpacing.EDGE_PADDING
 
     // Set horizontal position using actual Y-axis widths from price scale APIs
     if (isRightCorner) {
@@ -2089,7 +2087,6 @@ export class ChartCoordinateService {
       position.bottom = bottomOffset
     }
 
-    console.log(`Final position for widget ${index} in ${corner}:`, position)
     return position
   }
 
@@ -2177,13 +2174,13 @@ export class ChartCoordinateService {
   ): {isValid: boolean; overflowingWidgets: any[]} {
     const overflowing: any[] = []
     const isTopCorner = corner.startsWith('top')
-    let cumulativeHeight = 8 // Edge padding
+    let cumulativeHeight = UniversalSpacing.EDGE_PADDING // Edge padding
 
     for (const widget of widgets) {
       if (!widget.visible) continue
 
       const dims = widget.getDimensions()
-      const totalHeightRequired = cumulativeHeight + dims.height + 8 // Edge padding
+      const totalHeightRequired = cumulativeHeight + dims.height + UniversalSpacing.EDGE_PADDING // Edge padding
 
       if (isTopCorner) {
         if (totalHeightRequired > containerBounds.height) {
@@ -2195,7 +2192,7 @@ export class ChartCoordinateService {
         }
       }
 
-      cumulativeHeight += dims.height + 8 // Widget gap
+      cumulativeHeight += dims.height + UniversalSpacing.WIDGET_GAP // Widget gap
     }
 
     return {

@@ -54,10 +54,6 @@ export interface RangeConfig {
    */
   seconds?: number | null
 
-  /**
-   * Whether this is the active range
-   */
-  active?: boolean
 }
 
 /**
@@ -136,10 +132,6 @@ export interface RangeSwitcherPrimitiveConfig extends BasePrimitiveConfig {
    */
   ranges: RangeConfig[]
 
-  /**
-   * Initial active range index
-   */
-  activeRangeIndex?: number
 
   /**
    * Callback when range changes
@@ -158,8 +150,6 @@ export interface RangeSwitcherPrimitiveConfig extends BasePrimitiveConfig {
       color?: string
       hoverBackgroundColor?: string
       hoverColor?: string
-      activeBackgroundColor?: string
-      activeColor?: string
       border?: string
       borderRadius?: number
       padding?: string
@@ -204,7 +194,7 @@ export interface RangeSwitcherPrimitiveConfig extends BasePrimitiveConfig {
  *     { text: 'All', seconds: null }
  *   ],
  *   onRangeChange: (range) => {
- *     console.log('Range changed to:', range.text)
+ *     // Range changed to: range.text
  *   }
  * })
  *
@@ -214,20 +204,14 @@ export interface RangeSwitcherPrimitiveConfig extends BasePrimitiveConfig {
  */
 export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimitiveConfig> {
 
-  private activeRangeIndex: number = 0
   private buttonElements: HTMLElement[] = []
   private buttonEventCleanupFunctions: (() => void)[] = []
 
   constructor(id: string, config: RangeSwitcherPrimitiveConfig) {
     // Set default priority and configuration for range switchers
-    // Find the index of the "All" range to set as default
-    const allRangeIndex = config.ranges.findIndex(range => isAllRange(range))
-    const defaultActiveIndex = allRangeIndex !== -1 ? allRangeIndex : config.ranges.length - 1
-
     const configWithDefaults: RangeSwitcherPrimitiveConfig = {
       priority: PrimitivePriority.RANGE_SWITCHER,
       visible: true,
-      activeRangeIndex: defaultActiveIndex,
       style: {
         backgroundColor: 'transparent',
         padding: DefaultRangeSwitcherConfig.layout.CONTAINER_PADDING,
@@ -243,8 +227,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
           color: ButtonColors.DEFAULT_COLOR,
           hoverBackgroundColor: ButtonColors.HOVER_BACKGROUND,
           hoverColor: ButtonColors.HOVER_COLOR,
-          activeBackgroundColor: ButtonColors.PRESSED_BACKGROUND,
-          activeColor: ButtonColors.PRESSED_COLOR,
           border: ButtonEffects.DEFAULT_BORDER,
           borderRadius: ButtonDimensions.BORDER_RADIUS,
           padding: ButtonSpacing.RANGE_BUTTON_PADDING,
@@ -259,7 +241,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     }
 
     super(id, configWithDefaults)
-    this.activeRangeIndex = configWithDefaults.activeRangeIndex || defaultActiveIndex
   }
 
   // ===== BasePanePrimitive Implementation =====
@@ -297,9 +278,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     })
 
     this.containerElement.appendChild(buttonContainer)
-
-    // Update active state
-    this.updateActiveButton()
 
     // Trigger layout recalculation after content is rendered to ensure proper positioning
     // Use setTimeout to allow DOM to update dimensions first
@@ -367,14 +345,10 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
         this.handleRangeClick(index)
       },
       mouseEnter: () => {
-        if (index !== this.activeRangeIndex) {
-          this.applyButtonStyling(button, false, true)
-        }
+        this.applyButtonStyling(button, false, true)
       },
       mouseLeave: () => {
-        if (index !== this.activeRangeIndex) {
-          this.applyButtonStyling(button, false, false)
-        }
+        this.applyButtonStyling(button, false, false)
       }
     }
   }
@@ -431,12 +405,7 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
       // Prepare state-specific styles
       const stateStyles: BaseStyleConfig = {}
 
-      if (isActive) {
-        stateStyles.backgroundColor = buttonConfig.activeBackgroundColor || '#007AFF'
-        stateStyles.color = buttonConfig.activeColor || 'white'
-        stateStyles.border = '1px solid #007AFF'
-        stateStyles.boxShadow = '0 2px 4px rgba(0, 122, 255, 0.3)'
-      } else if (isHover) {
+      if (isHover) {
         stateStyles.backgroundColor = buttonConfig.hoverBackgroundColor || 'rgba(255, 255, 255, 1)'
         stateStyles.color = buttonConfig.hoverColor || '#333'
         stateStyles.boxShadow = ButtonEffects.RANGE_HOVER_BOX_SHADOW
@@ -444,7 +413,7 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
       }
 
       // Determine state for styling utils
-      const state = isActive ? 'active' : isHover ? 'hover' : 'default'
+      const state = isHover ? 'hover' : 'default'
 
       // Apply styles using standardized utilities
       PrimitiveStylingUtils.applyInteractionState(button, baseStyles, stateStyles, state)
@@ -460,10 +429,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
    * Handle range button click
    */
   private handleRangeClick(index: number): void {
-    if (index === this.activeRangeIndex) return
-
-    // Update active range
-    this.setActiveRange(index)
 
     // Apply range to chart
     this.applyRangeToChart(this.config.ranges[index])
@@ -482,31 +447,12 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     }
   }
 
-  /**
-   * Set active range
-   */
-  public setActiveRange(index: number): void {
-    if (index < 0 || index >= this.config.ranges.length) return
-
-    this.activeRangeIndex = index
-    this.updateActiveButton()
-  }
-
-  /**
-   * Update active button styling
-   */
-  private updateActiveButton(): void {
-    this.buttonElements.forEach((button, index) => {
-      const isActive = index === this.activeRangeIndex
-      this.applyButtonStyling(button, isActive)
-    })
-  }
 
   /**
    * Apply range to chart time scale
    */
   private applyRangeToChart(range: RangeConfig): void {
-    if (!this.chart || !this.series) return
+    if (!this.chart) return
 
     try {
       const timeScale = this.chart.timeScale()
@@ -515,41 +461,30 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
       const seconds = getSecondsFromRange(rangeValue)
 
       if (seconds === null) {
-        // "All" range - fit content
+        // "All" range - fit all content
         timeScale.fitContent()
       } else {
-        // Specific time range - use last bar as reference point
-        const data = this.series.data()
-        if (data && data.length > 0) {
-          // Get the last bar's time as the end point
-          const lastBarTime = data[data.length - 1].time
-          let endTime: number
+        // Specific time range - use current visible range or current time
+        const currentRange = timeScale.getVisibleRange()
+        let endTime: number
 
-          if (typeof lastBarTime === 'string') {
-            endTime = new Date(lastBarTime).getTime() / 1000
-          } else {
-            endTime = lastBarTime as number
-          }
-
-          const fromTime = endTime - seconds
-
-          timeScale.setVisibleRange({
-            from: fromTime as Time,
-            to: endTime as Time
-          })
+        if (currentRange && currentRange.to) {
+          // Use the current visible end time as reference
+          endTime = currentRange.to as number
         } else {
-          // Fallback to current time if no data available
-          const now = Date.now() / 1000
-          const fromTime = now - seconds
-
-          timeScale.setVisibleRange({
-            from: fromTime as Time,
-            to: now as Time
-          })
+          // Fallback to current time
+          endTime = Date.now() / 1000
         }
+
+        const fromTime = endTime - seconds
+
+        timeScale.setVisibleRange({
+          from: fromTime as Time,
+          to: endTime as Time
+        })
       }
     } catch (error) {
-      console.warn('Failed to apply range to chart:', error)
+      // Silently handle chart range application errors
     }
   }
 
@@ -626,10 +561,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
 
     this.config.ranges.splice(index, 1)
 
-    // Adjust active range if needed
-    if (this.activeRangeIndex >= this.config.ranges.length) {
-      this.activeRangeIndex = Math.max(0, this.config.ranges.length - 1)
-    }
 
     if (this.mounted) {
       this.renderContent()
@@ -641,29 +572,12 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
    */
   public updateRanges(ranges: RangeConfig[]): void {
     this.config.ranges = ranges
-    this.activeRangeIndex = Math.min(this.activeRangeIndex, ranges.length - 1)
 
     if (this.mounted) {
       this.renderContent()
     }
   }
 
-  /**
-   * Get current active range
-   */
-  public getActiveRange(): RangeConfig | null {
-    if (this.activeRangeIndex >= 0 && this.activeRangeIndex < this.config.ranges.length) {
-      return this.config.ranges[this.activeRangeIndex]
-    }
-    return null
-  }
-
-  /**
-   * Get active range index
-   */
-  public getActiveRangeIndex(): number {
-    return this.activeRangeIndex
-  }
 
   /**
    * Programmatically trigger range change

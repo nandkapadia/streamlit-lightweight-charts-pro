@@ -105,8 +105,8 @@ class LegendOptions(Options):
     border_color: str = "#e1e3e6"
     border_width: int = 1
     border_radius: int = 4
-    padding: int = 4
-    margin: int = 4
+    padding: int = 6
+    margin: int = 0  # No margin - spacing handled by layout manager
     z_index: int = 1000
     price_format: str = ".2f"
     text: str = ""

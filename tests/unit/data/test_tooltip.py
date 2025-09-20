@@ -99,7 +99,7 @@ class TestTooltipStyle:
         assert style.border_color == "#e1e3e6"
         assert style.border_width == 1
         assert style.border_radius == 4
-        assert style.padding == 8
+        assert style.padding == 6
         assert style.font_size == 12
         assert style.font_family == "sans-serif"
         assert style.color == "#131722"
