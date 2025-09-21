@@ -23,135 +23,53 @@ EXAMPLES_DIR = Path(__file__).parent
 
 # Example categories and their descriptions
 EXAMPLE_CATEGORIES = {
-    "📚 Tutorials": {
-        "description": "Step-by-step tutorials for complete beginners. Start here if you're new to the library!",
-        "examples": {
-            "tutorial_01_hello_world.py": {
-                "title": "Tutorial 1: Hello World",
-                "description": "Create your very first chart - perfect for absolute beginners.",
-                "path": "tutorials/tutorial_01_hello_world.py",
-            },
-            "tutorial_02_data_formats.py": {
-                "title": "Tutorial 2: Data Formats",
-                "description": "Learn about different ways to provide data to charts.",
-                "path": "tutorials/tutorial_02_data_formats.py",
-            },
-            "tutorial_03_customizing_charts.py": {
-                "title": "Tutorial 3: Customizing Charts",
-                "description": "Learn how to customize colors, styles, and layouts.",
-                "path": "tutorials/tutorial_03_customizing_charts.py",
-            },
-        },
-    },
-    "⚡ Quick Start": {
-        "description": "Copy-paste ready examples for immediate use. Perfect for testing your installation!",
+    "🚀 Getting Started": {
+        "description": "Perfect for beginners. Start here to learn the basics!",
         "examples": {
             "minimal_example.py": {
                 "title": "Minimal Example",
                 "description": "The absolute minimum code needed to create a chart.",
                 "path": "quick_start/minimal_example.py",
             },
-            "from_csv.py": {
-                "title": "Load from CSV",
-                "description": "Load data from a CSV file and create a chart.",
-                "path": "quick_start/from_csv.py",
+            "basic_line_chart.py": {
+                "title": "Basic Line Chart",
+                "description": "Learn how to create your first line chart with sample data.",
+                "path": "getting_started/basic_line_chart.py",
             },
-            "candlestick_example.py": {
-                "title": "Candlestick Chart",
-                "description": "Create a professional candlestick chart for financial data.",
-                "path": "quick_start/candlestick_example.py",
-            },
-        },
-    },
-    "🚀 Getting Started": {
-        "description": "Basic examples to get you up and running quickly.",
-        "examples": {
-            "pane_heights_example.py": {
-                "title": "Multi-Pane Charts",
-                "description": (
-                    "Learn how to create multi-pane charts with custom heights and layouts."
-                ),
-                "path": "getting_started/pane_heights_example.py",
-            },
-        },
-    },
-    "🎯 Common Patterns": {
-        "description": "Real-world patterns and solutions for common use cases.",
-        "examples": {
-            "dashboard_layout.py": {
-                "title": "Dashboard Layout",
-                "description": "Create professional multi-chart dashboard layouts.",
-                "path": "common_patterns/dashboard_layout.py",
+            "data_formats.py": {
+                "title": "Data Formats",
+                "description": "Learn different ways to provide data to charts.",
+                "path": "getting_started/data_formats.py",
             },
         },
     },
     "📊 Chart Types": {
-        "description": "Examples for each supported chart type with various configurations.",
+        "description": "Comprehensive examples for each chart type with all features.",
         "examples": {
-            "line_chart_basic.py": {
-                "title": "Basic Line Chart",
-                "description": "Simple line chart with default styling and sample data.",
-                "path": "line_charts/line_chart_basic.py",
+            "line_chart.py": {
+                "title": "Line Chart",
+                "description": "Comprehensive line chart with styling, price lines, and markers.",
+                "path": "chart_types/line_chart.py",
             },
-            "line_chart_advanced.py": {
-                "title": "Advanced Line Chart",
-                "description": "Line chart with markers, price lines, and custom styling.",
-                "path": "line_charts/line_chart_advanced.py",
+            "candlestick_chart.py": {
+                "title": "Candlestick Chart",
+                "description": "Professional OHLC candlestick chart with volume analysis.",
+                "path": "chart_types/candlestick_chart.py",
             },
-            "line_chart_dataframe.py": {
-                "title": "Line Chart from DataFrame",
-                "description": "Create line charts from pandas DataFrames with column mapping.",
-                "path": "line_charts/line_chart_dataframe.py",
-            },
-            "basic_candlestick_chart.py": {
-                "title": "Basic Candlestick Chart",
-                "description": "OHLC data visualization with candlestick series.",
-                "path": "candlestick_charts/basic_candlestick_chart.py",
-            },
-            "customized_candlestick_chart.py": {
-                "title": "Customized Candlestick Chart",
-                "description": "Advanced candlestick chart with custom colors and styling.",
-                "path": "candlestick_charts/customized_candlestick_chart.py",
-            },
-            "basic_bar_chart.py": {
-                "title": "Basic Bar Chart",
-                "description": "Bar chart with OHLC data and DataFrame integration.",
-                "path": "bar_charts/basic_bar_chart.py",
-            },
-            "customized_bar_chart.py": {
-                "title": "Customized Bar Chart",
-                "description": "Advanced bar chart with custom styling and colors.",
-                "path": "bar_charts/customized_bar_chart.py",
-            },
-            "basic_area_chart.py": {
-                "title": "Basic Area Chart",
-                "description": "Filled area chart with sample data and DataFrame support.",
+            "area_chart.py": {
+                "title": "Area Chart",
+                "description": "Filled area chart with customization options.",
                 "path": "area_charts/basic_area_chart.py",
             },
-            "customized_area_chart.py": {
-                "title": "Customized Area Chart",
-                "description": "Advanced area chart with custom colors and styling.",
-                "path": "area_charts/customized_area_chart.py",
+            "bar_chart.py": {
+                "title": "Bar Chart",
+                "description": "Volume and OHLC bar chart with DataFrame integration.",
+                "path": "bar_charts/basic_bar_chart.py",
             },
-            "basic_histogram_chart.py": {
-                "title": "Basic Histogram Chart",
+            "histogram_chart.py": {
+                "title": "Histogram Chart",
                 "description": "Volume and distribution chart with sample data.",
                 "path": "histogram_charts/basic_histogram_chart.py",
-            },
-            "customized_histogram_chart.py": {
-                "title": "Customized Histogram Chart",
-                "description": "Advanced histogram chart with custom styling.",
-                "path": "histogram_charts/customized_histogram_chart.py",
-            },
-            "basic_baseline_chart.py": {
-                "title": "Basic Baseline Chart",
-                "description": "Baseline comparison chart with sample data.",
-                "path": "baseline_charts/basic_baseline_chart.py",
-            },
-            "customized_baseline_chart.py": {
-                "title": "Customized Baseline Chart",
-                "description": "Advanced baseline chart with custom styling.",
-                "path": "baseline_charts/customized_baseline_chart.py",
             },
         },
     },
@@ -207,77 +125,42 @@ EXAMPLE_CATEGORIES = {
         },
     },
     "🎨 Advanced Features": {
-        "description": "Advanced functionality including legends, tooltips, and custom styling.",
+        "description": "Advanced functionality including customization, multi-pane charts, and interactive features.",
         "examples": {
-            "legend_example.py": {
-                "title": "Legend Examples",
-                "description": "Multi-pane charts with legends and custom HTML templates.",
-                "path": "advanced_features/legend_example.py",
+            "chart_customization.py": {
+                "title": "Chart Customization",
+                "description": "Learn how to customize charts with colors, styles, and options.",
+                "path": "advanced_features/chart_customization.py",
             },
-            "tooltip_examples.py": {
-                "title": "Tooltip Examples",
-                "description": "Comprehensive tooltip functionality with various use cases.",
+            "multi_pane_charts.py": {
+                "title": "Multi-Pane Charts",
+                "description": "Create professional multi-pane charts with different series types.",
+                "path": "advanced_features/multi_pane_charts.py",
+            },
+            "interactive_features.py": {
+                "title": "Interactive Features",
+                "description": "Tooltips, legends, and interactive chart elements.",
                 "path": "advanced_features/tooltip_examples.py",
             },
-            "tooltip_demo.py": {
-                "title": "Tooltip Demo",
-                "description": "Interactive tooltip demonstration.",
-                "path": "advanced_features/tooltip_demo.py",
-            },
-            "ribbon_example.py": {
-                "title": "Ribbon Example",
-                "description": "Ribbon chart visualization example.",
-                "path": "advanced_features/ribbon_example.py",
-            },
-            "gradient_ribbon_example.py": {
-                "title": "Gradient Ribbon Example",
-                "description": "Gradient ribbon series with dynamic color transitions based on data values.",
-                "path": "advanced_features/gradient_ribbon_example.py",
-            },
-            "rangeswitcher_example.py": {
-                "title": "Range Switcher Example",
-                "description": "Professional time range switching functionality for financial charts.",
-                "path": "advanced_features/rangeswitcher_example.py",
-            },
-            "auto_size_example.py": {
-                "title": "Auto Sizing",
-                "description": "Dynamic chart sizing based on container.",
-                "path": "advanced_features/auto_size_example.py",
-            },
-            "update_methods_example.py": {
-                "title": "Update Methods",
-                "description": "Real-time data updates and chart refreshing.",
+            "real_time_updates.py": {
+                "title": "Real-Time Updates",
+                "description": "Dynamic data updates and chart refreshing.",
                 "path": "advanced_features/update_methods_example.py",
-            },
-            "multi_pane_legends_example.py": {
-                "title": "Multi-Pane Legends",
-                "description": "Complex legend configurations for multi-pane charts.",
-                "path": "advanced_features/multi_pane_legends_example.py",
             },
         },
     },
-    "🧪 Testing": {
-        "description": "Test files and validation scripts for development and debugging.",
+    "🎯 Trading Features": {
+        "description": "Trading-specific features and financial chart examples.",
         "examples": {
-            "comprehensive_error_test.py": {
-                "title": "Comprehensive Error Test",
-                "description": "Test various error scenarios and edge cases.",
-                "path": "testing/comprehensive_error_test.py",
+            "supertrend_example.py": {
+                "title": "Supertrend Indicator",
+                "description": "Supertrend indicator with TrendFill series for smooth trend visualization.",
+                "path": "trading_features/supertrend_example.py",
             },
-            "error_handling_test.py": {
-                "title": "Error Handling Test",
-                "description": "Test error handling and recovery mechanisms.",
-                "path": "testing/error_handling_test.py",
-            },
-            "fit_content_test.py": {
-                "title": "Fit Content Test",
-                "description": "Test chart auto-fitting and content sizing.",
-                "path": "testing/fit_content_test.py",
-            },
-            "annotation_structure_test.py": {
-                "title": "Annotation Structure Test",
-                "description": "Test annotation system and structure validation.",
-                "path": "testing/annotation_structure_test.py",
+            "signal_series_example.py": {
+                "title": "Signal Series",
+                "description": "Background coloring based on trading signals.",
+                "path": "trading_features/signal_series_example.py",
             },
         },
     },
