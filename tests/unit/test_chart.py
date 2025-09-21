@@ -766,29 +766,23 @@ class TestChartEdgeCases:
     def test_to_frontend_config_right_price_scale_id_validation(self):
         """Test that non-string right price scale IDs raise TypeError in frontend config."""
         chart = Chart()
-        chart.options = ChartOptions(
-            right_price_scale=PriceScaleOptions(price_scale_id=123)
-        )
 
         with pytest.raises(TypeError, match="right_price_scale.price_scale_id must be a string"):
-            chart.to_frontend_config()
+            chart.options = ChartOptions(right_price_scale=PriceScaleOptions(price_scale_id=123))
 
     def test_to_frontend_config_left_price_scale_id_validation(self):
         """Test that non-string left price scale IDs raise TypeError in frontend config."""
         chart = Chart()
-        chart.options = ChartOptions(
-            left_price_scale=PriceScaleOptions(price_scale_id=456)
-        )
 
         with pytest.raises(TypeError, match="left_price_scale.price_scale_id must be a string"):
-            chart.to_frontend_config()
+            chart.options = ChartOptions(left_price_scale=PriceScaleOptions(price_scale_id=456))
 
     def test_to_frontend_config_valid_price_scale_ids(self):
         """Test that valid string price scale IDs work correctly in frontend config."""
         chart = Chart()
         chart.options = ChartOptions(
             left_price_scale=PriceScaleOptions(price_scale_id="left-scale"),
-            right_price_scale=PriceScaleOptions(price_scale_id="right-scale")
+            right_price_scale=PriceScaleOptions(price_scale_id="right-scale"),
         )
 
         # Should not raise any errors
@@ -803,15 +797,16 @@ class TestChartEdgeCases:
         chart = Chart()
         chart.options = ChartOptions(
             left_price_scale=PriceScaleOptions(price_scale_id=None),
-            right_price_scale=PriceScaleOptions(price_scale_id=None)
+            right_price_scale=PriceScaleOptions(price_scale_id=None),
         )
 
         # Should not raise any errors
         config = chart.to_frontend_config()
         chart_config = config["charts"][0]["chart"]
 
-        assert chart_config["leftPriceScale"]["priceScaleId"] == ""
-        assert chart_config["rightPriceScale"]["priceScaleId"] == ""
+        # None price_scale_id values should not be included in the output
+        assert "priceScaleId" not in chart_config["leftPriceScale"]
+        assert "priceScaleId" not in chart_config["rightPriceScale"]
 
 
 class TestChartIntegration:

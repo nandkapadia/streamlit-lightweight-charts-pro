@@ -13,13 +13,12 @@ Note: Range filtering is always enabled in the frontend - no configuration neede
 """
 
 # Standard library imports
-import pytest
 
 # Local imports
 from streamlit_lightweight_charts_pro.charts.options.ui_options import (
     RangeConfig,
     RangeSwitcherOptions,
-    TimeRange
+    TimeRange,
 )
 
 
@@ -54,11 +53,7 @@ class TestRangeSwitcherOptions:
         ranges = [RangeConfig(text="1D", range=TimeRange.ONE_DAY)]
 
         # Create RangeSwitcherOptions with custom values
-        options = RangeSwitcherOptions(
-            visible=False,
-            ranges=ranges,
-            position="top-left"
-        )
+        options = RangeSwitcherOptions(visible=False, ranges=ranges, position="top-left")
 
         # Verify custom values are set correctly
         assert options.visible is False
@@ -77,14 +72,11 @@ class TestRangeSwitcherOptions:
             RangeConfig(text="1D", range=TimeRange.ONE_DAY),
             RangeConfig(text="1W", range=TimeRange.ONE_WEEK),
             RangeConfig(text="1M", range=TimeRange.ONE_MONTH),
-            RangeConfig(text="All", range=TimeRange.ALL)
+            RangeConfig(text="All", range=TimeRange.ALL),
         ]
 
         # Create RangeSwitcherOptions with ranges
-        options = RangeSwitcherOptions(
-            visible=True,
-            ranges=ranges
-        )
+        options = RangeSwitcherOptions(visible=True, ranges=ranges)
 
         # Verify all properties are set correctly
         assert options.visible is True
@@ -116,11 +108,7 @@ class TestRangeSwitcherOptions:
         """
         # Create RangeSwitcherOptions with configuration
         ranges = [RangeConfig(text="1D", range=TimeRange.ONE_DAY)]
-        options = RangeSwitcherOptions(
-            visible=True,
-            ranges=ranges,
-            position="top-right"
-        )
+        options = RangeSwitcherOptions(visible=True, ranges=ranges, position="top-right")
 
         # Serialize to dictionary
         result = options.asdict()
@@ -146,15 +134,11 @@ class TestRangeSwitcherOptions:
             RangeConfig(text="1M", range=TimeRange.ONE_MONTH),
             RangeConfig(text="3M", range=TimeRange.THREE_MONTHS),
             RangeConfig(text="1Y", range=TimeRange.ONE_YEAR),
-            RangeConfig(text="All", range=TimeRange.ALL)
+            RangeConfig(text="All", range=TimeRange.ALL),
         ]
 
         # Create complete range switcher configuration
-        options = RangeSwitcherOptions(
-            visible=True,
-            ranges=trading_ranges,
-            position="top-right"
-        )
+        options = RangeSwitcherOptions(visible=True, ranges=trading_ranges, position="top-right")
 
         # Verify complete configuration
         assert options.visible is True
@@ -218,15 +202,10 @@ class TestRangeSwitcherIntegration:
         ranges = [
             RangeConfig(text="1D", range=TimeRange.ONE_DAY),
             RangeConfig(text="1W", range=TimeRange.ONE_WEEK),
-            RangeConfig(text="All", range=TimeRange.ALL)
+            RangeConfig(text="All", range=TimeRange.ALL),
         ]
 
-        ui_config = {
-            "rangeSwitcher": RangeSwitcherOptions(
-                visible=True,
-                ranges=ranges
-            )
-        }
+        ui_config = {"rangeSwitcher": RangeSwitcherOptions(visible=True, ranges=ranges)}
 
         # Verify UI configuration structure
         assert "rangeSwitcher" in ui_config

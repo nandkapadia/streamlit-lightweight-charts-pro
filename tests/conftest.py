@@ -144,13 +144,15 @@ def sample_ohlc_data():
         volume = np.random.randint(100, 1000)
 
         # Create OHLC data structure
-        data.append({
-            "open": open_price,
-            "high": high_price,
-            "low": low_price,
-            "close": close_price,
-            "volume": volume,
-        })
+        data.append(
+            {
+                "open": open_price,
+                "high": high_price,
+                "low": low_price,
+                "close": close_price,
+                "volume": volume,
+            }
+        )
     return data
 
 
@@ -325,7 +327,7 @@ def sample_band_data(sample_timestamps, sample_values):
     return [
         BandData(
             upper=val + 10,  # Upper bound is value + 10
-            middle=val,      # Middle line is the actual value
+            middle=val,  # Middle line is the actual value
             lower=val - 10,  # Lower bound is value - 10
         )
         for ts, val in zip(sample_timestamps, sample_values)
@@ -350,10 +352,10 @@ def sample_marker_data(sample_timestamps, sample_values):
     return [
         Marker(
             time=ts,
-            position="aboveBar",      # Position marker above the bar
-            color="#FF0000",          # Red color for visibility
-            shape="arrowDown",        # Arrow pointing down
-            text=f"Marker {i}",      # Text label for the marker
+            position="aboveBar",  # Position marker above the bar
+            color="#FF0000",  # Red color for visibility
+            shape="arrowDown",  # Arrow pointing down
+            text=f"Marker {i}",  # Text label for the marker
         )
         for i, (ts, val) in enumerate(zip(sample_timestamps, sample_values))
     ]
@@ -378,34 +380,28 @@ def edge_case_data():
     return {
         # Empty dataset to test handling of no data
         "empty_data": [],
-
         # Single data point to test minimum data requirements
         "single_point": [LineData(time=datetime(2023, 1, 1), value=100.0)],
-
         # Duplicate timestamps to test data validation
         "duplicate_times": [
             LineData(time=datetime(2023, 1, 1), value=100.0),
             LineData(time=datetime(2023, 1, 1), value=200.0),
         ],
-
         # NaN (Not a Number) values to test numeric handling
         "nan_values": [
             LineData(time=datetime(2023, 1, 1), value=np.nan),
             LineData(time=datetime(2023, 1, 2), value=200.0),
         ],
-
         # Infinite values to test extreme value handling
         "infinite_values": [
             LineData(time=datetime(2023, 1, 1), value=np.inf),
             LineData(time=datetime(2023, 1, 2), value=-np.inf),
         ],
-
         # Very large values to test numeric precision
         "very_large_values": [
             LineData(time=datetime(2023, 1, 1), value=1e15),
             LineData(time=datetime(2023, 1, 2), value=-1e15),
         ],
-
         # Very small values to test numeric precision
         "very_small_values": [
             LineData(time=datetime(2023, 1, 1), value=1e-15),
@@ -427,13 +423,10 @@ def malformed_data():
     return {
         # None values mixed with valid data
         "none_values": [None, LineData(time=datetime(2023, 1, 1), value=100.0)],
-
         # Wrong data types mixed with valid data
         "wrong_types": ["invalid", LineData(time=datetime(2023, 1, 1), value=100.0)],
-
         # Dictionaries missing required attributes
         "missing_attributes": [{"time": datetime(2023, 1, 1)}],
-
         # Invalid timestamp formats
         "invalid_timestamps": [
             LineData(time="invalid_time", value=100.0),
@@ -515,10 +508,10 @@ def basic_chart_options():
     """
     return ChartOptions(
         height=400,  # Standard height for testing
-        width=600,   # Standard width for testing
+        width=600,  # Standard width for testing
         layout=LayoutOptions(
             background_color="#FFFFFF",  # White background
-            text_color="#000000",        # Black text
+            text_color="#000000",  # Black text
         ),
         crosshair=CrosshairOptions(
             mode=1,  # Normal crosshair mode for user interaction
@@ -537,13 +530,13 @@ def advanced_chart_options():
         ChartOptions: Advanced chart configuration for testing.
     """
     return ChartOptions(
-        height=800,   # Larger height for advanced testing
-        width=1200,   # Larger width for advanced testing
+        height=800,  # Larger height for advanced testing
+        width=1200,  # Larger width for advanced testing
         layout=LayoutOptions(
             background_color="#1E1E1E",  # Dark background
-            text_color="#FFFFFF",        # White text for dark theme
-            font_family="Arial",         # Custom font family
-            font_size=12,               # Custom font size
+            text_color="#FFFFFF",  # White text for dark theme
+            font_family="Arial",  # Custom font family
+            font_size=12,  # Custom font size
         ),
         crosshair=CrosshairOptions(
             mode=1,  # Normal crosshair mode

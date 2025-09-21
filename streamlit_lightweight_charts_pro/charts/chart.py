@@ -31,6 +31,7 @@ Example:
 import time
 import uuid
 from typing import Any, Dict, List, Optional, Sequence, Union
+from datetime import datetime
 
 import pandas as pd
 
@@ -854,6 +855,136 @@ class Chart:
             raise TypeError("chart_group_id must be an integer")
         self._chart_group_id = group_id
 
+    def _filter_range_switcher_by_data(self, chart_config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Filter range switcher options based on available data timespan.
+
+        This method calculates the actual data timespan from all series and removes
+        range options that exceed the available data range. This provides a cleaner
+        user experience by only showing relevant time ranges.
+
+        Args:
+            chart_config: The chart configuration dictionary
+
+        Returns:
+            Dict[str, Any]: Modified chart configuration with filtered range options
+        """
+        # Only process if range switcher is configured
+        if not (chart_config.get("rangeSwitcher") and
+                chart_config["rangeSwitcher"].get("ranges")):
+            return chart_config
+
+        # Calculate data timespan from all series
+        data_timespan_seconds = self._calculate_data_timespan()
+        if data_timespan_seconds is None:
+            return chart_config  # No data or unable to calculate, keep all ranges
+
+        # Filter ranges based on data timespan
+        original_ranges = chart_config["rangeSwitcher"]["ranges"]
+        filtered_ranges = []
+
+        for range_config in original_ranges:
+            range_seconds = self._get_range_seconds(range_config)
+
+            # Keep range if:
+            # - It's "All" range (range_seconds is None)
+            # - It's within data timespan (with small buffer for edge cases)
+            if range_seconds is None or range_seconds <= data_timespan_seconds * 1.1:
+                filtered_ranges.append(range_config)
+
+        # Update the chart config with filtered ranges
+        chart_config["rangeSwitcher"]["ranges"] = filtered_ranges
+
+        return chart_config
+
+    def _calculate_data_timespan(self) -> Optional[float]:
+        """Calculate the timespan of data across all series in seconds."""
+        min_time = None
+        max_time = None
+
+        for series in self.series:
+            if not hasattr(series, 'data') or not series.data:
+                continue
+
+            for data_point in series.data:
+                time_value = None
+
+                # Extract time from various data formats
+                if hasattr(data_point, 'time'):
+                    time_value = data_point.time
+                elif isinstance(data_point, dict) and 'time' in data_point:
+                    time_value = data_point['time']
+
+                if time_value is None:
+                    continue
+
+                # Convert time to timestamp
+                timestamp = self._convert_time_to_timestamp(time_value)
+                if timestamp is None:
+                    continue
+
+                if min_time is None or timestamp < min_time:
+                    min_time = timestamp
+                if max_time is None or timestamp > max_time:
+                    max_time = timestamp
+
+        if min_time is None or max_time is None:
+            return None
+
+        return max_time - min_time
+
+    def _convert_time_to_timestamp(self, time_value) -> Optional[float]:
+        """Convert various time formats to timestamp."""
+        if isinstance(time_value, (int, float)):
+            return float(time_value)
+        elif isinstance(time_value, str):
+            try:
+                # Try parsing ISO format
+                dt = datetime.fromisoformat(time_value.replace('Z', '+00:00'))
+                return dt.timestamp()
+            except (ValueError, AttributeError):
+                try:
+                    # Try parsing as date
+                    dt = datetime.strptime(time_value, '%Y-%m-%d')
+                    return dt.timestamp()
+                except ValueError:
+                    return None
+        elif hasattr(time_value, 'timestamp'):
+            return time_value.timestamp()
+        return None
+
+    def _get_range_seconds(self, range_config: Dict[str, Any]) -> Optional[float]:
+        """Extract seconds from range configuration."""
+        range_value = range_config.get('range')
+
+        if range_value is None or range_value == 'ALL':
+            return None
+
+        # Handle TimeRange enum values
+        range_seconds_map = {
+            'FIVE_MINUTES': 300,
+            'FIFTEEN_MINUTES': 900,
+            'THIRTY_MINUTES': 1800,
+            'ONE_HOUR': 3600,
+            'FOUR_HOURS': 14400,
+            'ONE_DAY': 86400,
+            'ONE_WEEK': 604800,
+            'TWO_WEEKS': 1209600,
+            'ONE_MONTH': 2592000,
+            'THREE_MONTHS': 7776000,
+            'SIX_MONTHS': 15552000,
+            'ONE_YEAR': 31536000,
+            'TWO_YEARS': 63072000,
+            'FIVE_YEARS': 157680000,
+        }
+
+        if isinstance(range_value, str) and range_value in range_seconds_map:
+            return range_seconds_map[range_value]
+        elif isinstance(range_value, (int, float)):
+            return float(range_value)
+
+        return None
+
     def to_frontend_config(self) -> Dict[str, Any]:
         """
         Convert chart to frontend configuration dictionary.
@@ -987,6 +1118,9 @@ class Chart:
         trades_config = None
         if hasattr(self, "_trades") and self._trades:
             trades_config = [trade.asdict() for trade in self._trades]
+
+        # Apply data-aware range filtering to remove ranges that exceed data timespan
+        chart_config = self._filter_range_switcher_by_data(chart_config)
 
         chart_obj = {
             "chartId": f"chart-{id(self)}",

@@ -1,4 +1,4 @@
-.PHONY: help install-dev lint lint-check format test clean
+.PHONY: help install-dev lint lint-check format test clean pre-commit-install pre-commit-run pre-commit-test
 
 help:  ## Show this help message
 	@echo "Available commands:"
@@ -48,4 +48,36 @@ clean:  ## Clean up build artifacts
 	rm -rf .pytest_cache/
 	rm -rf htmlcov/
 	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete 
+	find . -type f -name "*.pyc" -delete
+
+pre-commit-install:  ## Install pre-commit hooks
+	@echo "Installing pre-commit hooks..."
+	@if command -v pre-commit >/dev/null 2>&1; then \
+		pip install pre-commit; \
+		pre-commit install; \
+		echo "✅ Pre-commit hooks installed successfully!"; \
+	else \
+		echo "Installing pre-commit framework..."; \
+		pip install pre-commit; \
+		pre-commit install; \
+		echo "✅ Pre-commit hooks installed successfully!"; \
+	fi
+
+pre-commit-run:  ## Run pre-commit hooks manually
+	@echo "Running pre-commit hooks..."
+	@if [ -f ".git/hooks/pre-commit" ]; then \
+		.git/hooks/pre-commit; \
+	else \
+		echo "❌ Pre-commit hooks not installed. Run 'make pre-commit-install' first."; \
+		exit 1; \
+	fi
+
+pre-commit-test:  ## Test pre-commit setup without installing
+	@echo "Testing pre-commit configuration..."
+	@if command -v pre-commit >/dev/null 2>&1; then \
+		pre-commit run --all-files; \
+	else \
+		echo "Installing pre-commit for testing..."; \
+		pip install pre-commit; \
+		pre-commit run --all-files; \
+	fi 

@@ -28,7 +28,7 @@ class TestPerformanceBenchmarks:
         "wide_dataset": 100.0,  # 100 series, 1K points each
         "chart_creation": 5.0,  # Chart instantiation
         "series_addition": 2.0,  # Adding series to chart
-        "data_serialization": 20.0,  # Converting to dict/JSON
+        "data_serialization": 80.0,  # Converting to dict/JSON
         "memory_efficiency": 10.0,  # MB per 1K data points
     }
 

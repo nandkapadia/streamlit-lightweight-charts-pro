@@ -326,7 +326,7 @@ class TestLegendSeriesIntegrationEdgeCases:
         assert "legend" in config
         legend_config = config["legend"]
         assert legend_config["visible"] is True  # Default value
-        assert legend_config["position"] == "top-right"  # Default value
+        assert legend_config["position"] == "top-left"  # Default value
 
 
 class TestLegendMemoryAndPerformance:

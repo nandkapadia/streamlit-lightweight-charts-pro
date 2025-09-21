@@ -532,12 +532,16 @@ class TestChartOptionsPriceScaleValidation:
 
     def test_right_price_scale_boolean_raises_error(self):
         """Test that passing boolean to right_price_scale raises TypeError."""
-        with pytest.raises(TypeError, match="right_price_scale must be a PriceScaleOptions object, not a boolean"):
+        with pytest.raises(
+            TypeError, match="right_price_scale must be a PriceScaleOptions object, not a boolean"
+        ):
             ChartOptions(right_price_scale=True)
 
     def test_left_price_scale_boolean_raises_error(self):
         """Test that passing boolean to left_price_scale raises TypeError."""
-        with pytest.raises(TypeError, match="left_price_scale must be a PriceScaleOptions object, not a boolean"):
+        with pytest.raises(
+            TypeError, match="left_price_scale must be a PriceScaleOptions object, not a boolean"
+        ):
             ChartOptions(left_price_scale=True)
 
     def test_right_price_scale_string_raises_error(self):
@@ -566,10 +570,7 @@ class TestChartOptionsPriceScaleValidation:
         right_scale = PriceScaleOptions(visible=False)
 
         # Should not raise any errors
-        options = ChartOptions(
-            left_price_scale=left_scale,
-            right_price_scale=right_scale
-        )
+        options = ChartOptions(left_price_scale=left_scale, right_price_scale=right_scale)
 
         assert options.left_price_scale == left_scale
         assert options.right_price_scale == right_scale
@@ -577,10 +578,7 @@ class TestChartOptionsPriceScaleValidation:
     def test_none_price_scale_options_accepted(self):
         """Test that None values are accepted for price scale options."""
         # Should not raise any errors
-        options = ChartOptions(
-            left_price_scale=None,
-            right_price_scale=None
-        )
+        options = ChartOptions(left_price_scale=None, right_price_scale=None)
 
         assert options.left_price_scale is None
         assert options.right_price_scale is None
@@ -601,10 +599,7 @@ class TestChartOptionsPriceScaleValidation:
         right_scale = PriceScaleOptions(price_scale_id="right-scale")
 
         # Should not raise any errors
-        options = ChartOptions(
-            left_price_scale=left_scale,
-            right_price_scale=right_scale
-        )
+        options = ChartOptions(left_price_scale=left_scale, right_price_scale=right_scale)
 
         assert options.left_price_scale.price_scale_id == "left-scale"
         assert options.right_price_scale.price_scale_id == "right-scale"
@@ -615,10 +610,7 @@ class TestChartOptionsPriceScaleValidation:
         right_scale = PriceScaleOptions(price_scale_id=None)
 
         # Should not raise any errors
-        options = ChartOptions(
-            left_price_scale=left_scale,
-            right_price_scale=right_scale
-        )
+        options = ChartOptions(left_price_scale=left_scale, right_price_scale=right_scale)
 
         assert options.left_price_scale.price_scale_id is None
         assert options.right_price_scale.price_scale_id is None
