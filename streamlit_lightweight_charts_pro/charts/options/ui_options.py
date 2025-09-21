@@ -1,8 +1,8 @@
 """UI option classes for streamlit-lightweight-charts."""
 
 from dataclasses import dataclass, field
-from typing import List, Literal
 from enum import Enum
+from typing import List, Literal
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
 from streamlit_lightweight_charts_pro.utils import chainable_field

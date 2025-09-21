@@ -320,14 +320,14 @@ def create_custom_trade_markers(trades, options):
             exit_text_parts.append(f"Qty: {trade.quantity}")
 
         if options["options"]["show_duration"]:
-            duration_hours = trade.exit_timestamp - trade.entry_timestamp
+            duration_hours = trade.exit_time - trade.entry_time
             exit_text_parts.append(f"Dur: {duration_hours}h")
 
         exit_text = " - ".join(exit_text_parts)
 
         # Create entry marker
         entry_marker = BarMarker(
-            time=trade.entry_timestamp,
+            time=trade.entry_time,
             position=entry_position,
             shape=shape_mapping[options["shapes"]["entry"]],
             color=entry_color,
@@ -337,7 +337,7 @@ def create_custom_trade_markers(trades, options):
 
         # Create exit marker
         exit_marker = BarMarker(
-            time=trade.exit_timestamp,
+            time=trade.exit_time,
             position=exit_position,
             shape=shape_mapping[options["shapes"]["exit"]],
             color=exit_color,
@@ -435,16 +435,16 @@ def main():
                 "Trade #": i + 1,
                 "Type": trade.trade_type.value.upper(),
                 "Entry Time": (
-                    datetime.fromtimestamp(trade.entry_timestamp).strftime("%Y-%m-%d %H:%M")
+                    datetime.fromtimestamp(trade.entry_time).strftime("%Y-%m-%d %H:%M")
                 ),
                 "Exit Time": (
-                    datetime.fromtimestamp(trade.exit_timestamp).strftime("%Y-%m-%d %H:%M")
+                    datetime.fromtimestamp(trade.exit_time).strftime("%Y-%m-%d %H:%M")
                 ),
                 "Entry Price": f"${trade.entry_price:.2f}",
                 "Exit Price": f"${trade.exit_price:.2f}",
                 "Quantity": trade.quantity,
                 "PnL": f"${trade.pnl:.2f}",
-                "Duration": f"{trade.exit_timestamp - trade.entry_timestamp} hours",
+                "Duration": f"{trade.exit_time - trade.entry_time} hours",
             }
             for i, trade in enumerate(trades)
         ]
@@ -559,13 +559,13 @@ def main():
     - Uses geometric Brownian motion to simulate realistic price movements
     - Includes drift (trend) and volatility components
     - Generates realistic OHLC relationships
-    
+
     **Trade Identification:**
     - Random entry and exit points across the data
     - Entry/exit prices calculated as midpoint of open and close
     - Trade type determined by price direction (LONG/SHORT)
     - Random position sizes and realistic PnL calculations
-    
+
     **Visualization Features:**
     - Candlestick chart with volume histogram
     - Trade markers showing entry and exit points

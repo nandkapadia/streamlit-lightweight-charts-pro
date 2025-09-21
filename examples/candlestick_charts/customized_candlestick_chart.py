@@ -133,9 +133,9 @@ def main():
     st.json(
         {
             "chart_type": candlestick_series.chart_type,
-            "visible": candlestick_series.visible  # pylint: disable=no-member,
-            "price_scale_id": candlestick_series.price_scale_id  # pylint: disable=no-member,
-            "pane_id": candlestick_series.pane_id  # pylint: disable=no-member,
+            "visible": candlestick_series.visible,  # pylint: disable=no-member,
+            "price_scale_id": candlestick_series.price_scale_id,  # pylint: disable=no-member,
+            "pane_id": candlestick_series.pane_id,  # pylint: disable=no-member,
             "up_color": candlestick_series.up_color,
             "down_color": candlestick_series.down_color,
             "border_color": candlestick_series.border_color,

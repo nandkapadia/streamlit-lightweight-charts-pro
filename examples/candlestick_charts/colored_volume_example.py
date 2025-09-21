@@ -12,6 +12,7 @@ import pandas as pd
 import streamlit as st
 
 from streamlit_lightweight_charts_pro import Chart
+from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 
 
 def generate_sample_data(days: int = 30) -> pd.DataFrame:
@@ -121,7 +122,8 @@ def main():
 
     # Create chart
     if show_volume:
-        chart = Chart.from_price_volume_dataframe(
+        manager = ChartManager()
+        chart = manager.from_price_volume_dataframe(
             data=df,
             column_mapping={
                 "time": "time",
@@ -177,10 +179,10 @@ def main():
     st.markdown(
         """
     The volume bars are colored based on the price movement of each candle:
-    
+
     1. **Green bars** (`rgba(76,175,80,0.5)`): When the close price is greater than or equal to the open price
     2. **Red bars** (`rgba(244,67,54,0.5)`): When the close price is less than the open price
-    
+
     This provides a quick visual indication of market sentiment for each period.
     """
     )

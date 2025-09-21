@@ -143,7 +143,9 @@ class ChartOptions(Options):
     def __post_init__(self):
         """Validate chart options after initialization."""
         # Validate price scale options
-        if self.right_price_scale is not None and not isinstance(self.right_price_scale, PriceScaleOptions):
+        if self.right_price_scale is not None and not isinstance(
+            self.right_price_scale, PriceScaleOptions
+        ):
             if isinstance(self.right_price_scale, bool):
                 raise TypeError(
                     f"right_price_scale must be a PriceScaleOptions object, not a boolean. "
@@ -157,7 +159,9 @@ class ChartOptions(Options):
                     f"got {type(self.right_price_scale).__name__}"
                 )
 
-        if self.left_price_scale is not None and not isinstance(self.left_price_scale, PriceScaleOptions):
+        if self.left_price_scale is not None and not isinstance(
+            self.left_price_scale, PriceScaleOptions
+        ):
             if isinstance(self.left_price_scale, bool):
                 raise TypeError(
                     f"left_price_scale must be a PriceScaleOptions object, not a boolean. "

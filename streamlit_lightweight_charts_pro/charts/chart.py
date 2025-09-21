@@ -933,8 +933,9 @@ class Chart:
             try:
                 chart_config["rightPriceScale"] = self.options.right_price_scale.asdict()
                 # Validate price scale ID is a string if provided
-                if (self.options.right_price_scale.price_scale_id is not None and
-                    not isinstance(self.options.right_price_scale.price_scale_id, str)):
+                if self.options.right_price_scale.price_scale_id is not None and not isinstance(
+                    self.options.right_price_scale.price_scale_id, str
+                ):
                     raise TypeError(
                         f"right_price_scale.price_scale_id must be a string, "
                         f"got {type(self.options.right_price_scale.price_scale_id).__name__}"
@@ -956,8 +957,9 @@ class Chart:
             try:
                 chart_config["leftPriceScale"] = self.options.left_price_scale.asdict()
                 # Validate price scale ID is a string if provided
-                if (self.options.left_price_scale.price_scale_id is not None and
-                    not isinstance(self.options.left_price_scale.price_scale_id, str)):
+                if self.options.left_price_scale.price_scale_id is not None and not isinstance(
+                    self.options.left_price_scale.price_scale_id, str
+                ):
                     raise TypeError(
                         f"left_price_scale.price_scale_id must be a string, "
                         f"got {type(self.options.left_price_scale.price_scale_id).__name__}"
@@ -994,7 +996,6 @@ class Chart:
             "series": series_configs,
             "annotations": annotations_config,
         }
-
 
         # Add trades to chart configuration if they exist
         if trades_config:

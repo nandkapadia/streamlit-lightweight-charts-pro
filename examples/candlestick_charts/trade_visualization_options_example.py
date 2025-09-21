@@ -13,6 +13,7 @@ import pandas as pd
 import streamlit as st
 
 from streamlit_lightweight_charts_pro.charts import Chart
+from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
@@ -107,7 +108,7 @@ def main():
     st.title("📊 Trade Visualization Options Example")
     st.markdown(
         """
-    This example demonstrates how to configure `TradeVisualizationOptions` 
+    This example demonstrates how to configure `TradeVisualizationOptions`
     in the chart options for comprehensive trade visualization control.
     """
     )
@@ -224,16 +225,16 @@ def main():
                 "Trade #": i + 1,
                 "Type": trade.trade_type.value.upper(),
                 "Entry Time": (
-                    datetime.fromtimestamp(trade.entry_timestamp).strftime("%Y-%m-%d %H:%M")
+                    datetime.fromtimestamp(trade.entry_time).strftime("%Y-%m-%d %H:%M")
                 ),
                 "Exit Time": (
-                    datetime.fromtimestamp(trade.exit_timestamp).strftime("%Y-%m-%d %H:%M")
+                    datetime.fromtimestamp(trade.exit_time).strftime("%Y-%m-%d %H:%M")
                 ),
                 "Entry Price": f"${trade.entry_price:.2f}",
                 "Exit Price": f"${trade.exit_price:.2f}",
                 "Quantity": trade.quantity,
                 "PnL": f"${trade.pnl:.2f}",
-                "Duration": f"{trade.exit_timestamp - trade.entry_timestamp} hours",
+                "Duration": f"{trade.exit_time - trade.entry_time} hours",
             }
             for i, trade in enumerate(trades)
         ]
@@ -260,7 +261,8 @@ def main():
     # Create chart with TradeVisualizationOptions using factory method
     st.subheader("📈 Chart with Trade Visualization Options")
 
-    chart = Chart.from_price_volume_dataframe(
+    manager = ChartManager()
+    chart = manager.from_price_volume_dataframe(
         data=df,
         column_mapping={
             "time": "time",
