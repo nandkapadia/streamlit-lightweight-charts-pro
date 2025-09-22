@@ -1,0 +1,85 @@
+# Pre-commit configuration for streamlit-lightweight-charts-pro
+# Install with: pip install pre-commit && pre-commit install
+
+repos:
+  # Code formatting
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=100]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--float-to-top, --line-length=100, --profile=black]
+
+  - repo: https://github.com/pycqa/autoflake
+    rev: 2.2.1
+    hooks:
+      - id: autoflake
+        args: [--remove-all-unused-imports, --remove-unused-variables, --recursive]
+
+  # Linting
+  - repo: https://github.com/pycqa/pylint
+    rev: v3.0.3
+    hooks:
+      - id: pylint
+        args: [--max-line-length=100, --disable=C0114,C0115,C0116,R0903,R0913,R0914,R0915,W0621,W0622,W0703,W0612,W0613]
+        additional_dependencies: ["pylint[spelling]"]
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies: ["types-all"]
+        args: [--ignore-missing-imports, --no-strict-optional]
+
+  # Security
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-r, streamlit_lightweight_charts_pro/, -f, json, -o, bandit-report.json]
+        exclude: ^tests/
+
+  # Custom hook for running tests (excluding performance tests)
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: python -m pytest
+        language: system
+        types: [python]
+        args: [tests/unit/, tests/integration/, tests/e2e/, --tb=short, -q, --maxfail=5]
+        pass_filenames: false
+        always_run: true
+
+      - id: test-coverage
+        name: test-coverage
+        entry: python -m pytest
+        language: system
+        types: [python]
+        args: [tests/unit/, tests/integration/, tests/e2e/, --cov=streamlit_lightweight_charts_pro, --cov-report=term-missing, --cov-fail-under=80, --tb=short, -q]
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]  # Only run coverage on push to avoid slowing down commits
+
+  # File checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: debug-statements
+      - id: check-ast
+      - id: check-docstring-first

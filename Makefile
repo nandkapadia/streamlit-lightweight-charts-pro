@@ -80,4 +80,36 @@ pre-commit-test:  ## Test pre-commit setup without installing
 		echo "Installing pre-commit for testing..."; \
 		pip install pre-commit; \
 		pre-commit run --all-files; \
-	fi 
+	fi
+
+pre-commit-backend:  ## Run backend pre-commit checks only
+	@echo "Running backend pre-commit checks..."
+	@bash scripts/run-backend-precommit.sh
+
+pre-commit-frontend:  ## Run frontend pre-commit checks only (basic)
+	@echo "Running basic frontend pre-commit checks..."
+	@bash scripts/run-frontend-precommit-basic.sh
+
+pre-commit-frontend-full:  ## Run full frontend pre-commit checks (including type checking)
+	@echo "Running full frontend pre-commit checks..."
+	@bash scripts/run-frontend-precommit.sh
+
+pre-commit-frontend-production:  ## Run frontend pre-commit checks on production code only
+	@echo "Running frontend production code pre-commit checks..."
+	@bash scripts/run-frontend-precommit-production.sh
+
+pre-commit-both:  ## Run both backend and frontend pre-commit checks
+	@echo "Running comprehensive pre-commit checks..."
+	@bash .git/hooks/pre-commit
+
+test-frontend:  ## Run frontend tests and checks
+	@echo "Running frontend tests..."
+	@cd streamlit_lightweight_charts_pro/frontend && npm test -- --watchAll=false
+
+format-frontend:  ## Format frontend code
+	@echo "Formatting frontend code..."
+	@cd streamlit_lightweight_charts_pro/frontend && npm run format
+
+lint-frontend:  ## Lint frontend code
+	@echo "Linting frontend code..."
+	@cd streamlit_lightweight_charts_pro/frontend && npm run lint 
