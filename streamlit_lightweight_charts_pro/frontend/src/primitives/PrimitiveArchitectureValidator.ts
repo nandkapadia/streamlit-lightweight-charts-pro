@@ -6,8 +6,11 @@
  */
 
 export enum ValidationSeverity {
+  // eslint-disable-next-line no-unused-vars
   WARNING = 'warning',
+  // eslint-disable-next-line no-unused-vars
   ERROR = 'error',
+  // eslint-disable-next-line no-unused-vars
   CRITICAL = 'critical',
 }
 
@@ -29,7 +32,7 @@ export interface ArchitecturalRule {
   name: string;
   description: string;
   severity: ValidationSeverity;
-  validate(primitive: any, context: ValidationContext): ValidationViolation[];
+  validate(_primitive: any, _context: ValidationContext): ValidationViolation[];
 }
 
 export interface ValidationContext {
@@ -71,11 +74,12 @@ export class PrimitiveArchitectureValidator {
         const ruleViolations = rule.validate(primitive, context);
         violations.push(...ruleViolations);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         violations.push({
           rule: rule.name,
           severity: ValidationSeverity.ERROR,
-          message: `Rule validation failed: ${error.message}`,
-          context: { error: error.message },
+          message: `Rule validation failed: ${errorMessage}`,
+          context: { error: errorMessage },
         });
       }
     }
@@ -132,7 +136,7 @@ export class PrimitiveArchitectureValidator {
       name: 'single-responsibility',
       description: 'Primitives should have a single, well-defined responsibility',
       severity: ValidationSeverity.ERROR,
-      validate: (primitive, context) => {
+      validate: (primitive, _context) => {
         const violations: ValidationViolation[] = [];
 
         // Check if primitive has too many public methods (indication of multiple responsibilities)
@@ -158,7 +162,7 @@ export class PrimitiveArchitectureValidator {
       name: 'configuration-consistency',
       description: 'Primitives should use standardized configuration patterns',
       severity: ValidationSeverity.ERROR,
-      validate: (primitive, context) => {
+      validate: (primitive, _context) => {
         const violations: ValidationViolation[] = [];
 
         // Check if primitive has proper configuration interface
@@ -197,7 +201,7 @@ export class PrimitiveArchitectureValidator {
       name: 'memory-management',
       description: 'Primitives should properly manage memory and cleanup resources',
       severity: ValidationSeverity.CRITICAL,
-      validate: (primitive, context) => {
+      validate: (primitive, _context) => {
         const violations: ValidationViolation[] = [];
 
         // Check for cleanup methods
@@ -236,7 +240,7 @@ export class PrimitiveArchitectureValidator {
       name: 'service-dependencies',
       description: 'Primitives should properly manage service dependencies',
       severity: ValidationSeverity.ERROR,
-      validate: (primitive, context) => {
+      validate: (primitive, _context) => {
         const violations: ValidationViolation[] = [];
 
         // Check service initialization order
@@ -257,7 +261,7 @@ export class PrimitiveArchitectureValidator {
       name: 'error-handling',
       description: 'Primitives should have comprehensive error handling',
       severity: ValidationSeverity.WARNING,
-      validate: (primitive, context) => {
+      validate: (primitive, _context) => {
         const violations: ValidationViolation[] = [];
 
         // Check critical methods have error handling
@@ -289,7 +293,7 @@ export class PrimitiveArchitectureValidator {
       name: 'styling-standardization',
       description: 'Primitives should use standardized styling utilities',
       severity: ValidationSeverity.ERROR,
-      validate: (primitive, context) => {
+      validate: (primitive, _context) => {
         const violations: ValidationViolation[] = [];
 
         // Check if primitive uses PrimitiveStylingUtils

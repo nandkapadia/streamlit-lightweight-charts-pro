@@ -419,14 +419,16 @@ export class CornerLayoutManager {
       const dimensions = widget.getDimensions();
 
       // Check if widget extends beyond container bounds
-      const rightEdge = position.left + dimensions.width;
-      const bottomEdge = position.top + dimensions.height;
+      const left = position.left ?? 0;
+      const top = position.top ?? 0;
+      const rightEdge = left + dimensions.width;
+      const bottomEdge = top + dimensions.height;
 
       if (
         rightEdge > containerWidth ||
         bottomEdge > containerHeight ||
-        position.left < 0 ||
-        position.top < 0
+        left < 0 ||
+        top < 0
       ) {
         overflowingWidgets.push(widget);
       }

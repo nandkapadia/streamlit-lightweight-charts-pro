@@ -73,15 +73,15 @@ export class SeriesConfigPrimitive extends BasePanePrimitive<SeriesConfigPrimiti
   constructor(id: string, config: SeriesConfigPrimitiveConfig) {
     // Set default priority and configuration for series config
     const configWithDefaults: SeriesConfigPrimitiveConfig = {
-      priority: PrimitivePriority.CUSTOM,
-      visible: true,
+      ...config,
+      priority: config.priority ?? PrimitivePriority.CUSTOM,
+      visible: config.visible ?? true,
       style: {
         backgroundColor: 'transparent',
         padding: 6,
         ...config.style,
       },
-      isConfigOpen: false,
-      ...config,
+      isConfigOpen: config.isConfigOpen ?? false,
     };
 
     super(id, configWithDefaults);

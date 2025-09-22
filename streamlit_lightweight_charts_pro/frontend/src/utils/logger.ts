@@ -4,9 +4,13 @@
  */
 
 export enum LogLevel {
+  // eslint-disable-next-line no-unused-vars
   DEBUG = 0,
+  // eslint-disable-next-line no-unused-vars
   INFO = 1,
+  // eslint-disable-next-line no-unused-vars
   WARN = 2,
+  // eslint-disable-next-line no-unused-vars
   ERROR = 3,
 }
 
@@ -19,11 +23,9 @@ interface LogEntry {
 }
 
 class Logger {
-  private isDevelopment: boolean;
   private logLevel: LogLevel;
 
   constructor() {
-    this.isDevelopment = process.env.NODE_ENV === 'development';
     this.logLevel = LogLevel.WARN; // Disable debug logging by default
   }
 

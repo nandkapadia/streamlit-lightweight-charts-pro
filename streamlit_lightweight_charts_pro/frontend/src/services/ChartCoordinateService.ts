@@ -17,6 +17,13 @@ import {
   Margins,
 } from '../types/coordinates';
 import {
+  PaneSize,
+  PaneBounds,
+  ChartLayoutDimensions,
+  WidgetPosition,
+  LayoutWidget,
+} from '../types';
+import {
   validateChartCoordinates,
   sanitizeCoordinates,
   createBoundingBox,
@@ -178,7 +185,7 @@ export class ChartCoordinateService {
   /**
    * Get full pane bounds including price scale areas (for collapse buttons)
    */
-  getFullPaneBounds(chart: IChartApi, paneId: number): any | null {
+  getFullPaneBounds(chart: IChartApi, paneId: number): PaneBounds | null {
     try {
       // Validate inputs
       if (!chart || typeof paneId !== 'number' || paneId < 0) {
@@ -186,7 +193,7 @@ export class ChartCoordinateService {
       }
 
       // Get pane size from chart with error handling
-      let paneSize: any = null;
+      let paneSize: PaneSize | null = null;
       try {
         paneSize = chart.paneSize(paneId);
       } catch (error) {
@@ -234,7 +241,7 @@ export class ChartCoordinateService {
       }
 
       // Get pane size from chart with error handling
-      let paneSize: any = null;
+      let paneSize: PaneSize | null = null;
       try {
         paneSize = chart.paneSize(paneId);
       } catch (error) {
@@ -881,7 +888,7 @@ export class ChartCoordinateService {
 
       return {
         top,
-        left,
+        left: left ?? 0,
         right,
         bottom,
         width: rangeSwitcherDimensions.width,
@@ -1475,7 +1482,7 @@ export class ChartCoordinateService {
   /**
    * Get chart layout dimensions including axis information for layout manager
    */
-  getChartLayoutDimensionsForManager(chart: IChartApi): any {
+  getChartLayoutDimensionsForManager(chart: IChartApi): ChartLayoutDimensions | null {
     try {
       const chartElement = chart.chartElement();
       if (!chartElement) return null;
@@ -2056,9 +2063,9 @@ _paneId: number = 0
     chart: IChartApi,
     paneId: number,
     corner: string,
-    widgets: any[],
+    widgets: LayoutWidget[],
     index: number
-  ): any {
+  ): WidgetPosition | null {
     // Get pane coordinates
     const paneCoords = this.getPaneCoordinates(chart, paneId);
     if (!paneCoords) return null;
@@ -2073,7 +2080,7 @@ _paneId: number = 0
     let cumulativeHeight = 0;
     for (let i = 0; i < index; i++) {
       const prevWidget = widgets[i];
-      if (prevWidget && prevWidget.visible) {
+      if (prevWidget && prevWidget.visible && prevWidget.getDimensions) {
         const dims = prevWidget.getDimensions();
 
         // If dimensions are 0, use a reasonable fallback for legends/buttons
@@ -2195,11 +2202,11 @@ _paneId: number = 0
   /**
    * Calculate cumulative offset for widget stacking
    */
-  calculateCumulativeOffset(widgets: any[], index: number, gap: number = 8): number {
+  calculateCumulativeOffset(widgets: LayoutWidget[], index: number, gap: number = 8): number {
     let cumulativeHeight = 0;
     for (let i = 0; i < index; i++) {
       const prevWidget = widgets[i];
-      if (prevWidget && prevWidget.visible) {
+      if (prevWidget && prevWidget.visible && prevWidget.getDimensions) {
         const dims = prevWidget.getDimensions();
         cumulativeHeight += dims.height + gap;
       }
@@ -2212,15 +2219,15 @@ _paneId: number = 0
    */
   validateStackingBounds(
     corner: string,
-    widgets: any[],
+    widgets: LayoutWidget[],
     containerBounds: BoundingBox
-  ): { isValid: boolean; overflowingWidgets: any[] } {
-    const overflowing: any[] = [];
+  ): { isValid: boolean; overflowingWidgets: LayoutWidget[] } {
+    const overflowing: LayoutWidget[] = [];
     const isTopCorner = corner.startsWith('top');
     let cumulativeHeight = UniversalSpacing.EDGE_PADDING; // Edge padding
 
     for (const widget of widgets) {
-      if (!widget.visible) continue;
+      if (!widget.visible || !widget.getDimensions) continue;
 
       const dims = widget.getDimensions();
       const totalHeightRequired = cumulativeHeight + dims.height + UniversalSpacing.EDGE_PADDING; // Edge padding

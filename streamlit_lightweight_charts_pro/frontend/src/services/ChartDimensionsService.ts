@@ -208,26 +208,7 @@ export class ChartDimensionsService {
     return DIMENSIONS.priceScale.defaultWidth;
   }
 
-  /**
-   * Check if cached pane dimensions are still valid
-   */
-  private arePaneDimensionsValid(cacheKey: string): boolean {
-    const cached = this.paneDimensionsCache.get(cacheKey);
-    return cached ? Date.now() < cached.expiresAt : false;
-  }
 
-  /**
-   * Cache pane dimensions with expiration
-   */
-  private cachePaneDimensions(
-    cacheKey: string,
-    dimensions: { [paneId: number]: { width: number; height: number } }
-  ): void {
-    this.paneDimensionsCache.set(cacheKey, {
-      dimensions,
-      expiresAt: Date.now() + 5000, // 5 second cache
-    });
-  }
 
   /**
    * Clear expired cache entries

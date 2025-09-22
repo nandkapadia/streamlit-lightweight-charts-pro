@@ -4,9 +4,9 @@
  */
 
 import React, { useEffect, useRef, useCallback } from 'react';
-import { IChartApi, ISeriesApi, createSeriesMarkers, Time } from 'lightweight-charts';
+import { IChartApi, createSeriesMarkers, Time } from 'lightweight-charts';
 import { SeriesConfig, TradeConfig } from '../types';
-import { ExtendedSeriesApi, TradeData, SeriesDataPoint } from '../types/ChartInterfaces';
+import { ExtendedSeriesApi, SeriesDataPoint } from '../types/ChartInterfaces';
 import { createSeries } from '../utils/seriesFactory';
 import { cleanLineStyleOptions } from '../utils/lineStyle';
 
@@ -15,8 +15,8 @@ interface ChartSeriesManagerProps {
   chartId: string;
   seriesConfigs: SeriesConfig[];
   trades?: TradeConfig[];
-  onSeriesCreated?: (series: ExtendedSeriesApi, config: SeriesConfig) => void;
-  onError?: (error: Error, context: string) => void;
+  onSeriesCreated?: (_series: ExtendedSeriesApi, _config: SeriesConfig) => void;
+  onError?: (_error: Error, _context: string) => void;
 }
 
 /**
@@ -109,6 +109,7 @@ export const ChartSeriesManager: React.FC<ChartSeriesManagerProps> = ({
         onError?.(error as Error, `tradeMarkers-${index}`);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [trades, onError]
   );
 
@@ -163,13 +164,13 @@ export const ChartSeriesManager: React.FC<ChartSeriesManagerProps> = ({
   /**
    * Convert time value to Unix timestamp in seconds
    */
-  const convertToTimestamp = (time: string | number): number => {
+  const convertToTimestamp = useCallback((time: string | number): number => {
     if (typeof time === 'number') {
       return time > 1000000000000 ? Math.floor(time / 1000) : time;
     } else {
       return Math.floor(new Date(time).getTime() / 1000);
     }
-  };
+  }, []);
 
   const findNearestTimeInData = useCallback(
     (targetTime: string | number, data: SeriesDataPoint[]): number | null => {

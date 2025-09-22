@@ -3,7 +3,7 @@
  * Provides proper typing for chart APIs, series data, and template contexts
  */
 
-import { IChartApi, ISeriesApi, UTCTimestamp, Time, SeriesOptionsMap } from 'lightweight-charts';
+import { IChartApi, ISeriesApi, UTCTimestamp, SeriesOptionsMap } from 'lightweight-charts';
 
 // =============================================================================
 // CHART API INTERFACES
@@ -35,7 +35,7 @@ export interface ExtendedChartApi extends IChartApi {
       barSpacing?: () => number;
     };
   };
-  chartElement: () => HTMLDivElement | null;
+  chartElement: () => HTMLDivElement;
 }
 
 /**
@@ -47,8 +47,8 @@ export interface ExtendedSeriesApi<TData extends keyof SeriesOptionsMap = keyof 
   legendConfig?: LegendData;
   seriesId?: string;
   assignedPaneId?: number;
-  addShape?: (shape: ShapeData) => void;
-  setShapes?: (shapes: ShapeData[]) => void;
+  addShape?: (_shape: ShapeData) => void;
+  setShapes?: (_shapes: ShapeData[]) => void;
 }
 
 // =============================================================================
@@ -265,7 +265,7 @@ export interface ButtonConfig {
   id: string;
   content: string;
   corner: CornerPosition;
-  onClick?: (event: MouseEvent) => void;
+  onClick?: (_event: MouseEvent) => void;
   style?: Partial<CSSStyleDeclaration>;
   className?: string;
   disabled?: boolean;
@@ -485,7 +485,7 @@ export interface TimeScaleConfig {
   timeVisible?: boolean;
   secondsVisible?: boolean;
   shiftVisibleRangeOnNewBar?: boolean;
-  tickMarkFormatter?: (time: UTCTimestamp, tickMarkType: number, locale: string) => string;
+  tickMarkFormatter?: (_time: UTCTimestamp, _tickMarkType: number, _locale: string) => string;
 }
 
 // =============================================================================
@@ -523,12 +523,12 @@ export type DeepPartial<T> = {
 /**
  * Extract function parameter types
  */
-export type ParameterType<T> = T extends (...args: infer P) => any ? P : never;
+export type ParameterType<T> = T extends (..._args: infer P) => any ? P : never;
 
 /**
  * Extract function return type
  */
-export type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never;
+export type ReturnType<T> = T extends (..._args: any[]) => infer R ? R : never;
 
 /**
  * Non-nullable type utility

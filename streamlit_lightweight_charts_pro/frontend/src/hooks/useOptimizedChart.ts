@@ -108,8 +108,9 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
   const enhancedResizeObserverCallback = useMemo(() => {
     if (!autoResize) return null;
 
-    return throttle((entries: ResizeObserverEntry[]) => {
-      entries.forEach(entry => {
+    return throttle((entries: ResizeObserverEntry | ResizeObserverEntry[]) => {
+      const entryArray = Array.isArray(entries) ? entries : [entries];
+      entryArray.forEach(entry => {
         if (entry.target === chartRefs.current.container) {
           const { width, height } = entry.contentRect;
 
@@ -182,12 +183,12 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
         return null;
       }
     },
-    [chartId, waitForChartReady, setupResizeObserver]
+    [waitForChartReady, setupResizeObserver]
   );
 
   // Enhanced series addition with ready detection
   const addSeries = useCallback(
-    (seriesType: any, options: any = {}, paneId?: number): ISeriesApi<any> | null => {
+    (seriesType: any, options: any = {}, _paneId?: number): ISeriesApi<any> | null => {
       if (performanceTimer.current) {
         performanceTimer.current.start();
       }
@@ -215,7 +216,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
         return null;
       }
     },
-    [chartId]
+    []
   );
 
   // Get series by index with validation
@@ -264,7 +265,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
         } catch (error) {}
       }
     },
-    [chartId, minWidth, minHeight]
+    [minWidth, minHeight]
   );
 
   // Enhanced cleanup with observer management
@@ -287,7 +288,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
     chartRefs.current.container = null;
     chartRefs.current.series = [];
     chartRefs.current.isInitialized = false;
-  }, [chartId]);
+  }, []);
 
   // Setup resize observer when chart is created
   useEffect(() => {
@@ -336,27 +337,27 @@ export function useChartConfigComparison<T>(config: T): T {
 }
 
 // Utility functions
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (..._args: any[]) => any>(
   func: T,
   wait: number
-): (...args: Parameters<T>) => void {
+): (..._args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
 
-  return (...args: Parameters<T>) => {
+  return (..._args: Parameters<T>) => {
     if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
+    timeout = setTimeout(() => func(..._args), wait);
   };
 }
 
-function throttle<T extends (...args: any[]) => any>(
+function throttle<T extends (..._args: any[]) => any>(
   func: T,
   limit: number
-): (...args: Parameters<T>) => void {
+): (..._args: Parameters<T>) => void {
   let inThrottle: boolean = false;
 
-  return (...args: Parameters<T>) => {
+  return (..._args: Parameters<T>) => {
     if (!inThrottle) {
-      func(...args);
+      func(..._args);
       inThrottle = true;
       setTimeout(() => (inThrottle = false), limit);
     }

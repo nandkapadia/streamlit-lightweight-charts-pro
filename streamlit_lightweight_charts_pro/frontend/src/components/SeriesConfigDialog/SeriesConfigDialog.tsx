@@ -398,7 +398,7 @@ const renderSeriesSpecificStyle = (
 };
 
 const renderSeriesSpecificVisibility = (
-  seriesType: SeriesType,
+  _seriesType: SeriesType,
   config: SeriesConfiguration,
   onChange: (_updates: Partial<SeriesConfiguration>) => void
 ) => {

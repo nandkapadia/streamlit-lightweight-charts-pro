@@ -22,22 +22,11 @@ export const perfLog = {
 };
 
 // Performance logging function for timing operations
-export function perfLogFn(operationName: string, fn: () => any): any {
-  const startTime = performance?.now?.() || Date.now();
+export function perfLogFn(_operationName: string, fn: () => any): any {
   try {
     const result = fn();
-    if ((isDevelopment || process.env.NODE_ENV === 'test') && performance?.now) {
-      const endTime = performance.now();
-      // const _duration = endTime - startTime;
-      // Performance measurement completed (logging removed for production)
-    }
     return result;
   } catch (error) {
-    if ((isDevelopment || process.env.NODE_ENV === 'test') && performance?.now) {
-      const endTime = performance.now();
-      // const _duration = endTime - startTime;
-      // Performance measurement failed
-    }
     throw error;
   }
 }

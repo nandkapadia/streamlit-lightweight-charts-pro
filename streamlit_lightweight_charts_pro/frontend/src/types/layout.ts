@@ -50,7 +50,7 @@ export interface IPositionableWidget {
   priority: number;
   visible: boolean;
   getDimensions(): WidgetDimensions;
-  updatePosition(position: Position): void;
+  updatePosition(_position: Position): void;
 }
 
 export interface LayoutConfig {
@@ -66,6 +66,6 @@ export interface CornerLayoutState {
 }
 
 export interface LayoutManagerEvents {
-  onLayoutChanged: (corner: Corner, widgets: IPositionableWidget[]) => void;
-  onOverflow: (corner: Corner, overflowingWidgets: IPositionableWidget[]) => void;
+  onLayoutChanged: (_corner: Corner, _widgets: IPositionableWidget[]) => void;
+  onOverflow: (_corner: Corner, _overflowingWidgets: IPositionableWidget[]) => void;
 }

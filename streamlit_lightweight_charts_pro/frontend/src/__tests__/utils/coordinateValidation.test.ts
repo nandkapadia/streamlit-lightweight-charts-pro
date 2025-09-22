@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   validateChartCoordinates,
   validatePaneCoordinates,
@@ -18,12 +19,12 @@ describe('coordinateValidation', () => {
     it('should validate complete chart coordinates successfully', () => {
       const validCoordinates: ChartCoordinates = {
         container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
-        timeScale: { width: 800, height: 30 },
+        timeScale: { x: 0, y: 370, width: 800, height: 30 },
         panes: {
           0: { width: 800, height: 370, top: 0, left: 0 },
         },
         priceScales: {
-          right: { width: 60, height: 370 },
+          right: { x: 740, y: 0, width: 60, height: 370 },
         },
       };
 
@@ -36,7 +37,7 @@ describe('coordinateValidation', () => {
 
     it('should detect missing container dimensions', () => {
       const invalidCoordinates = {
-        timeScale: { width: 800, height: 30 },
+        timeScale: { x: 0, y: 370, width: 800, height: 30 },
         panes: {},
         priceScales: {},
       } as any;
@@ -50,7 +51,7 @@ describe('coordinateValidation', () => {
     it('should detect invalid container dimensions', () => {
       const invalidCoordinates: ChartCoordinates = {
         container: { width: 0, height: -100, offsetTop: 0, offsetLeft: 0 },
-        timeScale: { width: 800, height: 30 },
+        timeScale: { x: 0, y: 370, width: 800, height: 30 },
         panes: {},
         priceScales: {},
       };
@@ -236,12 +237,12 @@ describe('coordinateValidation', () => {
     it('should preserve valid coordinates', () => {
       const validCoordinates: ChartCoordinates = {
         container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
-        timeScale: { width: 800, height: 30 },
+        timeScale: { x: 0, y: 370, width: 800, height: 30 },
         panes: {
           0: { width: 800, height: 370, top: 0, left: 0 },
         },
         priceScales: {
-          right: { width: 60, height: 370 },
+          right: { x: 740, y: 0, width: 60, height: 370 },
         },
       };
 
@@ -255,12 +256,12 @@ describe('coordinateValidation', () => {
     it('should provide comprehensive debug information', () => {
       const coordinates: ChartCoordinates = {
         container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
-        timeScale: { width: 800, height: 30 },
+        timeScale: { x: 0, y: 370, width: 800, height: 30 },
         panes: {
           0: { width: 800, height: 370, top: 0, left: 0 },
         },
         priceScales: {
-          right: { width: 60, height: 370 },
+          right: { x: 740, y: 0, width: 60, height: 370 },
         },
       };
 

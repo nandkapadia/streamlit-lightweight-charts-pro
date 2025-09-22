@@ -12,7 +12,7 @@ interface ChartSyncManagerProps {
   chart: IChartApi | null;
   chartId: string;
   syncConfig?: SyncConfig;
-  onSyncEvent?: (eventType: string, data: any) => void;
+  onSyncEvent?: (_eventType: string, _data: any) => void;
 }
 
 /**
@@ -34,8 +34,8 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
   /**
    * Setup crosshair synchronization
    */
-  const setupCrosshairSync = useCallback(() => {
-    if (!chart || !syncConfig?.crosshair) return;
+  const setupCrosshairSync = useCallback((): (() => void) | undefined => {
+    if (!chart || !syncConfig?.crosshair) return undefined;
 
     const SYNC_DEBOUNCE_MS = 50;
 
@@ -101,8 +101,8 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
   /**
    * Setup time range synchronization
    */
-  const setupTimeRangeSync = useCallback(() => {
-    if (!chart || !syncConfig?.timeRange) return;
+  const setupTimeRangeSync = useCallback((): (() => void) | undefined => {
+    if (!chart || !syncConfig?.timeRange) return undefined;
 
     const TIME_RANGE_SYNC_DEBOUNCE_MS = 100;
 
@@ -171,8 +171,8 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
   /**
    * Setup click synchronization
    */
-  const setupClickSync = useCallback(() => {
-    if (!chart || !syncConfig?.click) return;
+  const setupClickSync = useCallback((): (() => void) | undefined => {
+    if (!chart || !syncConfig?.click) return undefined;
 
     const handleClick = () => {
       const syncData = {
@@ -198,7 +198,7 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
 
   // Setup all synchronization types
   useEffect(() => {
-    if (!chart || !syncConfig) return;
+    if (!chart || !syncConfig) return undefined;
 
     const cleanupFunctions: (() => void)[] = [];
 

@@ -29,7 +29,6 @@ export class RectangleOverlayPlugin {
   private container: HTMLElement | null = null;
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
-  private series: any = null;
   private isDisposed: boolean = false;
   private isInitialized: boolean = false;
   private resizeObserverManager: ResizeObserverManager;
@@ -40,9 +39,8 @@ export class RectangleOverlayPlugin {
     this.resizeObserverManager = new ResizeObserverManager();
   }
 
-  setChart(chart: IChartApi, series?: any) {
+  setChart(chart: IChartApi, _series?: any) {
     this.chart = chart;
-    this.series = series;
     this.init();
   }
 
@@ -79,7 +77,7 @@ export class RectangleOverlayPlugin {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Draw rectangles
-    this.rectangles.forEach((rect, index) => {
+    this.rectangles.forEach((rect, _index) => {
       this.ctx!.fillStyle = rect.color || '#000000';
 
       // Ensure proper rectangle dimensions (handle inverted Y coordinates)
@@ -510,7 +508,6 @@ export class RectangleOverlayPlugin {
     this.container = null;
     this.canvas = null;
     this.ctx = null;
-    this.series = null;
     this.rectangles = [];
   }
 }

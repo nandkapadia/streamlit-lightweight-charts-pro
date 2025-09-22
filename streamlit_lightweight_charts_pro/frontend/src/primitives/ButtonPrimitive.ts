@@ -1,6 +1,7 @@
 import { BasePanePrimitive, BasePrimitiveConfig, PrimitivePriority } from './BasePanePrimitive';
 import { ButtonColors, ButtonDimensions, ButtonEffects, ButtonSpacing } from './PrimitiveDefaults';
 import { PrimitiveStylingUtils, BaseStyleConfig } from './PrimitiveStylingUtils';
+import { Corner } from '../types/layout';
 
 /**
  * Button types for different behaviors
@@ -24,7 +25,7 @@ export interface ButtonState {
   /**
    * Custom state data
    */
-  customData?: any;
+  customData?: Record<string, unknown>;
 }
 
 /**
@@ -59,15 +60,15 @@ export interface ButtonPrimitiveConfig extends BasePrimitiveConfig {
   /**
    * Click handler
    */
-  onClick?: (state: ButtonState, primitive: ButtonPrimitive) => void;
+  onClick?: (_state: ButtonState, _primitive: ButtonPrimitive) => void;
 
   /**
    * State change handler
    */
   onStateChange?: (
-    newState: ButtonState,
-    oldState: ButtonState,
-    primitive: ButtonPrimitive
+    _newState: ButtonState,
+    _oldState: ButtonState,
+    _primitive: ButtonPrimitive
   ) => void;
 
   /**
@@ -159,14 +160,16 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
   constructor(id: string, config: ButtonPrimitiveConfig) {
     // Set default priority and configuration for buttons
     const configWithDefaults: ButtonPrimitiveConfig = {
+      ...config,
       priority:
-        config.buttonType === 'collapse'
+        config.priority ??
+        (config.buttonType === 'collapse'
           ? PrimitivePriority.MINIMIZE_BUTTON
-          : PrimitivePriority.CUSTOM,
-      visible: true,
-      isPanePrimitive: config.buttonType === 'collapse',
-      paneId: 0,
-      initialState: { pressed: false, disabled: false },
+          : PrimitivePriority.CUSTOM),
+      visible: config.visible ?? true,
+      isPanePrimitive: config.isPanePrimitive ?? (config.buttonType === 'collapse'),
+      paneId: config.paneId ?? 0,
+      initialState: config.initialState ?? { pressed: false, disabled: false },
       style: {
         backgroundColor: 'transparent',
         padding: ButtonSpacing.CONTAINER_PADDING,
@@ -193,7 +196,6 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
         },
         ...config.style,
       },
-      ...config,
     };
 
     super(id, configWithDefaults);
@@ -698,7 +700,7 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
  */
 export function createButtonPrimitive(
   id: string,
-  config: Partial<ButtonPrimitiveConfig> & { buttonType: ButtonType; content: string; corner: any }
+  config: Partial<ButtonPrimitiveConfig> & { buttonType: ButtonType; content: string; corner: Corner }
 ): ButtonPrimitive {
   return new ButtonPrimitive(id, config as ButtonPrimitiveConfig);
 }

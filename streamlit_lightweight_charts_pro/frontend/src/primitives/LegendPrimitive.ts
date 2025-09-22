@@ -104,11 +104,12 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
   constructor(id: string, config: LegendPrimitiveConfig) {
     // Set default priority for legends
     const configWithDefaults: LegendPrimitiveConfig = {
-      priority: PrimitivePriority.LEGEND,
-      visible: true,
-      isPanePrimitive: true,
+      ...config,
+      priority: config.priority ?? PrimitivePriority.LEGEND,
+      visible: config.visible ?? true,
+      isPanePrimitive: config.isPanePrimitive ?? true,
       paneId: config.paneId !== undefined ? config.paneId : 0, // Use provided paneId or default to 0
-      valueFormat: FormatDefaults.VALUE_FORMAT,
+      valueFormat: config.valueFormat ?? FormatDefaults.VALUE_FORMAT,
       style: {
         backgroundColor: LegendColors.DEFAULT_BACKGROUND,
         color: LegendColors.DEFAULT_COLOR,
@@ -121,7 +122,6 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
         backgroundOpacity: LegendColors.DEFAULT_OPACITY,
         ...config.style,
       },
-      ...config,
     };
 
     super(id, configWithDefaults);

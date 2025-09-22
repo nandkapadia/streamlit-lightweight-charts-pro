@@ -578,7 +578,7 @@ export class TooltipPlugin {
   /**
    * Format trade-specific tooltip content
    */
-  private formatTradeTooltip(config: TooltipConfig, data: TooltipData): string {
+  private formatTradeTooltip(_config: TooltipConfig, data: TooltipData): string {
     if (!data.trade) {
       return '';
     }

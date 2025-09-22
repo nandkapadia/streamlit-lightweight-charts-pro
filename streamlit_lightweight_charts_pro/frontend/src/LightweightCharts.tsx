@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo, useTransition, useDeferredValue } from 'react';
 import {
   createChart,
   IChartApi,
@@ -77,7 +77,7 @@ const retryWithBackoff = async (
   maxRetries: number = 5,
   baseDelay: number = 100
 ): Promise<any> => {
-  let lastError: Error;
+  let lastError: Error | undefined;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -86,7 +86,7 @@ const retryWithBackoff = async (
       lastError = error as Error;
 
       if (attempt === maxRetries - 1) {
-        throw lastError;
+        throw lastError || new Error('Unknown error occurred');
       }
 
       // Exponential backoff with jitter
@@ -95,7 +95,7 @@ const retryWithBackoff = async (
     }
   }
 
-  throw lastError;
+  throw lastError || new Error('Unknown error occurred');
 };
 
 interface LightweightChartsProps {
@@ -108,8 +108,11 @@ interface LightweightChartsProps {
 // Performance optimization: Memoize the component to prevent unnecessary re-renders
 const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
   ({ config, height = 400, width = null, onChartsReady }) => {
-    // Component initialization
+    // React 18 concurrent features
+    const [isPending, startTransition] = useTransition();
+    const deferredConfig = useDeferredValue(config);
 
+    // Component initialization
     const chartRefs = useRef<{ [key: string]: IChartApi }>({});
     const seriesRefs = useRef<{ [key: string]: ISeriesApi<any>[] }>({});
     const signalPluginRefs = useRef<{ [key: string]: SignalSeries }>({});
@@ -183,7 +186,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               (chartConfig.autoHeight ? dimensions.height : height) ||
               dimensions.height;
 
-            chart.resize(newWidth, newHeight);
+            if (newHeight != null && newWidth != null) {
+              chart.resize(newWidth, newHeight);
+            }
           } catch (error) {
             // Auto-sizing resize failed
           }
@@ -734,7 +739,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
     const addTradeVisualization = useCallback(
       async (
-        chart: IChartApi,
+        _chart: IChartApi,
         series: ISeriesApi<any>,
         trades: TradeConfig[],
         options: TradeVisualizationOptions,
@@ -956,7 +961,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     // No need for addTradeVisualizationWhenReady anymore
 
     const addAnnotations = useCallback(
-      (chart: IChartApi, annotations: Annotation[] | { layers: any }) => {
+      (_chart: IChartApi, annotations: Annotation[] | { layers: any }) => {
         // Handle annotation manager structure from Python side
         let annotationsArray: Annotation[] = [];
 
@@ -1095,7 +1100,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       (
         chart: IChartApi,
         container: HTMLElement,
-        seriesList: ISeriesApi<any>[],
+        _seriesList: ISeriesApi<any>[],
         chartConfig: ChartConfig
       ) => {
         if (!chartConfig.tooltipConfigs || Object.keys(chartConfig.tooltipConfigs).length === 0) {
@@ -1273,7 +1278,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
               // Check if chart has panes available via API
               try {
-                let panes = [];
+                let panes: any[] = [];
                 if (chart && typeof chart.panes === 'function') {
                   try {
                     panes = chart.panes();
@@ -1475,9 +1480,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
     // Performance optimization: Memoized chart configuration processing
     const processedChartConfigs = useMemo(() => {
-      if (!config || !config.charts || config.charts.length === 0) return [];
+      if (!deferredConfig || !deferredConfig.charts || deferredConfig.charts.length === 0) return [];
 
-      return config.charts.map((chartConfig: ChartConfig, chartIndex: number) => {
+      return deferredConfig.charts.map((chartConfig: ChartConfig, chartIndex: number) => {
         const chartId = chartConfig.chartId || `chart-${chartIndex}`;
 
         // Chart configuration processed
@@ -1497,7 +1502,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           }),
         };
       });
-    }, [config, width, height]);
+    }, [deferredConfig, width, height]);
 
     // Initialize charts
     const initializeCharts = useCallback(
@@ -1618,7 +1623,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             let chart: IChartApi;
             try {
-              chart = createChart(container, chartOptions);
+              chart = createChart(container, chartOptions as any);
             } catch (chartError) {
               return;
             }
@@ -1685,7 +1690,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             if (!window.chartResizeObservers) {
               window.chartResizeObservers = {};
             }
-            window.chartResizeObservers[chartId] = resizeObserver;
+            if (resizeObserver) {
+              window.chartResizeObservers[chartId] = resizeObserver;
+            }
 
             // Calculate chart dimensions once
             const containerRect = container.getBoundingClientRect();
@@ -1708,20 +1715,18 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             // Apply layout.panes options if present
             if (
               chartOptions.layout &&
-              (chartOptions as unknown as ChartConfig & { layout: { panes?: unknown } }).layout
-                .panes
+              (chartOptions as any).layout?.panes
             ) {
               chart.applyOptions({
                 layout: {
-                  panes: (chartOptions as unknown as ChartConfig & { layout: { panes?: unknown } })
-                    .layout.panes,
+                  panes: (chartOptions as any).layout.panes,
                 },
               });
             }
 
             // Create panes if needed for multi-pane charts
             const paneMap = new Map<number, any>();
-            let existingPanes = [];
+            let existingPanes: any[] = [];
 
             // Safety check for chart.panes() method
             if (chart && typeof chart.panes === 'function') {
@@ -1865,7 +1870,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                               }
                             );
 
-                            if (isReady) {
+                            if (isReady && seriesConfig.trades && seriesConfig.tradeVisualizationOptions) {
                               await addTradeVisualization(
                                 chart,
                                 series,
@@ -1877,13 +1882,15 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                               // Try to attach primitives anyway - sometimes coordinates work even if tests fail
 
                               try {
-                                await addTradeVisualization(
-                                  chart,
-                                  series,
-                                  seriesConfig.trades,
-                                  seriesConfig.tradeVisualizationOptions,
-                                  seriesConfig.data
-                                );
+                                if (seriesConfig.trades && seriesConfig.tradeVisualizationOptions) {
+                                  await addTradeVisualization(
+                                    chart,
+                                    series,
+                                    seriesConfig.trades,
+                                    seriesConfig.tradeVisualizationOptions,
+                                    seriesConfig.data
+                                  );
+                                }
                               } catch (attachError) {}
                             }
                           } catch (error) {
@@ -1920,7 +1927,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             // Apply pane heights configuration AFTER series creation to ensure all panes exist
             if (chartConfig.chart?.layout?.paneHeights) {
               // Get all panes after series creation
-              let allPanes = [];
+              let allPanes: any[] = [];
               if (chart && typeof chart.panes === 'function') {
                 try {
                   allPanes = chart.panes();
@@ -2034,7 +2041,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     }
 
                     // Store the resize observer for cleanup
-                    legendResizeObserverRefs.current[chartId] = resizeObserver;
+                    if (resizeObserver) {
+                      legendResizeObserverRefs.current[chartId] = resizeObserver;
+                    }
 
                     // Legacy legend refresh callbacks disabled
                     // if (window.legendRefreshCallbacks && window.legendRefreshCallbacks[chartId]) {
@@ -2091,7 +2100,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             if (paneCollapseConfig.enabled !== false) {
               try {
                 // Get all panes and wrap each in its own collapsible container
-                let allPanes = [];
+                let allPanes: any[] = [];
                 if (chart && typeof chart.panes === 'function') {
                   try {
                     allPanes = chart.panes();
@@ -2132,7 +2141,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId);
 
                     // Create button panels (gear + collapse buttons) for each pane using primitive manager
-                    allPanes.forEach(async (pane, paneId) => {
+                    allPanes.forEach(async (_pane, paneId) => {
                       // Add button panel using primitive manager
                       const buttonPanelWidget = primitiveManager.addButtonPanel(
                         paneId,
@@ -2236,15 +2245,15 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       cleanupCharts,
     ]);
 
-    // Stabilize the config dependency to prevent unnecessary re-initialization
-    const stableConfig = useMemo(() => config, [config]);
-
+    // React 18: Use deferredConfig for non-urgent updates
     useEffect(() => {
-      if (stableConfig && stableConfig.charts && stableConfig.charts.length > 0) {
-        initializeCharts(true);
-      } else {
+      if (deferredConfig && deferredConfig.charts && deferredConfig.charts.length > 0) {
+        // Wrap heavy chart operations in startTransition for better UX
+        startTransition(() => {
+          initializeCharts(true);
+        });
       }
-    }, [stableConfig, initializeCharts]);
+    }, [deferredConfig, initializeCharts, startTransition]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -2253,13 +2262,13 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       };
     }, [cleanupCharts]);
 
-    // Memoize the chart containers to prevent unnecessary re-renders
+    // React 18: Use deferredConfig for rendering optimizations
     const chartContainers = useMemo(() => {
-      if (!config || !config.charts || config.charts.length === 0) {
+      if (!deferredConfig || !deferredConfig.charts || deferredConfig.charts.length === 0) {
         return [];
       }
 
-      return config.charts.map((chartConfig, index) => {
+      return deferredConfig.charts.map((chartConfig, index) => {
         const chartId = chartConfig.chartId || `chart-${index}`;
         const containerId = `chart-container-${chartId}`;
 
@@ -2288,15 +2297,24 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           </div>
         );
       });
-    }, [config, width, height]);
+    }, [deferredConfig, width, height]);
 
     if (!config || !config.charts || config.charts.length === 0) {
       return <div>No charts configured</div>;
     }
 
     return (
-      <ErrorBoundary>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>{chartContainers}</div>
+      <ErrorBoundary
+        resetKeys={[config?.charts?.length, JSON.stringify(config)]}
+        resetOnPropsChange={false}
+        isolate={true}
+        onError={(error, errorInfo) => {
+          console.error('Chart rendering error:', error, errorInfo);
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', opacity: isPending ? 0.7 : 1, transition: 'opacity 0.2s ease' }}>
+          {chartContainers}
+        </div>
       </ErrorBoundary>
     );
   }

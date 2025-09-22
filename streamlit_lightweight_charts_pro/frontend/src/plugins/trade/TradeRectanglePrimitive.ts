@@ -349,7 +349,7 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
     try {
       // Create callback functions and store them for cleanup
       this._timeScaleCallback = () => {
-        this._requestUpdate();
+        this._requestUpdate?.();
       };
 
       this._crosshairCallback = () => {
@@ -358,7 +358,7 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
           this._updateThrottled = true;
           setTimeout(() => {
             this._updateThrottled = false;
-            this._requestUpdate();
+            this._requestUpdate?.();
           }, 100); // Throttle to 10fps for crosshair updates
         }
       };

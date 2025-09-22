@@ -116,7 +116,7 @@ function createTradeRectangles(
 
   // Enhanced validation using coordinate service
 
-  trades.forEach((trade, index) => {
+  trades.forEach((trade, _index) => {
     // Validate trade data - allow exitTime to be null for open trades
     if (
       !trade.entryTime ||
@@ -205,7 +205,7 @@ function createTradeMarkers(
 
   // Enhanced validation using coordinate service
 
-  trades.forEach((trade, index) => {
+  trades.forEach((trade, _index) => {
     // Validate trade data - allow exitTime to be null for open trades
     if (
       !trade.entryTime ||
@@ -290,7 +290,7 @@ export function createTradeVisualElements(
   trades: TradeConfig[],
   options: TradeVisualizationOptions,
   chartData?: any[],
-  priceScaleId?: string
+  _priceScaleId?: string
 ): {
   markers: SeriesMarker<Time>[];
   rectangles: TradeRectangleData[];
@@ -437,9 +437,9 @@ export function convertTradeRectanglesToPluginFormat(
  * @deprecated - This function is no longer used. Use createTradeRectanglePrimitives from TradeRectanglePrimitive instead.
  */
 export function createTradeRectanglePrimitives(
-  tradeRectangles: TradeRectangleData[],
-  chart?: any,
-  series?: any
+  _tradeRectangles: TradeRectangleData[],
+  _chart?: any,
+  _series?: any
 ): any[] {
   return [];
 }

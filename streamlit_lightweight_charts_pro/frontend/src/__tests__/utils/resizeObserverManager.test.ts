@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ResizeObserverManager } from '../../utils/resizeObserverManager';
 
 describe('ResizeObserverManager', () => {

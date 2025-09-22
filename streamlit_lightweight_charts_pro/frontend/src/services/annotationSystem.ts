@@ -1,19 +1,20 @@
 /* eslint-disable no-unused-vars */
-import { Annotation, AnnotationLayer } from '../types';
+import { Annotation, AnnotationLayer, AnnotationText } from '../types';
+import { ShapeData } from '../types/ChartInterfaces';
 import { UTCTimestamp, SeriesMarker, Time } from 'lightweight-charts';
 
 export interface AnnotationVisualElements {
-  markers: any[];
-  shapes: any[];
-  texts: any[];
+  markers: SeriesMarker<Time>[];
+  shapes: ShapeData[];
+  texts: AnnotationText[];
 }
 
 export const createAnnotationVisualElements = (
   annotations: Annotation[]
 ): AnnotationVisualElements => {
   const markers: SeriesMarker<Time>[] = [];
-  const shapes: any[] = [];
-  const texts: any[] = [];
+  const shapes: ShapeData[] = [];
+  const texts: AnnotationText[] = [];
 
   // Immediate return if annotations is null, undefined, or not an object
   if (!annotations || typeof annotations !== 'object') {
@@ -77,15 +78,12 @@ export const createAnnotationVisualElements = (
 
           // Create shape if specified
           if (annotation.type === 'rectangle' || annotation.type === 'line') {
-            const shape = {
-              time: parseTime(annotation.time),
-              price: annotation.price,
+            const shape: ShapeData = {
               type: annotation.type,
+              points: [{ time: parseTime(annotation.time), price: annotation.price }],
               color: annotation.color || '#2196F3',
-              borderColor: annotation.borderColor || '#2196F3',
+              fillColor: annotation.backgroundColor || '#2196F3',
               borderWidth: annotation.borderWidth || 1,
-              borderStyle: annotation.lineStyle || 'solid',
-              size: annotation.fontSize || 1,
               text: annotation.text || '',
             };
             shapes.push(shape);
@@ -93,7 +91,7 @@ export const createAnnotationVisualElements = (
 
           // Create text annotation if specified
           if (annotation.type === 'text') {
-            const text = {
+            const text: AnnotationText = {
               time: parseTime(annotation.time),
               price: annotation.price,
               text: annotation.text,

@@ -112,7 +112,7 @@ export const SeriesConfigDialog: React.FC<
   );
 
   const onConfigChange = isLegacy
-    ? (seriesId: string, config: SeriesConfiguration) => props.onConfigChange(config)
+    ? (_seriesId: string, config: SeriesConfiguration) => props.onConfigChange(config)
     : props.onConfigChange;
 
   const { isOpen, onClose } = props;

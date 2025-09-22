@@ -2,6 +2,13 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
+// Custom render function that ensures container is available
+const customRender = (ui: React.ReactElement, options = {}) => {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  return render(ui, { container, ...options });
+};
+
 // Mock the components and hooks
 jest.mock('streamlit-component-lib', () => ({
   Streamlit: {
@@ -184,7 +191,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
       expect(screen.getByText('Mock Chart Component')).toBeInTheDocument();
@@ -236,7 +243,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       expect(screen.getByText(/Config:/)).toBeInTheDocument();
       expect(screen.getByText(/Height: 400/)).toBeInTheDocument();
@@ -289,7 +296,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       expect(screen.getByText(/Height: 600/)).toBeInTheDocument();
       expect(screen.getByText(/Width: 1000/)).toBeInTheDocument();
@@ -344,7 +351,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       // Wait for component ready to be set
       await waitFor(() => {
@@ -404,7 +411,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       // Should not crash
       expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
@@ -459,7 +466,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       const chartsReadyBtn = screen.getByTestId('charts-ready-btn');
       chartsReadyBtn.click();
@@ -525,7 +532,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       const chartsReadyBtn = screen.getByTestId('charts-ready-btn');
       chartsReadyBtn.click();
@@ -581,7 +588,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       const chartsReadyBtn = screen.getByTestId('charts-ready-btn');
       chartsReadyBtn.click();
@@ -644,7 +651,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       // First make sure charts are ready
       const chartsReadyBtn = screen.getByTestId('charts-ready-btn');
@@ -709,7 +716,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       // First make sure charts are ready
       const chartsReadyBtn = screen.getByTestId('charts-ready-btn');
@@ -753,7 +760,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
     });
@@ -788,7 +795,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
     });
@@ -843,7 +850,7 @@ describe('Index Component', () => {
         theme: customTheme,
       });
 
-      render(<App />);
+      customRender(<App />);
 
       expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
     });
@@ -902,7 +909,7 @@ describe('Index Component', () => {
         },
       });
 
-      render(<App />);
+      customRender(<App />);
 
       expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
     });

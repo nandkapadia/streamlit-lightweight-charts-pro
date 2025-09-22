@@ -433,7 +433,6 @@ export class GradientRibbonSeries implements ISeriesPrimitive<Time> {
   private _paneViews: GradientRibbonPrimitivePaneView[];
   public _upperLineSeries: ISeriesApi<'Line'> | null = null;
   public _lowerLineSeries: ISeriesApi<'Line'> | null = null;
-  private _source: any;
 
   constructor(chart: IChartApi, options: GradientRibbonOptions) {
     this._chart = chart;
@@ -565,11 +564,11 @@ export class GradientRibbonSeries implements ISeriesPrimitive<Time> {
     });
   }
 
-  priceAxisViews() {
+  priceAxisViews(): any[] {
     return [];
   }
 
-  timeAxisViews() {
+  timeAxisViews(): any[] {
     return [];
   }
 

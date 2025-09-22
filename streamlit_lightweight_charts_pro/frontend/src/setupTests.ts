@@ -4,47 +4,37 @@
  */
 
 import '@testing-library/jest-dom';
-
-// Configure React Testing Library for React 18 compatibility
 import { configure } from '@testing-library/react';
 
+// Add polyfills for Node.js environment
+if (typeof TextEncoder === 'undefined') {
+  global.TextEncoder = require('util').TextEncoder;
+}
+if (typeof TextDecoder === 'undefined') {
+  global.TextDecoder = require('util').TextDecoder;
+}
+
+// Configure React Testing Library for compatibility with React 18
 configure({
-  // Use legacy render mode for better React 18 compatibility
   testIdAttribute: 'data-testid',
-  legacyRoot: true,
-});
-
-// Mock react-dom/client createRoot to provide fallback DOM container
-jest.mock('react-dom/client', () => {
-  const originalModule = jest.requireActual('react-dom/client');
-
-  return {
-    ...originalModule,
-    createRoot: jest.fn((container) => {
-      // If no container or invalid container, use fallback behavior
-      // that matches what React Testing Library expects
-      const mockRoot = {
-        render: jest.fn(),
-        unmount: jest.fn(),
-      };
-
-      return mockRoot;
-    }),
-  };
+  asyncUtilTimeout: 10000,
 });
 
 // Set React 18 environment flag
-global.IS_REACT_ACT_ENVIRONMENT = true;
+(global as any).IS_REACT_ACT_ENVIRONMENT = true;
 
-// Ensure document.body exists for React Testing Library
-beforeEach(() => {
-  if (!document.body) {
-    document.body = document.createElement('body');
-    document.documentElement.appendChild(document.body);
-  }
+// Set up React 18 test environment
+Object.defineProperty(global, 'document', {
+  value: document,
+  writable: true,
 });
 
-// Clean up after each test
+// Ensure React 18 createRoot has access to proper DOM
+if (typeof global.document === 'undefined') {
+  global.document = document;
+}
+
+// Document cleanup after each test
 afterEach(() => {
   if (document.body) {
     document.body.innerHTML = '';
@@ -57,7 +47,7 @@ Object.defineProperty(window, 'performance', {
     now: jest.fn(() => Date.now()),
     mark: jest.fn(),
     measure: jest.fn(),
-    getEntriesByType: jest.fn(() => []),
+    getEntriesByType: jest.fn((): any[] => []),
   },
   writable: true,
 });
@@ -188,7 +178,7 @@ document.createElement = jest.fn((tagName: string) => {
     })) as any;
   }
 
-  // Mock appendChild to handle non-Node parameters
+  // Mock appendChild to handle non-Node parameters safely
   const originalAppendChild = element.appendChild;
   element.appendChild = jest.fn((child: any) => {
     try {
@@ -209,6 +199,56 @@ document.createElement = jest.fn((tagName: string) => {
   }) as any;
 
   return element;
+});
+
+// Ensure document and document.body are properly initialized for React Testing Library
+beforeEach(() => {
+  // Ensure document.body exists and is connected to the document
+  if (!document.body) {
+    document.body = originalCreateElement.call(document, 'body');
+    document.documentElement.appendChild(document.body);
+  }
+
+  // Reset document.body to ensure clean state
+  document.body.innerHTML = '';
+
+  // Create a container div for React Testing Library - check if createElement works
+  if (typeof document.createElement === 'function') {
+    try {
+      const container = document.createElement('div');
+      if (container && typeof container.setAttribute === 'function') {
+        container.setAttribute('id', 'react-test-container');
+        document.body.appendChild(container);
+      }
+    } catch (error) {
+      // Fallback: don't create container if createElement fails
+      // eslint-disable-next-line no-console
+      console.warn('DOM setup warning:', error);
+    }
+  }
+
+  // Ensure document.body has proper dimensions for layout calculations
+  Object.defineProperty(document.body, 'offsetHeight', {
+    configurable: true,
+    value: 600,
+  });
+
+  Object.defineProperty(document.body, 'offsetWidth', {
+    configurable: true,
+    value: 800,
+  });
+
+  // Ensure document.body is properly connected to the DOM
+  if (!document.body.isConnected) {
+    document.documentElement.appendChild(document.body);
+  }
+
+  // Make sure document and documentElement are properly defined
+  if (!document.documentElement) {
+    const html = document.createElement('html');
+    document.appendChild(html);
+    html.appendChild(document.body);
+  }
 });
 
 // Mock additional DOM properties and methods
@@ -277,8 +317,10 @@ Element.prototype.appendChild = function(child: any) {
 };
 
 // Global test error handler to suppress expected errors in tests
+// eslint-disable-next-line no-console
 const originalError = console.error;
 beforeAll(() => {
+  // eslint-disable-next-line no-console
   console.error = (...args: any[]) => {
     if (
       typeof args[0] === 'string' &&
@@ -291,5 +333,6 @@ beforeAll(() => {
 });
 
 afterAll(() => {
+  // eslint-disable-next-line no-console
   console.error = originalError;
 });

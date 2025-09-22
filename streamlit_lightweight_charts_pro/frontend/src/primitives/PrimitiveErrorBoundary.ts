@@ -6,18 +6,28 @@
  */
 
 export enum ErrorSeverity {
+  // eslint-disable-next-line no-unused-vars
   LOW = 'low',
+  // eslint-disable-next-line no-unused-vars
   MEDIUM = 'medium',
+  // eslint-disable-next-line no-unused-vars
   HIGH = 'high',
+  // eslint-disable-next-line no-unused-vars
   CRITICAL = 'critical',
 }
 
 export enum ErrorCategory {
+  // eslint-disable-next-line no-unused-vars
   INITIALIZATION = 'initialization',
+  // eslint-disable-next-line no-unused-vars
   RENDERING = 'rendering',
+  // eslint-disable-next-line no-unused-vars
   EVENT_HANDLING = 'event_handling',
+  // eslint-disable-next-line no-unused-vars
   SERVICE_COMMUNICATION = 'service_communication',
+  // eslint-disable-next-line no-unused-vars
   CONFIGURATION = 'configuration',
+  // eslint-disable-next-line no-unused-vars
   LIFECYCLE = 'lifecycle',
 }
 
@@ -35,8 +45,8 @@ export interface PrimitiveError {
 }
 
 export interface ErrorRecoveryStrategy {
-  canRecover(error: PrimitiveError): boolean;
-  recover(error: PrimitiveError, primitive: any): Promise<boolean>;
+  canRecover(_error: PrimitiveError): boolean;
+  recover(_error: PrimitiveError, _primitive: any): Promise<boolean>;
 }
 
 /**
@@ -46,7 +56,7 @@ export class PrimitiveErrorBoundary {
   private static instance: PrimitiveErrorBoundary;
   private errors: Map<string, PrimitiveError> = new Map();
   private recoveryStrategies: ErrorRecoveryStrategy[] = [];
-  private errorListeners: ((error: PrimitiveError) => void)[] = [];
+  private errorListeners: ((_error: PrimitiveError) => void)[] = [];
 
   static getInstance(): PrimitiveErrorBoundary {
     if (!this.instance) {
@@ -66,7 +76,7 @@ export class PrimitiveErrorBoundary {
   /**
    * Listen for errors
    */
-  onError(listener: (error: PrimitiveError) => void): () => void {
+  onError(listener: (_error: PrimitiveError) => void): () => void {
     this.errorListeners.push(listener);
     return () => {
       const index = this.errorListeners.indexOf(listener);
@@ -161,7 +171,7 @@ export class PrimitiveErrorBoundary {
   /**
    * Determine error severity based on category and error type
    */
-  private determineSeverity(category: ErrorCategory, error: any): ErrorSeverity {
+  private determineSeverity(category: ErrorCategory, _error: any): ErrorSeverity {
     // Critical errors that break functionality
     if (category === ErrorCategory.INITIALIZATION) {
       return ErrorSeverity.CRITICAL;
@@ -319,7 +329,7 @@ export function withErrorBoundary(category: ErrorCategory, context?: Record<stri
 
     descriptor.value = async function (...args: any[]) {
       const boundary = PrimitiveErrorBoundary.getInstance();
-      const primitiveId = this.id || 'unknown';
+      const primitiveId = (this as any).id || 'unknown';
       const primitiveType = this.constructor.name;
 
       return boundary.safeExecute(

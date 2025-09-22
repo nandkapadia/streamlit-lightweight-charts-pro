@@ -61,9 +61,8 @@ export const createMockChartConfig = (overrides: Partial<ComponentConfig> = {}):
       chartId: 'test-chart',
       chart: {
         height: 400,
-        autoSize: true,
         layout: {
-          color: '#ffffff',
+          backgroundColor: '#ffffff',
           textColor: '#000000',
         },
       },

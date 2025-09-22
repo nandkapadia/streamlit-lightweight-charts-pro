@@ -579,8 +579,6 @@ class LocalStorageAdapter implements ConfigStorage {
 export class SeriesConfigDialogManager {
   private configService: SeriesConfigurationService;
   private currentDialog: HTMLElement | null = null;
-  private currentSeriesId: string | null = null;
-  private currentSeriesType: SeriesType | null = null;
 
   constructor(configService: SeriesConfigurationService) {
     this.configService = configService;
@@ -592,8 +590,6 @@ export class SeriesConfigDialogManager {
   public openDialog(seriesId: string, seriesType: SeriesType, anchor: HTMLElement): void {
     this.closeDialog(); // Close any existing dialog
 
-    this.currentSeriesId = seriesId;
-    this.currentSeriesType = seriesType;
 
     this.currentDialog = this.createDialog(seriesId, seriesType);
     this.positionDialog(this.currentDialog, anchor);
@@ -613,8 +609,6 @@ export class SeriesConfigDialogManager {
       document.removeEventListener('click', this.handleOutsideClick);
       this.currentDialog.remove();
       this.currentDialog = null;
-      this.currentSeriesId = null;
-      this.currentSeriesType = null;
     }
   }
 

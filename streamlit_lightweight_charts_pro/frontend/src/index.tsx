@@ -139,7 +139,7 @@ const App: React.FC = () => {
 
   // Enhanced height reporting with ResizeObserver
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) return undefined;
 
     // Report height immediately
     reportHeightWithFallback();

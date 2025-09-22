@@ -274,67 +274,6 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
     ctx.fill();
   }
 
-  private _drawFillGroup(
-    ctx: CanvasRenderingContext2D,
-    group: TrendFillRenderData[],
-    hRatio: number,
-    vRatio: number,
-    fillColor: string
-  ): void {
-    if (group.length === 0) {
-      return;
-    }
-
-    ctx.fillStyle = fillColor;
-
-    // NOW THAT WE KNOW COORDINATES WORK: Create smooth continuous fills
-    if (group.length === 1) {
-      // Single point - draw a small rectangle fill
-      const item = group[0];
-      const x = item.x!;
-      const baseLineY = item.baseLineY!;
-      const trendLineY = item.trendLineY!;
-
-      const rectX = Math.max(0, x - 1);
-      const rectY = Math.min(baseLineY, trendLineY);
-      const rectWidth = 2;
-      const rectHeight = Math.abs(baseLineY - trendLineY);
-
-      ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-    } else {
-      // Multiple points - draw continuous fill area using path
-      ctx.beginPath();
-
-      // Start from the first point's baseline
-      const firstItem = group[0];
-      ctx.moveTo(firstItem.x!, firstItem.baseLineY!);
-
-      // Draw along the baseline to all points
-      for (let i = 1; i < group.length; i++) {
-        const item = group[i];
-        ctx.lineTo(item.x!, item.baseLineY!);
-      }
-
-      // Connect to the last point's trend line
-      const lastItem = group[group.length - 1];
-      ctx.lineTo(lastItem.x!, lastItem.trendLineY!);
-
-      // Draw along the trend line back to start (reverse order)
-      for (let i = group.length - 2; i >= 0; i--) {
-        const item = group[i];
-        ctx.lineTo(item.x!, item.trendLineY!);
-      }
-
-      // Connect back to the first point's trend line and then to baseline
-      ctx.lineTo(firstItem.x!, firstItem.trendLineY!);
-      ctx.lineTo(firstItem.x!, firstItem.baseLineY!);
-
-      ctx.fill();
-    }
-
-    // Smooth fills drawn
-  }
-
   private _drawContinuousTrendLines(
     ctx: CanvasRenderingContext2D,
     items: TrendFillRenderData[],
@@ -382,8 +321,8 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
   private _drawLineGroup(
     ctx: CanvasRenderingContext2D,
     group: TrendFillRenderData[],
-    hRatio: number,
-    vRatio: number,
+    _hRatio: number,
+    _vRatio: number,
     color: string
   ): void {
     if (group.length === 0) return;
@@ -608,7 +547,6 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
   private options: TrendFillOptions;
   private data: TrendFillData[] = [];
   private _paneViews: TrendFillPrimitivePaneView[];
-  private paneId: number;
 
   // Processed data for rendering
   private trendFillItems: TrendFillItem[] = [];
@@ -633,11 +571,10 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
       visible: true,
       priceScaleId: 'right', // Default priceScaleId
     },
-    paneId: number = 0
+    _paneId: number = 0
   ) {
     this.chart = chart;
     this.options = { ...options };
-    this.paneId = paneId;
     this._paneViews = [new TrendFillPrimitivePaneView(this)];
 
     // Create the two line series (following band series pattern) - make them transparent for coordinate conversion only
@@ -720,7 +657,7 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
     });
 
     // Count trend directions in raw data
-    const trendDirectionCounts = { '-1': 0, '0': 0, '1': 0, null: 0, undefined: 0 };
+    const trendDirectionCounts: { [key: string]: number } = { '-1': 0, '0': 0, '1': 0, null: 0, undefined: 0 };
     sortedData.forEach((item, _i) => {
       const trendDirection = item.trend_direction ?? item.trendDirection;
       const key =

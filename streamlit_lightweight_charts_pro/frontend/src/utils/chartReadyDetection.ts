@@ -173,7 +173,7 @@ export class ChartReadyDetector {
 
         const testX = timeScale.timeToCoordinate(timeForTest as UTCTimestamp);
         const testLogicalX = timeScale.logicalToCoordinate(logicalForTest as Logical);
-        const testY = series.priceToCoordinate(priceForTest);
+        const testY = priceForTest !== undefined ? series.priceToCoordinate(priceForTest) : null;
 
         if (
           testX === null ||

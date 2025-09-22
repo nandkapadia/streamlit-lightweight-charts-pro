@@ -13,11 +13,11 @@ export function lazyComponent<T extends ComponentType<any>>(
   fallback?: T
 ): LazyExoticComponent<T> {
   return lazy(() =>
-    importFunc().catch(error => {
+    importFunc().catch(_error => {
       // Failed to load component - use fallback instead
       // Return a fallback component on error
       return {
-        default: fallback || ((() => null) as unknown as T),
+        default: fallback || ((): any => null) as any as T,
       };
     })
   );
@@ -27,12 +27,12 @@ export function lazyComponent<T extends ComponentType<any>>(
  * Lazy load a service class with singleton pattern
  */
 export function lazyService<T>(
-  importFunc: () => Promise<{ default: new (...args: any[]) => T }>,
-  ...args: any[]
+  importFunc: () => Promise<{ default: new (..._args: any[]) => T }>,
+  ..._args: any[]
 ): Promise<T> {
   return importFunc().then(module => {
     const ServiceClass = module.default;
-    return new ServiceClass(...args);
+    return new ServiceClass(..._args);
   });
 }
 

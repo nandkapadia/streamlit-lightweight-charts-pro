@@ -59,10 +59,7 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
   private paneStates = new Map<number, PaneState>();
   private layoutManager: CornerLayoutManager | null = null;
   private streamlitService: StreamlitSeriesConfigService;
-  private resizeObserver: ResizeObserver | null = null;
-  private preservationTimer: NodeJS.Timeout | null = null;
   private chartId?: string;
-  private currentPosition: Position | null = null;
   private containerElement: HTMLElement | null = null;
 
   // IPositionableWidget implementation
@@ -148,7 +145,6 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
   }
 
   updatePosition(position: Position): void {
-    this.currentPosition = position;
 
     if (this.containerElement) {
       const style = this.containerElement.style;
@@ -197,7 +193,6 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     this.chartApi = null;
     this.layoutManager = null;
     this.containerElement = null;
-    this.currentPosition = null;
   }
 
   /**
@@ -464,18 +459,6 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     } catch (error) {}
   }
 
-  /**
-   * Load series configuration from localStorage
-   */
-  private loadSeriesConfig(seriesId: string): SeriesConfiguration | null {
-    try {
-      const storageKey = `series-config-${seriesId}`;
-      const saved = localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : null;
-    } catch (error) {
-      return null;
-    }
-  }
 
   /**
    * Infer series type for a pane (simplified logic)

@@ -212,8 +212,9 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
   constructor(id: string, config: RangeSwitcherPrimitiveConfig) {
     // Set default priority and configuration for range switchers
     const configWithDefaults: RangeSwitcherPrimitiveConfig = {
-      priority: PrimitivePriority.RANGE_SWITCHER,
-      visible: true,
+      ...config,
+      priority: config.priority ?? PrimitivePriority.RANGE_SWITCHER,
+      visible: config.visible ?? true,
       style: {
         backgroundColor: 'transparent',
         padding: DefaultRangeSwitcherConfig.layout.CONTAINER_PADDING,
@@ -239,7 +240,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
         },
         ...config.style,
       },
-      ...config,
     };
 
     super(id, configWithDefaults);
@@ -572,14 +572,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     return rangeSeconds <= dataTimespan * bufferMultiplier;
   }
 
-  /**
-   * Get visible ranges based on data availability
-   */
-  private getVisibleRanges(): Array<{ range: RangeConfig; originalIndex: number }> {
-    return this.config.ranges
-      .map((range, index) => ({ range, originalIndex: index }))
-      .filter(({ range }) => this.isRangeValidForData(range));
-  }
 
   /**
    * Get CSS class name for the container
@@ -601,6 +593,10 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
    * Override detached to ensure proper cleanup
    */
   public detached(): void {
+    if (this.dataChangeIntervalId) {
+      clearInterval(this.dataChangeIntervalId);
+      this.dataChangeIntervalId = null;
+    }
     this.cleanupButtonEventListeners();
     super.detached();
   }
@@ -624,13 +620,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     this.eventSubscriptions.push(dataUpdateSub);
   }
 
-  /**
-   * Handle external time scale changes
-   */
-  private handleTimeScaleChange(_event: { from: any; to: any }): void {
-    // Optionally sync active range when time scale changes externally
-    // This could be used to highlight which range matches the current view
-  }
 
   /**
    * Handle data updates that might affect range visibility
@@ -880,7 +869,7 @@ export const DefaultRangeConfigs = {
       { text: '1M', seconds: TimeRangeSeconds.ONE_MONTH },
       { text: '3M', seconds: TimeRangeSeconds.THREE_MONTHS },
       { text: '1Y', seconds: TimeRangeSeconds.ONE_YEAR },
-      { text: 'All', seconds: null },
+      { text: 'All', seconds: null as number | null },
     ],
     shortTerm: [
       { text: '5M', seconds: TimeRangeSeconds.FIVE_MINUTES },
@@ -888,7 +877,7 @@ export const DefaultRangeConfigs = {
       { text: '1H', seconds: TimeRangeSeconds.ONE_HOUR },
       { text: '4H', seconds: TimeRangeSeconds.FOUR_HOURS },
       { text: '1D', seconds: TimeRangeSeconds.ONE_DAY },
-      { text: 'All', seconds: null },
+      { text: 'All', seconds: null as number | null },
     ],
     longTerm: [
       { text: '1M', seconds: TimeRangeSeconds.ONE_MONTH },
@@ -896,13 +885,13 @@ export const DefaultRangeConfigs = {
       { text: '6M', seconds: TimeRangeSeconds.SIX_MONTHS },
       { text: '1Y', seconds: TimeRangeSeconds.ONE_YEAR },
       { text: '5Y', seconds: TimeRangeSeconds.FIVE_YEARS },
-      { text: 'All', seconds: null },
+      { text: 'All', seconds: null as number | null },
     ],
     minimal: [
       { text: '1D', seconds: TimeRangeSeconds.ONE_DAY },
       { text: '1W', seconds: TimeRangeSeconds.ONE_WEEK },
       { text: '1M', seconds: TimeRangeSeconds.ONE_MONTH },
-      { text: 'All', seconds: null },
+      { text: 'All', seconds: null as number | null },
     ],
   },
 } as const;

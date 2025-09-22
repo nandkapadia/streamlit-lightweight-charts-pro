@@ -5,8 +5,10 @@ export class ResizeObserverManager {
   private observers = new Map<string, ResizeObserver>();
   private callbacks = new Map<
     string,
-    (entry: ResizeObserverEntry | ResizeObserverEntry[]) => void
+    (_entry: ResizeObserverEntry | ResizeObserverEntry[]) => void
   >();
+  private timeouts = new Map<string, NodeJS.Timeout>();
+  private targets = new Map<string, Element>();
 
   /**
    * Add a resize observer for a specific target
@@ -14,7 +16,7 @@ export class ResizeObserverManager {
   addObserver(
     id: string,
     target: Element,
-    callback: (entry: ResizeObserverEntry | ResizeObserverEntry[]) => void,
+    callback: (_entry: ResizeObserverEntry | ResizeObserverEntry[]) => void,
     options: {
       throttleMs?: number;
       debounceMs?: number;
@@ -26,7 +28,6 @@ export class ResizeObserverManager {
     const { throttleMs = 100, debounceMs = 0 } = options;
 
     // Create throttled/debounced callback
-    let timeoutId: NodeJS.Timeout | null = null;
     let lastCallTime = 0;
 
     const wrappedCallback = (entry: ResizeObserverEntry) => {
@@ -39,13 +40,15 @@ export class ResizeObserverManager {
 
       // Debouncing
       if (debounceMs > 0) {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
+        const existingTimeout = this.timeouts.get(id);
+        if (existingTimeout) {
+          clearTimeout(existingTimeout);
         }
-        timeoutId = setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           callback(entry);
-          timeoutId = null;
+          this.timeouts.delete(id);
         }, debounceMs);
+        this.timeouts.set(id, timeoutId);
       } else {
         callback(entry);
         lastCallTime = now;
@@ -65,6 +68,7 @@ export class ResizeObserverManager {
       observer.observe(target);
       this.observers.set(id, observer);
       this.callbacks.set(id, callback);
+      this.targets.set(id, target);
     } catch (error) {}
   }
 
@@ -78,6 +82,14 @@ export class ResizeObserverManager {
         observer.disconnect();
         this.observers.delete(id);
         this.callbacks.delete(id);
+        this.targets.delete(id);
+
+        // Clean up any pending timeouts
+        const timeout = this.timeouts.get(id);
+        if (timeout) {
+          clearTimeout(timeout);
+          this.timeouts.delete(id);
+        }
       } catch (error) {}
     }
   }
@@ -100,14 +112,23 @@ export class ResizeObserverManager {
    * Cleanup all observers
    */
   cleanup(): void {
-    this.observers.forEach((observer, id) => {
+    this.observers.forEach((observer, _id) => {
       try {
         observer.disconnect();
       } catch (error) {}
     });
 
+    // Clean up all timeouts
+    this.timeouts.forEach((timeout, _id) => {
+      try {
+        clearTimeout(timeout);
+      } catch (error) {}
+    });
+
     this.observers.clear();
     this.callbacks.clear();
+    this.timeouts.clear();
+    this.targets.clear();
   }
 
   /**
@@ -121,7 +142,7 @@ export class ResizeObserverManager {
    * Pause all observers temporarily
    */
   pauseAll(): void {
-    this.observers.forEach((observer, id) => {
+    this.observers.forEach((observer, _id) => {
       try {
         observer.disconnect();
       } catch (error) {}
@@ -132,6 +153,13 @@ export class ResizeObserverManager {
    * Resume all observers
    */
   resumeAll(): void {
-    this.observers.forEach((observer, id) => {});
+    this.observers.forEach((observer, id) => {
+      const target = this.targets.get(id);
+      if (target) {
+        try {
+          observer.observe(target);
+        } catch (error) {}
+      }
+    });
   }
 }

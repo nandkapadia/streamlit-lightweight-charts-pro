@@ -88,7 +88,7 @@ export function createSeries(
     topLevelPriceScaleId !== undefined ? topLevelPriceScaleId : options.priceScaleId;
 
   // Extract paneId from seriesConfig and ensure it has a default value
-  const finalPaneId = seriesConfig.paneId !== undefined ? seriesConfig.paneId : 0;
+  const finalPaneId: number = seriesConfig.paneId !== undefined ? seriesConfig.paneId : 0;
 
   let series: ISeriesApi<any>;
   const normalizedType = type?.toLowerCase();
@@ -659,7 +659,7 @@ export function createSeries(
   }
 
   if (seriesConfig.priceLines && Array.isArray(seriesConfig.priceLines)) {
-    seriesConfig.priceLines.forEach((priceLine: any, index: number) => {
+    seriesConfig.priceLines.forEach((priceLine: any, _index: number) => {
       try {
         series.createPriceLine(priceLine);
       } catch (error) {
@@ -679,9 +679,7 @@ export function createSeries(
   }
 
   // Store paneId as a property on the series object for legend functionality
-  if (finalPaneId !== undefined) {
-    (series as ExtendedSeriesApi).paneId = finalPaneId;
-  }
+  (series as ExtendedSeriesApi).paneId = finalPaneId;
 
   // Handle series legend if configured - add directly to the correct PaneLegendManager
   if (seriesConfig.legend && seriesConfig.legend.visible) {
@@ -693,7 +691,7 @@ export function createSeries(
 
     // Add legend directly to the correct PaneLegendManager
     try {
-      const legendManager = window.paneLegendManagers?.[chartId]?.[finalPaneId];
+      const legendManager = chartId ? window.paneLegendManagers?.[chartId]?.[finalPaneId] : undefined;
       if (legendManager && typeof (legendManager as any).addSeriesLegend === 'function') {
         (legendManager as any).addSeriesLegend(seriesId, seriesConfig);
       }
@@ -727,7 +725,7 @@ export function createSeries(
         (chart as ExtendedChartApi)._pendingTradeRectangles!.push({
           rectangles: visualElements.rectangles,
           series: series,
-          chartId: chartId,
+          chartId: chartId ?? '',
         });
       }
     } catch (error) {
@@ -769,7 +767,7 @@ function applyTimestampSnapping(markers: any[], chartData?: any[]): any[] {
   }
 
   // Apply timestamp snapping to each marker
-  const snappedMarkers = markers.map((marker, index) => {
+  const snappedMarkers = markers.map((marker, _index) => {
     if (marker.time && typeof marker.time === 'number') {
       // Find nearest available timestamp
       const nearestTime = availableTimes.reduce((nearest, current) => {

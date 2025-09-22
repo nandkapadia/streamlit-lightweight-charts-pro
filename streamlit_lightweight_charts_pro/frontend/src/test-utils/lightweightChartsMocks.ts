@@ -119,7 +119,7 @@ export const mockPane = {
 // Main mock chart object
 export const mockChart = {
   // Series methods
-  addSeries: jest.fn().mockImplementation((seriesType, options, paneId) => {
+  addSeries: jest.fn().mockImplementation((_seriesType, _options, _paneId) => {
     return mockSeries;
   }),
   removeSeries: jest.fn(),
@@ -196,12 +196,12 @@ export const mockChart = {
 };
 
 // Mock createChart function
-export const createChart = jest.fn().mockImplementation((container, options) => {
+export const createChart = jest.fn().mockImplementation((_container, _options) => {
   return mockChart;
 });
 
 // Mock createChartEx function
-export const createChartEx = jest.fn().mockImplementation((container, horzScaleBehavior, options) => {
+export const createChartEx = jest.fn().mockImplementation((_container, _horzScaleBehavior, _options) => {
   return mockChart;
 });
 
@@ -298,8 +298,8 @@ export const defaultHorzScaleBehavior = {
 // Reset function for tests
 export const resetMocks = () => {
   jest.clearAllMocks();
-  createChart.mockImplementation((container, options) => mockChart);
-  mockChart.addSeries.mockImplementation((seriesType, options, paneId) => mockSeries);
+  createChart.mockImplementation((_container, _options) => mockChart);
+  mockChart.addSeries.mockImplementation((_seriesType, _options, _paneId) => mockSeries);
 };
 
 // Default export for jest.mock()

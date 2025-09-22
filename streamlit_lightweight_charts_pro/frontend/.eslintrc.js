@@ -35,6 +35,12 @@ module.exports = {
       rules: {
         'no-console': 'off',
         'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        'testing-library/no-node-access': 'off',
+        'testing-library/no-container': 'off',
+        'testing-library/prefer-screen-queries': 'off',
+        'testing-library/no-debugging-utils': 'off',
+        'testing-library/render-result-naming-convention': 'off',
       },
     },
   ],

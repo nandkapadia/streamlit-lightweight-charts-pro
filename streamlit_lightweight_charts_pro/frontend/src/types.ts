@@ -98,6 +98,74 @@ export interface Annotation {
   lineStyle?: string; // <-- added for build fix
 }
 
+// Properly typed annotation text elements
+export interface AnnotationText {
+  time: Time;
+  price: number;
+  text: string;
+  color: string;
+  backgroundColor: string;
+  fontSize: number;
+  fontFamily: string;
+  position: 'aboveBar' | 'belowBar';
+}
+
+// Chart coordinate and layout types
+export interface PaneSize {
+  width: number;
+  height: number;
+}
+
+export interface PaneBounds {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+  right: number;
+  bottom: number;
+}
+
+export interface ChartLayoutDimensions {
+  container: {
+    width: number;
+    height: number;
+  };
+  axis: {
+    priceScale: {
+      left: {
+        width: number;
+        height: number;
+      };
+      right: {
+        width: number;
+        height: number;
+      };
+    };
+    timeScale: {
+      width: number;
+      height: number;
+    };
+  };
+}
+
+export interface WidgetPosition {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  isValid: boolean;
+}
+
+export interface LayoutWidget {
+  id: string;
+  width: number;
+  height: number;
+  position?: WidgetPosition;
+  visible?: boolean;
+  getDimensions?: () => { width: number; height: number };
+  getContainerClassName?: () => string;
+}
+
 export interface AnnotationLayer {
   name: string;
   visible: boolean;
@@ -132,12 +200,12 @@ export interface PaneCollapseConfig {
   };
   showCollapseButton?: boolean;
   legendConfig?: LegendData; // Legend configuration for this pane
-  onPaneCollapse?: (paneId: number, isCollapsed: boolean) => void;
-  onPaneExpand?: (paneId: number, isCollapsed: boolean) => void;
+  onPaneCollapse?: (_paneId: number, _isCollapsed: boolean) => void;
+  onPaneExpand?: (_paneId: number, _isCollapsed: boolean) => void;
   onSeriesConfigChange?: (
-    paneId: number,
-    seriesId: string,
-    config: Record<string, unknown>
+    _paneId: number,
+    _seriesId: string,
+    _config: Record<string, unknown>
   ) => void;
 }
 
@@ -283,8 +351,8 @@ export interface ChartConfig {
     overlayPriceScales?: Record<string, PriceScaleConfig>;
     localization?: {
       locale?: string;
-      priceFormatter?: (price: number) => string;
-      timeFormatter?: (time: Time) => string;
+      priceFormatter?: (_price: number) => string;
+      timeFormatter?: (_time: Time) => string;
     };
     handleScroll?: {
       mouseWheel?: boolean;
@@ -410,7 +478,7 @@ export interface ComponentConfig {
 export interface TooltipField {
   label: string;
   valueKey: string;
-  formatter?: (value: unknown) => string;
+  formatter?: (_value: unknown) => string;
   color?: string;
   fontSize?: number;
   fontWeight?: string;
