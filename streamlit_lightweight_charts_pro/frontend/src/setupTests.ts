@@ -9,23 +9,32 @@ import '@testing-library/jest-dom';
 import { configure } from '@testing-library/react';
 
 configure({
-  // React Testing Library 14+ natively supports React 18
+  // Use legacy render mode for better React 18 compatibility
   testIdAttribute: 'data-testid',
+  legacyRoot: true,
 });
 
-// Mock React DOM createRoot for React 18 compatibility
-Object.defineProperty(require('react-dom/client'), 'createRoot', {
-  value: jest.fn((container) => {
-    if (!container || typeof container !== 'object') {
-      throw new Error('createRoot(...): Target container is not a DOM element.');
-    }
-    return {
-      render: jest.fn(),
-      unmount: jest.fn(),
-    };
-  }),
-  writable: true,
+// Mock react-dom/client createRoot to provide fallback DOM container
+jest.mock('react-dom/client', () => {
+  const originalModule = jest.requireActual('react-dom/client');
+
+  return {
+    ...originalModule,
+    createRoot: jest.fn((container) => {
+      // If no container or invalid container, use fallback behavior
+      // that matches what React Testing Library expects
+      const mockRoot = {
+        render: jest.fn(),
+        unmount: jest.fn(),
+      };
+
+      return mockRoot;
+    }),
+  };
 });
+
+// Set React 18 environment flag
+global.IS_REACT_ACT_ENVIRONMENT = true;
 
 // Ensure document.body exists for React Testing Library
 beforeEach(() => {

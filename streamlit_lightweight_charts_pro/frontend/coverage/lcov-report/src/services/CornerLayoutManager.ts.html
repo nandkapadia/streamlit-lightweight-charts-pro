@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">3.16% </span>
+                <span class="strong">0.63% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>5/158</span>
+                <span class='fraction'>1/158</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">1.35% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/74</span>
+                <span class='fraction'>0/74</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">3.22% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/31</span>
+                <span class='fraction'>0/31</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">3.37% </span>
+                <span class="strong">0.67% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/148</span>
+                <span class='fraction'>1/148</span>
             </div>
         
             
@@ -528,7 +528,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -579,19 +579,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">29x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">29x</span>
-<span class="cline-any cline-yes">29x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">29x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1022,20 +1022,20 @@ export class CornerLayoutManager {
 <span class="cstat-no" title="statement not covered" >    return CornerLayoutManager.instances.get(id)!;</span>
   }
 &nbsp;
-  public static cleanup(chartId: string, paneId?: number): void {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (paneId !== undefined) {
+<span class="fstat-no" title="function not covered" >  pu</span>blic static cleanup(chartId: string, paneId?: number): void {
+<span class="cstat-no" title="statement not covered" >    if (paneId !== undefined) {</span>
       // Clean up specific pane
       const id = <span class="cstat-no" title="statement not covered" >`${chartId}-pane-${paneId}`;</span>
 <span class="cstat-no" title="statement not covered" >      CornerLayoutManager.instances.delete(id);</span>
     } else {
       // Clean up all panes for this chart
-      const keysToDelete = [];
-      for (const key of CornerLayoutManager.instances.keys()) {
+      const keysToDelete = <span class="cstat-no" title="statement not covered" >[];</span>
+<span class="cstat-no" title="statement not covered" >      for (const key of CornerLayoutManager.instances.keys()) {</span>
 <span class="cstat-no" title="statement not covered" >        if (key.startsWith(`${chartId}-pane-`)) {</span>
 <span class="cstat-no" title="statement not covered" >          keysToDelete.push(key);</span>
         }
       }
-      keysToDelete.forEach(<span class="fstat-no" title="function not covered" >ke</span>y =&gt; <span class="cstat-no" title="statement not covered" >CornerLayoutManager.instances.delete(key))</span>;
+<span class="cstat-no" title="statement not covered" >      keysToDelete.forEach(<span class="fstat-no" title="function not covered" >ke</span>y =&gt; <span class="cstat-no" title="statement not covered" >CornerLayoutManager.instances.delete(key))</span>;</span>
     }
   }
 &nbsp;
@@ -1402,7 +1402,7 @@ export class CornerLayoutManager {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-22T07:34:52.006Z
+                at 2025-09-22T09:32:25.294Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
