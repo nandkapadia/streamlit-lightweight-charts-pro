@@ -21,8 +21,8 @@ export const TimeRangeSeconds = {
   THREE_MONTHS: 7776000,
   SIX_MONTHS: 15552000,
   ONE_YEAR: 31536000,
-  FIVE_YEARS: 157680000
-} as const
+  FIVE_YEARS: 157680000,
+} as const;
 
 // ===== Common Layout Constants =====
 
@@ -30,12 +30,12 @@ export const TimeRangeSeconds = {
  * Universal padding and spacing constants
  */
 export const UniversalSpacing = {
-  EDGE_PADDING: 6,  // Universal padding for widget edges and container spacing
-  WIDGET_GAP: 6,    // Gap between stacked widgets
+  EDGE_PADDING: 6, // Universal padding for widget edges and container spacing
+  WIDGET_GAP: 6, // Gap between stacked widgets
   WIDGET_HORIZONTAL_GAP: 6, // Gap between horizontally stacked widgets
   DEFAULT_PADDING: 6, // Default padding inside widgets
-  BASE_Z_INDEX: 1000
-} as const
+  BASE_Z_INDEX: 1000,
+} as const;
 
 // ===== Button Styling Constants =====
 
@@ -51,8 +51,8 @@ export const ButtonDimensions = {
   BORDER_RADIUS: 4,
   PANE_ACTION_BORDER_RADIUS: 3,
   FONT_SIZE: 14,
-  RANGE_FONT_SIZE: 12
-} as const
+  RANGE_FONT_SIZE: 12,
+} as const;
 
 /**
  * Button spacing constants
@@ -65,8 +65,8 @@ export const ButtonSpacing = {
   RANGE_BUTTON_PADDING: '3px 8px', // More compact padding for range buttons
   PANE_ACTION_PADDING: '0',
   BUTTON_MARGIN: '0',
-  RANGE_BUTTON_MARGIN: '0 1px' // Reduced margin between buttons
-} as const
+  RANGE_BUTTON_MARGIN: '0 1px', // Reduced margin between buttons
+} as const;
 
 /**
  * Button color constants
@@ -86,8 +86,8 @@ export const ButtonColors = {
   PANE_ACTION_PRESSED_BACKGROUND: 'rgba(229, 231, 235, 1)',
   PANE_ACTION_BORDER: '#d1d5db',
   ACTION_BACKGROUND: '#007AFF',
-  ACTION_HOVER_BACKGROUND: '#0056CC'
-} as const
+  ACTION_HOVER_BACKGROUND: '#0056CC',
+} as const;
 
 /**
  * Button border and shadow constants
@@ -99,8 +99,8 @@ export const ButtonEffects = {
   HOVER_BOX_SHADOW: '0 2px 4px rgba(0, 0, 0, 0.1)',
   RANGE_HOVER_BOX_SHADOW: '0 1px 3px rgba(0, 0, 0, 0.12)', // Subtle shadow for range buttons
   PRESSED_BOX_SHADOW: 'inset 0 2px 4px rgba(0, 0, 0, 0.1)',
-  FOCUS_OUTLINE: '2px solid #007AFF'
-} as const
+  FOCUS_OUTLINE: '2px solid #007AFF',
+} as const;
 
 // ===== Legend Styling Constants =====
 
@@ -115,8 +115,8 @@ export const LegendDimensions = {
   MAX_WIDTH: 200,
   FONT_SIZE: 12,
   OHLC_FONT_SIZE: 11,
-  BAND_FONT_SIZE: 11
-} as const
+  BAND_FONT_SIZE: 11,
+} as const;
 
 /**
  * Layout spacing constants
@@ -124,8 +124,8 @@ export const LegendDimensions = {
 export const LayoutSpacing = {
   EDGE_PADDING: UniversalSpacing.EDGE_PADDING,
   WIDGET_GAP: UniversalSpacing.WIDGET_GAP,
-  BASE_Z_INDEX: UniversalSpacing.BASE_Z_INDEX
-} as const
+  BASE_Z_INDEX: UniversalSpacing.BASE_Z_INDEX,
+} as const;
 
 /**
  * Legend color constants
@@ -135,8 +135,8 @@ export const LegendColors = {
   DEFAULT_COLOR: 'white',
   VOLUME_BACKGROUND: 'rgba(100, 100, 100, 0.8)',
   BAND_BACKGROUND: 'rgba(0, 50, 100, 0.8)',
-  DEFAULT_OPACITY: 0.8
-} as const
+  DEFAULT_OPACITY: 0.8,
+} as const;
 
 // ===== Range Switcher Configuration =====
 
@@ -148,8 +148,8 @@ export const RangeSwitcherLayout = {
   CONTAINER_GAP: ButtonSpacing.RANGE_CONTAINER_GAP, // Use the compact gap setting
   FLEX_DIRECTION: 'row' as const,
   ALIGN_ITEMS: 'center',
-  JUSTIFY_CONTENT: 'flex-end'
-} as const
+  JUSTIFY_CONTENT: 'flex-end',
+} as const;
 
 // ===== Format Constants =====
 
@@ -160,8 +160,8 @@ export const FormatDefaults = {
   VALUE_FORMAT: '.2f',
   VOLUME_FORMAT: '.0f',
   BAND_FORMAT: '.3f',
-  TIME_FORMAT: 'YYYY-MM-DD HH:mm:ss'
-} as const
+  TIME_FORMAT: 'YYYY-MM-DD HH:mm:ss',
+} as const;
 
 // ===== Container Styling Constants =====
 
@@ -175,8 +175,8 @@ export const ContainerDefaults = {
   TEXT_ALIGN: 'left' as const,
   USER_SELECT: 'none',
   POINTER_EVENTS: 'auto',
-  POSITION: 'absolute'
-} as const
+  POSITION: 'absolute',
+} as const;
 
 // ===== Common UI Constants =====
 
@@ -194,9 +194,8 @@ export const CommonValues = {
   FONT_WEIGHT_BOLD: 'bold',
   NOWRAP: 'nowrap',
   HIDDEN: 'hidden',
-  ELLIPSIS: 'ellipsis'
-} as const
-
+  ELLIPSIS: 'ellipsis',
+} as const;
 
 // ===== Animation and Transition Constants =====
 
@@ -206,8 +205,8 @@ export const CommonValues = {
 export const AnimationTiming = {
   DEFAULT_TRANSITION: 'all 0.2s ease',
   FAST_TRANSITION: 'all 0.1s ease',
-  SLOW_TRANSITION: 'all 0.3s ease'
-} as const
+  SLOW_TRANSITION: 'all 0.3s ease',
+} as const;
 
 // ===== Default Primitive Configurations =====
 
@@ -219,8 +218,8 @@ export const DefaultButtonConfig = {
   spacing: ButtonSpacing,
   colors: ButtonColors,
   effects: ButtonEffects,
-  animation: AnimationTiming
-} as const
+  animation: AnimationTiming,
+} as const;
 
 /**
  * Complete default configuration for legends
@@ -229,8 +228,8 @@ export const DefaultLegendConfig = {
   dimensions: LegendDimensions,
   colors: LegendColors,
   formats: FormatDefaults,
-  animation: AnimationTiming
-} as const
+  animation: AnimationTiming,
+} as const;
 
 /**
  * Complete default configuration for range switchers
@@ -239,13 +238,13 @@ export const DefaultRangeSwitcherConfig = {
   layout: RangeSwitcherLayout,
   button: DefaultButtonConfig,
   timeRanges: TimeRangeSeconds,
-  animation: AnimationTiming
-} as const
+  animation: AnimationTiming,
+} as const;
 
 /**
  * Base container configuration
  */
 export const DefaultContainerConfig = {
   styling: ContainerDefaults,
-  animation: AnimationTiming
-} as const
+  animation: AnimationTiming,
+} as const;

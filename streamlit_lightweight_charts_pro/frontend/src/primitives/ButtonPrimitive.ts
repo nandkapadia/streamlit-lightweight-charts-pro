@@ -1,16 +1,11 @@
-import { BasePanePrimitive, BasePrimitiveConfig, PrimitivePriority } from './BasePanePrimitive'
-import {
-  ButtonColors,
-  ButtonDimensions,
-  ButtonEffects,
-  ButtonSpacing
-} from './PrimitiveDefaults'
-import { PrimitiveStylingUtils, BaseStyleConfig } from './PrimitiveStylingUtils'
+import { BasePanePrimitive, BasePrimitiveConfig, PrimitivePriority } from './BasePanePrimitive';
+import { ButtonColors, ButtonDimensions, ButtonEffects, ButtonSpacing } from './PrimitiveDefaults';
+import { PrimitiveStylingUtils, BaseStyleConfig } from './PrimitiveStylingUtils';
 
 /**
  * Button types for different behaviors
  */
-export type ButtonType = 'collapse' | 'toggle' | 'action' | 'custom'
+export type ButtonType = 'collapse' | 'toggle' | 'action' | 'custom';
 
 /**
  * Button states
@@ -19,17 +14,17 @@ export interface ButtonState {
   /**
    * Whether button is pressed/active
    */
-  pressed?: boolean
+  pressed?: boolean;
 
   /**
    * Whether button is disabled
    */
-  disabled?: boolean
+  disabled?: boolean;
 
   /**
    * Custom state data
    */
-  customData?: any
+  customData?: any;
 }
 
 /**
@@ -39,37 +34,41 @@ export interface ButtonPrimitiveConfig extends BasePrimitiveConfig {
   /**
    * Button type
    */
-  buttonType: ButtonType
+  buttonType: ButtonType;
 
   /**
    * Button text or HTML content
    */
-  content: string
+  content: string;
 
   /**
    * Initial button state
    */
-  initialState?: ButtonState
+  initialState?: ButtonState;
 
   /**
    * Whether this is a pane-specific button (vs chart-level)
    */
-  isPanePrimitive?: boolean
+  isPanePrimitive?: boolean;
 
   /**
    * Pane ID for pane-specific buttons
    */
-  paneId?: number
+  paneId?: number;
 
   /**
    * Click handler
    */
-  onClick?: (state: ButtonState, primitive: ButtonPrimitive) => void
+  onClick?: (state: ButtonState, primitive: ButtonPrimitive) => void;
 
   /**
    * State change handler
    */
-  onStateChange?: (newState: ButtonState, oldState: ButtonState, primitive: ButtonPrimitive) => void
+  onStateChange?: (
+    newState: ButtonState,
+    oldState: ButtonState,
+    primitive: ButtonPrimitive
+  ) => void;
 
   /**
    * Button styling
@@ -79,38 +78,38 @@ export interface ButtonPrimitiveConfig extends BasePrimitiveConfig {
      * Button-specific styling
      */
     button?: {
-      width?: number
-      height?: number
-      backgroundColor?: string
-      color?: string
-      hoverBackgroundColor?: string
-      hoverColor?: string
-      pressedBackgroundColor?: string
-      pressedColor?: string
-      disabledBackgroundColor?: string
-      disabledColor?: string
-      border?: string
-      borderRadius?: number
-      fontSize?: number
-      fontWeight?: string | number
-      cursor?: string
-      transition?: string
-      boxShadow?: string
-      hoverBoxShadow?: string
-      pressedBoxShadow?: string
-    }
+      width?: number;
+      height?: number;
+      backgroundColor?: string;
+      color?: string;
+      hoverBackgroundColor?: string;
+      hoverColor?: string;
+      pressedBackgroundColor?: string;
+      pressedColor?: string;
+      disabledBackgroundColor?: string;
+      disabledColor?: string;
+      border?: string;
+      borderRadius?: number;
+      fontSize?: number;
+      fontWeight?: string | number;
+      cursor?: string;
+      transition?: string;
+      boxShadow?: string;
+      hoverBoxShadow?: string;
+      pressedBoxShadow?: string;
+    };
 
     /**
      * Icon styling (if using icons)
      */
     icon?: {
-      size?: number
-      color?: string
-      hoverColor?: string
-      pressedColor?: string
-      disabledColor?: string
-    }
-  }
+      size?: number;
+      color?: string;
+      hoverColor?: string;
+      pressedColor?: string;
+      disabledColor?: string;
+    };
+  };
 }
 
 /**
@@ -154,14 +153,16 @@ export interface ButtonPrimitiveConfig extends BasePrimitiveConfig {
  * ```
  */
 export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
-
-  private currentState: ButtonState = {}
-  private buttonElement: HTMLElement | null = null
+  private currentState: ButtonState = {};
+  private buttonElement: HTMLElement | null = null;
 
   constructor(id: string, config: ButtonPrimitiveConfig) {
     // Set default priority and configuration for buttons
     const configWithDefaults: ButtonPrimitiveConfig = {
-      priority: config.buttonType === 'collapse' ? PrimitivePriority.MINIMIZE_BUTTON : PrimitivePriority.CUSTOM,
+      priority:
+        config.buttonType === 'collapse'
+          ? PrimitivePriority.MINIMIZE_BUTTON
+          : PrimitivePriority.CUSTOM,
       visible: true,
       isPanePrimitive: config.buttonType === 'collapse',
       paneId: 0,
@@ -188,15 +189,15 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
           transition: ButtonEffects.DEFAULT_TRANSITION,
           boxShadow: 'none',
           hoverBoxShadow: ButtonEffects.HOVER_BOX_SHADOW,
-          pressedBoxShadow: ButtonEffects.PRESSED_BOX_SHADOW
+          pressedBoxShadow: ButtonEffects.PRESSED_BOX_SHADOW,
         },
-        ...config.style
+        ...config.style,
       },
-      ...config
-    }
+      ...config,
+    };
 
-    super(id, configWithDefaults)
-    this.currentState = { ...configWithDefaults.initialState }
+    super(id, configWithDefaults);
+    this.currentState = { ...configWithDefaults.initialState };
   }
 
   // ===== BasePanePrimitive Implementation =====
@@ -205,37 +206,37 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
    * Get the template string (not used for interactive elements)
    */
   protected getTemplate(): string {
-    return '' // Button is fully interactive, no template needed
+    return ''; // Button is fully interactive, no template needed
   }
 
   /**
    * Render the button element
    */
   protected renderContent(): void {
-    if (!this.containerElement) return
+    if (!this.containerElement) return;
 
     // Clear existing content
-    this.containerElement.innerHTML = ''
+    this.containerElement.innerHTML = '';
 
     // Create button element
-    this.buttonElement = document.createElement('button')
-    this.buttonElement.className = 'primitive-button'
-    this.buttonElement.innerHTML = this.config.content
-    this.buttonElement.setAttribute('aria-label', this.getAriaLabel())
+    this.buttonElement = document.createElement('button');
+    this.buttonElement.className = 'primitive-button';
+    this.buttonElement.textContent = this.config.content;
+    this.buttonElement.setAttribute('aria-label', this.getAriaLabel());
 
     // Apply styling
-    this.updateButtonStyling()
+    this.updateButtonStyling();
 
     // Update content based on state (for collapse buttons)
-    this.updateContentBasedOnState()
+    this.updateContentBasedOnState();
 
     // Update CSS classes based on state (for collapse buttons)
-    this.updateCSSClassesBasedOnState()
+    this.updateCSSClassesBasedOnState();
 
     // Add event handlers
-    this.setupButtonEventHandlers()
+    this.setupButtonEventHandlers();
 
-    this.containerElement.appendChild(this.buttonElement)
+    this.containerElement.appendChild(this.buttonElement);
   }
 
   /**
@@ -244,13 +245,13 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
   private getAriaLabel(): string {
     switch (this.config.buttonType) {
       case 'collapse':
-        return this.currentState.pressed ? 'Expand pane' : 'Collapse pane'
+        return this.currentState.pressed ? 'Expand pane' : 'Collapse pane';
       case 'toggle':
-        return this.currentState.pressed ? 'Disable feature' : 'Enable feature'
+        return this.currentState.pressed ? 'Disable feature' : 'Enable feature';
       case 'action':
-        return 'Execute action'
+        return 'Execute action';
       default:
-        return 'Button'
+        return 'Button';
     }
   }
 
@@ -258,95 +259,95 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
    * Setup button event handlers
    */
   private setupButtonEventHandlers(): void {
-    if (!this.buttonElement) return
+    if (!this.buttonElement) return;
 
-    this.attachClickHandlers()
-    this.attachMouseInteractionHandlers()
-    this.attachKeyboardHandlers()
-    this.attachFocusHandlers()
+    this.attachClickHandlers();
+    this.attachMouseInteractionHandlers();
+    this.attachKeyboardHandlers();
+    this.attachFocusHandlers();
   }
 
   /**
    * Attach click event handlers
    */
   private attachClickHandlers(): void {
-    if (!this.buttonElement) return
+    if (!this.buttonElement) return;
 
-    this.buttonElement.addEventListener('click', (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      this.handleClick()
-    })
+    this.buttonElement.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.handleClick();
+    });
   }
 
   /**
    * Attach mouse interaction handlers (hover, press)
    */
   private attachMouseInteractionHandlers(): void {
-    if (!this.buttonElement) return
+    if (!this.buttonElement) return;
 
     // Hover handlers
     this.buttonElement.addEventListener('mouseenter', () => {
-      this.updateButtonStyling(true, false)
-    })
+      this.updateButtonStyling(true, false);
+    });
 
     this.buttonElement.addEventListener('mouseleave', () => {
-      this.updateButtonStyling(false, false)
-    })
+      this.updateButtonStyling(false, false);
+    });
 
     // Mouse down/up for pressed effect
     this.buttonElement.addEventListener('mousedown', () => {
-      this.updateButtonStyling(false, true)
-    })
+      this.updateButtonStyling(false, true);
+    });
 
     this.buttonElement.addEventListener('mouseup', () => {
-      this.updateButtonStyling(false, false)
-    })
+      this.updateButtonStyling(false, false);
+    });
   }
 
   /**
    * Attach keyboard interaction handlers
    */
   private attachKeyboardHandlers(): void {
-    if (!this.buttonElement) return
+    if (!this.buttonElement) return;
 
-    this.buttonElement.addEventListener('keydown', (e) => {
+    this.buttonElement.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        this.handleClick()
+        e.preventDefault();
+        this.handleClick();
       }
-    })
+    });
   }
 
   /**
    * Attach focus/blur handlers for accessibility
    */
   private attachFocusHandlers(): void {
-    if (!this.buttonElement) return
+    if (!this.buttonElement) return;
 
     this.buttonElement.addEventListener('focus', () => {
-      this.buttonElement!.style.outline = ButtonEffects.FOCUS_OUTLINE
-    })
+      this.buttonElement!.style.outline = ButtonEffects.FOCUS_OUTLINE;
+    });
 
     this.buttonElement.addEventListener('blur', () => {
-      this.buttonElement!.style.outline = 'none'
-    })
+      this.buttonElement!.style.outline = 'none';
+    });
   }
 
   /**
    * Handle button click
    */
   private handleClick(): void {
-    if (this.currentState.disabled) return
+    if (this.currentState.disabled) return;
 
     // For toggle and collapse buttons, automatically toggle pressed state
     if (this.config.buttonType === 'toggle' || this.config.buttonType === 'collapse') {
-      this.setState({ pressed: !this.currentState.pressed })
+      this.setState({ pressed: !this.currentState.pressed });
     }
 
     // Call onClick handler
     if (this.config.onClick) {
-      this.config.onClick(this.currentState, this)
+      this.config.onClick(this.currentState, this);
     }
 
     // Emit custom event
@@ -354,8 +355,8 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
       this.eventManager.emitCustomEvent('buttonClick', {
         buttonId: this.id,
         buttonType: this.config.buttonType,
-        state: this.currentState
-      })
+        state: this.currentState,
+      });
     }
   }
 
@@ -363,20 +364,22 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
    * Update button styling based on state
    */
   private updateButtonStyling(isHover: boolean = false, isMouseDown: boolean = false): void {
-    if (!this.buttonElement) return
+    if (!this.buttonElement) return;
 
-    const buttonConfig = this.config.style?.button
-    if (!buttonConfig) return
+    const buttonConfig = this.config.style?.button;
+    if (!buttonConfig) return;
 
-    this.applyBaseButtonStyling(buttonConfig)
-    this.applyButtonStateStyles(buttonConfig, isHover, isMouseDown)
+    this.applyBaseButtonStyling(buttonConfig);
+    this.applyButtonStateStyles(buttonConfig, isHover, isMouseDown);
   }
 
   /**
    * Apply base button styling (dimensions, layout, transitions)
    */
-  private applyBaseButtonStyling(buttonConfig: NonNullable<ButtonPrimitiveConfig['style']>['button']): void {
-    if (!this.buttonElement || !buttonConfig) return
+  private applyBaseButtonStyling(
+    buttonConfig: NonNullable<ButtonPrimitiveConfig['style']>['button']
+  ): void {
+    if (!this.buttonElement || !buttonConfig) return;
 
     // Create standardized style configuration
     const baseStyles: BaseStyleConfig = {
@@ -384,24 +387,24 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
       fontWeight: buttonConfig.fontWeight || 'bold',
       border: buttonConfig.border || 'none',
       borderRadius: buttonConfig.borderRadius || ButtonDimensions.BORDER_RADIUS,
-      transition: buttonConfig.transition || ButtonEffects.DEFAULT_TRANSITION
-    }
+      transition: buttonConfig.transition || ButtonEffects.DEFAULT_TRANSITION,
+    };
 
     // Apply standardized base styles
-    PrimitiveStylingUtils.applyBaseStyles(this.buttonElement, baseStyles)
+    PrimitiveStylingUtils.applyBaseStyles(this.buttonElement, baseStyles);
 
     // Apply layout using standardized utilities
     PrimitiveStylingUtils.applyLayout(this.buttonElement, {
       width: buttonConfig.width || ButtonDimensions.DEFAULT_WIDTH,
-      height: buttonConfig.height || ButtonDimensions.DEFAULT_HEIGHT
-    })
+      height: buttonConfig.height || ButtonDimensions.DEFAULT_HEIGHT,
+    });
 
     // Create flex container with standardized utilities
-    PrimitiveStylingUtils.createFlexContainer(this.buttonElement, 'row', 'center', 'center')
+    PrimitiveStylingUtils.createFlexContainer(this.buttonElement, 'row', 'center', 'center');
 
     // Apply specific padding for collapse buttons (pane action buttons need zero padding)
     if (this.config.buttonType === 'collapse') {
-      this.buttonElement.style.padding = ButtonSpacing.PANE_ACTION_PADDING
+      this.buttonElement.style.padding = ButtonSpacing.PANE_ACTION_PADDING;
     }
   }
 
@@ -413,18 +416,18 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
     isHover: boolean,
     isMouseDown: boolean
   ): void {
-    if (!this.buttonElement || !buttonConfig) return
+    if (!this.buttonElement || !buttonConfig) return;
 
-    const style = this.buttonElement.style
+    const style = this.buttonElement.style;
 
     if (this.currentState.disabled) {
-      this.applyDisabledButtonStyle(style, buttonConfig)
+      this.applyDisabledButtonStyle(style, buttonConfig);
     } else if (this.currentState.pressed || isMouseDown) {
-      this.applyPressedButtonStyle(style, buttonConfig)
+      this.applyPressedButtonStyle(style, buttonConfig);
     } else if (isHover) {
-      this.applyHoverButtonStyle(style, buttonConfig)
+      this.applyHoverButtonStyle(style, buttonConfig);
     } else {
-      this.applyDefaultButtonStyle(style, buttonConfig)
+      this.applyDefaultButtonStyle(style, buttonConfig);
     }
   }
 
@@ -435,20 +438,25 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
     style: CSSStyleDeclaration,
     buttonConfig: NonNullable<ButtonPrimitiveConfig['style']>['button']
   ): void {
-    if (!buttonConfig || !this.buttonElement) return
+    if (!buttonConfig || !this.buttonElement) return;
 
     const baseStyles: BaseStyleConfig = {
       backgroundColor: buttonConfig.backgroundColor || ButtonColors.DEFAULT_BACKGROUND,
-      color: buttonConfig.color || ButtonColors.DEFAULT_COLOR
-    }
+      color: buttonConfig.color || ButtonColors.DEFAULT_COLOR,
+    };
 
     const disabledStyles: BaseStyleConfig = {
       backgroundColor: buttonConfig.disabledBackgroundColor || ButtonColors.DISABLED_BACKGROUND,
       color: buttonConfig.disabledColor || ButtonColors.DISABLED_COLOR,
-      boxShadow: 'none'
-    }
+      boxShadow: 'none',
+    };
 
-    PrimitiveStylingUtils.applyInteractionState(this.buttonElement, baseStyles, disabledStyles, 'disabled')
+    PrimitiveStylingUtils.applyInteractionState(
+      this.buttonElement,
+      baseStyles,
+      disabledStyles,
+      'disabled'
+    );
   }
 
   /**
@@ -458,23 +466,28 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
     style: CSSStyleDeclaration,
     buttonConfig: NonNullable<ButtonPrimitiveConfig['style']>['button']
   ): void {
-    if (!buttonConfig || !this.buttonElement) return
+    if (!buttonConfig || !this.buttonElement) return;
 
     const baseStyles: BaseStyleConfig = {
       backgroundColor: buttonConfig.backgroundColor || ButtonColors.DEFAULT_BACKGROUND,
       color: buttonConfig.color || ButtonColors.DEFAULT_COLOR,
-      cursor: buttonConfig.cursor || 'pointer'
-    }
+      cursor: buttonConfig.cursor || 'pointer',
+    };
 
     const pressedStyles: BaseStyleConfig = {
       backgroundColor: buttonConfig.pressedBackgroundColor || ButtonColors.PRESSED_BACKGROUND,
-      color: buttonConfig.pressedColor || ButtonColors.PRESSED_COLOR
-    }
+      color: buttonConfig.pressedColor || ButtonColors.PRESSED_COLOR,
+    };
 
-    PrimitiveStylingUtils.applyInteractionState(this.buttonElement, baseStyles, pressedStyles, 'active')
+    PrimitiveStylingUtils.applyInteractionState(
+      this.buttonElement,
+      baseStyles,
+      pressedStyles,
+      'active'
+    );
     PrimitiveStylingUtils.applyShadow(this.buttonElement, {
-      boxShadow: buttonConfig.pressedBoxShadow || ButtonEffects.PRESSED_BOX_SHADOW
-    })
+      boxShadow: buttonConfig.pressedBoxShadow || ButtonEffects.PRESSED_BOX_SHADOW,
+    });
   }
 
   /**
@@ -484,23 +497,28 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
     style: CSSStyleDeclaration,
     buttonConfig: NonNullable<ButtonPrimitiveConfig['style']>['button']
   ): void {
-    if (!buttonConfig || !this.buttonElement) return
+    if (!buttonConfig || !this.buttonElement) return;
 
     const baseStyles: BaseStyleConfig = {
       backgroundColor: buttonConfig.backgroundColor || ButtonColors.DEFAULT_BACKGROUND,
       color: buttonConfig.color || ButtonColors.DEFAULT_COLOR,
-      cursor: buttonConfig.cursor || 'pointer'
-    }
+      cursor: buttonConfig.cursor || 'pointer',
+    };
 
     const hoverStyles: BaseStyleConfig = {
       backgroundColor: buttonConfig.hoverBackgroundColor || ButtonColors.HOVER_BACKGROUND,
-      color: buttonConfig.hoverColor || ButtonColors.HOVER_COLOR
-    }
+      color: buttonConfig.hoverColor || ButtonColors.HOVER_COLOR,
+    };
 
-    PrimitiveStylingUtils.applyInteractionState(this.buttonElement, baseStyles, hoverStyles, 'hover')
+    PrimitiveStylingUtils.applyInteractionState(
+      this.buttonElement,
+      baseStyles,
+      hoverStyles,
+      'hover'
+    );
     PrimitiveStylingUtils.applyShadow(this.buttonElement, {
-      boxShadow: buttonConfig.hoverBoxShadow || ButtonEffects.HOVER_BOX_SHADOW
-    })
+      boxShadow: buttonConfig.hoverBoxShadow || ButtonEffects.HOVER_BOX_SHADOW,
+    });
   }
 
   /**
@@ -510,25 +528,25 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
     style: CSSStyleDeclaration,
     buttonConfig: NonNullable<ButtonPrimitiveConfig['style']>['button']
   ): void {
-    if (!buttonConfig || !this.buttonElement) return
+    if (!buttonConfig || !this.buttonElement) return;
 
     const baseStyles: BaseStyleConfig = {
       backgroundColor: buttonConfig.backgroundColor || ButtonColors.DEFAULT_BACKGROUND,
       color: buttonConfig.color || ButtonColors.DEFAULT_COLOR,
-      cursor: buttonConfig.cursor || 'pointer'
-    }
+      cursor: buttonConfig.cursor || 'pointer',
+    };
 
-    PrimitiveStylingUtils.applyInteractionState(this.buttonElement, baseStyles, {}, 'default')
+    PrimitiveStylingUtils.applyInteractionState(this.buttonElement, baseStyles, {}, 'default');
     PrimitiveStylingUtils.applyShadow(this.buttonElement, {
-      boxShadow: buttonConfig.boxShadow || 'none'
-    })
+      boxShadow: buttonConfig.boxShadow || 'none',
+    });
   }
 
   /**
    * Get CSS class name for the container
    */
   protected getContainerClassName(): string {
-    return `button-primitive button-${this.config.buttonType}`
+    return `button-primitive button-${this.config.buttonType}`;
   }
 
   /**
@@ -536,9 +554,9 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
    */
   protected getPaneId(): number {
     if (this.config.isPanePrimitive && this.config.paneId !== undefined) {
-      return this.config.paneId
+      return this.config.paneId;
     }
-    return 0 // Default to chart-level
+    return 0; // Default to chart-level
   }
 
   // ===== Lifecycle Hooks =====
@@ -548,7 +566,7 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
    */
   protected onContainerCreated(container: HTMLElement): void {
     // Ensure container allows pointer events for button
-    container.style.pointerEvents = 'auto'
+    container.style.pointerEvents = 'auto';
   }
 
   // ===== Public API =====
@@ -557,26 +575,26 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
    * Set button state
    */
   public setState(newState: Partial<ButtonState>): void {
-    const oldState = { ...this.currentState }
-    this.currentState = { ...this.currentState, ...newState }
+    const oldState = { ...this.currentState };
+    this.currentState = { ...this.currentState, ...newState };
 
     // Update styling
-    this.updateButtonStyling()
+    this.updateButtonStyling();
 
     // Update content based on state (for collapse buttons)
-    this.updateContentBasedOnState()
+    this.updateContentBasedOnState();
 
     // Update CSS classes based on state (for collapse buttons)
-    this.updateCSSClassesBasedOnState()
+    this.updateCSSClassesBasedOnState();
 
     // Update aria label
     if (this.buttonElement) {
-      this.buttonElement.setAttribute('aria-label', this.getAriaLabel())
+      this.buttonElement.setAttribute('aria-label', this.getAriaLabel());
     }
 
     // Call state change handler
     if (this.config.onStateChange) {
-      this.config.onStateChange(this.currentState, oldState, this)
+      this.config.onStateChange(this.currentState, oldState, this);
     }
 
     // Emit state change event
@@ -585,8 +603,8 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
         buttonId: this.id,
         buttonType: this.config.buttonType,
         newState: this.currentState,
-        oldState: oldState
-      })
+        oldState: oldState,
+      });
     }
   }
 
@@ -594,16 +612,16 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
    * Get current button state
    */
   public getState(): ButtonState {
-    return { ...this.currentState }
+    return { ...this.currentState };
   }
 
   /**
    * Set button content
    */
   public setContent(content: string): void {
-    this.config.content = content
+    this.config.content = content;
     if (this.buttonElement) {
-      this.buttonElement.innerHTML = content
+      this.buttonElement.textContent = content;
     }
   }
 
@@ -613,13 +631,15 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
   private updateContentBasedOnState(): void {
     if (this.config.buttonType === 'collapse' && this.buttonElement) {
       // SVG for uncollapsed state (showing both brackets)
-      const uncollapseIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="15" height="15" fill="none"><path stroke="currentColor" d="m4 5 3.5-3L11 5" class="bracket-up"></path><path stroke="currentColor" d="M11 10l-3.5 3L4 10" class="bracket-down"></path></svg>'
+      const uncollapseIcon =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="15" height="15" fill="none"><path stroke="currentColor" d="m4 5 3.5-3L11 5" class="bracket-up"></path><path stroke="currentColor" d="M11 10l-3.5 3L4 10" class="bracket-down"></path></svg>';
 
       // SVG for collapsed state (showing single bracket pointing down)
-      const collapseIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="15" height="15" fill="none"><path stroke="currentColor" d="M11 10l-3.5 3L4 10" class="bracket-down"></path></svg>'
+      const collapseIcon =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="15" height="15" fill="none"><path stroke="currentColor" d="M11 10l-3.5 3L4 10" class="bracket-down"></path></svg>';
 
       // Update content based on pressed state
-      this.buttonElement.innerHTML = this.currentState.pressed ? collapseIcon : uncollapseIcon
+      this.buttonElement.innerHTML = this.currentState.pressed ? collapseIcon : uncollapseIcon;
     }
   }
 
@@ -630,9 +650,9 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
     if (this.config.buttonType === 'collapse' && this.buttonElement) {
       // Add or remove 'collapsed' class based on pressed state
       if (this.currentState.pressed) {
-        this.buttonElement.classList.add('collapsed')
+        this.buttonElement.classList.add('collapsed');
       } else {
-        this.buttonElement.classList.remove('collapsed')
+        this.buttonElement.classList.remove('collapsed');
       }
     }
   }
@@ -641,35 +661,35 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
    * Enable/disable button
    */
   public setEnabled(enabled: boolean): void {
-    this.setState({ disabled: !enabled })
+    this.setState({ disabled: !enabled });
   }
 
   /**
    * Check if button is pressed
    */
   public isPressed(): boolean {
-    return this.currentState.pressed || false
+    return this.currentState.pressed || false;
   }
 
   /**
    * Check if button is disabled
    */
   public isDisabled(): boolean {
-    return this.currentState.disabled || false
+    return this.currentState.disabled || false;
   }
 
   /**
    * Programmatically trigger click
    */
   public click(): void {
-    this.handleClick()
+    this.handleClick();
   }
 
   /**
    * Set pressed state (for toggle/collapse buttons)
    */
   public setPressed(pressed: boolean): void {
-    this.setState({ pressed })
+    this.setState({ pressed });
   }
 }
 
@@ -680,7 +700,7 @@ export function createButtonPrimitive(
   id: string,
   config: Partial<ButtonPrimitiveConfig> & { buttonType: ButtonType; content: string; corner: any }
 ): ButtonPrimitive {
-  return new ButtonPrimitive(id, config as ButtonPrimitiveConfig)
+  return new ButtonPrimitive(id, config as ButtonPrimitiveConfig);
 }
 
 /**
@@ -693,7 +713,8 @@ export const ButtonFactories = {
   collapse: (id: string, paneId: number, corner: any, onClick?: ButtonPrimitiveConfig['onClick']) =>
     new ButtonPrimitive(id, {
       buttonType: 'collapse',
-      content: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="15" height="15" fill="none"><path stroke="currentColor" d="m4 5 3.5-3L11 5" class="bracket-up"></path><path stroke="currentColor" d="M11 10l-3.5 3L4 10" class="bracket-down"></path></svg>',
+      content:
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="15" height="15" fill="none"><path stroke="currentColor" d="m4 5 3.5-3L11 5" class="bracket-up"></path><path stroke="currentColor" d="M11 10l-3.5 3L4 10" class="bracket-down"></path></svg>',
       corner,
       priority: PrimitivePriority.MINIMIZE_BUTTON,
       isPanePrimitive: true,
@@ -708,9 +729,9 @@ export const ButtonFactories = {
           hoverBackgroundColor: ButtonColors.PANE_ACTION_HOVER_BACKGROUND,
           pressedBackgroundColor: ButtonColors.PANE_ACTION_PRESSED_BACKGROUND,
           border: `1px solid ${ButtonColors.PANE_ACTION_BORDER}`,
-          borderRadius: ButtonDimensions.PANE_ACTION_BORDER_RADIUS
-        }
-      }
+          borderRadius: ButtonDimensions.PANE_ACTION_BORDER_RADIUS,
+        },
+      },
     }),
 
   /**
@@ -722,7 +743,7 @@ export const ButtonFactories = {
       content,
       corner,
       priority: PrimitivePriority.CUSTOM,
-      onClick
+      onClick,
     }),
 
   /**
@@ -739,8 +760,8 @@ export const ButtonFactories = {
         button: {
           backgroundColor: ButtonColors.ACTION_BACKGROUND,
           color: ButtonColors.PRESSED_COLOR,
-          hoverBackgroundColor: ButtonColors.ACTION_HOVER_BACKGROUND
-        }
-      }
-    })
-} as const
+          hoverBackgroundColor: ButtonColors.ACTION_HOVER_BACKGROUND,
+        },
+      },
+    }),
+} as const;

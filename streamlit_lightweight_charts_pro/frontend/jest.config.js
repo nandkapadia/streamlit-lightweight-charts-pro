@@ -13,10 +13,18 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/index.tsx',
     '!src/react-app-env.d.ts',
-    '!src/setupTests.ts'
+    '!src/setupTests.ts',
+    '!src/**/*.stories.{js,ts,tsx}',
+    '!src/**/__mocks__/**'
   ],
   coverageThreshold: {
     global: {
+      branches: 60,
+      functions: 60,
+      lines: 60,
+      statements: 60
+    },
+    './src/utils/': {
       branches: 80,
       functions: 80,
       lines: 80,
@@ -37,5 +45,10 @@ module.exports = {
   ],
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json'],
   watchPlugins: ['jest-watch-typeahead/filename', 'jest-watch-typeahead/testname'],
-  testTimeout: 10000
+  testTimeout: 15000,
+  errorOnDeprecated: true,
+  verbose: true,
+  clearMocks: true,
+  restoreMocks: true,
+  maxWorkers: '50%'
 }

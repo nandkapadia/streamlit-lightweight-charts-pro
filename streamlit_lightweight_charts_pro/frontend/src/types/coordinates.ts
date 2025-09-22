@@ -7,123 +7,155 @@
  * Represents a bounding box with position and dimensions
  */
 export interface BoundingBox {
-  x: number
-  y: number
-  width: number
-  height: number
-  top: number
-  left: number
-  right: number
-  bottom: number
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  top: number;
+  left: number;
+  right: number;
+  bottom: number;
 }
 
 /**
  * Represents margins for spacing calculations
  */
 export interface Margins {
-  top: number
-  right: number
-  bottom: number
-  left: number
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
 }
 
 /**
  * Container dimensions for the chart
  */
 export interface ContainerDimensions {
-  width: number
-  height: number
-  offsetTop: number
-  offsetLeft: number
+  width: number;
+  height: number;
+  offsetTop: number;
+  offsetLeft: number;
 }
 
 /**
  * Scale dimensions (for time scale or price scale)
  */
 export interface ScaleDimensions {
-  x: number
-  y: number
-  width: number
-  height: number
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 /**
  * Content area dimensions (excluding scales and margins)
  */
 export interface ContentAreaDimensions {
-  x: number
-  y: number
-  width: number
-  height: number
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 /**
  * Pane-specific coordinates
  */
 export interface PaneCoordinates {
-  id: number
-  bounds: BoundingBox
-  contentArea: BoundingBox
-  margins: Margins
-  index: number
-  isMainPane: boolean
+  paneId: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  absoluteX: number;
+  absoluteY: number;
+  contentArea: {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  };
+  margins: Margins;
+  isMainPane: boolean;
+  isLastPane: boolean;
 }
 
 /**
  * Legend positioning coordinates
  */
 export interface LegendCoordinates {
-  top: number
-  left: number
-  right?: number
-  bottom?: number
-  width?: number
-  height?: number
-  zIndex: number
+  top: number;
+  left: number;
+  right?: number;
+  bottom?: number;
+  width?: number;
+  height?: number;
+  zIndex: number;
 }
 
 /**
  * Complete chart coordinate information
  */
 export interface ChartCoordinates {
-  container: ContainerDimensions
-  timeScale: ScaleDimensions
-  priceScaleLeft: ScaleDimensions
-  priceScaleRight: ScaleDimensions
-  panes: PaneCoordinates[]
-  contentArea: ContentAreaDimensions
-  timestamp: number
-  isValid: boolean
+  container: ContainerDimensions;
+  timeScale: ScaleDimensions;
+  priceScaleLeft: ScaleDimensions;
+  priceScaleRight: ScaleDimensions;
+  panes: PaneCoordinates[];
+  contentArea: ContentAreaDimensions;
+  timestamp: number;
+  isValid: boolean;
 }
 
 /**
  * Validation result for coordinate calculations
  */
 export interface ValidationResult {
-  isValid: boolean
-  errors: string[]
-  warnings: string[]
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
 }
 
 /**
  * Position types for elements
  */
-export type ElementPosition = 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center' | 'center'
+export type ElementPosition =
+  | 'top-left'
+  | 'top-right'
+  | 'top-center'
+  | 'bottom-left'
+  | 'bottom-right'
+  | 'bottom-center'
+  | 'center';
+
+/**
+ * Element position coordinates
+ */
+export interface ElementPositionCoordinates {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  corner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  offset: { x: number; y: number };
+}
 
 /**
  * Coordinate calculation options
  */
 export interface CoordinateOptions {
-  includeMargins?: boolean
-  useCache?: boolean
-  validateResult?: boolean
-  fallbackOnError?: boolean
+  includeMargins?: boolean;
+  useCache?: boolean;
+  validateResult?: boolean;
+  fallbackOnError?: boolean;
 }
 
 /**
  * Cache entry for coordinate data
  */
 export interface CoordinateCacheEntry extends ChartCoordinates {
-  cacheKey: string
-  expiresAt: number
+  cacheKey: string;
+  expiresAt: number;
+  coordinates?: unknown; // Raw coordinate data for flexible caching
+  chartId?: string;
+  containerId?: string;
 }

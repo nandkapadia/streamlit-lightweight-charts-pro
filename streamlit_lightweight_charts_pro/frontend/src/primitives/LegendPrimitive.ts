@@ -1,12 +1,17 @@
-import { BasePanePrimitive, BasePrimitiveConfig, PrimitivePriority } from './BasePanePrimitive'
+import { BasePanePrimitive, BasePrimitiveConfig, PrimitivePriority } from './BasePanePrimitive';
 import {
   LegendColors,
   LegendDimensions,
   FormatDefaults,
   ContainerDefaults,
-  CommonValues
-} from './PrimitiveDefaults'
-import { PrimitiveStylingUtils, BaseStyleConfig, TypographyConfig, BorderConfig } from './PrimitiveStylingUtils'
+  CommonValues,
+} from './PrimitiveDefaults';
+import {
+  PrimitiveStylingUtils,
+  BaseStyleConfig,
+  TypographyConfig,
+  BorderConfig,
+} from './PrimitiveStylingUtils';
 
 /**
  * Configuration for LegendPrimitive
@@ -15,22 +20,22 @@ export interface LegendPrimitiveConfig extends BasePrimitiveConfig {
   /**
    * Legend text template (supports placeholders like $$value$$, $$open$$, etc.)
    */
-  text: string
+  text: string;
 
   /**
    * Value formatting configuration
    */
-  valueFormat?: string
+  valueFormat?: string;
 
   /**
    * Whether this is a pane-specific primitive (vs chart-level)
    */
-  isPanePrimitive?: boolean
+  isPanePrimitive?: boolean;
 
   /**
    * Pane ID for pane-specific legends
    */
-  paneId?: number
+  paneId?: number;
 
   /**
    * Legend styling
@@ -39,32 +44,32 @@ export interface LegendPrimitiveConfig extends BasePrimitiveConfig {
     /**
      * Text alignment
      */
-    textAlign?: 'left' | 'center' | 'right'
+    textAlign?: 'left' | 'center' | 'right';
 
     /**
      * Font weight
      */
-    fontWeight?: 'normal' | 'bold' | 'lighter' | number
+    fontWeight?: 'normal' | 'bold' | 'lighter' | number;
 
     /**
      * Text shadow
      */
-    textShadow?: string
+    textShadow?: string;
 
     /**
      * Background opacity
      */
-    backgroundOpacity?: number
+    backgroundOpacity?: number;
 
     /**
      * Border configuration
      */
     border?: {
-      width?: number
-      color?: string
-      style?: 'solid' | 'dashed' | 'dotted'
-    }
-  }
+      width?: number;
+      color?: string;
+      style?: 'solid' | 'dashed' | 'dotted';
+    };
+  };
 }
 
 /**
@@ -96,9 +101,7 @@ export interface LegendPrimitiveConfig extends BasePrimitiveConfig {
  * ```
  */
 export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
-
   constructor(id: string, config: LegendPrimitiveConfig) {
-
     // Set default priority for legends
     const configWithDefaults: LegendPrimitiveConfig = {
       priority: PrimitivePriority.LEGEND,
@@ -116,13 +119,12 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
         textAlign: ContainerDefaults.TEXT_ALIGN,
         fontWeight: ContainerDefaults.FONT_WEIGHT,
         backgroundOpacity: LegendColors.DEFAULT_OPACITY,
-        ...config.style
+        ...config.style,
       },
-      ...config
-    }
+      ...config,
+    };
 
-
-    super(id, configWithDefaults)
+    super(id, configWithDefaults);
   }
 
   // ===== BasePanePrimitive Implementation =====
@@ -131,121 +133,124 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
    * Get the template string for this legend
    */
   protected getTemplate(): string {
-    return this.config.text || '$$value$$'
+    return this.config.text || '$$value$$';
   }
 
   /**
    * Render the legend content to the container
    */
   protected renderContent(): void {
-    if (!this.containerElement) return
+    if (!this.containerElement) return;
 
-    const content = this.getProcessedContent()
+    const content = this.getProcessedContent();
 
     // Create or update legend element
-    let legendElement = this.containerElement.querySelector('.legend-content') as HTMLElement
+    let legendElement = this.containerElement.querySelector('.legend-content') as HTMLElement;
     if (!legendElement) {
-      legendElement = document.createElement('div')
-      legendElement.className = 'legend-content'
-      legendElement.setAttribute('role', 'img')
-      legendElement.setAttribute('aria-label', 'Chart legend')
-      this.containerElement.appendChild(legendElement)
+      legendElement = document.createElement('div');
+      legendElement.className = 'legend-content';
+      legendElement.setAttribute('role', 'img');
+      legendElement.setAttribute('aria-label', 'Chart legend');
+      this.containerElement.appendChild(legendElement);
     }
 
     // Update content (use innerHTML to allow HTML markup)
-    legendElement.innerHTML = content
+    legendElement.innerHTML = content;
 
     // Apply styling
-    this.applyLegendStyling(legendElement)
+    this.applyLegendStyling(legendElement);
 
     // Trigger layout recalculation after content is rendered to ensure proper stacking
     // Use setTimeout to allow DOM to update dimensions first
     setTimeout(() => {
       if (this.layoutManager) {
-        this.layoutManager.recalculateAllLayouts()
+        this.layoutManager.recalculateAllLayouts();
       }
-    }, 0)
+    }, 0);
   }
 
   /**
    * Apply legend-specific styling using standardized utilities
    */
   private applyLegendStyling(element: HTMLElement): void {
-    const config = this.config.style
+    const config = this.config.style;
 
     if (config) {
       // Prepare typography styles
       const typography: TypographyConfig = {
         textAlign: config.textAlign,
-        fontWeight: config.fontWeight
-      }
+        fontWeight: config.fontWeight,
+      };
 
       // Prepare border styles if configured
-      const borderStyles: BorderConfig = {}
+      const borderStyles: BorderConfig = {};
       if (config.border) {
-        borderStyles.borderWidth = config.border.width
-        borderStyles.borderColor = config.border.color
-        borderStyles.borderStyle = config.border.style
+        borderStyles.borderWidth = config.border.width;
+        borderStyles.borderColor = config.border.color;
+        borderStyles.borderStyle = config.border.style;
       }
 
       // Prepare base styles with background and color
       const baseStyles: BaseStyleConfig = {
-        cursor: CommonValues.DEFAULT_CURSOR
-      }
+        cursor: CommonValues.DEFAULT_CURSOR,
+      };
 
       // Handle background with opacity
       if (config.backgroundColor) {
         if (config.backgroundOpacity !== undefined) {
-          baseStyles.backgroundColor = this.adjustColorOpacity(config.backgroundColor, config.backgroundOpacity)
+          baseStyles.backgroundColor = this.adjustColorOpacity(
+            config.backgroundColor,
+            config.backgroundOpacity
+          );
         } else {
-          baseStyles.backgroundColor = config.backgroundColor
+          baseStyles.backgroundColor = config.backgroundColor;
         }
       }
 
       // Handle text color
       if (config.color) {
-        baseStyles.color = config.color
+        baseStyles.color = config.color;
       }
 
       // Apply text shadow if specified
       if (config.textShadow) {
-        baseStyles.boxShadow = config.textShadow // Note: textShadow will be handled by PrimitiveStylingUtils
+        baseStyles.boxShadow = config.textShadow; // Note: textShadow will be handled by PrimitiveStylingUtils
       }
 
       // Apply standardized styling
-      PrimitiveStylingUtils.applyTypography(element, typography)
-      PrimitiveStylingUtils.applyBorder(element, borderStyles)
-      PrimitiveStylingUtils.applyBaseStyles(element, baseStyles)
+      PrimitiveStylingUtils.applyTypography(element, typography);
+      PrimitiveStylingUtils.applyBorder(element, borderStyles);
+      PrimitiveStylingUtils.applyBaseStyles(element, baseStyles);
 
       // Force background and text color with !important to override any external styles
       if (baseStyles.backgroundColor) {
-        element.style.setProperty('background-color', baseStyles.backgroundColor, 'important')
+        element.style.setProperty('background-color', baseStyles.backgroundColor, 'important');
       }
       if (baseStyles.color) {
-        element.style.setProperty('color', baseStyles.color, 'important')
+        element.style.setProperty('color', baseStyles.color, 'important');
       }
 
       // Remove padding since inner content (span) handles its own padding
-      element.style.setProperty('padding', '0', 'important')
+      element.style.setProperty('padding', '0', 'important');
       // Explicitly remove any margins since spacing is handled by layout manager
-      element.style.setProperty('margin', '0', 'important')
+      element.style.setProperty('margin', '0', 'important');
 
       // Apply legend-specific layout constraints
-      const style = element.style
-      style.userSelect = CommonValues.NONE
-      style.pointerEvents = CommonValues.NONE
-      style.whiteSpace = CommonValues.NOWRAP
-      style.overflow = CommonValues.HIDDEN
-      style.textOverflow = CommonValues.ELLIPSIS
-      style.maxWidth = `${LegendDimensions.MAX_WIDTH}px`
+      const style = element.style;
+      style.userSelect = CommonValues.NONE;
+      style.pointerEvents = CommonValues.NONE;
+      style.whiteSpace = CommonValues.NOWRAP;
+      style.overflow = CommonValues.HIDDEN;
+      style.textOverflow = CommonValues.ELLIPSIS;
+      style.maxWidth = `${LegendDimensions.MAX_WIDTH}px`;
 
       // Ensure no browser defaults add extra spacing
-      style.lineHeight = '1'
-      style.boxSizing = 'border-box'
+      style.lineHeight = '1';
+      style.boxSizing = 'border-box';
 
       // Apply text shadow directly since it's not handled by baseStyles
       if (config.textShadow) {
-        style.textShadow = config.textShadow
+        style.textShadow = config.textShadow;
       }
     }
   }
@@ -257,30 +262,30 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
     // Simple rgba conversion for common color formats
     if (color.startsWith('rgba(')) {
       return color.replace(/rgba\(([^)]+)\)/, (match, values) => {
-        const parts = values.split(',').map((s: string) => s.trim())
-        return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${opacity})`
-      })
+        const parts = values.split(',').map((s: string) => s.trim());
+        return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${opacity})`;
+      });
     } else if (color.startsWith('rgb(')) {
       return color.replace(/rgb\(([^)]+)\)/, (match, values) => {
-        return `rgba(${values}, ${opacity})`
-      })
+        return `rgba(${values}, ${opacity})`;
+      });
     } else if (color.startsWith('#')) {
       // Convert hex to rgba
-      const r = parseInt(color.slice(1, 3), 16)
-      const g = parseInt(color.slice(3, 5), 16)
-      const b = parseInt(color.slice(5, 7), 16)
-      return `rgba(${r}, ${g}, ${b}, ${opacity})`
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
     }
 
     // Fallback: return original color
-    return color
+    return color;
   }
 
   /**
    * Get CSS class name for the container
    */
   protected getContainerClassName(): string {
-    return 'legend-primitive'
+    return 'legend-primitive';
   }
 
   /**
@@ -288,9 +293,9 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
    */
   protected getPaneId(): number {
     if (this.config.isPanePrimitive && this.config.paneId !== undefined) {
-      return this.config.paneId
+      return this.config.paneId;
     }
-    return 0 // Default to chart-level
+    return 0; // Default to chart-level
   }
 
   // ===== Lifecycle Hooks =====
@@ -299,57 +304,64 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
    * Setup custom event subscriptions for legend updates
    */
   protected setupCustomEventSubscriptions(): void {
-    if (!this.eventManager) return
+    if (!this.eventManager) return;
 
     // Subscribe to crosshair moves for real-time value updates
-    const crosshairSub = this.eventManager.subscribe('crosshairMove', (event) => {
-      this.updateLegendFromCrosshair(event)
-    })
-    this.eventSubscriptions.push(crosshairSub)
+    const crosshairSub = this.eventManager.subscribe('crosshairMove', event => {
+      this.updateLegendFromCrosshair(event);
+    });
+    this.eventSubscriptions.push(crosshairSub);
   }
 
   /**
    * Handle crosshair move for legend value updates
    */
-  protected onCrosshairMove(event: { time: any; point: { x: number; y: number } | null; seriesData: Map<any, any> }): void {
-    this.updateLegendFromCrosshair(event)
+  protected onCrosshairMove(event: {
+    time: any;
+    point: { x: number; y: number } | null;
+    seriesData: Map<any, any>;
+  }): void {
+    this.updateLegendFromCrosshair(event);
   }
 
   /**
    * Update legend content from crosshair data
    */
-  private updateLegendFromCrosshair(event: { time: any; point: { x: number; y: number } | null; seriesData: Map<any, any> }): void {
+  private updateLegendFromCrosshair(event: {
+    time: any;
+    point: { x: number; y: number } | null;
+    seriesData: Map<any, any>;
+  }): void {
     if (!event.time || !this.series || event.seriesData.size === 0) {
       // Clear legend when no crosshair data
       this.updateTemplateContext({
         seriesData: undefined,
         formatting: {
-          valueFormat: this.config.valueFormat || FormatDefaults.VALUE_FORMAT
-        }
-      })
-      return
+          valueFormat: this.config.valueFormat || FormatDefaults.VALUE_FORMAT,
+        },
+      });
+      return;
     }
 
     // Get series data for this legend's series
-    const seriesValue = event.seriesData.get(this.series)
+    const seriesValue = event.seriesData.get(this.series);
     if (seriesValue) {
       this.updateTemplateContext({
         seriesData: seriesValue,
         formatting: {
           valueFormat: this.config.valueFormat || FormatDefaults.VALUE_FORMAT,
-          timeFormat: FormatDefaults.TIME_FORMAT
-        }
-      })
+          timeFormat: FormatDefaults.TIME_FORMAT,
+        },
+      });
     }
   }
 
   /**
    * Called when container is created
    */
-  protected onContainerCreated(container: HTMLElement): void {
+  protected onContainerCreated(_container: HTMLElement): void {
     // Container is ready for use
   }
-
 
   // ===== Public API =====
 
@@ -357,21 +369,21 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
    * Update legend text template
    */
   public updateText(text: string): void {
-    this.updateConfig({ text })
+    this.updateConfig({ text });
   }
 
   /**
    * Update value format
    */
   public updateValueFormat(format: string): void {
-    this.updateConfig({ valueFormat: format })
+    this.updateConfig({ valueFormat: format });
   }
 
   /**
    * Get current legend content
    */
   public getCurrentContent(): string {
-    return this.getProcessedContent()
+    return this.getProcessedContent();
   }
 
   /**
@@ -379,8 +391,8 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
    */
   public forceUpdate(): void {
     if (this.mounted) {
-      this.processTemplate()
-      this.renderContent()
+      this.processTemplate();
+      this.renderContent();
     }
   }
 }
@@ -392,7 +404,7 @@ export function createLegendPrimitive(
   id: string,
   config: Partial<LegendPrimitiveConfig> & { text: string; corner: any }
 ): LegendPrimitive {
-  return new LegendPrimitive(id, config as LegendPrimitiveConfig)
+  return new LegendPrimitive(id, config as LegendPrimitiveConfig);
 }
 
 /**
@@ -409,8 +421,8 @@ export const DefaultLegendConfigs = {
       backgroundColor: LegendColors.DEFAULT_BACKGROUND,
       color: LegendColors.DEFAULT_COLOR,
       padding: LegendDimensions.DEFAULT_PADDING,
-      borderRadius: LegendDimensions.BORDER_RADIUS
-    }
+      borderRadius: LegendDimensions.BORDER_RADIUS,
+    },
   },
 
   /**
@@ -424,8 +436,8 @@ export const DefaultLegendConfigs = {
       color: LegendColors.DEFAULT_COLOR,
       padding: LegendDimensions.OHLC_PADDING,
       borderRadius: LegendDimensions.BORDER_RADIUS,
-      fontSize: LegendDimensions.OHLC_FONT_SIZE
-    }
+      fontSize: LegendDimensions.OHLC_FONT_SIZE,
+    },
   },
 
   /**
@@ -438,8 +450,8 @@ export const DefaultLegendConfigs = {
       backgroundColor: LegendColors.VOLUME_BACKGROUND,
       color: LegendColors.DEFAULT_COLOR,
       padding: LegendDimensions.DEFAULT_PADDING,
-      borderRadius: LegendDimensions.BORDER_RADIUS
-    }
+      borderRadius: LegendDimensions.BORDER_RADIUS,
+    },
   },
 
   /**
@@ -453,7 +465,7 @@ export const DefaultLegendConfigs = {
       color: LegendColors.DEFAULT_COLOR,
       padding: LegendDimensions.BAND_PADDING,
       borderRadius: LegendDimensions.BORDER_RADIUS,
-      fontSize: LegendDimensions.BAND_FONT_SIZE
-    }
-  }
-} as const
+      fontSize: LegendDimensions.BAND_FONT_SIZE,
+    },
+  },
+} as const;

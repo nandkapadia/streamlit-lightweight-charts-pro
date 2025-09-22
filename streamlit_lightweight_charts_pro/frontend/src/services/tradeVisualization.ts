@@ -1,6 +1,6 @@
-import {UTCTimestamp, SeriesMarker, Time} from 'lightweight-charts'
-import {TradeConfig, TradeVisualizationOptions} from '../types'
-import {UniversalSpacing} from '../primitives/PrimitiveDefaults'
+import { UTCTimestamp, SeriesMarker, Time } from 'lightweight-charts';
+import { TradeConfig, TradeVisualizationOptions } from '../types';
+import { UniversalSpacing } from '../primitives/PrimitiveDefaults';
 
 // CRITICAL: Timezone-agnostic parsing functions
 /**
@@ -13,48 +13,45 @@ function parseTime(time: string | number): UTCTimestamp | null {
     if (typeof time === 'number') {
       // If timestamp is in milliseconds, convert to seconds
       if (time > 1000000000000) {
-        return Math.floor(time / 1000) as UTCTimestamp
+        return Math.floor(time / 1000) as UTCTimestamp;
       }
-      return Math.floor(time) as UTCTimestamp
+      return Math.floor(time) as UTCTimestamp;
     }
 
     // If it's a string, try to parse as date
     if (typeof time === 'string') {
       // First try to parse as Unix timestamp string
-      const timestamp = parseInt(time, 10)
+      const timestamp = parseInt(time, 10);
       if (!isNaN(timestamp)) {
         // It's a numeric string (Unix timestamp)
         if (timestamp > 1000000000000) {
-          return Math.floor(timestamp / 1000) as UTCTimestamp
+          return Math.floor(timestamp / 1000) as UTCTimestamp;
         }
-        return Math.floor(timestamp) as UTCTimestamp
+        return Math.floor(timestamp) as UTCTimestamp;
       }
 
       // Try to parse as ISO date string - CRITICAL: No timezone conversion
       if (time.includes('T') || time.includes('Z') || time.includes('+')) {
         // ISO format - parse directly to avoid local timezone conversion
-        const date = new Date(time)
+        const date = new Date(time);
         if (isNaN(date.getTime())) {
-
-          return null
+          return null;
         }
         // Use UTC timestamp directly - no timezone conversion
-        return Math.floor(date.getTime() / 1000) as UTCTimestamp
+        return Math.floor(date.getTime() / 1000) as UTCTimestamp;
       }
 
       // Regular date string parsing as fallback
-      const date = new Date(time)
+      const date = new Date(time);
       if (isNaN(date.getTime())) {
-
-        return null
+        return null;
       }
-      return Math.floor(date.getTime() / 1000) as UTCTimestamp
+      return Math.floor(date.getTime() / 1000) as UTCTimestamp;
     }
 
-    return null
+    return null;
   } catch (error) {
-
-    return null
+    return null;
   }
 }
 
@@ -63,50 +60,50 @@ function parseTime(time: string | number): UTCTimestamp | null {
  */
 function findNearestTime(targetTime: UTCTimestamp, chartData: any[]): UTCTimestamp | null {
   if (!chartData || chartData.length === 0) {
-    return null
+    return null;
   }
 
-  let nearestTime: UTCTimestamp | null = null
-  let minDiff = Infinity
+  let nearestTime: UTCTimestamp | null = null;
+  let minDiff = Infinity;
 
   for (const item of chartData) {
-    if (!item.time) continue
+    if (!item.time) continue;
 
-    let itemTime: UTCTimestamp | null = null
+    let itemTime: UTCTimestamp | null = null;
 
     if (typeof item.time === 'number') {
       itemTime =
         item.time > 1000000000000
           ? (Math.floor(item.time / 1000) as UTCTimestamp)
-          : (item.time as UTCTimestamp)
+          : (item.time as UTCTimestamp);
     } else if (typeof item.time === 'string') {
-      itemTime = parseTime(item.time)
+      itemTime = parseTime(item.time);
     }
 
-    if (itemTime === null) continue
+    if (itemTime === null) continue;
 
-    const diff = Math.abs(itemTime - targetTime)
+    const diff = Math.abs(itemTime - targetTime);
     if (diff < minDiff) {
-      minDiff = diff
-      nearestTime = itemTime
+      minDiff = diff;
+      nearestTime = itemTime;
     }
   }
 
-  return nearestTime
+  return nearestTime;
 }
 
 // Trade rectangle data interface (for data creation only)
 export interface TradeRectangleData {
-  time1: UTCTimestamp
-  time2: UTCTimestamp
-  price1: number
-  price2: number
-  fillColor: string
-  borderColor: string
-  borderWidth: number
-  borderStyle: 'solid' | 'dashed' | 'dotted'
-  opacity: number
-  priceScaleId?: string
+  time1: UTCTimestamp;
+  time2: UTCTimestamp;
+  price1: number;
+  price2: number;
+  fillColor: string;
+  borderColor: string;
+  borderWidth: number;
+  borderStyle: 'solid' | 'dashed' | 'dotted';
+  opacity: number;
+  priceScaleId?: string;
 }
 
 // Create trade rectangles from trade data
@@ -115,7 +112,7 @@ function createTradeRectangles(
   options: TradeVisualizationOptions,
   chartData?: any[]
 ): TradeRectangleData[] {
-  const rectangles: TradeRectangleData[] = []
+  const rectangles: TradeRectangleData[] = [];
 
   // Enhanced validation using coordinate service
 
@@ -126,59 +123,59 @@ function createTradeRectangles(
       typeof trade.entryPrice !== 'number' ||
       typeof trade.exitPrice !== 'number'
     ) {
-      return
+      return;
     }
 
     // Parse entry time
-    const time1 = parseTime(trade.entryTime)
+    const time1 = parseTime(trade.entryTime);
     if (time1 === null) {
-      return
+      return;
     }
 
     // Handle exit time - can be null for open trades
-    let time2: UTCTimestamp | null = null
+    let time2: UTCTimestamp | null = null;
     if (trade.exitTime) {
-      time2 = parseTime(trade.exitTime)
+      time2 = parseTime(trade.exitTime);
       if (time2 === null) {
-        return
+        return;
       }
     } else {
       // For open trades, use the last available time from chart data
       if (chartData && chartData.length > 0) {
-        const lastTime = chartData[chartData.length - 1]?.time
+        const lastTime = chartData[chartData.length - 1]?.time;
         if (lastTime) {
-          time2 = parseTime(lastTime)
+          time2 = parseTime(lastTime);
         }
       }
 
       // If still no exit time, skip this trade
       if (time2 === null) {
-        return
+        return;
       }
     }
 
     // Find nearest available times in chart data if provided
-    let adjustedTime1 = time1
-    let adjustedTime2 = time2
+    let adjustedTime1 = time1;
+    let adjustedTime2 = time2;
 
     if (chartData && chartData.length > 0) {
-      const nearestTime1 = findNearestTime(time1, chartData)
-      const nearestTime2 = findNearestTime(time2, chartData)
+      const nearestTime1 = findNearestTime(time1, chartData);
+      const nearestTime2 = findNearestTime(time2, chartData);
 
-      if (nearestTime1) adjustedTime1 = nearestTime1
-      if (nearestTime2) adjustedTime2 = nearestTime2
+      if (nearestTime1) adjustedTime1 = nearestTime1;
+      if (nearestTime2) adjustedTime2 = nearestTime2;
     }
 
     // Validate prices
     if (trade.entryPrice <= 0 || trade.exitPrice <= 0) {
-      return
+      return;
     }
 
     const color = trade.isProfitable
       ? options.rectangleColorProfit || '#4CAF50'
-      : options.rectangleColorLoss || '#F44336'
+      : options.rectangleColorLoss || '#F44336';
 
-    const opacity = options.rectangleFillOpacity || 1.0
+    const opacity = options.rectangleFillOpacity || 1.0;
 
     const rectangle: TradeRectangleData = {
       time1: Math.min(adjustedTime1, adjustedTime2) as UTCTimestamp,
@@ -189,13 +186,13 @@ function createTradeRectangles(
       borderColor: color,
       borderWidth: options.rectangleBorderWidth || 3,
       borderStyle: 'solid' as const,
-      opacity: opacity
-    }
+      opacity: opacity,
+    };
 
-    rectangles.push(rectangle)
-  })
+    rectangles.push(rectangle);
+  });
 
-  return rectangles
+  return rectangles;
 }
 
 // Create trade markers
@@ -204,7 +201,7 @@ function createTradeMarkers(
   options: TradeVisualizationOptions,
   chartData?: any[]
 ): SeriesMarker<Time>[] {
-  const markers: SeriesMarker<Time>[] = []
+  const markers: SeriesMarker<Time>[] = [];
 
   // Enhanced validation using coordinate service
 
@@ -215,35 +212,35 @@ function createTradeMarkers(
       typeof trade.entryPrice !== 'number' ||
       typeof trade.exitPrice !== 'number'
     ) {
-      return
+      return;
     }
 
     // Parse entry time
-    const entryTime = parseTime(trade.entryTime)
+    const entryTime = parseTime(trade.entryTime);
     if (!entryTime) {
-      return
+      return;
     }
 
     // Handle exit time - can be null for open trades
-    let exitTime: UTCTimestamp | null = null
+    let exitTime: UTCTimestamp | null = null;
     if (trade.exitTime) {
-      exitTime = parseTime(trade.exitTime)
+      exitTime = parseTime(trade.exitTime);
       if (!exitTime) {
-        return
+        return;
       }
     }
 
     // Find nearest available times in chart data if provided
-    let adjustedEntryTime = entryTime
-    let adjustedExitTime = exitTime
+    let adjustedEntryTime = entryTime;
+    let adjustedExitTime = exitTime;
 
     if (chartData && chartData.length > 0) {
-      const nearestEntryTime = findNearestTime(entryTime, chartData)
-      if (nearestEntryTime) adjustedEntryTime = nearestEntryTime
+      const nearestEntryTime = findNearestTime(entryTime, chartData);
+      if (nearestEntryTime) adjustedEntryTime = nearestEntryTime;
 
       if (exitTime) {
-        const nearestExitTime = findNearestTime(exitTime, chartData)
-        if (nearestExitTime) adjustedExitTime = nearestExitTime
+        const nearestExitTime = findNearestTime(exitTime, chartData);
+        if (nearestExitTime) adjustedExitTime = nearestExitTime;
       }
     }
 
@@ -251,7 +248,7 @@ function createTradeMarkers(
     const entryColor =
       trade.tradeType === 'long'
         ? options.entryMarkerColorLong || '#2196F3'
-        : options.entryMarkerColorShort || '#FF9800'
+        : options.entryMarkerColorShort || '#FF9800';
 
     const entryMarker: SeriesMarker<Time> = {
       time: adjustedEntryTime,
@@ -261,15 +258,15 @@ function createTradeMarkers(
       text:
         options.showPnlInMarkers && trade.text
           ? trade.text
-          : `Entry: $${trade.entryPrice.toFixed(2)}`
-    }
-    markers.push(entryMarker)
+          : `Entry: $${trade.entryPrice.toFixed(2)}`,
+    };
+    markers.push(entryMarker);
 
     // Exit marker - only create if trade has been closed
     if (adjustedExitTime) {
       const exitColor = trade.isProfitable
         ? options.exitMarkerColorProfit || '#4CAF50'
-        : options.exitMarkerColorLoss || '#F44336'
+        : options.exitMarkerColorLoss || '#F44336';
 
       const exitMarker: SeriesMarker<Time> = {
         time: adjustedExitTime,
@@ -279,13 +276,13 @@ function createTradeMarkers(
         text:
           options.showPnlInMarkers && trade.text
             ? trade.text
-            : `Exit: $${trade.exitPrice.toFixed(2)}`
-      }
-      markers.push(exitMarker)
+            : `Exit: $${trade.exitPrice.toFixed(2)}`,
+      };
+      markers.push(exitMarker);
     }
-  })
+  });
 
-  return markers
+  return markers;
 }
 
 // Main function to create trade visual elements
@@ -295,60 +292,60 @@ export function createTradeVisualElements(
   chartData?: any[],
   priceScaleId?: string
 ): {
-  markers: SeriesMarker<Time>[]
-  rectangles: TradeRectangleData[]
-  annotations: any[]
+  markers: SeriesMarker<Time>[];
+  rectangles: TradeRectangleData[];
+  annotations: any[];
 } {
-  const markers: SeriesMarker<Time>[] = []
-  const rectangles: TradeRectangleData[] = []
-  const annotations: any[] = []
+  const markers: SeriesMarker<Time>[] = [];
+  const rectangles: TradeRectangleData[] = [];
+  const annotations: any[] = [];
 
   if (!trades || trades.length === 0) {
-    return {markers, rectangles, annotations}
+    return { markers, rectangles, annotations };
   }
 
   // Create markers if enabled
   if (options && (options.style === 'markers' || options.style === 'both')) {
-    markers.push(...createTradeMarkers(trades, options, chartData))
+    markers.push(...createTradeMarkers(trades, options, chartData));
   }
 
   // Create rectangles if enabled - these will be handled by RectanglePlugin
   if (options && (options.style === 'rectangles' || options.style === 'both')) {
-    const newRectangles = createTradeRectangles(trades, options, chartData)
-    rectangles.push(...newRectangles)
+    const newRectangles = createTradeRectangles(trades, options, chartData);
+    rectangles.push(...newRectangles);
   }
 
   // Create annotations if enabled
   if (options.showAnnotations) {
     trades.forEach(trade => {
-      const textParts: string[] = []
+      const textParts: string[] = [];
 
       if (options.showTradeId && trade.id) {
-        textParts.push(`#${trade.id}`)
+        textParts.push(`#${trade.id}`);
       }
 
       if (options.showTradeType) {
-        textParts.push(trade.tradeType.toUpperCase())
+        textParts.push(trade.tradeType.toUpperCase());
       }
 
       if (options.showQuantity) {
-        textParts.push(`Qty: ${trade.quantity}`)
+        textParts.push(`Qty: ${trade.quantity}`);
       }
 
       if (trade.pnlPercentage !== undefined) {
-        textParts.push(`P&L: ${trade.pnlPercentage.toFixed(1)}%`)
+        textParts.push(`P&L: ${trade.pnlPercentage.toFixed(1)}%`);
       }
 
       // Calculate midpoint for annotation position
-      const entryTime = parseTime(trade.entryTime)
-      const exitTime = parseTime(trade.exitTime)
+      const entryTime = parseTime(trade.entryTime);
+      const exitTime = parseTime(trade.exitTime);
 
       if (entryTime === null || exitTime === null) {
-        return
+        return;
       }
 
-      const midTime = (entryTime + exitTime) / 2
-      const midPrice = (trade.entryPrice + trade.exitPrice) / 2
+      const midTime = (entryTime + exitTime) / 2;
+      const midPrice = (trade.entryPrice + trade.exitPrice) / 2;
 
       annotations.push({
         type: 'text',
@@ -358,12 +355,12 @@ export function createTradeVisualElements(
         fontSize: options.annotationFontSize || 12,
         backgroundColor: options.annotationBackground || 'rgba(255, 255, 255, 0.8)',
         color: '#000000',
-        padding: UniversalSpacing.DEFAULT_PADDING
-      })
-    })
+        padding: UniversalSpacing.DEFAULT_PADDING,
+      });
+    });
   }
 
-  return {markers, rectangles, annotations}
+  return { markers, rectangles, annotations };
 }
 
 /**
@@ -376,20 +373,20 @@ export function convertTradeRectanglesToPluginFormat(
   series?: any
 ): any[] {
   if (!chart || !series) {
-    return []
+    return [];
   }
 
   // Check if chart scales are ready
-  const timeScale = chart.timeScale()
-  const timeScaleWidth = timeScale.width()
+  const timeScale = chart.timeScale();
+  const timeScaleWidth = timeScale.width();
 
   if (timeScaleWidth === 0) {
-    return []
+    return [];
   }
 
   // Import ChartCoordinateService dynamically to avoid circular dependencies
-  const {ChartCoordinateService} = require('../services/ChartCoordinateService')
-  const coordinateService = ChartCoordinateService.getInstance()
+  const { ChartCoordinateService } = require('../services/ChartCoordinateService');
+  const coordinateService = ChartCoordinateService.getInstance();
 
   return tradeRectangles
     .map((rect, index) => {
@@ -403,10 +400,10 @@ export function convertTradeRectanglesToPluginFormat(
           chart,
           series,
           0 // paneId
-        )
+        );
 
         if (!boundingBox) {
-          return null
+          return null;
         }
 
         const pluginRect = {
@@ -425,15 +422,15 @@ export function convertTradeRectanglesToPluginFormat(
           labelFontSize: 12,
           labelBackground: 'rgba(255, 255, 255, 0.8)',
           labelPadding: 4,
-          zIndex: 10
-        }
+          zIndex: 10,
+        };
 
-        return pluginRect
+        return pluginRect;
       } catch (error) {
-        return null
+        return null;
       }
     })
-    .filter(rect => rect !== null) // Remove null entries
+    .filter(rect => rect !== null); // Remove null entries
 }
 
 /**
@@ -444,8 +441,7 @@ export function createTradeRectanglePrimitives(
   chart?: any,
   series?: any
 ): any[] {
-
-  return []
+  return [];
 }
 
 /**
@@ -457,33 +453,33 @@ export async function convertTradeRectanglesToPluginFormatWhenReady(
   series?: any
 ): Promise<any[]> {
   if (!chart || !series) {
-    return []
+    return [];
   }
 
   // Import ChartReadyDetector dynamically to avoid circular dependencies
-  const {ChartReadyDetector} = await import('../utils/chartReadyDetection')
+  const { ChartReadyDetector } = await import('../utils/chartReadyDetection');
 
   try {
     // Wait for chart to be ready with proper dimensions
-    const container = chart.chartElement()
+    const container = chart.chartElement();
     if (!container) {
-      return []
+      return [];
     }
 
     const isReady = await ChartReadyDetector.waitForChartReady(chart, container, {
       minWidth: 200,
       minHeight: 200,
       maxAttempts: 10,
-      baseDelay: 200
-    })
+      baseDelay: 200,
+    });
 
     if (!isReady) {
     }
 
     // Now convert coordinates
-    return convertTradeRectanglesToPluginFormat(tradeRectangles, chart, series)
+    return convertTradeRectanglesToPluginFormat(tradeRectangles, chart, series);
   } catch (error) {
     // Fallback to immediate conversion
-    return convertTradeRectanglesToPluginFormat(tradeRectangles, chart, series)
+    return convertTradeRectanglesToPluginFormat(tradeRectangles, chart, series);
   }
 }

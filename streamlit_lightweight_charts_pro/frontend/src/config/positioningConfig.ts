@@ -3,7 +3,7 @@
  * Centralizes all positioning-related magic numbers and defaults
  */
 
-import {UniversalSpacing} from '../primitives/PrimitiveDefaults'
+import { UniversalSpacing } from '../primitives/PrimitiveDefaults';
 
 /**
  * Standard margins used throughout the application
@@ -14,27 +14,27 @@ export const MARGINS = {
     top: UniversalSpacing.EDGE_PADDING,
     right: UniversalSpacing.EDGE_PADDING,
     bottom: UniversalSpacing.WIDGET_GAP,
-    left: UniversalSpacing.EDGE_PADDING
+    left: UniversalSpacing.EDGE_PADDING,
   },
   pane: {
     top: UniversalSpacing.EDGE_PADDING,
     right: UniversalSpacing.EDGE_PADDING,
     bottom: UniversalSpacing.EDGE_PADDING,
-    left: UniversalSpacing.EDGE_PADDING
+    left: UniversalSpacing.EDGE_PADDING,
   },
   content: {
     top: UniversalSpacing.EDGE_PADDING,
     right: UniversalSpacing.EDGE_PADDING,
     bottom: UniversalSpacing.EDGE_PADDING,
-    left: UniversalSpacing.EDGE_PADDING
+    left: UniversalSpacing.EDGE_PADDING,
   },
   tooltip: {
     top: UniversalSpacing.EDGE_PADDING,
     right: UniversalSpacing.EDGE_PADDING,
     bottom: UniversalSpacing.EDGE_PADDING,
-    left: UniversalSpacing.EDGE_PADDING
-  }
-} as const
+    left: UniversalSpacing.EDGE_PADDING,
+  },
+} as const;
 
 /**
  * Default dimensions for chart components
@@ -43,33 +43,35 @@ export const DIMENSIONS = {
   timeAxis: {
     defaultHeight: 35,
     minHeight: 25,
-    maxHeight: 50
+    maxHeight: 50,
   },
   priceScale: {
     defaultWidth: 70,
     minWidth: 50,
     maxWidth: 100,
-    rightScaleDefaultWidth: 0
+    rightScaleDefaultWidth: 0,
   },
   legend: {
     defaultHeight: 80,
     minHeight: 60,
     maxHeight: 120,
     defaultWidth: 200,
-    minWidth: 150
+    minWidth: 150,
   },
   pane: {
     defaultHeight: 200,
     minHeight: 100,
-    maxHeight: 1000
+    maxHeight: 1000,
+    minWidth: 200,
+    maxWidth: 2000,
   },
   chart: {
     defaultWidth: 800,
     defaultHeight: 600,
     minWidth: 300,
-    minHeight: 200
-  }
-} as const
+    minHeight: 200,
+  },
+} as const;
 
 /**
  * Fallback values for error cases
@@ -82,8 +84,8 @@ export const FALLBACKS = {
   timeScaleHeight: 35,
   priceScaleWidth: 70,
   containerWidth: 800,
-  containerHeight: 600
-} as const
+  containerHeight: 600,
+} as const;
 
 /**
  * Z-index values for layering
@@ -96,45 +98,25 @@ export const Z_INDEX = {
   overlay: 30,
   legend: 40,
   tooltip: 50,
-  modal: 100
-} as const
+  modal: 100,
+} as const;
 
 /**
  * Animation and timing configurations
  */
 export const TIMING = {
   cacheExpiration: 5000, // 5 seconds
+  cacheCleanupInterval: 10000, // 10 seconds
   debounceDelay: 100, // 100ms
   throttleDelay: 50, // 50ms
-  animationDuration: 200 // 200ms
-} as const
-
-/**
- * Positioning calculation modes
- */
-export enum PositioningMode {
-  ABSOLUTE = 'absolute',
-  RELATIVE = 'relative',
-  FIXED = 'fixed',
-  STICKY = 'sticky'
-}
-
-/**
- * Coordinate system origins
- */
-export enum CoordinateOrigin {
-  TOP_LEFT = 'top-left',
-  TOP_RIGHT = 'top-right',
-  BOTTOM_LEFT = 'bottom-left',
-  BOTTOM_RIGHT = 'bottom-right',
-  CENTER = 'center'
-}
+  animationDuration: 200, // 200ms
+} as const;
 
 /**
  * Get margin configuration by feature type
  */
 export function getMargins(feature: keyof typeof MARGINS): (typeof MARGINS)[keyof typeof MARGINS] {
-  return MARGINS[feature] || MARGINS.content
+  return MARGINS[feature] || MARGINS.content;
 }
 
 /**
@@ -143,14 +125,14 @@ export function getMargins(feature: keyof typeof MARGINS): (typeof MARGINS)[keyo
 export function getDimensions(
   component: keyof typeof DIMENSIONS
 ): (typeof DIMENSIONS)[keyof typeof DIMENSIONS] {
-  return DIMENSIONS[component] || DIMENSIONS.chart
+  return DIMENSIONS[component] || DIMENSIONS.chart;
 }
 
 /**
  * Get fallback value by type
  */
 export function getFallback(type: keyof typeof FALLBACKS): number {
-  return FALLBACKS[type] || 0
+  return FALLBACKS[type] || 0;
 }
 
 /**
@@ -161,24 +143,24 @@ export function validateConfiguration(): boolean {
   for (const [, value] of Object.entries(DIMENSIONS)) {
     for (const [, val] of Object.entries(value)) {
       if (typeof val === 'number' && val < 0) {
-        return false
+        return false;
       }
     }
   }
 
   // Ensure min values are less than max values
   if (DIMENSIONS.timeAxis.minHeight > DIMENSIONS.timeAxis.maxHeight) {
-    return false
+    return false;
   }
 
   if (DIMENSIONS.priceScale.minWidth > DIMENSIONS.priceScale.maxWidth) {
-    return false
+    return false;
   }
 
-  return true
+  return true;
 }
 
 // Validate configuration on load
 if (process.env.NODE_ENV === 'development') {
-  validateConfiguration()
+  validateConfiguration();
 }

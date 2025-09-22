@@ -1,9 +1,10 @@
-import { IChartApi, ISeriesApi, IPanePrimitive, Time } from 'lightweight-charts'
-import { CornerLayoutManager } from '../services/CornerLayoutManager'
-import { ChartCoordinateService } from '../services/ChartCoordinateService'
-import { TemplateEngine, TemplateContext, TemplateResult } from '../services/TemplateEngine'
-import { PrimitiveEventManager, EventSubscription } from '../services/PrimitiveEventManager'
-import { Corner, Position, IPositionableWidget, WidgetDimensions } from '../types/layout'
+import { IChartApi, ISeriesApi, IPanePrimitive, Time } from 'lightweight-charts';
+import { CornerLayoutManager } from '../services/CornerLayoutManager';
+import { ChartCoordinateService } from '../services/ChartCoordinateService';
+import { TemplateEngine, TemplateResult } from '../services/TemplateEngine';
+import { TemplateContext } from '../types/ChartInterfaces';
+import { PrimitiveEventManager, EventSubscription } from '../services/PrimitiveEventManager';
+import { Corner, Position, IPositionableWidget, WidgetDimensions } from '../types/layout';
 
 /**
  * Base configuration for all pane primitives
@@ -12,39 +13,38 @@ export interface BasePrimitiveConfig {
   /**
    * Position in chart corner
    */
-  corner: Corner
+  corner: Corner;
 
   /**
    * Priority for stacking order (lower = higher priority)
    */
-  priority: number
-
+  priority: number;
 
   /**
    * Whether the primitive is visible
    */
-  visible?: boolean
+  visible?: boolean;
 
   /**
    * Styling configuration
    */
   style?: {
-    backgroundColor?: string
-    color?: string
-    fontSize?: number
-    fontFamily?: string
-    borderRadius?: number
-    padding?: number
-    margin?: number
-    zIndex?: number
-  }
+    backgroundColor?: string;
+    color?: string;
+    fontSize?: number;
+    fontFamily?: string;
+    borderRadius?: number;
+    padding?: number;
+    margin?: number;
+    zIndex?: number;
+  };
 }
 
 /**
  * Interface for template data used in primitives
  */
 export interface TemplateData {
-  [key: string]: any
+  [key: string]: any;
 }
 
 /**
@@ -59,47 +59,47 @@ export interface TemplateData {
  * Following DRY principles with single source of truth architecture
  */
 export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = BasePrimitiveConfig>
-  implements IPanePrimitive<Time>, IPositionableWidget {
-
+  implements IPanePrimitive<Time>, IPositionableWidget
+{
   // IPanePrimitive implementation
-  public readonly id: string
+  public readonly id: string;
 
   // IPositionableWidget implementation
-  public readonly corner: Corner
-  public readonly priority: number
-  public visible: boolean = true
+  public readonly corner: Corner;
+  public readonly priority: number;
+  public visible: boolean = true;
 
   // Core services
-  protected config: TConfig
-  protected chart: IChartApi | null = null
-  protected series: ISeriesApi<any> | null = null
-  protected requestUpdate: (() => void) | null = null
-  protected layoutManager: CornerLayoutManager | null = null
-  protected coordinateService: ChartCoordinateService
-  protected templateEngine: TemplateEngine
-  protected eventManager: PrimitiveEventManager | null = null
+  protected config: TConfig;
+  protected chart: IChartApi | null = null;
+  protected series: ISeriesApi<any> | null = null;
+  protected requestUpdate: (() => void) | null = null;
+  protected layoutManager: CornerLayoutManager | null = null;
+  protected coordinateService: ChartCoordinateService;
+  protected templateEngine: TemplateEngine;
+  protected eventManager: PrimitiveEventManager | null = null;
 
   // Layout state
-  protected currentPosition: Position | null = null
-  protected containerElement: HTMLElement | null = null
-  protected mounted: boolean = false
+  protected currentPosition: Position | null = null;
+  protected containerElement: HTMLElement | null = null;
+  protected mounted: boolean = false;
 
   // Event handling
-  protected eventSubscriptions: EventSubscription[] = []
+  protected eventSubscriptions: EventSubscription[] = [];
 
   // Template processing
-  protected templateData: TemplateData = {}
-  protected templateContext: TemplateContext = {}
-  protected lastTemplateResult: TemplateResult | null = null
+  protected templateData: TemplateData = {};
+  protected templateContext: TemplateContext = {};
+  protected lastTemplateResult: TemplateResult | null = null;
 
   constructor(id: string, config: TConfig) {
-    this.id = id
-    this.config = { ...config }
-    this.corner = config.corner
-    this.priority = config.priority
-    this.visible = config.visible !== false
-    this.coordinateService = ChartCoordinateService.getInstance()
-    this.templateEngine = TemplateEngine.getInstance()
+    this.id = id;
+    this.config = { ...config };
+    this.corner = config.corner;
+    this.priority = config.priority;
+    this.visible = config.visible !== false;
+    this.coordinateService = ChartCoordinateService.getInstance();
+    this.templateEngine = TemplateEngine.getInstance();
   }
 
   // ===== IPanePrimitive Interface =====
@@ -108,36 +108,36 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Called when primitive is attached to a pane
    */
   public attached(params: {
-    chart: IChartApi
-    series: ISeriesApi<any>
-    requestUpdate: () => void
+    chart: IChartApi;
+    series: ISeriesApi<any>;
+    requestUpdate: () => void;
   }): void {
-    this.chart = params.chart
-    this.series = params.series
-    this.requestUpdate = params.requestUpdate
+    this.chart = params.chart;
+    this.series = params.series;
+    this.requestUpdate = params.requestUpdate;
 
     // Initialize layout management
-    this.initializeLayoutManagement()
+    this.initializeLayoutManagement();
 
     // Initialize event management
-    this.initializeEventManagement()
+    this.initializeEventManagement();
 
     // Setup default event subscriptions
-    this.setupDefaultEventSubscriptions()
+    this.setupDefaultEventSubscriptions();
 
     // Call lifecycle hook
-    this.onAttached(params)
+    this.onAttached(params);
 
     // Mark as mounted
-    this.mounted = true
+    this.mounted = true;
 
     // Register with layout manager
     if (this.layoutManager) {
-      this.layoutManager.registerWidget(this)
+      this.layoutManager.registerWidget(this);
     }
 
     // Trigger initial render
-    this.updateAllViews()
+    this.updateAllViews();
   }
 
   /**
@@ -146,24 +146,24 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   public detached(): void {
     // Unregister from layout manager
     if (this.layoutManager) {
-      this.layoutManager.unregisterWidget(this.id)
+      this.layoutManager.unregisterWidget(this.id);
     }
 
     // Cleanup event subscriptions
-    this.cleanupEventSubscriptions()
+    this.cleanupEventSubscriptions();
 
     // Cleanup container
-    this.destroyContainer()
+    this.destroyContainer();
 
     // Call lifecycle hook
-    this.onDetached()
+    this.onDetached();
 
     // Clear references
-    this.chart = null
-    this.series = null
-    this.layoutManager = null
-    this.eventManager = null
-    this.mounted = false
+    this.chart = null;
+    this.series = null;
+    this.layoutManager = null;
+    this.eventManager = null;
+    this.mounted = false;
   }
 
   /**
@@ -175,16 +175,12 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
       {
         renderer: () => ({
           draw: () => {
-            // This gets called during every pane redraw/resize event
-            // Trigger immediate layout update for responsive positioning
-            if (this.layoutManager && this.mounted) {
-              // Use immediate synchronous update for instant response
-              this.layoutManager.updateChartDimensionsFromElement()
-            }
-          }
-        })
-      }
-    ]
+            // Empty draw method - layout updates should only happen on actual resize events
+            // not on every frame to avoid performance issues during pan/zoom operations
+          },
+        }),
+      },
+    ];
   }
 
   /**
@@ -192,20 +188,20 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    */
   public updateAllViews(): void {
     if (!this.mounted || !this.visible) {
-      return
+      return;
     }
 
     // Process template data
-    this.processTemplate()
+    this.processTemplate();
 
     // Ensure container exists
-    this.ensureContainer()
+    this.ensureContainer();
 
     // Update content
-    this.renderContent()
+    this.renderContent();
 
     // Call lifecycle hook
-    this.onUpdate()
+    this.onUpdate();
   }
 
   // ===== IPositionableWidget Interface =====
@@ -215,43 +211,43 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    */
   public getDimensions(): WidgetDimensions {
     if (!this.containerElement) {
-      return { width: 0, height: 0 }
+      return { width: 0, height: 0 };
     }
 
     // Get actual dimensions
-    let width = this.containerElement.offsetWidth || 0
-    let height = this.containerElement.offsetHeight || 0
+    let width = this.containerElement.offsetWidth || 0;
+    let height = this.containerElement.offsetHeight || 0;
 
     // Fallback for cases where element hasn't been rendered yet
     if ((width === 0 || height === 0) && this.containerElement) {
       // Force measurement by temporarily making element visible
-      const originalDisplay = this.containerElement.style.display
-      const originalVisibility = this.containerElement.style.visibility
-      const originalPosition = this.containerElement.style.position
+      const originalDisplay = this.containerElement.style.display;
+      const originalVisibility = this.containerElement.style.visibility;
+      const originalPosition = this.containerElement.style.position;
 
-      this.containerElement.style.display = 'block'
-      this.containerElement.style.visibility = 'hidden'
-      this.containerElement.style.position = 'absolute'
+      this.containerElement.style.display = 'block';
+      this.containerElement.style.visibility = 'hidden';
+      this.containerElement.style.position = 'absolute';
 
-      width = this.containerElement.offsetWidth || width
-      height = this.containerElement.offsetHeight || height
+      width = this.containerElement.offsetWidth || width;
+      height = this.containerElement.offsetHeight || height;
 
       // Restore original styles
-      this.containerElement.style.display = originalDisplay
-      this.containerElement.style.visibility = originalVisibility
-      this.containerElement.style.position = originalPosition
+      this.containerElement.style.display = originalDisplay;
+      this.containerElement.style.visibility = originalVisibility;
+      this.containerElement.style.position = originalPosition;
 
       // If still zero, provide reasonable defaults based on content
       if (width === 0) {
-        const textLength = this.containerElement.textContent?.length || 50
-        width = Math.max(100, textLength * 8) // Approximate character width
+        const textLength = this.containerElement.textContent?.length || 50;
+        width = Math.max(100, textLength * 8); // Approximate character width
       }
       if (height === 0) {
-        height = 24 // Default height for one line of text with padding
+        height = 24; // Default height for one line of text with padding
       }
     }
 
-    return { width, height }
+    return { width, height };
   }
 
   /**
@@ -259,15 +255,15 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Now properly integrates with lightweight-charts coordinate updates
    */
   public updatePosition(position: Position): void {
-    this.currentPosition = position
+    this.currentPosition = position;
 
     if (this.containerElement) {
       // Apply position immediately for instant response
-      this.applyPositionToContainer(position)
+      this.applyPositionToContainer(position);
     }
 
     // Call lifecycle hook
-    this.onPositionUpdate(position)
+    this.onPositionUpdate(position);
   }
 
   // ===== Layout Management System =====
@@ -276,18 +272,18 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Initialize layout management integration
    */
   private initializeLayoutManagement(): void {
-    if (!this.chart) return
+    if (!this.chart) return;
 
     // Get chart-level layout manager (for chart-level widgets like range switcher)
     // or pane-specific layout manager (for pane-level widgets like legends)
-    const paneId = this.getPaneId()
-    const chartId = this.getChartId()
+    const paneId = this.getPaneId();
+    const chartId = this.getChartId();
 
-    this.layoutManager = CornerLayoutManager.getInstance(chartId, paneId)
-    this.layoutManager.setChartApi(this.chart)
+    this.layoutManager = CornerLayoutManager.getInstance(chartId, paneId);
+    this.layoutManager.setChartApi(this.chart);
 
     // Setup coordinate service integration
-    this.coordinateService.setupLayoutManagerIntegration(this.chart, this.layoutManager)
+    this.coordinateService.setupLayoutManagerIntegration(this.chart, this.layoutManager);
   }
 
   /**
@@ -295,14 +291,14 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Defaults to 0 (main pane) - can be overridden by subclasses if needed
    */
   protected getPaneId(): number {
-    return 0
+    return 0;
   }
 
   /**
    * Get the chart ID for this primitive
    */
   protected getChartId(): string {
-    return this.chart?.chartElement()?.id || 'default'
+    return this.chart?.chartElement()?.id || 'default';
   }
 
   // ===== Container Management =====
@@ -312,63 +308,63 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    */
   private ensureContainer(): void {
     if (this.containerElement) {
-      return
+      return;
     }
 
     if (!this.chart) {
-      return
+      return;
     }
 
-    const chartElement = this.chart.chartElement()
+    const chartElement = this.chart.chartElement();
     if (!chartElement) {
-      return
+      return;
     }
 
     // Create container
-    this.containerElement = document.createElement('div')
-    this.containerElement.id = `${this.id}-container`
-    this.containerElement.className = `primitive-container ${this.getContainerClassName()}`
+    this.containerElement = document.createElement('div');
+    this.containerElement.id = `${this.id}-container`;
+    this.containerElement.className = `primitive-container ${this.getContainerClassName()}`;
 
     // Apply base styling
-    this.applyBaseContainerStyling()
+    this.applyBaseContainerStyling();
 
     // Apply position if available
     if (this.currentPosition) {
-      this.applyPositionToContainer(this.currentPosition)
+      this.applyPositionToContainer(this.currentPosition);
     }
 
     // Attach to chart
-    chartElement.appendChild(this.containerElement)
+    chartElement.appendChild(this.containerElement);
 
     // Call lifecycle hook
-    this.onContainerCreated(this.containerElement)
+    this.onContainerCreated(this.containerElement);
   }
 
   /**
    * Apply position to container element using lightweight-charts coordinate system
    */
   private applyPositionToContainer(position: Position): void {
-    if (!this.containerElement) return
+    if (!this.containerElement) return;
 
-    const style = this.containerElement.style
+    const style = this.containerElement.style;
 
     // Use lightweight-charts coordinate system for positioning
-    style.position = 'absolute'
-    style.top = ''
-    style.right = ''
-    style.bottom = ''
-    style.left = ''
+    style.position = 'absolute';
+    style.top = '';
+    style.right = '';
+    style.bottom = '';
+    style.left = '';
 
     // Apply coordinates that will be managed by lightweight-charts coordinate transforms
-    if (position.top !== undefined) style.top = `${position.top}px`
-    if (position.right !== undefined) style.right = `${position.right}px`
-    if (position.bottom !== undefined) style.bottom = `${position.bottom}px`
-    if (position.left !== undefined) style.left = `${position.left}px`
-    if (position.zIndex !== undefined) style.zIndex = position.zIndex.toString()
+    if (position.top !== undefined) style.top = `${position.top}px`;
+    if (position.right !== undefined) style.right = `${position.right}px`;
+    if (position.bottom !== undefined) style.bottom = `${position.bottom}px`;
+    if (position.left !== undefined) style.left = `${position.left}px`;
+    if (position.zIndex !== undefined) style.zIndex = position.zIndex.toString();
 
     // Request chart update to synchronize with lightweight-charts coordinate system
     if (this.requestUpdate) {
-      this.requestUpdate()
+      this.requestUpdate();
     }
   }
 
@@ -376,40 +372,41 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Apply base container styling
    */
   private applyBaseContainerStyling(): void {
-    if (!this.containerElement) return
+    if (!this.containerElement) return;
 
-    const style = this.containerElement.style
-    style.position = 'absolute'
-    style.pointerEvents = 'auto'
-    style.userSelect = 'none'
+    const style = this.containerElement.style;
+    style.position = 'absolute';
+    style.pointerEvents = 'auto';
+    style.userSelect = 'none';
 
     // Apply config styling
     if (this.config.style) {
-      const configStyle = this.config.style
-      const isLegend = this.id.includes('legend')
+      const configStyle = this.config.style;
+      const isLegend = this.id.includes('legend');
 
       // For legends, don't apply background to container - let content handle it
       if (configStyle.backgroundColor && !isLegend) {
-        style.backgroundColor = configStyle.backgroundColor
+        style.backgroundColor = configStyle.backgroundColor;
       }
-      if (configStyle.color && !isLegend) style.color = configStyle.color
-      if (configStyle.fontSize) style.fontSize = `${configStyle.fontSize}px`
-      if (configStyle.fontFamily) style.fontFamily = configStyle.fontFamily
-      if (configStyle.borderRadius && !isLegend) style.borderRadius = `${configStyle.borderRadius}px`
-      if (configStyle.padding && !isLegend) style.padding = `${configStyle.padding}px`
+      if (configStyle.color && !isLegend) style.color = configStyle.color;
+      if (configStyle.fontSize) style.fontSize = `${configStyle.fontSize}px`;
+      if (configStyle.fontFamily) style.fontFamily = configStyle.fontFamily;
+      if (configStyle.borderRadius && !isLegend)
+        style.borderRadius = `${configStyle.borderRadius}px`;
+      if (configStyle.padding && !isLegend) style.padding = `${configStyle.padding}px`;
 
       // For legends, force margin to 0 since spacing is handled by layout manager
       if (isLegend) {
-        style.margin = '0'
+        style.margin = '0';
       } else if (configStyle.margin) {
-        style.margin = `${configStyle.margin}px`
+        style.margin = `${configStyle.margin}px`;
       }
-      if (configStyle.zIndex) style.zIndex = configStyle.zIndex.toString()
+      if (configStyle.zIndex) style.zIndex = configStyle.zIndex.toString();
 
       // Ensure container is transparent for legends
       if (isLegend) {
-        style.backgroundColor = 'transparent'
-        style.color = 'inherit'
+        style.backgroundColor = 'transparent';
+        style.color = 'inherit';
       }
     }
   }
@@ -419,9 +416,9 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    */
   private destroyContainer(): void {
     if (this.containerElement && this.containerElement.parentNode) {
-      this.containerElement.parentNode.removeChild(this.containerElement)
+      this.containerElement.parentNode.removeChild(this.containerElement);
     }
-    this.containerElement = null
+    this.containerElement = null;
   }
 
   // ===== Template Processing System =====
@@ -430,11 +427,11 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Set template data for processing
    */
   public setTemplateData(data: TemplateData): void {
-    this.templateData = { ...this.templateData, ...data }
+    this.templateData = { ...this.templateData, ...data };
 
     if (this.mounted) {
-      this.processTemplate()
-      this.renderContent()
+      this.processTemplate();
+      this.renderContent();
     }
   }
 
@@ -442,11 +439,11 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Update template context for processing
    */
   public updateTemplateContext(context: Partial<TemplateContext>): void {
-    this.templateContext = { ...this.templateContext, ...context }
+    this.templateContext = { ...this.templateContext, ...context };
 
     if (this.mounted) {
-      this.processTemplate()
-      this.renderContent()
+      this.processTemplate();
+      this.renderContent();
     }
   }
 
@@ -454,17 +451,17 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Process template with current data using TemplateEngine
    */
   protected processTemplate(): void {
-    const template = this.getTemplate()
+    const template = this.getTemplate();
     const context: TemplateContext = {
       ...this.templateContext,
-      customData: this.templateData
-    }
+      customData: this.templateData,
+    };
 
-    this.lastTemplateResult = this.templateEngine.processTemplate(template, context)
+    this.lastTemplateResult = this.templateEngine.processTemplate(template, context);
 
-    // Log any errors for debugging
+    // Check for errors but fail silently in production
     if (this.lastTemplateResult.hasErrors) {
-      console.warn(`Template processing errors in ${this.id}:`, this.lastTemplateResult.errors)
+      // Template processing errors - could implement proper error reporting if needed
     }
   }
 
@@ -472,14 +469,14 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Get processed template content
    */
   protected getProcessedContent(): string {
-    return this.lastTemplateResult?.content || this.getTemplate()
+    return this.lastTemplateResult?.content || this.getTemplate();
   }
 
   /**
    * Get template processing result for debugging
    */
   public getTemplateResult(): TemplateResult | null {
-    return this.lastTemplateResult
+    return this.lastTemplateResult;
   }
 
   // ===== Event System Integration =====
@@ -488,63 +485,69 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Initialize event management
    */
   private initializeEventManagement(): void {
-    if (!this.chart) return
+    if (!this.chart) return;
 
-    const chartId = this.getChartId()
-    this.eventManager = PrimitiveEventManager.getInstance(chartId)
-    this.eventManager.initialize(this.chart)
+    const chartId = this.getChartId();
+    this.eventManager = PrimitiveEventManager.getInstance(chartId);
+    this.eventManager.initialize(this.chart);
   }
 
   /**
    * Setup default event subscriptions
    */
   private setupDefaultEventSubscriptions(): void {
-    if (!this.eventManager) return
+    if (!this.eventManager) return;
 
     // Subscribe to crosshair moves for template data updates
-    const crosshairSub = this.eventManager.subscribe('crosshairMove', (event) => {
-      this.handleCrosshairMove(event)
-    })
-    this.eventSubscriptions.push(crosshairSub)
+    const crosshairSub = this.eventManager.subscribe('crosshairMove', event => {
+      this.handleCrosshairMove(event);
+    });
+    this.eventSubscriptions.push(crosshairSub);
 
     // Subscribe to chart resize for layout updates
-    const resizeSub = this.eventManager.subscribe('resize', (event) => {
-      this.handleChartResize(event)
-    })
-    this.eventSubscriptions.push(resizeSub)
+    const resizeSub = this.eventManager.subscribe('resize', event => {
+      this.handleChartResize(event);
+    });
+    this.eventSubscriptions.push(resizeSub);
 
     // Call subclass hook for additional subscriptions
-    this.setupCustomEventSubscriptions()
+    this.setupCustomEventSubscriptions();
   }
 
   /**
    * Cleanup event subscriptions
    */
   private cleanupEventSubscriptions(): void {
-    this.eventSubscriptions.forEach(sub => sub.unsubscribe())
-    this.eventSubscriptions = []
+    this.eventSubscriptions.forEach(sub => sub.unsubscribe());
+    this.eventSubscriptions = [];
   }
 
   /**
    * Handle crosshair move events
    */
-  protected handleCrosshairMove(event: { time: any; point: { x: number; y: number } | null; seriesData: Map<any, any> }): void {
+  protected handleCrosshairMove(event: {
+    time: any;
+    point: { x: number; y: number } | null;
+    seriesData: Map<any, any>;
+  }): void {
     // Update template context with series data
     if (event.seriesData.size > 0 && this.series) {
-      const seriesValue = event.seriesData.get(this.series)
+      const seriesValue = event.seriesData.get(this.series);
       if (seriesValue) {
         this.updateTemplateContext({
           seriesData: seriesValue,
-          formatting: this.config.style ? {
-            valueFormat: '.2f', // Default format, can be overridden
-            timeFormat: 'YYYY-MM-DD HH:mm:ss'
-          } : undefined
-        })
+          formatting: this.config.style
+            ? {
+                valueFormat: '.2f', // Default format, can be overridden
+                timeFormat: 'YYYY-MM-DD HH:mm:ss',
+              }
+            : undefined,
+        });
       }
     }
 
     // Call subclass hook
-    this.onCrosshairMove(event)
+    this.onCrosshairMove(event);
   }
 
   /**
@@ -553,18 +556,18 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   protected handleChartResize(event: { width: number; height: number }): void {
     // Trigger layout recalculation
     if (this.layoutManager) {
-      this.layoutManager.updateChartDimensions(event)
+      this.layoutManager.updateChartDimensions(event);
     }
 
     // Call subclass hook
-    this.onChartResize(event)
+    this.onChartResize(event);
   }
 
   /**
    * Get event manager instance
    */
   public getEventManager(): PrimitiveEventManager | null {
-    return this.eventManager
+    return this.eventManager;
   }
 
   // ===== Visibility Management =====
@@ -574,20 +577,20 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    */
   public setVisible(visible: boolean): void {
     if (this.visible !== visible) {
-      this.visible = visible
+      this.visible = visible;
 
       // Update container visibility
       if (this.containerElement) {
-        this.containerElement.style.display = visible ? 'block' : 'none'
+        this.containerElement.style.display = visible ? 'block' : 'none';
       }
 
       // Update layout manager
       if (this.layoutManager) {
-        this.layoutManager.updateWidgetVisibility(this.id, visible)
+        this.layoutManager.updateWidgetVisibility(this.id, visible);
       }
 
       // Call lifecycle hook
-      this.onVisibilityChanged(visible)
+      this.onVisibilityChanged(visible);
     }
   }
 
@@ -595,7 +598,7 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Toggle primitive visibility
    */
   public toggle(): void {
-    this.setVisible(!this.visible)
+    this.setVisible(!this.visible);
   }
 
   // ===== Configuration Management =====
@@ -604,27 +607,27 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Update primitive configuration
    */
   public updateConfig(newConfig: Partial<TConfig>): void {
-    this.config = { ...this.config, ...newConfig }
+    this.config = { ...this.config, ...newConfig };
 
     // Re-apply styling if container exists
     if (this.containerElement) {
-      this.applyBaseContainerStyling()
+      this.applyBaseContainerStyling();
     }
 
     // Trigger update
     if (this.mounted) {
-      this.updateAllViews()
+      this.updateAllViews();
     }
 
     // Call lifecycle hook
-    this.onConfigUpdate(newConfig)
+    this.onConfigUpdate(newConfig);
   }
 
   /**
    * Get current configuration
    */
   public getConfig(): TConfig {
-    return { ...this.config }
+    return { ...this.config };
   }
 
   // ===== Abstract Methods (to be implemented by subclasses) =====
@@ -632,24 +635,28 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   /**
    * Get the template string for this primitive
    */
-  protected abstract getTemplate(): string
+  protected abstract getTemplate(): string;
 
   /**
    * Render content to the container
    */
-  protected abstract renderContent(): void
+  protected abstract renderContent(): void;
 
   /**
    * Get CSS class name for the container
    */
-  protected abstract getContainerClassName(): string
+  protected abstract getContainerClassName(): string;
 
   // ===== Lifecycle Hooks (optional overrides) =====
 
   /**
    * Called when primitive is attached to chart
    */
-  protected onAttached(params: { chart: IChartApi; series: ISeriesApi<any>; requestUpdate: () => void }): void {
+  protected onAttached(_params: {
+    chart: IChartApi;
+    series: ISeriesApi<any>;
+    requestUpdate: () => void;
+  }): void {
     // Override in subclasses
   }
 
@@ -670,42 +677,46 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   /**
    * Called when position is updated by layout manager
    */
-  protected onPositionUpdate(position: Position): void {
+  protected onPositionUpdate(_position: Position): void {
     // Override in subclasses
   }
 
   /**
    * Called when container element is created
    */
-  protected onContainerCreated(container: HTMLElement): void {
+  protected onContainerCreated(_container: HTMLElement): void {
     // Override in subclasses
   }
 
   /**
    * Called when visibility changes
    */
-  protected onVisibilityChanged(visible: boolean): void {
+  protected onVisibilityChanged(_visible: boolean): void {
     // Override in subclasses
   }
 
   /**
    * Called when configuration is updated
    */
-  protected onConfigUpdate(newConfig: Partial<TConfig>): void {
+  protected onConfigUpdate(_newConfig: Partial<TConfig>): void {
     // Override in subclasses
   }
 
   /**
    * Called when crosshair moves over the chart
    */
-  protected onCrosshairMove(event: { time: any; point: { x: number; y: number } | null; seriesData: Map<any, any> }): void {
+  protected onCrosshairMove(_event: {
+    time: any;
+    point: { x: number; y: number } | null;
+    seriesData: Map<any, any>;
+  }): void {
     // Override in subclasses
   }
 
   /**
    * Called when chart is resized
    */
-  protected onChartResize(event: { width: number; height: number }): void {
+  protected onChartResize(_event: { width: number; height: number }): void {
     // Override in subclasses
   }
 
@@ -722,35 +733,35 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Get current position
    */
   public getPosition(): Position | null {
-    return this.currentPosition
+    return this.currentPosition;
   }
 
   /**
    * Get container element
    */
   public getContainer(): HTMLElement | null {
-    return this.containerElement
+    return this.containerElement;
   }
 
   /**
    * Check if primitive is mounted
    */
   public isMounted(): boolean {
-    return this.mounted
+    return this.mounted;
   }
 
   /**
    * Get chart API reference
    */
   public getChart(): IChartApi | null {
-    return this.chart
+    return this.chart;
   }
 
   /**
    * Get series API reference
    */
   public getSeries(): ISeriesApi<any> | null {
-    return this.series
+    return this.series;
   }
 }
 
@@ -758,12 +769,12 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
  * Priority levels for common primitives
  */
 export const PrimitivePriority = {
-  RANGE_SWITCHER: 1,     // Highest priority - navigation aid
-  MINIMIZE_BUTTON: 2,    // High priority - always visible after range switcher
-  LEGEND: 3,             // Medium priority - important for data understanding
-  CUSTOM: 10,            // Default for custom primitives
-  DEBUG: 999             // Lowest priority - debug/development primitives
-} as const
+  RANGE_SWITCHER: 1, // Highest priority - navigation aid
+  MINIMIZE_BUTTON: 2, // High priority - always visible after range switcher
+  LEGEND: 3, // Medium priority - important for data understanding
+  CUSTOM: 10, // Default for custom primitives
+  DEBUG: 999, // Lowest priority - debug/development primitives
+} as const;
 
 /**
  * Primitive type identifiers
@@ -772,5 +783,5 @@ export const PrimitiveType = {
   LEGEND: 'legend',
   RANGE_SWITCHER: 'range-switcher',
   BUTTON: 'button',
-  CUSTOM: 'custom'
-} as const
+  CUSTOM: 'custom',
+} as const;

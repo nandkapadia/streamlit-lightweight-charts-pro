@@ -5,44 +5,44 @@ import {
   IChartApi,
   ISeriesApi,
   Coordinate,
-  UTCTimestamp
-} from 'lightweight-charts'
-import {ChartCoordinateService} from '../../services/ChartCoordinateService'
-import {createBoundingBox} from '../../utils/coordinateValidation'
+  UTCTimestamp,
+} from 'lightweight-charts';
+import { ChartCoordinateService } from '../../services/ChartCoordinateService';
+import { createBoundingBox } from '../../utils/coordinateValidation';
 
 interface TradeRectangleData {
-  time1: UTCTimestamp
-  time2: UTCTimestamp
-  price1: number
-  price2: number
-  fillColor: string
-  borderColor: string
-  borderWidth: number
-  opacity: number
-  label?: string
-  textPosition?: 'inside' | 'above' | 'below'
-  textFontSize?: number
-  textColor?: string
-  textBackground?: string
+  time1: UTCTimestamp;
+  time2: UTCTimestamp;
+  price1: number;
+  price2: number;
+  fillColor: string;
+  borderColor: string;
+  borderWidth: number;
+  opacity: number;
+  label?: string;
+  textPosition?: 'inside' | 'above' | 'below';
+  textFontSize?: number;
+  textColor?: string;
+  textBackground?: string;
 }
 
 /**
  * Trade Rectangle Renderer following official TradingView patterns
  */
 class TradeRectangleRenderer implements IPrimitivePaneRenderer {
-  private _x1: Coordinate
-  private _y1: Coordinate
-  private _x2: Coordinate
-  private _y2: Coordinate
-  private _fillColor: string
-  private _borderColor: string
-  private _borderWidth: number
-  private _opacity: number
-  private _label: string
-  private _textPosition: 'inside' | 'above' | 'below'
-  private _textFontSize: number
-  private _textColor: string
-  private _textBackground: string
+  private _x1: Coordinate;
+  private _y1: Coordinate;
+  private _x2: Coordinate;
+  private _y2: Coordinate;
+  private _fillColor: string;
+  private _borderColor: string;
+  private _borderWidth: number;
+  private _opacity: number;
+  private _label: string;
+  private _textPosition: 'inside' | 'above' | 'below';
+  private _textFontSize: number;
+  private _textColor: string;
+  private _textBackground: string;
 
   constructor(
     x1: Coordinate,
@@ -59,22 +59,22 @@ class TradeRectangleRenderer implements IPrimitivePaneRenderer {
     textColor: string = '#FFFFFF',
     textBackground: string = 'rgba(0, 0, 0, 0.7)'
   ) {
-    this._x1 = x1
-    this._y1 = y1
-    this._x2 = x2
-    this._y2 = y2
-    this._fillColor = fillColor
-    this._borderColor = borderColor
-    this._borderWidth = borderWidth
-    this._opacity = opacity
-    this._label = label
-    this._textPosition = textPosition
-    this._textFontSize = textFontSize
-    this._textColor = textColor
-    this._textBackground = textBackground
+    this._x1 = x1;
+    this._y1 = y1;
+    this._x2 = x2;
+    this._y2 = y2;
+    this._fillColor = fillColor;
+    this._borderColor = borderColor;
+    this._borderWidth = borderWidth;
+    this._opacity = opacity;
+    this._label = label;
+    this._textPosition = textPosition;
+    this._textFontSize = textFontSize;
+    this._textColor = textColor;
+    this._textBackground = textBackground;
   }
 
-  draw(target: any) {
+  draw(_target: any) {
     // We use drawBackground for rectangles
   }
 
@@ -94,95 +94,95 @@ class TradeRectangleRenderer implements IPrimitivePaneRenderer {
       this._x2 === 0 ||
       this._y2 === 0
     ) {
-      return
+      return;
     }
 
     // Use bitmap coordinate space for pixel-perfect rendering
     target.useBitmapCoordinateSpace((scope: any) => {
-      const ctx = scope.context
+      const ctx = scope.context;
 
       // Convert to bitmap coordinates
-      const x1 = this._x1 * scope.horizontalPixelRatio
-      const y1 = this._y1 * scope.verticalPixelRatio
-      const x2 = this._x2 * scope.horizontalPixelRatio
-      const y2 = this._y2 * scope.verticalPixelRatio
+      const x1 = this._x1 * scope.horizontalPixelRatio;
+      const y1 = this._y1 * scope.verticalPixelRatio;
+      const x2 = this._x2 * scope.horizontalPixelRatio;
+      const y2 = this._y2 * scope.verticalPixelRatio;
 
       // Calculate rectangle bounds
-      const left = Math.min(x1, x2)
-      const top = Math.min(y1, y2)
-      const width = Math.abs(x2 - x1)
-      const height = Math.abs(y2 - y1)
+      const left = Math.min(x1, x2);
+      const top = Math.min(y1, y2);
+      const width = Math.abs(x2 - x1);
+      const height = Math.abs(y2 - y1);
 
       if (width < 1 || height < 1) {
-        return
+        return;
       }
 
       try {
         // Draw filled rectangle
-        ctx.globalAlpha = this._opacity
-        ctx.fillStyle = this._fillColor
-        ctx.fillRect(left, top, width, height)
+        ctx.globalAlpha = this._opacity;
+        ctx.fillStyle = this._fillColor;
+        ctx.fillRect(left, top, width, height);
 
         // Draw border
         if (this._borderWidth > 0) {
-          ctx.globalAlpha = 1.0
-          ctx.strokeStyle = this._borderColor
-          ctx.lineWidth = this._borderWidth * scope.horizontalPixelRatio
-          ctx.strokeRect(left, top, width, height)
+          ctx.globalAlpha = 1.0;
+          ctx.strokeStyle = this._borderColor;
+          ctx.lineWidth = this._borderWidth * scope.horizontalPixelRatio;
+          ctx.strokeRect(left, top, width, height);
         }
 
         // Draw label with configurable position and styling
         if (this._label) {
-          ctx.globalAlpha = 1.0
-          ctx.font = `${this._textFontSize * scope.verticalPixelRatio}px Arial`
-          ctx.textAlign = 'center'
+          ctx.globalAlpha = 1.0;
+          ctx.font = `${this._textFontSize * scope.verticalPixelRatio}px Arial`;
+          ctx.textAlign = 'center';
 
           // Calculate text position based on textPosition setting
-          let textX = left + width / 2
-          let textY: number
-          let showBackground = true
+          const textX = left + width / 2;
+          let textY: number;
+          const showBackground = true;
 
           switch (this._textPosition) {
             case 'above':
-              textY = top - 5 * scope.verticalPixelRatio // 5px above rectangle
-              ctx.textBaseline = 'bottom'
-              break
+              textY = top - 5 * scope.verticalPixelRatio; // 5px above rectangle
+              ctx.textBaseline = 'bottom';
+              break;
             case 'below':
-              textY = top + height + 5 * scope.verticalPixelRatio // 5px below rectangle
-              ctx.textBaseline = 'top'
-              break
+              textY = top + height + 5 * scope.verticalPixelRatio; // 5px below rectangle
+              ctx.textBaseline = 'top';
+              break;
             case 'inside':
             default:
-              textY = top + height / 2
-              ctx.textBaseline = 'middle'
-              break
+              textY = top + height / 2;
+              ctx.textBaseline = 'middle';
+              break;
           }
 
           // Measure text dimensions for background
-          const textMetrics = ctx.measureText(this._label)
-          const textWidth = textMetrics.width
-          const textHeight = this._textFontSize * scope.verticalPixelRatio
+          const textMetrics = ctx.measureText(this._label);
+          const textWidth = textMetrics.width;
+          const textHeight = this._textFontSize * scope.verticalPixelRatio;
 
           // Draw text background if configured
           if (showBackground && this._textBackground && this._textBackground !== 'transparent') {
-            ctx.fillStyle = this._textBackground
-            const bgPadding = 2 * scope.horizontalPixelRatio
+            ctx.fillStyle = this._textBackground;
+            const bgPadding = 2 * scope.horizontalPixelRatio;
             ctx.fillRect(
               textX - textWidth / 2 - bgPadding,
               textY - textHeight / 2 - bgPadding,
               textWidth + 2 * bgPadding,
               textHeight + 2 * bgPadding
-            )
+            );
           }
 
           // Draw text
-          ctx.fillStyle = this._textColor
-          ctx.fillText(this._label, textX, textY)
+          ctx.fillStyle = this._textColor;
+          ctx.fillText(this._label, textX, textY);
         }
       } finally {
-        ctx.globalAlpha = 1.0
+        ctx.globalAlpha = 1.0;
       }
-    })
+    });
   }
 }
 
@@ -190,23 +190,23 @@ class TradeRectangleRenderer implements IPrimitivePaneRenderer {
  * Trade Rectangle View following official TradingView patterns
  */
 class TradeRectangleView implements IPrimitivePaneView {
-  private _source: TradeRectanglePrimitive
-  private _x1: Coordinate = 0 as Coordinate
-  private _y1: Coordinate = 0 as Coordinate
-  private _x2: Coordinate = 0 as Coordinate
-  private _y2: Coordinate = 0 as Coordinate
+  private _source: TradeRectanglePrimitive;
+  private _x1: Coordinate = 0 as Coordinate;
+  private _y1: Coordinate = 0 as Coordinate;
+  private _x2: Coordinate = 0 as Coordinate;
+  private _y2: Coordinate = 0 as Coordinate;
 
   constructor(source: TradeRectanglePrimitive) {
-    this._source = source
+    this._source = source;
   }
 
   update() {
-    const data = this._source.data()
-    const chart = this._source.chart()
-    const series = this._source.series()
+    const data = this._source.data();
+    const chart = this._source.chart();
+    const series = this._source.series();
 
     if (!chart || !series || !data) {
-      return
+      return;
     }
 
     try {
@@ -214,21 +214,21 @@ class TradeRectangleView implements IPrimitivePaneView {
       // - Chart registration is handled via ChartCoordinateService
       // - Coordinate validation uses our centralized validation utilities
       // - Direct coordinate conversion follows official TradingView patterns
-      const timeScale = chart.timeScale()
+      const timeScale = chart.timeScale();
 
       // Get time scale state for coordinate conversion
 
-      const x1 = timeScale.timeToCoordinate(data.time1)
-      const x2 = timeScale.timeToCoordinate(data.time2)
+      const x1 = timeScale.timeToCoordinate(data.time1);
+      const x2 = timeScale.timeToCoordinate(data.time2);
 
       // Convert price coordinates using series coordinate conversion
-      const y1 = series.priceToCoordinate(data.price1)
-      const y2 = series.priceToCoordinate(data.price2)
+      const y1 = series.priceToCoordinate(data.price1);
+      const y2 = series.priceToCoordinate(data.price2);
 
       // CRITICAL FIX: Graceful failure handling identical to the old working canvas overlay approach
       // If coordinate conversion fails, silently return and let automatic retry mechanism handle it
       if (x1 === null || x2 === null || y1 === null || y2 === null) {
-        return // Silent failure - just like old canvas overlay approach
+        return; // Silent failure - just like old canvas overlay approach
       }
 
       // Validate coordinates are finite
@@ -242,7 +242,7 @@ class TradeRectangleView implements IPrimitivePaneView {
         !isFinite(y2) ||
         isNaN(y2)
       ) {
-        return // Silent failure - automatic retry will occur
+        return; // Silent failure - automatic retry will occur
       }
 
       // Create bounding box for validation
@@ -251,28 +251,28 @@ class TradeRectangleView implements IPrimitivePaneView {
         Math.min(y1, y2),
         Math.abs(x2 - x1),
         Math.abs(y2 - y1)
-      )
+      );
 
       // Ensure non-zero dimensions
       if (boundingBox.width <= 0 || boundingBox.height <= 0) {
-        return // Silent failure - automatic retry will occur
+        return; // Silent failure - automatic retry will occur
       }
 
       // SUCCESS: Set coordinates (same as old approach when coordinates are valid)
-      this._x1 = x1
-      this._y1 = y1
-      this._x2 = x2
-      this._y2 = y2
+      this._x1 = x1;
+      this._y1 = y1;
+      this._x2 = x2;
+      this._y2 = y2;
     } catch (error) {
       // CRITICAL FIX: Graceful error handling like old canvas overlay approach
       // Don't log errors prominently - just let automatic retry handle it
 
-      return // Silent failure with automatic retry via event listeners
+      return; // Silent failure with automatic retry via event listeners
     }
   }
 
   renderer() {
-    const data = this._source.data()
+    const data = this._source.data();
     return new TradeRectangleRenderer(
       this._x1,
       this._y1,
@@ -287,7 +287,7 @@ class TradeRectangleView implements IPrimitivePaneView {
       data.textFontSize || 10,
       data.textColor || '#FFFFFF',
       data.textBackground || 'rgba(0, 0, 0, 0.7)'
-    )
+    );
   }
 }
 
@@ -302,122 +302,116 @@ class TradeRectangleView implements IPrimitivePaneView {
  * - Support for findNearestTime timestamp adjustment
  */
 export class TradeRectanglePrimitive implements ISeriesPrimitive {
-  private _data: TradeRectangleData
-  private _chart: IChartApi | null = null
-  private _series: ISeriesApi<any> | null = null
-  private _paneView: TradeRectangleView
-  private _requestUpdate?: () => void
-  private _timeScaleCallback?: (() => void) | null
-  private _crosshairCallback?: (() => void) | null
-  private _updateThrottled: boolean = false
+  private _data: TradeRectangleData;
+  private _chart: IChartApi | null = null;
+  private _series: ISeriesApi<any> | null = null;
+  private _paneView: TradeRectangleView;
+  private _requestUpdate?: () => void;
+  private _timeScaleCallback?: (() => void) | null;
+  private _crosshairCallback?: (() => void) | null;
+  private _updateThrottled: boolean = false;
 
   constructor(data: TradeRectangleData) {
-    this._data = data
-    this._paneView = new TradeRectangleView(this)
+    this._data = data;
+    this._paneView = new TradeRectangleView(this);
   }
 
   // Required by ISeriesPrimitive interface
   updateAllViews() {
-    this._paneView.update()
+    this._paneView.update();
   }
 
   paneViews() {
-    return [this._paneView]
+    return [this._paneView];
   }
 
   // Lifecycle methods following official patterns
   attached({
     chart,
     series,
-    requestUpdate
+    requestUpdate,
   }: {
-    chart: IChartApi
-    series: ISeriesApi<any>
-    requestUpdate: () => void
+    chart: IChartApi;
+    series: ISeriesApi<any>;
+    requestUpdate: () => void;
   }) {
-    this._chart = chart
-    this._series = series
-    this._requestUpdate = requestUpdate
+    this._chart = chart;
+    this._series = series;
+    this._requestUpdate = requestUpdate;
 
     // Ensure chart is registered with our coordinate service for consistency
-    const coordinateService = ChartCoordinateService.getInstance()
-    const chartId = chart.chartElement()?.id || 'default'
-    coordinateService.registerChart(chartId, chart)
+    const coordinateService = ChartCoordinateService.getInstance();
+    const chartId = chart.chartElement()?.id || 'default';
+    coordinateService.registerChart(chartId, chart);
 
     // CRITICAL FIX: Add event-driven retry logic identical to the old working canvas overlay approach
     // This ensures coordinate conversion is automatically retried when the chart becomes ready
     try {
       // Create callback functions and store them for cleanup
       this._timeScaleCallback = () => {
-        this._requestUpdate()
-      }
+        this._requestUpdate();
+      };
 
       this._crosshairCallback = () => {
         // Throttle crosshair updates to avoid performance issues
         if (!this._updateThrottled) {
-          this._updateThrottled = true
+          this._updateThrottled = true;
           setTimeout(() => {
-            this._updateThrottled = false
-            this._requestUpdate()
-          }, 100) // Throttle to 10fps for crosshair updates
+            this._updateThrottled = false;
+            this._requestUpdate();
+          }, 100); // Throttle to 10fps for crosshair updates
         }
-      }
+      };
 
       // Subscribe to events (Lightweight Charts pattern: returns void, store callbacks for cleanup)
-      chart.timeScale().subscribeVisibleTimeRangeChange(this._timeScaleCallback)
-      chart.subscribeCrosshairMove(this._crosshairCallback)
-    } catch (error) {
-
-    }
+      chart.timeScale().subscribeVisibleTimeRangeChange(this._timeScaleCallback);
+      chart.subscribeCrosshairMove(this._crosshairCallback);
+    } catch (error) {}
 
     // Request initial update
-    this._requestUpdate()
+    this._requestUpdate();
   }
 
   detached() {
     // Clean up event subscriptions to prevent memory leaks
     if (this._chart && this._timeScaleCallback) {
       try {
-        this._chart.timeScale().unsubscribeVisibleTimeRangeChange(this._timeScaleCallback)
-        this._timeScaleCallback = null
-      } catch (error) {
-
-      }
+        this._chart.timeScale().unsubscribeVisibleTimeRangeChange(this._timeScaleCallback);
+        this._timeScaleCallback = null;
+      } catch (error) {}
     }
 
     if (this._chart && this._crosshairCallback) {
       try {
-        this._chart.unsubscribeCrosshairMove(this._crosshairCallback)
-        this._crosshairCallback = null
-      } catch (error) {
-
-      }
+        this._chart.unsubscribeCrosshairMove(this._crosshairCallback);
+        this._crosshairCallback = null;
+      } catch (error) {}
     }
 
-    this._chart = null
-    this._series = null
-    this._requestUpdate = undefined
-    this._updateThrottled = false
+    this._chart = null;
+    this._series = null;
+    this._requestUpdate = undefined;
+    this._updateThrottled = false;
   }
 
   // Getter methods
   data(): TradeRectangleData {
-    return this._data
+    return this._data;
   }
 
   chart(): IChartApi | null {
-    return this._chart
+    return this._chart;
   }
 
   series(): ISeriesApi<any> | null {
-    return this._series
+    return this._series;
   }
 
   // Update rectangle data and request redraw
   updateData(newData: Partial<TradeRectangleData>) {
-    this._data = {...this._data, ...newData}
+    this._data = { ...this._data, ...newData };
     if (this._requestUpdate) {
-      this._requestUpdate()
+      this._requestUpdate();
     }
   }
 }
@@ -425,50 +419,50 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
 // Factory function for creating trade rectangle primitives
 export function createTradeRectanglePrimitives(
   trades: Array<{
-    entryTime: string | UTCTimestamp
-    exitTime?: string | UTCTimestamp
-    entryPrice: number
-    exitPrice: number
-    fillColor?: string
-    borderColor?: string
-    borderWidth?: number
-    opacity?: number
-    label?: string
+    entryTime: string | UTCTimestamp;
+    exitTime?: string | UTCTimestamp;
+    entryPrice: number;
+    exitPrice: number;
+    fillColor?: string;
+    borderColor?: string;
+    borderWidth?: number;
+    opacity?: number;
+    label?: string;
   }>,
   chartData?: any[]
 ): TradeRectanglePrimitive[] {
-  const primitives: TradeRectanglePrimitive[] = []
+  const primitives: TradeRectanglePrimitive[] = [];
 
   trades.forEach(trade => {
     // Parse times
-    let time1: UTCTimestamp
-    let time2: UTCTimestamp
+    let time1: UTCTimestamp;
+    let time2: UTCTimestamp;
 
     if (typeof trade.entryTime === 'string') {
-      time1 = Math.floor(new Date(trade.entryTime).getTime() / 1000) as UTCTimestamp
+      time1 = Math.floor(new Date(trade.entryTime).getTime() / 1000) as UTCTimestamp;
     } else {
-      time1 = trade.entryTime
+      time1 = trade.entryTime;
     }
 
     if (trade.exitTime) {
       if (typeof trade.exitTime === 'string') {
-        time2 = Math.floor(new Date(trade.exitTime).getTime() / 1000) as UTCTimestamp
+        time2 = Math.floor(new Date(trade.exitTime).getTime() / 1000) as UTCTimestamp;
       } else {
-        time2 = trade.exitTime
+        time2 = trade.exitTime;
       }
     } else if (chartData && chartData.length > 0) {
       // Use last available time for open trades
-      const lastTime = chartData[chartData.length - 1]?.time
+      const lastTime = chartData[chartData.length - 1]?.time;
       if (lastTime) {
         time2 =
           typeof lastTime === 'string'
             ? (Math.floor(new Date(lastTime).getTime() / 1000) as UTCTimestamp)
-            : lastTime
+            : lastTime;
       } else {
-        return // Skip if no exit time available
+        return; // Skip if no exit time available
       }
     } else {
-      return // Skip if no exit time available
+      return; // Skip if no exit time available
     }
 
     const rectangleData: TradeRectangleData = {
@@ -480,11 +474,11 @@ export function createTradeRectanglePrimitives(
       borderColor: trade.borderColor || 'rgb(0, 150, 136)',
       borderWidth: trade.borderWidth || 1,
       opacity: trade.opacity || 0.2,
-      label: trade.label
-    }
+      label: trade.label,
+    };
 
-    primitives.push(new TradeRectanglePrimitive(rectangleData))
-  })
+    primitives.push(new TradeRectanglePrimitive(rectangleData));
+  });
 
-  return primitives
+  return primitives;
 }

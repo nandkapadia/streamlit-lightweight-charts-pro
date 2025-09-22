@@ -1,11 +1,15 @@
-import { IChartApi, ISeriesApi } from 'lightweight-charts'
-import { LegendPrimitive } from '../primitives/LegendPrimitive'
-import { RangeSwitcherPrimitive, DefaultRangeConfigs } from '../primitives/RangeSwitcherPrimitive'
-import { ButtonFactories } from '../primitives/ButtonPrimitive'
-import { PrimitiveEventManager } from './PrimitiveEventManager'
-import { CornerLayoutManager } from './CornerLayoutManager'
-import { LegendConfig, RangeSwitcherConfig } from '../types'
-import { PrimitivePriority } from '../primitives/BasePanePrimitive'
+import { IChartApi } from 'lightweight-charts';
+import { LegendPrimitive } from '../primitives/LegendPrimitive';
+import { RangeSwitcherPrimitive, DefaultRangeConfigs } from '../primitives/RangeSwitcherPrimitive';
+import { PrimitiveEventManager } from './PrimitiveEventManager';
+import { CornerLayoutManager } from './CornerLayoutManager';
+import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types';
+import { ExtendedSeriesApi, CrosshairEventData } from '../types/ChartInterfaces';
+import { PrimitivePriority } from '../primitives/BasePanePrimitive';
+import {
+  PaneButtonPanelPlugin,
+  createPaneButtonPanelPlugin,
+} from '../plugins/chart/paneButtonPanelPlugin';
 
 /**
  * ChartPrimitiveManager - Centralized management for all chart primitives
@@ -14,20 +18,22 @@ import { PrimitivePriority } from '../primitives/BasePanePrimitive'
  * the old ChartWidgetManager system with pure primitive-only approach.
  */
 export class ChartPrimitiveManager {
-  private static instances: Map<string, ChartPrimitiveManager> = new Map()
+  private static instances: Map<string, ChartPrimitiveManager> = new Map();
 
-  private chart: IChartApi
-  private chartId: string
-  private eventManager: PrimitiveEventManager
-  private primitives: Map<string, any> = new Map()
-  private collapseButtonStates: Map<number, boolean> = new Map()
-  private legendCounter: number = 0
+  private chart: IChartApi;
+  private chartId: string;
+  private eventManager: PrimitiveEventManager;
+  private primitives: Map<
+    string,
+    LegendPrimitive | RangeSwitcherPrimitive | PaneButtonPanelPlugin
+  > = new Map();
+  private legendCounter: number = 0;
 
   private constructor(chart: IChartApi, chartId: string) {
-    this.chart = chart
-    this.chartId = chartId
-    this.eventManager = PrimitiveEventManager.getInstance(chartId)
-    this.eventManager.initialize(chart)
+    this.chart = chart;
+    this.chartId = chartId;
+    this.eventManager = PrimitiveEventManager.getInstance(chartId);
+    this.eventManager.initialize(chart);
   }
 
   /**
@@ -35,52 +41,51 @@ export class ChartPrimitiveManager {
    */
   public static getInstance(chart: IChartApi, chartId: string): ChartPrimitiveManager {
     if (!ChartPrimitiveManager.instances.has(chartId)) {
-      ChartPrimitiveManager.instances.set(chartId, new ChartPrimitiveManager(chart, chartId))
+      ChartPrimitiveManager.instances.set(chartId, new ChartPrimitiveManager(chart, chartId));
     }
-    return ChartPrimitiveManager.instances.get(chartId)!
+    return ChartPrimitiveManager.instances.get(chartId)!;
   }
 
   /**
    * Clean up primitive manager for a chart
    */
   public static cleanup(chartId: string): void {
-    const instance = ChartPrimitiveManager.instances.get(chartId)
+    const instance = ChartPrimitiveManager.instances.get(chartId);
     if (instance) {
-      instance.destroy()
-      ChartPrimitiveManager.instances.delete(chartId)
+      instance.destroy();
+      ChartPrimitiveManager.instances.delete(chartId);
     }
 
     // Also cleanup the layout manager and event manager for this chart
-    CornerLayoutManager.cleanup(chartId)
-    PrimitiveEventManager.cleanup(chartId)
+    CornerLayoutManager.cleanup(chartId);
+    PrimitiveEventManager.cleanup(chartId);
   }
 
   /**
    * Add range switcher primitive
    */
   public addRangeSwitcher(config: RangeSwitcherConfig): { destroy: () => void } {
-    const primitiveId = `range-switcher-${this.chartId}`
+    const primitiveId = `range-switcher-${this.chartId}`;
 
     try {
       const rangeSwitcher = new RangeSwitcherPrimitive(primitiveId, {
         corner: config.position || 'top-right',
         priority: PrimitivePriority.RANGE_SWITCHER,
         ranges: config.ranges || [...DefaultRangeConfigs.trading],
-      })
+      });
 
       // Attach to first pane (chart-level primitives go to pane 0)
-      const panes = this.chart.panes()
+      const panes = this.chart.panes();
       if (panes.length > 0) {
-        panes[0].attachPrimitive(rangeSwitcher)
+        panes[0].attachPrimitive(rangeSwitcher);
       }
-      this.primitives.set(primitiveId, rangeSwitcher)
+      this.primitives.set(primitiveId, rangeSwitcher);
 
       return {
-        destroy: () => this.destroyPrimitive(primitiveId)
-      }
+        destroy: () => this.destroyPrimitive(primitiveId),
+      };
     } catch (error) {
-      console.error('Error adding RangeSwitcher primitive:', error)
-      return { destroy: () => {} }
+      return { destroy: () => {} };
     }
   }
 
@@ -91,9 +96,9 @@ export class ChartPrimitiveManager {
     config: LegendConfig,
     isPanePrimitive: boolean = false,
     paneId: number = 0,
-    seriesReference?: ISeriesApi<any>
+    seriesReference?: ExtendedSeriesApi
   ): { destroy: () => void } {
-    const primitiveId = `legend-${this.chartId}-${++this.legendCounter}`
+    const primitiveId = `legend-${this.chartId}-${++this.legendCounter}`;
 
     try {
       const legend = new LegendPrimitive(primitiveId, {
@@ -105,96 +110,75 @@ export class ChartPrimitiveManager {
         paneId,
         style: {
           backgroundColor: config.backgroundColor || 'rgba(0, 0, 0, 0.8)',
-          color: config.textColor || 'white'
-        }
-      })
+          color: config.textColor || 'white',
+        },
+      });
 
       // Attach to series if we have a series reference (preferred for legends)
       if (seriesReference) {
         try {
-          seriesReference.attachPrimitive(legend)
+          seriesReference.attachPrimitive(legend);
         } catch (error) {
-          console.warn(`Failed to attach legend to series, falling back to pane attachment:`, error)
           // Fallback to pane attachment if series attachment fails
-          this.attachToPaneAsFallback(legend, isPanePrimitive, paneId)
+          this.attachToPaneAsFallback(legend, isPanePrimitive, paneId);
         }
       } else {
         // Attach to appropriate level (chart or pane) when no series reference
-        this.attachToPaneAsFallback(legend, isPanePrimitive, paneId)
+        this.attachToPaneAsFallback(legend, isPanePrimitive, paneId);
       }
 
-      this.primitives.set(primitiveId, legend)
+      this.primitives.set(primitiveId, legend);
 
       return {
-        destroy: () => this.destroyPrimitive(primitiveId)
-      }
+        destroy: () => this.destroyPrimitive(primitiveId),
+      };
     } catch (error) {
-      console.error('Error adding Legend primitive:', error)
-      return { destroy: () => {} }
+      return { destroy: () => {} };
     }
   }
 
   /**
-   * Add collapse button primitive
+   * Add button panel (gear + collapse buttons) primitive
    */
-  public addCollapseButton(
+  public addButtonPanel(
     paneId: number,
-    isCollapsed: boolean,
-    onClick: () => void,
-    config: any = {}
-  ): { destroy: () => void; updateState: (collapsed: boolean) => void } {
-    const primitiveId = `collapse-button-${this.chartId}-${paneId}`
+    config: PaneCollapseConfig = {}
+  ): { destroy: () => void; plugin: PaneButtonPanelPlugin } {
+    const primitiveId = `button-panel-${this.chartId}-${paneId}`;
 
     try {
-      const collapseButton = ButtonFactories.collapse(
-        primitiveId,
-        paneId,
-        config.corner || 'top-right',
-        (state, primitive) => {
-          // Update internal state tracking
-          this.collapseButtonStates.set(paneId, state.pressed || false)
-          onClick()
-        }
-      )
-
-      // Set initial state
-      collapseButton.setState({ pressed: isCollapsed })
-      this.collapseButtonStates.set(paneId, isCollapsed)
+      const buttonPanel = createPaneButtonPanelPlugin(paneId, config, this.chartId);
 
       // Attach to appropriate pane
-      const panes = this.chart.panes()
+      const panes = this.chart.panes();
       if (panes.length > paneId) {
-        panes[paneId].attachPrimitive(collapseButton)
+        panes[paneId].attachPrimitive(buttonPanel);
       } else {
         // Fallback to first pane if pane doesn't exist
-        const fallbackPanes = this.chart.panes()
+        const fallbackPanes = this.chart.panes();
         if (fallbackPanes.length > 0) {
-          fallbackPanes[0].attachPrimitive(collapseButton)
+          fallbackPanes[0].attachPrimitive(buttonPanel);
         }
       }
 
-      this.primitives.set(primitiveId, collapseButton)
+      this.primitives.set(primitiveId, buttonPanel);
 
       return {
         destroy: () => this.destroyPrimitive(primitiveId),
-        updateState: (collapsed: boolean) => {
-          collapseButton.setState({ pressed: collapsed })
-          this.collapseButtonStates.set(paneId, collapsed)
-        }
-      }
+        plugin: buttonPanel,
+      };
     } catch (error) {
-      console.error('Error adding CollapseButton primitive:', error)
       return {
         destroy: () => {},
-        updateState: () => {}
-      }
+        plugin: createPaneButtonPanelPlugin(paneId, config, this.chartId),
+      };
     }
   }
 
   /**
    * Update legend values with crosshair data
    */
-  public updateLegendValues(crosshairData: { time: any; seriesData: Map<any, any> }): void {
+  public updateLegendValues(_crosshairData: CrosshairEventData): void {
     // The legend primitives automatically handle crosshair updates through the event system
     // This method is kept for backward compatibility but functionality is now handled
     // by the primitive event system and crosshair subscriptions in BasePanePrimitive
@@ -204,40 +188,36 @@ export class ChartPrimitiveManager {
    * Destroy a specific primitive
    */
   private destroyPrimitive(primitiveId: string): void {
-    const primitive = this.primitives.get(primitiveId)
+    const primitive = this.primitives.get(primitiveId);
     if (primitive) {
       try {
         // Detach from all panes (does nothing if not attached to that pane)
-        const panes = this.chart.panes()
+        const panes = this.chart.panes();
         panes.forEach(pane => {
-          pane.detachPrimitive(primitive)
-        })
-        this.primitives.delete(primitiveId)
-      } catch (error) {
-        console.error(`Error destroying primitive ${primitiveId}:`, error)
-      }
+          pane.detachPrimitive(primitive);
+        });
+        this.primitives.delete(primitiveId);
+      } catch (error) {}
     }
   }
 
   /**
    * Get primitive by ID
    */
-  public getPrimitive(primitiveId: string): any {
-    return this.primitives.get(primitiveId)
+  public getPrimitive(
+    primitiveId: string
+  ): LegendPrimitive | RangeSwitcherPrimitive | PaneButtonPanelPlugin | undefined {
+    return this.primitives.get(primitiveId);
   }
 
   /**
    * Get all primitives
    */
-  public getAllPrimitives(): Map<string, any> {
-    return new Map(this.primitives)
-  }
-
-  /**
-   * Get collapse button state for a pane
-   */
-  public getCollapseButtonState(paneId: number): boolean {
-    return this.collapseButtonStates.get(paneId) || false
+  public getAllPrimitives(): Map<
+    string,
+    LegendPrimitive | RangeSwitcherPrimitive | PaneButtonPanelPlugin
+  > {
+    return new Map(this.primitives);
   }
 
   /**
@@ -245,58 +225,59 @@ export class ChartPrimitiveManager {
    */
   public destroy(): void {
     // Destroy all primitives
-    for (const [primitiveId, primitive] of this.primitives) {
+    for (const [, primitive] of this.primitives) {
       try {
         // Detach from all panes (does nothing if not attached to that pane)
-        const panes = this.chart.panes()
+        const panes = this.chart.panes();
         panes.forEach(pane => {
-          pane.detachPrimitive(primitive)
-        })
-      } catch (error) {
-        console.error(`Error detaching primitive ${primitiveId}:`, error)
-      }
+          pane.detachPrimitive(primitive);
+        });
+      } catch (error) {}
     }
 
     // Clear references
-    this.primitives.clear()
-    this.collapseButtonStates.clear()
+    this.primitives.clear();
   }
 
   /**
    * Get event manager instance (for advanced usage)
    */
   public getEventManager(): PrimitiveEventManager {
-    return this.eventManager
+    return this.eventManager;
   }
 
   /**
    * Get chart ID
    */
   public getChartId(): string {
-    return this.chartId
+    return this.chartId;
   }
 
   /**
    * Helper method to attach primitive to pane as fallback
    */
-  private attachToPaneAsFallback(primitive: any, isPanePrimitive: boolean, paneId: number): void {
+  private attachToPaneAsFallback(
+    primitive: LegendPrimitive | RangeSwitcherPrimitive | PaneButtonPanelPlugin,
+    isPanePrimitive: boolean,
+    paneId: number
+  ): void {
     if (isPanePrimitive && paneId >= 0) {
       // Get pane and attach to it
-      const panes = this.chart.panes()
+      const panes = this.chart.panes();
       if (panes.length > paneId) {
-        panes[paneId].attachPrimitive(primitive)
+        panes[paneId].attachPrimitive(primitive);
       } else {
         // Fallback to first pane if pane doesn't exist
-        const fallbackPanes = this.chart.panes()
+        const fallbackPanes = this.chart.panes();
         if (fallbackPanes.length > 0) {
-          fallbackPanes[0].attachPrimitive(primitive)
+          fallbackPanes[0].attachPrimitive(primitive);
         }
       }
     } else {
       // Attach to first pane (chart-level)
-      const panes = this.chart.panes()
+      const panes = this.chart.panes();
       if (panes.length > 0) {
-        panes[0].attachPrimitive(primitive)
+        panes[0].attachPrimitive(primitive);
       }
     }
   }

@@ -1,5 +1,6 @@
-import { IChartApi, ISeriesApi } from 'lightweight-charts'
+import { IChartApi, ISeriesApi } from 'lightweight-charts';
 
+/* eslint-disable no-unused-vars */
 /**
  * Event types for primitive interactions
  */
@@ -8,76 +9,76 @@ export interface PrimitiveEventTypes {
    * Crosshair position changed
    */
   crosshairMove: {
-    time: any
-    point: { x: number; y: number } | null
-    seriesData: Map<ISeriesApi<any>, any>
-  }
+    time: any;
+    point: { x: number; y: number } | null;
+    seriesData: Map<ISeriesApi<any>, any>;
+  };
 
   /**
    * Chart data updated
    */
   dataUpdate: {
-    series: ISeriesApi<any>
-    data: any[]
-  }
+    series: ISeriesApi<any>;
+    data: any[];
+  };
 
   /**
    * Chart resize event
    */
   resize: {
-    width: number
-    height: number
-  }
+    width: number;
+    height: number;
+  };
 
   /**
    * Primitive visibility changed
    */
   visibilityChange: {
-    primitiveId: string
-    visible: boolean
-  }
+    primitiveId: string;
+    visible: boolean;
+  };
 
   /**
    * Primitive configuration changed
    */
   configChange: {
-    primitiveId: string
-    config: any
-  }
+    primitiveId: string;
+    config: any;
+  };
 
   /**
    * Chart time scale visible range changed
    */
   timeScaleChange: {
-    from: any
-    to: any
-  }
+    from: any;
+    to: any;
+  };
 
   /**
    * Chart click event
    */
   click: {
-    time: any
-    point: { x: number; y: number }
-    seriesData: Map<ISeriesApi<any>, any>
-  }
+    time: any;
+    point: { x: number; y: number };
+    seriesData: Map<ISeriesApi<any>, any>;
+  };
 
   /**
    * Chart hover event
    */
   hover: {
-    time: any
-    point: { x: number; y: number }
-    seriesData: Map<ISeriesApi<any>, any>
-  }
+    time: any;
+    point: { x: number; y: number };
+    seriesData: Map<ISeriesApi<any>, any>;
+  };
 
   /**
    * Custom primitive events
    */
   custom: {
-    eventType: string
-    data: any
-  }
+    eventType: string;
+    data: any;
+  };
 }
 
 /**
@@ -85,13 +86,13 @@ export interface PrimitiveEventTypes {
  */
 export type PrimitiveEventListener<K extends keyof PrimitiveEventTypes> = (
   event: PrimitiveEventTypes[K]
-) => void
+) => void;
 
 /**
  * Event subscription interface
  */
 export interface EventSubscription {
-  unsubscribe(): void
+  unsubscribe(): void;
 }
 
 /**
@@ -104,19 +105,20 @@ export interface EventSubscription {
  * Following DRY principles - single source of truth for event management
  */
 export class PrimitiveEventManager {
-  private static instances: Map<string, PrimitiveEventManager> = new Map()
+  private static instances: Map<string, PrimitiveEventManager> = new Map();
 
-  private chart: IChartApi | null = null
-  private chartId: string
-  private eventListeners: Map<string, Set<Function>> = new Map()
-  private chartEventCleanup: Array<() => void> = []
-  private _isDestroyed: boolean = false
+  private chart: IChartApi | null = null;
+  private chartId: string;
+  private eventListeners: Map<string, Set<Function>> = new Map();
+  private chartEventCleanup: Array<() => void> = [];
+  private _isDestroyed: boolean = false;
 
   // Crosshair tracking
-  private lastCrosshairPosition: { time: any; point: { x: number; y: number } | null } | null = null
+  private lastCrosshairPosition: { time: any; point: { x: number; y: number } | null } | null =
+    null;
 
   private constructor(chartId: string) {
-    this.chartId = chartId
+    this.chartId = chartId;
   }
 
   /**
@@ -124,19 +126,19 @@ export class PrimitiveEventManager {
    */
   public static getInstance(chartId: string): PrimitiveEventManager {
     if (!PrimitiveEventManager.instances.has(chartId)) {
-      PrimitiveEventManager.instances.set(chartId, new PrimitiveEventManager(chartId))
+      PrimitiveEventManager.instances.set(chartId, new PrimitiveEventManager(chartId));
     }
-    return PrimitiveEventManager.instances.get(chartId)!
+    return PrimitiveEventManager.instances.get(chartId)!;
   }
 
   /**
    * Clean up event manager for a chart
    */
   public static cleanup(chartId: string): void {
-    const instance = PrimitiveEventManager.instances.get(chartId)
+    const instance = PrimitiveEventManager.instances.get(chartId);
     if (instance) {
-      instance.destroy()
-      PrimitiveEventManager.instances.delete(chartId)
+      instance.destroy();
+      PrimitiveEventManager.instances.delete(chartId);
     }
   }
 
@@ -145,11 +147,11 @@ export class PrimitiveEventManager {
    */
   public initialize(chart: IChartApi): void {
     if (this._isDestroyed) {
-      throw new Error('Cannot initialize destroyed PrimitiveEventManager')
+      throw new Error('Cannot initialize destroyed PrimitiveEventManager');
     }
 
-    this.chart = chart
-    this.setupChartEventListeners()
+    this.chart = chart;
+    this.setupChartEventListeners();
   }
 
   /**
@@ -160,27 +162,27 @@ export class PrimitiveEventManager {
     listener: PrimitiveEventListener<K>
   ): EventSubscription {
     if (this._isDestroyed) {
-      throw new Error('Cannot subscribe to destroyed PrimitiveEventManager')
+      throw new Error('Cannot subscribe to destroyed PrimitiveEventManager');
     }
 
-    const eventKey = eventType as string
+    const eventKey = eventType as string;
     if (!this.eventListeners.has(eventKey)) {
-      this.eventListeners.set(eventKey, new Set())
+      this.eventListeners.set(eventKey, new Set());
     }
 
-    this.eventListeners.get(eventKey)!.add(listener)
+    this.eventListeners.get(eventKey)!.add(listener);
 
     return {
       unsubscribe: () => {
-        const listeners = this.eventListeners.get(eventKey)
+        const listeners = this.eventListeners.get(eventKey);
         if (listeners) {
-          listeners.delete(listener)
+          listeners.delete(listener);
           if (listeners.size === 0) {
-            this.eventListeners.delete(eventKey)
+            this.eventListeners.delete(eventKey);
           }
         }
-      }
-    }
+      },
+    };
   }
 
   /**
@@ -191,20 +193,20 @@ export class PrimitiveEventManager {
     event: PrimitiveEventTypes[K]
   ): void {
     if (this._isDestroyed) {
-      return
+      return;
     }
 
-    const eventKey = eventType as string
-    const listeners = this.eventListeners.get(eventKey)
+    const eventKey = eventType as string;
+    const listeners = this.eventListeners.get(eventKey);
 
     if (listeners) {
       listeners.forEach(listener => {
         try {
-          listener(event)
+          listener(event);
         } catch (error) {
-          console.error(`Error in primitive event listener for ${eventType}:`, error)
+          // Error in primitive event listener - fail silently
         }
-      })
+      });
     }
   }
 
@@ -212,67 +214,79 @@ export class PrimitiveEventManager {
    * Setup chart event listeners
    */
   private setupChartEventListeners(): void {
-    if (!this.chart) return
+    if (!this.chart) return;
 
-    // Crosshair move events
+    // Crosshair move events with throttling to prevent performance issues during pan/zoom
+    let lastCrosshairUpdate = 0;
+    const crosshairThrottleDelay = 16; // ~60fps max update rate
     const crosshairMoveHandler = (param: any) => {
-      this.handleCrosshairMove(param)
-    }
-    this.chart.subscribeCrosshairMove(crosshairMoveHandler)
-    this.chartEventCleanup.push(() => this.chart!.unsubscribeCrosshairMove(crosshairMoveHandler))
+      const now = Date.now();
+      if (now - lastCrosshairUpdate >= crosshairThrottleDelay) {
+        lastCrosshairUpdate = now;
+        this.handleCrosshairMove(param);
+      }
+    };
+    this.chart.subscribeCrosshairMove(crosshairMoveHandler);
+    this.chartEventCleanup.push(() => this.chart!.unsubscribeCrosshairMove(crosshairMoveHandler));
 
     // Chart click events
     const clickHandler = (param: any) => {
-      this.handleChartClick(param)
-    }
-    this.chart.subscribeClick(clickHandler)
-    this.chartEventCleanup.push(() => this.chart!.unsubscribeClick(clickHandler))
+      this.handleChartClick(param);
+    };
+    this.chart.subscribeClick(clickHandler);
+    this.chartEventCleanup.push(() => this.chart!.unsubscribeClick(clickHandler));
 
-    // Time scale visible range changes
+    // Time scale visible range changes with throttling to prevent X-axis lag
+    let lastTimeScaleUpdate = 0;
+    const timeScaleThrottleDelay = 16; // ~60fps max update rate
     const timeScaleHandler = () => {
-      this.handleTimeScaleChange()
-    }
-    this.chart.timeScale().subscribeVisibleTimeRangeChange(timeScaleHandler)
+      const now = Date.now();
+      if (now - lastTimeScaleUpdate >= timeScaleThrottleDelay) {
+        lastTimeScaleUpdate = now;
+        this.handleTimeScaleChange();
+      }
+    };
+    this.chart.timeScale().subscribeVisibleTimeRangeChange(timeScaleHandler);
     this.chartEventCleanup.push(() => {
-      this.chart!.timeScale().unsubscribeVisibleTimeRangeChange(timeScaleHandler)
-    })
+      this.chart!.timeScale().unsubscribeVisibleTimeRangeChange(timeScaleHandler);
+    });
 
     // Chart resize events
-    this.setupResizeObserver()
+    this.setupResizeObserver();
   }
 
   /**
    * Handle crosshair move events
    */
   private handleCrosshairMove(param: any): void {
-    const time = param.time
-    const point = param.point
+    const time = param.time;
+    const point = param.point;
 
     // Collect series data
-    const seriesData = new Map<ISeriesApi<any>, any>()
+    const seriesData = new Map<ISeriesApi<any>, any>();
     if (param.seriesData) {
       param.seriesData.forEach((data: any, series: ISeriesApi<any>) => {
-        seriesData.set(series, data)
-      })
+        seriesData.set(series, data);
+      });
     }
 
     // Update last position
-    this.lastCrosshairPosition = { time, point }
+    this.lastCrosshairPosition = { time, point };
 
     // Emit crosshair move event
     this.emit('crosshairMove', {
       time,
       point,
-      seriesData
-    })
+      seriesData,
+    });
 
     // Emit hover event if point is valid
     if (point && time) {
       this.emit('hover', {
         time,
         point,
-        seriesData
-      })
+        seriesData,
+      });
     }
   }
 
@@ -280,38 +294,38 @@ export class PrimitiveEventManager {
    * Handle chart click events
    */
   private handleChartClick(param: any): void {
-    const time = param.time
-    const point = param.point
+    const time = param.time;
+    const point = param.point;
 
-    if (!point || !time) return
+    if (!point || !time) return;
 
     // Collect series data at click point
-    const seriesData = new Map<ISeriesApi<any>, any>()
+    const seriesData = new Map<ISeriesApi<any>, any>();
     if (param.seriesData) {
       param.seriesData.forEach((data: any, series: ISeriesApi<any>) => {
-        seriesData.set(series, data)
-      })
+        seriesData.set(series, data);
+      });
     }
 
     this.emit('click', {
       time,
       point,
-      seriesData
-    })
+      seriesData,
+    });
   }
 
   /**
    * Handle time scale changes
    */
   private handleTimeScaleChange(): void {
-    if (!this.chart) return
+    if (!this.chart) return;
 
-    const visibleRange = this.chart.timeScale().getVisibleRange()
+    const visibleRange = this.chart.timeScale().getVisibleRange();
     if (visibleRange) {
       this.emit('timeScaleChange', {
         from: visibleRange.from,
-        to: visibleRange.to
-      })
+        to: visibleRange.to,
+      });
     }
   }
 
@@ -319,107 +333,110 @@ export class PrimitiveEventManager {
    * Setup resize observer for chart container
    */
   private setupResizeObserver(): void {
-    if (!this.chart) return
+    if (!this.chart) return;
 
-    const chartElement = this.chart.chartElement()
-    if (!chartElement || !window.ResizeObserver) return
+    const chartElement = this.chart.chartElement();
+    if (!chartElement || !window.ResizeObserver) return;
 
     const resizeObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
-        const { width, height } = entry.contentRect
-        this.emit('resize', { width, height })
+        const { width, height } = entry.contentRect;
+        this.emit('resize', { width, height });
       }
-    })
+    });
 
-    resizeObserver.observe(chartElement)
-    this.chartEventCleanup.push(() => resizeObserver.disconnect())
+    resizeObserver.observe(chartElement);
+    this.chartEventCleanup.push(() => resizeObserver.disconnect());
   }
 
   /**
    * Emit primitive visibility change event
    */
   public emitVisibilityChange(primitiveId: string, visible: boolean): void {
-    this.emit('visibilityChange', { primitiveId, visible })
+    this.emit('visibilityChange', { primitiveId, visible });
   }
 
   /**
    * Emit primitive configuration change event
    */
   public emitConfigChange(primitiveId: string, config: any): void {
-    this.emit('configChange', { primitiveId, config })
+    this.emit('configChange', { primitiveId, config });
   }
 
   /**
    * Emit custom primitive event
    */
   public emitCustomEvent(eventType: string, data: any): void {
-    this.emit('custom', { eventType, data })
+    this.emit('custom', { eventType, data });
   }
 
   /**
    * Get current crosshair position
    */
-  public getCurrentCrosshairPosition(): { time: any; point: { x: number; y: number } | null } | null {
-    return this.lastCrosshairPosition
+  public getCurrentCrosshairPosition(): {
+    time: any;
+    point: { x: number; y: number } | null;
+  } | null {
+    return this.lastCrosshairPosition;
   }
 
   /**
    * Get chart API reference
    */
   public getChart(): IChartApi | null {
-    return this.chart
+    return this.chart;
   }
 
   /**
    * Get chart ID
    */
   public getChartId(): string {
-    return this.chartId
+    return this.chartId;
   }
 
   /**
    * Check if event manager is destroyed
    */
   public isDestroyed(): boolean {
-    return this._isDestroyed
+    return this._isDestroyed;
   }
 
   /**
    * Get event listener count for debugging
    */
   public getEventListenerCount(): { [eventType: string]: number } {
-    const counts: { [eventType: string]: number } = {}
+    const counts: { [eventType: string]: number } = {};
     this.eventListeners.forEach((listeners, eventType) => {
-      counts[eventType] = listeners.size
-    })
-    return counts
+      counts[eventType] = listeners.size;
+    });
+    return counts;
   }
 
   /**
    * Destroy event manager
    */
   public destroy(): void {
-    if (this._isDestroyed) return
+    if (this._isDestroyed) return;
 
     // Clean up chart event listeners
     this.chartEventCleanup.forEach(cleanup => {
       try {
-        cleanup()
+        cleanup();
       } catch (error) {
-        console.error('Error cleaning up chart event listener:', error)
+        // Error cleaning up chart event listener - fail silently
       }
-    })
-    this.chartEventCleanup = []
+    });
+    this.chartEventCleanup = [];
 
     // Clear all event listeners
-    this.eventListeners.clear()
+    this.eventListeners.clear();
 
     // Clear references
-    this.chart = null
-    this.lastCrosshairPosition = null
+    this.chart = null;
+    this.lastCrosshairPosition = null;
 
     // Mark as destroyed
-    this._isDestroyed = true
+    this._isDestroyed = true;
   }
 }
 
@@ -430,17 +447,17 @@ export interface EventManagerIntegration {
   /**
    * Get event manager for this primitive
    */
-  getEventManager(): PrimitiveEventManager | null
+  getEventManager(): PrimitiveEventManager | null;
 
   /**
    * Subscribe to chart events
    */
-  subscribeToEvents(): void
+  subscribeToEvents(): void;
 
   /**
    * Unsubscribe from chart events
    */
-  unsubscribeFromEvents(): void
+  unsubscribeFromEvents(): void;
 }
 
 /**
@@ -450,18 +467,18 @@ export function createEventManagerIntegration(
   chartId: string,
   chart?: IChartApi
 ): EventManagerIntegration {
-  let eventManager: PrimitiveEventManager | null = null
-  let subscriptions: EventSubscription[] = []
+  let eventManager: PrimitiveEventManager | null = null;
+  let subscriptions: EventSubscription[] = [];
 
   return {
     getEventManager(): PrimitiveEventManager | null {
       if (!eventManager) {
-        eventManager = PrimitiveEventManager.getInstance(chartId)
+        eventManager = PrimitiveEventManager.getInstance(chartId);
         if (chart) {
-          eventManager.initialize(chart)
+          eventManager.initialize(chart);
         }
       }
-      return eventManager
+      return eventManager;
     },
 
     subscribeToEvents(): void {
@@ -469,8 +486,8 @@ export function createEventManagerIntegration(
     },
 
     unsubscribeFromEvents(): void {
-      subscriptions.forEach(sub => sub.unsubscribe())
-      subscriptions = []
-    }
-  }
+      subscriptions.forEach(sub => sub.unsubscribe());
+      subscriptions = [];
+    },
+  };
 }

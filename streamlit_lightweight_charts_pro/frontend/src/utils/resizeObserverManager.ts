@@ -2,11 +2,11 @@
  * Utility class for managing ResizeObservers with automatic cleanup
  */
 export class ResizeObserverManager {
-  private observers = new Map<string, ResizeObserver>()
+  private observers = new Map<string, ResizeObserver>();
   private callbacks = new Map<
     string,
     (entry: ResizeObserverEntry | ResizeObserverEntry[]) => void
-  >()
+  >();
 
   /**
    * Add a resize observer for a specific target
@@ -16,73 +16,69 @@ export class ResizeObserverManager {
     target: Element,
     callback: (entry: ResizeObserverEntry | ResizeObserverEntry[]) => void,
     options: {
-      throttleMs?: number
-      debounceMs?: number
+      throttleMs?: number;
+      debounceMs?: number;
     } = {}
   ): void {
     // Remove existing observer if it exists
-    this.removeObserver(id)
+    this.removeObserver(id);
 
-    const {throttleMs = 100, debounceMs = 0} = options
+    const { throttleMs = 100, debounceMs = 0 } = options;
 
     // Create throttled/debounced callback
-    let timeoutId: NodeJS.Timeout | null = null
-    let lastCallTime = 0
+    let timeoutId: NodeJS.Timeout | null = null;
+    let lastCallTime = 0;
 
     const wrappedCallback = (entry: ResizeObserverEntry) => {
-      const now = Date.now()
+      const now = Date.now();
 
       // Throttling
       if (now - lastCallTime < throttleMs) {
-        return
+        return;
       }
 
       // Debouncing
       if (debounceMs > 0) {
         if (timeoutId) {
-          clearTimeout(timeoutId)
+          clearTimeout(timeoutId);
         }
         timeoutId = setTimeout(() => {
-          callback(entry)
-          timeoutId = null
-        }, debounceMs)
+          callback(entry);
+          timeoutId = null;
+        }, debounceMs);
       } else {
-        callback(entry)
-        lastCallTime = now
+        callback(entry);
+        lastCallTime = now;
       }
-    }
+    };
 
     try {
       const observer = new ResizeObserver(entries => {
         // Handle both single entry and array of entries
         if (entries.length === 1) {
-          wrappedCallback(entries[0])
+          wrappedCallback(entries[0]);
         } else {
-          entries.forEach(wrappedCallback)
+          entries.forEach(wrappedCallback);
         }
-      })
+      });
 
-      observer.observe(target)
-      this.observers.set(id, observer)
-      this.callbacks.set(id, callback)
-    } catch (error) {
-
-    }
+      observer.observe(target);
+      this.observers.set(id, observer);
+      this.callbacks.set(id, callback);
+    } catch (error) {}
   }
 
   /**
    * Remove a specific observer
    */
   removeObserver(id: string): void {
-    const observer = this.observers.get(id)
+    const observer = this.observers.get(id);
     if (observer) {
       try {
-        observer.disconnect()
-        this.observers.delete(id)
-        this.callbacks.delete(id)
-      } catch (error) {
-
-      }
+        observer.disconnect();
+        this.observers.delete(id);
+        this.callbacks.delete(id);
+      } catch (error) {}
     }
   }
 
@@ -90,14 +86,14 @@ export class ResizeObserverManager {
    * Check if an observer exists
    */
   hasObserver(id: string): boolean {
-    return this.observers.has(id)
+    return this.observers.has(id);
   }
 
   /**
    * Get the number of active observers
    */
   getObserverCount(): number {
-    return this.observers.size
+    return this.observers.size;
   }
 
   /**
@@ -106,21 +102,19 @@ export class ResizeObserverManager {
   cleanup(): void {
     this.observers.forEach((observer, id) => {
       try {
-        observer.disconnect()
-      } catch (error) {
+        observer.disconnect();
+      } catch (error) {}
+    });
 
-      }
-    })
-
-    this.observers.clear()
-    this.callbacks.clear()
+    this.observers.clear();
+    this.callbacks.clear();
   }
 
   /**
    * Get all observer IDs
    */
   getObserverIds(): string[] {
-    return Array.from(this.observers.keys())
+    return Array.from(this.observers.keys());
   }
 
   /**
@@ -129,17 +123,15 @@ export class ResizeObserverManager {
   pauseAll(): void {
     this.observers.forEach((observer, id) => {
       try {
-        observer.disconnect()
-      } catch (error) {
-
-      }
-    })
+        observer.disconnect();
+      } catch (error) {}
+    });
   }
 
   /**
    * Resume all observers
    */
   resumeAll(): void {
-    this.observers.forEach((observer, id) => {})
+    this.observers.forEach((observer, id) => {});
   }
 }

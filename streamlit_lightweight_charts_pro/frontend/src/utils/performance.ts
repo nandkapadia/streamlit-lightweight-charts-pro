@@ -1,109 +1,115 @@
 /**
  * Performance optimization utilities for the chart component
  */
+/* eslint-disable @typescript-eslint/no-unused-vars, no-unused-vars */
 
 // Production logging control
-const isDevelopment = process.env.NODE_ENV === 'development'
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const perfLog = {
-  log: (...args: any[]) => {
+  log: (..._args: any[]) => {
     if (isDevelopment) {
       // Performance logging disabled in production
     }
   },
-  warn: (...args: any[]) => {
+  warn: (..._args: any[]) => {
     if (isDevelopment) {
-
     }
   },
-  error: (...args: any[]) => {
+  error: (..._args: any[]) => {
     // Always log errors, even in production
-
-  }
-}
+  },
+};
 
 // Performance logging function for timing operations
 export function perfLogFn(operationName: string, fn: () => any): any {
+  const startTime = performance?.now?.() || Date.now();
   try {
-    const result = fn()
-    // Performance measurement completed (logging removed for production)
-    return result
+    const result = fn();
+    if ((isDevelopment || process.env.NODE_ENV === 'test') && performance?.now) {
+      const endTime = performance.now();
+      // const _duration = endTime - startTime;
+      // Performance measurement completed (logging removed for production)
+    }
+    return result;
   } catch (error) {
     if ((isDevelopment || process.env.NODE_ENV === 'test') && performance?.now) {
+      const endTime = performance.now();
+      // const _duration = endTime - startTime;
       // Performance measurement failed
     }
-    throw error
+    throw error;
   }
 }
 
 // Optimized deep comparison without JSON.stringify
 export function deepCompare(objA: any, objB: any): boolean {
-  if (objA === objB) return true
+  if (objA === objB) return true;
 
   if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
-    return false
+    return false;
   }
 
-  const keysA = Object.keys(objA)
-  const keysB = Object.keys(objB)
+  const keysA = Object.keys(objA);
+  const keysB = Object.keys(objB);
 
-  if (keysA.length !== keysB.length) return false
+  if (keysA.length !== keysB.length) return false;
 
   for (const key of keysA) {
-    if (!objB.hasOwnProperty(key)) return false
+    if (!objB.hasOwnProperty(key)) return false;
 
-    const valA = objA[key]
-    const valB = objB[key]
+    const valA = objA[key];
+    const valB = objB[key];
 
     if (typeof valA === 'object' && typeof valB === 'object') {
-      if (!deepCompare(valA, valB)) return false
+      if (!deepCompare(valA, valB)) return false;
     } else if (valA !== valB) {
-      return false
+      return false;
     }
   }
 
-  return true
+  return true;
 }
 
 // Optimized DOM query with caching
-const domQueryCache = new Map<string, HTMLElement | null>()
+const domQueryCache = new Map<string, HTMLElement | null>();
 
 export function getCachedDOMElement(selector: string): HTMLElement | null {
   if (domQueryCache.has(selector)) {
-    return domQueryCache.get(selector) || null
+    return domQueryCache.get(selector) || null;
   }
 
-  const element = document.querySelector(selector) as HTMLElement | null
-  domQueryCache.set(selector, element)
+  const element = document.querySelector(selector) as HTMLElement | null;
+  domQueryCache.set(selector, element);
 
   // Clear cache after a delay to allow for DOM changes
   setTimeout(() => {
-    domQueryCache.delete(selector)
-  }, 5000)
+    domQueryCache.delete(selector);
+  }, 5000);
 
-  return element
+  return element;
 }
 
 // Alternative implementation for testing
 export function getCachedDOMElementForTesting(
   id: string,
   cache: Map<string, HTMLElement>,
-  createFn: (id: string) => HTMLElement | null
+  createFn: ((_id: string) => HTMLElement | null) | null
 ): HTMLElement | null {
   if (cache.has(id)) {
-    return cache.get(id) || null
+    return cache.get(id) || null;
   }
 
   if (!createFn || typeof createFn !== 'function') {
-    return null
+    return null;
   }
 
-  const element = createFn(id)
+  const element = createFn(id);
   if (element) {
-    cache.set(id, element)
+    cache.set(id, element);
   }
 
-  return element
+  return element;
 }
 
 // Debounce function with improved performance
@@ -112,21 +118,21 @@ export function debounce<T extends (...args: any[]) => any>(
   wait: number,
   immediate = false
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null
+  let timeout: NodeJS.Timeout | null = null;
 
-  return function executedFunction(...args: Parameters<T>) {
+  return function executedFunction(..._args: Parameters<T>) {
     const later = () => {
-      timeout = null
-      if (!immediate) func(...args)
-    }
+      timeout = null;
+      if (!immediate) func(..._args);
+    };
 
-    const callNow = immediate && !timeout
+    const callNow = immediate && !timeout;
 
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
 
-    if (callNow) func(...args)
-  }
+    if (callNow) func(..._args);
+  };
 }
 
 // Throttle function for performance-critical operations
@@ -134,15 +140,15 @@ export function throttle<T extends (...args: any[]) => any>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
-  let inThrottle: boolean
+  let inThrottle: boolean;
 
-  return function executedFunction(...args: Parameters<T>) {
+  return function executedFunction(..._args: Parameters<T>) {
     if (!inThrottle) {
-      func(...args)
-      inThrottle = true
-      setTimeout(() => (inThrottle = false), limit)
+      func(..._args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
     }
-  }
+  };
 }
 
 // Memoization utility for expensive calculations
@@ -150,88 +156,88 @@ export function memoize<T extends (...args: any[]) => any>(
   func: T,
   resolver?: (...args: Parameters<T>) => string
 ): T {
-  const cache = new Map<string, ReturnType<T>>()
+  const cache = new Map<string, ReturnType<T>>();
 
-  return ((...args: Parameters<T>) => {
-    const key = resolver ? resolver(...args) : JSON.stringify(args)
+  return ((..._args: Parameters<T>) => {
+    const key = resolver ? resolver(..._args) : JSON.stringify(_args);
 
     if (cache.has(key)) {
-      return cache.get(key)
+      return cache.get(key);
     }
 
-    const result = func(...args)
-    cache.set(key, result)
-    return result
-  }) as T
+    const result = func(..._args);
+    cache.set(key, result);
+    return result;
+  }) as T;
 }
 
 // Batch DOM updates for better performance
 export function batchDOMUpdates(updates: (() => void)[]): void {
   if (typeof window !== 'undefined') {
     requestAnimationFrame(() => {
-      updates.forEach(update => update())
-    })
+      updates.forEach(update => update());
+    });
   } else {
-    updates.forEach(update => update())
+    updates.forEach(update => update());
   }
 }
 
 // Efficient dimension calculation with caching
 export const getCachedDimensions = memoize(
   (element: HTMLElement) => {
-    const rect = element.getBoundingClientRect()
+    const rect = element.getBoundingClientRect();
     return {
       width: rect.width,
       height: rect.height,
       top: rect.top,
-      left: rect.left
-    }
+      left: rect.left,
+    };
   },
   (element: HTMLElement) => `${element.offsetWidth}-${element.offsetHeight}`
-)
+);
 
 // Performance monitoring utility
 export class PerformanceMonitor {
-  private static instance: PerformanceMonitor
-  private metrics: Map<string, number[]> = new Map()
+  private static instance: PerformanceMonitor;
+  private metrics: Map<string, number[]> = new Map();
 
   static getInstance(): PerformanceMonitor {
     if (!PerformanceMonitor.instance) {
-      PerformanceMonitor.instance = new PerformanceMonitor()
+      PerformanceMonitor.instance = new PerformanceMonitor();
     }
-    return PerformanceMonitor.instance
+    return PerformanceMonitor.instance;
   }
 
   startTimer(name: string): () => void {
-    const start = performance.now()
+    const start = performance.now();
     return () => {
-      const duration = performance.now() - start
+      const duration = performance.now() - start;
       if (!this.metrics.has(name)) {
-        this.metrics.set(name, [])
+        this.metrics.set(name, []);
       }
-      this.metrics.get(name)!.push(duration)
+      this.metrics.get(name)!.push(duration);
 
       // Log slow operations in development
       if (isDevelopment && duration > 16) {
-        perfLog.warn(`Slow operation detected: ${name} took ${duration.toFixed(2)}ms`)
+        perfLog.warn(`Slow operation detected: ${name} took ${duration.toFixed(2)}ms`);
       }
-    }
+    };
   }
 
   getMetrics(
     name?: string
-  ): Record<string, {avg: number; min: number; max: number; count: number}> {
-    const result: Record<string, {avg: number; min: number; max: number; count: number}> = {}
+  ): Record<string, { avg: number; min: number; max: number; count: number }> {
+    const result: Record<string, { avg: number; min: number; max: number; count: number }> = {};
 
     if (name) {
-      const values = this.metrics.get(name)
+      const values = this.metrics.get(name);
       if (values && values.length > 0) {
         result[name] = {
           avg: values.reduce((a, b) => a + b, 0) / values.length,
           min: Math.min(...values),
           max: Math.max(...values),
-          count: values.length
-        }
+          count: values.length,
+        };
       }
     } else {
       this.metrics.forEach((values, key) => {
@@ -240,97 +246,97 @@ export class PerformanceMonitor {
             avg: values.reduce((a, b) => a + b, 0) / values.length,
             min: Math.min(...values),
             max: Math.max(...values),
-            count: values.length
-          }
+            count: values.length,
+          };
         }
-      })
+      });
     }
 
-    return result
+    return result;
   }
 
   clearMetrics(): void {
-    this.metrics.clear()
+    this.metrics.clear();
   }
 }
 
 // Efficient object comparison for React dependencies
 export function shallowEqual(objA: any, objB: any): boolean {
-  if (objA === objB) return true
+  if (objA === objB) return true;
 
   if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
-    return false
+    return false;
   }
 
-  const keysA = Object.keys(objA)
-  const keysB = Object.keys(objB)
+  const keysA = Object.keys(objA);
+  const keysB = Object.keys(objB);
 
-  if (keysA.length !== keysB.length) return false
+  if (keysA.length !== keysB.length) return false;
 
   for (const key of keysA) {
     if (!objB.hasOwnProperty(key) || objA[key] !== objB[key]) {
-      return false
+      return false;
     }
   }
 
-  return true
+  return true;
 }
 
 // Deep comparison for complex objects (use sparingly)
 export function deepEqual(objA: any, objB: any): boolean {
-  return deepCompare(objA, objB)
+  return deepCompare(objA, objB);
 }
 
 // Efficient array operations
 export function arrayEquals<T>(a: T[], b: T[]): boolean {
-  if (a.length !== b.length) return false
-  return a.every((val, index) => val === b[index])
+  if (a.length !== b.length) return false;
+  return a.every((val, index) => val === b[index]);
 }
 
 // Memory-efficient object cloning
 export function shallowClone<T>(obj: T): T {
   if (Array.isArray(obj)) {
-    return [...obj] as T
+    return [...obj] as T;
   }
   if (obj && typeof obj === 'object') {
-    return {...obj}
+    return { ...obj };
   }
-  return obj
+  return obj;
 }
 
 // Intersection Observer for lazy loading
 export function createIntersectionObserver(
-  callback: (entries: IntersectionObserverEntry[]) => void,
+  callback: (_entries: IntersectionObserverEntry[]) => void,
   options: IntersectionObserverInit = {}
 ): IntersectionObserver {
   return new IntersectionObserver(callback, {
     rootMargin: '50px',
     threshold: 0.1,
-    ...options
-  })
+    ...options,
+  });
 }
 
 // Efficient event listener management
 export class EventManager {
-  private listeners: Map<string, Set<EventListener>> = new Map()
+  private listeners: Map<string, Set<EventListener>> = new Map();
 
   addEventListener(element: EventTarget, event: string, listener: EventListener): void {
-    const key = `${element}-${event}`
+    const key = `${element}-${event}`;
     if (!this.listeners.has(key)) {
-      this.listeners.set(key, new Set())
+      this.listeners.set(key, new Set());
     }
-    this.listeners.get(key)!.add(listener)
-    element.addEventListener(event, listener)
+    this.listeners.get(key)!.add(listener);
+    element.addEventListener(event, listener);
   }
 
   removeEventListener(element: EventTarget, event: string, listener: EventListener): void {
-    const key = `${element}-${event}`
-    const listeners = this.listeners.get(key)
+    const key = `${element}-${event}`;
+    const listeners = this.listeners.get(key);
     if (listeners) {
-      listeners.delete(listener)
-      element.removeEventListener(event, listener)
+      listeners.delete(listener);
+      element.removeEventListener(event, listener);
       if (listeners.size === 0) {
-        this.listeners.delete(key)
+        this.listeners.delete(key);
       }
     }
   }
@@ -339,22 +345,22 @@ export class EventManager {
     this.listeners.forEach(listeners => {
       listeners.forEach(() => {
         // Note: This is a simplified version - in practice you'd need to store the actual element reference
-        perfLog.warn('EventManager: removeAllListeners called but element reference not available')
-      })
-    })
-    this.listeners.clear()
+        perfLog.warn('EventManager: removeAllListeners called but element reference not available');
+      });
+    });
+    this.listeners.clear();
   }
 }
 
 // Global event manager instance
-export const globalEventManager = new EventManager()
+export const globalEventManager = new EventManager();
 
 // Simple style creation for testing
 export function createOptimizedStyles(styles: any): any {
   if (styles === null || styles === undefined) {
-    return {}
+    return {};
   }
-  return styles
+  return styles;
 }
 
 // Style optimization utilities
@@ -385,7 +391,7 @@ export const createOptimizedStylesAdvanced = memoize(
         minWidth: chartOptions.minWidth || (shouldAutoSize ? 200 : undefined),
         minHeight: chartOptions.minHeight || (shouldAutoSize ? 200 : undefined),
         maxWidth: chartOptions.maxWidth,
-        maxHeight: chartOptions.maxHeight
+        maxHeight: chartOptions.maxHeight,
       },
       chartContainer: {
         width:
@@ -399,10 +405,10 @@ export const createOptimizedStylesAdvanced = memoize(
           : typeof height === 'number'
             ? `${height}px`
             : height || '100%',
-        position: 'relative' as const
-      }
-    }
+        position: 'relative' as const,
+      },
+    };
   },
   (width, height, shouldAutoSize, chartOptions) =>
     `${width}-${height}-${shouldAutoSize}-${JSON.stringify(chartOptions)}`
-)
+);

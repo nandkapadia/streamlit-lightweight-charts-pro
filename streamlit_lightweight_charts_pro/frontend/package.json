@@ -49,10 +49,15 @@
     "test": "react-scripts test --watch --testLocationInResults",
     "eject": "react-scripts eject",
     "type-check": "tsc --noEmit",
+    "type-check:strict": "tsc --project tsconfig.strict.json --noEmit",
     "build:prod": "GENERATE_SOURCEMAP=false NODE_ENV=production craco build",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx}\"",
-    "format:fix": "prettier --write --fix \"src/**/*.{ts,tsx,js,jsx}\""
+    "format:fix": "prettier --write --fix \"src/**/*.{ts,tsx,js,jsx}\"",
+    "lint": "eslint src --ext .ts,.tsx,.js,.jsx --fix",
+    "lint:check": "eslint src --ext .ts,.tsx,.js,.jsx",
+    "code-quality": "npm run format && npm run lint && npm run type-check",
+    "precommit": "npm run code-quality"
   },
   "eslintConfig": {
     "extends": "react-app"

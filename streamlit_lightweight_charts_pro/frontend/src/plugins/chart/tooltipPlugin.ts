@@ -9,168 +9,171 @@
  * - Integration with ChartCoordinateService for positioning
  */
 
-import {IChartApi, ISeriesApi, SeriesType, Time} from 'lightweight-charts'
-import {ChartCoordinateService} from '../../services/ChartCoordinateService'
-import {UniversalSpacing} from '../../primitives/PrimitiveDefaults'
+import { IChartApi, ISeriesApi, SeriesType, Time } from 'lightweight-charts';
+import { ChartCoordinateService } from '../../services/ChartCoordinateService';
+import { UniversalSpacing } from '../../primitives/PrimitiveDefaults';
 
 export interface TooltipField {
-  label: string
-  valueKey: string
-  color?: string
-  fontSize?: number
-  fontWeight?: string
-  prefix?: string
-  suffix?: string
-  precision?: number
+  label: string;
+  valueKey: string;
+  color?: string;
+  fontSize?: number;
+  fontWeight?: string;
+  prefix?: string;
+  suffix?: string;
+  precision?: number;
 }
 
 export interface TooltipStyle {
-  backgroundColor?: string
-  borderColor?: string
-  borderWidth?: number
-  borderRadius?: number
-  padding?: number
-  fontSize?: number
-  fontFamily?: string
-  color?: string
-  boxShadow?: string
-  zIndex?: number
+  backgroundColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  padding?: number;
+  fontSize?: number;
+  fontFamily?: string;
+  color?: string;
+  boxShadow?: string;
+  zIndex?: number;
 }
 
 export interface TooltipConfig {
-  enabled: boolean
-  type: 'ohlc' | 'single' | 'multi' | 'custom' | 'trade' | 'marker'
-  template?: string
-  fields: TooltipField[]
-  position?: 'cursor' | 'fixed' | 'auto'
-  offset?: {x: number; y: number}
-  style?: TooltipStyle
-  showDate?: boolean
-  dateFormat?: string
-  showTime?: boolean
-  timeFormat?: string
+  enabled: boolean;
+  type: 'ohlc' | 'single' | 'multi' | 'custom' | 'trade' | 'marker';
+  template?: string;
+  fields: TooltipField[];
+  position?: 'cursor' | 'fixed' | 'auto';
+  offset?: { x: number; y: number };
+  style?: TooltipStyle;
+  showDate?: boolean;
+  dateFormat?: string;
+  showTime?: boolean;
+  timeFormat?: string;
   // Add trade-specific configuration
   tradeData?: {
-    entryPrice: string
-    exitPrice: string
-    size: string
-    pnl: string
-    side: string
-  }
+    entryPrice: string;
+    exitPrice: string;
+    size: string;
+    pnl: string;
+    side: string;
+  };
 }
 
 export interface TooltipData {
-  time: Time
-  series: ISeriesApi<SeriesType>
-  data: any
-  price: number
-  index: number
+  time: Time;
+  series: ISeriesApi<SeriesType>;
+  data: any;
+  price: number;
+  index: number;
   // Add trade-specific data
   trade?: {
-    entryPrice: number
-    exitPrice: number
-    size: number
-    pnl: number
-    side: 'long' | 'short'
-    entryTime: Time
-    exitTime: Time
-  }
+    entryPrice: number;
+    exitPrice: number;
+    size: number;
+    pnl: number;
+    side: 'long' | 'short';
+    entryTime: Time;
+    exitTime: Time;
+  };
 }
 
 export class TooltipPlugin {
-  private chart: IChartApi
-  private container: HTMLElement
-  private tooltipElement: HTMLElement | null = null
-  private configs: Map<string, TooltipConfig> = new Map()
-  private currentData: TooltipData | null = null
-  private isVisible = false
-  private chartId: string
-  private coordinateService: ChartCoordinateService
-  private tradeData: Map<string, any> = new Map() // Store trade data for detection
+  private chart: IChartApi;
+  private container: HTMLElement;
+  private tooltipElement: HTMLElement | null = null;
+  private configs: Map<string, TooltipConfig> = new Map();
+  private currentData: TooltipData | null = null;
+  private isVisible = false;
+  private chartId: string;
+  private coordinateService: ChartCoordinateService;
+  private tradeData: Map<string, any> = new Map(); // Store trade data for detection
 
   constructor(chart: IChartApi, container: HTMLElement, chartId: string) {
-    this.chart = chart
-    this.container = container
-    this.chartId = chartId
-    this.coordinateService = ChartCoordinateService.getInstance()
+    this.chart = chart;
+    this.container = container;
+    this.chartId = chartId;
+    this.coordinateService = ChartCoordinateService.getInstance();
 
     // Register chart with coordinate service
-    this.coordinateService.registerChart(this.chartId, this.chart)
+    this.coordinateService.registerChart(this.chartId, this.chart);
 
-    this.setupEventListeners()
+    this.setupEventListeners();
   }
 
   // Public methods for testing and external use
   public updateContent(content: string): void {
     if (this.tooltipElement) {
-      this.tooltipElement.innerHTML = content
+      this.tooltipElement.innerHTML = content;
     }
   }
 
-  public setPosition(position: {x: number; y: number}): void {
-    this.positionTooltip(position)
+  public setPosition(position: { x: number; y: number }): void {
+    this.positionTooltip(position);
   }
 
   public formatSeriesData(seriesData: Map<string, any>): string {
     if (!seriesData || seriesData.size === 0) {
-      return ''
+      return '';
     }
 
-    let content = ''
+    let content = '';
     seriesData.forEach((data, seriesName) => {
-      content += `<div>${seriesName}: ${JSON.stringify(data)}</div>`
-    })
-    return content
+      content += `<div>${seriesName}: ${JSON.stringify(data)}</div>`;
+    });
+    return content;
   }
 
   public formatPrice(price: number): string {
-    return price.toFixed(2)
+    return price.toFixed(2);
   }
 
-  public handleMouseEnter(event: MouseEvent): void {
+  public handleMouseEnter(_event: MouseEvent): void {
     // Handle mouse enter events
   }
 
-  public handleMouseLeave(event: MouseEvent): void {
-    this.hideTooltip()
+  public handleMouseLeave(_event: MouseEvent): void {
+    this.hideTooltip();
   }
 
-  public handleMouseMove(event: MouseEvent): void {
+  public handleMouseMove(_event: MouseEvent): void {
     // Handle mouse move events
   }
 
-  public constrainToViewport(position: {x: number; y: number}): {x: number; y: number} {
+  public constrainToViewport(position: { x: number; y: number }): { x: number; y: number } {
     const viewport = {
       width: window.innerWidth,
-      height: window.innerHeight
-    }
+      height: window.innerHeight,
+    };
 
     return {
       x: Math.min(Math.max(position.x, 0), viewport.width - 200),
-      y: Math.min(Math.max(position.y, 0), viewport.height - 100)
-    }
+      y: Math.min(Math.max(position.y, 0), viewport.height - 100),
+    };
   }
 
-  public getAbsolutePosition(containerPosition: {x: number; y: number}): {x: number; y: number} {
-    const containerRect = this.container.getBoundingClientRect()
+  public getAbsolutePosition(containerPosition: { x: number; y: number }): {
+    x: number;
+    y: number;
+  } {
+    const containerRect = this.container.getBoundingClientRect();
     return {
       x: containerRect.left + containerPosition.x,
-      y: containerRect.top + containerPosition.y
-    }
+      y: containerRect.top + containerPosition.y,
+    };
   }
 
   public cleanup(): void {
-    this.hideTooltip()
+    this.hideTooltip();
     if (this.tooltipElement && this.tooltipElement.parentNode) {
-      this.tooltipElement.parentNode.removeChild(this.tooltipElement)
+      this.tooltipElement.parentNode.removeChild(this.tooltipElement);
     }
   }
 
   public remove(): void {
-    this.cleanup()
+    this.cleanup();
   }
 
-  public addToChart(chart: IChartApi, container: HTMLElement): void {
+  public addToChart(_chart: IChartApi, _container: HTMLElement): void {
     // This method exists for compatibility with tests
     // The actual setup is done in the constructor
   }
@@ -179,57 +182,63 @@ export class TooltipPlugin {
    * Add tooltip configuration
    */
   addConfig(name: string, config: TooltipConfig): void {
-    this.configs.set(name, config)
+    this.configs.set(name, config);
   }
 
   /**
    * Remove tooltip configuration
    */
   removeConfig(name: string): boolean {
-    return this.configs.delete(name)
+    return this.configs.delete(name);
   }
 
   /**
    * Get tooltip configuration
    */
   getConfig(name: string): TooltipConfig | undefined {
-    return this.configs.get(name)
+    return this.configs.get(name);
   }
 
   /**
    * Add trade data for tooltip detection
    */
   addTradeData(tradeId: string, tradeInfo: any): void {
-    this.tradeData.set(tradeId, tradeInfo)
+    this.tradeData.set(tradeId, tradeInfo);
   }
 
   /**
    * Remove trade data
    */
   removeTradeData(tradeId: string): boolean {
-    return this.tradeData.delete(tradeId)
+    return this.tradeData.delete(tradeId);
   }
 
   /**
    * Setup event listeners for tooltip functionality
    */
   private setupEventListeners(): void {
-    // Subscribe to crosshair move events
+    // Subscribe to crosshair move events with throttling to prevent performance issues
     if (this.chart && typeof this.chart.subscribeCrosshairMove === 'function') {
+      let lastTooltipUpdate = 0;
+      const tooltipThrottleDelay = 16; // ~60fps max update rate
       this.chart.subscribeCrosshairMove(param => {
-        if (param.time && param.seriesData.size > 0) {
-          this.handleCrosshairMove(param)
-        } else {
-          this.hideTooltip()
+        const now = Date.now();
+        if (now - lastTooltipUpdate >= tooltipThrottleDelay) {
+          lastTooltipUpdate = now;
+          if (param.time && param.seriesData.size > 0) {
+            this.handleCrosshairMove(param);
+          } else {
+            this.hideTooltip();
+          }
         }
-      })
+      });
     }
 
     // Subscribe to chart click events to hide tooltip
     if (this.chart && typeof this.chart.subscribeClick === 'function') {
       this.chart.subscribeClick(() => {
-        this.hideTooltip()
-      })
+        this.hideTooltip();
+      });
     }
   }
 
@@ -238,33 +247,33 @@ export class TooltipPlugin {
    */
   private handleCrosshairMove(param: any): void {
     if (!this.isVisible) {
-      return
+      return;
     }
 
     // Check if we have valid series data (mouse is over a candle)
-    const [series, data] = param.seriesData.entries().next().value
+    const [series, data] = param.seriesData.entries().next().value;
     if (!series || !data) {
       // No series data means mouse is not over a candle - hide tooltip
-      this.hideTooltip()
-      return
+      this.hideTooltip();
+      return;
     }
 
     // Check if the data actually contains valid OHLC values
     if (!this.isValidOHLCData(data)) {
       // Data exists but doesn't contain valid OHLC - hide tooltip
-      this.hideTooltip()
-      return
+      this.hideTooltip();
+      return;
     }
 
     // Check if mouse is over a trade rectangle
-    const trade = this.detectTradeAtPosition(param)
+    const trade = this.detectTradeAtPosition(param);
     if (trade) {
-      this.showTradeTooltip(trade, param)
-      return
+      this.showTradeTooltip(trade, param);
+      return;
     }
 
     // Mouse is over a candle with valid OHLC data and not over a trade - show OHLC tooltip
-    this.showTooltip(param)
+    this.showTooltip(param);
   }
 
   /**
@@ -272,22 +281,22 @@ export class TooltipPlugin {
    */
   private detectTradeAtPosition(param: any): any {
     if (!param.point || !param.time) {
-      return null
+      return null;
     }
 
-    const mouseX = param.point.x
-    const mouseY = param.point.y
+    const mouseX = param.point.x;
+    const mouseY = param.point.y;
 
     // Check if we have any trade data
     if (this.tradeData.size === 0) {
-      return null
+      return null;
     }
 
     // For now, use a simpler approach - check if mouse is over any trade
     // We'll improve this later with proper coordinate conversion
-    const trade = this.findTradeAtCoordinates(mouseX, mouseY, {})
+    const trade = this.findTradeAtCoordinates(mouseX, mouseY, {});
 
-    return trade
+    return trade;
   }
 
   /**
@@ -297,10 +306,10 @@ export class TooltipPlugin {
     // Iterate through trade data to find matches
     for (const [, trade] of this.tradeData.entries()) {
       if (this.isPointInTrade(x, y, trade, coordinates)) {
-        return trade
+        return trade;
       }
     }
-    return null
+    return null;
   }
 
   /**
@@ -312,7 +321,7 @@ export class TooltipPlugin {
       data.open !== undefined &&
       data.high !== undefined &&
       data.low !== undefined &&
-      data.close !== undefined
+      data.close !== undefined;
 
     // Check if values are valid numbers
     const hasValidValues =
@@ -320,7 +329,7 @@ export class TooltipPlugin {
       typeof data.open === 'number' &&
       typeof data.high === 'number' &&
       typeof data.low === 'number' &&
-      typeof data.close === 'number'
+      typeof data.close === 'number';
 
     // Check if values make logical sense (high >= low, etc.)
     const hasLogicalValues =
@@ -329,51 +338,51 @@ export class TooltipPlugin {
       data.high >= data.open &&
       data.high >= data.close &&
       data.low <= data.open &&
-      data.low <= data.close
+      data.low <= data.close;
 
-    return hasLogicalValues
+    return hasLogicalValues;
   }
 
   /**
    * Check if point is within trade bounds
    */
-  private isPointInTrade(x: number, y: number, trade: any, coordinates: any): boolean {
+  private isPointInTrade(x: number, y: number, trade: any, _coordinates: any): boolean {
     try {
       // Convert trade time/price to chart coordinates
-      const timeScale = this.chart.timeScale()
+      const timeScale = this.chart.timeScale();
 
       // Check if the mouse is within the time range of the trade
-      const entryX = timeScale.timeToCoordinate(trade.entryTime)
-      const exitX = timeScale.timeToCoordinate(trade.exitTime)
+      const entryX = timeScale.timeToCoordinate(trade.entryTime);
+      const exitX = timeScale.timeToCoordinate(trade.exitTime);
 
       if (entryX === null || exitX === null) {
-        return false
+        return false;
       }
 
       // Check if mouse X is within trade time range
-      const timeInRange = x >= Math.min(entryX, exitX) && x <= Math.max(entryX, exitX)
+      const timeInRange = x >= Math.min(entryX, exitX) && x <= Math.max(entryX, exitX);
 
       if (!timeInRange) {
-        return false
+        return false;
       }
 
       // For Y coordinate, we need to be more precise
       // Since we can't easily convert prices to coordinates without series access,
       // we'll use a reasonable tolerance around the middle of the chart
-      const chartHeight = this.container.clientHeight
-      const chartMiddle = chartHeight / 2
-      const tolerance = chartHeight * 0.4 // 40% of chart height tolerance
+      const chartHeight = this.container.clientHeight;
+      const chartMiddle = chartHeight / 2;
+      const tolerance = chartHeight * 0.4; // 40% of chart height tolerance
 
       // Check if mouse Y is within the middle area of the chart (where trades are likely to be)
-      const yInRange = y >= chartMiddle - tolerance && y <= chartMiddle + tolerance
+      const yInRange = y >= chartMiddle - tolerance && y <= chartMiddle + tolerance;
 
       if (!yInRange) {
-        return false
+        return false;
       }
 
-      return true
+      return true;
     } catch (error) {
-      return false
+      return false;
     }
   }
 
@@ -382,7 +391,7 @@ export class TooltipPlugin {
    */
   private showTradeTooltip(trade: any, param: any): void {
     if (!this.tooltipElement) {
-      this.ensureTooltipElement()
+      this.ensureTooltipElement();
     }
 
     // Create trade tooltip data
@@ -399,32 +408,32 @@ export class TooltipPlugin {
         pnl: trade.pnl,
         side: trade.side,
         entryTime: trade.entryTime,
-        exitTime: trade.exitTime
-      }
-    }
+        exitTime: trade.exitTime,
+      },
+    };
 
-    this.currentData = tooltipData
-    this.updateTooltipContent()
-    this.positionTradeTooltip(param.point, trade)
+    this.currentData = tooltipData;
+    this.updateTooltipContent();
+    this.positionTradeTooltip(param.point, trade);
   }
 
   /**
    * Position trade tooltip using ChartCoordinateService
    */
-  private positionTradeTooltip(point: {x: number; y: number}, trade: any): void {
+  private positionTradeTooltip(point: { x: number; y: number }, _trade: any): void {
     if (!this.tooltipElement || !point) {
-      return
+      return;
     }
 
-    const config = this.getDefaultConfig()
+    const config = this.getDefaultConfig();
     if (!config) {
-      return
+      return;
     }
 
     // Get container bounds using coordinate service
-    const containerBounds = this.container.getBoundingClientRect()
-    const tooltipWidth = this.tooltipElement.offsetWidth || 200
-    const tooltipHeight = this.tooltipElement.offsetHeight || 100
+    const containerBounds = this.container.getBoundingClientRect();
+    const tooltipWidth = this.tooltipElement.offsetWidth || 200;
+    const tooltipHeight = this.tooltipElement.offsetHeight || 100;
 
     // Use ChartCoordinateService for optimal positioning
     const position = this.coordinateService.calculateTooltipPosition(
@@ -440,19 +449,19 @@ export class TooltipPlugin {
         right: containerBounds.width,
         bottom: containerBounds.height,
         width: containerBounds.width,
-        height: containerBounds.height
+        height: containerBounds.height,
       },
       'top' // Preferred anchor for trade tooltips
-    )
+    );
 
     // Apply position using ChartCoordinateService
     this.coordinateService.applyPositionToElement(this.tooltipElement, {
       top: position.y,
-      left: position.x
-    })
+      left: position.x,
+    });
 
     // Show tooltip
-    this.tooltipElement.style.display = 'block'
+    this.tooltipElement.style.display = 'block';
   }
 
   /**
@@ -460,13 +469,13 @@ export class TooltipPlugin {
    */
   private showTooltip(param: any): void {
     if (!this.isVisible || !param.time || param.seriesData.size === 0) {
-      return
+      return;
     }
 
     // Get the first series data
-    const [series, data] = param.seriesData.entries().next().value
+    const [series, data] = param.seriesData.entries().next().value;
     if (!series || !data) {
-      return
+      return;
     }
 
     // Create tooltip data
@@ -475,12 +484,12 @@ export class TooltipPlugin {
       series,
       data,
       price: param.price || data.value || data.close || 0,
-      index: param.index || 0
-    }
+      index: param.index || 0,
+    };
 
-    this.currentData = tooltipData
-    this.updateTooltipContent()
-    this.positionTooltip(param.point)
+    this.currentData = tooltipData;
+    this.updateTooltipContent();
+    this.positionTooltip(param.point);
   }
 
   /**
@@ -488,9 +497,9 @@ export class TooltipPlugin {
    */
   private hideTooltip(): void {
     if (this.tooltipElement) {
-      this.tooltipElement.style.display = 'none'
+      this.tooltipElement.style.display = 'none';
     }
-    this.currentData = null
+    this.currentData = null;
   }
 
   /**
@@ -498,8 +507,8 @@ export class TooltipPlugin {
    */
   private ensureTooltipElement(): HTMLElement {
     if (!this.tooltipElement) {
-      this.tooltipElement = document.createElement('div')
-      this.tooltipElement.className = 'chart-tooltip'
+      this.tooltipElement = document.createElement('div');
+      this.tooltipElement.className = 'chart-tooltip';
       this.tooltipElement.style.cssText = `
         position: absolute;
         z-index: 1000;
@@ -515,10 +524,10 @@ export class TooltipPlugin {
         user-select: none;
         white-space: nowrap;
         display: none;
-      `
-      this.container.appendChild(this.tooltipElement)
+      `;
+      this.container.appendChild(this.tooltipElement);
     }
-    return this.tooltipElement
+    return this.tooltipElement;
   }
 
   /**
@@ -526,22 +535,22 @@ export class TooltipPlugin {
    */
   private updateTooltipContent(): void {
     if (!this.currentData) {
-      return
+      return;
     }
 
-    const tooltipElement = this.ensureTooltipElement()
-    const config = this.getDefaultConfig()
+    const tooltipElement = this.ensureTooltipElement();
+    const config = this.getDefaultConfig();
 
     if (!config || !config.enabled) {
-      return
+      return;
     }
 
-    const content = this.formatTooltipContent(config, this.currentData)
-    tooltipElement.innerHTML = content
+    const content = this.formatTooltipContent(config, this.currentData);
+    tooltipElement.innerHTML = content;
 
     // Apply custom styling
     if (config.style) {
-      this.applyTooltipStyle(tooltipElement, config.style)
+      this.applyTooltipStyle(tooltipElement, config.style);
     }
   }
 
@@ -552,17 +561,17 @@ export class TooltipPlugin {
     // Handle trade tooltips specially - if we have trade data, use trade config
     if (data.trade) {
       // Try to get the trade config specifically
-      const tradeConfig = this.configs.get('trade')
+      const tradeConfig = this.configs.get('trade');
       if (tradeConfig) {
-        return this.formatTradeTooltip(tradeConfig, data)
+        return this.formatTradeTooltip(tradeConfig, data);
       }
     }
 
     // Use existing formatting for other types
     if (config.template) {
-      return this.formatWithTemplate(config, data)
+      return this.formatWithTemplate(config, data);
     } else {
-      return this.formatWithFields(config, data)
+      return this.formatWithFields(config, data);
     }
   }
 
@@ -571,12 +580,12 @@ export class TooltipPlugin {
    */
   private formatTradeTooltip(config: TooltipConfig, data: TooltipData): string {
     if (!data.trade) {
-      return ''
+      return '';
     }
 
-    const trade = data.trade
-    const sideColor = trade.side === 'long' ? '#00ff88' : '#ff4444'
-    const pnlColor = trade.pnl >= 0 ? '#00ff88' : '#ff4444'
+    const trade = data.trade;
+    const sideColor = trade.side === 'long' ? '#00ff88' : '#ff4444';
+    const pnlColor = trade.pnl >= 0 ? '#00ff88' : '#ff4444';
 
     return `
       <div class="trade-tooltip">
@@ -592,7 +601,7 @@ export class TooltipPlugin {
           </div>
         </div>
       </div>
-    `
+    `;
   }
 
   /**
@@ -600,60 +609,60 @@ export class TooltipPlugin {
    */
   private formatWithTemplate(config: TooltipConfig, data: TooltipData): string {
     if (!config.template) {
-      return ''
+      return '';
     }
 
-    let result = config.template
+    let result = config.template;
 
     // Replace placeholders with actual values
-    const dataObj = this.extractDataObject(data)
-    const keys = Object.keys(dataObj)
+    const dataObj = this.extractDataObject(data);
+    const keys = Object.keys(dataObj);
     for (let i = 0; i < keys.length; i++) {
-      const key = keys[i]
-      const value = dataObj[key]
-      const placeholder = `{${key}}`
+      const key = keys[i];
+      const value = dataObj[key];
+      const placeholder = `{${key}}`;
       if (result.includes(placeholder)) {
-        const formattedValue = this.formatValue(key, value, config)
-        result = result.replace(new RegExp(placeholder, 'g'), formattedValue)
+        const formattedValue = this.formatValue(key, value, config);
+        result = result.replace(new RegExp(placeholder, 'g'), formattedValue);
       }
     }
 
     // Add date/time if configured
     if ((config.showDate || config.showTime) && data.time) {
-      const timeStr = this.formatTime(data.time, config)
+      const timeStr = this.formatTime(data.time, config);
       if (timeStr) {
-        result = `${timeStr}<br>${result}`
+        result = `${timeStr}<br>${result}`;
       }
     }
 
-    return result
+    return result;
   }
 
   /**
    * Format tooltip using field configuration
    */
   private formatWithFields(config: TooltipConfig, data: TooltipData): string {
-    const lines: string[] = []
+    const lines: string[] = [];
 
     // Add date/time if configured
     if ((config.showDate || config.showTime) && data.time) {
-      const timeStr = this.formatTime(data.time, config)
+      const timeStr = this.formatTime(data.time, config);
       if (timeStr) {
-        lines.push(timeStr)
+        lines.push(timeStr);
       }
     }
 
     // Add field values
-    const dataObj = this.extractDataObject(data)
+    const dataObj = this.extractDataObject(data);
     for (const field of config.fields) {
       if (dataObj[field.valueKey] !== undefined) {
-        const value = dataObj[field.valueKey]
-        const formattedValue = this.formatFieldValue(field, value)
-        lines.push(`${field.label}: ${formattedValue}`)
+        const value = dataObj[field.valueKey];
+        const formattedValue = this.formatFieldValue(field, value);
+        lines.push(`${field.label}: ${formattedValue}`);
       }
     }
 
-    return lines.join('<br>')
+    return lines.join('<br>');
   }
 
   /**
@@ -669,46 +678,46 @@ export class TooltipPlugin {
       low: data.data.low,
       close: data.data.close,
       volume: data.data.volume,
-      index: data.index
-    }
+      index: data.index,
+    };
 
     // Add all properties from the data object
-    Object.assign(result, data.data)
+    Object.assign(result, data.data);
 
-    return result
+    return result;
   }
 
   /**
    * Format a single value
    */
   private formatValue(key: string, value: any, config: TooltipConfig): string {
-    const field = config.fields.find(f => f.valueKey === key)
+    const field = config.fields.find(f => f.valueKey === key);
     if (field) {
-      return this.formatFieldValue(field, value)
+      return this.formatFieldValue(field, value);
     }
-    return String(value)
+    return String(value);
   }
 
   /**
    * Format field value according to field configuration
    */
   private formatFieldValue(field: TooltipField, value: any): string {
-    let result = String(value)
+    let result = String(value);
 
     // Apply precision for numeric values
     if (field.precision !== undefined && typeof value === 'number') {
-      result = value.toFixed(field.precision)
+      result = value.toFixed(field.precision);
     }
 
     // Add prefix and suffix
     if (field.prefix) {
-      result = `${field.prefix}${result}`
+      result = `${field.prefix}${result}`;
     }
     if (field.suffix) {
-      result = `${result}${field.suffix}`
+      result = `${result}${field.suffix}`;
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -716,22 +725,22 @@ export class TooltipPlugin {
    */
   private formatTime(time: Time, config: TooltipConfig): string {
     try {
-      const date = new Date((time as number) * 1000)
-      const parts: string[] = []
+      const date = new Date((time as number) * 1000);
+      const parts: string[] = [];
 
       if (config.showDate) {
-        const dateFormat = config.dateFormat || '%Y-%m-%d'
-        parts.push(this.formatDate(date, dateFormat))
+        const dateFormat = config.dateFormat || '%Y-%m-%d';
+        parts.push(this.formatDate(date, dateFormat));
       }
 
       if (config.showTime) {
-        const timeFormat = config.timeFormat || '%H:%M:%S'
-        parts.push(this.formatTimeString(date, timeFormat))
+        const timeFormat = config.timeFormat || '%H:%M:%S';
+        parts.push(this.formatTimeString(date, timeFormat));
       }
 
-      return parts.join(' ')
+      return parts.join(' ');
     } catch (error) {
-      return String(time)
+      return String(time);
     }
   }
 
@@ -740,41 +749,41 @@ export class TooltipPlugin {
    */
   private formatDate(date: Date, format: string): string {
     // Simple date formatting - can be enhanced with a proper date library
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
 
-    return format.replace('%Y', String(year)).replace('%m', month).replace('%d', day)
+    return format.replace('%Y', String(year)).replace('%m', month).replace('%d', day);
   }
 
   /**
    * Format time according to format string
    */
   private formatTimeString(date: Date, format: string): string {
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    const seconds = String(date.getSeconds()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
 
-    return format.replace('%H', hours).replace('%M', minutes).replace('%S', seconds)
+    return format.replace('%H', hours).replace('%M', minutes).replace('%S', seconds);
   }
 
   /**
    * Enhanced tooltip positioning using ChartCoordinateService
    */
-  private positionTooltip(point: {x: number; y: number}): void {
+  private positionTooltip(point: { x: number; y: number }): void {
     if (!this.tooltipElement || !point) {
-      return
+      return;
     }
 
-    const config = this.getDefaultConfig()
+    const config = this.getDefaultConfig();
     if (!config) {
-      return
+      return;
     }
 
     // Get container bounds using coordinate service
-    const containerBounds = this.container.getBoundingClientRect()
-    const tooltipWidth = this.tooltipElement.offsetWidth || 200
-    const tooltipHeight = this.tooltipElement.offsetHeight || 100
+    const containerBounds = this.container.getBoundingClientRect();
+    const tooltipWidth = this.tooltipElement.offsetWidth || 200;
+    const tooltipHeight = this.tooltipElement.offsetHeight || 100;
 
     // Use ChartCoordinateService for optimal positioning
     const position = this.coordinateService.calculateTooltipPosition(
@@ -790,19 +799,19 @@ export class TooltipPlugin {
         right: containerBounds.width,
         bottom: containerBounds.height,
         width: containerBounds.width,
-        height: containerBounds.height
+        height: containerBounds.height,
       },
       'top'
-    )
+    );
 
     // Apply position using ChartCoordinateService
     this.coordinateService.applyPositionToElement(this.tooltipElement, {
       top: position.y,
-      left: position.x
-    })
+      left: position.x,
+    });
 
     // Show tooltip
-    this.tooltipElement.style.display = 'block'
+    this.tooltipElement.style.display = 'block';
   }
 
   /**
@@ -810,34 +819,34 @@ export class TooltipPlugin {
    */
   private applyTooltipStyle(element: HTMLElement, style: TooltipStyle): void {
     if (style.backgroundColor) {
-      element.style.backgroundColor = style.backgroundColor
+      element.style.backgroundColor = style.backgroundColor;
     }
     if (style.borderColor) {
-      element.style.borderColor = style.borderColor
+      element.style.borderColor = style.borderColor;
     }
     if (style.borderWidth !== undefined) {
-      element.style.borderWidth = `${style.borderWidth}px`
+      element.style.borderWidth = `${style.borderWidth}px`;
     }
     if (style.borderRadius !== undefined) {
-      element.style.borderRadius = `${style.borderRadius}px`
+      element.style.borderRadius = `${style.borderRadius}px`;
     }
     if (style.padding !== undefined) {
-      element.style.padding = `${style.padding}px`
+      element.style.padding = `${style.padding}px`;
     }
     if (style.fontSize !== undefined) {
-      element.style.fontSize = `${style.fontSize}px`
+      element.style.fontSize = `${style.fontSize}px`;
     }
     if (style.fontFamily) {
-      element.style.fontFamily = style.fontFamily
+      element.style.fontFamily = style.fontFamily;
     }
     if (style.color) {
-      element.style.color = style.color
+      element.style.color = style.color;
     }
     if (style.boxShadow) {
-      element.style.boxShadow = style.boxShadow
+      element.style.boxShadow = style.boxShadow;
     }
     if (style.zIndex !== undefined) {
-      element.style.zIndex = String(style.zIndex)
+      element.style.zIndex = String(style.zIndex);
     }
   }
 
@@ -845,22 +854,22 @@ export class TooltipPlugin {
    * Get default tooltip configuration
    */
   private getDefaultConfig(): TooltipConfig | undefined {
-    return this.configs.get('default') || this.configs.values().next().value
+    return this.configs.get('default') || this.configs.values().next().value;
   }
 
   /**
    * Enable tooltip
    */
   enable(): void {
-    this.isVisible = true
+    this.isVisible = true;
   }
 
   /**
    * Disable tooltip
    */
   disable(): void {
-    this.isVisible = false
-    this.hideTooltip()
+    this.isVisible = false;
+    this.hideTooltip();
   }
 
   /**
@@ -868,16 +877,16 @@ export class TooltipPlugin {
    */
   destroy(): void {
     if (this.tooltipElement) {
-      this.container.removeChild(this.tooltipElement)
-      this.tooltipElement = null
+      this.container.removeChild(this.tooltipElement);
+      this.tooltipElement = null;
     }
 
     // Unregister from coordinate service
-    this.coordinateService.unregisterChart(this.chartId)
+    this.coordinateService.unregisterChart(this.chartId);
 
-    this.configs.clear()
-    this.currentData = null
-    this.tradeData.clear()
+    this.configs.clear();
+    this.currentData = null;
+    this.tradeData.clear();
   }
 }
 
@@ -891,18 +900,18 @@ export function createTooltipPlugin(
   configs: Record<string, TooltipConfig> = {},
   chartConfig?: any
 ): TooltipPlugin {
-  const plugin = new TooltipPlugin(chart, container, chartId)
+  const plugin = new TooltipPlugin(chart, container, chartId);
 
   // Add configurations
   for (const [name, config] of Object.entries(configs)) {
-    plugin.addConfig(name, config)
+    plugin.addConfig(name, config);
   }
 
   // Extract trade data from chart configuration if provided
   if (chartConfig && chartConfig.trades && Array.isArray(chartConfig.trades)) {
     // Add each trade to the tooltip plugin
     chartConfig.trades.forEach((trade: any, index: number) => {
-      const tradeId = `trade_${index}`
+      const tradeId = `trade_${index}`;
       plugin.addTradeData(tradeId, {
         entryTime: trade.entry_time || trade.entryTime,
         exitTime: trade.exit_time || trade.exitTime,
@@ -910,10 +919,10 @@ export function createTooltipPlugin(
         exitPrice: trade.exit_price || trade.exitPrice,
         size: trade.quantity || trade.size,
         pnl: (trade.exit_price || trade.exitPrice) - (trade.entry_price || trade.entryPrice),
-        side: trade.trade_type === 'LONG' ? 'long' : 'short'
-      })
-    })
+        side: trade.trade_type === 'LONG' ? 'long' : 'short',
+      });
+    });
   }
 
-  return plugin
+  return plugin;
 }
