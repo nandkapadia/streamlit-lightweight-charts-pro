@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { render as rtlRender, RenderOptions } from '@testing-library/react';
 import { ComponentConfig } from '../../types';
 
 /**
@@ -163,4 +164,20 @@ export const waitForAsync = (ms: number = 0): Promise<void> => {
 export const advanceTimersAndWait = async (ms: number = 1500): Promise<void> => {
   jest.advanceTimersByTime(ms);
   await waitForAsync(10);
+};
+
+/**
+ * Custom render function that ensures proper container setup for React 18
+ */
+export const renderWithContainer = (ui: React.ReactElement, options?: Omit<RenderOptions, 'container'>) => {
+  // Create a proper container div
+  const container = document.createElement('div');
+  container.setAttribute('data-testid', 'test-container');
+
+  // Ensure it's attached to the document body
+  if (document.body) {
+    document.body.appendChild(container);
+  }
+
+  return rtlRender(ui, { container, ...options });
 };

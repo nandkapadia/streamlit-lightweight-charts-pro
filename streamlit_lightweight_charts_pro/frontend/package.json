@@ -19,7 +19,7 @@
     "@craco/craco": "^7.1.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.5",
     "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
+    "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.4.3",
     "@types/chai": "^5.2.2",
     "chai": "^6.0.1",
@@ -86,7 +86,14 @@
       "<rootDir>/src/**/__tests__/**/*.test.(js|jsx|ts|tsx)",
       "<rootDir>/src/**/*.test.(js|jsx|ts|tsx)",
       "<rootDir>/src/**/*.spec.(js|jsx|ts|tsx)"
-    ]
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(streamlit-component-lib|streamlit-component-lib-react-hooks)/)"
+    ],
+    "moduleNameMapper": {
+      "^streamlit-component-lib$": "<rootDir>/src/__tests__/setup/__mocks__/streamlit-component-lib.js",
+      "^streamlit-component-lib-react-hooks$": "<rootDir>/src/__tests__/setup/__mocks__/streamlit-component-lib-react-hooks.js"
+    }
   },
   "homepage": "."
 }
