@@ -1,10 +1,14 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import LightweightCharts from '../LightweightCharts';
-import { ComponentConfig } from '../types';
+import LightweightCharts from '../../LightweightCharts';
+import { ComponentConfig } from '../../types';
+import { resetMocks } from '../../test-utils/lightweightChartsMocks';
 
-// Use real lightweight-charts library
+// Use unified mock system
+jest.mock('lightweight-charts', () => {
+  return require('../../test-utils/lightweightChartsMocks');
+});
 
 // Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
@@ -99,7 +103,7 @@ describe('LightweightCharts Component', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    resetMocks();
   });
 
   describe('Component Rendering', () => {

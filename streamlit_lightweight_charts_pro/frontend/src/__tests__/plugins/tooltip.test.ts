@@ -1,35 +1,10 @@
-import { TooltipPlugin } from '../plugins/chart/tooltipPlugin';
+import { TooltipPlugin } from '../../plugins/chart/tooltipPlugin';
+import { resetMocks, mockChart } from '../../test-utils/lightweightChartsMocks';
 
-// Mock the lightweight-charts library
-const mockChart = {
-  addCandlestickSeries: () => ({
-    setData: () => {},
-    update: () => {},
-    applyOptions: () => {},
-    priceScale: () => ({ applyOptions: () => {} }),
-  }),
-  addLineSeries: () => ({
-    setData: () => {},
-    update: () => {},
-    applyOptions: () => {},
-    priceScale: () => ({ applyOptions: () => {} }),
-  }),
-  timeScale: {
-    fitContent: () => {},
-    scrollToPosition: () => {},
-    scrollToTime: () => {},
-    setVisibleRange: () => {},
-    applyOptions: () => {},
-  },
-  priceScale: () => ({ applyOptions: () => {} }),
-  applyOptions: () => {},
-  resize: () => {},
-  remove: () => {},
-  subscribeClick: () => {},
-  subscribeCrosshairMove: () => {},
-  unsubscribeClick: () => {},
-  unsubscribeCrosshairMove: () => {},
-} as any;
+// Use unified mock system
+jest.mock('lightweight-charts', () => {
+  return require('../../test-utils/lightweightChartsMocks');
+});
 
 // Mock DOM elements
 const mockContainer = document.createElement('div');
@@ -37,7 +12,7 @@ const mockTooltip = document.createElement('div');
 
 describe('Tooltip Plugin', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    resetMocks();
     document.body.appendChild(mockContainer);
     document.body.appendChild(mockTooltip);
   });

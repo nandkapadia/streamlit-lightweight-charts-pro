@@ -1,104 +1,14 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import LightweightCharts from '../LightweightCharts';
-import { ComponentConfig } from '../types';
+import LightweightCharts from '../../LightweightCharts';
+import { ComponentConfig } from '../../types';
+import { resetMocks } from '../../test-utils/lightweightChartsMocks';
 
-// Mock the lightweight-charts library
-const mockChart = {
-  addCandlestickSeries: jest.fn(() => ({
-    setData: jest.fn(),
-    update: jest.fn(),
-    applyOptions: jest.fn(),
-    priceScale: jest.fn(() => ({ applyOptions: jest.fn() })),
-  })),
-  addLineSeries: jest.fn(() => ({
-    setData: jest.fn(),
-    update: jest.fn(),
-    applyOptions: jest.fn(),
-    priceScale: jest.fn(() => ({ applyOptions: jest.fn() })),
-  })),
-  addAreaSeries: jest.fn(() => ({
-    setData: jest.fn(),
-    update: jest.fn(),
-    applyOptions: jest.fn(),
-    priceScale: jest.fn(() => ({ applyOptions: jest.fn() })),
-  })),
-  addHistogramSeries: jest.fn(() => ({
-    setData: jest.fn(),
-    update: jest.fn(),
-    applyOptions: jest.fn(),
-    priceScale: jest.fn(() => ({ applyOptions: jest.fn() })),
-  })),
-  addBaselineSeries: jest.fn(() => ({
-    setData: jest.fn(),
-    update: jest.fn(),
-    applyOptions: jest.fn(),
-    priceScale: jest.fn(() => ({ applyOptions: jest.fn() })),
-  })),
-  addBandSeries: jest.fn(() => ({
-    setData: jest.fn(),
-    update: jest.fn(),
-    applyOptions: jest.fn(),
-    priceScale: jest.fn(() => ({ applyOptions: jest.fn() })),
-  })),
-  addSeries: jest.fn(() => ({
-    setData: jest.fn(),
-    update: jest.fn(),
-    applyOptions: jest.fn(),
-    priceScale: jest.fn(() => ({ applyOptions: jest.fn() })),
-    attachPrimitive: jest.fn(),
-    createPriceLine: jest.fn(),
-  })),
-  chartElement: {
-    id: 'mock-chart-element',
-    style: {},
-    getBoundingClientRect: jest.fn(() => ({
-      width: 800,
-      height: 400,
-      top: 0,
-      left: 0,
-      right: 800,
-      bottom: 400,
-    })),
-    appendChild: jest.fn(),
-    removeChild: jest.fn(),
-    querySelector: jest.fn(),
-    querySelectorAll: jest.fn(() => []),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-  },
-  setCrosshairPosition: jest.fn(),
-  panes: jest.fn(() => [
-    { id: 'pane-0', height: 200 },
-    { id: 'pane-1', height: 100 },
-  ]),
-  addPane: jest.fn(() => ({
-    id: 'pane-new',
-    height: 100,
-    attachPrimitive: jest.fn(),
-  })),
-  timeScale: jest.fn(() => ({
-    fitContent: jest.fn(),
-    scrollToPosition: jest.fn(),
-    scrollToTime: jest.fn(),
-    setVisibleRange: jest.fn(),
-    applyOptions: jest.fn(),
-    getVisibleRange: jest.fn(() => ({
-      from: 0,
-      to: 1000,
-    })),
-    subscribeVisibleTimeRangeChange: jest.fn(),
-  })),
-  priceScale: jest.fn(() => ({ applyOptions: jest.fn() })),
-  applyOptions: jest.fn(),
-  resize: jest.fn(),
-  remove: jest.fn(),
-  subscribeClick: jest.fn(),
-  subscribeCrosshairMove: jest.fn(),
-  unsubscribeClick: jest.fn(),
-  unsubscribeCrosshairMove: jest.fn(),
-};
+// Use unified mock system
+jest.mock('lightweight-charts', () => {
+  return require('../../test-utils/lightweightChartsMocks');
+});
 
 // Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(callback => ({
@@ -191,7 +101,7 @@ Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
 
 describe('Frontend Integration Tests', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    resetMocks();
   });
 
   describe('Complete Chart Workflow', () => {

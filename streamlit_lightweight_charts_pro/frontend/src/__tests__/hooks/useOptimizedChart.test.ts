@@ -1,33 +1,15 @@
 import { renderHook, act } from '@testing-library/react';
-import { useOptimizedChart } from '../useOptimizedChart';
+import { useOptimizedChart } from '../../hooks/useOptimizedChart';
+import { resetMocks } from '../../test-utils/lightweightChartsMocks';
 
-// Simple mock for lightweight-charts
-jest.mock('lightweight-charts', () => ({
-  createChart: jest.fn(() => ({
-    addSeries: jest.fn(() => ({
-      setData: jest.fn(),
-      update: jest.fn(),
-      applyOptions: jest.fn(),
-      priceScale: jest.fn(() => ({
-        applyOptions: jest.fn(),
-      })),
-    })),
-    remove: jest.fn(),
-    resize: jest.fn(),
-    applyOptions: jest.fn(),
-    unsubscribeCrosshairMove: jest.fn(),
-  })),
-  CandlestickSeries: 'CandlestickSeries',
-  LineSeries: 'LineSeries',
-  AreaSeries: 'AreaSeries',
-  HistogramSeries: 'HistogramSeries',
-  BarSeries: 'BarSeries',
-  BaselineSeries: 'BaselineSeries',
-}));
+// Use unified mock system
+jest.mock('lightweight-charts', () => {
+  return require('../../test-utils/lightweightChartsMocks');
+});
 
 describe('useOptimizedChart', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    resetMocks();
   });
 
   it('should initialize with default values', () => {

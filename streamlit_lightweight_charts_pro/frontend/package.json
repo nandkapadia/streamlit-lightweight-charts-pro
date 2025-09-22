@@ -47,6 +47,13 @@
     "analyze:size": "npx webpack-bundle-analyzer build/static/js/*.js --mode=static --report-filename=bundle-report.html",
     "build:optimized": "GENERATE_SOURCEMAP=false NODE_ENV=production craco build",
     "test": "react-scripts test --watch --testLocationInResults",
+    "test:all": "react-scripts test --watchAll=false --verbose --testLocationInResults",
+    "test:unit": "react-scripts test --watchAll=false --testPathPattern=\"src/__tests__/(unit|utils|hooks)\" --verbose",
+    "test:components": "react-scripts test --watchAll=false --testPathPattern=\"src/__tests__/components\" --verbose",
+    "test:plugins": "react-scripts test --watchAll=false --testPathPattern=\"src/__tests__/plugins\" --verbose",
+    "test:integration": "react-scripts test --watchAll=false --testPathPattern=\"src/__tests__/integration\" --verbose",
+    "test:coverage": "react-scripts test --watchAll=false --coverage --verbose",
+    "test:ci": "react-scripts test --watchAll=false --coverage --verbose --testResultsProcessor=jest-sonar-reporter",
     "eject": "react-scripts eject",
     "type-check": "tsc --noEmit",
     "type-check:strict": "tsc --project tsconfig.strict.json --noEmit",
@@ -72,6 +79,13 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
+    ]
+  },
+  "jest": {
+    "testMatch": [
+      "<rootDir>/src/**/__tests__/**/*.test.(js|jsx|ts|tsx)",
+      "<rootDir>/src/**/*.test.(js|jsx|ts|tsx)",
+      "<rootDir>/src/**/*.spec.(js|jsx|ts|tsx)"
     ]
   },
   "homepage": "."

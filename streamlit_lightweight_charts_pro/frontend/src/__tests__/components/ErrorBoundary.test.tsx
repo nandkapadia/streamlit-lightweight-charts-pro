@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ErrorBoundary } from '../ErrorBoundary';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 // Mock console methods
 // const originalConsole = { ...console };
@@ -135,7 +135,7 @@ describe('ErrorBoundary Component', () => {
   });
 
   describe('Error Recovery', () => {
-    it('should recover when error is resolved', () => {
+    it('should recover when Try Again is clicked', () => {
       const { rerender } = render(
         <ErrorBoundary>
           <ThrowError shouldThrow={true} />
@@ -144,7 +144,11 @@ describe('ErrorBoundary Component', () => {
 
       expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
 
-      // Re-render without error
+      // Click Try Again to reset error state
+      const tryAgainButton = screen.getByText('Try Again');
+      tryAgainButton.click();
+
+      // After clicking Try Again, re-render with non-throwing children
       rerender(
         <ErrorBoundary>
           <ThrowError shouldThrow={false} />
@@ -155,17 +159,8 @@ describe('ErrorBoundary Component', () => {
       expect(screen.queryByText(/Something went wrong/i)).not.toBeInTheDocument();
     });
 
-    it('should handle multiple error-recovery cycles', () => {
+    it('should show error state persists until Try Again is clicked', () => {
       const { rerender } = render(
-        <ErrorBoundary>
-          <ThrowError shouldThrow={false} />
-        </ErrorBoundary>
-      );
-
-      expect(screen.getByText('Normal component')).toBeInTheDocument();
-
-      // Throw error
-      rerender(
         <ErrorBoundary>
           <ThrowError shouldThrow={true} />
         </ErrorBoundary>
@@ -173,14 +168,16 @@ describe('ErrorBoundary Component', () => {
 
       expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
 
-      // Recover
+      // Re-render with non-throwing children, but error state should persist
       rerender(
         <ErrorBoundary>
           <ThrowError shouldThrow={false} />
         </ErrorBoundary>
       );
 
-      expect(screen.getByText('Normal component')).toBeInTheDocument();
+      // Error boundary still shows error state until Try Again is clicked
+      expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+      expect(screen.queryByText('Normal component')).not.toBeInTheDocument();
     });
   });
 
@@ -272,51 +269,76 @@ describe('ErrorBoundary Component', () => {
         </ErrorBoundary>
       );
 
-      // Rapidly toggle between error and normal states
-      for (let i = 0; i < 10; i++) {
-        rerender(
-          <ErrorBoundary>
-            <ThrowError shouldThrow={i % 2 === 0} />
-          </ErrorBoundary>
-        );
-      }
+      expect(screen.getByText('Normal component')).toBeInTheDocument();
 
-      // Should still work correctly
+      // Trigger an error
+      rerender(
+        <ErrorBoundary>
+          <ThrowError shouldThrow={true} />
+        </ErrorBoundary>
+      );
+
+      expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+
+      // Reset error state with button click
+      const tryAgainButton = screen.getByText('Try Again');
+      tryAgainButton.click();
+
+      // Re-render with non-throwing component after clicking Try Again
+      rerender(
+        <ErrorBoundary>
+          <ThrowError shouldThrow={false} />
+        </ErrorBoundary>
+      );
+
+      // Now should render without error
       expect(screen.getByText('Normal component')).toBeInTheDocument();
     });
   });
 
   describe('Edge Cases', () => {
-    it('should handle null children', () => {
-      render(<ErrorBoundary>{null}</ErrorBoundary>);
-      expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+    it('should handle null children gracefully', () => {
+      const { container } = render(<ErrorBoundary>{null}</ErrorBoundary>);
+      // Null children render as empty, no error should be triggered
+      expect(container).toBeInTheDocument();
+      expect(screen.queryByText(/Something went wrong/i)).not.toBeInTheDocument();
     });
 
-    it('should handle undefined children', () => {
-      render(<ErrorBoundary>{undefined}</ErrorBoundary>);
-      expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+    it('should handle undefined children gracefully', () => {
+      const { container } = render(<ErrorBoundary>{undefined}</ErrorBoundary>);
+      // Undefined children render as empty, no error should be triggered
+      expect(container).toBeInTheDocument();
+      expect(screen.queryByText(/Something went wrong/i)).not.toBeInTheDocument();
     });
 
-    it('should handle empty children', () => {
-      render(<ErrorBoundary>{}</ErrorBoundary>);
-      expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+    it('should handle empty children gracefully', () => {
+      const { container } = render(<ErrorBoundary></ErrorBoundary>);
+      // Empty children render as empty, no error should be triggered
+      expect(container).toBeInTheDocument();
+      expect(screen.queryByText(/Something went wrong/i)).not.toBeInTheDocument();
     });
 
-    it('should handle children that return null', () => {
+    it('should handle components that return null', () => {
       const NullComponent = () => null;
 
-      render(
+      const { container } = render(
         <ErrorBoundary>
           <NullComponent />
         </ErrorBoundary>
       );
 
-      expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+      // Components returning null render as empty, no error should be triggered
+      expect(container).toBeInTheDocument();
+      expect(screen.queryByText(/Something went wrong/i)).not.toBeInTheDocument();
     });
 
-    it('should handle async errors', async () => {
+    it('should catch errors thrown in useEffect during render', () => {
+      // Suppress console errors for this test
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
       const AsyncErrorComponent = () => {
         React.useEffect(() => {
+          // This error WILL be caught by ErrorBoundary in React 18+
           throw new Error('Async error');
         }, []);
         return <div>Async component</div>;
@@ -328,8 +350,11 @@ describe('ErrorBoundary Component', () => {
         </ErrorBoundary>
       );
 
-      // Should initially render the component
-      expect(screen.getByText('Async component')).toBeInTheDocument();
+      // Error boundary should catch and display error
+      expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+      expect(screen.queryByText('Async component')).not.toBeInTheDocument();
+
+      consoleSpy.mockRestore();
     });
   });
 });

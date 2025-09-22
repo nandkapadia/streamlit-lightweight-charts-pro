@@ -2,7 +2,7 @@ import {
   perfLogFn as perfLog,
   getCachedDOMElementForTesting as getCachedDOMElement,
   createOptimizedStyles,
-} from '../performance';
+} from '../../utils/performance';
 
 // Mock performance API
 Object.defineProperty(window, 'performance', {

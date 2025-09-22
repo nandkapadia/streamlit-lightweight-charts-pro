@@ -1,92 +1,13 @@
-import { RectangleOverlayPlugin } from '../plugins/overlay/rectanglePlugin';
-import { SignalSeries } from '../plugins/series/signalSeriesPlugin';
-import { createTradeVisualElements } from '../services/tradeVisualization';
-import { createAnnotationVisualElements } from '../services/annotationSystem';
+import { RectangleOverlayPlugin } from '../../plugins/overlay/rectanglePlugin';
+import { SignalSeries } from '../../plugins/series/signalSeriesPlugin';
+import { createTradeVisualElements } from '../../services/tradeVisualization';
+import { createAnnotationVisualElements } from '../../services/annotationSystem';
+import { resetMocks, mockChart } from '../../test-utils/lightweightChartsMocks';
 
-// Mock the lightweight-charts library
-const mockChart = {
-  addCandlestickSeries: () => ({
-    setData: () => {},
-    update: () => {},
-    applyOptions: () => {},
-    priceScale: () => ({ applyOptions: () => {} }),
-  }),
-  addLineSeries: () => ({
-    setData: () => {},
-    update: () => {},
-    applyOptions: () => {},
-    priceScale: () => ({ applyOptions: () => {} }),
-  }),
-  addCustomSeries: () => ({
-    setData: () => {},
-    update: () => {},
-    applyOptions: () => {},
-    priceScale: () => ({ applyOptions: () => {} }),
-  }),
-  removeSeries: () => {},
-  timeScale: jest.fn(() => ({
-    fitContent: () => {},
-    scrollToPosition: () => {},
-    scrollToTime: () => {},
-    setVisibleRange: () => {},
-    applyOptions: () => {},
-    subscribeVisibleTimeRangeChange: jest.fn(),
-  })),
-  chartElement: {
-    width: 800,
-    height: 600,
-    style: {
-      position: 'relative',
-      width: '800px',
-      height: '600px',
-    },
-    getBoundingClientRect: () => ({
-      width: 800,
-      height: 600,
-      top: 0,
-      left: 0,
-      right: 800,
-      bottom: 600,
-    }),
-    appendChild: jest.fn(),
-    removeChild: jest.fn(),
-    querySelector: jest.fn(),
-    querySelectorAll: jest.fn(() => []),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-  },
-  addPane: () => ({
-    id: 'pane-1',
-    height: 100,
-  }),
-  panes: () => [
-    { id: 'pane-0', height: 200 },
-    { id: 'pane-1', height: 100 },
-  ],
-  addSeries: () => ({
-    setData: () => {},
-    update: () => {},
-    applyOptions: () => {},
-    priceScale: () => ({ applyOptions: () => {} }),
-    attachPrimitive: () => {},
-  }),
-  priceScale: () => ({ applyOptions: () => {} }),
-  applyOptions: () => {},
-  resize: () => {},
-  remove: () => {},
-  subscribeClick: () => {},
-  subscribeCrosshairMove: () => {},
-  subscribeDblClick: () => {},
-  unsubscribeClick: () => {},
-  unsubscribeCrosshairMove: () => {},
-  unsubscribeDblClick: () => {},
-  subscribeVisibleTimeRangeChange: () => {},
-  unsubscribeVisibleTimeRangeChange: () => {},
-  subscribeVisiblePriceRangeChange: () => {},
-  unsubscribeVisiblePriceRangeChange: () => {},
-  subscribeCrosshairMoved: () => {},
-  unsubscribeCrosshairMoved: () => {},
-} as any;
+// Use unified mock system
+jest.mock('lightweight-charts', () => {
+  return require('../../test-utils/lightweightChartsMocks');
+});
 
 // Mock HTMLCanvasElement and CanvasRenderingContext2D
 const mockCanvas = {
@@ -142,7 +63,7 @@ document.createElement = jest.fn(tagName => {
 
 describe('Chart Plugins', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    resetMocks();
   });
 
   describe('RectangleOverlayPlugin', () => {

@@ -57,7 +57,7 @@ jest.mock('streamlit-component-lib-react-hooks', () => ({
   StreamlitProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-jest.mock('../LightweightCharts', () => {
+jest.mock('../../LightweightCharts', () => {
   return function MockLightweightCharts({ config, height, width, onChartsReady }: any) {
     // Automatically call onChartsReady when component mounts
     const { useEffect } = require('react');
@@ -139,7 +139,7 @@ describe('Index Component', () => {
 
   describe('Component Rendering', () => {
     it('should render the main app component', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
 
       // Ensure the mock is properly applied
       const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
@@ -191,7 +191,7 @@ describe('Index Component', () => {
     });
 
     it('should render with default configuration', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
 
       // Ensure the mock is properly applied
       const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
@@ -244,7 +244,7 @@ describe('Index Component', () => {
     });
 
     it('should render with custom height and width', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
 
       // Mock useRenderData to return custom dimensions
       const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
@@ -298,7 +298,7 @@ describe('Index Component', () => {
 
   describe('Component Initialization', () => {
     it('should set component ready state', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
       const { Streamlit } = require('streamlit-component-lib');
 
       // Ensure the mock is properly applied
@@ -353,7 +353,7 @@ describe('Index Component', () => {
     });
 
     it('should handle component ready errors gracefully', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
       const { Streamlit } = require('streamlit-component-lib');
 
       // Mock setComponentReady to throw error
@@ -413,7 +413,7 @@ describe('Index Component', () => {
 
   describe('Frame Height Management', () => {
     it('should set frame height when charts are ready', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
       const { Streamlit } = require('streamlit-component-lib');
 
       // Ensure the mock is properly applied
@@ -464,6 +464,9 @@ describe('Index Component', () => {
       const chartsReadyBtn = screen.getByTestId('charts-ready-btn');
       chartsReadyBtn.click();
 
+      // Advance timers to trigger height reporting (component has 1000ms delay)
+      jest.advanceTimersByTime(1500);
+
       // Wait for frame height to be set
       await waitFor(() => {
         expect(Streamlit.setFrameHeight).toHaveBeenCalled();
@@ -471,7 +474,7 @@ describe('Index Component', () => {
     });
 
     it('should handle frame height errors gracefully', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
       const { Streamlit } = require('streamlit-component-lib');
 
       // Mock setFrameHeight to throw error
@@ -532,7 +535,7 @@ describe('Index Component', () => {
     });
 
     it('should calculate correct frame height', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
       const { Streamlit } = require('streamlit-component-lib');
 
       // Ensure the mock is properly applied
@@ -583,15 +586,19 @@ describe('Index Component', () => {
       const chartsReadyBtn = screen.getByTestId('charts-ready-btn');
       chartsReadyBtn.click();
 
+      // Advance timers to trigger height reporting
+      jest.advanceTimersByTime(1500);
+
       await waitFor(() => {
-        expect(Streamlit.setFrameHeight).toHaveBeenCalledWith(600); // No padding needed
+        // Component should report the higher of scrollHeight (600) or chartHeight (400)
+        expect(Streamlit.setFrameHeight).toHaveBeenCalledWith(600);
       });
     });
   });
 
   describe('Resize Handling', () => {
     it('should handle window resize events', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
       const { Streamlit } = require('streamlit-component-lib');
 
       // Ensure the mock is properly applied
@@ -639,8 +646,15 @@ describe('Index Component', () => {
 
       render(<App />);
 
+      // First make sure charts are ready
+      const chartsReadyBtn = screen.getByTestId('charts-ready-btn');
+      chartsReadyBtn.click();
+
       // Simulate window resize
       window.dispatchEvent(new Event('resize'));
+
+      // Advance timers to trigger height reporting (component has 1000ms delay)
+      jest.advanceTimersByTime(1500);
 
       // Wait for resize handling
       await waitFor(() => {
@@ -649,7 +663,7 @@ describe('Index Component', () => {
     });
 
     it('should debounce resize events', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
       const { Streamlit } = require('streamlit-component-lib');
 
       // Ensure the mock is properly applied
@@ -697,13 +711,17 @@ describe('Index Component', () => {
 
       render(<App />);
 
+      // First make sure charts are ready
+      const chartsReadyBtn = screen.getByTestId('charts-ready-btn');
+      chartsReadyBtn.click();
+
       // Trigger multiple resize events
       window.dispatchEvent(new Event('resize'));
       window.dispatchEvent(new Event('resize'));
       window.dispatchEvent(new Event('resize'));
 
-      // Fast-forward timers
-      jest.advanceTimersByTime(100);
+      // Fast-forward timers to trigger debounced height reporting
+      jest.advanceTimersByTime(1500);
 
       await waitFor(() => {
         expect(Streamlit.setFrameHeight).toHaveBeenCalled();
@@ -713,7 +731,7 @@ describe('Index Component', () => {
 
   describe('Error Handling', () => {
     it('should handle missing config gracefully', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
 
       // Mock useRenderData to return missing config
       const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
@@ -741,7 +759,7 @@ describe('Index Component', () => {
     });
 
     it('should handle disabled state', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
 
       // Mock useRenderData to return disabled state
       const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
@@ -778,7 +796,7 @@ describe('Index Component', () => {
 
   describe('Theme Integration', () => {
     it('should pass theme to chart component', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
 
       const customTheme = {
         base: 'dark',
@@ -833,7 +851,7 @@ describe('Index Component', () => {
 
   describe('Performance', () => {
     it('should handle large configurations efficiently', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
 
       const largeConfig = {
         charts: Array.from({ length: 10 }, (_, i) => ({
@@ -892,7 +910,7 @@ describe('Index Component', () => {
 
   describe('Cleanup', () => {
     it('should cleanup on unmount', async () => {
-      const { default: App } = await import('../index');
+      const { default: App } = await import('../../index');
       const { unmount } = render(<App />);
 
       unmount();
