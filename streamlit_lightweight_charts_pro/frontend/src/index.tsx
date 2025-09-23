@@ -280,11 +280,26 @@ const App: React.FC = () => {
 // Export App component for testing
 export default App;
 
-ReactDOM.render(
-  <React.StrictMode>
-    <StreamlitProvider>
-      <App />
-    </StreamlitProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+// Render the app with proper DOM ready check
+function renderApp() {
+  const rootElement = document.getElementById('root');
+  if (rootElement) {
+    ReactDOM.render(
+      <React.StrictMode>
+        <StreamlitProvider>
+          <App />
+        </StreamlitProvider>
+      </React.StrictMode>,
+      rootElement
+    );
+  } else {
+    console.error('Root element not found');
+  }
+}
+
+// Ensure DOM is ready before rendering
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderApp);
+} else {
+  renderApp();
+}
