@@ -1073,10 +1073,10 @@ class Chart:
             except AttributeError as e:
                 if isinstance(self.options.right_price_scale, bool):
                     raise TypeError(
-                        f"right_price_scale must be a PriceScaleOptions object, not a boolean. "
-                        f"To enable the right price scale, use: "
-                        f"right_price_scale=PriceScaleOptions(visible=True) or remove the parameter "
-                        f"(it's enabled by default)."
+                        "right_price_scale must be a PriceScaleOptions object, not a boolean. "
+                        "To enable the right price scale, use: "
+                        "right_price_scale=PriceScaleOptions(visible=True) or remove the parameter "
+                        "(it's enabled by default)."
                     ) from e
                 else:
                     raise TypeError(
@@ -1096,9 +1096,9 @@ class Chart:
             except AttributeError as e:
                 if isinstance(self.options.left_price_scale, bool):
                     raise TypeError(
-                        f"left_price_scale must be a PriceScaleOptions object, not a boolean. "
-                        f"To enable the left price scale, use: "
-                        f"left_price_scale=PriceScaleOptions(visible=True)"
+                        "left_price_scale must be a PriceScaleOptions object, not a boolean. "
+                        "To enable the left price scale, use: "
+                        "left_price_scale=PriceScaleOptions(visible=True)"
                     ) from e
                 else:
                     raise TypeError(
