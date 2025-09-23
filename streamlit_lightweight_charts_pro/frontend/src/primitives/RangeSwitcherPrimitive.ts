@@ -14,7 +14,7 @@ import { PrimitiveStylingUtils, BaseStyleConfig } from './PrimitiveStylingUtils'
 /**
  * Predefined time range values for easy configuration
  */
-/* eslint-disable no-unused-vars */
+
 export enum TimeRange {
   FIVE_MINUTES = 'FIVE_MINUTES',
   FIFTEEN_MINUTES = 'FIFTEEN_MINUTES',
@@ -32,7 +32,6 @@ export enum TimeRange {
   FIVE_YEARS = 'FIVE_YEARS',
   ALL = 'ALL',
 }
-/* eslint-enable no-unused-vars */
 
 /**
  * Range configuration for time switching
@@ -514,13 +513,18 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
   private getDataTimespan(): number | null {
     if (!this.chart) return null;
 
+    // Return cached value if available
+    if (this.dataTimespan !== null) {
+      return this.dataTimespan;
+    }
+
     try {
       const timeScale = this.chart.timeScale();
 
       // Store current visible range to restore it later
       const currentRange = timeScale.getVisibleRange();
 
-      // Always use fitContent to get the full data range for button visibility decisions
+      // Use fitContent to get the full data range for button visibility decisions
       // This ensures buttons are hidden based on total data availability, not current zoom level
       timeScale.fitContent();
       const fullRange = timeScale.getVisibleRange();
@@ -572,7 +576,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     return rangeSeconds <= dataTimespan * bufferMultiplier;
   }
 
-
   /**
    * Get CSS class name for the container
    */
@@ -619,7 +622,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     });
     this.eventSubscriptions.push(dataUpdateSub);
   }
-
 
   /**
    * Handle data updates that might affect range visibility

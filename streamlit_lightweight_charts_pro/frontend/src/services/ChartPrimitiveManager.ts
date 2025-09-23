@@ -197,7 +197,9 @@ export class ChartPrimitiveManager {
           pane.detachPrimitive(primitive);
         });
         this.primitives.delete(primitiveId);
-      } catch (error) {}
+      } catch (error) {
+        console.error('Chart primitive manager operation failed:', error);
+      }
     }
   }
 
@@ -232,7 +234,9 @@ export class ChartPrimitiveManager {
         panes.forEach(pane => {
           pane.detachPrimitive(primitive);
         });
-      } catch (error) {}
+      } catch (error) {
+        console.error('Chart primitive manager operation failed:', error);
+      }
     }
 
     // Clear references

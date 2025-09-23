@@ -8,9 +8,11 @@ import { configure } from '@testing-library/react';
 
 // Add polyfills for Node.js environment
 if (typeof TextEncoder === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   global.TextEncoder = require('util').TextEncoder;
 }
 if (typeof TextDecoder === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   global.TextDecoder = require('util').TextDecoder;
 }
 
@@ -292,7 +294,7 @@ Object.defineProperty(document, 'execCommand', {
 
 // Override global appendChild to handle testing library issues
 const originalAppendChild = Element.prototype.appendChild;
-Element.prototype.appendChild = function(child: any) {
+Element.prototype.appendChild = function (child: any) {
   try {
     if (child && typeof child === 'object' && (child.nodeType || child instanceof Node)) {
       return originalAppendChild.call(this, child);
@@ -322,10 +324,7 @@ const originalError = console.error;
 beforeAll(() => {
   // eslint-disable-next-line no-console
   console.error = (...args: any[]) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOMTestUtils.act')
-    ) {
+    if (typeof args[0] === 'string' && args[0].includes('Warning: ReactDOMTestUtils.act')) {
       return;
     }
     originalError.call(console, ...args);

@@ -1,0 +1,194 @@
+---
+globs: *.py
+---
+
+# Python Coding Standards
+
+## ⚙️ Code Style Configuration
+
+```python
+# Line length: 100 characters max
+# Formatter: Ruff (configured in ruff.toml)
+# Style: PEP 8 compliant with project customizations
+```
+
+## 📝 Import Standards
+
+```python
+# Order: future → stdlib → third-party → first-party → local
+from __future__ import annotations  # Future imports first
+import json                         # Standard library
+from typing import List, Optional   # Standard library typing
+
+import pandas as pd                 # Third-party
+import streamlit as st              # Third-party
+
+from streamlit_lightweight_charts_pro import Chart  # First-party
+from .local_module import helper    # Local/relative imports last
+```
+
+## 🎯 Type Hints Requirements
+
+```python
+# ALWAYS include type hints for:
+def process_data(
+    data: List[SingleValueData],      # Input parameters
+    color: str = "#2196F3"            # Default values
+) -> Chart:                          # Return types
+    """Process data and return chart."""
+
+# Use Optional for nullable types
+def get_value(key: str) -> Optional[float]:
+    """Return value or None."""
+
+# Use Union for multiple types
+from typing import Union
+SeriesData = Union[SingleValueData, OhlcData, OhlcvData]
+```
+
+## 📚 Docstring Format (Google Style)
+
+```python
+def create_chart(
+    series: Series,
+    options: Optional[ChartOptions] = None,
+    key: str = "chart"
+) -> Chart:
+    """Create a chart with the specified series and options.
+
+    This function creates a Chart instance with the provided series
+    and optional configuration. It supports method chaining for
+    additional customization.
+
+    Args:
+        series: The chart series to display (Line, Candlestick, etc.)
+        options: Optional chart configuration options
+        key: Unique key for Streamlit component (default: "chart")
+
+    Returns:
+        Chart: Configured chart instance ready for rendering
+
+    Raises:
+        ValueError: If series data is empty or invalid
+        TypeError: If series is not a valid Series instance
+
+    Example:
+        >>> data = [SingleValueData("2024-01-01", 100)]
+        >>> chart = create_chart(LineSeries(data))
+        >>> chart.render(key="my_chart")
+
+    Note:
+        The chart must be rendered with a unique key in Streamlit.
+    """
+```
+
+## 🔗 Fluent API Pattern
+
+```python
+class Chart:
+    """Chart class with fluent API support."""
+
+    def add_series(self, series: Series) -> "Chart":
+        """Add series and return self for chaining."""
+        self._series.append(series)
+        return self  # ALWAYS return self for chaining
+
+    def update_options(self, **kwargs) -> "Chart":
+        """Update options and return self for chaining."""
+        self._options.update(kwargs)
+        return self  # Enable method chaining
+```
+
+## ⚠️ Error Handling
+
+```python
+# Use specific exceptions with clear messages
+if not data:
+    raise ValueError(f"Data cannot be empty for {self.__class__.__name__}")
+
+# Provide context in error messages
+try:
+    series = create_series(data)
+except Exception as e:
+    raise ValueError(f"Failed to create series from data: {e}") from e
+
+# NEVER use bare except
+# BAD:  except:
+# GOOD: except (ValueError, TypeError) as e:
+```
+
+## 🧪 Testing Requirements
+
+```python
+# Test file naming: test_<module>.py
+# Test function naming: test_<functionality>_<scenario>
+
+@pytest.mark.unit  # Mark test category
+def test_chart_creation_with_valid_data(sample_data):
+    """Test chart creation with valid data."""
+    # Arrange
+    series = LineSeries(sample_data)
+
+    # Act
+    chart = Chart(series=series)
+
+    # Assert
+    assert chart is not None
+    assert chart.series[0] == series
+
+# Use parametrize for multiple scenarios
+@pytest.mark.parametrize("color,expected", [
+    ("#ff0000", "#ff0000"),
+    ("red", "#ff0000"),
+    (None, "#2196F3"),  # Default
+])
+def test_color_conversion(color, expected):
+    """Test color conversion and defaults."""
+    result = convert_color(color)
+    assert result == expected
+```
+
+## 🚀 Performance Best Practices
+
+```python
+# Use generators for large datasets
+def process_large_dataset(data: List[float]) -> Iterator[float]:
+    """Process data lazily."""
+    for value in data:
+        yield value * 2
+
+# Cache expensive operations
+from functools import lru_cache
+
+@lru_cache(maxsize=128)
+def expensive_calculation(param: str) -> float:
+    """Cache results of expensive calculations."""
+    return complex_operation(param)
+
+# Use slots for memory efficiency
+class DataPoint:
+    __slots__ = ['time', 'value']  # Reduce memory overhead
+
+    def __init__(self, time: str, value: float):
+        self.time = time
+        self.value = value
+```
+
+## 🔒 Security & Validation
+
+```python
+# Validate inputs early
+def set_height(self, height: int) -> "Chart":
+    """Set chart height with validation."""
+    if not isinstance(height, int):
+        raise TypeError(f"Height must be int, got {type(height)}")
+    if not 100 <= height <= 2000:
+        raise ValueError(f"Height must be between 100-2000, got {height}")
+    self._height = height
+    return self
+
+# Sanitize user inputs
+def sanitize_label(label: str) -> str:
+    """Sanitize user-provided labels."""
+    return label.strip()[:100]  # Limit length and strip whitespace
+```

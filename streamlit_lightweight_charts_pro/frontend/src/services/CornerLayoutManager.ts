@@ -424,12 +424,7 @@ export class CornerLayoutManager {
       const rightEdge = left + dimensions.width;
       const bottomEdge = top + dimensions.height;
 
-      if (
-        rightEdge > containerWidth ||
-        bottomEdge > containerHeight ||
-        left < 0 ||
-        top < 0
-      ) {
+      if (rightEdge > containerWidth || bottomEdge > containerHeight || left < 0 || top < 0) {
         overflowingWidgets.push(widget);
       }
     });

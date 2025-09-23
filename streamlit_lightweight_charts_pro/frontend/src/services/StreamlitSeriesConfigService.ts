@@ -201,6 +201,7 @@ export class StreamlitSeriesConfigService {
       if (typeof Streamlit !== 'undefined' && Streamlit.setComponentValue) {
         Streamlit.setComponentValue(payload);
       } else {
+        console.warn('Streamlit not available - series configuration not synced to backend');
       }
 
       // Clear pending changes after successful sync
@@ -229,7 +230,9 @@ export class StreamlitSeriesConfigService {
           });
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Streamlit series config operation failed:', error);
+    }
   }
 
   /**

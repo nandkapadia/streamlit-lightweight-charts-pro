@@ -270,11 +270,12 @@ export class SeriesConfigurationService {
   private validateFieldValue(field: ConfigField, value: any): any {
     switch (field.type) {
       case 'number':
-      case 'range':
+      case 'range': {
         const numValue = Number(value);
         if (field.min !== undefined && numValue < field.min) return field.min;
         if (field.max !== undefined && numValue > field.max) return field.max;
         return numValue;
+      }
 
       case 'checkbox':
         return Boolean(value);
@@ -292,9 +293,10 @@ export class SeriesConfigurationService {
         }
         return field.defaultValue;
 
-      case 'opacity':
+      case 'opacity': {
         const opacityValue = Number(value);
         return Math.max(0, Math.min(100, opacityValue));
+      }
 
       default:
         return value;
@@ -510,7 +512,9 @@ export class SeriesConfigurationService {
     this.changeHandlers.forEach(handler => {
       try {
         handler(seriesId, seriesType, config);
-      } catch (error) {}
+      } catch (error) {
+        console.error('Series configuration operation failed:', error);
+      }
     });
   }
 
@@ -555,13 +559,17 @@ class LocalStorageAdapter implements ConfigStorage {
   set(key: string, config: SeriesConfiguration): void {
     try {
       localStorage.setItem(this.prefix + key, JSON.stringify(config));
-    } catch (error) {}
+    } catch (error) {
+      console.error('Series configuration operation failed:', error);
+    }
   }
 
   remove(key: string): void {
     try {
       localStorage.removeItem(this.prefix + key);
-    } catch (error) {}
+    } catch (error) {
+      console.error('Series configuration operation failed:', error);
+    }
   }
 
   clear(): void {
@@ -569,7 +577,9 @@ class LocalStorageAdapter implements ConfigStorage {
       Object.keys(localStorage)
         .filter(key => key.startsWith(this.prefix))
         .forEach(key => localStorage.removeItem(key));
-    } catch (error) {}
+    } catch (error) {
+      console.error('Series configuration operation failed:', error);
+    }
   }
 }
 
@@ -589,7 +599,6 @@ export class SeriesConfigDialogManager {
    */
   public openDialog(seriesId: string, seriesType: SeriesType, anchor: HTMLElement): void {
     this.closeDialog(); // Close any existing dialog
-
 
     this.currentDialog = this.createDialog(seriesId, seriesType);
     this.positionDialog(this.currentDialog, anchor);
@@ -770,7 +779,7 @@ export class SeriesConfigDialogManager {
           </div>
         `;
 
-      case 'select':
+      case 'select': {
         const options = field.options || [];
         const optionsHTML = options
           .map(
@@ -784,6 +793,7 @@ export class SeriesConfigDialogManager {
             <select id="${field.id}">${optionsHTML}</select>
           </div>
         `;
+      }
 
       default:
         return `

@@ -45,18 +45,18 @@ describe('lightweightChartsUtils', () => {
     });
 
     it('should handle hexadecimal strings', () => {
-      expect(asLineStyle('0x10')).toBe(0);  // parseInt('0x10', 10) = 0 (not 16, because base 10)
-      expect(asLineStyle('0xFF')).toBe(0);  // parseInt('0xFF', 10) = 0 (not 255, because base 10)
+      expect(asLineStyle('0x10')).toBe(0); // parseInt('0x10', 10) = 0 (not 16, because base 10)
+      expect(asLineStyle('0xFF')).toBe(0); // parseInt('0xFF', 10) = 0 (not 255, because base 10)
     });
 
     it('should handle invalid strings gracefully', () => {
       expect(asLineStyle('invalid')).toBeNaN();
-      expect(asLineStyle('')).toBeNaN();  // parseInt('', 10) = NaN
+      expect(asLineStyle('')).toBeNaN(); // parseInt('', 10) = NaN
       expect(asLineStyle('abc')).toBeNaN();
     });
 
     it('should handle edge cases', () => {
-      expect(asLineStyle('Infinity')).toBeNaN();  // parseInt('Infinity', 10) = NaN
+      expect(asLineStyle('Infinity')).toBeNaN(); // parseInt('Infinity', 10) = NaN
       expect(asLineStyle('-Infinity')).toBeNaN(); // parseInt('-Infinity', 10) = NaN
     });
   });

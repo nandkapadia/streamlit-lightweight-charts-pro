@@ -17,7 +17,7 @@ export function lazyComponent<T extends ComponentType<any>>(
       // Failed to load component - use fallback instead
       // Return a fallback component on error
       return {
-        default: fallback || ((): any => null) as any as T,
+        default: fallback || (((): any => null) as any as T),
       };
     })
   );

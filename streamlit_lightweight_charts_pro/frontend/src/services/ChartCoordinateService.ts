@@ -558,47 +558,43 @@ export class ChartCoordinateService {
     timeScale: { x: number; y: number; width: number; height: number };
     priceScale: { x: number; y: number; width: number; height: number };
   } {
+    // Get time scale dimensions
+    let timeScaleHeight = 35;
+    let timeScaleWidth = chartSize.width;
+
     try {
-      // Get time scale dimensions
-      let timeScaleHeight = 35;
-      let timeScaleWidth = chartSize.width;
-
-      try {
-        const timeScale = chart.timeScale();
-        timeScaleHeight = timeScale.height() || 35;
-        timeScaleWidth = timeScale.width() || chartSize.width;
-      } catch (error) {
-        // Time scale API failed, using defaults
-      }
-
-      // Get price scale width
-      let priceScaleWidth = 70;
-
-      try {
-        const priceScale = chart.priceScale('left');
-        priceScaleWidth = priceScale.width() || 70;
-      } catch (error) {
-        // Price scale API failed, using defaults
-      }
-
-      return {
-        timeScale: {
-          x: 0,
-          y: chartSize.height - timeScaleHeight,
-          height: timeScaleHeight,
-          width: timeScaleWidth,
-        },
-        priceScale: {
-          x: 0,
-          y: 0,
-          height: chartSize.height - timeScaleHeight,
-          width: priceScaleWidth,
-        },
-        container: chartSize,
-      };
+      const timeScale = chart.timeScale();
+      timeScaleHeight = timeScale.height() || 35;
+      timeScaleWidth = timeScale.width() || chartSize.width;
     } catch (error) {
-      throw error;
+      // Time scale API failed, using defaults
     }
+
+    // Get price scale width
+    let priceScaleWidth = 70;
+
+    try {
+      const priceScale = chart.priceScale('left');
+      priceScaleWidth = priceScale.width() || 70;
+    } catch (error) {
+      // Price scale API failed, using defaults
+    }
+
+    return {
+      timeScale: {
+        x: 0,
+        y: chartSize.height - timeScaleHeight,
+        height: timeScaleHeight,
+        width: timeScaleWidth,
+      },
+      priceScale: {
+        x: 0,
+        y: 0,
+        height: chartSize.height - timeScaleHeight,
+        width: priceScaleWidth,
+      },
+      container: chartSize,
+    };
   }
 
   /**
@@ -612,76 +608,78 @@ export class ChartCoordinateService {
     timeScale: { x: number; y: number; width: number; height: number };
     priceScale: { x: number; y: number; width: number; height: number };
   } {
+    // Get container dimensions with multiple fallback methods
+    let width = 0;
+    let height = 0;
+
+    // Method 1: getBoundingClientRect
     try {
-      // Get container dimensions with multiple fallback methods
-      let width = 0;
-      let height = 0;
-
-      // Method 1: getBoundingClientRect
-      try {
-        const rect = container.getBoundingClientRect();
-        width = rect.width;
-        height = rect.height;
-      } catch (error) {}
-
-      // Method 2: offset dimensions
-      if (!width || !height) {
-        width = container.offsetWidth;
-        height = container.offsetHeight;
-      }
-
-      // Method 3: client dimensions
-      if (!width || !height) {
-        width = container.clientWidth;
-        height = container.clientHeight;
-      }
-
-      // Method 4: scroll dimensions
-      if (!width || !height) {
-        width = container.scrollWidth;
-        height = container.scrollHeight;
-      }
-
-      // Ensure minimum dimensions
-      width = Math.max(width || 800, 200);
-      height = Math.max(height || 600, 200);
-
-      // Get time scale dimensions
-      let timeScaleHeight = 35;
-      let timeScaleWidth = width;
-
-      try {
-        const timeScale = chart.timeScale();
-        timeScaleHeight = timeScale.height() || 35;
-        timeScaleWidth = timeScale.width() || width;
-      } catch (error) {}
-
-      // Get price scale width
-      let priceScaleWidth = 70;
-
-      try {
-        const priceScale = chart.priceScale('left');
-        priceScaleWidth = priceScale.width() || 70;
-      } catch (error) {}
-
-      return {
-        timeScale: {
-          x: 0,
-          y: height - timeScaleHeight,
-          height: timeScaleHeight,
-          width: timeScaleWidth,
-        },
-        priceScale: {
-          x: 0,
-          y: 0,
-          height: height - timeScaleHeight,
-          width: priceScaleWidth,
-        },
-        container: { width, height },
-      };
+      const rect = container.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
     } catch (error) {
-      throw error;
+      console.error('Chart coordinate service operation failed:', error);
     }
+
+    // Method 2: offset dimensions
+    if (!width || !height) {
+      width = container.offsetWidth;
+      height = container.offsetHeight;
+    }
+
+    // Method 3: client dimensions
+    if (!width || !height) {
+      width = container.clientWidth;
+      height = container.clientHeight;
+    }
+
+    // Method 4: scroll dimensions
+    if (!width || !height) {
+      width = container.scrollWidth;
+      height = container.scrollHeight;
+    }
+
+    // Ensure minimum dimensions
+    width = Math.max(width || 800, 200);
+    height = Math.max(height || 600, 200);
+
+    // Get time scale dimensions
+    let timeScaleHeight = 35;
+    let timeScaleWidth = width;
+
+    try {
+      const timeScale = chart.timeScale();
+      timeScaleHeight = timeScale.height() || 35;
+      timeScaleWidth = timeScale.width() || width;
+    } catch (error) {
+      console.error('Chart coordinate service operation failed:', error);
+    }
+
+    // Get price scale width
+    let priceScaleWidth = 70;
+
+    try {
+      const priceScale = chart.priceScale('left');
+      priceScaleWidth = priceScale.width() || 70;
+    } catch (error) {
+      console.error('Chart coordinate service operation failed:', error);
+    }
+
+    return {
+      timeScale: {
+        x: 0,
+        y: height - timeScaleHeight,
+        height: timeScaleHeight,
+        width: timeScaleWidth,
+      },
+      priceScale: {
+        x: 0,
+        y: 0,
+        height: height - timeScaleHeight,
+        width: priceScaleWidth,
+      },
+      container: { width, height },
+    };
   }
 
   /**
@@ -1270,7 +1268,9 @@ export class ChartCoordinateService {
       callbacks.forEach(callback => {
         try {
           callback();
-        } catch (error) {}
+        } catch (error) {
+          console.error('Chart coordinate service operation failed:', error);
+        }
       });
     }
   }
@@ -1424,7 +1424,9 @@ export class ChartCoordinateService {
         callbacks.forEach(callback => {
           try {
             callback();
-          } catch (error) {}
+          } catch (error) {
+            console.error('Chart coordinate service operation failed:', error);
+          }
         });
       }
     });
@@ -1785,7 +1787,7 @@ export class ChartCoordinateService {
     endPrice: number,
     chart: IChartApi,
     series?: ISeriesApi<any>,
-_paneId: number = 0
+    _paneId: number = 0
   ): BoundingBox | null {
     try {
       const timeScale = chart.timeScale();

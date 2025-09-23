@@ -154,6 +154,7 @@ export const ServiceRegistrar = {
   layoutManager: () =>
     PrimitiveServiceRegistry.getInstance().register({
       name: 'CornerLayoutManager',
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       factory: () => require('../layout/CornerLayoutManager').CornerLayoutManager,
       dependencies: [],
       singleton: true,
@@ -163,6 +164,7 @@ export const ServiceRegistrar = {
   coordinateService: () =>
     PrimitiveServiceRegistry.getInstance().register({
       name: 'ChartCoordinateService',
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       factory: () => require('../services/ChartCoordinateService').ChartCoordinateService,
       dependencies: [],
       singleton: true,
@@ -172,6 +174,7 @@ export const ServiceRegistrar = {
   templateEngine: () =>
     PrimitiveServiceRegistry.getInstance().register({
       name: 'TemplateEngine',
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       factory: () => require('../template/TemplateEngine').TemplateEngine,
       dependencies: [],
       singleton: true,
@@ -181,6 +184,7 @@ export const ServiceRegistrar = {
   eventManager: () =>
     PrimitiveServiceRegistry.getInstance().register({
       name: 'PrimitiveEventManager',
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       factory: () => require('../events/PrimitiveEventManager').PrimitiveEventManager,
       dependencies: ['CornerLayoutManager'],
       singleton: true,

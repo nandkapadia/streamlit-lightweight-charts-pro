@@ -130,10 +130,7 @@ document.createElement = jest.fn(tagName => {
 const originalError = console.error;
 beforeAll(() => {
   console.error = (...args: any[]) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOMTestUtils.act')
-    ) {
+    if (typeof args[0] === 'string' && args[0].includes('Warning: ReactDOMTestUtils.act')) {
       return;
     }
     originalError.call(console, ...args);

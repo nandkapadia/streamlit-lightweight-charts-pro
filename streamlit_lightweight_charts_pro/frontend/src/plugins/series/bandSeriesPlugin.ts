@@ -360,6 +360,7 @@ export class BandSeries implements ISeriesPrimitive<Time> {
     // Z-index is handled through the primitive system
     // The primitive's zIndex() method will return the configured Z-index
     if (this.options.zIndex !== undefined) {
+      // Z-index is handled through the primitive's zIndex() method
     }
   }
 
@@ -457,6 +458,7 @@ export class BandSeries implements ISeriesPrimitive<Time> {
 
     // Z-index updates are handled through the primitive system
     if (options.zIndex !== undefined) {
+      // Z-index update will be reflected in primitive's zIndex() method
     }
 
     // Update line series options

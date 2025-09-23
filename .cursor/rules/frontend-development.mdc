@@ -1,0 +1,40 @@
+---
+globs: *.ts,*.tsx,*.js,*.jsx
+---
+
+# Frontend Development Standards
+
+## TypeScript/React Guidelines
+
+- **TypeScript**: Use strict TypeScript configuration from [tsconfig.strict.json](mdc:streamlit_lightweight_charts_pro/frontend/tsconfig.strict.json)
+- **React**: Use functional components with hooks, avoid class components
+- **Props**: Define proper TypeScript interfaces for all component props
+- **State Management**: Use React hooks (useState, useEffect, useMemo, useCallback)
+
+## Project Structure
+
+- **Components**: Place in [streamlit_lightweight_charts_pro/frontend/src/components/](mdc:streamlit_lightweight_charts_pro/frontend/src/components/)
+- **Services**: Business logic in [streamlit_lightweight_charts_pro/frontend/src/services/](mdc:streamlit_lightweight_charts_pro/frontend/src/services/)
+- **Types**: Type definitions in [streamlit_lightweight_charts_pro/frontend/src/types/](mdc:streamlit_lightweight_charts_pro/frontend/src/types/)
+- **Utils**: Utility functions in [streamlit_lightweight_charts_pro/frontend/src/utils/](mdc:streamlit_lightweight_charts_pro/frontend/src/utils/)
+
+## Code Quality
+
+- **ESLint**: Follow ESLint configuration in [eslint.config.js](mdc:streamlit_lightweight_charts_pro/frontend/eslint.config.js)
+- **Prettier**: Use Prettier for code formatting
+- **Testing**: Use Vitest for unit tests, place in [__tests__/](mdc:streamlit_lightweight_charts_pro/frontend/src/__tests__/)
+- **Error Boundaries**: Use ErrorBoundary component for error handling
+
+## Chart Integration
+
+- **Lightweight Charts**: Use TradingView's lightweight-charts library
+- **Performance**: Implement performance optimizations for large datasets
+- **Responsive**: Ensure charts are responsive and auto-sizing
+- **Memory Management**: Clean up chart instances and event listeners
+
+## Development Workflow
+
+- **Build**: Use Vite for development and production builds
+- **Hot Reload**: Development server with hot reloading
+- **Type Checking**: Run TypeScript compiler for type checking
+- **Linting**: Run ESLint for code quality checks

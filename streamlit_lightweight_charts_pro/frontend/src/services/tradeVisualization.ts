@@ -385,6 +385,7 @@ export function convertTradeRectanglesToPluginFormat(
   }
 
   // Import ChartCoordinateService dynamically to avoid circular dependencies
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { ChartCoordinateService } = require('../services/ChartCoordinateService');
   const coordinateService = ChartCoordinateService.getInstance();
 
@@ -474,6 +475,8 @@ export async function convertTradeRectanglesToPluginFormatWhenReady(
     });
 
     if (!isReady) {
+      console.warn('Chart not ready for trade rectangle conversion');
+      return [];
     }
 
     // Now convert coordinates

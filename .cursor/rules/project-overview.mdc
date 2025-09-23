@@ -1,0 +1,68 @@
+---
+alwaysApply: true
+---
+
+# Streamlit Lightweight Charts Pro - Project Overview
+
+Professional-grade financial charting library for Streamlit that wraps TradingView's lightweight-charts with a fluent Python API.
+
+## 🏗️ Project Structure
+
+### Core Python Package
+- **Main Entry**: [streamlit_lightweight_charts_pro/__init__.py](mdc:streamlit_lightweight_charts_pro/__init__.py) - Public API exports
+- **Chart Core**: [streamlit_lightweight_charts_pro/charts/chart.py](mdc:streamlit_lightweight_charts_pro/charts/chart.py) - Main Chart class with fluent API
+- **Component Bridge**: [streamlit_lightweight_charts_pro/component.py](mdc:streamlit_lightweight_charts_pro/component.py) - Streamlit component integration
+
+### Chart Components
+- **Series Types**: [streamlit_lightweight_charts_pro/charts/series/](mdc:streamlit_lightweight_charts_pro/charts/series/)
+  - `LineSeries`, `CandlestickSeries`, `AreaSeries`, `BarSeries`, `HistogramSeries`, `BaselineSeries`
+  - Special: `SignalSeries`, `TrendFillSeries`, `RibbonSeries`, `BandSeries`
+- **Data Models**: [streamlit_lightweight_charts_pro/data/](mdc:streamlit_lightweight_charts_pro/data/)
+  - `SingleValueData`, `OhlcData`, `OhlcvData`, `TradeData`, `Annotation`
+- **Options**: [streamlit_lightweight_charts_pro/charts/options/](mdc:streamlit_lightweight_charts_pro/charts/options/)
+  - `ChartOptions`, `LayoutOptions`, `PriceScaleOptions`, `TimeScaleOptions`
+
+### Frontend (React/TypeScript)
+- **Entry Point**: [streamlit_lightweight_charts_pro/frontend/src/index.tsx](mdc:streamlit_lightweight_charts_pro/frontend/src/index.tsx)
+- **Main Component**: [streamlit_lightweight_charts_pro/frontend/src/LightweightCharts.tsx](mdc:streamlit_lightweight_charts_pro/frontend/src/LightweightCharts.tsx)
+- **Services**: [streamlit_lightweight_charts_pro/frontend/src/services/](mdc:streamlit_lightweight_charts_pro/frontend/src/services/)
+- **Build Config**: [streamlit_lightweight_charts_pro/frontend/vite.config.ts](mdc:streamlit_lightweight_charts_pro/frontend/vite.config.ts)
+
+### Testing & Examples
+- **Unit Tests**: [tests/unit/](mdc:tests/unit/) - Fast, isolated component tests
+- **Integration**: [tests/integration/](mdc:tests/integration/) - Component interaction tests
+- **Examples**: [examples/](mdc:examples/) - Organized by feature complexity
+- **Test Config**: [tests/conftest.py](mdc:tests/conftest.py) - Shared fixtures and utilities
+
+## 🎯 Key Design Principles
+
+1. **Fluent API First**: Every method returns self for chaining
+2. **Type Safety**: Full type hints with runtime validation
+3. **Performance**: Lazy loading, caching, efficient serialization
+4. **Developer Experience**: Clear errors, comprehensive logging, intuitive API
+
+## 🔧 Development Setup
+
+```bash
+# Install development environment
+pip install -e ".[dev]"
+make pre-commit-setup
+
+# Run tests
+make test           # All tests
+make test-parallel  # Parallel execution
+make test-cov      # With coverage
+
+# Frontend development
+cd streamlit_lightweight_charts_pro/frontend
+npm install
+npm run dev        # Development server
+npm run build      # Production build
+```
+
+## 📦 Version & Dependencies
+
+- **Python**: 3.7+ required (3.11 recommended)
+- **Streamlit**: 1.0+ required
+- **Node.js**: 16+ for frontend development
+- **Current Version**: 0.1.2

@@ -171,17 +171,23 @@ export function createSeries(
           setData: (newData: any[]) => {
             try {
               bandSeries.setData(newData as BandData[]);
-            } catch {}
+            } catch (error) {
+              console.error('Failed to set band series data:', error);
+            }
           },
           update: (newData: any) => {
             try {
               bandSeries.update(newData as BandData);
-            } catch {}
+            } catch (error) {
+              console.error('Failed to update band series:', error);
+            }
           },
           applyOptions: (options: any) => {
             try {
               bandSeries.setOptions(cleanLineStyleOptions(options));
-            } catch {}
+            } catch (error) {
+              console.error('Failed to apply band series options:', error);
+            }
           },
           priceScale: () => {
             try {
@@ -193,7 +199,9 @@ export function createSeries(
           remove: () => {
             try {
               bandSeries.remove();
-            } catch {}
+            } catch (error) {
+              console.error('Failed to remove band series:', error);
+            }
           },
         } as unknown as ISeriesApi<any>;
       } catch {
@@ -236,18 +244,24 @@ export function createSeries(
           setData: (newData: any[]) => {
             try {
               ribbonSeries.setData(newData);
-            } catch {}
+            } catch (error) {
+              console.error('Failed to set ribbon series data:', error);
+            }
           },
           update: (newData: any) => {
             try {
               // For ribbon, update the entire dataset
               ribbonSeries.setData([newData]);
-            } catch {}
+            } catch (error) {
+              console.error('Failed to update ribbon series:', error);
+            }
           },
           applyOptions: (options: any) => {
             try {
               ribbonSeries.setOptions(cleanLineStyleOptions(options));
-            } catch {}
+            } catch (error) {
+              console.error('Failed to apply ribbon series options:', error);
+            }
           },
           priceScale: () => {
             try {
@@ -260,7 +274,10 @@ export function createSeries(
             try {
               // For primitives, we need to detach from the series
               // The series will handle cleanup when removed
-            } catch {}
+              ribbonSeries.remove();
+            } catch (error) {
+              console.error('Failed to remove ribbon series:', error);
+            }
           },
         } as unknown as ISeriesApi<any>;
       } catch (error) {
@@ -310,17 +327,23 @@ export function createSeries(
           setData: (newData: any[]) => {
             try {
               gradientRibbonSeries.setData(newData as GradientRibbonData[]);
-            } catch {}
+            } catch (error) {
+              console.error('Failed to set gradient ribbon series data:', error);
+            }
           },
           update: (newData: any) => {
             try {
               gradientRibbonSeries.updateData([newData]);
-            } catch {}
+            } catch (error) {
+              console.error('Failed to update gradient ribbon series:', error);
+            }
           },
           applyOptions: (options: any) => {
             try {
               gradientRibbonSeries.applyOptions(cleanLineStyleOptions(options));
-            } catch {}
+            } catch (error) {
+              console.error('Failed to apply gradient ribbon series options:', error);
+            }
           },
           priceScale: () => {
             try {
@@ -332,7 +355,9 @@ export function createSeries(
           remove: () => {
             try {
               gradientRibbonSeries.destroy();
-            } catch {}
+            } catch (error) {
+              console.error('Failed to remove gradient ribbon series:', error);
+            }
           },
         } as unknown as ISeriesApi<any>;
       } catch (error) {
@@ -359,12 +384,16 @@ export function createSeries(
           setData: (newData: any[]) => {
             try {
               signalSeries.updateData(newData);
-            } catch {}
+            } catch (error) {
+              console.error('Failed to set signal series data:', error);
+            }
           },
           update: (newData: any) => {
             try {
               signalSeries.updateData([newData]);
-            } catch {}
+            } catch (error) {
+              console.error('Failed to update signal series:', error);
+            }
           },
           applyOptions: (options: any) => {
             try {
@@ -374,7 +403,9 @@ export function createSeries(
                 alertColor: options.alertColor,
                 visible: options.visible !== false,
               });
-            } catch {}
+            } catch (error) {
+              console.error('Failed to apply signal series options:', error);
+            }
           },
           priceScale: () => {
             try {
@@ -389,7 +420,9 @@ export function createSeries(
               if (signalPluginRefs && chartId !== undefined && seriesIndex !== undefined) {
                 delete signalPluginRefs.current[`${chartId}-${seriesIndex}`];
               }
-            } catch {}
+            } catch (error) {
+              console.error('Failed to remove signal series:', error);
+            }
           },
         } as unknown as ISeriesApi<any>;
       } catch {
@@ -419,6 +452,7 @@ export function createSeries(
         };
 
         // Create the primitive series directly (no dummy series needed)
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { TrendFillSeries } = require('../plugins/series/trendFillSeriesPlugin');
         const trendFillSeries = new TrendFillSeries(chart, trendFillOptions, 0);
 
@@ -691,7 +725,9 @@ export function createSeries(
 
     // Add legend directly to the correct PaneLegendManager
     try {
-      const legendManager = chartId ? window.paneLegendManagers?.[chartId]?.[finalPaneId] : undefined;
+      const legendManager = chartId
+        ? window.paneLegendManagers?.[chartId]?.[finalPaneId]
+        : undefined;
       if (legendManager && typeof (legendManager as any).addSeriesLegend === 'function') {
         (legendManager as any).addSeriesLegend(seriesId, seriesConfig);
       }

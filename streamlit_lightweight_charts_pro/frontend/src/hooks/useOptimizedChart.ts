@@ -99,7 +99,9 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
           if (width >= minWidth && height >= minHeight) {
             chartRefs.current.chart.resize(width, height);
           }
-        } catch (error) {}
+        } catch (error) {
+          console.error('Chart optimization operation failed:', error);
+        }
       }
     }, debounceMs);
   }, [autoResize, debounceMs, minWidth, minHeight]);
@@ -140,7 +142,9 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
       );
 
       // ResizeObserver set up successfully
-    } catch (error) {}
+    } catch (error) {
+      console.error('Chart optimization operation failed:', error);
+    }
   }, [autoResize, enhancedResizeObserverCallback, chartId, throttleMs, debounceMs]);
 
   // Enhanced chart creation with ready detection
@@ -262,7 +266,9 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
           if (width >= minWidth && height >= minHeight) {
             chartRefs.current.chart.resize(width, height);
           }
-        } catch (error) {}
+        } catch (error) {
+          console.error('Chart optimization operation failed:', error);
+        }
       }
     },
     [minWidth, minHeight]
@@ -280,7 +286,9 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
     if (chartRefs.current.chart) {
       try {
         chartRefs.current.chart.remove();
-      } catch (error) {}
+      } catch (error) {
+        console.error('Chart optimization operation failed:', error);
+      }
     }
 
     // Clear references

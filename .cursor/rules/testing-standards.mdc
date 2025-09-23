@@ -1,0 +1,64 @@
+---
+globs: test_*.py,*_test.py,*.test.ts,*.test.tsx
+---
+
+# Testing Standards
+
+## Test Organization
+
+- **Unit Tests**: [tests/unit/](mdc:tests/unit/) - Fast, isolated tests for individual components
+- **Integration Tests**: [tests/integration/](mdc:tests/integration/) - Tests for component interactions
+- **E2E Tests**: [tests/e2e/](mdc:tests/e2e/) - End-to-end user workflow tests
+- **Performance Tests**: [tests/performance/](mdc:tests/performance/) - Performance and load testing
+
+## Python Testing (pytest)
+
+- **Fixtures**: Use fixtures from [tests/conftest.py](mdc:tests/conftest.py)
+- **Markers**: Use pytest markers for test categorization
+- **Coverage**: Maintain 95%+ test coverage
+- **Parallel Execution**: Use pytest-xdist for parallel test execution
+
+```python
+# Test example with fixtures
+@pytest.mark.unit
+def test_line_series_creation(sample_data):
+    series = LineSeries(sample_data, color="#ff0000")
+    assert series.color == "#ff0000"
+    assert len(series.data) == len(sample_data)
+```
+
+## Frontend Testing (Vitest)
+
+- **Unit Tests**: Test individual components and utilities
+- **Integration Tests**: Test component interactions
+- **Mocking**: Use mocks from [__mocks__/](mdc:streamlit_lightweight_charts_pro/frontend/src/__mocks__/)
+
+```typescript
+// Test example with mocks
+import { render, screen } from '@testing-library/react'
+import { ChartContainer } from '../ChartContainer'
+
+test('renders chart container', () => {
+  render(<ChartContainer data={mockData} />)
+  expect(screen.getByTestId('chart-container')).toBeInTheDocument()
+})
+```
+
+## Test Data
+
+- **Fixtures**: Use data generation fixtures from [tests/conftest.py](mdc:tests/conftest.py)
+- **Mock Data**: Use realistic mock data for testing
+- **Edge Cases**: Test boundary conditions and error cases
+
+## Performance Testing
+
+- **Load Testing**: Test with large datasets
+- **Memory Usage**: Monitor memory consumption
+- **Rendering Performance**: Test chart rendering performance
+
+## Test Commands
+
+- **All Tests**: `make test` or `pytest tests/`
+- **With Coverage**: `make test-cov` or `pytest --cov`
+- **Parallel**: `make test-parallel` or `pytest -n auto`
+- **Specific Category**: `pytest tests/unit/` or `pytest -m unit`

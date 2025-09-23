@@ -9,10 +9,18 @@ export interface ProcessedChartConfig extends ChartConfig {
 }
 
 export interface ConfigManagerAPI {
-  processChartConfigs: (config: ComponentConfig, width?: number | null, height?: number | null) => ProcessedChartConfig[];
+  processChartConfigs: (
+    config: ComponentConfig,
+    width?: number | null,
+    height?: number | null
+  ) => ProcessedChartConfig[];
   validateConfig: (config: ComponentConfig) => { isValid: boolean; errors: string[] };
   mergeConfigDefaults: (config: ComponentConfig) => ComponentConfig;
-  extractChartOptions: (chartConfig: ChartConfig, width?: number | null, height?: number | null) => any;
+  extractChartOptions: (
+    chartConfig: ChartConfig,
+    width?: number | null,
+    height?: number | null
+  ) => any;
 }
 
 const DEFAULT_CHART_CONFIG: any = {
@@ -48,60 +56,62 @@ const DEFAULT_CHART_CONFIG: any = {
 };
 
 export const useConfigManager = (): ConfigManagerAPI => {
-
   // Validate configuration
-  const validateConfig = useCallback((config: ComponentConfig): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
+  const validateConfig = useCallback(
+    (config: ComponentConfig): { isValid: boolean; errors: string[] } => {
+      const errors: string[] = [];
 
-    if (!config) {
-      errors.push('Configuration is required');
-      return { isValid: false, errors };
-    }
-
-    if (!config.charts || !Array.isArray(config.charts)) {
-      errors.push('Charts array is required');
-      return { isValid: false, errors };
-    }
-
-    if (config.charts.length === 0) {
-      errors.push('At least one chart configuration is required');
-    }
-
-    // Validate each chart config
-    config.charts.forEach((chartConfig, index) => {
-      if (!chartConfig) {
-        errors.push(`Chart ${index}: Configuration is required`);
-        return;
+      if (!config) {
+        errors.push('Configuration is required');
+        return { isValid: false, errors };
       }
 
-      if (!chartConfig.series || !Array.isArray(chartConfig.series)) {
-        errors.push(`Chart ${index}: Series array is required`);
-      } else if (chartConfig.series.length === 0) {
-        errors.push(`Chart ${index}: At least one series is required`);
+      if (!config.charts || !Array.isArray(config.charts)) {
+        errors.push('Charts array is required');
+        return { isValid: false, errors };
       }
 
-      // Validate series configurations
-      chartConfig.series?.forEach((series, seriesIndex) => {
-        if (!series) {
-          errors.push(`Chart ${index}, Series ${seriesIndex}: Configuration is required`);
+      if (config.charts.length === 0) {
+        errors.push('At least one chart configuration is required');
+      }
+
+      // Validate each chart config
+      config.charts.forEach((chartConfig, index) => {
+        if (!chartConfig) {
+          errors.push(`Chart ${index}: Configuration is required`);
           return;
         }
 
-        if (!series.type) {
-          errors.push(`Chart ${index}, Series ${seriesIndex}: Series type is required`);
+        if (!chartConfig.series || !Array.isArray(chartConfig.series)) {
+          errors.push(`Chart ${index}: Series array is required`);
+        } else if (chartConfig.series.length === 0) {
+          errors.push(`Chart ${index}: At least one series is required`);
         }
 
-        if (!series.data || !Array.isArray(series.data)) {
-          errors.push(`Chart ${index}, Series ${seriesIndex}: Data array is required`);
-        }
+        // Validate series configurations
+        chartConfig.series?.forEach((series, seriesIndex) => {
+          if (!series) {
+            errors.push(`Chart ${index}, Series ${seriesIndex}: Configuration is required`);
+            return;
+          }
+
+          if (!series.type) {
+            errors.push(`Chart ${index}, Series ${seriesIndex}: Series type is required`);
+          }
+
+          if (!series.data || !Array.isArray(series.data)) {
+            errors.push(`Chart ${index}, Series ${seriesIndex}: Data array is required`);
+          }
+        });
       });
-    });
 
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
-  }, []);
+      return {
+        isValid: errors.length === 0,
+        errors,
+      };
+    },
+    []
+  );
 
   // Merge default configuration
   const mergeConfigDefaults = useCallback((config: ComponentConfig): ComponentConfig => {
@@ -148,71 +158,77 @@ export const useConfigManager = (): ConfigManagerAPI => {
   }, []);
 
   // Extract chart options
-  const extractChartOptions = useCallback((chartConfig: ChartConfig, width?: number | null, height?: number | null) => {
-    const chartOptions = {
-      width: typeof chartConfig.chart?.width === 'number'
-        ? chartConfig.chart.width
-        : width || undefined,
-      height: typeof chartConfig.chart?.height === 'number'
-        ? chartConfig.chart.height
-        : chartConfig.chart?.height || height || undefined,
-      ...chartConfig.chart,
-    };
-
-    return cleanLineStyleOptions(chartOptions);
-  }, []);
-
-  // Process chart configurations
-  const processChartConfigs = useCallback((
-    config: ComponentConfig,
-    width?: number | null,
-    height?: number | null
-  ): ProcessedChartConfig[] => {
-    if (!config || !config.charts || config.charts.length === 0) {
-      return [];
-    }
-
-    // Validate configuration first
-    const validation = validateConfig(config);
-    if (!validation.isValid) {
-      console.error('Configuration validation failed:', validation.errors);
-      return [];
-    }
-
-    // Merge with defaults
-    const configWithDefaults = mergeConfigDefaults(config);
-
-    // Process each chart configuration
-    return configWithDefaults.charts.map((chartConfig: ChartConfig, chartIndex: number) => {
-      const chartId = chartConfig.chartId || `chart-${chartIndex}`;
-      const containerId = `chart-container-${chartId}`;
-
-      // Extract and clean chart options
-      const chartOptions = extractChartOptions(chartConfig, width, height);
-
-      const processedConfig: ProcessedChartConfig = {
-        ...chartConfig,
-        chartId,
-        containerId,
-        chartOptions,
+  const extractChartOptions = useCallback(
+    (chartConfig: ChartConfig, width?: number | null, height?: number | null) => {
+      const chartOptions = {
+        width:
+          typeof chartConfig.chart?.width === 'number'
+            ? chartConfig.chart.width
+            : width || undefined,
+        height:
+          typeof chartConfig.chart?.height === 'number'
+            ? chartConfig.chart.height
+            : chartConfig.chart?.height || height || undefined,
+        ...chartConfig.chart,
       };
 
-      return processedConfig;
-    });
-  }, [validateConfig, mergeConfigDefaults, extractChartOptions]);
+      return cleanLineStyleOptions(chartOptions);
+    },
+    []
+  );
+
+  // Process chart configurations
+  const processChartConfigs = useCallback(
+    (
+      config: ComponentConfig,
+      width?: number | null,
+      height?: number | null
+    ): ProcessedChartConfig[] => {
+      if (!config || !config.charts || config.charts.length === 0) {
+        return [];
+      }
+
+      // Validate configuration first
+      const validation = validateConfig(config);
+      if (!validation.isValid) {
+        console.error('Configuration validation failed:', validation.errors);
+        return [];
+      }
+
+      // Merge with defaults
+      const configWithDefaults = mergeConfigDefaults(config);
+
+      // Process each chart configuration
+      return configWithDefaults.charts.map((chartConfig: ChartConfig, chartIndex: number) => {
+        const chartId = chartConfig.chartId || `chart-${chartIndex}`;
+        const containerId = `chart-container-${chartId}`;
+
+        // Extract and clean chart options
+        const chartOptions = extractChartOptions(chartConfig, width, height);
+
+        const processedConfig: ProcessedChartConfig = {
+          ...chartConfig,
+          chartId,
+          containerId,
+          chartOptions,
+        };
+
+        return processedConfig;
+      });
+    },
+    [validateConfig, mergeConfigDefaults, extractChartOptions]
+  );
 
   // Memoized API object
-  const api = useMemo<ConfigManagerAPI>(() => ({
-    processChartConfigs,
-    validateConfig,
-    mergeConfigDefaults,
-    extractChartOptions,
-  }), [
-    processChartConfigs,
-    validateConfig,
-    mergeConfigDefaults,
-    extractChartOptions,
-  ]);
+  const api = useMemo<ConfigManagerAPI>(
+    () => ({
+      processChartConfigs,
+      validateConfig,
+      mergeConfigDefaults,
+      extractChartOptions,
+    }),
+    [processChartConfigs, validateConfig, mergeConfigDefaults, extractChartOptions]
+  );
 
   return api;
 };
@@ -228,9 +244,7 @@ export const ConfigManagerProvider: React.FC<ConfigManagerProviderProps> = ({ ch
   const configManager = useConfigManager();
 
   return (
-    <ConfigManagerContext.Provider value={configManager}>
-      {children}
-    </ConfigManagerContext.Provider>
+    <ConfigManagerContext.Provider value={configManager}>{children}</ConfigManagerContext.Provider>
   );
 };
 

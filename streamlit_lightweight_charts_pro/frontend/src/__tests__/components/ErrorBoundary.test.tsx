@@ -312,7 +312,11 @@ describe('ErrorBoundary Component', () => {
     });
 
     it('should handle empty children gracefully', () => {
-      const { container } = render(<ErrorBoundary><div></div></ErrorBoundary>);
+      const { container } = render(
+        <ErrorBoundary>
+          <div></div>
+        </ErrorBoundary>
+      );
       // Empty children render as empty, no error should be triggered
       expect(container).toBeInTheDocument();
       expect(screen.queryByText(/Something went wrong/i)).not.toBeInTheDocument();

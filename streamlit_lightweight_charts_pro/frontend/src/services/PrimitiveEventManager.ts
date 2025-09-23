@@ -1,6 +1,5 @@
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
 
-/* eslint-disable no-unused-vars */
 /**
  * Event types for primitive interactions
  */
@@ -109,7 +108,7 @@ export class PrimitiveEventManager {
 
   private chart: IChartApi | null = null;
   private chartId: string;
-  private eventListeners: Map<string, Set<Function>> = new Map();
+  private eventListeners: Map<string, Set<(event: any) => void>> = new Map();
   private chartEventCleanup: Array<() => void> = [];
   private _isDestroyed: boolean = false;
 

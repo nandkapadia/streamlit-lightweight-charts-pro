@@ -366,7 +366,9 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
       // Subscribe to events (Lightweight Charts pattern: returns void, store callbacks for cleanup)
       chart.timeScale().subscribeVisibleTimeRangeChange(this._timeScaleCallback);
       chart.subscribeCrosshairMove(this._crosshairCallback);
-    } catch (error) {}
+    } catch (error) {
+      console.error('Trade rectangle primitive operation failed:', error);
+    }
 
     // Request initial update
     this._requestUpdate();
@@ -378,14 +380,18 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
       try {
         this._chart.timeScale().unsubscribeVisibleTimeRangeChange(this._timeScaleCallback);
         this._timeScaleCallback = null;
-      } catch (error) {}
+      } catch (error) {
+        console.error('Trade rectangle primitive operation failed:', error);
+      }
     }
 
     if (this._chart && this._crosshairCallback) {
       try {
         this._chart.unsubscribeCrosshairMove(this._crosshairCallback);
         this._crosshairCallback = null;
-      } catch (error) {}
+      } catch (error) {
+        console.error('Trade rectangle primitive operation failed:', error);
+      }
     }
 
     this._chart = null;

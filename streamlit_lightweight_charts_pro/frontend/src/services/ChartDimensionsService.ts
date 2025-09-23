@@ -208,8 +208,6 @@ export class ChartDimensionsService {
     return DIMENSIONS.priceScale.defaultWidth;
   }
 
-
-
   /**
    * Clear expired cache entries
    */

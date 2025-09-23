@@ -24,129 +24,140 @@ export const usePluginManager = (): PluginManagerAPI => {
   // const primitiveManagersRef = useRef<{ [key: string]: ChartPrimitiveManager }>({});
 
   // Add trade visualization
-  const addTradeVisualization = useCallback((chart: IChartApi, trades: TradeConfig[], options: any = {}) => {
-    try {
-      if (!trades || trades.length === 0) {
-        return;
-      }
-
-      trades.forEach((trade, index) => {
-        try {
-          const tradeData = trade as any;
-          const primitive = new TradeRectanglePrimitive({
-            entry: tradeData.entry,
-            exit: tradeData.exit,
-            profit: tradeData.profit,
-            color: tradeData.color || '#2196F3',
-            opacity: tradeData.opacity || 0.3,
-            borderWidth: tradeData.borderWidth || 1,
-            borderColor: tradeData.borderColor || tradeData.color || '#2196F3',
-            ...options,
-          });
-
-          (chart as any).addPrimitive(primitive);
-          console.log(`Trade visualization ${index} added successfully`);
-
-        } catch (error) {
-          console.error(`Failed to add trade visualization ${index}:`, error);
+  const addTradeVisualization = useCallback(
+    (chart: IChartApi, trades: TradeConfig[], options: any = {}) => {
+      try {
+        if (!trades || trades.length === 0) {
+          return;
         }
-      });
 
-    } catch (error) {
-      console.error('Failed to add trade visualizations:', error);
-    }
-  }, []);
+        trades.forEach((trade, index) => {
+          try {
+            const tradeData = trade as any;
+            const primitive = new TradeRectanglePrimitive({
+              entry: tradeData.entry,
+              exit: tradeData.exit,
+              profit: tradeData.profit,
+              color: tradeData.color || '#2196F3',
+              opacity: tradeData.opacity || 0.3,
+              borderWidth: tradeData.borderWidth || 1,
+              borderColor: tradeData.borderColor || tradeData.color || '#2196F3',
+              ...options,
+            });
+
+            (chart as any).addPrimitive(primitive);
+            console.log(`Trade visualization ${index} added successfully`);
+          } catch (error) {
+            console.error(`Failed to add trade visualization ${index}:`, error);
+          }
+        });
+      } catch (error) {
+        console.error('Failed to add trade visualizations:', error);
+      }
+    },
+    []
+  );
 
   // Add annotations
-  const addAnnotations = useCallback((chart: IChartApi, annotations: Annotation[], chartId: string) => {
-    try {
-      if (!annotations || annotations.length === 0) {
-        return;
+  const addAnnotations = useCallback(
+    (chart: IChartApi, annotations: Annotation[], chartId: string) => {
+      try {
+        if (!annotations || annotations.length === 0) {
+          return;
+        }
+
+        const visualElements = createAnnotationVisualElements(annotations);
+
+        // Add markers
+        if (visualElements.markers && visualElements.markers.length > 0) {
+          // Note: This would typically be added to a specific series
+          console.log(
+            `Created ${visualElements.markers.length} annotation markers for chart ${chartId}`
+          );
+        }
+
+        // Add shapes
+        if (visualElements.shapes && visualElements.shapes.length > 0) {
+          visualElements.shapes.forEach((shape, index) => {
+            try {
+              (chart as any).addPrimitive(shape as any);
+              console.log(`Annotation shape ${index} added to chart ${chartId}`);
+            } catch (error) {
+              console.error(`Failed to add annotation shape ${index}:`, error);
+            }
+          });
+        }
+
+        // Add texts
+        if (visualElements.texts && visualElements.texts.length > 0) {
+          visualElements.texts.forEach((text, index) => {
+            try {
+              (chart as any).addPrimitive(text as any);
+              console.log(`Annotation text ${index} added to chart ${chartId}`);
+            } catch (error) {
+              console.error(`Failed to add annotation text ${index}:`, error);
+            }
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to add annotations to chart ${chartId}:`, error);
       }
-
-      const visualElements = createAnnotationVisualElements(annotations);
-
-      // Add markers
-      if (visualElements.markers && visualElements.markers.length > 0) {
-        // Note: This would typically be added to a specific series
-        console.log(`Created ${visualElements.markers.length} annotation markers for chart ${chartId}`);
-      }
-
-      // Add shapes
-      if (visualElements.shapes && visualElements.shapes.length > 0) {
-        visualElements.shapes.forEach((shape, index) => {
-          try {
-            (chart as any).addPrimitive(shape as any);
-            console.log(`Annotation shape ${index} added to chart ${chartId}`);
-          } catch (error) {
-            console.error(`Failed to add annotation shape ${index}:`, error);
-          }
-        });
-      }
-
-      // Add texts
-      if (visualElements.texts && visualElements.texts.length > 0) {
-        visualElements.texts.forEach((text, index) => {
-          try {
-            (chart as any).addPrimitive(text as any);
-            console.log(`Annotation text ${index} added to chart ${chartId}`);
-          } catch (error) {
-            console.error(`Failed to add annotation text ${index}:`, error);
-          }
-        });
-      }
-
-    } catch (error) {
-      console.error(`Failed to add annotations to chart ${chartId}:`, error);
-    }
-  }, []);
+    },
+    []
+  );
 
   // Add annotation layers
-  const addAnnotationLayers = useCallback((chart: IChartApi, layers: AnnotationLayer[], chartId: string) => {
-    try {
-      if (!layers || layers.length === 0) {
-        return;
-      }
-
-      layers.forEach((layer, layerIndex) => {
-        try {
-          if (layer.annotations && layer.annotations.length > 0) {
-            addAnnotations(chart, layer.annotations, chartId);
-            console.log(`Annotation layer ${layerIndex} added to chart ${chartId}`);
-          }
-        } catch (error) {
-          console.error(`Failed to add annotation layer ${layerIndex}:`, error);
+  const addAnnotationLayers = useCallback(
+    (chart: IChartApi, layers: AnnotationLayer[], chartId: string) => {
+      try {
+        if (!layers || layers.length === 0) {
+          return;
         }
-      });
 
-    } catch (error) {
-      console.error(`Failed to add annotation layers to chart ${chartId}:`, error);
-    }
-  }, [addAnnotations]);
+        layers.forEach((layer, layerIndex) => {
+          try {
+            if (layer.annotations && layer.annotations.length > 0) {
+              addAnnotations(chart, layer.annotations, chartId);
+              console.log(`Annotation layer ${layerIndex} added to chart ${chartId}`);
+            }
+          } catch (error) {
+            console.error(`Failed to add annotation layer ${layerIndex}:`, error);
+          }
+        });
+      } catch (error) {
+        console.error(`Failed to add annotation layers to chart ${chartId}:`, error);
+      }
+    },
+    [addAnnotations]
+  );
 
   // Add modular tooltip
-  const addModularTooltip = useCallback((chart: IChartApi, series: ISeriesApi<any>[], config: any) => {
-    try {
-      // Implementation would depend on specific tooltip requirements
-      // This is a placeholder for the tooltip functionality
-      console.log('Modular tooltip configuration applied');
-
-    } catch (error) {
-      console.error('Failed to add modular tooltip:', error);
-    }
-  }, []);
+  const addModularTooltip = useCallback(
+    (chart: IChartApi, series: ISeriesApi<any>[], config: any) => {
+      try {
+        // Implementation would depend on specific tooltip requirements
+        // This is a placeholder for the tooltip functionality
+        console.log('Modular tooltip configuration applied');
+      } catch (error) {
+        console.error('Failed to add modular tooltip:', error);
+      }
+    },
+    []
+  );
 
   // Add range switcher
-  const addRangeSwitcher = useCallback(async (chart: IChartApi, rangeConfig: any): Promise<void> => {
-    try {
-      // Implementation would depend on specific range switcher requirements
-      // This is a placeholder for the range switcher functionality
-      console.log('Range switcher configuration applied');
-
-    } catch (error) {
-      console.error('Failed to add range switcher:', error);
-    }
-  }, []);
+  const addRangeSwitcher = useCallback(
+    async (chart: IChartApi, rangeConfig: any): Promise<void> => {
+      try {
+        // Implementation would depend on specific range switcher requirements
+        // This is a placeholder for the range switcher functionality
+        console.log('Range switcher configuration applied');
+      } catch (error) {
+        console.error('Failed to add range switcher:', error);
+      }
+    },
+    []
+  );
 
   // Add legend
   const addLegend = useCallback((chart: IChartApi, legendConfig: LegendConfig, chartId: string) => {
@@ -173,7 +184,6 @@ export const usePluginManager = (): PluginManagerAPI => {
       // CornerLayoutManager.addWidget(chartId, widget);
       console.log(`Legend widget configured for ${chartId}`);
       console.log(`Legend added to chart ${chartId}`);
-
     } catch (error) {
       console.error(`Failed to add legend to chart ${chartId}:`, error);
     }
@@ -185,7 +195,6 @@ export const usePluginManager = (): PluginManagerAPI => {
       // Implementation would depend on pane collapse requirements
       // This would typically involve adding collapse/expand buttons to panes
       console.log(`Pane collapse support setup for chart ${chartId}`);
-
     } catch (error) {
       console.error(`Failed to setup pane collapse support for chart ${chartId}:`, error);
     }
@@ -222,32 +231,34 @@ export const usePluginManager = (): PluginManagerAPI => {
       }
 
       console.log(`Plugin cleanup completed for chart ${chartId}`);
-
     } catch (error) {
       console.error(`Failed to cleanup plugins for chart ${chartId}:`, error);
     }
   }, []);
 
   // Memoized API object
-  const api = useMemo<PluginManagerAPI>(() => ({
-    addTradeVisualization,
-    addAnnotations,
-    addAnnotationLayers,
-    addModularTooltip,
-    addRangeSwitcher,
-    addLegend,
-    setupPaneCollapseSupport,
-    cleanup,
-  }), [
-    addTradeVisualization,
-    addAnnotations,
-    addAnnotationLayers,
-    addModularTooltip,
-    addRangeSwitcher,
-    addLegend,
-    setupPaneCollapseSupport,
-    cleanup,
-  ]);
+  const api = useMemo<PluginManagerAPI>(
+    () => ({
+      addTradeVisualization,
+      addAnnotations,
+      addAnnotationLayers,
+      addModularTooltip,
+      addRangeSwitcher,
+      addLegend,
+      setupPaneCollapseSupport,
+      cleanup,
+    }),
+    [
+      addTradeVisualization,
+      addAnnotations,
+      addAnnotationLayers,
+      addModularTooltip,
+      addRangeSwitcher,
+      addLegend,
+      setupPaneCollapseSupport,
+      cleanup,
+    ]
+  );
 
   return api;
 };
@@ -263,9 +274,7 @@ export const PluginManagerProvider: React.FC<PluginManagerProviderProps> = ({ ch
   const pluginManager = usePluginManager();
 
   return (
-    <PluginManagerContext.Provider value={pluginManager}>
-      {children}
-    </PluginManagerContext.Provider>
+    <PluginManagerContext.Provider value={pluginManager}>{children}</PluginManagerContext.Provider>
   );
 };
 

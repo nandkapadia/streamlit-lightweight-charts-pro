@@ -193,7 +193,7 @@ export class TemplateEngine {
     const { seriesData, customData } = context;
 
     // Check custom data first
-    if (customData && customData.hasOwnProperty(key)) {
+    if (customData && Object.prototype.hasOwnProperty.call(customData, key)) {
       return customData[key];
     }
 
@@ -223,7 +223,7 @@ export class TemplateEngine {
           return typedSeriesData.time;
         default:
           // Check if key exists directly in series data
-          if (typedSeriesData.hasOwnProperty(key)) {
+          if (Object.prototype.hasOwnProperty.call(typedSeriesData, key)) {
             return (typedSeriesData as Record<string, unknown>)[key];
           }
       }

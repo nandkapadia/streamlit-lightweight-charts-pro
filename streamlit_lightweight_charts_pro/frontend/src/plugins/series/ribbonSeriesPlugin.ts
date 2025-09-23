@@ -169,8 +169,7 @@ class RibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
 
         ctx.closePath();
         ctx.fill();
-      } else {
-      }
+      } // else: fillVisible is false, no fill needed
     });
   }
 }

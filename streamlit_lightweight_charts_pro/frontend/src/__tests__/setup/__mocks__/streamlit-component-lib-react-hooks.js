@@ -46,6 +46,7 @@ const useRenderData = jest.fn(() => ({
 
 const StreamlitProvider = ({ children }) => children;
 
+// eslint-disable-next-line no-undef
 module.exports = {
   useRenderData,
   StreamlitProvider,

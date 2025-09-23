@@ -5,7 +5,11 @@ import { SeriesDataPoint } from '../types/ChartInterfaces';
 import { createSeries } from '../utils/seriesFactory';
 
 export interface SeriesManagerAPI {
-  createSeriesForChart: (chart: IChartApi, chartConfig: ChartConfig, chartId: string) => ISeriesApi<any>[];
+  createSeriesForChart: (
+    chart: IChartApi,
+    chartConfig: ChartConfig,
+    chartId: string
+  ) => ISeriesApi<any>[];
   updateSeriesData: (series: ISeriesApi<any>, seriesConfig: SeriesConfig) => void;
   addMarkersToSeries: (series: ISeriesApi<any>, markers: SeriesMarker<Time>[]) => void;
   removeMarkersFromSeries: (series: ISeriesApi<any>) => void;
@@ -14,61 +18,69 @@ export interface SeriesManagerAPI {
 }
 
 export const useSeriesManager = (): SeriesManagerAPI => {
-
   // Create all series for a chart
-  const createSeriesForChart = useCallback((chart: IChartApi, chartConfig: ChartConfig, chartId: string): ISeriesApi<any>[] => {
-    const createdSeries: ISeriesApi<any>[] = [];
+  const createSeriesForChart = useCallback(
+    (chart: IChartApi, chartConfig: ChartConfig, chartId: string): ISeriesApi<any>[] => {
+      const createdSeries: ISeriesApi<any>[] = [];
 
-    try {
-      if (!chartConfig.series || chartConfig.series.length === 0) {
-        console.warn(`No series configured for chart ${chartId}`);
-        return createdSeries;
+      try {
+        if (!chartConfig.series || chartConfig.series.length === 0) {
+          console.warn(`No series configured for chart ${chartId}`);
+          return createdSeries;
+        }
+
+        chartConfig.series.forEach((seriesConfig: SeriesConfig, seriesIndex: number) => {
+          try {
+            // Create series using factory
+            const series = createSeries(chart, seriesConfig);
+
+            if (!series) {
+              console.error(`Failed to create series ${seriesIndex} for chart ${chartId}`);
+              return;
+            }
+
+            // Set series data if available
+            if (
+              seriesConfig.data &&
+              Array.isArray(seriesConfig.data) &&
+              seriesConfig.data.length > 0
+            ) {
+              if (validateSeriesData(seriesConfig.data, seriesConfig.type)) {
+                series.setData(seriesConfig.data);
+              } else {
+                console.warn(`Invalid data for series ${seriesIndex} in chart ${chartId}`);
+              }
+            }
+
+            // Add markers if configured
+            if (
+              seriesConfig.markers &&
+              Array.isArray(seriesConfig.markers) &&
+              seriesConfig.markers.length > 0
+            ) {
+              addMarkersToSeries(series, seriesConfig.markers);
+            }
+
+            // Store extended series information
+            const extendedSeries = series as any;
+            extendedSeries.seriesConfig = seriesConfig;
+            extendedSeries.seriesIndex = seriesIndex;
+            extendedSeries.chartId = chartId;
+
+            createdSeries.push(series);
+            console.log(`Series ${seriesIndex} created successfully for chart ${chartId}`);
+          } catch (error) {
+            console.error(`Failed to create series ${seriesIndex} for chart ${chartId}:`, error);
+          }
+        });
+      } catch (error) {
+        console.error(`Failed to create series for chart ${chartId}:`, error);
       }
 
-      chartConfig.series.forEach((seriesConfig: SeriesConfig, seriesIndex: number) => {
-        try {
-          // Create series using factory
-          const series = createSeries(chart, seriesConfig);
-
-          if (!series) {
-            console.error(`Failed to create series ${seriesIndex} for chart ${chartId}`);
-            return;
-          }
-
-          // Set series data if available
-          if (seriesConfig.data && Array.isArray(seriesConfig.data) && seriesConfig.data.length > 0) {
-            if (validateSeriesData(seriesConfig.data, seriesConfig.type)) {
-              series.setData(seriesConfig.data);
-            } else {
-              console.warn(`Invalid data for series ${seriesIndex} in chart ${chartId}`);
-            }
-          }
-
-          // Add markers if configured
-          if (seriesConfig.markers && Array.isArray(seriesConfig.markers) && seriesConfig.markers.length > 0) {
-            addMarkersToSeries(series, seriesConfig.markers);
-          }
-
-          // Store extended series information
-          const extendedSeries = series as any;
-          extendedSeries.seriesConfig = seriesConfig;
-          extendedSeries.seriesIndex = seriesIndex;
-          extendedSeries.chartId = chartId;
-
-          createdSeries.push(series);
-          console.log(`Series ${seriesIndex} created successfully for chart ${chartId}`);
-
-        } catch (error) {
-          console.error(`Failed to create series ${seriesIndex} for chart ${chartId}:`, error);
-        }
-      });
-
-    } catch (error) {
-      console.error(`Failed to create series for chart ${chartId}:`, error);
-    }
-
-    return createdSeries;
-  }, []);
+      return createdSeries;
+    },
+    []
+  );
 
   // Update series data
   const updateSeriesData = useCallback((series: ISeriesApi<any>, seriesConfig: SeriesConfig) => {
@@ -85,39 +97,37 @@ export const useSeriesManager = (): SeriesManagerAPI => {
 
       series.setData(seriesConfig.data);
       console.log('Series data updated successfully');
-
     } catch (error) {
       console.error('Failed to update series data:', error);
     }
   }, []);
 
   // Add markers to series
-  const addMarkersToSeries = useCallback((series: ISeriesApi<any>, markers: SeriesMarker<Time>[]) => {
-    try {
-      if (!markers || !Array.isArray(markers) || markers.length === 0) {
-        return;
+  const addMarkersToSeries = useCallback(
+    (series: ISeriesApi<any>, markers: SeriesMarker<Time>[]) => {
+      try {
+        if (!markers || !Array.isArray(markers) || markers.length === 0) {
+          return;
+        }
+
+        // Validate markers format
+        const validMarkers = markers.filter(marker => {
+          return marker && typeof marker === 'object' && 'time' in marker && 'position' in marker;
+        });
+
+        if (validMarkers.length === 0) {
+          console.warn('No valid markers to add');
+          return;
+        }
+
+        (series as any).setMarkers(validMarkers);
+        console.log(`Added ${validMarkers.length} markers to series`);
+      } catch (error) {
+        console.error('Failed to add markers to series:', error);
       }
-
-      // Validate markers format
-      const validMarkers = markers.filter(marker => {
-        return marker &&
-               typeof marker === 'object' &&
-               'time' in marker &&
-               'position' in marker;
-      });
-
-      if (validMarkers.length === 0) {
-        console.warn('No valid markers to add');
-        return;
-      }
-
-      (series as any).setMarkers(validMarkers);
-      console.log(`Added ${validMarkers.length} markers to series`);
-
-    } catch (error) {
-      console.error('Failed to add markers to series:', error);
-    }
-  }, []);
+    },
+    []
+  );
 
   // Remove markers from series
   const removeMarkersFromSeries = useCallback((series: ISeriesApi<any>) => {
@@ -167,10 +177,7 @@ export const useSeriesManager = (): SeriesManagerAPI => {
 
         case 'bar':
         case 'candlestick':
-          return 'open' in point &&
-                 'high' in point &&
-                 'low' in point &&
-                 'close' in point;
+          return 'open' in point && 'high' in point && 'low' in point && 'close' in point;
 
         case 'histogram':
           return 'value' in point;
@@ -186,21 +193,24 @@ export const useSeriesManager = (): SeriesManagerAPI => {
   }, []);
 
   // Memoized API object
-  const api = useMemo<SeriesManagerAPI>(() => ({
-    createSeriesForChart,
-    updateSeriesData,
-    addMarkersToSeries,
-    removeMarkersFromSeries,
-    getSeriesData,
-    validateSeriesData,
-  }), [
-    createSeriesForChart,
-    updateSeriesData,
-    addMarkersToSeries,
-    removeMarkersFromSeries,
-    getSeriesData,
-    validateSeriesData,
-  ]);
+  const api = useMemo<SeriesManagerAPI>(
+    () => ({
+      createSeriesForChart,
+      updateSeriesData,
+      addMarkersToSeries,
+      removeMarkersFromSeries,
+      getSeriesData,
+      validateSeriesData,
+    }),
+    [
+      createSeriesForChart,
+      updateSeriesData,
+      addMarkersToSeries,
+      removeMarkersFromSeries,
+      getSeriesData,
+      validateSeriesData,
+    ]
+  );
 
   return api;
 };
@@ -216,9 +226,7 @@ export const SeriesManagerProvider: React.FC<SeriesManagerProviderProps> = ({ ch
   const seriesManager = useSeriesManager();
 
   return (
-    <SeriesManagerContext.Provider value={seriesManager}>
-      {children}
-    </SeriesManagerContext.Provider>
+    <SeriesManagerContext.Provider value={seriesManager}>{children}</SeriesManagerContext.Provider>
   );
 };
 

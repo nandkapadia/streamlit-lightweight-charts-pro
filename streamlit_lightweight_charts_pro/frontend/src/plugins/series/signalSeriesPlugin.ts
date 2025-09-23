@@ -237,6 +237,7 @@ class SignalPrimitivePaneView implements IPrimitivePaneView {
         });
       } else {
         // Both coordinates are null - band is completely outside visible range
+        // No rendering needed for bands outside visible range
       }
     });
 
@@ -401,10 +402,9 @@ export class SignalSeries implements ISeriesPrimitive<Time> {
     if (typeof value === 'boolean') {
       if (value === true) {
         return this.options.signalColor || null;
-      } else {
-        // For false values, always return neutral color if available
-        return this.options.neutralColor || null;
-      }
+      } // else: boolean false values fall through to return neutral color below
+      // For false values, always return neutral color if available
+      return this.options.neutralColor || null;
     }
 
     // Handle numeric values with range-based comparisons
@@ -417,9 +417,8 @@ export class SignalSeries implements ISeriesPrimitive<Time> {
     } else if (value < 0) {
       // For negative values, try alertColor first, then fall back to signalColor if alertColor is not set
       return this.options.alertColor || this.options.signalColor || null;
-    } else {
-      return null;
-    }
+    } // else: all other cases fall through to return null
+    return null;
   }
 
   /**

@@ -1,0 +1,109 @@
+---
+description: Streamlit integration patterns and best practices
+---
+
+# Streamlit Integration Patterns
+
+## Component Architecture
+
+The library integrates with Streamlit through a custom component system:
+
+- **Component Function**: [streamlit_lightweight_charts_pro/component.py](mdc:streamlit_lightweight_charts_pro/component.py) - Main component interface
+- **Frontend**: React-based chart rendering with lightweight-charts
+- **Communication**: JSON-based data exchange between Python and frontend
+
+## Usage Patterns
+
+### Basic Chart Rendering
+```python
+import streamlit as st
+from streamlit_lightweight_charts_pro import Chart, LineSeries
+from streamlit_lightweight_charts_pro.data import SingleValueData
+
+# Create data
+data = [SingleValueData("2024-01-01", 100), SingleValueData("2024-01-02", 105)]
+
+# Create and render chart
+chart = Chart(series=LineSeries(data, color="#ff0000"))
+chart.render(key="my_chart")
+```
+
+### Fluent API Pattern
+```python
+# Method chaining for complex charts
+chart = (Chart()
+         .add_series(LineSeries(data, color="#ff0000"))
+         .add_series(AreaSeries(data2, color="#00ff00"))
+         .update_options(height=400, width=800)
+         .add_annotation(create_text_annotation("2024-01-01", 100, "Start")))
+chart.render(key="complex_chart")
+```
+
+### Pandas Integration
+```python
+import pandas as pd
+
+# Load data from CSV
+df = pd.read_csv('stock_data.csv', index_col='date', parse_dates=True)
+
+# Create chart from DataFrame
+chart = Chart(series=CandlestickSeries.from_dataframe(
+    df=df,
+    column_mapping={
+        'time': 'date',
+        'open': 'open',
+        'high': 'high',
+        'low': 'low',
+        'close': 'close'
+    }
+))
+chart.render(key="stock_chart")
+```
+
+## Component Lifecycle
+
+1. **Initialization**: Component function created on first import
+2. **Configuration**: Chart options and data serialized to JSON
+3. **Rendering**: React component renders chart using lightweight-charts
+4. **Updates**: Chart updates when data or options change
+5. **Cleanup**: Resources cleaned up when component unmounts
+
+## Key Integration Points
+
+### Data Serialization
+- **Python to JSON**: Chart configuration serialized for frontend
+- **Type Safety**: Type hints ensure data integrity
+- **Validation**: Input validation before serialization
+
+### Event Handling
+- **User Interactions**: Mouse clicks, zoom, pan events
+- **Chart Events**: Data point selection, annotation clicks
+- **State Management**: Chart state synchronized between Python and frontend
+
+### Performance Considerations
+- **Data Size**: Efficient serialization for large datasets
+- **Rendering**: Optimized chart rendering for performance
+- **Memory**: Proper cleanup of chart instances and event listeners
+
+## Best Practices
+
+### Chart Keys
+- **Unique Keys**: Always use unique keys for multiple charts
+- **Stable Keys**: Use stable keys for chart persistence
+- **Naming**: Use descriptive key names
+
+### State Management
+- **Session State**: Use Streamlit session state for chart persistence
+- **Data Caching**: Cache expensive data operations
+- **Update Optimization**: Only update charts when data changes
+
+### Error Handling
+- **Graceful Degradation**: Handle missing data gracefully
+- **User Feedback**: Provide clear error messages
+- **Logging**: Log errors for debugging
+
+## Development vs Production
+
+- **Development**: Hot reloading and debugging support
+- **Production**: Optimized builds and error handling
+- **Configuration**: Environment-specific settings

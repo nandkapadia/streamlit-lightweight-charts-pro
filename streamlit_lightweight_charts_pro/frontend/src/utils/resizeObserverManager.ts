@@ -69,7 +69,9 @@ export class ResizeObserverManager {
       this.observers.set(id, observer);
       this.callbacks.set(id, callback);
       this.targets.set(id, target);
-    } catch (error) {}
+    } catch (error) {
+      console.error('ResizeObserver operation failed:', error);
+    }
   }
 
   /**
@@ -90,7 +92,9 @@ export class ResizeObserverManager {
           clearTimeout(timeout);
           this.timeouts.delete(id);
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error('ResizeObserver operation failed:', error);
+      }
     }
   }
 
@@ -115,14 +119,18 @@ export class ResizeObserverManager {
     this.observers.forEach((observer, _id) => {
       try {
         observer.disconnect();
-      } catch (error) {}
+      } catch (error) {
+        console.error('ResizeObserver operation failed:', error);
+      }
     });
 
     // Clean up all timeouts
     this.timeouts.forEach((timeout, _id) => {
       try {
         clearTimeout(timeout);
-      } catch (error) {}
+      } catch (error) {
+        console.error('ResizeObserver operation failed:', error);
+      }
     });
 
     this.observers.clear();
@@ -145,7 +153,9 @@ export class ResizeObserverManager {
     this.observers.forEach((observer, _id) => {
       try {
         observer.disconnect();
-      } catch (error) {}
+      } catch (error) {
+        console.error('ResizeObserver operation failed:', error);
+      }
     });
   }
 
@@ -158,7 +168,9 @@ export class ResizeObserverManager {
       if (target) {
         try {
           observer.observe(target);
-        } catch (error) {}
+        } catch (error) {
+          console.error('ResizeObserver operation failed:', error);
+        }
       }
     });
   }

@@ -167,7 +167,7 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
           ? PrimitivePriority.MINIMIZE_BUTTON
           : PrimitivePriority.CUSTOM),
       visible: config.visible ?? true,
-      isPanePrimitive: config.isPanePrimitive ?? (config.buttonType === 'collapse'),
+      isPanePrimitive: config.isPanePrimitive ?? config.buttonType === 'collapse',
       paneId: config.paneId ?? 0,
       initialState: config.initialState ?? { pressed: false, disabled: false },
       style: {
@@ -700,7 +700,11 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
  */
 export function createButtonPrimitive(
   id: string,
-  config: Partial<ButtonPrimitiveConfig> & { buttonType: ButtonType; content: string; corner: Corner }
+  config: Partial<ButtonPrimitiveConfig> & {
+    buttonType: ButtonType;
+    content: string;
+    corner: Corner;
+  }
 ): ButtonPrimitive {
   return new ButtonPrimitive(id, config as ButtonPrimitiveConfig);
 }

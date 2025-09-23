@@ -1,0 +1,126 @@
+---
+description: Performance optimization guidelines and patterns
+---
+
+# Performance Optimization
+
+## Python Performance
+
+### Data Handling
+- **Efficient Serialization**: Use efficient JSON serialization for large datasets
+- **Lazy Loading**: Load data only when needed
+- **Caching**: Cache expensive computations and data transformations
+- **Memory Management**: Proper cleanup of large data structures
+
+### Chart Rendering
+- **Batch Updates**: Batch multiple chart updates together
+- **Incremental Updates**: Only update changed data points
+- **Data Compression**: Compress data before sending to frontend
+- **Streaming**: Use streaming for real-time data updates
+
+```python
+# Efficient data handling
+@lru_cache(maxsize=128)
+def process_chart_data(data: List[SingleValueData]) -> Dict[str, Any]:
+    """Process chart data with caching for performance."""
+    return {
+        'timestamps': [point.time for point in data],
+        'values': [point.value for point in data]
+    }
+```
+
+## Frontend Performance
+
+### React Optimizations
+- **Memoization**: Use React.memo, useMemo, and useCallback
+- **Component Splitting**: Split large components into smaller ones
+- **Lazy Loading**: Load components on demand
+- **Virtual Scrolling**: Use virtual scrolling for large datasets
+
+### Chart Rendering
+- **Canvas Optimization**: Optimize canvas rendering for performance
+- **Data Virtualization**: Only render visible data points
+- **Animation Optimization**: Use efficient animation techniques
+- **Memory Cleanup**: Properly clean up chart instances
+
+```typescript
+// Performance-optimized chart component
+const ChartContainer = React.memo(({ data, options }) => {
+  const chartRef = useRef<Chart | null>(null)
+
+  useEffect(() => {
+    // Initialize chart with performance optimizations
+    chartRef.current = createChart(containerRef.current, {
+      ...options,
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
+      },
+    })
+
+    return () => {
+      // Cleanup chart instance
+      chartRef.current?.remove()
+    }
+  }, [])
+
+  // Memoize expensive calculations
+  const processedData = useMemo(() =>
+    processChartData(data), [data]
+  )
+
+  return <div ref={containerRef} />
+})
+```
+
+## Memory Management
+
+### Python Memory
+- **Data Cleanup**: Clean up large data structures when done
+- **Weak References**: Use weak references for circular dependencies
+- **Memory Profiling**: Profile memory usage regularly
+- **Garbage Collection**: Explicit garbage collection for large operations
+
+### Frontend Memory
+- **Event Listeners**: Remove event listeners on component unmount
+- **Chart Instances**: Properly dispose of chart instances
+- **Memory Leaks**: Monitor for memory leaks in long-running applications
+- **Resource Cleanup**: Clean up all resources on component unmount
+
+## Performance Monitoring
+
+### Metrics to Track
+- **Rendering Time**: Time to render charts
+- **Memory Usage**: Memory consumption patterns
+- **Data Transfer**: Size of data sent between Python and frontend
+- **User Interactions**: Response time to user interactions
+
+### Profiling Tools
+- **Python**: cProfile, memory_profiler, py-spy
+- **Frontend**: React DevTools Profiler, Chrome DevTools
+- **Charts**: Lightweight Charts performance monitoring
+
+## Optimization Strategies
+
+### Data Optimization
+- **Data Sampling**: Sample large datasets for better performance
+- **Data Compression**: Compress data before transmission
+- **Incremental Loading**: Load data in chunks
+- **Caching**: Cache processed data
+
+### Rendering Optimization
+- **Canvas Optimization**: Use efficient canvas rendering techniques
+- **Animation Optimization**: Optimize animations for smooth performance
+- **Update Batching**: Batch multiple updates together
+- **Selective Rendering**: Only render visible chart elements
+
+### Network Optimization
+- **Data Compression**: Compress data for network transmission
+- **Lazy Loading**: Load data on demand
+- **Caching**: Cache data on the client side
+- **Streaming**: Use streaming for real-time updates

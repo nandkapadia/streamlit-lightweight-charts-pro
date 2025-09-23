@@ -1,34 +1,31 @@
 /**
  * Performance optimization utilities for the chart component
  */
-/* eslint-disable @typescript-eslint/no-unused-vars, no-unused-vars */
 
 // Production logging control
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const perfLog = {
-  log: (..._args: any[]) => {
+  log: (...args: any[]) => {
     if (isDevelopment) {
-      // Performance logging disabled in production
+      console.log('[PERF]', ...args);
     }
   },
-  warn: (..._args: any[]) => {
+  warn: (...args: any[]) => {
     if (isDevelopment) {
+      console.warn('[PERF WARN]', ...args);
     }
   },
-  error: (..._args: any[]) => {
+  error: (...args: any[]) => {
     // Always log errors, even in production
+    console.error('[PERF ERROR]', ...args);
   },
 };
 
 // Performance logging function for timing operations
 export function perfLogFn(_operationName: string, fn: () => any): any {
-  try {
-    const result = fn();
-    return result;
-  } catch (error) {
-    throw error;
-  }
+  const result = fn();
+  return result;
 }
 
 // Optimized deep comparison without JSON.stringify
@@ -45,7 +42,7 @@ export function deepCompare(objA: any, objB: any): boolean {
   if (keysA.length !== keysB.length) return false;
 
   for (const key of keysA) {
-    if (!objB.hasOwnProperty(key)) return false;
+    if (!Object.prototype.hasOwnProperty.call(objB, key)) return false;
 
     const valA = objA[key];
     const valB = objB[key];
@@ -263,7 +260,7 @@ export function shallowEqual(objA: any, objB: any): boolean {
   if (keysA.length !== keysB.length) return false;
 
   for (const key of keysA) {
-    if (!objB.hasOwnProperty(key) || objA[key] !== objB[key]) {
+    if (!Object.prototype.hasOwnProperty.call(objB, key) || objA[key] !== objB[key]) {
       return false;
     }
   }

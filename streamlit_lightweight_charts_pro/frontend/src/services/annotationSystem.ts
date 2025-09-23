@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { Annotation, AnnotationLayer, AnnotationText } from '../types';
 import { ShapeData } from '../types/ChartInterfaces';
 import { UTCTimestamp, SeriesMarker, Time } from 'lightweight-charts';
@@ -103,10 +102,16 @@ export const createAnnotationVisualElements = (
             };
             texts.push(text);
           }
-        } catch (error) {}
+        } catch (error) {
+          console.error('Annotation system operation failed:', error);
+        }
       });
-    } catch (forEachError) {}
-  } catch (outerError) {}
+    } catch (forEachError) {
+      console.error('Annotation forEach operation failed:', forEachError);
+    }
+  } catch (outerError) {
+    console.error('Annotation outer operation failed:', outerError);
+  }
 
   return { markers, shapes, texts };
 };

@@ -45,7 +45,10 @@ export const ChartTradeManager: React.FC<ChartTradeManagerProps> = ({
    * Add trade visualization to chart
    */
   const addTradeVisualization = useCallback(
-    (tradeConfigs: TradeConfig[], visualOptions: TradeVisualizationOptions = { style: 'markers' }) => {
+    (
+      tradeConfigs: TradeConfig[],
+      visualOptions: TradeVisualizationOptions = { style: 'markers' }
+    ) => {
       if (!chart || !tradeConfigs || tradeConfigs.length === 0) return;
 
       try {
@@ -87,12 +90,15 @@ export const ChartTradeManager: React.FC<ChartTradeManagerProps> = ({
           if (style === 'markers' || style === 'both') {
             // Create entry and exit markers
             const markers = seriesTrades.flatMap(trade => {
-              const entryColor = (trade.side || trade.tradeType) === 'long'
-                ? entryMarkerColorLong
-                : entryMarkerColorShort;
+              const entryColor =
+                (trade.side || trade.tradeType) === 'long'
+                  ? entryMarkerColorLong
+                  : entryMarkerColorShort;
 
-              const isProfitable = trade.pnl ? trade.pnl > 0 :
-                (trade.exitPrice > trade.entryPrice) === ((trade.side || trade.tradeType) === 'long');
+              const isProfitable = trade.pnl
+                ? trade.pnl > 0
+                : trade.exitPrice > trade.entryPrice ===
+                  ((trade.side || trade.tradeType) === 'long');
 
               const exitColor = isProfitable ? exitMarkerColorProfit : exitMarkerColorLoss;
 
@@ -110,8 +116,10 @@ export const ChartTradeManager: React.FC<ChartTradeManagerProps> = ({
                 position: (trade.side || trade.tradeType) === 'long' ? 'aboveBar' : 'belowBar',
                 color: exitColor,
                 shape: isProfitable ? 'circle' : 'square',
-                text: showPnlInMarkers && trade.pnl ?
-                  `${isProfitable ? '+' : ''}${trade.pnl.toFixed(2)}` : '',
+                text:
+                  showPnlInMarkers && trade.pnl
+                    ? `${isProfitable ? '+' : ''}${trade.pnl.toFixed(2)}`
+                    : '',
                 size: markerSize,
               };
 
@@ -127,8 +135,10 @@ export const ChartTradeManager: React.FC<ChartTradeManagerProps> = ({
             // Create trade rectangles
             seriesTrades.forEach(trade => {
               try {
-                const isProfitable = trade.pnl ? trade.pnl > 0 :
-                  (trade.exitPrice > trade.entryPrice) === ((trade.side || trade.tradeType) === 'long');
+                const isProfitable = trade.pnl
+                  ? trade.pnl > 0
+                  : trade.exitPrice > trade.entryPrice ===
+                    ((trade.side || trade.tradeType) === 'long');
 
                 const rectangleConfig = {
                   startTime: convertToTimestamp(trade.entryTime),

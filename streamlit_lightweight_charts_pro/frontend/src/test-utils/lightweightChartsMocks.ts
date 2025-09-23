@@ -2,96 +2,97 @@
  * Unified mock system for lightweight-charts
  * Following TESTING_INFRASTRUCTURE_STRATEGY.md recommendations
  */
+import { vi } from 'vitest';
 
 // Mock series object with all required methods
 export const mockSeries = {
-  setData: jest.fn(),
-  update: jest.fn(),
-  applyOptions: jest.fn(),
-  options: jest.fn().mockReturnValue({}),
-  priceFormatter: jest.fn().mockReturnValue((value: number) => value.toFixed(2)),
-  priceToCoordinate: jest.fn().mockReturnValue(100),
-  coordinateToPrice: jest.fn().mockReturnValue(50),
-  barsInLogicalRange: jest.fn().mockReturnValue({ barsBefore: 0, barsAfter: 0 }),
-  data: jest.fn().mockReturnValue([]),
-  dataByIndex: jest.fn().mockReturnValue(null),
-  subscribeDataChanged: jest.fn(),
-  unsubscribeDataChanged: jest.fn(),
-  seriesType: jest.fn().mockReturnValue('Line'),
-  attachPrimitive: jest.fn(),
-  detachPrimitive: jest.fn(),
-  createPriceLine: jest.fn().mockReturnValue({
-    applyOptions: jest.fn(),
-    options: jest.fn().mockReturnValue({}),
-    remove: jest.fn(),
+  setData: vi.fn(),
+  update: vi.fn(),
+  applyOptions: vi.fn(),
+  options: vi.fn().mockReturnValue({}),
+  priceFormatter: vi.fn().mockReturnValue((value: number) => value.toFixed(2)),
+  priceToCoordinate: vi.fn().mockReturnValue(100),
+  coordinateToPrice: vi.fn().mockReturnValue(50),
+  barsInLogicalRange: vi.fn().mockReturnValue({ barsBefore: 0, barsAfter: 0 }),
+  data: vi.fn().mockReturnValue([]),
+  dataByIndex: vi.fn().mockReturnValue(null),
+  subscribeDataChanged: vi.fn(),
+  unsubscribeDataChanged: vi.fn(),
+  seriesType: vi.fn().mockReturnValue('Line'),
+  attachPrimitive: vi.fn(),
+  detachPrimitive: vi.fn(),
+  createPriceLine: vi.fn().mockReturnValue({
+    applyOptions: vi.fn(),
+    options: vi.fn().mockReturnValue({}),
+    remove: vi.fn(),
   }),
-  removePriceLine: jest.fn(),
-  priceLines: jest.fn().mockReturnValue([]),
-  moveToPane: jest.fn(),
-  seriesOrder: jest.fn().mockReturnValue(0),
-  setSeriesOrder: jest.fn(),
-  getPane: jest.fn().mockReturnValue({
-    getHeight: jest.fn().mockReturnValue(400),
-    setHeight: jest.fn(),
-    getStretchFactor: jest.fn().mockReturnValue(1),
-    setStretchFactor: jest.fn(),
-    paneIndex: jest.fn().mockReturnValue(0),
-    moveTo: jest.fn(),
-    getSeries: jest.fn().mockReturnValue([]),
-    getHTMLElement: jest.fn().mockReturnValue({}),
-    attachPrimitive: jest.fn(),
-    detachPrimitive: jest.fn(),
-    priceScale: jest.fn().mockReturnValue({
-      applyOptions: jest.fn(),
-      options: jest.fn().mockReturnValue({}),
-      width: jest.fn().mockReturnValue(100),
-      setVisibleRange: jest.fn(),
-      getVisibleRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
-      setAutoScale: jest.fn(),
+  removePriceLine: vi.fn(),
+  priceLines: vi.fn().mockReturnValue([]),
+  moveToPane: vi.fn(),
+  seriesOrder: vi.fn().mockReturnValue(0),
+  setSeriesOrder: vi.fn(),
+  getPane: vi.fn().mockReturnValue({
+    getHeight: vi.fn().mockReturnValue(400),
+    setHeight: vi.fn(),
+    getStretchFactor: vi.fn().mockReturnValue(1),
+    setStretchFactor: vi.fn(),
+    paneIndex: vi.fn().mockReturnValue(0),
+    moveTo: vi.fn(),
+    getSeries: vi.fn().mockReturnValue([]),
+    getHTMLElement: vi.fn().mockReturnValue({}),
+    attachPrimitive: vi.fn(),
+    detachPrimitive: vi.fn(),
+    priceScale: vi.fn().mockReturnValue({
+      applyOptions: vi.fn(),
+      options: vi.fn().mockReturnValue({}),
+      width: vi.fn().mockReturnValue(100),
+      setVisibleRange: vi.fn(),
+      getVisibleRange: vi.fn().mockReturnValue({ from: 0, to: 100 }),
+      setAutoScale: vi.fn(),
     }),
-    setPreserveEmptyPane: jest.fn(),
-    preserveEmptyPane: jest.fn().mockReturnValue(false),
-    addCustomSeries: jest.fn(),
-    addSeries: jest.fn(),
+    setPreserveEmptyPane: vi.fn(),
+    preserveEmptyPane: vi.fn().mockReturnValue(false),
+    addCustomSeries: vi.fn(),
+    addSeries: vi.fn(),
   }),
 };
 
 // Mock price scale
 export const mockPriceScale = {
-  applyOptions: jest.fn(),
-  options: jest.fn().mockReturnValue({}),
-  width: jest.fn().mockReturnValue(100),
-  setVisibleRange: jest.fn(),
-  getVisibleRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
-  setAutoScale: jest.fn(),
+  applyOptions: vi.fn(),
+  options: vi.fn().mockReturnValue({}),
+  width: vi.fn().mockReturnValue(100),
+  setVisibleRange: vi.fn(),
+  getVisibleRange: vi.fn().mockReturnValue({ from: 0, to: 100 }),
+  setAutoScale: vi.fn(),
 };
 
 // Mock time scale
 export const mockTimeScale = {
-  scrollPosition: jest.fn().mockReturnValue(0),
-  scrollToPosition: jest.fn(),
-  scrollToRealTime: jest.fn(),
-  getVisibleRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
-  setVisibleRange: jest.fn(),
-  getVisibleLogicalRange: jest.fn().mockReturnValue({ from: 0, to: 100 }),
-  setVisibleLogicalRange: jest.fn(),
-  resetTimeScale: jest.fn(),
-  fitContent: jest.fn(),
-  logicalToCoordinate: jest.fn().mockReturnValue(100),
-  coordinateToLogical: jest.fn().mockReturnValue(0),
-  timeToIndex: jest.fn().mockReturnValue(0),
-  timeToCoordinate: jest.fn().mockReturnValue(100),
-  coordinateToTime: jest.fn().mockReturnValue(0),
-  width: jest.fn().mockReturnValue(800),
-  height: jest.fn().mockReturnValue(400),
-  subscribeVisibleTimeRangeChange: jest.fn(),
-  unsubscribeVisibleTimeRangeChange: jest.fn(),
-  subscribeVisibleLogicalRangeChange: jest.fn(),
-  unsubscribeVisibleLogicalRangeChange: jest.fn(),
-  subscribeSizeChange: jest.fn(),
-  unsubscribeSizeChange: jest.fn(),
-  applyOptions: jest.fn(),
-  options: jest.fn().mockReturnValue({
+  scrollPosition: vi.fn().mockReturnValue(0),
+  scrollToPosition: vi.fn(),
+  scrollToRealTime: vi.fn(),
+  getVisibleRange: vi.fn().mockReturnValue({ from: 0, to: 100 }),
+  setVisibleRange: vi.fn(),
+  getVisibleLogicalRange: vi.fn().mockReturnValue({ from: 0, to: 100 }),
+  setVisibleLogicalRange: vi.fn(),
+  resetTimeScale: vi.fn(),
+  fitContent: vi.fn(),
+  logicalToCoordinate: vi.fn().mockReturnValue(100),
+  coordinateToLogical: vi.fn().mockReturnValue(0),
+  timeToIndex: vi.fn().mockReturnValue(0),
+  timeToCoordinate: vi.fn().mockReturnValue(100),
+  coordinateToTime: vi.fn().mockReturnValue(0),
+  width: vi.fn().mockReturnValue(800),
+  height: vi.fn().mockReturnValue(400),
+  subscribeVisibleTimeRangeChange: vi.fn(),
+  unsubscribeVisibleTimeRangeChange: vi.fn(),
+  subscribeVisibleLogicalRangeChange: vi.fn(),
+  unsubscribeVisibleLogicalRangeChange: vi.fn(),
+  subscribeSizeChange: vi.fn(),
+  unsubscribeSizeChange: vi.fn(),
+  applyOptions: vi.fn(),
+  options: vi.fn().mockReturnValue({
     barSpacing: 6,
     rightOffset: 0,
   }),
@@ -99,37 +100,37 @@ export const mockTimeScale = {
 
 // Mock pane
 export const mockPane = {
-  getHeight: jest.fn().mockReturnValue(400),
-  setHeight: jest.fn(),
-  getStretchFactor: jest.fn().mockReturnValue(1),
-  setStretchFactor: jest.fn(),
-  paneIndex: jest.fn().mockReturnValue(0),
-  moveTo: jest.fn(),
-  getSeries: jest.fn().mockReturnValue([]),
-  getHTMLElement: jest.fn().mockReturnValue({}),
-  attachPrimitive: jest.fn(),
-  detachPrimitive: jest.fn(),
-  priceScale: jest.fn().mockReturnValue(mockPriceScale),
-  setPreserveEmptyPane: jest.fn(),
-  preserveEmptyPane: jest.fn().mockReturnValue(false),
-  addCustomSeries: jest.fn(),
-  addSeries: jest.fn(),
+  getHeight: vi.fn().mockReturnValue(400),
+  setHeight: vi.fn(),
+  getStretchFactor: vi.fn().mockReturnValue(1),
+  setStretchFactor: vi.fn(),
+  paneIndex: vi.fn().mockReturnValue(0),
+  moveTo: vi.fn(),
+  getSeries: vi.fn().mockReturnValue([]),
+  getHTMLElement: vi.fn().mockReturnValue({}),
+  attachPrimitive: vi.fn(),
+  detachPrimitive: vi.fn(),
+  priceScale: vi.fn().mockReturnValue(mockPriceScale),
+  setPreserveEmptyPane: vi.fn(),
+  preserveEmptyPane: vi.fn().mockReturnValue(false),
+  addCustomSeries: vi.fn(),
+  addSeries: vi.fn(),
 };
 
 // Main mock chart object
 export const mockChart = {
   // Series methods
-  addSeries: jest.fn().mockImplementation((_seriesType, _options, _paneId) => {
+  addSeries: vi.fn().mockImplementation((_seriesType, _options, _paneId) => {
     return mockSeries;
   }),
-  removeSeries: jest.fn(),
-  addCustomSeries: jest.fn().mockReturnValue(mockSeries),
+  removeSeries: vi.fn(),
+  addCustomSeries: vi.fn().mockReturnValue(mockSeries),
 
   // Chart methods
-  remove: jest.fn(),
-  resize: jest.fn(),
-  applyOptions: jest.fn(),
-  options: jest.fn().mockReturnValue({
+  remove: vi.fn(),
+  resize: vi.fn(),
+  applyOptions: vi.fn(),
+  options: vi.fn().mockReturnValue({
     layout: {
       background: { type: 'solid', color: '#FFFFFF' },
       textColor: '#191919',
@@ -161,56 +162,58 @@ export const mockChart = {
   }),
 
   // Scale methods
-  timeScale: jest.fn().mockReturnValue(mockTimeScale),
-  priceScale: jest.fn().mockReturnValue(mockPriceScale),
+  timeScale: vi.fn().mockReturnValue(mockTimeScale),
+  priceScale: vi.fn().mockReturnValue(mockPriceScale),
 
   // Event methods
-  subscribeCrosshairMove: jest.fn(),
-  unsubscribeCrosshairMove: jest.fn(),
-  subscribeClick: jest.fn(),
-  unsubscribeClick: jest.fn(),
-  subscribeDblClick: jest.fn(),
-  unsubscribeDblClick: jest.fn(),
+  subscribeCrosshairMove: vi.fn(),
+  unsubscribeCrosshairMove: vi.fn(),
+  subscribeClick: vi.fn(),
+  unsubscribeClick: vi.fn(),
+  subscribeDblClick: vi.fn(),
+  unsubscribeDblClick: vi.fn(),
 
   // Screenshot and utilities
-  takeScreenshot: jest.fn().mockReturnValue({}),
-  chartElement: jest.fn().mockReturnValue({}),
+  takeScreenshot: vi.fn().mockReturnValue({}),
+  chartElement: vi.fn().mockReturnValue({}),
 
   // Pane methods
-  addPane: jest.fn().mockReturnValue(mockPane),
-  removePane: jest.fn(),
-  swapPanes: jest.fn(),
-  panes: jest.fn().mockReturnValue([mockPane]),
-  paneSize: jest.fn().mockReturnValue({ width: 800, height: 400 }),
+  addPane: vi.fn().mockReturnValue(mockPane),
+  removePane: vi.fn(),
+  swapPanes: vi.fn(),
+  panes: vi.fn().mockReturnValue([mockPane]),
+  paneSize: vi.fn().mockReturnValue({ width: 800, height: 400 }),
 
   // Crosshair methods
-  setCrosshairPosition: jest.fn(),
-  clearCrosshairPosition: jest.fn(),
+  setCrosshairPosition: vi.fn(),
+  clearCrosshairPosition: vi.fn(),
 
   // Miscellaneous
-  autoSizeActive: jest.fn().mockReturnValue(false),
-  horzBehaviour: jest.fn().mockReturnValue({
-    options: jest.fn().mockReturnValue({}),
-    setOptions: jest.fn(),
+  autoSizeActive: vi.fn().mockReturnValue(false),
+  horzBehaviour: vi.fn().mockReturnValue({
+    options: vi.fn().mockReturnValue({}),
+    setOptions: vi.fn(),
   }),
 };
 
 // Mock createChart function
-export const createChart = jest.fn().mockImplementation((_container, _options) => {
+export const createChart = vi.fn().mockImplementation((_container, _options) => {
   return mockChart;
 });
 
 // Mock createChartEx function
-export const createChartEx = jest.fn().mockImplementation((_container, _horzScaleBehavior, _options) => {
-  return mockChart;
-});
+export const createChartEx = vi
+  .fn()
+  .mockImplementation((_container, _horzScaleBehavior, _options) => {
+    return mockChart;
+  });
 
 // Mock utility functions
-export const isBusinessDay = jest.fn().mockImplementation((time) => {
+export const isBusinessDay = vi.fn().mockImplementation(time => {
   return typeof time === 'object' && time.year && time.month && time.day;
 });
 
-export const isUTCTimestamp = jest.fn().mockImplementation((time) => {
+export const isUTCTimestamp = vi.fn().mockImplementation(time => {
   return typeof time === 'number' && time > 0;
 });
 
@@ -291,13 +294,13 @@ export const customSeriesDefaultOptions = {
 export const version = '5.0.8';
 
 export const defaultHorzScaleBehavior = {
-  options: jest.fn().mockReturnValue({}),
-  setOptions: jest.fn(),
+  options: vi.fn().mockReturnValue({}),
+  setOptions: vi.fn(),
 };
 
 // Reset function for tests
 export const resetMocks = () => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   createChart.mockImplementation((_container, _options) => mockChart);
   mockChart.addSeries.mockImplementation((_seriesType, _options, _paneId) => mockSeries);
 };

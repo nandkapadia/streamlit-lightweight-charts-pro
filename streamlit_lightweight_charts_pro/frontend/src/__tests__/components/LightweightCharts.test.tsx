@@ -6,9 +6,8 @@ import { ComponentConfig } from '../../types';
 import { resetMocks } from '../../test-utils/lightweightChartsMocks';
 
 // Use unified mock system
-jest.mock('lightweight-charts', () => {
-  return require('../../test-utils/lightweightChartsMocks');
-});
+import lightweightChartsMocks from '../../test-utils/lightweightChartsMocks';
+jest.mock('lightweight-charts', () => lightweightChartsMocks);
 
 // Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({

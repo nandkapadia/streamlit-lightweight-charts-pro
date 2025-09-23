@@ -6,28 +6,26 @@
  */
 
 export enum ErrorSeverity {
-  // eslint-disable-next-line no-unused-vars
   LOW = 'low',
-  // eslint-disable-next-line no-unused-vars
+
   MEDIUM = 'medium',
-  // eslint-disable-next-line no-unused-vars
+
   HIGH = 'high',
-  // eslint-disable-next-line no-unused-vars
+
   CRITICAL = 'critical',
 }
 
 export enum ErrorCategory {
-  // eslint-disable-next-line no-unused-vars
   INITIALIZATION = 'initialization',
-  // eslint-disable-next-line no-unused-vars
+
   RENDERING = 'rendering',
-  // eslint-disable-next-line no-unused-vars
+
   EVENT_HANDLING = 'event_handling',
-  // eslint-disable-next-line no-unused-vars
+
   SERVICE_COMMUNICATION = 'service_communication',
-  // eslint-disable-next-line no-unused-vars
+
   CONFIGURATION = 'configuration',
-  // eslint-disable-next-line no-unused-vars
+
   LIFECYCLE = 'lifecycle',
 }
 

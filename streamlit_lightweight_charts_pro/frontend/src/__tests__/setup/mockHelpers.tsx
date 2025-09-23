@@ -55,7 +55,9 @@ export const createMockRenderData = (overrides: any = {}) => ({
 /**
  * Create a mock chart configuration
  */
-export const createMockChartConfig = (overrides: Partial<ComponentConfig> = {}): ComponentConfig => ({
+export const createMockChartConfig = (
+  overrides: Partial<ComponentConfig> = {}
+): ComponentConfig => ({
   charts: [
     {
       chartId: 'test-chart',
@@ -98,7 +100,7 @@ export const createStreamlitMocks = () => ({
  */
 export const createMockLightweightCharts = () => {
   return function MockLightweightCharts({ config, height, width, onChartsReady }: any) {
-    const { useEffect } = require('react');
+    const { useEffect } = React;
     useEffect(() => {
       if (onChartsReady) {
         onChartsReady();
@@ -168,7 +170,10 @@ export const advanceTimersAndWait = async (ms: number = 1500): Promise<void> => 
 /**
  * Custom render function that ensures proper container setup for React 18
  */
-export const renderWithContainer = (ui: React.ReactElement, options?: Omit<RenderOptions, 'container'>) => {
+export const renderWithContainer = (
+  ui: React.ReactElement,
+  options?: Omit<RenderOptions, 'container'>
+) => {
   // Create a proper container div
   const container = document.createElement('div');
   container.setAttribute('data-testid', 'test-container');

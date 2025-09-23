@@ -1,74 +1,9 @@
 # Pre-commit configuration for streamlit-lightweight-charts-pro
 # Install with: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
 
 repos:
-  # Code formatting
-  - repo: https://github.com/psf/black
-    rev: 23.12.1
-    hooks:
-      - id: black
-        language_version: python3
-        args: [--line-length=100]
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: [--float-to-top, --line-length=100, --profile=black]
-
-  - repo: https://github.com/pycqa/autoflake
-    rev: 2.2.1
-    hooks:
-      - id: autoflake
-        args: [--remove-all-unused-imports, --remove-unused-variables, --recursive]
-
-  # Linting
-  - repo: https://github.com/pycqa/pylint
-    rev: v3.0.3
-    hooks:
-      - id: pylint
-        args: [--max-line-length=100, --disable=C0114,C0115,C0116,R0903,R0913,R0914,R0915,W0621,W0622,W0703,W0612,W0613]
-        additional_dependencies: ["pylint[spelling]"]
-
-  # Type checking
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
-      - id: mypy
-        additional_dependencies: ["types-all"]
-        args: [--ignore-missing-imports, --no-strict-optional]
-
-  # Security
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
-    hooks:
-      - id: bandit
-        args: [-r, streamlit_lightweight_charts_pro/, -f, json, -o, bandit-report.json]
-        exclude: ^tests/
-
-  # Custom hook for running tests (excluding performance tests)
-  - repo: local
-    hooks:
-      - id: pytest
-        name: pytest
-        entry: python -m pytest
-        language: system
-        types: [python]
-        args: [tests/unit/, tests/integration/, tests/e2e/, --tb=short, -q, --maxfail=5]
-        pass_filenames: false
-        always_run: true
-
-      - id: test-coverage
-        name: test-coverage
-        entry: python -m pytest
-        language: system
-        types: [python]
-        args: [tests/unit/, tests/integration/, tests/e2e/, --cov=streamlit_lightweight_charts_pro, --cov-report=term-missing, --cov-fail-under=80, --tb=short, -q]
-        pass_filenames: false
-        always_run: true
-        stages: [pre-push]  # Only run coverage on push to avoid slowing down commits
-
-  # File checks
+  # File checks (fast, run first)
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
@@ -83,3 +18,135 @@ repos:
       - id: debug-statements
       - id: check-ast
       - id: check-docstring-first
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+      - id: mixed-line-ending
+      - id: no-commit-to-branch
+        args: [--branch, main, --branch, master, --branch, develop]
+
+  # Modern Python linting and formatting (Ruff replaces multiple tools)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.8
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types: [python]
+      - id: ruff-format
+        types: [python]
+
+  # Custom line wrapping for docstrings, comments, and strings
+  - repo: local
+    hooks:
+      - id: wrap-long-lines
+        name: Wrap long lines in docstrings and comments
+        entry: python scripts/wrap_long_lines.py
+        language: system
+        types: [python]
+        args: [--max-length=100]
+
+  # Legacy tools for compatibility (run after Ruff)
+  - repo: https://github.com/psf/black
+    rev: 24.2.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=100]
+        stages: [manual]  # Only run manually, Ruff handles formatting
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--float-to-top, --line-length=100, --profile=black]
+        types: [python]
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies: ["types-requests", "types-PyYAML"]
+        args: [--ignore-missing-imports, --no-strict-optional, --show-error-codes]
+        exclude: ^tests/
+
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-r, streamlit_lightweight_charts_pro/, -f, json, -o, bandit-report.json]
+        exclude: ^tests/
+        stages: [pre-push]  # Only run on push for performance
+
+  # Commit message linting
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.13.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # Custom hooks for project-specific checks
+  - repo: local
+    hooks:
+      # Fast unit tests (run on every commit)
+      - id: pytest-fast
+        name: pytest-fast
+        entry: python -m pytest
+        language: system
+        types: [python]
+        args: [tests/unit/, --tb=short, -q, --maxfail=3, -x, --ignore=tests/performance/]
+        pass_filenames: false
+        always_run: true
+
+      # Integration tests (run on push)
+      - id: pytest-integration
+        name: pytest-integration
+        entry: python -m pytest
+        language: system
+        types: [python]
+        args: [tests/integration/, tests/e2e/, --tb=short, -q, --maxfail=5]
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      # Coverage check (run on push)
+      - id: test-coverage
+        name: test-coverage
+        entry: python -m pytest
+        language: system
+        types: [python]
+        args: [tests/unit/, tests/integration/, tests/e2e/, --cov=streamlit_lightweight_charts_pro, --cov-report=term-missing, --cov-fail-under=80, --tb=short, -q, --ignore=tests/performance/]
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      # Frontend checks (run only on frontend changes)
+      - id: frontend-checks
+        name: frontend-checks
+        entry: bash
+        language: system
+        files: ^streamlit_lightweight_charts_pro/frontend/
+        args: [scripts/run-frontend-precommit-basic.sh]
+        pass_filenames: false
+        always_run: false
+
+  # Documentation checks (run on push for performance)
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        args: [--convention=google, --add-ignore=D100,D101,D102,D103,D104,D105,D106,D107]
+        exclude: ^tests/
+        stages: [pre-push]
+
+  # Dependency vulnerability scanning (run on push for performance)
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.2
+    hooks:
+      - id: python-safety-dependencies-check
+        files: requirements.*\.txt$
+        stages: [pre-push]

@@ -657,7 +657,13 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
     });
 
     // Count trend directions in raw data
-    const trendDirectionCounts: { [key: string]: number } = { '-1': 0, '0': 0, '1': 0, null: 0, undefined: 0 };
+    const trendDirectionCounts: { [key: string]: number } = {
+      '-1': 0,
+      '0': 0,
+      '1': 0,
+      null: 0,
+      undefined: 0,
+    };
     sortedData.forEach((item, _i) => {
       const trendDirection = item.trend_direction ?? item.trendDirection;
       const key =

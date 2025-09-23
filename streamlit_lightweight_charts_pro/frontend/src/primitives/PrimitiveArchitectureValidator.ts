@@ -6,11 +6,10 @@
  */
 
 export enum ValidationSeverity {
-  // eslint-disable-next-line no-unused-vars
   WARNING = 'warning',
-  // eslint-disable-next-line no-unused-vars
+
   ERROR = 'error',
-  // eslint-disable-next-line no-unused-vars
+
   CRITICAL = 'critical',
 }
 

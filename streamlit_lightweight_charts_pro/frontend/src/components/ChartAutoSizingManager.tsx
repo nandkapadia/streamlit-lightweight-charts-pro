@@ -31,18 +31,21 @@ export const ChartAutoSizingManager: React.FC<ChartAutoSizingManagerProps> = ({
   /**
    * Get container dimensions safely
    */
-  const getContainerDimensions = useCallback((container: HTMLElement) => {
-    try {
-      const rect = container.getBoundingClientRect();
-      return {
-        width: Math.max(200, Math.floor(rect.width)),
-        height: Math.max(100, Math.floor(rect.height)),
-      };
-    } catch (error) {
-      onError?.(error as Error, 'getContainerDimensions');
-      return { width: 800, height: 400 }; // fallback dimensions
-    }
-  }, [onError]);
+  const getContainerDimensions = useCallback(
+    (container: HTMLElement) => {
+      try {
+        const rect = container.getBoundingClientRect();
+        return {
+          width: Math.max(200, Math.floor(rect.width)),
+          height: Math.max(100, Math.floor(rect.height)),
+        };
+      } catch (error) {
+        onError?.(error as Error, 'getContainerDimensions');
+        return { width: 800, height: 400 }; // fallback dimensions
+      }
+    },
+    [onError]
+  );
 
   /**
    * Enhanced resize handler with performance optimizations
@@ -82,12 +85,10 @@ export const ChartAutoSizingManager: React.FC<ChartAutoSizingManagerProps> = ({
 
     try {
       // Add resize observer with throttling for performance
-      resizeManagerRef.current.addObserver(
-        observerId,
-        container,
-        debouncedResizeHandler,
-        { throttleMs: 100, debounceMs: 50 }
-      );
+      resizeManagerRef.current.addObserver(observerId, container, debouncedResizeHandler, {
+        throttleMs: 100,
+        debounceMs: 50,
+      });
 
       // Initial resize to fit container
       const initialDimensions = getContainerDimensions(container);
@@ -100,7 +101,15 @@ export const ChartAutoSizingManager: React.FC<ChartAutoSizingManagerProps> = ({
     return () => {
       resizeManagerRef.current.removeObserver(observerId);
     };
-  }, [chart, chartId, containerRef, autoSize, debouncedResizeHandler, getContainerDimensions, onError]);
+  }, [
+    chart,
+    chartId,
+    containerRef,
+    autoSize,
+    debouncedResizeHandler,
+    getContainerDimensions,
+    onError,
+  ]);
 
   // Setup auto-sizing when chart or container changes
   useEffect(() => {

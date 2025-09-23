@@ -1,4 +1,11 @@
-import React, { useEffect, useRef, useCallback, useMemo, useTransition, useDeferredValue } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  useTransition,
+  useDeferredValue,
+} from 'react';
 import {
   createChart,
   IChartApi,
@@ -472,7 +479,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         // Store chart reference for pane collapse to work with stretch factors
         window.chartInstances = window.chartInstances || {};
         window.chartInstances[chartId] = chart;
-      } catch (error) {}
+      } catch (error) {
+        console.error('Failed to setup pane collapse support:', error);
+      }
 
       // Crosshair subscription for legend value updates is now handled
       // in the main chart creation flow to ensure it works for all charts
@@ -490,6 +499,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       // Track last click time for double-click detection
       let lastClickTime = 0;
       const doubleClickThreshold = 300; // milliseconds
+
+      // Track whether initial fitContent has been called
+      let hasInitialFitContentBeenCalled = false;
 
       // Check if fitContent on load is enabled
       const shouldFitContentOnLoad =
@@ -511,7 +523,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             if (series.length === 0) {
               // No series yet, try again after a delay
-              setTimeout(() => handleDataLoaded(retryCount + 1), 100);
+              setTimeout(() => {
+                handleDataLoaded(retryCount + 1).catch(console.error);
+              }, 100);
               return;
             }
 
@@ -522,31 +536,37 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             const visibleRange = timeScale.getVisibleRange();
 
             if (visibleRange && visibleRange.from && visibleRange.to) {
-              // Safe fitContent with user interaction check
+              // Safe fitContent with user interaction check - only on initial load
               const chartElement = chart.chartElement();
               if (
+                !hasInitialFitContentBeenCalled &&
                 chartElement &&
                 !(chartElement as HTMLElement & { _userHasInteracted?: boolean })._userHasInteracted
               ) {
                 timeScale.fitContent();
+                hasInitialFitContentBeenCalled = true;
               }
               // Trade visualization is now handled synchronously in createSeries
             } else {
               // Retry fitContent with user interaction check
-              setTimeout(async () => {
-                try {
-                  const chartElement = chart.chartElement();
-                  if (
-                    chartElement &&
-                    !(chartElement as HTMLElement & { _userHasInteracted?: boolean })
-                      ._userHasInteracted
-                  ) {
-                    timeScale.fitContent();
+              setTimeout(() => {
+                (async () => {
+                  try {
+                    const chartElement = chart.chartElement();
+                    if (
+                      !hasInitialFitContentBeenCalled &&
+                      chartElement &&
+                      !(chartElement as HTMLElement & { _userHasInteracted?: boolean })
+                        ._userHasInteracted
+                    ) {
+                      timeScale.fitContent();
+                      hasInitialFitContentBeenCalled = true;
+                    }
+                    // Trade visualization is now handled synchronously in createSeries
+                  } catch (error) {
+                    // fitContent after delay failed
                   }
-                  // Trade visualization is now handled synchronously in createSeries
-                } catch (error) {
-                  // fitContent after delay failed
-                }
+                })().catch(console.error);
               }, 100);
             }
           } catch (error) {
@@ -560,8 +580,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         }
 
         // Call fitContent after a longer delay to ensure data is loaded
-        fitContentTimeoutRef.current = setTimeout(async () => {
-          await handleDataLoaded();
+        fitContentTimeoutRef.current = setTimeout(() => {
+          handleDataLoaded().catch(console.error);
         }, 1000); // Increased delay to wait for trade data
       }
 
@@ -940,7 +960,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               try {
                 // Use createSeriesMarkers instead of setMarkers for compatibility
                 createSeriesMarkers(series, markers);
-              } catch (error) {}
+              } catch (error) {
+                console.error('Failed to create series markers:', error);
+              }
             }
           }
 
@@ -952,7 +974,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           ) {
             // Style not yet implemented
           }
-        } catch (error) {}
+        } catch (error) {
+          console.error('Failed to process trade visualization:', error);
+        }
       },
       []
     );
@@ -1129,7 +1153,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               window.chartPlugins.set(chartConfig.chartId || `chart-${Date.now()}`, tooltipPlugin);
             })
             .catch(() => {});
-        } catch (error) {}
+        } catch (error) {
+          console.error('Tooltip plugin setup failed:', error);
+        }
       },
       []
     );
@@ -1152,7 +1178,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         const existingPlugins = (window.chartPlugins.get(chartId) as unknown[]) || [];
         existingPlugins.push(rangeSwitcherWidget);
         window.chartPlugins.set(chartId, existingPlugins);
-      } catch (error) {}
+      } catch (error) {
+        console.error('Chart operation failed:', error);
+      }
     }, []);
 
     // Function to update legend positions when pane heights change - now handled by plugins
@@ -1222,13 +1250,18 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             if (legendConfig.visible) {
               try {
                 primitiveManager.addLegend(legendConfig, false, paneId);
-              } catch (legendError) {}
+              } catch (legendError) {
+                console.error('Legend creation failed:', legendError);
+              }
             } else {
+              // No legend configuration provided
             }
           }
 
           return;
-        } catch (error) {}
+        } catch (error) {
+          console.error('Chart operation failed:', error);
+        }
 
         // OLD SYSTEM BELOW - keeping as fallback but should not be reached
 
@@ -1308,6 +1341,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           if (error instanceof Error && error.message === 'Component disposed during retry') {
             // Component disposed during retry
           } else {
+            // Other error types handled by outer catch
           }
           return;
         }
@@ -1347,7 +1381,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             try {
               // Remove the incorrectly positioned legend
               kstLegend.remove();
-            } catch (error) {}
+            } catch (error) {
+              console.error('Chart operation failed:', error);
+            }
           }
         }
 
@@ -1365,7 +1401,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             } else if (series.options) {
               seriesOptions = series.options;
             }
-          } catch (error) {}
+          } catch (error) {
+            console.error('Chart operation failed:', error);
+          }
 
           // Get the paneId from the series configuration (backend sets this)
           let seriesPaneId: number | undefined = undefined;
@@ -1480,7 +1518,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
     // Performance optimization: Memoized chart configuration processing
     const processedChartConfigs = useMemo(() => {
-      if (!deferredConfig || !deferredConfig.charts || deferredConfig.charts.length === 0) return [];
+      if (!deferredConfig || !deferredConfig.charts || deferredConfig.charts.length === 0)
+        return [];
 
       return deferredConfig.charts.map((chartConfig: ChartConfig, chartIndex: number) => {
         const chartId = chartConfig.chartId || `chart-${chartIndex}`;
@@ -1713,10 +1752,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             chart.resize(finalWidth, finalHeight);
 
             // Apply layout.panes options if present
-            if (
-              chartOptions.layout &&
-              (chartOptions as any).layout?.panes
-            ) {
+            if (chartOptions.layout && (chartOptions as any).layout?.panes) {
               chart.applyOptions({
                 layout: {
                   panes: (chartOptions as any).layout.panes,
@@ -1857,50 +1893,63 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
                       try {
                         // Don't block - use setTimeout to wait for chart readiness asynchronously
-                        setTimeout(async () => {
-                          try {
-                            // Wait for chart's coordinate system to be fully initialized
-                            const isReady = await ChartReadyDetector.waitForChartReadyForPrimitives(
-                              chart,
-                              series,
-                              {
-                                maxAttempts: 100,
-                                baseDelay: 100,
-                                requireData: true,
-                              }
-                            );
+                        setTimeout(() => {
+                          (async () => {
+                            try {
+                              // Wait for chart's coordinate system to be fully initialized
+                              const isReady =
+                                await ChartReadyDetector.waitForChartReadyForPrimitives(
+                                  chart,
+                                  series,
+                                  {
+                                    maxAttempts: 100,
+                                    baseDelay: 100,
+                                    requireData: true,
+                                  }
+                                );
 
-                            if (isReady && seriesConfig.trades && seriesConfig.tradeVisualizationOptions) {
-                              await addTradeVisualization(
-                                chart,
-                                series,
-                                seriesConfig.trades,
-                                seriesConfig.tradeVisualizationOptions,
-                                seriesConfig.data
-                              );
-                            } else {
-                              // Try to attach primitives anyway - sometimes coordinates work even if tests fail
+                              if (
+                                isReady &&
+                                seriesConfig.trades &&
+                                seriesConfig.tradeVisualizationOptions
+                              ) {
+                                await addTradeVisualization(
+                                  chart,
+                                  series,
+                                  seriesConfig.trades,
+                                  seriesConfig.tradeVisualizationOptions,
+                                  seriesConfig.data
+                                );
+                              } else {
+                                // Try to attach primitives anyway - sometimes coordinates work even if tests fail
 
-                              try {
-                                if (seriesConfig.trades && seriesConfig.tradeVisualizationOptions) {
-                                  await addTradeVisualization(
-                                    chart,
-                                    series,
-                                    seriesConfig.trades,
-                                    seriesConfig.tradeVisualizationOptions,
-                                    seriesConfig.data
-                                  );
+                                try {
+                                  if (
+                                    seriesConfig.trades &&
+                                    seriesConfig.tradeVisualizationOptions
+                                  ) {
+                                    await addTradeVisualization(
+                                      chart,
+                                      series,
+                                      seriesConfig.trades,
+                                      seriesConfig.tradeVisualizationOptions,
+                                      seriesConfig.data
+                                    );
+                                  }
+                                } catch (attachError) {
+                                  console.error('Plugin attachment failed:', attachError);
                                 }
-                              } catch (attachError) {}
+                              }
+                            } catch (error) {
+                              // Error in chart readiness or trade visualization
                             }
-                          } catch (error) {
-                            // Error in chart readiness or trade visualization
-                          }
+                          })().catch(console.error);
                         }, 50); // Small delay to let chart initialization complete
                       } catch (error) {
                         // Error setting up trade visualization
                       }
                     } else {
+                      // No trade visualization options provided
                     }
 
                     // Add series-level annotations
@@ -1984,11 +2033,15 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               ChartReadyDetector.waitForChartReady(chart, chart.chartElement(), {
                 minWidth: 200,
                 minHeight: 100,
-              }).then(isReady => {
-                if (isReady) {
-                  functionRefs.current.addRangeSwitcher(chart, chartConfig.chart.rangeSwitcher);
-                }
-              });
+              })
+                .then(isReady => {
+                  if (isReady) {
+                    functionRefs.current.addRangeSwitcher(chart, chartConfig.chart.rangeSwitcher);
+                  }
+                })
+                .catch(error => {
+                  console.error('Failed to initialize range switcher:', error);
+                });
             }
 
             // Legends will be created after chart readiness check
@@ -2025,12 +2078,13 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                             paneId,
                             series
                           );
-                        } catch (error) {}
+                        } catch (error) {
+                          console.error('Chart operation failed:', error);
+                        }
                       }
                     });
 
-                    // Initial fitContent - safe since it's only called once during setup
-                    chart.timeScale().fitContent();
+                    // Initial fitContent is now handled by handleDataLoaded function with proper tracking
 
                     // Observe the chart element for size changes
                     if (resizeObserver && typeof resizeObserver.observe === 'function') {
@@ -2131,7 +2185,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                         seriesData: param.seriesData as Map<ExtendedSeriesApi, SeriesDataPoint>,
                       });
                     }
-                  } catch (error) {}
+                  } catch (error) {
+                    console.error('Chart operation failed:', error);
+                  }
                 });
 
                 // Only show minimize buttons when there are multiple panes
@@ -2141,7 +2197,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId);
 
                     // Create button panels (gear + collapse buttons) for each pane using primitive manager
-                    allPanes.forEach(async (_pane, paneId) => {
+                    for (const [paneId, _pane] of allPanes.entries()) {
                       // Add button panel using primitive manager
                       const buttonPanelWidget = primitiveManager.addButtonPanel(
                         paneId,
@@ -2156,41 +2212,21 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                         window.paneButtonPanelWidgets[chartId] = [];
                       }
                       window.paneButtonPanelWidgets[chartId].push(buttonPanelWidget);
-                    });
-                  } catch (error) {}
+                    }
+                  } catch (error) {
+                    console.error('Chart operation failed:', error);
+                  }
                 }
               } catch (error) {
                 // Ignore errors during pane collapse setup
               }
             }
 
-            // Call fitContent after all series are created and data is loaded
-            const shouldFitContentOnLoad =
-              chartConfig.chart?.timeScale?.fitContentOnLoad !== false &&
-              chartConfig.chart?.fitContentOnLoad !== false;
-
-            if (shouldFitContentOnLoad && seriesList.length > 0) {
-              // One-time fitContent with longer delay to avoid conflicts with user interactions
-              setTimeout(() => {
-                try {
-                  const timeScale = chart.timeScale();
-                  if (timeScale) {
-                    // Add flag to detect if user has interacted with chart
-                    const chartElement = chart.chartElement();
-                    if (
-                      chartElement &&
-                      !(chartElement as HTMLElement & { _userHasInteracted?: boolean })
-                        ._userHasInteracted
-                    ) {
-                      timeScale.fitContent();
-                    }
-                  }
-                } catch (error) {
-                  // fitContent failed
-                }
-              }, 1000); // Longer delay to reduce chance of conflict
-            }
-          } catch (error) {}
+            // Initial fitContent is now handled by handleDataLoaded function with proper tracking
+            // to prevent multiple calls. This redundant delayed fitContent has been removed.
+          } catch (error) {
+            console.error('Chart operation failed:', error);
+          }
         });
 
         isInitializedRef.current = true;
@@ -2312,7 +2348,14 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           console.error('Chart rendering error:', error, errorInfo);
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', opacity: isPending ? 0.7 : 1, transition: 'opacity 0.2s ease' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            opacity: isPending ? 0.7 : 1,
+            transition: 'opacity 0.2s ease',
+          }}
+        >
           {chartContainers}
         </div>
       </ErrorBoundary>

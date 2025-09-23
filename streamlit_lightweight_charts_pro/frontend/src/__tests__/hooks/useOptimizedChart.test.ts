@@ -3,9 +3,8 @@ import { useOptimizedChart } from '../../hooks/useOptimizedChart';
 import { resetMocks } from '../../test-utils/lightweightChartsMocks';
 
 // Use unified mock system
-jest.mock('lightweight-charts', () => {
-  return require('../../test-utils/lightweightChartsMocks');
-});
+import lightweightChartsMocks from '../../test-utils/lightweightChartsMocks';
+jest.mock('lightweight-charts', () => lightweightChartsMocks);
 
 describe('useOptimizedChart', () => {
   beforeEach(() => {
@@ -79,7 +78,7 @@ describe('useOptimizedChart', () => {
 
     // Test resize without chart - should not throw
     expect(() => {
-      result.current.resize(1000, 800);
+      void result.current.resize(1000, 800);
     }).not.toThrow();
   });
 

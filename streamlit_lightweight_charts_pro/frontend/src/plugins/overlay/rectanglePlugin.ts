@@ -41,7 +41,7 @@ export class RectangleOverlayPlugin {
 
   setChart(chart: IChartApi, _series?: any) {
     this.chart = chart;
-    this.init();
+    this.init().catch(console.error);
   }
 
   // Public method for testing compatibility
@@ -107,6 +107,8 @@ export class RectangleOverlayPlugin {
       });
 
       if (!isReady) {
+        console.warn('Chart not ready for rectangle overlay initialization');
+        return;
       }
 
       this.container = container;
@@ -119,7 +121,9 @@ export class RectangleOverlayPlugin {
       if (this.rectangles.length > 0) {
         this.render();
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Rectangle plugin operation failed:', error);
+    }
   }
 
   private createCanvas() {
@@ -149,8 +153,10 @@ export class RectangleOverlayPlugin {
       }
 
       // Set initial canvas size
-      this.resizeCanvas();
-    } catch (error) {}
+      this.resizeCanvas().catch(console.error);
+    } catch (error) {
+      console.error('Rectangle plugin operation failed:', error);
+    }
   }
 
   private setupResizeObserver() {
@@ -171,7 +177,7 @@ export class RectangleOverlayPlugin {
 
           // Check if dimensions are valid before resizing
           if (width > 100 && height > 100) {
-            this.handleResize();
+            this.handleResize().catch(console.error);
           }
         });
       },
@@ -202,7 +208,9 @@ export class RectangleOverlayPlugin {
           this.scheduleRedraw();
         }
       });
-    } catch (error) {}
+    } catch (error) {
+      console.error('Rectangle plugin operation failed:', error);
+    }
   }
 
   private async resizeCanvas() {
@@ -290,7 +298,9 @@ export class RectangleOverlayPlugin {
         // Redraw after resize
         this.scheduleRedraw();
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Rectangle plugin operation failed:', error);
+    }
   }
 
   private async handleResize() {
@@ -298,7 +308,9 @@ export class RectangleOverlayPlugin {
 
     try {
       await this.resizeCanvas();
-    } catch (error) {}
+    } catch (error) {
+      console.error('Rectangle plugin operation failed:', error);
+    }
   }
 
   private scheduleRedraw() {
@@ -324,7 +336,9 @@ export class RectangleOverlayPlugin {
       this.rectangles.forEach(rect => {
         this.drawRectangle(rect);
       });
-    } catch (error) {}
+    } catch (error) {
+      console.error('Rectangle plugin operation failed:', error);
+    }
   }
 
   private drawRectangle(rect: RectangleConfig) {
@@ -372,7 +386,9 @@ export class RectangleOverlayPlugin {
       if (rect.label) {
         this.drawLabel(rect, rectX, rectY, rectX + rectWidth, rectY + rectHeight);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Rectangle plugin operation failed:', error);
+    }
   }
 
   private calculateActualCoordinates(x1: number, y1: number, x2: number, y2: number) {
@@ -382,7 +398,9 @@ export class RectangleOverlayPlugin {
       // Method 1: Try to use chart's coordinate system (simplified for now)
       try {
         // For now, just use pixel coordinates directly
-      } catch (error) {}
+      } catch (error) {
+        console.error('Rectangle plugin operation failed:', error);
+      }
 
       // Method 2: Use pixel coordinates directly
       return {
@@ -425,7 +443,9 @@ export class RectangleOverlayPlugin {
 
       // Draw label text
       this.ctx.fillText(rect.label, labelX, labelY);
-    } catch (error) {}
+    } catch (error) {
+      console.error('Rectangle plugin operation failed:', error);
+    }
   }
 
   /**
@@ -449,6 +469,7 @@ export class RectangleOverlayPlugin {
     this.canvas.style.zIndex = maxZIndex.toString();
 
     if (maxZIndex !== defaultZIndex) {
+      // Z-index updated to accommodate rectangle layers
     }
   }
 

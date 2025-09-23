@@ -24,7 +24,9 @@ const App: React.FC = () => {
     if (typeof Streamlit !== 'undefined' && Streamlit.setComponentReady) {
       try {
         Streamlit.setComponentReady();
-      } catch (error) {}
+      } catch (error) {
+        console.error('Index initialization operation failed:', error);
+      }
     }
   };
 
@@ -50,28 +52,36 @@ const App: React.FC = () => {
 
       try {
         containerHeight = containerRef.current.scrollHeight;
-      } catch (error) {}
+      } catch (error) {
+        console.error('Index initialization operation failed:', error);
+      }
 
       // Method 2: Try computed styles
       if (!containerHeight) {
         try {
           const computedStyle = window.getComputedStyle(containerRef.current);
           containerHeight = parseInt(computedStyle.height) || 0;
-        } catch (error) {}
+        } catch (error) {
+          console.error('Index initialization operation failed:', error);
+        }
       }
 
       // Method 3: Try offset dimensions
       if (!containerHeight) {
         try {
           containerHeight = containerRef.current.offsetHeight;
-        } catch (error) {}
+        } catch (error) {
+          console.error('Index initialization operation failed:', error);
+        }
       }
 
       // Method 4: Try client dimensions
       if (!containerHeight) {
         try {
           containerHeight = containerRef.current.clientHeight;
-        } catch (error) {}
+        } catch (error) {
+          console.error('Index initialization operation failed:', error);
+        }
       }
 
       // Calculate total height with improved logic to prevent loops
@@ -95,10 +105,13 @@ const App: React.FC = () => {
         if (isMountedRef.current && typeof Streamlit !== 'undefined' && Streamlit.setFrameHeight) {
           try {
             Streamlit.setFrameHeight(finalHeight);
-          } catch (error) {}
+          } catch (error) {
+            console.error('Index initialization operation failed:', error);
+          }
         }
       }
     } catch (error) {
+      console.error('Height reporting operation failed:', error);
     } finally {
       // Clear reporting flag after a short delay
       setTimeout(() => {
@@ -132,7 +145,9 @@ const App: React.FC = () => {
       // Check again if component is still mounted before reporting
       if (isMountedRef.current && !isReportingHeight.current) {
         lastReportTime.current = Date.now();
-        reportHeightWithFallback();
+        reportHeightWithFallback().catch(error => {
+          console.error('Height reporting failed:', error);
+        });
       }
     }, 1000); // Increased to 1000ms to reduce frequency
   }, [reportHeightWithFallback]);
@@ -142,7 +157,9 @@ const App: React.FC = () => {
     if (!containerRef.current) return undefined;
 
     // Report height immediately
-    reportHeightWithFallback();
+    reportHeightWithFallback().catch(error => {
+      console.error('Initial height reporting failed:', error);
+    });
 
     // Set up ResizeObserver for height changes
     resizeObserverManager.current.addObserver(

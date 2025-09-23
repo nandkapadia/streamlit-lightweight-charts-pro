@@ -4,11 +4,7 @@
  */
 
 import { IChartApi } from 'lightweight-charts';
-import {
-  PaneCoordinates,
-  BoundingBox,
-  ElementPositionCoordinates,
-} from '../types/coordinates';
+import { PaneCoordinates, BoundingBox, ElementPositionCoordinates } from '../types/coordinates';
 import { ChartDimensionsService, PaneDimensionsOptions } from './ChartDimensionsService';
 import { createBoundingBox } from '../utils/coordinateValidation';
 import { DIMENSIONS, getMargins } from '../config/positioningConfig';

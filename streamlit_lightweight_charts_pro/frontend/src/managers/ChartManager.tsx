@@ -28,7 +28,10 @@ export interface ChartManagerAPI {
   initializeGlobalRegistries: () => void;
 }
 
-export const useChartManager = ({ onChartsReady, onChartError }: ChartManagerProps = {}): ChartManagerAPI => {
+export const useChartManager = ({
+  onChartsReady,
+  onChartError,
+}: ChartManagerProps = {}): ChartManagerAPI => {
   const stateRef = useRef<ChartManagerState>({
     charts: {},
     series: {},
@@ -55,35 +58,38 @@ export const useChartManager = ({ onChartsReady, onChartError }: ChartManagerPro
   }, []);
 
   // Register a new chart
-  const registerChart = useCallback((chartId: string, chart: IChartApi, config: ChartConfig) => {
-    try {
-      const state = stateRef.current;
-
-      // Store chart reference
-      state.charts[chartId] = chart;
-      state.configs[chartId] = config;
-      state.series[chartId] = [];
-
-      // Register in global registries
-      window.chartApiMap = window.chartApiMap || {};
-      window.chartApiMap[chartId] = chart as ExtendedChartApi;
-
-      // Initialize CornerLayoutManager for this chart
+  const registerChart = useCallback(
+    (chartId: string, chart: IChartApi, config: ChartConfig) => {
       try {
-        // CornerLayoutManager initialization would be handled separately
-        console.log(`CornerLayoutManager ready for ${chartId}`);
-      } catch (error) {
-        console.warn(`Failed to initialize CornerLayoutManager for ${chartId}:`, error);
-      }
+        const state = stateRef.current;
 
-      console.log(`Chart ${chartId} registered successfully`);
-    } catch (error) {
-      console.error(`Failed to register chart ${chartId}:`, error);
-      if (onChartError) {
-        onChartError(error as Error, chartId);
+        // Store chart reference
+        state.charts[chartId] = chart;
+        state.configs[chartId] = config;
+        state.series[chartId] = [];
+
+        // Register in global registries
+        window.chartApiMap = window.chartApiMap || {};
+        window.chartApiMap[chartId] = chart as ExtendedChartApi;
+
+        // Initialize CornerLayoutManager for this chart
+        try {
+          // CornerLayoutManager initialization would be handled separately
+          console.log(`CornerLayoutManager ready for ${chartId}`);
+        } catch (error) {
+          console.warn(`Failed to initialize CornerLayoutManager for ${chartId}:`, error);
+        }
+
+        console.log(`Chart ${chartId} registered successfully`);
+      } catch (error) {
+        console.error(`Failed to register chart ${chartId}:`, error);
+        if (onChartError) {
+          onChartError(error as Error, chartId);
+        }
       }
-    }
-  }, [onChartError]);
+    },
+    [onChartError]
+  );
 
   // Unregister a chart
   const unregisterChart = useCallback((chartId: string) => {
@@ -190,15 +196,26 @@ export const useChartManager = ({ onChartsReady, onChartError }: ChartManagerPro
   }, [unregisterChart]);
 
   // Memoized API object
-  const api = useMemo<ChartManagerAPI>(() => ({
-    getChart,
-    getSeries,
-    getSignalPlugin,
-    registerChart,
-    unregisterChart,
-    cleanup,
-    initializeGlobalRegistries,
-  }), [getChart, getSeries, getSignalPlugin, registerChart, unregisterChart, cleanup, initializeGlobalRegistries]);
+  const api = useMemo<ChartManagerAPI>(
+    () => ({
+      getChart,
+      getSeries,
+      getSignalPlugin,
+      registerChart,
+      unregisterChart,
+      cleanup,
+      initializeGlobalRegistries,
+    }),
+    [
+      getChart,
+      getSeries,
+      getSignalPlugin,
+      registerChart,
+      unregisterChart,
+      cleanup,
+      initializeGlobalRegistries,
+    ]
+  );
 
   return api;
 };
@@ -220,9 +237,7 @@ export const ChartManagerProvider: React.FC<ChartManagerProviderProps> = ({
   const chartManager = useChartManager({ onChartsReady, onChartError });
 
   return (
-    <ChartManagerContext.Provider value={chartManager}>
-      {children}
-    </ChartManagerContext.Provider>
+    <ChartManagerContext.Provider value={chartManager}>{children}</ChartManagerContext.Provider>
   );
 };
 

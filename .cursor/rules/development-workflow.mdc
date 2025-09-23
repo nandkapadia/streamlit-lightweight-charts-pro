@@ -1,0 +1,63 @@
+---
+description: Development workflow and best practices
+---
+
+# Development Workflow
+
+## Pre-commit Setup
+
+The project uses a comprehensive pre-commit configuration for code quality:
+
+- **Installation**: `make pre-commit-setup` or `bash scripts/setup-precommit.sh`
+- **Configuration**: [.pre-commit-config.yaml](mdc:.pre-commit-config.yaml)
+- **Tools**: Ruff (linting/formatting), MyPy (type checking), Bandit (security), pytest (testing)
+
+## Code Quality Tools
+
+- **Ruff**: Fast Python linter and formatter (replaces Black, isort, autoflake, pylint)
+- **MyPy**: Static type checking
+- **Bandit**: Security vulnerability scanning
+- **Pytest**: Testing framework with 95%+ coverage requirement
+
+## Build Process
+
+- **Frontend**: Built with Vite, configuration in [vite.config.ts](mdc:streamlit_lightweight_charts_pro/frontend/vite.config.ts)
+- **Python Package**: Built with setuptools, configuration in [pyproject.toml](mdc:pyproject.toml)
+- **Development**: Hot reloading for frontend development
+
+## Available Commands
+
+### Makefile Commands
+- `make help` - Show all available commands
+- `make install-dev` - Install development dependencies
+- `make test` - Run all tests
+- `make test-cov` - Run tests with coverage
+- `make format` - Format code with Black and isort
+- `make lint` - Run linting tools
+- `make pre-commit-setup` - Setup pre-commit hooks
+- `make pre-commit-run` - Run pre-commit checks
+
+### Frontend Commands
+- `make test-frontend` - Run frontend tests
+- `make format-frontend` - Format frontend code
+- `make lint-frontend` - Lint frontend code
+
+## Git Workflow
+
+- **Branches**: Use feature branches for development
+- **Commits**: Use conventional commit messages (enforced by commitizen)
+- **Pre-commit**: All commits run quality checks automatically
+- **Pre-push**: Comprehensive checks including security and coverage
+
+## Development Environment
+
+- **Python**: 3.7+ (configured in [pyproject.toml](mdc:pyproject.toml))
+- **Node.js**: Required for frontend development
+- **Dependencies**: Install with `pip install -e ".[dev]"`
+
+## Code Review Process
+
+- **Quality Checks**: All code must pass pre-commit hooks
+- **Test Coverage**: Maintain 95%+ test coverage
+- **Type Safety**: All code must pass MyPy type checking
+- **Security**: All code must pass Bandit security scanning

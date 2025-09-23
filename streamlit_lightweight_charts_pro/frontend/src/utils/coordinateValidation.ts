@@ -82,7 +82,10 @@ export function validateChartCoordinates(coordinates: ChartCoordinates): Validat
     if (!coordinates.priceScaleLeft) {
       warnings.push('Missing left price scale dimensions');
     } else {
-      const priceScaleErrors = validateScaleDimensions(coordinates.priceScaleLeft, 'priceScaleLeft');
+      const priceScaleErrors = validateScaleDimensions(
+        coordinates.priceScaleLeft,
+        'priceScaleLeft'
+      );
       errors.push(...priceScaleErrors.errors);
       warnings.push(...priceScaleErrors.warnings);
     }
@@ -117,7 +120,7 @@ export function validateChartCoordinates(coordinates: ChartCoordinates): Validat
       if (paneKeys.length === 0) {
         errors.push('No panes defined');
       } else {
-        paneKeys.forEach((key) => {
+        paneKeys.forEach(key => {
           const pane = (coordinates.panes as any)[key];
           const paneErrors = validatePaneCoordinates(pane, parseInt(key));
           errors.push(...paneErrors.errors);
@@ -151,7 +154,10 @@ export function validateChartCoordinates(coordinates: ChartCoordinates): Validat
 /**
  * Validates scale dimensions
  */
-export function validateScaleDimensions(scale: ScaleDimensions | null, name: string): ValidationResult {
+export function validateScaleDimensions(
+  scale: ScaleDimensions | null,
+  name: string
+): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -245,7 +251,10 @@ export function validatePaneCoordinates(pane: PaneCoordinates, index?: number): 
 /**
  * Validates a bounding box
  */
-export function validateBoundingBox(box: Partial<BoundingBox> | null, name: string = 'BoundingBox'): ValidationResult {
+export function validateBoundingBox(
+  box: Partial<BoundingBox> | null,
+  name: string = 'BoundingBox'
+): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -293,30 +302,41 @@ export function sanitizeCoordinates(coordinates: Partial<ChartCoordinates>): Cha
   const now = Date.now();
 
   // Sanitize container dimensions
-  const container = coordinates.container ? {
-    width: coordinates.container.width <= 0 ? FALLBACKS.containerWidth : coordinates.container.width,
-    height: coordinates.container.height <= 0 ? FALLBACKS.containerHeight : coordinates.container.height,
-    offsetTop: coordinates.container.offsetTop || 0,
-    offsetLeft: coordinates.container.offsetLeft || 0,
-  } : {
-    width: FALLBACKS.containerWidth,
-    height: FALLBACKS.containerHeight,
-    offsetTop: 0,
-    offsetLeft: 0,
-  };
+  const container = coordinates.container
+    ? {
+        width:
+          coordinates.container.width <= 0 ? FALLBACKS.containerWidth : coordinates.container.width,
+        height:
+          coordinates.container.height <= 0
+            ? FALLBACKS.containerHeight
+            : coordinates.container.height,
+        offsetTop: coordinates.container.offsetTop || 0,
+        offsetLeft: coordinates.container.offsetLeft || 0,
+      }
+    : {
+        width: FALLBACKS.containerWidth,
+        height: FALLBACKS.containerHeight,
+        offsetTop: 0,
+        offsetLeft: 0,
+      };
 
   // Sanitize time scale
-  const timeScale = coordinates.timeScale ? {
-    x: coordinates.timeScale.x ?? 0,
-    y: coordinates.timeScale.y ?? (container.height - FALLBACKS.timeScaleHeight),
-    width: coordinates.timeScale.width <= 0 ? container.width : coordinates.timeScale.width,
-    height: coordinates.timeScale.height <= 0 ? FALLBACKS.timeScaleHeight : coordinates.timeScale.height,
-  } : {
-    x: 0,
-    y: container.height - FALLBACKS.timeScaleHeight,
-    width: container.width,
-    height: FALLBACKS.timeScaleHeight,
-  };
+  const timeScale = coordinates.timeScale
+    ? {
+        x: coordinates.timeScale.x ?? 0,
+        y: coordinates.timeScale.y ?? container.height - FALLBACKS.timeScaleHeight,
+        width: coordinates.timeScale.width <= 0 ? container.width : coordinates.timeScale.width,
+        height:
+          coordinates.timeScale.height <= 0
+            ? FALLBACKS.timeScaleHeight
+            : coordinates.timeScale.height,
+      }
+    : {
+        x: 0,
+        y: container.height - FALLBACKS.timeScaleHeight,
+        width: container.width,
+        height: FALLBACKS.timeScaleHeight,
+      };
 
   // Determine if any fallbacks were applied
   const needsValidation = validateChartCoordinates(coordinates as ChartCoordinates);
@@ -406,9 +426,11 @@ export function logValidationResult(result: ValidationResult, _context: string =
   // const prefix = context ? `[${context}] ` : ''
 
   if (!result.isValid) {
+    console.error('Coordinate validation failed:', result.errors);
   }
 
   if (result.warnings.length > 0) {
+    console.warn('Coordinate validation warnings:', result.warnings);
   }
 }
 

@@ -21,8 +21,9 @@ const StreamlitComponentBase = class {
   }
 };
 
-const withStreamlitConnection = (component) => component;
+const withStreamlitConnection = component => component;
 
+// eslint-disable-next-line no-undef
 module.exports = {
   Streamlit,
   StreamlitComponentBase,

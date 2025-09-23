@@ -145,7 +145,6 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
   }
 
   updatePosition(position: Position): void {
-
     if (this.containerElement) {
       const style = this.containerElement.style;
       style.position = 'absolute';
@@ -264,7 +263,9 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       }
 
       // Position will be handled by the layout manager automatically
-    } catch (error) {}
+    } catch (error) {
+      console.error('Pane button panel operation failed:', error);
+    }
   }
 
   /**
@@ -333,8 +334,11 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           })
         );
       } else {
+        console.error('Failed to create dialog root for series configuration');
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Pane button panel operation failed:', error);
+    }
   }
 
   /**
@@ -354,7 +358,9 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           onConfigChange: () => {},
         })
       );
-    } catch (error) {}
+    } catch (error) {
+      console.error('Pane button panel operation failed:', error);
+    }
   }
 
   /**
@@ -395,7 +401,9 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           });
         });
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Pane button panel operation failed:', error);
+    }
 
     return seriesList;
   }
@@ -446,7 +454,9 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       if (this.config.onSeriesConfigChange) {
         this.config.onSeriesConfigChange(paneId, seriesId, config as Record<string, unknown>);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Pane button panel operation failed:', error);
+    }
   }
 
   /**
@@ -456,9 +466,10 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     try {
       const storageKey = `series-config-${seriesId}`;
       localStorage.setItem(storageKey, JSON.stringify(config));
-    } catch (error) {}
+    } catch (error) {
+      console.error('Pane button panel operation failed:', error);
+    }
   }
-
 
   /**
    * Infer series type for a pane (simplified logic)
@@ -530,7 +541,9 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       } else {
         this.collapsePane(paneId);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Pane button panel operation failed:', error);
+    }
   }
 
   private collapsePane(paneId: number): void {
@@ -567,7 +580,9 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       if (this.config.onPaneCollapse) {
         this.config.onPaneCollapse(paneId, true);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Pane button panel operation failed:', error);
+    }
   }
 
   private expandPane(paneId: number): void {
@@ -597,7 +612,9 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       if (this.config.onPaneExpand) {
         this.config.onPaneExpand(paneId, false);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Pane button panel operation failed:', error);
+    }
   }
 
   private updateButtonPanel(paneId: number): void {
@@ -624,7 +641,9 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           });
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Pane button panel operation failed:', error);
+    }
   }
 
   /**

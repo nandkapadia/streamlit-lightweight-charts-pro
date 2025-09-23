@@ -14,8 +14,13 @@ lint-check:  ## Check for linting issues without fixing
 	python lint.py --check
 
 format:  ## Format code with black and isort
-	isort streamlit_lightweight_charts_pro examples tests
+	isort --float-to-top streamlit_lightweight_charts_pro examples tests
 	black streamlit_lightweight_charts_pro examples tests
+
+format-wrap:  ## Wrap long lines in docstrings, comments, and strings
+	python scripts/wrap_long_lines.py streamlit_lightweight_charts_pro examples tests
+
+format-all: format format-wrap  ## Run all formatting including line wrapping
 
 test:  ## Run tests
 	pytest tests/ -v
@@ -50,18 +55,13 @@ clean:  ## Clean up build artifacts
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
-pre-commit-install:  ## Install pre-commit hooks
-	@echo "Installing pre-commit hooks..."
-	@if command -v pre-commit >/dev/null 2>&1; then \
-		pip install pre-commit; \
-		pre-commit install; \
-		echo "✅ Pre-commit hooks installed successfully!"; \
-	else \
-		echo "Installing pre-commit framework..."; \
-		pip install pre-commit; \
-		pre-commit install; \
-		echo "✅ Pre-commit hooks installed successfully!"; \
-	fi
+pre-commit-install:  ## Install pre-commit hooks with improved setup
+	@echo "Installing improved pre-commit configuration..."
+	@bash scripts/setup-precommit.sh
+
+pre-commit-setup:  ## Setup pre-commit with all improvements
+	@echo "Setting up comprehensive pre-commit configuration..."
+	@bash scripts/setup-precommit.sh
 
 pre-commit-run:  ## Run pre-commit hooks manually
 	@echo "Running pre-commit hooks..."
@@ -102,6 +102,22 @@ pre-commit-both:  ## Run both backend and frontend pre-commit checks
 	@echo "Running comprehensive pre-commit checks..."
 	@bash .git/hooks/pre-commit
 
+pre-commit-fast:  ## Run only fast pre-commit checks (no tests)
+	@echo "Running fast pre-commit checks..."
+	@pre-commit run --all-files --hook-stage manual
+
+pre-commit-fix:  ## Run pre-commit and auto-fix issues
+	@echo "Running pre-commit with auto-fix..."
+	@pre-commit run --all-files --hook-stage manual
+
+pre-commit-update:  ## Update pre-commit hooks to latest versions
+	@echo "Updating pre-commit hooks..."
+	@pre-commit autoupdate
+
+pre-commit-clean:  ## Clean pre-commit cache
+	@echo "Cleaning pre-commit cache..."
+	@pre-commit clean
+
 test-frontend:  ## Run frontend tests and checks
 	@echo "Running frontend tests..."
 	@cd streamlit_lightweight_charts_pro/frontend && npm test -- --watchAll=false
@@ -112,4 +128,4 @@ format-frontend:  ## Format frontend code
 
 lint-frontend:  ## Lint frontend code
 	@echo "Linting frontend code..."
-	@cd streamlit_lightweight_charts_pro/frontend && npm run lint 
+	@cd streamlit_lightweight_charts_pro/frontend && npm run lint

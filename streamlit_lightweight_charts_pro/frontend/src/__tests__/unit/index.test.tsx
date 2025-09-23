@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { Streamlit } from 'streamlit-component-lib';
+import { useRenderData } from 'streamlit-component-lib-react-hooks';
 
 // Custom render function that ensures container is available
 const customRender = (ui: React.ReactElement, options = {}) => {
@@ -67,7 +69,7 @@ jest.mock('streamlit-component-lib-react-hooks', () => ({
 jest.mock('../../LightweightCharts', () => {
   return function MockLightweightCharts({ config, height, width, onChartsReady }: any) {
     // Automatically call onChartsReady when component mounts
-    const { useEffect } = require('react');
+    const { useEffect } = React;
     useEffect(() => {
       if (onChartsReady) {
         onChartsReady();
@@ -149,7 +151,7 @@ describe('Index Component', () => {
       const { default: App } = await import('../../index');
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -201,7 +203,7 @@ describe('Index Component', () => {
       const { default: App } = await import('../../index');
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -254,7 +256,7 @@ describe('Index Component', () => {
       const { default: App } = await import('../../index');
 
       // Mock useRenderData to return custom dimensions
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -306,10 +308,10 @@ describe('Index Component', () => {
   describe('Component Initialization', () => {
     it('should set component ready state', async () => {
       const { default: App } = await import('../../index');
-      const { Streamlit } = require('streamlit-component-lib');
+      // Streamlit already imported at top
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -361,7 +363,7 @@ describe('Index Component', () => {
 
     it('should handle component ready errors gracefully', async () => {
       const { default: App } = await import('../../index');
-      const { Streamlit } = require('streamlit-component-lib');
+      // Streamlit already imported at top
 
       // Mock setComponentReady to throw error
       Streamlit.setComponentReady.mockImplementation(() => {
@@ -369,7 +371,7 @@ describe('Index Component', () => {
       });
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -421,10 +423,10 @@ describe('Index Component', () => {
   describe('Frame Height Management', () => {
     it('should set frame height when charts are ready', async () => {
       const { default: App } = await import('../../index');
-      const { Streamlit } = require('streamlit-component-lib');
+      // Streamlit already imported at top
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -482,7 +484,7 @@ describe('Index Component', () => {
 
     it('should handle frame height errors gracefully', async () => {
       const { default: App } = await import('../../index');
-      const { Streamlit } = require('streamlit-component-lib');
+      // Streamlit already imported at top
 
       // Mock setFrameHeight to throw error
       Streamlit.setFrameHeight.mockImplementation(() => {
@@ -490,7 +492,7 @@ describe('Index Component', () => {
       });
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -543,10 +545,10 @@ describe('Index Component', () => {
 
     it('should calculate correct frame height', async () => {
       const { default: App } = await import('../../index');
-      const { Streamlit } = require('streamlit-component-lib');
+      // Streamlit already imported at top
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -606,10 +608,10 @@ describe('Index Component', () => {
   describe('Resize Handling', () => {
     it('should handle window resize events', async () => {
       const { default: App } = await import('../../index');
-      const { Streamlit } = require('streamlit-component-lib');
+      // Streamlit already imported at top
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -671,10 +673,10 @@ describe('Index Component', () => {
 
     it('should debounce resize events', async () => {
       const { default: App } = await import('../../index');
-      const { Streamlit } = require('streamlit-component-lib');
+      // Streamlit already imported at top
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -741,7 +743,7 @@ describe('Index Component', () => {
       const { default: App } = await import('../../index');
 
       // Mock useRenderData to return missing config
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: null,
@@ -769,7 +771,7 @@ describe('Index Component', () => {
       const { default: App } = await import('../../index');
 
       // Mock useRenderData to return disabled state
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -814,7 +816,7 @@ describe('Index Component', () => {
       };
 
       // Mock useRenderData to return custom theme
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -890,7 +892,7 @@ describe('Index Component', () => {
       };
 
       // Mock useRenderData to return large config
-      const mockUseRenderData = require('streamlit-component-lib-react-hooks').useRenderData;
+      const mockUseRenderData = useRenderData;
       mockUseRenderData.mockReturnValue({
         args: {
           config: largeConfig,
