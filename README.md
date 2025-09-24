@@ -463,3 +463,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 test change
 test change 2
 test change 3
+test clean commit
+test smart commit

@@ -155,23 +155,24 @@ docs-check:  ## Check documentation for issues
 	@echo "Checking documentation..."
 	@mkdocs build --strict
 
-# Simple, user-friendly commit helpers
-commit:  ## Format code and prepare for commit
-	@echo "🔧 Formatting code..."
+# Smart commit workflow (handles formatting automatically)
+commit:  ## Format code and commit with auto-staging
+	@echo "🔧 Formatting and committing..."
 	@make format
-	@echo "✅ Code formatted. Ready to commit!"
+	@git add -A
+	@echo "✅ Code formatted and staged. Ready to commit!"
 	@echo "💡 Run 'git commit -m \"your message\"' to commit"
 
 commit-force:  ## Force commit without pre-commit checks
 	@echo "⚠️  Force committing without pre-commit checks..."
 	@git commit --no-verify -m "$(MSG)"
 
-fix-and-commit:  ## Auto-fix issues and prepare for commit
-	@echo "🔧 Running pre-commit fixes..."
-	@pre-commit run --all-files || true
-	@echo "📝 Staging fixes..."
-	@git add -A
-	@echo "✅ Ready to commit! Run 'git commit -m \"your message\"'"
+smart-commit:  ## Smart commit with pre-commit hooks and auto-staging
+	@echo "🧠 Smart commit workflow..."
+	@echo "🔧 Running pre-commit checks (will auto-stage changes)..."
+	@.git/hooks/pre-commit
+	@echo "✅ Pre-commit checks passed. Ready to commit!"
+	@echo "💡 Run 'git commit -m \"your message\"' to commit"
 
 # Quick development workflow
 dev-setup:  ## Complete development setup
@@ -180,8 +181,22 @@ dev-setup:  ## Complete development setup
 	@make pre-commit-install
 	@echo "✅ Development environment ready!"
 
-quick-commit:  ## Quick commit with auto-formatting
+quick-commit:  ## Quick commit with auto-formatting and staging
 	@echo "⚡ Quick commit workflow..."
 	@make format
 	@git add -A
 	@echo "✅ Staged and formatted. Run 'git commit -m \"your message\"'"
+
+# Clean commit workflow (recommended)
+clean-commit:  ## Clean commit: format, stage, and commit in one go
+	@echo "✨ Clean commit workflow..."
+	@make format
+	@git add -A
+	@if [ -n "$(MSG)" ]; then \
+		echo "📝 Committing with message: $(MSG)"; \
+		git commit -m "$(MSG)"; \
+		echo "✅ Commit successful!"; \
+	else \
+		echo "⚠️  No commit message provided. Use: make clean-commit MSG=\"your message\""; \
+		echo "💡 Or run 'git commit -m \"your message\"' manually"; \
+	fi

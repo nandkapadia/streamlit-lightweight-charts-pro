@@ -10,19 +10,23 @@ make dev-setup
 # ... edit code ...
 
 # 3. Commit (choose one)
-make quick-commit    # Auto-format and stage
-git commit -m "your message"
-
-# OR for quick fixes
-make commit-force MSG="your message"
+make clean-commit MSG="your message"    # ✨ RECOMMENDED: All-in-one
+make smart-commit                       # Pre-commit hooks + auto-stage
+make quick-commit                       # Format + stage, then commit manually
 ```
 
 ## Available Commands
 
-### 🎯 **Simple Workflow**
+### 🎯 **Clean Commit Workflow (Recommended)**
 ```bash
-make quick-commit     # Format + stage (most common)
-make commit          # Format only, then commit manually
+make clean-commit MSG="your message"    # ✨ Format + stage + commit (one command)
+make smart-commit                       # Pre-commit hooks + auto-stage
+make quick-commit                       # Format + stage, then commit manually
+```
+
+### 🔧 **Manual Workflow**
+```bash
+make commit          # Format + stage, then commit manually
 make commit-force    # Skip all checks (emergency only)
 ```
 
