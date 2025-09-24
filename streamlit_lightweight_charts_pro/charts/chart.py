@@ -79,39 +79,39 @@ logger = get_logger(__name__)
 class Chart:
     """Single pane chart for displaying financial data.
 
-            This class represents a single pane chart that can display multiple series
-            of financial data. It supports various chart types including candlestick,
-        line, area, bar, and histogram series. The chart includes comprehensive
-        annotation support, trade visualization, and method chaining for fluent
-                                        API usage.
+                This class represents a single pane chart that can display multiple series
+                of financial data. It supports various chart types including candlestick,
+            line, area, bar, and histogram series. The chart includes comprehensive
+            annotation support, trade visualization, and method chaining for fluent
+                                            API usage.
 
-        The Chart class provides a complete interface for creating interactive
-                                        financial visualizations with support for:
-                                        - Multiple series types in a single chart
-                                        - Advanced annotation system with layers
-                                        - Trade visualization with buy/sell markers
-                                        - Price and volume series from pandas DataFrames
-                                        - Overlay price scales for complex visualizations
-                                        - Comprehensive customization options
+            The Chart class provides a complete interface for creating interactive
+                                            financial visualizations with support for:
+                                            - Multiple series types in a single chart
+                                            - Advanced annotation system with layers
+                                            - Trade visualization with buy/sell markers
+                                            - Price and volume series from pandas DataFrames
+                                            - Overlay price scales for complex visualizations
+                                            - Comprehensive customization options
 
-                                        Attributes:
-            series (List[Series]): List of series objects to display in the chart.
-                    options (ChartOptions): Chart configuration options including layout, grid, etc.
-    annotation_manager (AnnotationManager): Manager for chart annotations and layers.
+                                            Attributes:
+                series (List[Series]): List of series objects to display in the chart.
+options (ChartOptions): Chart configuration options including layout, grid, etc.
+        annotation_manager (AnnotationManager): Manager for chart annotations and layers.
 
-                                        Example:
-                                            ```python
-                                            # Basic usage
-                                            chart = Chart(series=LineSeries(data))
+                                            Example:
+                                                ```python
+                                                # Basic usage
+                                                chart = Chart(series=LineSeries(data))
 
-                                            # With method chaining
+                                                # With method chaining
 chart = Chart(series=LineSeries(data)).update_options(height=400).add_annotation(text_annotation)
 
-                                            # From DataFrame with price and volume
-                                            chart = Chart.from_price_volume_dataframe(
-            df, column_mapping={"time": "timestamp", "open": "o", "high": "h"}
-                                            )
-                                            ```
+                                                # From DataFrame with price and volume
+                                                chart = Chart.from_price_volume_dataframe(
+                df, column_mapping={"time": "timestamp", "open": "o", "high": "h"}
+                                                )
+                                                ```
     """
 
     def __init__(

@@ -86,7 +86,7 @@ if ! npx eslint src --ext .ts,.tsx,.js,.jsx --ignore-pattern "src/**/__tests__/*
     print_warning "Some ESLint issues found, attempting auto-fix..."
     # Try auto-fix again
     npx eslint src --ext .ts,.tsx,.js,.jsx --ignore-pattern "src/**/__tests__/**" --ignore-pattern "src/**/*.test.*" --fix || true
-    
+
     # Check for remaining errors (ignore warnings)
     print_status "Checking for critical errors only..."
     if npx eslint src --ext .ts,.tsx,.js,.jsx --ignore-pattern "src/**/__tests__/**" --ignore-pattern "src/**/*.test.*" 2>&1 | grep -q "error"; then

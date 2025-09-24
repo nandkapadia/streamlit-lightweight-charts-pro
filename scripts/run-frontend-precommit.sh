@@ -80,7 +80,7 @@ if [ -f "check-code-quality.sh" ]; then
     fi
 else
     print_status "Running individual checks..."
-    
+
     # Step 1: Check code formatting with Prettier
     print_status "Step 1: Checking code formatting with Prettier..."
     if ! npm run format:check; then
@@ -88,7 +88,7 @@ else
         exit 1
     fi
     print_success "Code formatting is correct"
-    
+
     # Step 2: Run ESLint checks
     print_status "Step 2: Running ESLint checks..."
     if ! npm run lint:check; then
@@ -96,7 +96,7 @@ else
         exit 1
     fi
     print_success "No linting issues found"
-    
+
     # Step 3: Run TypeScript type checking
     print_status "Step 3: Running TypeScript type checking..."
     if ! npm run type-check; then
@@ -104,7 +104,7 @@ else
         exit 1
     fi
     print_success "No type errors found"
-    
+
     print_success "All frontend checks passed!"
 fi
 

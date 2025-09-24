@@ -50,7 +50,7 @@ if [ -f "scripts/run-pre-commit-tests.py" ]; then
     fi
 else
     print_status "Running basic Python checks..."
-    
+
     # Step 1: Run isort with --float-to-top
     print_status "Step 1: Organizing imports with isort (--float-to-top)..."
     if ! python -m isort tests/ streamlit_lightweight_charts_pro/ --float-to-top; then
@@ -58,7 +58,7 @@ else
         exit 1
     fi
     print_success "Import organization completed"
-    
+
     # Step 2: Run autoflake
     print_status "Step 2: Removing unused imports with autoflake..."
     if ! python -m autoflake tests/ streamlit_lightweight_charts_pro/ --remove-all-unused-imports --remove-unused-variables --recursive --in-place; then
@@ -66,7 +66,7 @@ else
         exit 1
     fi
     print_success "Unused imports removal completed"
-    
+
     # Step 3: Run black
     print_status "Step 3: Formatting code with black..."
     if ! python -m black tests/ streamlit_lightweight_charts_pro/; then
@@ -74,7 +74,7 @@ else
         exit 1
     fi
     print_success "Code formatting completed"
-    
+
     # Step 4: Run basic tests (excluding performance)
     print_status "Step 4: Running Python tests..."
     if ! python -m pytest tests/unit/ tests/integration/ tests/e2e/ --tb=short -q --maxfail=3; then
@@ -82,7 +82,7 @@ else
         exit 1
     fi
     print_success "All tests passed"
-    
+
     print_success "All backend checks passed!"
 fi
 

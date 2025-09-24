@@ -34,4 +34,4 @@ else
     exit 1
 fi
 
-echo "Frontend rebuild complete!" 
+echo "Frontend rebuild complete!"
