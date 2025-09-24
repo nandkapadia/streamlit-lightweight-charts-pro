@@ -3,8 +3,10 @@ import { createChart } from 'lightweight-charts';
 import { resetMocks } from '../../test-utils/lightweightChartsMocks';
 
 // Use unified mock system
-import lightweightChartsMocks from '../../test-utils/lightweightChartsMocks';
-jest.mock('lightweight-charts', () => lightweightChartsMocks);
+vi.mock('lightweight-charts', async () => {
+  const mocks = await import('../../test-utils/lightweightChartsMocks');
+  return mocks.default;
+});
 
 describe('Series Factory', () => {
   let chart: any;

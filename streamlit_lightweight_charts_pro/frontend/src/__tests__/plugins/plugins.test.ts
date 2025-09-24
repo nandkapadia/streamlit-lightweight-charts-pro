@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { RectangleOverlayPlugin } from '../../plugins/overlay/rectanglePlugin';
 import { SignalSeries } from '../../plugins/series/signalSeriesPlugin';
 import { createTradeVisualElements } from '../../services/tradeVisualization';
@@ -5,30 +6,32 @@ import { createAnnotationVisualElements } from '../../services/annotationSystem'
 import { resetMocks, mockChart } from '../../test-utils/lightweightChartsMocks';
 
 // Use unified mock system
-import lightweightChartsMocks from '../../test-utils/lightweightChartsMocks';
-jest.mock('lightweight-charts', () => lightweightChartsMocks);
+vi.mock('lightweight-charts', async () => {
+  const mocks = await import('../../test-utils/lightweightChartsMocks');
+  return mocks.default;
+});
 
 // Mock HTMLCanvasElement and CanvasRenderingContext2D
 const mockCanvas = {
-  getContext: jest.fn(() => ({
-    clearRect: jest.fn(),
-    fillRect: jest.fn(),
-    strokeRect: jest.fn(),
-    beginPath: jest.fn(),
-    moveTo: jest.fn(),
-    lineTo: jest.fn(),
-    stroke: jest.fn(),
-    fill: jest.fn(),
-    save: jest.fn(),
-    restore: jest.fn(),
-    translate: jest.fn(),
-    scale: jest.fn(),
-    rotate: jest.fn(),
-    setTransform: jest.fn(),
-    drawImage: jest.fn(),
-    measureText: jest.fn(() => ({ width: 100 })),
-    fillText: jest.fn(),
-    strokeText: jest.fn(),
+  getContext: vi.fn(() => ({
+    clearRect: vi.fn(),
+    fillRect: vi.fn(),
+    strokeRect: vi.fn(),
+    beginPath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    stroke: vi.fn(),
+    fill: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    translate: vi.fn(),
+    scale: vi.fn(),
+    rotate: vi.fn(),
+    setTransform: vi.fn(),
+    drawImage: vi.fn(),
+    measureText: vi.fn(() => ({ width: 100 })),
+    fillText: vi.fn(),
+    strokeText: vi.fn(),
     canvas: {
       width: 800,
       height: 600,
@@ -37,7 +40,7 @@ const mockCanvas = {
   width: 800,
   height: 600,
   style: {},
-  getBoundingClientRect: jest.fn(() => ({
+  getBoundingClientRect: vi.fn(() => ({
     width: 800,
     height: 600,
     top: 0,
@@ -45,15 +48,15 @@ const mockCanvas = {
     right: 800,
     bottom: 600,
   })),
-  appendChild: jest.fn(),
-  removeChild: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
+  appendChild: vi.fn(),
+  removeChild: vi.fn(),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
 };
 
 // Mock document.createElement
 const originalCreateElement = document.createElement;
-document.createElement = jest.fn(tagName => {
+document.createElement = vi.fn(tagName => {
   if (tagName === 'canvas') {
     return mockCanvas;
   }

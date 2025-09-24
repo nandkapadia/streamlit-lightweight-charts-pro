@@ -12,18 +12,18 @@ const customRender = (ui: React.ReactElement, options = {}) => {
 };
 
 // Mock the components and hooks
-jest.mock('streamlit-component-lib', () => ({
+vi.mock('streamlit-component-lib', () => ({
   Streamlit: {
-    setComponentValue: jest.fn(),
-    setFrameHeight: jest.fn(),
-    setComponentReady: jest.fn(),
+    setComponentValue: vi.fn(),
+    setFrameHeight: vi.fn(),
+    setComponentReady: vi.fn(),
     RENDER_EVENT: 'streamlit:render',
     SET_FRAME_HEIGHT_EVENT: 'streamlit:setFrameHeight',
   },
 }));
 
-jest.mock('streamlit-component-lib-react-hooks', () => ({
-  useRenderData: jest.fn(() => ({
+vi.mock('streamlit-component-lib-react-hooks', () => ({
+  useRenderData: vi.fn(() => ({
     args: {
       config: {
         charts: [
@@ -66,7 +66,7 @@ jest.mock('streamlit-component-lib-react-hooks', () => ({
   StreamlitProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-jest.mock('../../LightweightCharts', () => {
+vi.mock('../../LightweightCharts', () => {
   return function MockLightweightCharts({ config, height, width, onChartsReady }: any) {
     // Automatically call onChartsReady when component mounts
     const { useEffect } = React;
@@ -93,10 +93,13 @@ jest.mock('../../LightweightCharts', () => {
 });
 
 // Mock ReactDOM.render
-jest.mock('react-dom', () => ({
-  ...jest.requireActual('react-dom'),
-  render: jest.fn(),
-}));
+vi.mock('react-dom', async () => {
+  const actual = await vi.importActual('react-dom');
+  return {
+    ...actual,
+    render: vi.fn(),
+  };
+});
 
 // Mock DOM methods
 Object.defineProperty(window, 'getComputedStyle', {
@@ -105,7 +108,7 @@ Object.defineProperty(window, 'getComputedStyle', {
   }),
 });
 
-Element.prototype.getBoundingClientRect = jest.fn(
+Element.prototype.getBoundingClientRect = vi.fn(
   (): DOMRect => ({
     width: 800,
     height: 600,
@@ -135,15 +138,15 @@ Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
 });
 
 // Mock setTimeout and clearTimeout
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 describe('Index Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
   });
 
   describe('Component Rendering', () => {
@@ -474,7 +477,7 @@ describe('Index Component', () => {
       chartsReadyBtn.click();
 
       // Advance timers to trigger height reporting (component has 1000ms delay)
-      jest.advanceTimersByTime(1500);
+      vi.advanceTimersByTime(1500);
 
       // Wait for frame height to be set
       await waitFor(() => {
@@ -596,7 +599,7 @@ describe('Index Component', () => {
       chartsReadyBtn.click();
 
       // Advance timers to trigger height reporting
-      jest.advanceTimersByTime(1500);
+      vi.advanceTimersByTime(1500);
 
       await waitFor(() => {
         // Component should report the higher of scrollHeight (600) or chartHeight (400)
@@ -663,7 +666,7 @@ describe('Index Component', () => {
       window.dispatchEvent(new Event('resize'));
 
       // Advance timers to trigger height reporting (component has 1000ms delay)
-      jest.advanceTimersByTime(1500);
+      vi.advanceTimersByTime(1500);
 
       // Wait for resize handling
       await waitFor(() => {
@@ -730,7 +733,7 @@ describe('Index Component', () => {
       window.dispatchEvent(new Event('resize'));
 
       // Fast-forward timers to trigger debounced height reporting
-      jest.advanceTimersByTime(1500);
+      vi.advanceTimersByTime(1500);
 
       await waitFor(() => {
         expect(Streamlit.setFrameHeight).toHaveBeenCalled();

@@ -1,17 +1,19 @@
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import type { MockedFunction } from 'vitest';
 import { logger, LogLevel, chartLog, primitiveLog, perfLog } from '../../utils/logger';
 
 describe('Logger', () => {
-  let consoleDebugSpy: jest.SpyInstance;
-  let consoleInfoSpy: jest.SpyInstance;
-  let consoleWarnSpy: jest.SpyInstance;
-  let consoleErrorSpy: jest.SpyInstance;
+  let consoleDebugSpy: MockedFunction;
+  let consoleInfoSpy: MockedFunction;
+  let consoleWarnSpy: MockedFunction;
+  let consoleErrorSpy: MockedFunction;
 
   beforeEach(() => {
     // Mock console methods
-    consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {});
-    consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
-    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+    consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {

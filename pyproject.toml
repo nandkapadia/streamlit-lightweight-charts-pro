@@ -44,6 +44,15 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
 ]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.4.0",
+    "mkdocstrings[python]>=0.24.0",
+    "mkdocs-gen-files>=0.5.0",
+    "mkdocs-literate-nav>=0.6.0",
+    "mkdocs-section-index>=0.3.0",
+    "mkdocs-minify-plugin>=0.7.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -210,6 +219,9 @@ indent-width = 4
 # Assume Python 3.7+
 target-version = "py37"
 
+# Enable unsafe fixes by default (like Black does)
+unsafe-fixes = true
+
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 select = [
@@ -327,7 +339,3 @@ docstring-code-line-length = 100
 
 # Enable more aggressive formatting for strings and comments
 # Note: Ruff's formatter is conservative about wrapping text content
-# For automatic wrapping of docstrings/comments, consider using tools like:
-# - black with --line-length 100
-# - autopep8 with --max-line-length 100
-# - or manual wrapping for better control

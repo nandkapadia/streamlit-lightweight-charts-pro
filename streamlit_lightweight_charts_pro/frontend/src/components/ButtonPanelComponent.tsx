@@ -22,6 +22,8 @@ interface ButtonPanelComponentProps {
   onGearClick: () => void;
   /** Whether to show the collapse button. Defaults to true. */
   showCollapseButton?: boolean;
+  /** Whether to show the gear (settings) button. Defaults to true. */
+  showGearButton?: boolean;
   /** Visual configuration for the buttons */
   config: {
     /** Button size in pixels */
@@ -74,6 +76,7 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
   onCollapseClick,
   onGearClick,
   showCollapseButton = true, // Default to true for backward compatibility
+  showGearButton = true, // Default to true for backward compatibility
   config,
 }) => {
   const [hoveredButton, setHoveredButton] = useState<'collapse' | 'gear' | null>(null);
@@ -114,27 +117,29 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
 
   return (
     <div className='button-panel' style={panelStyle}>
-      {/* Gear Button */}
-      <div
-        className='gear-button'
-        style={getButtonStyle('gear')}
-        onMouseEnter={() => setHoveredButton('gear')}
-        onMouseLeave={() => setHoveredButton(null)}
-        onClick={e => {
-          e.preventDefault();
-          e.stopPropagation();
-          onGearClick();
-        }}
-        title='Series Settings'
-      >
-        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' width='14' height='14'>
-          <path
-            fill='currentColor'
-            fillRule='evenodd'
-            d='m3.1 9 2.28-5h7.24l2.28 5-2.28 5H5.38L3.1 9Zm1.63-6h8.54L16 9l-2.73 6H4.73L2 9l2.73-6Zm5.77 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm1 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z'
-          ></path>
-        </svg>
-      </div>
+      {/* Gear Button - Only show when enabled */}
+      {showGearButton && (
+        <div
+          className='gear-button'
+          style={getButtonStyle('gear')}
+          onMouseEnter={() => setHoveredButton('gear')}
+          onMouseLeave={() => setHoveredButton(null)}
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            onGearClick();
+          }}
+          title='Series Settings'
+        >
+          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' width='14' height='14'>
+            <path
+              fill='currentColor'
+              fillRule='evenodd'
+              d='m3.1 9 2.28-5h7.24l2.28 5-2.28 5H5.38L3.1 9Zm1.63-6h8.54L16 9l-2.73 6H4.73L2 9l2.73-6Zm5.77 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm1 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z'
+            ></path>
+          </svg>
+        </div>
+      )}
 
       {/* Collapse Button - Only show when multiple panes exist */}
       {showCollapseButton && (

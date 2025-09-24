@@ -7,10 +7,10 @@ import {
 // Mock performance API
 Object.defineProperty(window, 'performance', {
   value: {
-    now: jest.fn(() => Date.now()),
-    mark: jest.fn(),
-    measure: jest.fn(),
-    getEntriesByType: jest.fn(() => []),
+    now: vi.fn(() => Date.now()),
+    mark: vi.fn(),
+    measure: vi.fn(),
+    getEntriesByType: vi.fn(() => []),
   },
   writable: true,
 });
@@ -23,16 +23,16 @@ afterEach(() => {});
 
 describe('performance', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('perfLog', () => {
     it('should log performance metrics when enabled', () => {
       const mockPerformance = {
-        now: jest.fn(() => 1000),
-        mark: jest.fn(),
-        measure: jest.fn(),
-        getEntriesByType: jest.fn(() => []),
+        now: vi.fn(() => 1000),
+        mark: vi.fn(),
+        measure: vi.fn(),
+        getEntriesByType: vi.fn(() => []),
       };
       Object.defineProperty(window, 'performance', {
         value: mockPerformance,
@@ -49,10 +49,10 @@ describe('performance', () => {
 
     it('should handle errors gracefully', () => {
       const mockPerformance = {
-        now: jest.fn(() => 1000),
-        mark: jest.fn(),
-        measure: jest.fn(),
-        getEntriesByType: jest.fn(() => []),
+        now: vi.fn(() => 1000),
+        mark: vi.fn(),
+        measure: vi.fn(),
+        getEntriesByType: vi.fn(() => []),
       };
       Object.defineProperty(window, 'performance', {
         value: mockPerformance,
@@ -72,10 +72,10 @@ describe('performance', () => {
 
     it('should work with async functions', async () => {
       const mockPerformance = {
-        now: jest.fn(() => 1000),
-        mark: jest.fn(),
-        measure: jest.fn(),
-        getEntriesByType: jest.fn(() => []),
+        now: vi.fn(() => 1000),
+        mark: vi.fn(),
+        measure: vi.fn(),
+        getEntriesByType: vi.fn(() => []),
       };
       Object.defineProperty(window, 'performance', {
         value: mockPerformance,
@@ -118,7 +118,7 @@ describe('performance', () => {
 
     it('should create and cache new element when not available', () => {
       const cache = new Map();
-      const createFn = jest.fn(() => document.createElement('div'));
+      const createFn = vi.fn(() => document.createElement('div'));
 
       const result = getCachedDOMElement('new-id', cache, createFn);
 
@@ -137,7 +137,7 @@ describe('performance', () => {
 
     it('should handle create function returning null', () => {
       const cache = new Map();
-      const createFn = jest.fn(() => null);
+      const createFn = vi.fn(() => null);
 
       const result = getCachedDOMElement('test-id', cache, createFn);
 
@@ -147,7 +147,7 @@ describe('performance', () => {
 
     it('should handle multiple calls with same ID', () => {
       const cache = new Map();
-      const createFn = jest.fn(() => document.createElement('div'));
+      const createFn = vi.fn(() => document.createElement('div'));
 
       const result1 = getCachedDOMElement('same-id', cache, createFn);
       const result2 = getCachedDOMElement('same-id', cache, createFn);

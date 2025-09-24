@@ -129,3 +129,28 @@ format-frontend:  ## Format frontend code
 lint-frontend:  ## Lint frontend code
 	@echo "Linting frontend code..."
 	@cd streamlit_lightweight_charts_pro/frontend && npm run lint
+
+# Documentation commands
+docs-serve:  ## Serve documentation locally
+	@echo "Serving documentation at http://localhost:8000..."
+	@mkdocs serve
+
+docs-build:  ## Build documentation
+	@echo "Building documentation..."
+	@mkdocs build
+
+docs-deploy:  ## Deploy documentation to GitHub Pages
+	@echo "Deploying documentation..."
+	@mkdocs gh-deploy
+
+docs-clean:  ## Clean documentation build artifacts
+	@echo "Cleaning documentation build artifacts..."
+	@rm -rf site/
+
+docs-install:  ## Install documentation dependencies
+	@echo "Installing documentation dependencies..."
+	@pip install -e ".[docs]"
+
+docs-check:  ## Check documentation for issues
+	@echo "Checking documentation..."
+	@mkdocs build --strict

@@ -199,6 +199,7 @@ export interface PaneCollapseConfig {
     expand?: string;
   };
   showCollapseButton?: boolean;
+  showGearButton?: boolean;
   legendConfig?: LegendData; // Legend configuration for this pane
   onPaneCollapse?: (_paneId: number, _isCollapsed: boolean) => void;
   onPaneExpand?: (_paneId: number, _isCollapsed: boolean) => void;

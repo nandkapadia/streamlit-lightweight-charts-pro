@@ -1,7 +1,7 @@
 import { validateLineStyle, cleanLineStyleOptions } from '../../utils/lineStyle';
 
 // Mock the lightweight-charts module
-jest.mock('lightweight-charts', () => ({
+vi.mock('lightweight-charts', () => ({
   LineStyle: {
     Solid: 0,
     Dotted: 1,

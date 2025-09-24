@@ -1,46 +1,49 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import LightweightCharts from '../../LightweightCharts';
 import { ComponentConfig } from '../../types';
 import { resetMocks } from '../../test-utils/lightweightChartsMocks';
 
-// Use unified mock system
-import lightweightChartsMocks from '../../test-utils/lightweightChartsMocks';
-jest.mock('lightweight-charts', () => lightweightChartsMocks);
+// Use unified mock system with proper vi.mock pattern
+vi.mock('lightweight-charts', async () => {
+  const mocks = await import('../../test-utils/lightweightChartsMocks');
+  return mocks.default;
+});
 
 // Mock ResizeObserver
-global.ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
 }));
 
 // Mock IntersectionObserver
-global.IntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
 }));
 
 // Mock performance API
 Object.defineProperty(window, 'performance', {
   value: {
-    now: jest.fn(() => Date.now()),
-    mark: jest.fn(),
-    measure: jest.fn(),
-    getEntriesByType: jest.fn(() => []),
+    now: vi.fn(() => Date.now()),
+    mark: vi.fn(),
+    measure: vi.fn(),
+    getEntriesByType: vi.fn(() => []),
   },
   writable: true,
 });
 
 // Mock requestAnimationFrame
-global.requestAnimationFrame = jest.fn(callback => {
+global.requestAnimationFrame = vi.fn(callback => {
   setTimeout(callback, 0);
   return 1;
 });
 
-global.cancelAnimationFrame = jest.fn();
+global.cancelAnimationFrame = vi.fn();
 
 // Mock DOM methods
 Object.defineProperty(window, 'getComputedStyle', {
@@ -49,7 +52,7 @@ Object.defineProperty(window, 'getComputedStyle', {
   }),
 });
 
-Element.prototype.getBoundingClientRect = jest.fn(
+Element.prototype.getBoundingClientRect = vi.fn(
   (): DOMRect => ({
     width: 800,
     height: 600,
@@ -124,7 +127,7 @@ describe('LightweightCharts Component', () => {
     });
 
     it('should render with onChartsReady callback', () => {
-      const mockCallback = jest.fn();
+      const mockCallback = vi.fn();
       const { container } = render(
         <LightweightCharts config={mockConfig} onChartsReady={mockCallback} />
       );

@@ -29,6 +29,12 @@ export default defineConfig({
     // Handle ES modules properly
     deps: {
       external: []
+    },
+    // Configure environment more specifically for React testing
+    environmentOptions: {
+      jsdom: {
+        resources: 'usable'
+      }
     }
   },
 });

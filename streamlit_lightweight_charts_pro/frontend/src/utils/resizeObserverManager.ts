@@ -34,9 +34,12 @@ export class ResizeObserverManager {
       const now = Date.now();
 
       // Throttling
-      if (now - lastCallTime < throttleMs) {
+      if (throttleMs > 0 && now - lastCallTime < throttleMs) {
         return;
       }
+
+      // Update throttle timestamp regardless of debouncing
+      lastCallTime = now;
 
       // Debouncing
       if (debounceMs > 0) {
@@ -51,7 +54,6 @@ export class ResizeObserverManager {
         this.timeouts.set(id, timeoutId);
       } else {
         callback(entry);
-        lastCallTime = now;
       }
     };
 

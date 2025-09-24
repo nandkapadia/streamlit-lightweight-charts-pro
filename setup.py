@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Setup script for streamlit-lightweight-charts-pro package.
+"""Setup script for streamlit-lightweight-charts-pro package.
 Includes pre-built frontend assets in the wheel distribution.
 """
 
@@ -71,9 +70,8 @@ def build_frontend():
         if build_dir.exists() and (build_dir / "static").exists():
             print("✅ Frontend build successful!")
             return True
-        else:
-            print("❌ Frontend build failed - no build output found")
-            return False
+        print("❌ Frontend build failed - no build output found")
+        return False
 
     except subprocess.CalledProcessError as e:
         print(f"❌ Frontend build failed: {e}")
@@ -94,9 +92,7 @@ def ensure_frontend_built():
     if not build_dir.exists() or not (build_dir / "static").exists():
         print("🔨 Frontend not built, building now...")
         if not build_frontend():
-            raise RuntimeError(
-                "Frontend build failed. Cannot create wheel without frontend assets."
-            )
+            raise RuntimeError("Frontend build failed")
     else:
         print("✅ Frontend already built, using existing assets.")
 
@@ -186,7 +182,7 @@ if __name__ == "__main__":
             "streamlit_lightweight_charts_pro": [
                 "frontend/build/**/*",
                 "frontend/build/static/**/*",
-            ]
+            ],
         },
         install_requires=read_requirements(),
         python_requires=">=3.7",

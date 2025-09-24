@@ -4,7 +4,7 @@
     "lib": ["ES2022", "dom", "dom.iterable"],
     "allowJs": true,
     "skipLibCheck": true,
-    "types": ["jest", "node"],
+    "types": ["vitest/globals", "node"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,

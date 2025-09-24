@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Streamlit } from 'streamlit-component-lib';
 import { StreamlitProvider, useRenderData } from 'streamlit-component-lib-react-hooks';
 import LightweightCharts from './LightweightCharts';
@@ -301,13 +301,13 @@ export default App;
 function renderApp() {
   const rootElement = document.getElementById('root');
   if (rootElement) {
-    ReactDOM.render(
+    const root = createRoot(rootElement);
+    root.render(
       <React.StrictMode>
         <StreamlitProvider>
           <App />
         </StreamlitProvider>
-      </React.StrictMode>,
-      rootElement
+      </React.StrictMode>
     );
   } else {
     console.error('Root element not found');

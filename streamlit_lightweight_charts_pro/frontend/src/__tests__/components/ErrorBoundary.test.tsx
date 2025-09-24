@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 // Mock console methods
@@ -19,7 +20,7 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
 
 describe('ErrorBoundary Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Normal Rendering', () => {
@@ -183,7 +184,7 @@ describe('ErrorBoundary Component', () => {
 
   describe('Error Boundary Lifecycle', () => {
     it('should call componentDidCatch when error occurs', () => {
-      const mockComponentDidCatch = jest.fn();
+      const mockComponentDidCatch = vi.fn();
 
       class TestErrorBoundary extends ErrorBoundary {
         componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
@@ -281,7 +282,7 @@ describe('ErrorBoundary Component', () => {
       expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
 
       // Reset error state with button click
-      const tryAgainButton = screen.getByText('Try Again');
+      const tryAgainButton = screen.getByText('🔄 Try Again');
       tryAgainButton.click();
 
       // Re-render with non-throwing component after clicking Try Again
@@ -338,7 +339,7 @@ describe('ErrorBoundary Component', () => {
 
     it('should catch errors thrown in useEffect during render', () => {
       // Suppress console errors for this test
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const AsyncErrorComponent = () => {
         React.useEffect(() => {

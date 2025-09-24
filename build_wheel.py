@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Build script to create a proper wheel with pre-built frontend assets.
+"""Build script to create a proper wheel with pre-built frontend assets.
 This should be run before publishing to ensure the wheel contains all assets.
 """
 
@@ -40,9 +39,8 @@ def build_frontend():
         if build_dir.exists() and (build_dir / "static").exists():
             print("✅ Frontend build successful!")
             return True
-        else:
-            print("❌ Frontend build failed - no build output found")
-            return False
+        print("❌ Frontend build failed - no build output found")
+        return False
 
     except subprocess.CalledProcessError as e:
         print(f"❌ Frontend build failed: {e}")
@@ -68,14 +66,18 @@ def build_wheel():
         # Clean previous builds
         print("🧹 Cleaning previous builds...")
         for dir_name in ["build", "dist", "*.egg-info"]:
-            for path in Path(".").glob(dir_name):
+            for path in Path().glob(dir_name):
                 if path.is_dir():
                     shutil.rmtree(path)
                     print(f"   Removed {path}")
 
         # Build wheel
         print("📦 Building wheel...")
-        subprocess.run([sys.executable, "setup.py", "bdist_wheel"], check=True)
+        subprocess.run(
+            [sys.executable, "setup.py", "bdist_wheel"],
+            check=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
+        )
 
         # List created files
         dist_dir = Path("dist")
@@ -85,9 +87,8 @@ def build_wheel():
             for file in dist_dir.iterdir():
                 print(f"   {file}")
             return True
-        else:
-            print("❌ No wheel files created")
-            return False
+        print("❌ No wheel files created")
+        return False
 
     except subprocess.CalledProcessError as e:
         print(f"❌ Wheel build failed: {e}")
@@ -116,6 +117,7 @@ def test_wheel():
         subprocess.run(
             [sys.executable, "-m", "pip", "install", "--force-reinstall", str(wheel_file)],
             check=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
         )
 
         # Test import
@@ -126,10 +128,15 @@ def test_wheel():
                 'import streamlit_lightweight_charts_pro; print("✅ Import successful!")',
             ],
             check=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
         )
 
         # Test CLI
-        subprocess.run(["streamlit-lightweight-charts-pro", "--help"], check=True)
+        subprocess.run(
+            ["streamlit-lightweight-charts-pro", "--help"],
+            check=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
+        )
 
         print("✅ Wheel test successful!")
         return True

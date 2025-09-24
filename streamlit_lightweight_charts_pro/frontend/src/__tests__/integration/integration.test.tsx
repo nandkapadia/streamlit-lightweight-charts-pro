@@ -1,17 +1,17 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import LightweightCharts from '../../LightweightCharts';
 import { ComponentConfig } from '../../types';
-import { resetMocks } from '../../test-utils/lightweightChartsMocks';
+import { createTestEnvironment } from '../mocks/GlobalMockFactory';
 
-// Use unified mock system
-import lightweightChartsMocks from '../../test-utils/lightweightChartsMocks';
-jest.mock('lightweight-charts', () => lightweightChartsMocks);
+// Note: LightweightCharts component and other mocks are already configured
+// in globalMockSetup.ts, so no need to mock them here
 
 // Mock ResizeObserver
-global.ResizeObserver = jest.fn().mockImplementation(callback => ({
-  observe: jest.fn(element => {
+global.ResizeObserver = vi.fn().mockImplementation(callback => ({
+  observe: vi.fn(element => {
     // Simulate a resize event
     if (callback) {
       setTimeout(() => {
@@ -31,35 +31,35 @@ global.ResizeObserver = jest.fn().mockImplementation(callback => ({
       }, 0);
     }
   }),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
 }));
 
 // Mock IntersectionObserver
-global.IntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
 }));
 
 // Mock performance API
 Object.defineProperty(window, 'performance', {
   value: {
-    now: jest.fn(() => Date.now()),
-    mark: jest.fn(),
-    measure: jest.fn(),
-    getEntriesByType: jest.fn(() => []),
+    now: vi.fn(() => Date.now()),
+    mark: vi.fn(),
+    measure: vi.fn(),
+    getEntriesByType: vi.fn(() => []),
   },
   writable: true,
 });
 
 // Mock requestAnimationFrame
-global.requestAnimationFrame = jest.fn(callback => {
+global.requestAnimationFrame = vi.fn(callback => {
   setTimeout(callback, 0);
   return 1;
 });
 
-global.cancelAnimationFrame = jest.fn();
+global.cancelAnimationFrame = vi.fn();
 
 // Mock DOM methods
 Object.defineProperty(window, 'getComputedStyle', {
@@ -68,7 +68,7 @@ Object.defineProperty(window, 'getComputedStyle', {
   }),
 });
 
-Element.prototype.getBoundingClientRect = jest.fn(
+Element.prototype.getBoundingClientRect = vi.fn(
   () =>
     ({
       width: 800,
@@ -79,7 +79,7 @@ Element.prototype.getBoundingClientRect = jest.fn(
       bottom: 600,
       x: 0,
       y: 0,
-      toJSON: jest.fn(),
+      toJSON: vi.fn(),
     }) as DOMRect
 );
 
@@ -100,7 +100,8 @@ Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
 
 describe('Frontend Integration Tests', () => {
   beforeEach(() => {
-    resetMocks();
+    // Centralized mocks are automatically reset in globalMockSetup.ts
+    vi.clearAllMocks();
   });
 
   describe('Complete Chart Workflow', () => {

@@ -305,7 +305,7 @@ export const resetMocks = () => {
   mockChart.addSeries.mockImplementation((_seriesType, _options, _paneId) => mockSeries);
 };
 
-// Default export for jest.mock()
+// Default export for vi.mock()
 const lightweightChartsMock = {
   createChart,
   createChartEx,

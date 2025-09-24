@@ -85,13 +85,13 @@ export const createMockChartConfig = (
  */
 export const createStreamlitMocks = () => ({
   Streamlit: {
-    setComponentValue: jest.fn(),
-    setFrameHeight: jest.fn(),
-    setComponentReady: jest.fn(),
+    setComponentValue: vi.fn(),
+    setFrameHeight: vi.fn(),
+    setComponentReady: vi.fn(),
     RENDER_EVENT: 'streamlit:render',
     SET_FRAME_HEIGHT_EVENT: 'streamlit:setFrameHeight',
   },
-  useRenderData: jest.fn(() => createMockRenderData()),
+  useRenderData: vi.fn(() => createMockRenderData()),
   StreamlitProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 });
 
@@ -163,7 +163,7 @@ export const waitForAsync = (ms: number = 0): Promise<void> => {
  * Utility to advance timers and wait for async operations
  */
 export const advanceTimersAndWait = async (ms: number = 1500): Promise<void> => {
-  jest.advanceTimersByTime(ms);
+  vi.advanceTimersByTime(ms);
   await waitForAsync(10);
 };
 

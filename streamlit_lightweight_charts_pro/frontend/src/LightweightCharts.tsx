@@ -2151,6 +2151,12 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             // Create individual pane containers and add collapse functionality (synchronous like working version)
             const paneCollapseConfig = chartConfig.paneCollapse || { enabled: true };
+
+            // Hide the gear button temporarily as the functionality is not working
+            if (paneCollapseConfig.showGearButton === undefined) {
+              paneCollapseConfig.showGearButton = false;
+            }
+
             if (paneCollapseConfig.enabled !== false) {
               try {
                 // Get all panes and wrap each in its own collapsible container

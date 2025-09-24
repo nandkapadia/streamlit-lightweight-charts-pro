@@ -286,6 +286,7 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           this.openSeriesConfigDialog(paneId);
         },
         showCollapseButton: this.config.showCollapseButton !== false,
+        showGearButton: this.config.showGearButton !== false,
         config: this.config,
       })
     );
