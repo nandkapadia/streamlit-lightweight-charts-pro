@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Line Chart Example
+"""Line Chart Example
 
 This example demonstrates a comprehensive line chart with all available features.
 Learn about line styling, price lines, markers, and advanced options.
@@ -13,32 +12,34 @@ What you'll learn:
 - Method chaining for advanced configuration
 """
 
-import os
 import sys
+from pathlib import Path
 
 import streamlit as st
-
-# Add project root to path for examples imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.options import LineOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
-from streamlit_lightweight_charts_pro.data import LineData, BarMarker
+from streamlit_lightweight_charts_pro.data import BarMarker, LineData
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     LineStyle,
     MarkerPosition,
     MarkerShape,
 )
 
+# Add project root to path for examples imports
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
+
+
 # Page configuration
 st.set_page_config(
     page_title="Line Chart",
     page_icon="📈",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
+
 
 def create_sample_data():
     """Create sample data for the line chart."""
@@ -65,27 +66,31 @@ def create_sample_data():
         LineData(time="2024-01-20", value=126.9),
     ]
 
+
 def main():
     """Create and display a comprehensive line chart."""
     st.title("📈 Line Chart")
-    st.markdown("A comprehensive line chart demonstrating all available features and customization options.")
-    
+    st.markdown(
+        "A comprehensive line chart demonstrating all available features and "
+        "customization options.",
+    )
+
     # Get sample data
     data = create_sample_data()
-    
+
     # Calculate key levels
     min_price = min(d.value for d in data)
     max_price = max(d.value for d in data)
     avg_price = sum(d.value for d in data) / len(data)
-    
+
     # Find key data points
     min_point = min(data, key=lambda x: x.value)
     max_point = max(data, key=lambda x: x.value)
     mid_point = data[len(data) // 2]
-    
+
     # Sidebar controls
     st.sidebar.header("🎛️ Chart Controls")
-    
+
     # Line styling
     st.sidebar.subheader("Line Styling")
     line_color = st.sidebar.color_picker("Line Color", "#2196F3")
@@ -93,21 +98,21 @@ def main():
     line_style = st.sidebar.selectbox(
         "Line Style",
         ["Solid", "Dashed", "Dotted"],
-        index=0
+        index=0,
     )
-    
+
     line_style_map = {
         "Solid": LineStyle.SOLID,
         "Dashed": LineStyle.DASHED,
-        "Dotted": LineStyle.DOTTED
+        "Dotted": LineStyle.DOTTED,
     }
-    
+
     # Features
     st.sidebar.subheader("Features")
     show_price_lines = st.sidebar.checkbox("Show Price Lines", True)
     show_markers = st.sidebar.checkbox("Show Markers", True)
     show_crosshair = st.sidebar.checkbox("Show Crosshair", True)
-    
+
     # Create line options
     line_options = LineOptions(
         color=line_color,
@@ -120,11 +125,11 @@ def main():
         crosshair_marker_border_width=2,
         point_markers_visible=False,
     )
-    
+
     # Create line series with method chaining
     line_series = LineSeries(data=data)
     line_series.line_options = line_options
-    
+
     # Add price lines if enabled
     if show_price_lines:
         support_line = PriceLineOptions(
@@ -136,7 +141,7 @@ def main():
             axis_label_text_color="#ffffff",
             title="Support",
         )
-        
+
         resistance_line = PriceLineOptions(
             price=max_price,
             color="#ef5350",
@@ -146,7 +151,7 @@ def main():
             axis_label_text_color="#ffffff",
             title="Resistance",
         )
-        
+
         avg_line = PriceLineOptions(
             price=avg_price,
             color="#ff9800",
@@ -156,11 +161,11 @@ def main():
             axis_label_text_color="#ffffff",
             title="Average",
         )
-        
+
         line_series.add_price_line(support_line)
         line_series.add_price_line(resistance_line)
         line_series.add_price_line(avg_line)
-    
+
     # Add markers if enabled
     if show_markers:
         support_marker = BarMarker(
@@ -171,7 +176,7 @@ def main():
             text="Support",
             size=12,
         )
-        
+
         resistance_marker = BarMarker(
             time=max_point.time,
             position=MarkerPosition.ABOVE_BAR,
@@ -180,7 +185,7 @@ def main():
             text="Resistance",
             size=12,
         )
-        
+
         trend_marker = BarMarker(
             time=mid_point.time,
             position=MarkerPosition.IN_BAR,
@@ -189,21 +194,21 @@ def main():
             text="Trend Change",
             size=10,
         )
-        
+
         line_series.add_markers([support_marker, resistance_marker, trend_marker])
-    
+
     # Create chart
     chart = Chart(series=line_series)
-    
+
     # Display the chart
     st.subheader("📊 Line Chart")
     chart.render(key="line_chart")
-    
+
     # Chart statistics
     st.subheader("📊 Chart Statistics")
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric("Data Points", len(data))
     with col2:
@@ -212,12 +217,12 @@ def main():
         st.metric("Average", f"${avg_price:.2f}")
     with col4:
         st.metric("Volatility", f"{((max_price - min_price) / avg_price * 100):.1f}%")
-    
+
     # Feature information
     st.subheader("🔍 Features Demonstrated")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.markdown("**Core Features:**")
         st.markdown("- ✅ Custom line styling")
@@ -225,7 +230,7 @@ def main():
         st.markdown("- ✅ Multiple marker types")
         st.markdown("- ✅ Method chaining")
         st.markdown("- ✅ Crosshair markers")
-    
+
     with col2:
         st.markdown("**Advanced Features:**")
         st.markdown("- ✅ Dynamic color selection")
@@ -233,12 +238,13 @@ def main():
         st.markdown("- ✅ Event-based markers")
         st.markdown("- ✅ Professional styling")
         st.markdown("- ✅ Real-time updates")
-    
+
     # Show the code
     st.subheader("💻 The Code")
     st.markdown("Here's the complete code for this line chart:")
-    
-    st.code("""
+
+    st.code(
+        """
 # Create line options
 line_options = LineOptions(
     color="#2196F3",
@@ -287,34 +293,42 @@ line_series = (LineSeries(data=data, line_options=line_options)
 # Create and render chart
 chart = Chart(series=line_series)
 chart.render(key="line_chart")
-""", language="python")
-    
+""",
+        language="python",
+    )
+
     # Key concepts
     st.subheader("🔑 Key Concepts")
-    st.markdown("""
+    st.markdown(
+        """
     **Line Chart Features:**
     - **Line Options**: Control color, width, style, and crosshair behavior
     - **Price Lines**: Horizontal reference lines for support/resistance levels
     - **Markers**: Event markers for key data points
     - **Method Chaining**: Fluent API for easy configuration
-    
+
     **Best Practices:**
     - Use consistent color schemes
     - Add price lines for important levels
     - Use markers sparingly for key events
     - Maintain good contrast for accessibility
-    """)
-    
+    """,
+    )
+
     # Next steps
     st.subheader("➡️ Next Steps")
-    st.markdown("""
+    st.markdown(
+        """
     Explore other chart types:
-    
+
     - **[Candlestick Chart](candlestick_chart.py)** - OHLC data visualization
     - **[Area Chart](area_chart.py)** - Filled area charts
     - **[Bar Chart](bar_chart.py)** - Volume and OHLC bars
-    - **[Multi-Pane Charts](../advanced_features/multi_pane_charts.py)** - Multiple charts in one view
-    """)
+    - **[Multi-Pane Charts](../advanced_features/multi_pane_charts.py)** - Multiple
+        charts in one view
+    """,
+    )
+
 
 if __name__ == "__main__":
     main()

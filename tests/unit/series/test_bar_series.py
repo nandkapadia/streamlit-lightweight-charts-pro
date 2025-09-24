@@ -13,7 +13,16 @@ import pytest
 
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series.bar_series import BarSeries
+from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.bar_data import BarData
+from streamlit_lightweight_charts_pro.data.marker import BarMarker
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColumnMappingRequiredError,
+    DataItemsTypeError,
+    InvalidDataFormatError,
+    PaneIdNonNegativeError,
+    TypeValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.enums import ChartType, LineStyle
 
 
@@ -50,18 +59,18 @@ class TestBarSeriesConstruction:
 
     def test_construction_with_dataframe(self):
         """Test BarSeries construction with DataFrame."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "time": [1640995200, 1641081600],
                 "open": [100, 105],
                 "high": [110, 115],
                 "low": [95, 100],
                 "close": [105, 110],
-            }
+            },
         )
 
         series = BarSeries(
-            data=df,
+            data=test_dataframe,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -81,12 +90,12 @@ class TestBarSeriesConstruction:
     def test_construction_with_pandas_series(self):
         """Test BarSeries construction with pandas Series."""
         # Create a DataFrame with OHLC data (Series conversion is complex)
-        df = pd.DataFrame(
-            {"time": [1640995200], "open": [100], "high": [110], "low": [95], "close": [105]}
+        test_dataframe = pd.DataFrame(
+            {"time": [1640995200], "open": [100], "high": [110], "low": [95], "close": [105]},
         )
 
         bar_series = BarSeries(
-            data=df,
+            data=test_dataframe,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -143,17 +152,17 @@ class TestBarSeriesProperties:
         series = BarSeries(data=data)
 
         # Test color validation
-        with pytest.raises(TypeError, match="up_color must be a string"):
+        with pytest.raises(TypeValidationError):
             series.up_color = 123
 
-        with pytest.raises(TypeError, match="down_color must be a string"):
+        with pytest.raises(TypeValidationError):
             series.down_color = None
 
-        # Test boolean validation - should raise TypeError for non-boolean values
-        with pytest.raises(TypeError, match="open_visible must be a boolean"):
+        # Test boolean validation - should raise TypeValidationError for non-boolean values
+        with pytest.raises(TypeValidationError):
             series.open_visible = "True"
 
-        with pytest.raises(TypeError, match="thin_bars must be a boolean"):
+        with pytest.raises(TypeValidationError):
             series.thin_bars = 1
 
         # Test valid boolean values
@@ -210,7 +219,6 @@ class TestBarSeriesSerialization:
         """Test to_dict with markers."""
         data = [BarData(time=1640995200, open=100, high=110, low=95, close=105)]
         series = BarSeries(data=data)
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -250,8 +258,6 @@ class TestBarSeriesMethods:
         data = [BarData(time=1640995200, open=100, high=110, low=95, close=105)]
         series = BarSeries(data=data)
 
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position="aboveBar",
@@ -282,8 +288,6 @@ class TestBarSeriesMethods:
         data = [BarData(time=1640995200, open=100, high=110, low=95, close=105)]
         series = BarSeries(data=data)
 
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(time=1640995200, position="aboveBar", color="#FF0000", shape="circle")
         result = (
             series.add_marker(marker)
@@ -302,18 +306,18 @@ class TestBarSeriesDataHandling:
 
     def test_from_dataframe_classmethod(self):
         """Test from_dataframe class method."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "time": [1640995200, 1641081600],
                 "open": [100, 105],
                 "high": [110, 115],
                 "low": [95, 100],
                 "close": [105, 110],
-            }
+            },
         )
 
         series = BarSeries.from_dataframe(
-            df,
+            test_dataframe,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -329,14 +333,14 @@ class TestBarSeriesDataHandling:
 
     def test_from_dataframe_with_index_columns(self):
         """Test from_dataframe with index columns."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {"open": [100, 105], "high": [110, 115], "low": [95, 100], "close": [105, 110]},
             index=pd.DatetimeIndex(["2022-01-01", "2022-01-02"]),
         )
-        df.index.name = "time"
+        test_dataframe.index.name = "time"
 
         series = BarSeries.from_dataframe(
-            df,
+            test_dataframe,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -367,7 +371,7 @@ class TestBarSeriesValidation:
         series = BarSeries(data=data)
         series.pane_id = -1
 
-        with pytest.raises(ValueError, match="pane_id must be non-negative"):
+        with pytest.raises(PaneIdNonNegativeError):
             series._validate_pane_config()
 
     def test_error_handling_invalid_data(self):
@@ -377,34 +381,26 @@ class TestBarSeriesValidation:
 
     def test_error_handling_missing_required_columns(self):
         """Test error handling for missing required columns."""
-        df = pd.DataFrame({"value": [100, 105]})
+        test_dataframe = pd.DataFrame({"value": [100, 105]})
 
-        with pytest.raises(
-            ValueError, match="column_mapping is required when providing DataFrame or Series data"
-        ):
-            BarSeries(data=df)
+        with pytest.raises(ColumnMappingRequiredError):
+            BarSeries(data=test_dataframe)
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling for invalid data type."""
-        with pytest.raises(
-            ValueError, match="data must be a list of SingleValueData objects, DataFrame, or Series"
-        ):
+        with pytest.raises(InvalidDataFormatError):
             BarSeries(data="invalid_data")
 
     def test_error_handling_dataframe_without_column_mapping(self):
         """Test error handling for DataFrame without column mapping."""
-        df = pd.DataFrame({"value": [100, 105]})
+        test_dataframe = pd.DataFrame({"value": [100, 105]})
 
-        with pytest.raises(
-            ValueError, match="column_mapping is required when providing DataFrame or Series data"
-        ):
-            BarSeries(data=df)
+        with pytest.raises(ColumnMappingRequiredError):
+            BarSeries(data=test_dataframe)
 
     def test_error_handling_invalid_list_data(self):
         """Test error handling for invalid list data."""
-        with pytest.raises(
-            ValueError, match="All items in data list must be instances of Data or its subclasses"
-        ):
+        with pytest.raises(DataItemsTypeError):
             BarSeries(data=["invalid", "data"])
 
 
@@ -458,7 +454,6 @@ class TestBarSeriesInheritance:
 
     def test_inherits_from_series(self):
         """Test that BarSeries inherits from Series."""
-        from streamlit_lightweight_charts_pro.charts.series.base import Series
 
         data = [BarData(time=1640995200, open=100, high=110, low=95, close=105)]
         series = BarSeries(data=data)
@@ -538,7 +533,6 @@ class TestBarSeriesJsonStructure:
         """Test markers JSON structure."""
         data = [BarData(time=1640995200, open=100, high=110, low=95, close=105)]
         series = BarSeries(data=data)
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -592,7 +586,6 @@ class TestBarSeriesJsonStructure:
         series.thin_bars = False
 
         # Add markers and price lines
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(time=1640995200, position="aboveBar", color="#FF0000", shape="circle")
         series.add_marker(marker)

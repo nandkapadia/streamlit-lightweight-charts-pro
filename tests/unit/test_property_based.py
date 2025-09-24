@@ -5,6 +5,7 @@ This module uses hypothesis to test invariants and properties of chart component
 across a wide range of inputs, ensuring robustness and correctness.
 """
 
+import time
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -34,8 +35,7 @@ def line_data_strategy(draw):
 def line_data_list_strategy(draw):
     """Generate lists of LineData objects for property-based testing."""
     n_points = draw(st.integers(min_value=1, max_value=10))  # Reduced from 1000 to 10
-    data_list = draw(st.lists(line_data_strategy(), min_size=n_points, max_size=n_points))
-    return data_list
+    return draw(st.lists(line_data_strategy(), min_size=n_points, max_size=n_points))
 
 
 @st.composite
@@ -57,19 +57,19 @@ def valid_color_strategy(draw):
 
     if color_type == "hex":
         return draw(
-            st.sampled_from(["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF"])
+            st.sampled_from(["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF"]),
         )
-    elif color_type == "rgb":
+    if color_type == "rgb":
         r = draw(st.integers(0, 255))
         g = draw(st.integers(0, 255))
         b = draw(st.integers(0, 255))
         return f"rgb({r}, {g}, {b})"
-    else:  # rgba
-        r = draw(st.integers(0, 255))
-        g = draw(st.integers(0, 255))
-        b = draw(st.integers(0, 255))
-        a = draw(st.floats(0.0, 1.0))
-        return f"rgba({r}, {g}, {b}, {a})"
+    # rgba
+    r = draw(st.integers(0, 255))
+    g = draw(st.integers(0, 255))
+    b = draw(st.integers(0, 255))
+    a = draw(st.floats(0.0, 1.0))
+    return f"rgba({r}, {g}, {b}, {a})"
 
 
 # =============================================================================
@@ -166,7 +166,8 @@ class TestLineSeriesProperties:
             for i, data_point in enumerate(series.data):
                 assert isinstance(data_point.time, int), f"Invalid time type at index {i}"
                 assert isinstance(
-                    data_point.value, (int, float, np.number)
+                    data_point.value,
+                    (int, float, np.number),
                 ), f"Invalid value type at index {i}"
                 assert not np.isnan(data_point.value), f"NaN value at index {i}"
                 assert not np.isinf(data_point.value), f"Infinite value at index {i}"
@@ -208,7 +209,7 @@ class TestChartProperties:
         for i, (original_series, chart_series) in enumerate(zip(series_list, chart.series)):
             assert len(original_series.data) == len(chart_series.data)
             for j, (original_data, chart_data) in enumerate(
-                zip(original_series.data, chart_series.data)
+                zip(original_series.data, chart_series.data),
             ):
                 assert (
                     original_data.time == chart_data.time
@@ -377,8 +378,6 @@ class TestPerformanceProperties:
         ]
 
         # Measure creation time
-        import time
-
         start_time = time.perf_counter()
         series = LineSeries(data=data_list)
         end_time = time.perf_counter()
@@ -409,8 +408,6 @@ class TestPerformanceProperties:
             series_list.append(LineSeries(data=data_list))
 
         # Measure chart creation time
-        import time
-
         start_time = time.perf_counter()
         chart = Chart(series=series_list)
         end_time = time.perf_counter()

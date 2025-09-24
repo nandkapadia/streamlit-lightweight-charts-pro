@@ -1,12 +1,11 @@
-"""
-Basic Histogram Chart Example.
+"""Basic Histogram Chart Example.
 
 This example demonstrates the fundamental usage of HistogramSeries with sample data
 from the data_samples module.
 
 # Add project root to path for examples imports
 import sys
-import os
+from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
@@ -25,7 +24,7 @@ def main():
     st.title("Basic Histogram Chart Example")
     st.write(
         "This example shows how to create a simple histogram chart using HistogramSeries with"
-        " sample data."
+        " sample data.",
     )
 
     # Get sample data
@@ -48,7 +47,8 @@ def main():
     st.write("Creating HistogramSeries from pandas DataFrame:")
 
     histogram_series_df = HistogramSeries(
-        data=df_data, column_mapping={"time": "datetime", "value": "value"}
+        data=df_data,
+        column_mapping={"time": "datetime", "value": "value"},
     )
 
     dataframe_chart = Chart()

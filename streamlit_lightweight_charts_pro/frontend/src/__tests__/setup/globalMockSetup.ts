@@ -6,8 +6,8 @@
  */
 
 import { vi } from 'vitest';
+import React from 'react';
 import {
-  mockLightweightChartsComponent,
   mockPrimitiveEventManager,
   mockCornerLayoutManager,
   mockCoordinateValidation,
@@ -28,7 +28,33 @@ import {
 // Mock LightweightCharts component - return proper React component
 vi.mock('../../LightweightCharts', () => ({
   default: vi.fn().mockImplementation(props => {
-    const React = require('react');
+    // Use existing React import at top of file
+    const { config } = props;
+
+    // Handle empty config case
+    if (!config || !config.charts || config.charts.length === 0) {
+      return React.createElement(
+        'div',
+        {
+          'data-testid': 'lightweight-charts',
+          className: 'lightweight-charts-wrapper',
+          style: { width: '100%', height: '100%' },
+        },
+        React.createElement('div', { className: 'error-message' }, 'No charts configured')
+      );
+    }
+
+    // Create chart containers for each chart in config
+    const chartElements = config.charts.map((chart: any, index: number) => {
+      return React.createElement('div', {
+        key: chart.chartId || `chart-${index}`,
+        id: `chart-container-${chart.chartId || index}`,
+        'data-testid': 'chart-container',
+        className: 'chart-container',
+        style: { width: chart.chart?.width || 800, height: chart.chart?.height || 400 },
+      });
+    });
+
     return React.createElement(
       'div',
       {
@@ -36,7 +62,7 @@ vi.mock('../../LightweightCharts', () => ({
         className: 'lightweight-charts-wrapper',
         style: { width: '100%', height: '100%' },
       },
-      props.seriesData ? React.createElement('div', { 'data-testid': 'chart-series' }) : null
+      ...chartElements
     );
   }),
 }));
@@ -90,6 +116,12 @@ vi.mock('../../primitives/BasePanePrimitive', () => ({
 
 // Mock logger (suppress console logs in tests)
 vi.mock('../../utils/logger', () => ({
+  LogLevel: {
+    DEBUG: 0,
+    INFO: 1,
+    WARN: 2,
+    ERROR: 3,
+  },
   logger: {
     debug: vi.fn(),
     info: vi.fn(),

@@ -66,7 +66,11 @@ export class CornerLayoutManager {
         new CornerLayoutManager(chartId || 'default', paneId || 0)
       );
     }
-    return CornerLayoutManager.instances.get(id)!;
+    const instance = CornerLayoutManager.instances.get(id);
+    if (!instance) {
+      throw new Error(`CornerLayoutManager instance not found for id: ${id}`);
+    }
+    return instance;
   }
 
   public static cleanup(chartId: string, paneId?: number): void {
@@ -132,7 +136,7 @@ export class CornerLayoutManager {
           };
           this.recalculateAllLayouts();
         }
-      } catch (error) {
+      } catch {
         // Fallback to cached dimensions if chart element access fails
       }
     }

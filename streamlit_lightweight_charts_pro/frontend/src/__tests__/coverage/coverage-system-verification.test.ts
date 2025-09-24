@@ -9,7 +9,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Import coverage system components
 import { CoverageTestCases, COVERAGE_TEST_SUITES } from './coverage-test-cases';
-import { CoverageRunner, CoverageRunResult, runCoreCoverage, runFullCoverage } from './runner';
+import { CoverageRunner } from './runner';
 import {
   COVERAGE_AREAS,
   getCoverageConfig,

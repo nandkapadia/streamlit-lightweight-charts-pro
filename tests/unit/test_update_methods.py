@@ -20,7 +20,7 @@ class TestOptionsUpdateMethod:
 
         # Update simple properties
         result = options.update(
-            {"color": "#ff0000", "line_width": 3, "line_style": LineStyle.DASHED}
+            {"color": "#ff0000", "line_width": 3, "line_style": LineStyle.DASHED},
         )
 
         assert result is options  # Method chaining
@@ -113,7 +113,7 @@ class TestSeriesUpdateMethod:
         series = LineSeries(data=data)
 
         result = series.update(
-            {"line_options": {"color": "#ff0000", "line_width": 3, "line_style": LineStyle.DASHED}}
+            {"line_options": {"color": "#ff0000", "line_width": 3, "line_style": LineStyle.DASHED}},
         )
 
         assert result is series
@@ -193,7 +193,7 @@ class TestSeriesUpdateMethod:
                     "line_width": 3,
                     "line_style": LineStyle.DASHED,
                 },
-            }
+            },
         )
 
         assert result is series
@@ -228,7 +228,7 @@ class TestUpdateMethodIntegration:
                 "visible": False,
                 "price_scale_id": "left",
                 "line_options": {"color": "#ff0000", "line_width": 3},
-            }
+            },
         )
 
         result = series.asdict()
@@ -285,7 +285,7 @@ class TestUpdateMethodEdgeCases:
 
         # Test with dict for non-options attribute
         series.update(
-            {"pane_id": {"nested": "value"}}
+            {"pane_id": {"nested": "value"}},
         )  # This should work or raise appropriate error
 
     def test_update_with_special_characters(self):

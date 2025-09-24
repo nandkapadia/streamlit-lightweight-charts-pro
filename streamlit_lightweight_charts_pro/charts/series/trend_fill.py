@@ -1,5 +1,4 @@
-"""
-Trend fill series for streamlit-lightweight-charts.
+"""Trend fill series for streamlit-lightweight-charts.
 
 This module provides the TrendFillSeries class for creating trend-based fill charts
 that display fills between trend lines and base lines, similar to
@@ -33,7 +32,7 @@ class TrendFillSeries(Series):
     DATA_CLASS = TrendFillData
     """
     Trend fill series for lightweight charts.
-    
+
     This class represents a trend fill series that displays fills between
     trend lines and base lines. It's commonly used for technical
     indicators like Supertrend, where the fill area changes color based on
@@ -42,7 +41,7 @@ class TrendFillSeries(Series):
     The series now properly handles trend lines:
     - Uptrend (+1): Shows trend line above price, base line for reference
     - Downtrend (-1): Shows trend line below price, base line for reference
-    
+
     Attributes:
         trend_line: Line options for the trend line
         base_line: Line options for the base line
@@ -61,8 +60,7 @@ class TrendFillSeries(Series):
         uptrend_fill_color: str = "#4CAF50",
         downtrend_fill_color: str = "#F44336",
     ):
-        """
-        Initialize TrendFillSeries.
+        """Initialize TrendFillSeries.
 
         Args:
             data: List of data points or DataFrame
@@ -95,10 +93,15 @@ class TrendFillSeries(Series):
 
         # Initialize line options for trend line and base line
         self._trend_line = LineOptions(
-            color="#2196F3", line_width=2, line_style="solid"
+            color="#2196F3",
+            line_width=2,
+            line_style="solid",
         )  # Blue for trend line
         self._base_line = LineOptions(
-            color="#666666", line_width=1, line_style="dotted", line_visible=False
+            color="#666666",
+            line_width=1,
+            line_style="dotted",
+            line_visible=False,
         )
         self._fill_visible = True
 

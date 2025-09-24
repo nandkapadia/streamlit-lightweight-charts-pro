@@ -1,10 +1,8 @@
-import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import LightweightCharts from '../../LightweightCharts';
 import { ComponentConfig } from '../../types';
-import { createTestEnvironment } from '../mocks/GlobalMockFactory';
 
 // Note: LightweightCharts component and other mocks are already configured
 // in globalMockSetup.ts, so no need to mock them here
@@ -639,7 +637,7 @@ describe('Frontend Integration Tests', () => {
             series: [
               {
                 type: 'Line',
-                data: null,
+                data: [],
                 options: { color: '#ff0000' },
               },
             ],

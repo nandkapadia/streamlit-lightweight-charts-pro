@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     LastPriceAnimationMode,
     LineStyle,
@@ -32,8 +33,7 @@ from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 @chainable_field("crosshair_marker_border_width", int)
 @chainable_field("last_price_animation", LastPriceAnimationMode)
 class LineOptions(Options):
-    """
-    Encapsulates style options for a line series, mirroring TradingView's LineStyleOptions.
+    """Encapsulates style options for a line series, mirroring TradingView's LineStyleOptions.
 
     See: https://tradingview.github.io/lightweight-charts/docs/api/interfaces/LineStyleOptions
 
@@ -72,7 +72,5 @@ class LineOptions(Options):
     def _validate_color_static(color: str, property_name: str) -> str:
         """Static version of color validator for decorator use."""
         if not is_valid_color(color):
-            raise ValueError(
-                f"Invalid color format for {property_name}: {color!r}. Must be hex or rgba."
-            )
+            raise ColorValidationError(property_name, color)
         return color

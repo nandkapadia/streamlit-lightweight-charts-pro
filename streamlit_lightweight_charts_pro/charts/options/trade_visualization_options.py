@@ -1,5 +1,4 @@
-"""
-Trade visualization options for streamlit-lightweight-charts.
+"""Trade visualization options for streamlit-lightweight-charts.
 
 This module provides the TradeVisualizationOptions class for configuring
 how trades are visualized on charts, including markers, rectangles, lines,
@@ -50,8 +49,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_field
 @chainable_field("rectangle_text_color", str, validator="color")
 @chainable_field("rectangle_text_background", str, validator="color")
 class TradeVisualizationOptions(Options):
-    """
-    Options for trade visualization.
+    """Options for trade visualization.
 
     This class provides comprehensive configuration options for how trades
     are displayed on charts, including various visual styles and customization

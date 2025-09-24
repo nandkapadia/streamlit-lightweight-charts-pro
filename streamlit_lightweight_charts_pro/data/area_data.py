@@ -1,21 +1,20 @@
-"""
-AreaData module for area series data points.
+"""AreaData module for area series data points.
 
 This module defines the AreaData class which represents data points for area series,
 including optional color properties for line, top, and bottom colors.
 """
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 
 
 @dataclass
 class AreaData(SingleValueData):
-    """
-    Data class for area series data points.
+    """Data class for area series data points.
 
     This class represents a single data point for area series, extending SingleValueData
     with optional color properties for line, top, and bottom colors.
@@ -29,10 +28,10 @@ class AreaData(SingleValueData):
     """
 
     # Required columns from SingleValueData
-    REQUIRED_COLUMNS = set()
+    REQUIRED_COLUMNS: ClassVar[set] = set()
 
     # Optional columns specific to AreaData
-    OPTIONAL_COLUMNS = {"line_color", "top_color", "bottom_color"}
+    OPTIONAL_COLUMNS: ClassVar[set] = {"line_color", "top_color", "bottom_color"}
 
     # Optional color properties
     line_color: Optional[str] = None
@@ -49,7 +48,7 @@ class AreaData(SingleValueData):
             color_value = getattr(self, color_attr)
             if color_value is not None and color_value.strip():
                 if not is_valid_color(color_value):
-                    raise ValueError(f"Invalid {color_attr} format: {color_value}")
+                    raise ColorValidationError(color_attr, color_value)
             else:
                 # Set to None if empty/whitespace
                 setattr(self, color_attr, None)

@@ -10,6 +10,7 @@ from datetime import datetime
 import pytest
 
 from streamlit_lightweight_charts_pro.data.signal_data import SignalData
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 
 
 class TestSignalData:
@@ -54,14 +55,14 @@ class TestSignalData:
 
     def test_invalid_color_hex(self):
         """Test SignalData construction with invalid hex color."""
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ValueValidationError):
             SignalData("2024-01-01", 1, color="#invalid")
 
     def test_invalid_color_rgba(self):
         """Test SignalData construction with invalid rgba color."""
         # The color validation might not catch this specific case
         # Let's test with a definitely invalid color
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ValueValidationError):
             SignalData("2024-01-01", 1, color="not_a_color_at_all")
 
     def test_valid_hex_colors(self):
@@ -103,11 +104,11 @@ class TestSignalData:
 
     def test_required_columns(self):
         """Test that SignalData has correct required columns."""
-        assert SignalData.REQUIRED_COLUMNS == set()
+        assert set() == SignalData.REQUIRED_COLUMNS
 
     def test_optional_columns(self):
         """Test that SignalData has correct optional columns."""
-        assert SignalData.OPTIONAL_COLUMNS == {"color"}
+        assert {"color"} == SignalData.OPTIONAL_COLUMNS
 
     def test_repr(self):
         """Test string representation of SignalData."""

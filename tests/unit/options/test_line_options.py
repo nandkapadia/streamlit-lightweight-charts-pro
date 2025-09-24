@@ -1,6 +1,7 @@
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError, TypeValidationError
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     LastPriceAnimationMode,
     LineStyle,
@@ -143,32 +144,32 @@ def test_type_validation_in_chainable_methods():
     opts = LineOptions()
 
     # Test color validation
-    with pytest.raises(TypeError, match="color must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_color(123)
 
-    with pytest.raises(ValueError, match="Invalid color format"):
+    with pytest.raises(ColorValidationError):
         opts.set_color("invalid_color")
 
     # Note: rgb(255,0,0) is now a valid color
 
     # Test line_width validation
-    with pytest.raises(TypeError, match="line_width must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_line_width("invalid")
 
     # Test line_style validation
-    with pytest.raises(TypeError, match="line_style must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_line_style("invalid")
 
     # Test line_type validation
-    with pytest.raises(TypeError, match="line_type must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_line_type("invalid")
 
         # Test boolean validation
-        with pytest.raises(TypeError, match="line_visible must be a boolean"):
+        with pytest.raises(TypeValidationError):
             opts.set_line_visible("invalid")
 
     # Test integer validation
-    with pytest.raises(TypeError, match="point_markers_radius must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_point_markers_radius("invalid")
 
 
@@ -183,10 +184,10 @@ def test_color_validation_in_chainable_methods():
     opts.set_crosshair_marker_background_color("rgba(1,2,3,0.5)")
 
     # Invalid colors
-    with pytest.raises(ValueError, match="Invalid color format"):
+    with pytest.raises(ColorValidationError):
         opts.set_color("notacolor")
 
-    with pytest.raises(ValueError, match="Invalid color format"):
+    with pytest.raises(ColorValidationError):
         opts.set_crosshair_marker_border_color("notacolor")
 
     # Note: rgb(255,0,0) is now a valid color
@@ -230,7 +231,7 @@ def test_update_method():
 
     # Test with camelCase
     opts.update(
-        {"lineStyle": LineStyle.DASHED, "lineType": LineType.CURVED, "pointMarkersVisible": True}
+        {"lineStyle": LineStyle.DASHED, "lineType": LineType.CURVED, "pointMarkersVisible": True},
     )
 
     assert opts.line_style == LineStyle.DASHED
@@ -245,7 +246,7 @@ def test_static_color_validator():
     assert LineOptions._validate_color_static("rgba(1,2,3,0.5)", "test") == "rgba(1,2,3,0.5)"
 
     # Invalid colors
-    with pytest.raises(ValueError, match="Invalid color format for test"):
+    with pytest.raises(ColorValidationError):
         LineOptions._validate_color_static("notacolor", "test")
 
     # Note: rgb(255,0,0) is now a valid color

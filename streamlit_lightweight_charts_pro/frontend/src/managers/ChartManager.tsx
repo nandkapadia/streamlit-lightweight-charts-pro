@@ -29,7 +29,7 @@ export interface ChartManagerAPI {
 }
 
 export const useChartManager = ({
-  onChartsReady,
+  onChartsReady: _onChartsReady,
   onChartError,
 }: ChartManagerProps = {}): ChartManagerAPI => {
   const stateRef = useRef<ChartManagerState>({
@@ -76,13 +76,13 @@ export const useChartManager = ({
         try {
           // CornerLayoutManager initialization would be handled separately
           console.log(`CornerLayoutManager ready for ${chartId}`);
-        } catch (error) {
-          console.warn(`Failed to initialize CornerLayoutManager for ${chartId}:`, error);
+        } catch {
+          console.warn('A warning occurred');
         }
 
         console.log(`Chart ${chartId} registered successfully`);
       } catch (error) {
-        console.error(`Failed to register chart ${chartId}:`, error);
+        console.error(error);
         if (onChartError) {
           onChartError(error as Error, chartId);
         }
@@ -100,8 +100,8 @@ export const useChartManager = ({
       if (state.signalPlugins[chartId]) {
         try {
           state.signalPlugins[chartId].destroy();
-        } catch (error) {
-          console.warn(`Failed to destroy signal plugin for ${chartId}:`, error);
+        } catch {
+          console.warn('A warning occurred');
         }
         delete state.signalPlugins[chartId];
       }
@@ -110,8 +110,8 @@ export const useChartManager = ({
       if (state.charts[chartId]) {
         try {
           state.charts[chartId].remove();
-        } catch (error) {
-          console.warn(`Failed to remove chart ${chartId}:`, error);
+        } catch {
+          console.warn('A warning occurred');
         }
         delete state.charts[chartId];
       }
@@ -119,8 +119,8 @@ export const useChartManager = ({
       // Clean up CornerLayoutManager
       try {
         CornerLayoutManager.cleanup(chartId);
-      } catch (error) {
-        console.warn(`Failed to cleanup CornerLayoutManager for ${chartId}:`, error);
+      } catch {
+        console.warn('A warning occurred');
       }
 
       // Clean up from global registries
@@ -134,8 +134,8 @@ export const useChartManager = ({
       delete state.containers[chartId];
 
       console.log(`Chart ${chartId} unregistered successfully`);
-    } catch (error) {
-      console.error(`Failed to unregister chart ${chartId}:`, error);
+    } catch {
+      console.error('An error occurred');
     }
   }, []);
 
@@ -231,10 +231,10 @@ const ChartManagerContext = React.createContext<ChartManagerAPI | null>(null);
 
 export const ChartManagerProvider: React.FC<ChartManagerProviderProps> = ({
   children,
-  onChartsReady,
+  onChartsReady: _onChartsReady,
   onChartError,
 }) => {
-  const chartManager = useChartManager({ onChartsReady, onChartError });
+  const chartManager = useChartManager({ onChartsReady: _onChartsReady, onChartError });
 
   return (
     <ChartManagerContext.Provider value={chartManager}>{children}</ChartManagerContext.Provider>

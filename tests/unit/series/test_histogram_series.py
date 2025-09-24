@@ -5,14 +5,26 @@ This module contains comprehensive tests for the HistogramSeries class,
 which represents a histogram series for lightweight charts.
 """
 
+# pylint: disable=no-member,protected-access
+
 import json
 
 import pandas as pd
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
+from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
 from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
+from streamlit_lightweight_charts_pro.data.marker import BarMarker
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColumnMappingRequiredError,
+    DataItemsTypeError,
+    InvalidDataFormatError,
+    PaneIdNonNegativeError,
+    TypeValidationError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 
 
@@ -45,10 +57,15 @@ class TestHistogramSeriesConstruction:
 
     def test_construction_with_dataframe(self):
         """Test HistogramSeries construction with DataFrame."""
-        df = pd.DataFrame({"datetime": ["2022-01-01", "2022-01-02"], "volume": [100, 200]})
-        df["datetime"] = pd.to_datetime(df["datetime"])
+        test_dataframe = pd.DataFrame(
+            {"datetime": ["2022-01-01", "2022-01-02"], "volume": [100, 200]},
+        )
+        test_dataframe["datetime"] = pd.to_datetime(test_dataframe["datetime"])
 
-        series = HistogramSeries(data=df, column_mapping={"time": "datetime", "value": "volume"})
+        series = HistogramSeries(
+            data=test_dataframe,
+            column_mapping={"time": "datetime", "value": "volume"},
+        )
 
         assert len(series.data) == 2
         assert all(isinstance(d, HistogramData) for d in series.data)
@@ -119,17 +136,17 @@ class TestHistogramSeriesProperties:
         series = HistogramSeries(data=data)
 
         # Test color validation
-        with pytest.raises(TypeError, match="color must be a string"):
+        with pytest.raises(TypeValidationError, match="color must be string"):
             series.color = 123
 
-        with pytest.raises(TypeError, match="color must be a string"):
+        with pytest.raises(TypeValidationError, match="color must be string"):
             series.color = None
 
         # Test base validation
-        with pytest.raises(TypeError, match="base must be a number"):
+        with pytest.raises(TypeValidationError, match="base must be number"):
             series.base = "10"
 
-        with pytest.raises(TypeError, match="base must be a number"):
+        with pytest.raises(TypeValidationError, match="base must be number"):
             series.base = None
 
 
@@ -163,7 +180,6 @@ class TestHistogramSeriesSerialization:
         """Test to_dict with markers."""
         data = [HistogramData(time=1640995200, value=100.5)]
         series = HistogramSeries(data=data)
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -215,10 +231,12 @@ class TestHistogramSeriesMethods:
         data = [HistogramData(time=1640995200, value=100.5)]
         series = HistogramSeries(data=data)
 
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
-            time=1640995200, position="aboveBar", color="#FF0000", shape="circle", text="Test"
+            time=1640995200,
+            position="aboveBar",
+            color="#FF0000",
+            shape="circle",
+            text="Test",
         )
         series.add_marker(marker)
 
@@ -244,10 +262,13 @@ class TestHistogramSeriesMethods:
         series = HistogramSeries(data=data)
 
         price_line = PriceLineOptions(price=150.0, color="#00FF00")
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
-            time=1640995200, position="aboveBar", color="#FF0000", shape="circle", text="Test"
+            time=1640995200,
+            position="aboveBar",
+            color="#FF0000",
+            shape="circle",
+            text="Test",
         )
         result = series.add_marker(marker).add_price_line(price_line).set_visible(False)
 
@@ -262,11 +283,14 @@ class TestHistogramSeriesDataHandling:
 
     def test_from_dataframe_classmethod(self):
         """Test from_dataframe classmethod."""
-        df = pd.DataFrame({"datetime": ["2022-01-01", "2022-01-02"], "volume": [100, 200]})
-        df["datetime"] = pd.to_datetime(df["datetime"])
+        test_dataframe = pd.DataFrame(
+            {"datetime": ["2022-01-01", "2022-01-02"], "volume": [100, 200]},
+        )
+        test_dataframe["datetime"] = pd.to_datetime(test_dataframe["datetime"])
 
         series = HistogramSeries.from_dataframe(
-            df, column_mapping={"time": "datetime", "value": "volume"}
+            test_dataframe,
+            column_mapping={"time": "datetime", "value": "volume"},
         )
 
         assert len(series.data) == 2
@@ -276,12 +300,14 @@ class TestHistogramSeriesDataHandling:
 
     def test_from_dataframe_with_index_columns(self):
         """Test from_dataframe with index columns."""
-        df = pd.DataFrame(
-            {"volume": [100, 200]}, index=pd.to_datetime(["2022-01-01", "2022-01-02"])
+        test_dataframe = pd.DataFrame(
+            {"volume": [100, 200]},
+            index=pd.to_datetime(["2022-01-01", "2022-01-02"]),
         )
 
         series = HistogramSeries.from_dataframe(
-            df, column_mapping={"time": "datetime", "value": "volume"}
+            test_dataframe,
+            column_mapping={"time": "datetime", "value": "volume"},
         )
 
         assert len(series.data) == 2
@@ -310,43 +336,44 @@ class TestHistogramSeriesValidation:
         data = [HistogramData(time=1640995200, value=100.5)]
         series = HistogramSeries(data=data)
 
-        with pytest.raises(ValueError, match="pane_id must be non-negative"):
+        with pytest.raises(PaneIdNonNegativeError):
             series.pane_id = -1
             series._validate_pane_config()
 
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""
-        with pytest.raises(ValueError, match="data must be a list of SingleValueData objects"):
+        with pytest.raises(InvalidDataFormatError):
             HistogramSeries(data="invalid_data")
 
     def test_error_handling_missing_required_columns(self):
         """Test error handling with missing required columns."""
-        df = pd.DataFrame({"datetime": ["2022-01-01", "2022-01-02"], "wrong_column": [100, 200]})
+        test_dataframe = pd.DataFrame(
+            {"datetime": ["2022-01-01", "2022-01-02"], "wrong_column": [100, 200]},
+        )
 
-        with pytest.raises(ValueError, match="DataFrame is missing required column: {'volume'}"):
-            HistogramSeries(data=df, column_mapping={"time": "datetime", "value": "volume"})
+        with pytest.raises(ValueValidationError):
+            HistogramSeries(
+                data=test_dataframe,
+                column_mapping={"time": "datetime", "value": "volume"},
+            )
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(
-            ValueError, match="data must be a list of SingleValueData objects, DataFrame, or Series"
-        ):
+        with pytest.raises(InvalidDataFormatError):
             HistogramSeries(data=123)
 
     def test_error_handling_dataframe_without_column_mapping(self):
         """Test error handling with DataFrame without column mapping."""
-        df = pd.DataFrame({"datetime": ["2022-01-01", "2022-01-02"], "volume": [100, 200]})
+        test_dataframe = pd.DataFrame(
+            {"datetime": ["2022-01-01", "2022-01-02"], "volume": [100, 200]},
+        )
 
-        with pytest.raises(
-            ValueError, match="column_mapping is required when providing DataFrame or Series data"
-        ):
-            HistogramSeries(data=df)
+        with pytest.raises(ColumnMappingRequiredError):
+            HistogramSeries(data=test_dataframe)
 
     def test_error_handling_invalid_list_data(self):
         """Test error handling with invalid list data."""
-        with pytest.raises(
-            ValueError, match="All items in data list must be instances of Data or its subclasses"
-        ):
+        with pytest.raises(DataItemsTypeError):
             HistogramSeries(data=["invalid", "data"])
 
 
@@ -393,7 +420,6 @@ class TestHistogramSeriesInheritance:
 
     def test_inherits_from_series(self):
         """Test that HistogramSeries inherits from Series."""
-        from streamlit_lightweight_charts_pro.charts.series.base import Series
 
         data = [HistogramData(time=1640995200, value=100.5)]
         series = HistogramSeries(data=data)
@@ -455,10 +481,13 @@ class TestHistogramSeriesJsonStructure:
         """Test markers JSON structure."""
         data = [HistogramData(time=1640995200, value=100.5)]
         series = HistogramSeries(data=data)
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
-            time=1640995200, position="aboveBar", color="#FF0000", shape="circle", text="Test"
+            time=1640995200,
+            position="aboveBar",
+            color="#FF0000",
+            shape="circle",
+            text="Test",
         )
         series.add_marker(marker)
 
@@ -495,7 +524,6 @@ class TestHistogramSeriesJsonStructure:
         series = HistogramSeries(data=data)
         series.color = "#FF0000"
         series.base = 10.5
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,

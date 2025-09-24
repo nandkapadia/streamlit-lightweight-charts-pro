@@ -79,7 +79,21 @@ class EnhancedTestRunner:
 
         # Run tests with timing
         start_time = time.perf_counter()
-        result = subprocess.run(cmd, cwd=Path(__file__).parent, capture_output=True, text=True)
+        # Validate cmd to prevent injection
+        if not cmd or not isinstance(cmd, list):
+            raise TypeError("Invalid command: must be a non-empty list")
+        for arg in cmd:
+            if not isinstance(arg, str):
+                raise TypeError(f"Invalid command argument: {arg} must be a string")
+
+        result = subprocess.run(
+            cmd,
+            check=False,
+            cwd=Path(__file__).parent,
+            capture_output=True,
+            text=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
+        )
         end_time = time.perf_counter()
 
         execution_time = end_time - start_time
@@ -179,7 +193,7 @@ class EnhancedTestRunner:
         # Display summary
         self._display_summary(result, execution_time)
 
-    def _display_text_results(self, result: subprocess.CompletedProcess, execution_time: float):
+    def _display_text_results(self, result: subprocess.CompletedProcess, _execution_time: float):
         """Display results in text format."""
         if result.stdout:
             print("📤 STDOUT:")
@@ -233,7 +247,10 @@ class EnhancedTestRunner:
         print("=" * 40)
 
         return self.run_tests(
-            category="performance", verbose=verbose, performance=True, output_format="text"
+            category="performance",
+            verbose=verbose,
+            performance=True,
+            output_format="text",
         )
 
     def run_property_based_tests(self, verbose: bool = False) -> int:
@@ -242,7 +259,10 @@ class EnhancedTestRunner:
         print("=" * 40)
 
         return self.run_tests(
-            category="unit", verbose=verbose, property_based=True, output_format="text"
+            category="unit",
+            verbose=verbose,
+            property_based=True,
+            output_format="text",
         )
 
     def generate_test_report(self, output_file: str = "test_report.json"):
@@ -260,7 +280,7 @@ class EnhancedTestRunner:
             "unit_subcategories": self.unit_subcategories,
         }
 
-        with open(output_file, "w") as f:
+        with Path(output_file).open("w") as f:
             json.dump(report_data, f, indent=2)
 
         print(f"✅ Test report saved to: {output_file}")
@@ -275,22 +295,22 @@ def main():
 Examples:
   # Run all tests
   python run_tests_enhanced.py
-  
+
   # Run unit tests only
   python run_tests_enhanced.py --category unit
-  
+
   # Run specific unit subcategory
   python run_tests_enhanced.py --category unit --subcategory series
-  
+
   # Run performance tests
   python run_tests_enhanced.py --performance
-  
+
   # Run property-based tests
   python run_tests_enhanced.py --property-based
-  
+
   # Generate test report
   python run_tests_enhanced.py --generate-report
-  
+
   # List all categories
   python run_tests_enhanced.py --list-categories
         """,
@@ -332,11 +352,15 @@ Examples:
 
     # Utility options
     parser.add_argument(
-        "--list-categories", action="store_true", help="List all available test categories"
+        "--list-categories",
+        action="store_true",
+        help="List all available test categories",
     )
 
     parser.add_argument(
-        "--generate-report", action="store_true", help="Generate comprehensive test report"
+        "--generate-report",
+        action="store_true",
+        help="Generate comprehensive test report",
     )
 
     args = parser.parse_args()

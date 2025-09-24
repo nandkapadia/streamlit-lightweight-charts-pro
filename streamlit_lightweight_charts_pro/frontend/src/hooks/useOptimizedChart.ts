@@ -99,8 +99,8 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
           if (width >= minWidth && height >= minHeight) {
             chartRefs.current.chart.resize(width, height);
           }
-        } catch (error) {
-          console.error('Chart optimization operation failed:', error);
+        } catch {
+          console.error('An error occurred');
         }
       }
     }, debounceMs);
@@ -142,8 +142,8 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
       );
 
       // ResizeObserver set up successfully
-    } catch (error) {
-      console.error('Chart optimization operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }, [autoResize, enhancedResizeObserverCallback, chartId, throttleMs, debounceMs]);
 
@@ -180,7 +180,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
         }
 
         return chart;
-      } catch (error) {
+      } catch {
         if (performanceTimer.current) {
           performanceTimer.current.end();
         }
@@ -213,7 +213,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
         }
 
         return series;
-      } catch (error) {
+      } catch {
         if (performanceTimer.current) {
           performanceTimer.current.end();
         }
@@ -266,8 +266,8 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
           if (width >= minWidth && height >= minHeight) {
             chartRefs.current.chart.resize(width, height);
           }
-        } catch (error) {
-          console.error('Chart optimization operation failed:', error);
+        } catch {
+          console.error('An error occurred');
         }
       }
     },
@@ -286,8 +286,8 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
     if (chartRefs.current.chart) {
       try {
         chartRefs.current.chart.remove();
-      } catch (error) {
-        console.error('Chart optimization operation failed:', error);
+      } catch {
+        console.error('An error occurred');
       }
     }
 
@@ -376,7 +376,7 @@ function createChartFromOptions(container: HTMLElement, options: any): IChartApi
   try {
     const chart = createChart(container, options);
     return chart;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

@@ -201,7 +201,10 @@ export class PerformanceMonitor {
       if (!this.metrics.has(name)) {
         this.metrics.set(name, []);
       }
-      this.metrics.get(name)!.push(duration);
+      const metrics = this.metrics.get(name);
+      if (metrics) {
+        metrics.push(duration);
+      }
 
       // Log slow operations in development
       if (isDevelopment && duration > 16) {
@@ -311,7 +314,10 @@ export class EventManager {
     if (!this.listeners.has(key)) {
       this.listeners.set(key, new Set());
     }
-    this.listeners.get(key)!.add(listener);
+    const listeners = this.listeners.get(key);
+    if (listeners) {
+      listeners.add(listener);
+    }
     element.addEventListener(event, listener);
   }
 

@@ -47,12 +47,12 @@ export const usePluginManager = (): PluginManagerAPI => {
 
             (chart as any).addPrimitive(primitive);
             console.log(`Trade visualization ${index} added successfully`);
-          } catch (error) {
-            console.error(`Failed to add trade visualization ${index}:`, error);
+          } catch {
+            console.error('An error occurred');
           }
         });
-      } catch (error) {
-        console.error('Failed to add trade visualizations:', error);
+      } catch {
+        console.error('An error occurred');
       }
     },
     []
@@ -82,8 +82,8 @@ export const usePluginManager = (): PluginManagerAPI => {
             try {
               (chart as any).addPrimitive(shape as any);
               console.log(`Annotation shape ${index} added to chart ${chartId}`);
-            } catch (error) {
-              console.error(`Failed to add annotation shape ${index}:`, error);
+            } catch {
+              console.error('An error occurred');
             }
           });
         }
@@ -94,13 +94,13 @@ export const usePluginManager = (): PluginManagerAPI => {
             try {
               (chart as any).addPrimitive(text as any);
               console.log(`Annotation text ${index} added to chart ${chartId}`);
-            } catch (error) {
-              console.error(`Failed to add annotation text ${index}:`, error);
+            } catch {
+              console.error('An error occurred');
             }
           });
         }
-      } catch (error) {
-        console.error(`Failed to add annotations to chart ${chartId}:`, error);
+      } catch {
+        console.error('An error occurred');
       }
     },
     []
@@ -120,12 +120,12 @@ export const usePluginManager = (): PluginManagerAPI => {
               addAnnotations(chart, layer.annotations, chartId);
               console.log(`Annotation layer ${layerIndex} added to chart ${chartId}`);
             }
-          } catch (error) {
-            console.error(`Failed to add annotation layer ${layerIndex}:`, error);
+          } catch {
+            console.error('An error occurred');
           }
         });
-      } catch (error) {
-        console.error(`Failed to add annotation layers to chart ${chartId}:`, error);
+      } catch {
+        console.error('An error occurred');
       }
     },
     [addAnnotations]
@@ -133,13 +133,13 @@ export const usePluginManager = (): PluginManagerAPI => {
 
   // Add modular tooltip
   const addModularTooltip = useCallback(
-    (chart: IChartApi, series: ISeriesApi<any>[], config: any) => {
+    (_chart: IChartApi, _series: ISeriesApi<any>[], _config: any) => {
       try {
         // Implementation would depend on specific tooltip requirements
         // This is a placeholder for the tooltip functionality
         console.log('Modular tooltip configuration applied');
-      } catch (error) {
-        console.error('Failed to add modular tooltip:', error);
+      } catch {
+        console.error('An error occurred');
       }
     },
     []
@@ -147,13 +147,13 @@ export const usePluginManager = (): PluginManagerAPI => {
 
   // Add range switcher
   const addRangeSwitcher = useCallback(
-    async (chart: IChartApi, rangeConfig: any): Promise<void> => {
+    async (_chart: IChartApi, _rangeConfig: any): Promise<void> => {
       try {
         // Implementation would depend on specific range switcher requirements
         // This is a placeholder for the range switcher functionality
         console.log('Range switcher configuration applied');
-      } catch (error) {
-        console.error('Failed to add range switcher:', error);
+      } catch {
+        console.error('An error occurred');
       }
     },
     []
@@ -184,8 +184,8 @@ export const usePluginManager = (): PluginManagerAPI => {
       // CornerLayoutManager.addWidget(chartId, widget);
       console.log(`Legend widget configured for ${chartId}`);
       console.log(`Legend added to chart ${chartId}`);
-    } catch (error) {
-      console.error(`Failed to add legend to chart ${chartId}:`, error);
+    } catch {
+      console.error('An error occurred');
     }
   }, []);
 
@@ -195,8 +195,8 @@ export const usePluginManager = (): PluginManagerAPI => {
       // Implementation would depend on pane collapse requirements
       // This would typically involve adding collapse/expand buttons to panes
       console.log(`Pane collapse support setup for chart ${chartId}`);
-    } catch (error) {
-      console.error(`Failed to setup pane collapse support for chart ${chartId}:`, error);
+    } catch {
+      console.error('An error occurred');
     }
   }, []);
 
@@ -207,8 +207,8 @@ export const usePluginManager = (): PluginManagerAPI => {
       if (signalPluginsRef.current[chartId]) {
         try {
           signalPluginsRef.current[chartId].destroy();
-        } catch (error) {
-          console.warn(`Failed to destroy signal plugin for ${chartId}:`, error);
+        } catch {
+          console.warn('A warning occurred');
         }
         delete signalPluginsRef.current[chartId];
       }
@@ -217,8 +217,8 @@ export const usePluginManager = (): PluginManagerAPI => {
       // if (primitiveManagersRef.current[chartId]) {
       //   try {
       //     primitiveManagersRef.current[chartId].cleanup();
-      //   } catch (error) {
-      //     console.warn(`Failed to cleanup primitive manager for ${chartId}:`, error);
+      //   } catch {
+      //     console.warn("A warning occurred");
       //   }
       //   delete primitiveManagersRef.current[chartId];
       // }
@@ -226,13 +226,13 @@ export const usePluginManager = (): PluginManagerAPI => {
       // Clean up CornerLayoutManager
       try {
         CornerLayoutManager.cleanup(chartId);
-      } catch (error) {
-        console.warn(`Failed to cleanup CornerLayoutManager for ${chartId}:`, error);
+      } catch {
+        console.warn('A warning occurred');
       }
 
       console.log(`Plugin cleanup completed for chart ${chartId}`);
-    } catch (error) {
-      console.error(`Failed to cleanup plugins for chart ${chartId}:`, error);
+    } catch {
+      console.error('An error occurred');
     }
   }, []);
 

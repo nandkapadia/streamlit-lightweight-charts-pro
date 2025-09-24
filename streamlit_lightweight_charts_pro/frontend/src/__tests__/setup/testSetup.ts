@@ -119,12 +119,13 @@ const mockCanvas = {
 
 // Mock document.createElement
 const originalCreateElement = document.createElement;
-document.createElement = vi.fn(tagName => {
+// @ts-ignore - Complex mock signature compatibility
+document.createElement = vi.fn((tagName: any, options?: any) => {
   if (tagName === 'canvas') {
-    return mockCanvas;
+    return mockCanvas as any;
   }
-  return originalCreateElement.call(document, tagName);
-});
+  return originalCreateElement.call(document, tagName, options);
+}) as any;
 
 // Global test error handler to suppress expected errors in tests
 const originalError = console.error;

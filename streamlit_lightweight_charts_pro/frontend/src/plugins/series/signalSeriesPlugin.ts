@@ -457,7 +457,7 @@ export class SignalSeries implements ISeriesPrimitive<Time> {
       }
 
       return 0 as UTCTimestamp;
-    } catch (error) {
+    } catch {
       return 0 as UTCTimestamp;
     }
   }
@@ -561,7 +561,7 @@ export class SignalSeries implements ISeriesPrimitive<Time> {
   destroy(): void {
     try {
       this.chart.removeSeries(this.dummySeries);
-    } catch (error) {
+    } catch {
       // Series already removed
     }
   }

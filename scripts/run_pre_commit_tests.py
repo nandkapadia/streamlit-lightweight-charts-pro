@@ -9,13 +9,26 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 
 def run_command(cmd: List[str], description: str, allow_failure: bool = False) -> bool:
     """Run a command and return success status."""
     print(f"🔍 {description}...")
     try:
+        # Validate command to prevent injection
+        def _raise_invalid_command():
+            raise ValueError("Invalid command: must be a non-empty list")  # noqa: TRY301
+
+        def _raise_invalid_argument(arg):
+            raise ValueError(f"Invalid command argument: {arg} must be a string")  # noqa: TRY301
+
+        if not cmd or not isinstance(cmd, list):
+            _raise_invalid_command()
+        for arg in cmd:
+            if not isinstance(arg, str):
+                _raise_invalid_argument(arg)
+
         result = subprocess.run(
             cmd,
             capture_output=True,
@@ -32,20 +45,17 @@ def run_command(cmd: List[str], description: str, allow_failure: bool = False) -
             print("STDOUT:", result.stdout)
         if result.stderr:
             print("STDERR:", result.stderr)
-        return False
     except subprocess.TimeoutExpired:
         print(f"⏰ {description} timed out!")
-        return False
     except subprocess.CalledProcessError as e:
         print(f"❌ {description} failed with exit code {e.returncode}!")
         if e.stdout:
             print("STDOUT:", e.stdout)
         if e.stderr:
             print("STDERR:", e.stderr)
-        return False
     except Exception as e:
         print(f"💥 {description} failed with error: {e}")
-        return False
+    return False
 
 
 def check_environment() -> bool:

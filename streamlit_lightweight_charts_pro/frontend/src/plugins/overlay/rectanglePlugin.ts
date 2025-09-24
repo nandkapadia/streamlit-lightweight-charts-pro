@@ -77,8 +77,9 @@ export class RectangleOverlayPlugin {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Draw rectangles
+    const ctx = this.ctx; // We already checked ctx exists above
     this.rectangles.forEach((rect, _index) => {
-      this.ctx!.fillStyle = rect.color || '#000000';
+      ctx.fillStyle = rect.color || '#000000';
 
       // Ensure proper rectangle dimensions (handle inverted Y coordinates)
       const x = Math.min(rect.x1, rect.x2);
@@ -86,7 +87,7 @@ export class RectangleOverlayPlugin {
       const width = Math.abs(rect.x2 - rect.x1);
       const height = Math.abs(rect.y2 - rect.y1);
 
-      this.ctx!.fillRect(x, y, width, height);
+      ctx.fillRect(x, y, width, height);
     });
   }
 
@@ -121,8 +122,8 @@ export class RectangleOverlayPlugin {
       if (this.rectangles.length > 0) {
         this.render();
       }
-    } catch (error) {
-      console.error('Rectangle plugin operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -154,8 +155,8 @@ export class RectangleOverlayPlugin {
 
       // Set initial canvas size
       this.resizeCanvas().catch(console.error);
-    } catch (error) {
-      console.error('Rectangle plugin operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -208,8 +209,8 @@ export class RectangleOverlayPlugin {
           this.scheduleRedraw();
         }
       });
-    } catch (error) {
-      console.error('Rectangle plugin operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -238,7 +239,7 @@ export class RectangleOverlayPlugin {
         // Redraw after resize
         this.scheduleRedraw();
       }
-    } catch (error) {
+    } catch {
       // Fallback to manual dimension calculation
       this.fallbackResizeCanvas();
     }
@@ -256,7 +257,7 @@ export class RectangleOverlayPlugin {
         const rect = this.container.getBoundingClientRect();
         width = rect.width;
         height = rect.height;
-      } catch (error) {
+      } catch {
         width = this.container.offsetWidth;
         height = this.container.offsetHeight;
       }
@@ -278,7 +279,7 @@ export class RectangleOverlayPlugin {
               height = chartRect.height;
             }
           }
-        } catch (error) {
+        } catch {
           // Ignore error
         }
       }
@@ -298,8 +299,8 @@ export class RectangleOverlayPlugin {
         // Redraw after resize
         this.scheduleRedraw();
       }
-    } catch (error) {
-      console.error('Rectangle plugin operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -308,8 +309,8 @@ export class RectangleOverlayPlugin {
 
     try {
       await this.resizeCanvas();
-    } catch (error) {
-      console.error('Rectangle plugin operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -336,8 +337,8 @@ export class RectangleOverlayPlugin {
       this.rectangles.forEach(rect => {
         this.drawRectangle(rect);
       });
-    } catch (error) {
-      console.error('Rectangle plugin operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -386,8 +387,8 @@ export class RectangleOverlayPlugin {
       if (rect.label) {
         this.drawLabel(rect, rectX, rectY, rectX + rectWidth, rectY + rectHeight);
       }
-    } catch (error) {
-      console.error('Rectangle plugin operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -398,8 +399,8 @@ export class RectangleOverlayPlugin {
       // Method 1: Try to use chart's coordinate system (simplified for now)
       try {
         // For now, just use pixel coordinates directly
-      } catch (error) {
-        console.error('Rectangle plugin operation failed:', error);
+      } catch {
+        console.error('An error occurred');
       }
 
       // Method 2: Use pixel coordinates directly
@@ -409,7 +410,7 @@ export class RectangleOverlayPlugin {
         ax2: x2,
         ay2: y2,
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -443,8 +444,8 @@ export class RectangleOverlayPlugin {
 
       // Draw label text
       this.ctx.fillText(rect.label, labelX, labelY);
-    } catch (error) {
-      console.error('Rectangle plugin operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 

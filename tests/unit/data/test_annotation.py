@@ -20,12 +20,13 @@ from streamlit_lightweight_charts_pro.data.annotation import (
     create_shape_annotation,
     create_text_annotation,
 )
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    AnnotationPosition,
-    AnnotationType,
-    HorzAlign,
-    VertAlign,
+from streamlit_lightweight_charts_pro.exceptions import (
+    AnnotationTextRequiredError,
+    BorderWidthNonNegativeError,
+    FontSizePositiveError,
+    PriceMustBeNumberError,
 )
+from streamlit_lightweight_charts_pro.type_definitions.enums import HorzAlign, VertAlign
 
 
 class TestAnnotation:
@@ -151,11 +152,11 @@ class TestAnnotation:
         assert annotation.font_size == 10
 
         # Invalid zero font size
-        with pytest.raises(ValueError, match="Font size must be positive"):
+        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
             Annotation(time=1640995200, price=100.0, text="Test", font_size=0)
 
         # Invalid negative font size
-        with pytest.raises(ValueError, match="Font size must be positive"):
+        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
             Annotation(time=1640995200, price=100.0, text="Test", font_size=-5)
 
     def test_validation_text_size(self):
@@ -165,11 +166,11 @@ class TestAnnotation:
         assert annotation.font_size == 12
 
         # Invalid zero font size
-        with pytest.raises(ValueError, match="Font size must be positive"):
+        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
             Annotation(time=1640995200, price=100.0, text="Test", font_size=0)
 
         # Invalid negative font size
-        with pytest.raises(ValueError, match="Font size must be positive"):
+        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
             Annotation(time=1640995200, price=100.0, text="Test", font_size=-12)
 
     def test_validation_border_width(self):
@@ -183,7 +184,7 @@ class TestAnnotation:
         assert annotation.border_width == 0
 
         # Invalid negative border width
-        with pytest.raises(ValueError, match="Border width must be non-negative"):
+        with pytest.raises(BorderWidthNonNegativeError, match="border_width must be non-negative"):
             Annotation(time=1640995200, price=100.0, text="Test", border_width=-2)
 
     def test_validation_colors(self):
@@ -241,7 +242,11 @@ class TestAnnotation:
         """Test edge cases and boundary conditions."""
         # Very large numbers
         annotation = Annotation(
-            time=1640995200, price=999999.99, text="Test", font_size=999999, border_width=999999
+            time=1640995200,
+            price=999999.99,
+            text="Test",
+            font_size=999999,
+            border_width=999999,
         )
         assert annotation.price == 999999.99
         assert annotation.font_size == 999999
@@ -249,7 +254,11 @@ class TestAnnotation:
 
         # Very small numbers
         annotation = Annotation(
-            time=1640995200, price=0.0001, text="Test", font_size=1, border_width=1
+            time=1640995200,
+            price=0.0001,
+            text="Test",
+            font_size=1,
+            border_width=1,
         )
         assert annotation.price == 0.0001
         assert annotation.font_size == 1
@@ -380,7 +389,10 @@ class TestAnnotationEdgeCases:
     def test_annotation_init_with_string_annotation_type(self):
         """Test Annotation initialization with string annotation type."""
         annotation = Annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Test annotation", annotation_type="text"
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Test annotation",
+            annotation_type="text",
         )
 
         assert annotation.annotation_type == AnnotationType.TEXT
@@ -388,24 +400,27 @@ class TestAnnotationEdgeCases:
     def test_annotation_init_with_string_position(self):
         """Test Annotation initialization with string position."""
         annotation = Annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Test annotation", position="above"
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Test annotation",
+            position="above",
         )
 
         assert annotation.position == AnnotationPosition.ABOVE
 
     def test_annotation_init_with_invalid_price(self):
         """Test Annotation initialization with invalid price."""
-        with pytest.raises(ValueError, match="Price must be a number"):
+        with pytest.raises(PriceMustBeNumberError, match="price must be a number"):
             Annotation(time="2024-01-01 10:00:00", price="invalid", text="Test annotation")
 
     def test_annotation_init_with_empty_text(self):
         """Test Annotation initialization with empty text."""
-        with pytest.raises(ValueError, match="Annotation text cannot be empty"):
+        with pytest.raises(AnnotationTextRequiredError, match="text is required for annotations"):
             Annotation(time="2024-01-01 10:00:00", price=100.0, text="")
 
     def test_annotation_init_with_none_text(self):
         """Test Annotation initialization with None text."""
-        with pytest.raises(ValueError, match="Annotation text cannot be empty"):
+        with pytest.raises(AnnotationTextRequiredError, match="text is required for annotations"):
             Annotation(time="2024-01-01 10:00:00", price=100.0, text=None)
 
     def test_annotation_init_with_very_long_text(self):
@@ -459,7 +474,10 @@ class TestAnnotationEdgeCases:
         """Test Annotation initialization with invalid color format."""
         # Should not raise error, just store the value
         annotation = Annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Test", color="invalid_color"
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Test",
+            color="invalid_color",
         )
 
         assert annotation.color == "invalid_color"
@@ -467,7 +485,10 @@ class TestAnnotationEdgeCases:
     def test_annotation_init_with_rgb_color(self):
         """Test Annotation initialization with RGB color."""
         annotation = Annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Test", color="rgb(255, 0, 0)"
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Test",
+            color="rgb(255, 0, 0)",
         )
 
         assert annotation.color == "rgb(255, 0, 0)"
@@ -475,7 +496,10 @@ class TestAnnotationEdgeCases:
     def test_annotation_init_with_rgba_color(self):
         """Test Annotation initialization with RGBA color."""
         annotation = Annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Test", color="rgba(255, 0, 0, 0.5)"
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Test",
+            color="rgba(255, 0, 0, 0.5)",
         )
 
         assert annotation.color == "rgba(255, 0, 0, 0.5)"
@@ -495,20 +519,23 @@ class TestAnnotationEdgeCases:
     def test_annotation_init_with_negative_font_size(self):
         """Test Annotation initialization with negative font size."""
         # Should raise error for negative font size
-        with pytest.raises(ValueError, match="Font size must be positive"):
+        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
             Annotation(time="2024-01-01 10:00:00", price=100.0, text="Test", font_size=-10)
 
     def test_annotation_init_with_zero_font_size(self):
         """Test Annotation initialization with zero font size."""
         # Should raise error for zero font size
-        with pytest.raises(ValueError, match="Font size must be positive"):
+        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
             Annotation(time="2024-01-01 10:00:00", price=100.0, text="Test", font_size=0)
 
     def test_annotation_init_with_very_large_font_size(self):
         """Test Annotation initialization with very large font size."""
         # Should not raise error, just store the value
         annotation = Annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Test", font_size=1000
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Test",
+            font_size=1000,
         )
 
         assert annotation.font_size == 1000
@@ -517,7 +544,10 @@ class TestAnnotationEdgeCases:
         """Test Annotation initialization with float font size."""
         # Should not raise error, just store the value
         annotation = Annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Test", font_size=12.5
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Test",
+            font_size=12.5,
         )
 
         assert annotation.font_size == 12.5
@@ -531,14 +561,17 @@ class TestAnnotationEdgeCases:
     def test_annotation_init_with_negative_border_width(self):
         """Test Annotation initialization with negative border width."""
         # Should raise error for negative border width
-        with pytest.raises(ValueError, match="Border width must be non-negative"):
+        with pytest.raises(BorderWidthNonNegativeError, match="border_width must be non-negative"):
             Annotation(time="2024-01-01 10:00:00", price=100.0, text="Test", border_width=-2)
 
     def test_annotation_init_with_float_border_width(self):
         """Test Annotation initialization with float border width."""
         # Should not raise error, just store the value
         annotation = Annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Test", border_width=2.5
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Test",
+            border_width=2.5,
         )
 
         assert annotation.border_width == 2.5
@@ -723,7 +756,8 @@ class TestAnnotationManagerEdgeCases:
 
         layer1 = AnnotationLayer(name="layer1", annotations=[annotation1])  # Single annotation
         layer2 = AnnotationLayer(
-            name="layer2", annotations=[annotation2, annotation3]
+            name="layer2",
+            annotations=[annotation2, annotation3],
         )  # Multiple annotations
         layer3 = AnnotationLayer(name="layer3", annotations=[])  # Empty layer
 
@@ -744,7 +778,9 @@ class TestAnnotationFactoryFunctionsEdgeCases:
     def test_create_text_annotation_with_minimal_params(self):
         """Test create_text_annotation with minimal parameters."""
         annotation = create_text_annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Minimal text"
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Minimal text",
         )
 
         assert annotation.annotation_type == AnnotationType.TEXT
@@ -779,7 +815,9 @@ class TestAnnotationFactoryFunctionsEdgeCases:
     def test_create_arrow_annotation_with_minimal_params(self):
         """Test create_arrow_annotation with minimal parameters."""
         annotation = create_arrow_annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Minimal arrow"
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Minimal arrow",
         )
 
         assert annotation.annotation_type == AnnotationType.ARROW
@@ -814,7 +852,9 @@ class TestAnnotationFactoryFunctionsEdgeCases:
     def test_create_shape_annotation_with_minimal_params(self):
         """Test create_shape_annotation with minimal parameters."""
         annotation = create_shape_annotation(
-            time="2024-01-01 10:00:00", price=100.0, text="Minimal shape"
+            time="2024-01-01 10:00:00",
+            price=100.0,
+            text="Minimal shape",
         )
 
         assert annotation.annotation_type == AnnotationType.SHAPE
@@ -861,7 +901,7 @@ class TestAnnotationFactoryFunctionsEdgeCases:
 
     def test_create_arrow_annotation_with_edge_values(self):
         """Test create_arrow_annotation with edge values."""
-        with pytest.raises(ValueError, match="Annotation text cannot be empty"):
+        with pytest.raises(AnnotationTextRequiredError, match="text is required for annotations"):
             create_arrow_annotation(
                 time="2024-01-01 10:00:00",
                 price=0.0,
@@ -893,7 +933,7 @@ class TestAnnotationDataFrameIntegration:
 
     def test_annotation_from_dataframe_row(self):
         """Test creating annotation from DataFrame row."""
-        df = pd.DataFrame(
+        annotation_data = pd.DataFrame(
             {
                 "time": ["2024-01-01 10:00:00"],
                 "price": [100.0],
@@ -901,10 +941,10 @@ class TestAnnotationDataFrameIntegration:
                 "annotation_type": ["text"],
                 "position": ["above"],
                 "color": ["#FF0000"],
-            }
+            },
         )
 
-        row = df.iloc[0]
+        row = annotation_data.iloc[0]
         annotation = Annotation(
             time=row["time"],
             price=row["price"],
@@ -944,15 +984,15 @@ class TestAnnotationDataFrameIntegration:
             "color": annotation.color,
         }
 
-        df = pd.DataFrame([row_data])
+        annotation_data = pd.DataFrame([row_data])
 
-        assert len(df) == 1
-        assert df.iloc[0]["price"] == 100.0
-        assert df.iloc[0]["text"] == "DataFrame annotation"
+        assert len(annotation_data) == 1
+        assert annotation_data.iloc[0]["price"] == 100.0
+        assert annotation_data.iloc[0]["text"] == "DataFrame annotation"
 
     def test_annotation_layer_from_dataframe(self):
         """Test creating annotation layer from DataFrame."""
-        df = pd.DataFrame(
+        annotation_data = pd.DataFrame(
             {
                 "time": [
                     "2024-01-01 10:00:00",
@@ -964,11 +1004,11 @@ class TestAnnotationDataFrameIntegration:
                 "annotation_type": ["text", "arrow", "shape"],
                 "position": ["above", "below", "inline"],
                 "color": ["#FF0000", "#00FF00", "#0000FF"],
-            }
+            },
         )
 
         annotations = []
-        for _, row in df.iterrows():
+        for _, row in annotation_data.iterrows():
             annotation = Annotation(
                 time=row["time"],
                 price=row["price"],
@@ -996,7 +1036,7 @@ class TestAnnotationDataFrameIntegration:
                 "annotation_type": ["text"],
                 "position": ["above"],
                 "color": ["#FF0000"],
-            }
+            },
         )
 
         df2 = pd.DataFrame(
@@ -1007,7 +1047,7 @@ class TestAnnotationDataFrameIntegration:
                 "annotation_type": ["arrow"],
                 "position": ["below"],
                 "color": ["#00FF00"],
-            }
+            },
         )
 
         # Create layers from DataFrames

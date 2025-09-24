@@ -1,5 +1,4 @@
-"""
-Logging configuration for Streamlit Lightweight Charts Pro.
+"""Logging configuration for Streamlit Lightweight Charts Pro.
 
 This module provides centralized logging configuration for the package,
 including proper log levels, formatting, and handlers. It ensures consistent
@@ -43,8 +42,7 @@ def setup_logging(
     log_format: Optional[str] = None,
     stream: Optional[logging.StreamHandler] = None,
 ) -> logging.Logger:
-    """
-    Set up logging configuration for the package.
+    """Set up logging configuration for the package.
 
     This function configures the root logger for the package with the specified
     settings. It ensures that logging is properly initialized and prevents
@@ -107,8 +105,7 @@ def setup_logging(
 
 
 def get_logger(name: Optional[str] = None, level: int = logging.ERROR) -> logging.Logger:
-    """
-    Get a logger instance for the package.
+    """Get a logger instance for the package.
 
     This function creates or retrieves a logger instance with the proper naming
     convention. The logger name is automatically prefixed with the package name

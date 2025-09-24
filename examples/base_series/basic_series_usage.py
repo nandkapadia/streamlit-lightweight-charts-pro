@@ -1,14 +1,12 @@
-"""
-Basic Series Usage Example
+"""Basic Series Usage Example
 
 This example demonstrates the fundamental Series functionality that all series types share.
 It shows data handling, visibility control, price scale configuration, and basic operations.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
@@ -16,7 +14,7 @@ from examples.utilities.data_samples import get_line_data
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
@@ -76,10 +74,10 @@ def main():
     # Create series and demonstrate properties
     series = LineSeries(data=data)
 
-    st.write(f"**Series Properties:**")
-    st.write(f"- Visible: {series.visible  # pylint: disable=no-member}")
-    st.write(f"- Price Scale ID: {series.price_scale_id  # pylint: disable=no-member}")
-    st.write(f"- Pane ID: {series.pane_id  # pylint: disable=no-member}")
+    st.write("**Series Properties:**")
+    st.write(f"- Visible: {series.visible}")  # pylint: disable=no-member
+    st.write(f"- Price Scale ID: {series.price_scale_id}")  # pylint: disable=no-member
+    st.write(f"- Pane ID: {series.pane_id}")  # pylint: disable=no-member
     st.write(f"- Data Points: {len(series.data)}")
 
     # Method chaining example

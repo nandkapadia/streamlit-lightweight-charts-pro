@@ -1,5 +1,4 @@
-"""
-Data utilities for Streamlit Lightweight Charts Pro.
+"""Data utilities for Streamlit Lightweight Charts Pro.
 
 This module provides utility functions for data processing and manipulation
 used throughout the library. It includes functions for time normalization,
@@ -18,7 +17,9 @@ components of the charting library.
 Example Usage:
     ```python
     from streamlit_lightweight_charts_pro.utils.data_utils import (
-        normalize_time, is_valid_color, snake_to_camel
+        normalize_time,
+        is_valid_color,
+        snake_to_camel,
     )
 
     # Time normalization
@@ -37,15 +38,25 @@ License: MIT
 """
 
 import re
+
+# This handles datetime.date objects
 from datetime import datetime
+from datetime import datetime as dt_class
 from typing import Any
 
 import pandas as pd
 
+from streamlit_lightweight_charts_pro.exceptions import (
+    InvalidTypeValueError,
+    MinMovePositiveError,
+    PrecisionNonNegativeError,
+    TimeValidationError,
+    UnsupportedTimeTypeError,
+)
+
 
 def normalize_time(time_value: Any) -> int:
-    """
-    Convert time input to int UNIX seconds.
+    """Convert time input to int UNIX seconds.
 
     This function handles various time input formats and converts them to
     UNIX timestamps (seconds since epoch). It supports multiple input types
@@ -107,24 +118,20 @@ def normalize_time(time_value: Any) -> int:
             dt = pd.to_datetime(time_value)
             return int(dt.timestamp())
         except (ValueError, TypeError) as exc:
-            raise ValueError(f"Invalid time string: {time_value!r}") from exc
+            raise TimeValidationError(time_value) from exc
     if isinstance(time_value, datetime):
         return int(time_value.timestamp())
     if isinstance(time_value, pd.Timestamp):
         return int(time_value.timestamp())
     # Handle datetime.date objects
     if hasattr(time_value, "date") and hasattr(time_value, "timetuple"):
-        # This handles datetime.date objects
-        from datetime import datetime as dt_class
-
         dt = dt_class.combine(time_value, dt_class.min.time())
         return int(dt.timestamp())
-    raise TypeError(f"Unsupported time type: {type(time_value)}")
+    raise UnsupportedTimeTypeError(type(time_value))
 
 
 def to_utc_timestamp(time_value: Any) -> int:
-    """
-    Convert time input to int UNIX seconds.
+    """Convert time input to int UNIX seconds.
 
     This is an alias for normalize_time for backward compatibility.
     It provides the same functionality as normalize_time().
@@ -142,8 +149,7 @@ def to_utc_timestamp(time_value: Any) -> int:
 
 
 def from_utc_timestamp(timestamp: int) -> str:
-    """
-    Convert UNIX timestamp to ISO format string.
+    """Convert UNIX timestamp to ISO format string.
 
     This function converts a UNIX timestamp (seconds since epoch) to an
     ISO format datetime string. The output is in UTC timezone.
@@ -168,8 +174,7 @@ def from_utc_timestamp(timestamp: int) -> str:
 
 
 def snake_to_camel(snake_str: str) -> str:
-    """
-    Convert snake_case string to camelCase.
+    """Convert snake_case string to camelCase.
 
     This function converts strings from snake_case format (e.g., "price_scale_id")
     to camelCase format (e.g., "priceScaleId"). It's commonly used for
@@ -198,8 +203,7 @@ def snake_to_camel(snake_str: str) -> str:
 
 
 def is_valid_color(color: str) -> bool:
-    """
-    Check if a color string is valid.
+    """Check if a color string is valid.
 
     This function validates color strings in various formats commonly used
     in web development and chart styling. It supports hex colors, RGB/RGBA
@@ -248,8 +252,7 @@ def is_valid_color(color: str) -> bool:
 
 
 def validate_price_format_type(type_value: str) -> str:
-    """
-    Validate price format type.
+    """Validate price format type.
 
     This function validates price format type strings used in chart configuration.
     It ensures that only valid format types are used for price display options.
@@ -278,15 +281,12 @@ def validate_price_format_type(type_value: str) -> str:
     """
     valid_types = {"price", "volume", "percent", "custom"}
     if type_value not in valid_types:
-        raise ValueError(
-            f"Invalid type: {type_value!r}. Must be one of 'price', 'volume', 'percent', 'custom'."
-        )
+        raise InvalidTypeValueError(type_value)
     return type_value
 
 
 def validate_precision(precision: int) -> int:
-    """
-    Validate precision value.
+    """Validate precision value.
 
     This function validates precision values used for number formatting
     in charts. Precision determines the number of decimal places shown
@@ -316,13 +316,15 @@ def validate_precision(precision: int) -> int:
         display issues in the frontend.
     """
     if not isinstance(precision, int) or precision < 0:
-        raise ValueError(f"precision must be a non-negative integer, got {precision}")
+        raise PrecisionNonNegativeError(
+            "precision",
+            f"must be a non-negative integer, got {precision}",
+        )
     return precision
 
 
 def validate_min_move(min_move: float) -> float:
-    """
-    Validate minimum move value.
+    """Validate minimum move value.
 
     This function validates minimum move values used in chart configuration.
     Minimum move determines the smallest price change that will trigger
@@ -352,5 +354,5 @@ def validate_min_move(min_move: float) -> float:
         both integers and floats, converting them to float for consistency.
     """
     if not isinstance(min_move, (int, float)) or min_move <= 0:
-        raise ValueError(f"min_move must be a positive number, got {min_move}")
+        raise MinMovePositiveError(min_move)
     return float(min_move)

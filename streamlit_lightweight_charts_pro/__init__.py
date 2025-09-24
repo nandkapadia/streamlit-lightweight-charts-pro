@@ -1,5 +1,4 @@
-"""
-Streamlit Lightweight Charts Pro - Professional Financial Charting Library.
+"""Streamlit Lightweight Charts Pro - Professional Financial Charting Library.
 
 A comprehensive Python library for creating interactive financial charts in Streamlit
 applications. Built on top of TradingView's Lightweight Charts library, this package
@@ -24,9 +23,7 @@ Key Features:
 
 Example Usage:
     ```python
-    from streamlit_lightweight_charts_pro import (
-        Chart, LineSeries, create_text_annotation
-    )
+    from streamlit_lightweight_charts_pro import Chart, LineSeries, create_text_annotation
     from streamlit_lightweight_charts_pro.data import SingleValueData
 
     # Create data
@@ -37,10 +34,12 @@ Example Usage:
     chart.render(key="my_chart")
 
     # Method 2: Fluent API with method chaining
-    chart = (Chart()
-             .add_series(LineSeries(data, color="#ff0000"))
-             .update_options(height=400)
-             .add_annotation(create_text_annotation("2024-01-01", 100, "Start")))
+    chart = (
+        Chart()
+        .add_series(LineSeries(data, color="#ff0000"))
+        .update_options(height=400)
+        .add_annotation(create_text_annotation("2024-01-01", 100, "Start"))
+    )
     chart.render(key="my_chart")
     ```
 
@@ -60,10 +59,7 @@ License: MIT
 import warnings
 from pathlib import Path
 
-from streamlit_lightweight_charts_pro.charts import (
-    Chart,
-    ChartManager,
-)
+from streamlit_lightweight_charts_pro.charts import Chart, ChartManager
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.layout_options import (
     LayoutOptions,
@@ -107,10 +103,7 @@ from streamlit_lightweight_charts_pro.data.annotation import (
     create_shape_annotation,
     create_text_annotation,
 )
-from streamlit_lightweight_charts_pro.data.trade import (
-    TradeData,
-    TradeType,
-)
+from streamlit_lightweight_charts_pro.data.trade import TradeData, TradeType
 
 # Import logging configuration
 from streamlit_lightweight_charts_pro.logging_config import get_logger, setup_logging
@@ -140,7 +133,7 @@ def _check_frontend_build():
         # Use importlib.metadata instead of deprecated pkg_resources
         dist = distribution("streamlit_lightweight_charts_pro")
         if dist.locate_file("") and Path(dist.locate_file("")).samefile(
-            Path(__file__).parent.parent
+            Path(__file__).parent.parent,
         ):
             # This is a development install, check frontend
             frontend_dir = Path(__file__).parent / "frontend"
@@ -151,6 +144,7 @@ def _check_frontend_build():
                     "Frontend assets not found in development mode. "
                     "Run 'streamlit-lightweight-charts-pro build-frontend' to build them.",
                     UserWarning,
+                    stacklevel=2,
                 )
     except (ImportError, OSError):
         # Not a development install or importlib.metadata not available, skip check
@@ -162,59 +156,59 @@ _check_frontend_build()
 
 # Export all public components
 __all__ = [
-    # Logging
-    "get_logger",
-    "setup_logging",
+    # Data models
+    "Annotation",
+    "AnnotationLayer",
+    # Annotation system
+    "AnnotationManager",
+    "AreaData",
+    # Series classes
+    "AreaSeries",
+    "BandSeries",
+    "BarData",
+    "BarSeries",
+    "BaselineData",
+    "BaselineSeries",
+    "CandlestickData",
+    "CandlestickSeries",
     # Core chart classes
     "Chart",
     "ChartManager",
-    # Series classes
-    "AreaSeries",
-    "BarSeries",
-    "BaselineSeries",
-    "CandlestickSeries",
-    "HistogramSeries",
-    "LineSeries",
-    "Series",
-    "SignalSeries",
-    "GradientRibbonSeries",
-    "TrendFillSeries",
-    "RibbonSeries",
-    "BandSeries",
     # Options
     "ChartOptions",
-    "LayoutOptions",
-    "PaneHeightOptions",
-    "LegendOptions",
-    # Data models
-    "Annotation",
-    "AreaData",
-    "BarData",
-    "BaselineData",
-    "CandlestickData",
+    # Type definitions
+    "ChartType",
+    "ColumnNames",
+    "GradientRibbonSeries",
     "HistogramData",
+    "HistogramSeries",
+    "LayoutOptions",
+    "LegendOptions",
     "LineData",
+    "LineSeries",
+    "LineStyle",
     "Marker",
+    "MarkerPosition",
+    "MarkerShape",
     "OhlcvData",
-    "SingleValueData",
+    "PaneHeightOptions",
+    "RibbonSeries",
+    "Series",
     "SignalData",
-    # Annotation system
-    "AnnotationManager",
-    "AnnotationLayer",
-    "create_text_annotation",
-    "create_arrow_annotation",
-    "create_shape_annotation",
+    "SignalSeries",
+    "SingleValueData",
     # Trade visualization
     "TradeData",
     "TradeType",
-    "TradeVisualizationOptions",
     "TradeVisualization",
-    # Type definitions
-    "ChartType",
-    "LineStyle",
-    "MarkerShape",
-    "MarkerPosition",
-    "ColumnNames",
+    "TradeVisualizationOptions",
+    "TrendFillSeries",
     # Version
     "__version__",
+    "create_arrow_annotation",
+    "create_shape_annotation",
+    "create_text_annotation",
+    # Logging
+    "get_logger",
+    "setup_logging",
 ]

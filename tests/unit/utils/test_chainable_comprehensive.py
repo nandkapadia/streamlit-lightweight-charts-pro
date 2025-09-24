@@ -15,6 +15,13 @@ from typing import List, Optional, Union
 import pytest
 
 from streamlit_lightweight_charts_pro.data.marker import MarkerBase
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
+    MinMovePositiveError,
+    PrecisionNonNegativeError,
+    TypeValidationError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.utils.chainable import (
     _is_list_of_markers,
     _validate_list_of_markers,
@@ -51,7 +58,7 @@ class TestChainableProperty:
         assert config.color == "#ff0000"
 
         # Test method chaining
-        result = config.set_width(600).set_color("#00ff00")  # type: ignore
+        result = config.set_width(600).set_color("#00ff00")  # type: ignore[attr-defined]
         assert result is config
         assert config.width == 600
         assert config.color == "#00ff00"
@@ -71,12 +78,12 @@ class TestChainableProperty:
         config = TestConfig()
 
         # Test valid precision
-        config.set_precision(4)  # type: ignore
+        config.set_precision(4)  # type: ignore[attr-defined][attr-defined]
         assert config.precision == 4
 
         # Test invalid precision should raise error
-        with pytest.raises(ValueError):
-            config.set_precision(-1)  # type: ignore
+        with pytest.raises(PrecisionNonNegativeError):
+            config.set_precision(-1)  # type: ignore[attr-defined][attr-defined]
 
     def test_chainable_property_with_none_support(self):
         """Test chainable property with None support."""
@@ -93,11 +100,11 @@ class TestChainableProperty:
         config = TestConfig()
 
         # Test setting None
-        config.set_optional_field(None)  # type: ignore
+        config.set_optional_field(None)  # type: ignore[attr-defined][attr-defined]
         assert config.optional_field is None
 
         # Test setting value
-        config.set_optional_field("test")  # type: ignore
+        config.set_optional_field("test")  # type: ignore[attr-defined][attr-defined]
         assert config.optional_field == "test"
 
     def test_chainable_property_without_none_support(self):
@@ -115,8 +122,8 @@ class TestChainableProperty:
         config = TestConfig()
 
         # Test setting None should raise error
-        with pytest.raises(TypeError, match="required_field must be a string"):
-            config.set_required_field(None)  # type: ignore
+        with pytest.raises(TypeValidationError, match="required_field must be string"):
+            config.set_required_field(None)  # type: ignore[attr-defined][attr-defined]
 
     def test_multiple_chainable_properties(self):
         """Test multiple chainable properties on same class."""
@@ -152,11 +159,11 @@ class TestChainableProperty:
 
         # Test complex chaining
         result = (
-            config.set_color("#ff0000")  # type: ignore
-            .set_width(1024)  # type: ignore
-            .set_height(768)  # type: ignore
+            config.set_color("#ff0000")  # type: ignore[attr-defined][attr-defined]
+            .set_width(1024)  # type: ignore[attr-defined][attr-defined]
+            .set_height(768)  # type: ignore[attr-defined][attr-defined]
             .set_enabled(True)
-        )  # type: ignore
+        )  # type: ignore[attr-defined][attr-defined]
 
         assert result is config
         assert config.color == "#ff0000"
@@ -185,7 +192,7 @@ class TestChainableField:
         assert options.color == "#ff0000"
 
         # Test method chaining
-        result = options.set_width(600).set_color("#00ff00")  # type: ignore
+        result = options.set_width(600).set_color("#00ff00")  # type: ignore[attr-defined]
         assert result is options
         assert options.width == 600
         assert options.color == "#00ff00"
@@ -201,12 +208,12 @@ class TestChainableField:
         options = TestOptions()
 
         # Test valid min_move
-        options.set_min_move(0.05)  # type: ignore
+        options.set_min_move(0.05)  # type: ignore[attr-defined][attr-defined]
         assert options.min_move == 0.05
 
         # Test invalid min_move should raise error
-        with pytest.raises(ValueError):
-            options.set_min_move(-0.01)  # type: ignore
+        with pytest.raises(MinMovePositiveError):
+            options.set_min_move(-0.01)  # type: ignore[attr-defined][attr-defined]
 
     def test_chainable_field_with_union_types(self):
         """Test chainable field with Union types."""
@@ -219,11 +226,11 @@ class TestChainableField:
         options = TestOptions()
 
         # Test setting int
-        options.set_value(42)  # type: ignore
+        options.set_value(42)  # type: ignore[attr-defined][attr-defined]
         assert options.value == 42
 
         # Test setting float
-        options.set_value(3.14)  # type: ignore
+        options.set_value(3.14)  # type: ignore[attr-defined][attr-defined]
         assert options.value == 3.14
 
     def test_chainable_field_with_optional(self):
@@ -237,11 +244,11 @@ class TestChainableField:
         options = TestOptions()
 
         # Test setting None
-        options.set_optional_value(None)  # type: ignore
+        options.set_optional_value(None)  # type: ignore[attr-defined][attr-defined]
         assert options.optional_value is None
 
         # Test setting value
-        options.set_optional_value(42)  # type: ignore
+        options.set_optional_value(42)  # type: ignore[attr-defined][attr-defined]
         assert options.optional_value == 42
 
     def test_chainable_field_complex_chaining(self):
@@ -262,11 +269,11 @@ class TestChainableField:
 
         # Test complex chaining
         result = (
-            options.set_color("#ff0000")  # type: ignore
-            .set_width(1024)  # type: ignore
-            .set_height(768)  # type: ignore
+            options.set_color("#ff0000")  # type: ignore[attr-defined][attr-defined]
+            .set_width(1024)  # type: ignore[attr-defined][attr-defined]
+            .set_height(768)  # type: ignore[attr-defined][attr-defined]
             .set_enabled(True)
-        )  # type: ignore
+        )  # type: ignore[attr-defined][attr-defined]
 
         assert result is options
         assert options.color == "#ff0000"
@@ -293,13 +300,13 @@ class TestChainableValidation:
         config = TestConfig()
 
         # Test valid hex colors
-        config.set_color("#ff0000")  # type: ignore
+        config.set_color("#ff0000")  # type: ignore[attr-defined][attr-defined]
         assert config.color == "#ff0000"
 
-        config.set_color("#00ff00")  # type: ignore
+        config.set_color("#00ff00")  # type: ignore[attr-defined][attr-defined]
         assert config.color == "#00ff00"
 
-        config.set_color("#0000ff")  # type: ignore
+        config.set_color("#0000ff")  # type: ignore[attr-defined][attr-defined]
         assert config.color == "#0000ff"
 
     def test_color_validation_invalid(self):
@@ -317,11 +324,11 @@ class TestChainableValidation:
         config = TestConfig()
 
         # Test invalid colors should raise error
-        with pytest.raises(ValueError):
-            config.set_color("invalid_color")  # type: ignore
+        with pytest.raises(ColorValidationError):
+            config.set_color("invalid_color")  # type: ignore[attr-defined][attr-defined]
 
-        with pytest.raises(ValueError):
-            config.set_color("#gggggg")  # type: ignore
+        with pytest.raises(ColorValidationError):
+            config.set_color("#gggggg")  # type: ignore[attr-defined][attr-defined]
 
     def test_precision_validation_valid(self):
         """Test valid precision values."""
@@ -339,7 +346,7 @@ class TestChainableValidation:
 
         # Test valid precision values
         for precision in [0, 1, 2, 3, 4, 5]:
-            config.set_precision(precision)  # type: ignore
+            config.set_precision(precision)  # type: ignore[attr-defined][attr-defined]
             assert config.precision == precision
 
     def test_precision_validation_invalid(self):
@@ -357,11 +364,11 @@ class TestChainableValidation:
         config = TestConfig()
 
         # Test invalid precision values should raise error
-        with pytest.raises(ValueError):
-            config.set_precision(-1)  # type: ignore
+        with pytest.raises(PrecisionNonNegativeError):
+            config.set_precision(-1)  # type: ignore[attr-defined][attr-defined]
 
         # Note: The actual validator might allow values > 5, so we test a reasonable boundary
-        config.set_precision(5)  # type: ignore # This should work
+        config.set_precision(5)  # type: ignore[attr-defined][attr-defined] # This should work
         assert config.precision == 5
 
     def test_min_move_validation_valid(self):
@@ -379,13 +386,13 @@ class TestChainableValidation:
         config = TestConfig()
 
         # Test valid min_move values
-        config.set_min_move(0.01)  # type: ignore
+        config.set_min_move(0.01)  # type: ignore[attr-defined][attr-defined]
         assert config.min_move == 0.01
 
-        config.set_min_move(0.1)  # type: ignore
+        config.set_min_move(0.1)  # type: ignore[attr-defined][attr-defined]
         assert config.min_move == 0.1
 
-        config.set_min_move(1.0)  # type: ignore
+        config.set_min_move(1.0)  # type: ignore[attr-defined][attr-defined]
         assert config.min_move == 1.0
 
     def test_min_move_validation_invalid(self):
@@ -403,11 +410,11 @@ class TestChainableValidation:
         config = TestConfig()
 
         # Test invalid min_move values should raise error
-        with pytest.raises(ValueError):
-            config.set_min_move(-0.01)  # type: ignore
+        with pytest.raises(MinMovePositiveError):
+            config.set_min_move(-0.01)  # type: ignore[attr-defined][attr-defined]
 
-        with pytest.raises(ValueError):
-            config.set_min_move(0.0)  # type: ignore
+        with pytest.raises(MinMovePositiveError):
+            config.set_min_move(0.0)  # type: ignore[attr-defined][attr-defined]
 
 
 class TestChainableEdgeCases:
@@ -428,8 +435,8 @@ class TestChainableEdgeCases:
         config = TestConfig()
 
         # Test type mismatch should raise error
-        with pytest.raises(TypeError):
-            config.set_value("not_an_int")  # type: ignore
+        with pytest.raises(TypeValidationError):
+            config.set_value("not_an_int")  # type: ignore[attr-defined][attr-defined]
 
     def test_unknown_validator_error(self):
         """Test unknown validator error handling."""
@@ -446,8 +453,8 @@ class TestChainableEdgeCases:
 
         config = TestConfig()
         # Should raise error when trying to set value with unknown validator
-        with pytest.raises(ValueError, match="Unknown built-in validator: unknown_validator"):
-            config.set_value("test")  # type: ignore
+        with pytest.raises(ValueValidationError, match="validator unknown validator"):
+            config.set_value("test")  # type: ignore[attr-defined][attr-defined]
 
     def test_none_without_allow_none(self):
         """Test None value without allow_none=True."""
@@ -464,8 +471,8 @@ class TestChainableEdgeCases:
         config = TestConfig()
 
         # Test setting None should raise error
-        with pytest.raises(TypeError, match="value must be a string"):
-            config.set_value(None)  # type: ignore
+        with pytest.raises(TypeValidationError, match="value must be string"):
+            config.set_value(None)  # type: ignore[attr-defined][attr-defined]
 
     def test_complex_chaining_with_errors(self):
         """Test complex chaining with error handling."""
@@ -488,17 +495,17 @@ class TestChainableEdgeCases:
         config = TestConfig()
 
         # Test successful chaining
-        result = config.set_width(600).set_color("#ff0000")  # type: ignore
+        result = config.set_width(600).set_color("#ff0000")  # type: ignore[attr-defined]
         assert result is config
         assert config.width == 600
         assert config.color == "#ff0000"
 
         # Test chaining with error in middle
-        config.set_width(800)  # type: ignore # Reset
+        config.set_width(800)  # type: ignore[attr-defined][attr-defined] # Reset
         try:
-            config.set_width(600).set_color("invalid_color")  # type: ignore
-            assert False, "Should have raised TypeError"
-        except ValueError:
+            config.set_width(600).set_color("invalid_color")  # type: ignore[attr-defined]
+            raise AssertionError("Should have raised ColorValidationError")
+        except ColorValidationError:
             # Width should be set, but color should fail
             assert config.width == 600
             assert config.color == "#ff0000"  # Should remain unchanged
@@ -532,7 +539,7 @@ class TestChainableInheritance:
         config = DerivedConfig()
 
         # Test both base and derived properties
-        result = config.set_base_value(42).set_derived_value("test")  # type: ignore
+        result = config.set_base_value(42).set_derived_value("test")  # type: ignore[attr-defined]
         assert result is config
         assert config.base_value == 42
         assert config.derived_value == "test"
@@ -553,7 +560,7 @@ class TestChainableInheritance:
         options = DerivedOptions()
 
         # Test both base and derived fields
-        result = options.set_base_value(42).set_derived_value("test")  # type: ignore
+        result = options.set_base_value(42).set_derived_value("test")  # type: ignore[attr-defined]
         assert result is options
         assert options.base_value == 42
         assert options.derived_value == "test"
@@ -602,12 +609,12 @@ class TestChainablePerformance:
 
         # Test long chain performance
         result = (
-            config.set_value1(1)  # type: ignore
-            .set_value2(2)  # type: ignore
-            .set_value3(3)  # type: ignore
-            .set_value4(4)  # type: ignore
+            config.set_value1(1)  # type: ignore[attr-defined][attr-defined]
+            .set_value2(2)  # type: ignore[attr-defined][attr-defined]
+            .set_value3(3)  # type: ignore[attr-defined][attr-defined]
+            .set_value4(4)  # type: ignore[attr-defined][attr-defined]
             .set_value5(5)
-        )  # type: ignore
+        )  # type: ignore[attr-defined][attr-defined]
 
         assert result is config
         assert config.value1 == 1
@@ -666,7 +673,8 @@ class TestMarkerValidation:
         invalid_markers = ["not_a_marker", 123, None]
 
         with pytest.raises(
-            TypeError, match="All items in test_attr must be instances of MarkerBase"
+            ValueValidationError,
+            match="test_attr all items must be MarkerBase instances",
         ):
             _validate_list_of_markers(invalid_markers, "test_attr")
 
@@ -677,12 +685,12 @@ class TestMarkerValidation:
 
     def test_validate_list_of_markers_with_none(self):
         """Test _validate_list_of_markers with None."""
-        with pytest.raises(TypeError, match="test_attr must be a list"):
+        with pytest.raises(TypeValidationError, match="test_attr must be list"):
             _validate_list_of_markers(None, "test_attr")
 
     def test_validate_list_of_markers_with_non_list(self):
         """Test _validate_list_of_markers with non-list value."""
-        with pytest.raises(TypeError, match="test_attr must be a list"):
+        with pytest.raises(TypeValidationError, match="test_attr must be list"):
             _validate_list_of_markers("not_a_list", "test_attr")
 
     def test_validate_list_of_markers_with_mixed_valid_invalid(self):
@@ -700,7 +708,8 @@ class TestMarkerValidation:
         mixed_markers = [ValidMarker(), "invalid", ValidMarker()]
 
         with pytest.raises(
-            TypeError, match="All items in test_attr must be instances of MarkerBase"
+            ValueValidationError,
+            match="test_attr all items must be MarkerBase instances",
         ):
             _validate_list_of_markers(mixed_markers, "test_attr")
 
@@ -745,7 +754,8 @@ class TestMarkerValidation:
         markers_with_none = [ValidMarker(), None, ValidMarker()]
 
         with pytest.raises(
-            TypeError, match="All items in test_attr must be instances of MarkerBase"
+            ValueValidationError,
+            match="test_attr all items must be MarkerBase instances",
         ):
             _validate_list_of_markers(markers_with_none, "test_attr")
 
@@ -791,12 +801,12 @@ class TestMarkerValidation:
 
         try:
             _validate_list_of_markers(invalid_markers, "test_attr")
-            assert False, "Should have raised TypeError"
-        except TypeError as e:
+            raise AssertionError("Should have raised ValueValidationError")
+        except ValueValidationError as e:
             error_message = str(e)
             assert (
-                "test_attr must be a list" in error_message
-                or "All items in test_attr must be instances of MarkerBase" in error_message
+                "test_attr must be list" in error_message
+                or "test_attr all items must be MarkerBase instances" in error_message
             )
 
     def test_validate_list_of_markers_with_marker_attributes(self):

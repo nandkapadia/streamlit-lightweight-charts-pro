@@ -6,7 +6,6 @@
  * reporting, parallel execution, and detailed analysis.
  */
 
-import { vi } from 'vitest';
 import { performance } from 'perf_hooks';
 
 import {
@@ -16,12 +15,7 @@ import {
   CoverageTestCases,
   COVERAGE_TEST_SUITES,
 } from './coverage-test-cases';
-import {
-  CoverageConfig,
-  CoverageThresholds,
-  calculateWeightedCoverage,
-  COVERAGE_AREAS,
-} from './coverage-config';
+import { CoverageThresholds, calculateWeightedCoverage, COVERAGE_AREAS } from './coverage-config';
 
 export interface CoverageRunResult {
   suite: string;
@@ -263,10 +257,10 @@ export class CoverageRunner {
 
     try {
       // Execute with timeout
-      const result = await Promise.race([
+      const result = (await Promise.race([
         testCase.testFunction(),
         this.createTimeoutPromise(timeout, testCase.name),
-      ]);
+      ])) as CoverageResult;
 
       this.log(`Completed: ${testCase.name} - ${result.passed ? 'PASSED' : 'FAILED'}`);
 

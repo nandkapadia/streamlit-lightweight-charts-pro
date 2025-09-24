@@ -1,14 +1,12 @@
-"""
-Basic Area Chart Example.
+"""Basic Area Chart Example.
 
 This example demonstrates the fundamental usage of AreaSeries with sample data
 from the data_samples module.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
@@ -16,14 +14,14 @@ from examples.utilities.data_samples import get_dataframe_line_data, get_line_da
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import AreaSeries
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 def main():
     """Demonstrate basic AreaSeries functionality."""
     st.title("Basic Area Chart Example")
     st.write(
-        "This example shows how to create a simple area chart using AreaSeries with sample data."
+        "This example shows how to create a simple area chart using AreaSeries with sample data.",
     )
 
     # Get sample data

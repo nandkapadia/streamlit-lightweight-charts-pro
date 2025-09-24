@@ -13,6 +13,11 @@ import pytest
 
 from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
+    NonNegativeValueError,
+    ValueValidationError,
+)
 
 
 class TestCandlestickDataConstruction:
@@ -94,38 +99,53 @@ class TestCandlestickDataValidation:
 
     def test_validation_ohlc_relationship(self):
         """Test that high >= low validation is enforced."""
-        with pytest.raises(ValueError, match="high must be greater than or equal to low"):
+        with pytest.raises(ValueValidationError, match="high must be greater than or equal to low"):
             CandlestickData(
-                time=1640995200, open=100.0, high=95.0, low=98.0, close=103.0  # High < Low
+                time=1640995200,
+                open=100.0,
+                high=95.0,
+                low=98.0,
+                close=103.0,  # High < Low
             )
 
     def test_validation_non_negative_values(self):
         """Test that all OHLC values must be non-negative."""
-        with pytest.raises(ValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(NonNegativeValueError, match="all OHLC values must be non-negative"):
             CandlestickData(
-                time=1640995200, open=-100.0, high=105.0, low=98.0, close=103.0  # Negative value
+                time=1640995200,
+                open=-100.0,
+                high=105.0,
+                low=98.0,
+                close=103.0,  # Negative value
             )
 
     def test_validation_none_values(self):
         """Test that None values are not allowed."""
         with pytest.raises(
-            TypeError, match="'<' not supported between instances of 'NoneType' and 'int'"
+            TypeError,
+            match="'<' not supported between instances of 'NoneType' and 'int'",
         ):
             CandlestickData(time=1640995200, open=None, high=105.0, low=98.0, close=103.0)
 
     def test_validation_invalid_hex_color(self):
         """Test validation of invalid hex color."""
         with pytest.raises(
-            ValueError, match="Invalid color format for color: 'invalid_hex'. Must be hex or rgba."
+            ColorValidationError,
+            match="Invalid color format for color: 'invalid_hex'. Must be hex or rgba.",
         ):
             CandlestickData(
-                time=1640995200, open=100.0, high=105.0, low=98.0, close=103.0, color="invalid_hex"
+                time=1640995200,
+                open=100.0,
+                high=105.0,
+                low=98.0,
+                close=103.0,
+                color="invalid_hex",
             )
 
     def test_validation_invalid_rgba_color(self):
         """Test validation of invalid rgba color."""
         with pytest.raises(
-            ValueError,
+            ColorValidationError,
             match="Invalid color format for border_color: 'invalid_rgba'. Must be hex or rgba.",
         ):
             CandlestickData(
@@ -224,7 +244,11 @@ class TestCandlestickDataSerialization:
     def test_to_dict_with_nan_values(self):
         """Test to_dict with NaN values converted to 0.0."""
         data = CandlestickData(
-            time=1640995200, open=float("nan"), high=105.0, low=98.0, close=103.0
+            time=1640995200,
+            open=float("nan"),
+            high=105.0,
+            low=98.0,
+            close=103.0,
         )
 
         result = data.asdict()
@@ -253,7 +277,7 @@ class TestCandlestickDataInheritance:
 
     def test_has_ohlc_validation(self):
         """Test that OHLC validation from parent is enforced."""
-        with pytest.raises(ValueError, match="high must be greater than or equal to low"):
+        with pytest.raises(ValueValidationError, match="high must be greater than or equal to low"):
             CandlestickData(time=1640995200, open=100.0, high=95.0, low=98.0, close=103.0)
 
 
@@ -263,7 +287,11 @@ class TestCandlestickDataEdgeCases:
     def test_construction_with_nan_value(self):
         """Test construction with NaN value."""
         data = CandlestickData(
-            time=1640995200, open=float("nan"), high=105.0, low=98.0, close=103.0
+            time=1640995200,
+            open=float("nan"),
+            high=105.0,
+            low=98.0,
+            close=103.0,
         )
 
         assert data.open == 0.0
@@ -271,20 +299,28 @@ class TestCandlestickDataEdgeCases:
     def test_construction_with_infinity_value(self):
         """Test construction with infinity value."""
         data = CandlestickData(
-            time=1640995200, open=float("inf"), high=105.0, low=98.0, close=103.0
+            time=1640995200,
+            open=float("inf"),
+            high=105.0,
+            low=98.0,
+            close=103.0,
         )
 
         assert data.open == float("inf")
 
     def test_construction_with_negative_infinity_value(self):
         """Test construction with negative infinity value."""
-        with pytest.raises(ValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(NonNegativeValueError, match="all OHLC values must be non-negative"):
             CandlestickData(time=1640995200, open=float("-inf"), high=105.0, low=98.0, close=103.0)
 
     def test_very_small_values(self):
         """Test construction with very small values."""
         data = CandlestickData(
-            time=1640995200, open=0.000001, high=0.000002, low=0.000001, close=0.000001
+            time=1640995200,
+            open=0.000001,
+            high=0.000002,
+            low=0.000001,
+            close=0.000001,
         )
 
         assert data.open == 0.000001
@@ -295,7 +331,11 @@ class TestCandlestickDataEdgeCases:
     def test_very_large_values(self):
         """Test construction with very large values."""
         data = CandlestickData(
-            time=1640995200, open=1000000.0, high=1000001.0, low=999999.0, close=1000000.5
+            time=1640995200,
+            open=1000000.0,
+            high=1000001.0,
+            low=999999.0,
+            close=1000000.5,
         )
 
         assert data.open == 1000000.0
@@ -372,7 +412,7 @@ class TestCandlestickDataColorHandling:
 
     def test_rgba_with_negative_alpha(self):
         """Test rgba colors with negative alpha (should be rejected)."""
-        with pytest.raises(ValueError, match="Invalid color format for wick_color"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for wick_color"):
             data = CandlestickData(
                 time=1640995200,
                 open=100.0,

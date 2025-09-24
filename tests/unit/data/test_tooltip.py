@@ -7,6 +7,8 @@ functionality to ensure proper operation of the tooltip system.
 
 import pandas as pd
 
+from streamlit_lightweight_charts_pro import Chart, LineSeries
+from streamlit_lightweight_charts_pro.data import SingleValueData
 from streamlit_lightweight_charts_pro.data.tooltip import (
     TooltipConfig,
     TooltipField,
@@ -77,11 +79,10 @@ class TestTooltipField:
 
         def volume_formatter(value):
             if value >= 1000000:
-                return f"{value/1000000:.1f}M"
-            elif value >= 1000:
-                return f"{value/1000:.1f}K"
-            else:
-                return str(value)
+                return f"{value / 1000000:.1f}M"
+            if value >= 1000:
+                return f"{value / 1000:.1f}K"
+            return str(value)
 
         field = TooltipField("Volume", "volume", formatter=volume_formatter)
         assert field.format_value(1500000) == "1.5M"
@@ -322,7 +323,7 @@ class TestTooltipManager:
         manager = TooltipManager()
 
         def volume_formatter(value):
-            return f"{value/1000:.1f}K"
+            return f"{value / 1000:.1f}K"
 
         result = manager.add_custom_formatter("volume", volume_formatter)
         assert result is manager  # Method chaining
@@ -410,9 +411,6 @@ class TestTooltipIntegration:
 
     def test_tooltip_with_chart_series(self):
         """Test tooltip integration with chart series."""
-        from streamlit_lightweight_charts_pro import Chart, LineSeries
-        from streamlit_lightweight_charts_pro.data import SingleValueData
-
         # Create data
         data = [
             SingleValueData(time="2024-01-01", value=100),
@@ -432,9 +430,6 @@ class TestTooltipIntegration:
 
     def test_tooltip_with_chart_manager(self):
         """Test tooltip integration with chart tooltip manager."""
-        from streamlit_lightweight_charts_pro import Chart, LineSeries
-        from streamlit_lightweight_charts_pro.data import SingleValueData
-
         # Create data
         data = [
             SingleValueData(time="2024-01-01", value=100),

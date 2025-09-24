@@ -5,6 +5,9 @@ This module provides comprehensive tests for legend edge cases, error handling,
 validation, and boundary conditions.
 """
 
+import sys
+import time
+
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
@@ -102,7 +105,11 @@ class TestLegendBoundaryConditions:
     def test_legend_negative_values(self):
         """Test legend with negative values for numeric fields."""
         legend = LegendOptions(
-            border_width=-1, border_radius=-2, padding=-3, margin=-4, z_index=-1000
+            border_width=-1,
+            border_radius=-2,
+            padding=-3,
+            margin=-4,
+            z_index=-1000,
         )
         assert legend.border_width == -1
         assert legend.border_radius == -2
@@ -113,7 +120,11 @@ class TestLegendBoundaryConditions:
     def test_legend_large_values(self):
         """Test legend with large values for numeric fields."""
         legend = LegendOptions(
-            border_width=1000, border_radius=1000, padding=1000, margin=1000, z_index=999999
+            border_width=1000,
+            border_radius=1000,
+            padding=1000,
+            margin=1000,
+            z_index=999999,
         )
         assert legend.border_width == 1000
         assert legend.border_radius == 1000
@@ -334,13 +345,13 @@ class TestLegendMemoryAndPerformance:
 
     def test_legend_memory_usage(self):
         """Test memory usage of legend objects."""
-        import sys
-
         # Create multiple legend objects
         legends = []
         for i in range(100):
             legend = LegendOptions(
-                position="top-right", visible=True, text=f"Legend {i}: {{value}}"
+                position="top-right",
+                visible=True,
+                text=f"Legend {i}: {{value}}",
             )
             legends.append(legend)
 
@@ -350,13 +361,13 @@ class TestLegendMemoryAndPerformance:
 
     def test_legend_creation_performance(self):
         """Test performance of legend creation."""
-        import time
-
         start_time = time.time()
         legends = []
         for i in range(1000):
             legend = LegendOptions(
-                position="top-right", visible=True, text=f"Legend {i}: {{value}}"
+                position="top-right",
+                visible=True,
+                text=f"Legend {i}: {{value}}",
             )
             legends.append(legend)
         end_time = time.time()
@@ -367,8 +378,6 @@ class TestLegendMemoryAndPerformance:
 
     def test_legend_serialization_performance(self):
         """Test performance of legend serialization."""
-        import time
-
         legend = LegendOptions(
             position="top-right",
             visible=True,

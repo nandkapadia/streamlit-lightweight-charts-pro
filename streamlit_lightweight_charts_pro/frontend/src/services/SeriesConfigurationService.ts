@@ -512,8 +512,8 @@ export class SeriesConfigurationService {
     this.changeHandlers.forEach(handler => {
       try {
         handler(seriesId, seriesType, config);
-      } catch (error) {
-        console.error('Series configuration operation failed:', error);
+      } catch {
+        console.error('An error occurred');
       }
     });
   }
@@ -530,7 +530,10 @@ export class SeriesConfigurationService {
    */
   private setNestedValue(obj: any, path: string, value: any): void {
     const keys = path.split('.');
-    const lastKey = keys.pop()!;
+    const lastKey = keys.pop();
+    if (!lastKey) {
+      return;
+    }
     const target = keys.reduce((current, key) => {
       if (!(key in current)) {
         current[key] = {};
@@ -551,7 +554,7 @@ class LocalStorageAdapter implements ConfigStorage {
     try {
       const item = localStorage.getItem(this.prefix + key);
       return item ? JSON.parse(item) : null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -559,16 +562,16 @@ class LocalStorageAdapter implements ConfigStorage {
   set(key: string, config: SeriesConfiguration): void {
     try {
       localStorage.setItem(this.prefix + key, JSON.stringify(config));
-    } catch (error) {
-      console.error('Series configuration operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
   remove(key: string): void {
     try {
       localStorage.removeItem(this.prefix + key);
-    } catch (error) {
-      console.error('Series configuration operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -577,8 +580,8 @@ class LocalStorageAdapter implements ConfigStorage {
       Object.keys(localStorage)
         .filter(key => key.startsWith(this.prefix))
         .forEach(key => localStorage.removeItem(key));
-    } catch (error) {
-      console.error('Series configuration operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 }
@@ -818,8 +821,10 @@ export class SeriesConfigDialogManager {
     tabButtons.forEach(button => {
       button.addEventListener('click', e => {
         const target = e.target as HTMLElement;
-        const tabName = target.dataset.tab!;
-        this.switchTab(dialog, tabName);
+        const tabName = target.dataset.tab;
+        if (tabName) {
+          this.switchTab(dialog, tabName);
+        }
       });
     });
 
@@ -965,7 +970,10 @@ export class SeriesConfigDialogManager {
    */
   private setNestedValue(obj: any, path: string, value: any): void {
     const keys = path.split('.');
-    const lastKey = keys.pop()!;
+    const lastKey = keys.pop();
+    if (!lastKey) {
+      return;
+    }
     const target = keys.reduce((current, key) => {
       if (!(key in current)) {
         current[key] = {};

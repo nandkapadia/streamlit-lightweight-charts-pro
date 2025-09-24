@@ -5,8 +5,11 @@ This module contains comprehensive tests for the TradeVisualizationOptions class
 covering construction, validation, serialization, edge cases, and integration scenarios.
 """
 
+import time
+
 import pytest
 
+from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
@@ -342,7 +345,8 @@ class TestTradeVisualizationOptionsRectangleOptions:
     def test_rectangle_colors(self):
         """Test rectangle color options."""
         options = TradeVisualizationOptions(
-            rectangle_color_profit="#00FF00", rectangle_color_loss="#FF0000"
+            rectangle_color_profit="#00FF00",
+            rectangle_color_loss="#FF0000",
         )
         result = options.asdict()
 
@@ -419,7 +423,8 @@ class TestTradeVisualizationOptionsArrowOptions:
     def test_arrow_colors(self):
         """Test arrow color options."""
         options = TradeVisualizationOptions(
-            arrow_color_profit="#00FF00", arrow_color_loss="#FF0000"
+            arrow_color_profit="#00FF00",
+            arrow_color_loss="#FF0000",
         )
         result = options.asdict()
 
@@ -429,7 +434,9 @@ class TestTradeVisualizationOptionsArrowOptions:
     def test_arrow_options_combined(self):
         """Test all arrow options together."""
         options = TradeVisualizationOptions(
-            arrow_size=12, arrow_color_profit="#00FF00", arrow_color_loss="#FF0000"
+            arrow_size=12,
+            arrow_color_profit="#00FF00",
+            arrow_color_loss="#FF0000",
         )
         result = options.asdict()
 
@@ -602,7 +609,9 @@ class TestTradeVisualizationOptionsEdgeCases:
     def test_empty_string_values(self):
         """Test with empty string values."""
         options = TradeVisualizationOptions(
-            entry_marker_color_long="", line_style="", annotation_background=""
+            entry_marker_color_long="",
+            line_style="",
+            annotation_background="",
         )
         result = options.asdict()
 
@@ -618,10 +627,14 @@ class TestTradeVisualizationOptionsEquality:
     def test_equality_same_values(self):
         """Test equality with same values."""
         options1 = TradeVisualizationOptions(
-            style=TradeVisualization.MARKERS, marker_size=20, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.MARKERS,
+            marker_size=20,
+            entry_marker_color_long="#0000FF",
         )
         options2 = TradeVisualizationOptions(
-            style=TradeVisualization.MARKERS, marker_size=20, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.MARKERS,
+            marker_size=20,
+            entry_marker_color_long="#0000FF",
         )
 
         assert options1 == options2
@@ -630,13 +643,19 @@ class TestTradeVisualizationOptionsEquality:
     def test_inequality_different_values(self):
         """Test inequality with different values."""
         options1 = TradeVisualizationOptions(
-            style=TradeVisualization.MARKERS, marker_size=20, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.MARKERS,
+            marker_size=20,
+            entry_marker_color_long="#0000FF",
         )
         options2 = TradeVisualizationOptions(
-            style=TradeVisualization.RECTANGLES, marker_size=20, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.RECTANGLES,
+            marker_size=20,
+            entry_marker_color_long="#0000FF",
         )
         options3 = TradeVisualizationOptions(
-            style=TradeVisualization.MARKERS, marker_size=25, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.MARKERS,
+            marker_size=25,
+            entry_marker_color_long="#0000FF",
         )
 
         assert options1 != options2
@@ -658,7 +677,9 @@ class TestTradeVisualizationOptionsRepresentation:
     def test_repr_representation(self):
         """Test string representation."""
         options = TradeVisualizationOptions(
-            style=TradeVisualization.MARKERS, marker_size=25, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.MARKERS,
+            marker_size=25,
+            entry_marker_color_long="#0000FF",
         )
         repr_str = repr(options)
 
@@ -669,7 +690,9 @@ class TestTradeVisualizationOptionsRepresentation:
     def test_str_representation(self):
         """Test string representation."""
         options = TradeVisualizationOptions(
-            style=TradeVisualization.MARKERS, marker_size=25, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.MARKERS,
+            marker_size=25,
+            entry_marker_color_long="#0000FF",
         )
         str_str = str(options)
 
@@ -683,10 +706,11 @@ class TestTradeVisualizationOptionsIntegration:
 
     def test_integration_with_chart_options(self):
         """Test integration with ChartOptions."""
-        from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 
         trade_viz_options = TradeVisualizationOptions(
-            style=TradeVisualization.BOTH, marker_size=20, show_pnl_in_markers=True
+            style=TradeVisualization.BOTH,
+            marker_size=20,
+            show_pnl_in_markers=True,
         )
 
         chart_options = ChartOptions(height=500, trade_visualization=trade_viz_options)
@@ -698,10 +722,11 @@ class TestTradeVisualizationOptionsIntegration:
 
     def test_integration_serialization_through_chart_options(self):
         """Test serialization when used within ChartOptions."""
-        from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 
         trade_viz_options = TradeVisualizationOptions(
-            style=TradeVisualization.MARKERS, marker_size=25, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.MARKERS,
+            marker_size=25,
+            entry_marker_color_long="#0000FF",
         )
 
         chart_options = ChartOptions(height=500, trade_visualization=trade_viz_options)
@@ -715,7 +740,6 @@ class TestTradeVisualizationOptionsIntegration:
 
     def test_all_visualization_styles_integration(self):
         """Test all visualization styles work correctly in integration."""
-        from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 
         styles = [
             TradeVisualization.MARKERS,
@@ -739,8 +763,6 @@ class TestTradeVisualizationOptionsPerformance:
 
     def test_construction_performance(self):
         """Test construction performance."""
-        import time
-
         start_time = time.time()
         for _ in range(1000):
             TradeVisualizationOptions()
@@ -751,8 +773,6 @@ class TestTradeVisualizationOptionsPerformance:
 
     def test_serialization_performance(self):
         """Test serialization performance."""
-        import time
-
         options = TradeVisualizationOptions()
         start_time = time.time()
         for _ in range(1000):
@@ -764,8 +784,6 @@ class TestTradeVisualizationOptionsPerformance:
 
     def test_equality_comparison_performance(self):
         """Test equality comparison performance."""
-        import time
-
         options1 = TradeVisualizationOptions(style=TradeVisualization.MARKERS)
         options2 = TradeVisualizationOptions(style=TradeVisualization.MARKERS)
         options3 = TradeVisualizationOptions(style=TradeVisualization.RECTANGLES)

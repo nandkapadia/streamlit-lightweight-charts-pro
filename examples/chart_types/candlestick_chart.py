@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Candlestick Chart Example
+"""Candlestick Chart Example
 
 This example demonstrates how to create professional candlestick charts for financial data.
 Learn about OHLC data, candlestick styling, and financial chart features.
@@ -11,26 +10,30 @@ What you'll learn:
 - Adding volume data
 - Financial chart best practices
 """
+# pylint: disable=no-member,protected-access
 
-import os
 import sys
+from pathlib import Path
 
+import pandas as pd
 import streamlit as st
-
-# Add project root to path for examples imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries, HistogramSeries
 from streamlit_lightweight_charts_pro.data import CandlestickData, HistogramData
+
+# Add project root to path for examples imports
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
+
 
 # Page configuration
 st.set_page_config(
     page_title="Candlestick Chart",
     page_icon="🕯️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
+
 
 def create_sample_data():
     """Create sample OHLC data for the candlestick chart."""
@@ -52,7 +55,7 @@ def create_sample_data():
         CandlestickData(time="2024-01-14", open=117.8, high=120.1, low=116.5, close=119.3),
         CandlestickData(time="2024-01-15", open=119.3, high=120.8, low=117.3, close=118.1),
     ]
-    
+
     # Sample volume data
     volume_data = [
         HistogramData(time="2024-01-01", value=1000, color="#26a69a"),
@@ -71,37 +74,38 @@ def create_sample_data():
         HistogramData(time="2024-01-14", value=1900, color="#26a69a"),
         HistogramData(time="2024-01-15", value=1300, color="#26a69a"),
     ]
-    
+
     return candlestick_data, volume_data
+
 
 def main():
     """Create and display a comprehensive candlestick chart."""
     st.title("🕯️ Candlestick Chart")
     st.markdown("Professional candlestick chart for financial data with volume analysis.")
-    
+
     # Get sample data
     candlestick_data, volume_data = create_sample_data()
-    
+
     # Sidebar controls
     st.sidebar.header("🎛️ Chart Controls")
-    
+
     # Candlestick styling
     st.sidebar.subheader("Candlestick Styling")
     up_color = st.sidebar.color_picker("Up Color", "#26a69a")
     down_color = st.sidebar.color_picker("Down Color", "#ef5350")
     border_up_color = st.sidebar.color_picker("Up Border", "#26a69a")
     border_down_color = st.sidebar.color_picker("Down Border", "#ef5350")
-    
+
     # Volume styling
     st.sidebar.subheader("Volume Styling")
     show_volume = st.sidebar.checkbox("Show Volume", True)
     volume_up_color = st.sidebar.color_picker("Volume Up Color", "#26a69a")
     volume_down_color = st.sidebar.color_picker("Volume Down Color", "#ef5350")
-    
+
     # Layout options
     st.sidebar.subheader("Layout")
-    volume_height = st.sidebar.slider("Volume Pane Height", 100, 300, 150)
-    
+    st.sidebar.slider("Volume Pane Height", 100, 300, 150)
+
     # Create candlestick series
     candlestick_series = CandlestickSeries(
         data=candlestick_data,
@@ -112,10 +116,10 @@ def main():
         wick_up_color=border_up_color,
         wick_down_color=border_down_color,
     )
-    
+
     # Create chart
     chart = Chart(series=candlestick_series)
-    
+
     # Add volume series if enabled
     if show_volume:
         # Update volume colors based on price direction
@@ -126,35 +130,35 @@ def main():
                     vol_data.color = volume_up_color
                 else:
                     vol_data.color = volume_down_color
-        
+
         volume_series = HistogramSeries(
             data=volume_data,
             pane_id=1,
             price_scale_id="volume",
         )
         chart.add_series(volume_series)
-    
+
     # Display the chart
     st.subheader("📊 Candlestick Chart")
     chart.render(key="candlestick_chart")
-    
+
     # Chart statistics
     st.subheader("📊 Chart Statistics")
-    
+
     # Calculate statistics
     total_candles = len(candlestick_data)
     up_candles = sum(1 for c in candlestick_data if c.close >= c.open)
     down_candles = total_candles - up_candles
-    
+
     high_price = max(c.high for c in candlestick_data)
     low_price = min(c.low for c in candlestick_data)
     price_range = high_price - low_price
-    
+
     total_volume = sum(v.value for v in volume_data)
     avg_volume = total_volume / len(volume_data)
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric("Total Candles", total_candles)
     with col2:
@@ -163,33 +167,34 @@ def main():
         st.metric("Price Range", f"${price_range:.2f}")
     with col4:
         st.metric("Avg Volume", f"{avg_volume:,.0f}")
-    
+
     # OHLC data table
     st.subheader("📋 OHLC Data")
-    
+
     # Convert to DataFrame for display
-    import pandas as pd
-    
     df_data = []
     for i, candle in enumerate(candlestick_data):
-        df_data.append({
-            "Date": candle.time,
-            "Open": f"${candle.open:.2f}",
-            "High": f"${candle.high:.2f}",
-            "Low": f"${candle.low:.2f}",
-            "Close": f"${candle.close:.2f}",
-            "Change": f"{candle.close - candle.open:+.2f}",
-            "Volume": f"{volume_data[i].value:,}" if i < len(volume_data) else "N/A"
-        })
-    
-    df = pd.DataFrame(df_data)
-    st.dataframe(df, use_container_width=True)
-    
+        df_data.append(
+            {
+                "Date": candle.time,
+                "Open": f"${candle.open:.2f}",
+                "High": f"${candle.high:.2f}",
+                "Low": f"${candle.low:.2f}",
+                "Close": f"${candle.close:.2f}",
+                "Change": f"{candle.close - candle.open:+.2f}",
+                "Volume": f"{volume_data[i].value:,}" if i < len(volume_data) else "N/A",
+            },
+        )
+
+    sample_dataframe = pd.DataFrame(df_data)
+    st.dataframe(sample_dataframe, use_container_width=True)
+
     # Show the code
     st.subheader("💻 The Code")
     st.markdown("Here's how to create a candlestick chart:")
-    
-    st.code("""
+
+    st.code(
+        """
 # Create candlestick data
 candlestick_data = [
     CandlestickData(time="2024-01-01", open=100.0, high=102.5, low=99.5, close=101.2),
@@ -224,34 +229,41 @@ volume_series = HistogramSeries(
 chart = Chart(series=candlestick_series)
 chart.add_series(volume_series)
 chart.render(key="candlestick_chart")
-""", language="python")
-    
+""",
+        language="python",
+    )
+
     # Key concepts
     st.subheader("🔑 Key Concepts")
-    st.markdown("""
+    st.markdown(
+        """
     **Candlestick Charts:**
     - **OHLC Data**: Open, High, Low, Close prices for each period
     - **Up/Down Colors**: Different colors for bullish/bearish candles
     - **Volume**: Trading volume shown in separate pane
     - **Time Series**: Financial data over time
-    
+
     **Best Practices:**
     - Use green for up candles, red for down candles
     - Show volume in separate pane below price
     - Maintain consistent time intervals
     - Use appropriate color schemes for readability
-    """)
-    
+    """,
+    )
+
     # Next steps
     st.subheader("➡️ Next Steps")
-    st.markdown("""
+    st.markdown(
+        """
     Explore more chart types:
-    
+
     - **[Area Chart](area_chart.py)** - Filled area charts
     - **[Bar Chart](bar_chart.py)** - Volume and OHLC bars
     - **[Line Chart](line_chart.py)** - Simple line charts
     - **[Financial Dashboard](../trading_features/financial_dashboard.py)** - Complete trading setup
-    """)
+    """,
+    )
+
 
 if __name__ == "__main__":
     main()

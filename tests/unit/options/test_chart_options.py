@@ -11,17 +11,27 @@ from streamlit_lightweight_charts_pro.charts.options.chart_options import ChartO
 from streamlit_lightweight_charts_pro.charts.options.interaction_options import (
     CrosshairMode,
     CrosshairOptions,
+    KineticScrollOptions,
+    TrackingModeOptions,
 )
 from streamlit_lightweight_charts_pro.charts.options.layout_options import (
     GridLineOptions,
     GridOptions,
     LayoutOptions,
 )
+from streamlit_lightweight_charts_pro.charts.options.localization_options import LocalizationOptions
 from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
     PriceScaleMargins,
     PriceScaleOptions,
 )
 from streamlit_lightweight_charts_pro.charts.options.time_scale_options import TimeScaleOptions
+from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
+    TradeVisualizationOptions,
+)
+from streamlit_lightweight_charts_pro.exceptions import (
+    PriceScaleOptionsTypeError,
+    TypeValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.colors import BackgroundSolid
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 
@@ -99,87 +109,87 @@ class TestChartOptionsValidation:
 
     def test_invalid_width_type(self):
         """Test invalid width type raises TypeError."""
-        with pytest.raises(TypeError, match="width must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_width("invalid")
 
     def test_invalid_height_type(self):
         """Test invalid height type raises TypeError."""
-        with pytest.raises(TypeError, match="height must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_height("invalid")
 
     def test_invalid_auto_size_type(self):
         """Test invalid auto_size type raises TypeError."""
-        with pytest.raises(TypeError, match="auto_size must be a boolean"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_auto_size("invalid")
 
     def test_invalid_layout_type(self):
         """Test invalid layout type raises TypeError."""
-        with pytest.raises(TypeError, match="layout must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_layout("invalid")
 
     def test_invalid_left_price_scale_type(self):
         """Test invalid left_price_scale type raises TypeError."""
-        with pytest.raises(TypeError, match="left_price_scale must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_left_price_scale("invalid")
 
     def test_invalid_right_price_scale_type(self):
         """Test invalid right_price_scale type raises TypeError."""
-        with pytest.raises(TypeError, match="right_price_scale must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_right_price_scale("invalid")
 
     def test_invalid_overlay_price_scales_type(self):
         """Test invalid overlay_price_scales type raises TypeError."""
-        with pytest.raises(TypeError, match="overlay_price_scales must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_overlay_price_scales("invalid")
 
     def test_invalid_time_scale_type(self):
         """Test invalid time_scale type raises TypeError."""
-        with pytest.raises(TypeError, match="time_scale must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_time_scale("invalid")
 
     def test_invalid_crosshair_type(self):
         """Test invalid crosshair type raises TypeError."""
-        with pytest.raises(TypeError, match="crosshair must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_crosshair("invalid")
 
     def test_invalid_grid_type(self):
         """Test invalid grid type raises TypeError."""
-        with pytest.raises(TypeError, match="grid must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_grid("invalid")
 
     def test_invalid_handle_scroll_type(self):
         """Test invalid handle_scroll type raises TypeError."""
-        with pytest.raises(TypeError, match="handle_scroll must be a boolean"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_handle_scroll("invalid")
 
     def test_invalid_handle_scale_type(self):
         """Test invalid handle_scale type raises TypeError."""
-        with pytest.raises(TypeError, match="handle_scale must be a boolean"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_handle_scale("invalid")
 
     def test_invalid_kinetic_scroll_type(self):
         """Test invalid kinetic_scroll type raises TypeError."""
-        with pytest.raises(TypeError, match="kinetic_scroll must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_kinetic_scroll("invalid")
 
     def test_invalid_tracking_mode_type(self):
         """Test invalid tracking_mode type raises TypeError."""
-        with pytest.raises(TypeError, match="tracking_mode must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_tracking_mode("invalid")
 
     def test_invalid_localization_type(self):
         """Test invalid localization type raises TypeError."""
-        with pytest.raises(TypeError, match="localization must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_localization("invalid")
 
     def test_invalid_add_default_pane_type(self):
         """Test invalid add_default_pane type raises TypeError."""
-        with pytest.raises(TypeError, match="add_default_pane must be a boolean"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_add_default_pane("invalid")
 
     def test_invalid_trade_visualization_type(self):
         """Test invalid trade_visualization type raises TypeError."""
-        with pytest.raises(TypeError, match="trade_visualization must be of type"):
+        with pytest.raises(TypeValidationError):
             ChartOptions().set_trade_visualization("invalid")
 
     def test_none_left_price_scale_default(self):
@@ -352,20 +362,6 @@ class TestChartOptionsSerialization:
 
     def test_to_dict_with_explicit_values(self):
         """Test that explicitly set values are included in output."""
-        from streamlit_lightweight_charts_pro.charts.options.interaction_options import (
-            KineticScrollOptions,
-            TrackingModeOptions,
-        )
-        from streamlit_lightweight_charts_pro.charts.options.localization_options import (
-            LocalizationOptions,
-        )
-        from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
-            PriceScaleOptions,
-        )
-        from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
-            TradeVisualizationOptions,
-        )
-
         left_scale = PriceScaleOptions(visible=True)
         kinetic = KineticScrollOptions(touch=True, mouse=False)
         tracking = TrackingModeOptions(exit_on_escape=True)
@@ -403,7 +399,9 @@ class TestChartOptionsIntegration:
         """Test ChartOptions with custom layout options."""
 
         custom_layout = LayoutOptions(
-            background_options=BackgroundSolid(color="#000000"), text_color="#ffffff", font_size=14
+            background_options=BackgroundSolid(color="#000000"),
+            text_color="#ffffff",
+            font_size=14,
         )
 
         options = ChartOptions(layout=custom_layout)
@@ -429,7 +427,8 @@ class TestChartOptionsIntegration:
         )
 
         options = ChartOptions(
-            left_price_scale=custom_left_scale, right_price_scale=custom_right_scale
+            left_price_scale=custom_left_scale,
+            right_price_scale=custom_right_scale,
         )
         result = options.asdict()
 
@@ -445,7 +444,10 @@ class TestChartOptionsIntegration:
         """Test ChartOptions with custom time scale options."""
 
         custom_time_scale = TimeScaleOptions(
-            time_visible=True, seconds_visible=False, right_offset=20, bar_spacing=5
+            time_visible=True,
+            seconds_visible=False,
+            right_offset=20,
+            bar_spacing=5,
         )
 
         options = ChartOptions(time_scale=custom_time_scale)
@@ -531,37 +533,33 @@ class TestChartOptionsPriceScaleValidation:
     """Test ChartOptions validation for price scale parameters."""
 
     def test_right_price_scale_boolean_raises_error(self):
-        """Test that passing boolean to right_price_scale raises TypeError."""
-        with pytest.raises(
-            TypeError, match="right_price_scale must be a PriceScaleOptions object, not a boolean"
-        ):
+        """Test that passing boolean to right_price_scale raises PriceScaleOptionsTypeError."""
+        with pytest.raises(PriceScaleOptionsTypeError):
             ChartOptions(right_price_scale=True)
 
     def test_left_price_scale_boolean_raises_error(self):
-        """Test that passing boolean to left_price_scale raises TypeError."""
-        with pytest.raises(
-            TypeError, match="left_price_scale must be a PriceScaleOptions object, not a boolean"
-        ):
+        """Test that passing boolean to left_price_scale raises PriceScaleOptionsTypeError."""
+        with pytest.raises(PriceScaleOptionsTypeError):
             ChartOptions(left_price_scale=True)
 
     def test_right_price_scale_string_raises_error(self):
         """Test that passing string to right_price_scale raises TypeError."""
-        with pytest.raises(TypeError, match="right_price_scale must be a PriceScaleOptions object"):
+        with pytest.raises(TypeValidationError):
             ChartOptions(right_price_scale="invalid")
 
     def test_left_price_scale_string_raises_error(self):
         """Test that passing string to left_price_scale raises TypeError."""
-        with pytest.raises(TypeError, match="left_price_scale must be a PriceScaleOptions object"):
+        with pytest.raises(TypeValidationError):
             ChartOptions(left_price_scale="invalid")
 
     def test_right_price_scale_integer_raises_error(self):
         """Test that passing integer to right_price_scale raises TypeError."""
-        with pytest.raises(TypeError, match="right_price_scale must be a PriceScaleOptions object"):
+        with pytest.raises(TypeValidationError):
             ChartOptions(right_price_scale=123)
 
     def test_left_price_scale_integer_raises_error(self):
         """Test that passing integer to left_price_scale raises TypeError."""
-        with pytest.raises(TypeError, match="left_price_scale must be a PriceScaleOptions object"):
+        with pytest.raises(TypeValidationError):
             ChartOptions(left_price_scale=123)
 
     def test_valid_price_scale_options_accepted(self):
@@ -585,12 +583,12 @@ class TestChartOptionsPriceScaleValidation:
 
     def test_right_price_scale_id_must_be_string(self):
         """Test that right_price_scale.price_scale_id must be a string."""
-        with pytest.raises(TypeError, match="right_price_scale.price_scale_id must be a string"):
+        with pytest.raises(TypeValidationError):
             ChartOptions(right_price_scale=PriceScaleOptions(price_scale_id=123))
 
     def test_left_price_scale_id_must_be_string(self):
         """Test that left_price_scale.price_scale_id must be a string."""
-        with pytest.raises(TypeError, match="left_price_scale.price_scale_id must be a string"):
+        with pytest.raises(TypeValidationError):
             ChartOptions(left_price_scale=PriceScaleOptions(price_scale_id=456))
 
     def test_valid_price_scale_id_strings_accepted(self):

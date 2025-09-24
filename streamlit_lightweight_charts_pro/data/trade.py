@@ -7,6 +7,10 @@ from typing import Any, Dict, Optional, Union
 import pandas as pd
 
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
+from streamlit_lightweight_charts_pro.exceptions import (
+    ExitTimeAfterEntryTimeError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     MarkerPosition,
     MarkerShape,
@@ -17,8 +21,7 @@ from streamlit_lightweight_charts_pro.utils.data_utils import from_utc_timestamp
 
 @dataclass
 class TradeData:
-    """
-    Represents a single trade with entry and exit information.
+    """Represents a single trade with entry and exit information.
 
     Attributes:
         entry_time: Entry datetime (accepts pd.Timestamp, datetime, or string)
@@ -53,14 +56,17 @@ class TradeData:
 
         # Ensure exit time is after entry time
         if isinstance(self._entry_timestamp, (int, float)) and isinstance(
-            self._exit_timestamp, (int, float)
+            self._exit_timestamp,
+            (int, float),
         ):
             if self._exit_timestamp <= self._entry_timestamp:
-                raise ValueError("Exit time must be after entry time")
-        elif isinstance(self._entry_timestamp, str) and isinstance(self._exit_timestamp, str):
-            # Compare as strings for date strings
-            if self._exit_timestamp <= self._entry_timestamp:
-                raise ValueError("Exit time must be after entry time")
+                raise ExitTimeAfterEntryTimeError()
+        elif (
+            isinstance(self._entry_timestamp, str)
+            and isinstance(self._exit_timestamp, str)
+            and self._exit_timestamp <= self._entry_timestamp
+        ):
+            raise ValueValidationError("Exit time", "must be after entry time")
 
         # Convert trade type to enum
         if isinstance(self.trade_type, str):
@@ -99,16 +105,16 @@ class TradeData:
         """Calculate profit/loss for the trade."""
         if self.trade_type == TradeType.LONG:
             return (self.exit_price - self.entry_price) * self.quantity
-        else:  # SHORT
-            return (self.entry_price - self.exit_price) * self.quantity
+        # SHORT
+        return (self.entry_price - self.exit_price) * self.quantity
 
     @property
     def pnl_percentage(self) -> float:
         """Calculate profit/loss percentage."""
         if self.trade_type == TradeType.LONG:
             return ((self.exit_price - self.entry_price) / self.entry_price) * 100
-        else:  # SHORT
-            return ((self.entry_price - self.exit_price) / self.entry_price) * 100
+        # SHORT
+        return ((self.entry_price - self.exit_price) / self.entry_price) * 100
 
     @property
     def is_profitable(self) -> bool:
@@ -121,8 +127,7 @@ class TradeData:
         exit_color: Optional[str] = None,
         show_pnl: bool = True,
     ) -> list:
-        """
-        Convert trade to marker representations.
+        """Convert trade to marker representations.
 
         Args:
             entry_color: Color for entry marker
@@ -188,8 +193,7 @@ class TradeData:
         return markers
 
     def asdict(self) -> Dict[str, Any]:
-        """
-        Serialize the trade data to a dict with camelCase keys for frontend.
+        """Serialize the trade data to a dict with camelCase keys for frontend.
 
         Converts the trade to a dictionary format suitable for frontend
         communication. Returns the trade data in the format expected by

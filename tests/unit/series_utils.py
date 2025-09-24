@@ -30,7 +30,7 @@ def _get_enum_value(value, enum_class):
     """
     if isinstance(value, enum_class):
         return value.value
-    elif isinstance(value, str):
+    if isinstance(value, str):
         # Try to convert string to enum
         try:
             return enum_class(value).value

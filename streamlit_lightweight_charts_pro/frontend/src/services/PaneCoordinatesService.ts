@@ -91,7 +91,7 @@ export class PaneCoordinatesService {
         isMainPane: paneId === 0,
         isLastPane: this.isLastPane(chart, paneId),
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -132,7 +132,7 @@ export class PaneCoordinatesService {
       const priceScaleWidth = this.dimensionsService.getPriceScaleDimensions(chart).width;
 
       return createBoundingBox(priceScaleWidth, cumulativeTop, paneSize.width, paneSize.height);
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -153,7 +153,7 @@ export class PaneCoordinatesService {
           coordinates.push(paneCoords);
         }
       }
-    } catch (error) {
+    } catch {
       // Return empty array on error
     }
 
@@ -222,7 +222,7 @@ export class PaneCoordinatesService {
       }
 
       return coordinates;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -318,7 +318,7 @@ export class PaneCoordinatesService {
         width: rect.width - priceScaleWidth - margins.left - margins.right,
         height: rect.height - timeScaleHeight - margins.top - margins.bottom,
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -330,7 +330,7 @@ export class PaneCoordinatesService {
     try {
       const panes = chart.panes();
       return panes ? paneId === panes.length - 1 : true;
-    } catch (error) {
+    } catch {
       return true;
     }
   }

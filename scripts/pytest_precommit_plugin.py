@@ -1,7 +1,5 @@
 """Pytest plugin to exclude performance and large dataset tests from pre-commit runs."""
 
-import pytest
-
 
 def pytest_collection_modifyitems(config, items):
     """Filter out performance and large dataset tests from pre-commit runs.
@@ -10,6 +8,7 @@ def pytest_collection_modifyitems(config, items):
     not performance tests, for faster development cycles.
     """
     filtered_items = []
+    _ = config
 
     for item in items:
         # Skip if test is in performance directory

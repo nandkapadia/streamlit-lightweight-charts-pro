@@ -18,6 +18,73 @@ export interface SeriesManagerAPI {
 }
 
 export const useSeriesManager = (): SeriesManagerAPI => {
+  // Validate series data format
+  const validateSeriesData = useCallback((data: any[], seriesType: string): boolean => {
+    if (!Array.isArray(data) || data.length === 0) {
+      return false;
+    }
+
+    // Check if all data points have required fields
+    return data.every(point => {
+      if (!point || typeof point !== 'object') {
+        return false;
+      }
+
+      // All series types require time
+      if (!('time' in point)) {
+        return false;
+      }
+
+      // Check type-specific requirements
+      switch (seriesType.toLowerCase()) {
+        case 'line':
+        case 'area':
+          return 'value' in point;
+
+        case 'bar':
+        case 'candlestick':
+          return 'open' in point && 'high' in point && 'low' in point && 'close' in point;
+
+        case 'histogram':
+          return 'value' in point;
+
+        case 'baseline':
+          return 'value' in point;
+
+        default:
+          // For custom series types, just check for value
+          return 'value' in point;
+      }
+    });
+  }, []);
+
+  // Add markers to series
+  const addMarkersToSeries = useCallback(
+    (series: ISeriesApi<any>, markers: SeriesMarker<Time>[]) => {
+      try {
+        if (!markers || !Array.isArray(markers) || markers.length === 0) {
+          return;
+        }
+
+        // Validate markers format
+        const validMarkers = markers.filter(marker => {
+          return marker && typeof marker === 'object' && 'time' in marker && 'position' in marker;
+        });
+
+        if (validMarkers.length === 0) {
+          console.warn('No valid markers to add');
+          return;
+        }
+
+        (series as any).setMarkers(validMarkers);
+        console.log(`Added ${validMarkers.length} markers to series`);
+      } catch {
+        console.error('An error occurred');
+      }
+    },
+    []
+  );
+
   // Create all series for a chart
   const createSeriesForChart = useCallback(
     (chart: IChartApi, chartConfig: ChartConfig, chartId: string): ISeriesApi<any>[] => {
@@ -70,63 +137,39 @@ export const useSeriesManager = (): SeriesManagerAPI => {
             createdSeries.push(series);
             console.log(`Series ${seriesIndex} created successfully for chart ${chartId}`);
           } catch (error) {
-            console.error(`Failed to create series ${seriesIndex} for chart ${chartId}:`, error);
+            console.error(error);
           }
         });
       } catch (error) {
-        console.error(`Failed to create series for chart ${chartId}:`, error);
+        console.error(error);
       }
 
       return createdSeries;
     },
-    []
+    [addMarkersToSeries, validateSeriesData]
   );
 
   // Update series data
-  const updateSeriesData = useCallback((series: ISeriesApi<any>, seriesConfig: SeriesConfig) => {
-    try {
-      if (!seriesConfig.data || !Array.isArray(seriesConfig.data)) {
-        console.warn('No valid data provided for series update');
-        return;
-      }
-
-      if (!validateSeriesData(seriesConfig.data, seriesConfig.type)) {
-        console.error('Invalid data format for series update');
-        return;
-      }
-
-      series.setData(seriesConfig.data);
-      console.log('Series data updated successfully');
-    } catch (error) {
-      console.error('Failed to update series data:', error);
-    }
-  }, []);
-
-  // Add markers to series
-  const addMarkersToSeries = useCallback(
-    (series: ISeriesApi<any>, markers: SeriesMarker<Time>[]) => {
+  const updateSeriesData = useCallback(
+    (series: ISeriesApi<any>, seriesConfig: SeriesConfig) => {
       try {
-        if (!markers || !Array.isArray(markers) || markers.length === 0) {
+        if (!seriesConfig.data || !Array.isArray(seriesConfig.data)) {
+          console.warn('No valid data provided for series update');
           return;
         }
 
-        // Validate markers format
-        const validMarkers = markers.filter(marker => {
-          return marker && typeof marker === 'object' && 'time' in marker && 'position' in marker;
-        });
-
-        if (validMarkers.length === 0) {
-          console.warn('No valid markers to add');
+        if (!validateSeriesData(seriesConfig.data, seriesConfig.type)) {
+          console.error('Invalid data format for series update');
           return;
         }
 
-        (series as any).setMarkers(validMarkers);
-        console.log(`Added ${validMarkers.length} markers to series`);
+        series.setData(seriesConfig.data);
+        console.log('Series data updated successfully');
       } catch (error) {
-        console.error('Failed to add markers to series:', error);
+        console.error(error);
       }
     },
-    []
+    [validateSeriesData]
   );
 
   // Remove markers from series
@@ -134,8 +177,8 @@ export const useSeriesManager = (): SeriesManagerAPI => {
     try {
       (series as any).setMarkers([]);
       console.log('Markers removed from series');
-    } catch (error) {
-      console.error('Failed to remove markers from series:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }, []);
 
@@ -146,50 +189,10 @@ export const useSeriesManager = (): SeriesManagerAPI => {
       // This would need to be tracked separately if needed
       const extendedSeries = series as any;
       return extendedSeries.seriesConfig?.data || [];
-    } catch (error) {
-      console.error('Failed to get series data:', error);
+    } catch {
+      console.error('An error occurred');
       return [];
     }
-  }, []);
-
-  // Validate series data format
-  const validateSeriesData = useCallback((data: any[], seriesType: string): boolean => {
-    if (!Array.isArray(data) || data.length === 0) {
-      return false;
-    }
-
-    // Check if all data points have required fields
-    return data.every(point => {
-      if (!point || typeof point !== 'object') {
-        return false;
-      }
-
-      // All series types require time
-      if (!('time' in point)) {
-        return false;
-      }
-
-      // Check type-specific requirements
-      switch (seriesType.toLowerCase()) {
-        case 'line':
-        case 'area':
-          return 'value' in point;
-
-        case 'bar':
-        case 'candlestick':
-          return 'open' in point && 'high' in point && 'low' in point && 'close' in point;
-
-        case 'histogram':
-          return 'value' in point;
-
-        case 'baseline':
-          return 'value' in point;
-
-        default:
-          // For custom series types, just check for value
-          return 'value' in point;
-      }
-    });
   }, []);
 
   // Memoized API object

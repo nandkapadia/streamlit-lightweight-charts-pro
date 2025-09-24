@@ -1,5 +1,4 @@
-"""
-Auto-Size and Double-Click FitContent Example
+"""Auto-Size and Double-Click FitContent Example
 
 This example demonstrates the auto-size functionality and double-click to fit content
 features of the streamlit-lightweight-charts-pro library.
@@ -17,7 +16,7 @@ from streamlit_lightweight_charts_pro.data import OhlcvData, SingleValueData
 def generate_sample_data():
     """Generate sample OHLCV data for testing."""
     dates = pd.date_range(start="2024-01-01", end="2024-12-31", freq="D")
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
 
     # Generate price data
     base_price = 100
@@ -26,13 +25,13 @@ def generate_sample_data():
         if i == 0:
             close = base_price
         else:
-            change = np.random.normal(0, 1)
+            change = rng.normal(0, 1)
             close = prices[-1]["close"] * (1 + change * 0.02)
 
-        high = close * (1 + abs(np.random.normal(0, 0.01)))
-        low = close * (1 - abs(np.random.normal(0, 0.01)))
-        open_price = np.random.uniform(low, high)
-        volume = np.random.randint(1000, 10000)
+        high = close * (1 + abs(rng.normal(0, 0.01)))
+        low = close * (1 - abs(rng.normal(0, 0.01)))
+        open_price = rng.uniform(low, high)
+        volume = rng.integers(1000, 10000)
 
         prices.append(
             {
@@ -42,7 +41,7 @@ def generate_sample_data():
                 "low": round(low, 2),
                 "close": round(close, 2),
                 "volume": volume,
-            }
+            },
         )
 
     return prices
@@ -77,7 +76,7 @@ def main():
     1. **Auto-Size on Load**: Charts should automatically fit to their container
     2. **Double-Click to Fit Content**: Double-click on the chart to fit all data
     3. **Responsive Design**: Resize the browser window to see auto-sizing in action
-    """
+    """,
     )
 
     # Example 1: Auto-size candlestick chart
@@ -115,7 +114,8 @@ def main():
     )
 
     line_chart = Chart(
-        series=LineSeries(data=line_data, color="#2196F3"), options=fixed_chart_options
+        series=LineSeries(data=line_data, color="#2196F3"),
+        options=fixed_chart_options,
     )
 
     line_chart.render(key="fixed_size_line")
@@ -137,7 +137,8 @@ def main():
     )
 
     responsive_chart = Chart(
-        series=LineSeries(data=line_data, color="#4CAF50"), options=responsive_options
+        series=LineSeries(data=line_data, color="#4CAF50"),
+        options=responsive_options,
     )
 
     responsive_chart.render(key="responsive_chart")
@@ -149,22 +150,22 @@ def main():
     **Auto-Size on Load:**
     - Charts should automatically fit their data when first loaded
     - Check the browser console for "fitContent() called after data loaded" messages
-    
+
     **Double-Click to Fit Content:**
     - Double-click anywhere on the chart area
     - The chart should zoom to fit all data
     - Check the browser console for "fitContent() called on double-click" messages
-    
+
     **Responsive Design:**
     - Resize your browser window
     - Charts should automatically adjust their size
     - The responsive chart has size constraints (min/max width/height)
-    
+
     **Browser Console:**
     - Open browser developer tools (F12)
     - Check the console for fitContent messages
     - Look for any error messages
-    """
+    """,
     )
 
     # Configuration display
@@ -180,7 +181,7 @@ def main():
                 "handle_scale": True,
                 "handle_scroll": True,
             },
-        }
+        },
     )
 
 

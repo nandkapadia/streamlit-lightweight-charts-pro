@@ -11,6 +11,11 @@ import pandas as pd
 import pytest
 
 from streamlit_lightweight_charts_pro.data.area_data import AreaData
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
+    RequiredFieldError,
+    TimeValidationError,
+)
 
 
 class TestAreaDataConstruction:
@@ -88,7 +93,11 @@ class TestAreaDataValidation:
 
         for color in valid_colors:
             data = AreaData(
-                time=1640995200, value=100, line_color=color, top_color=color, bottom_color=color
+                time=1640995200,
+                value=100,
+                line_color=color,
+                top_color=color,
+                bottom_color=color,
             )
             assert data.line_color == color
             assert data.top_color == color
@@ -100,7 +109,11 @@ class TestAreaDataValidation:
 
         for color in valid_colors:
             data = AreaData(
-                time=1640995200, value=100, line_color=color, top_color=color, bottom_color=color
+                time=1640995200,
+                value=100,
+                line_color=color,
+                top_color=color,
+                bottom_color=color,
             )
             assert data.line_color == color
             assert data.top_color == color
@@ -108,27 +121,27 @@ class TestAreaDataValidation:
 
     def test_invalid_line_color(self):
         """Test AreaData construction with invalid line color."""
-        with pytest.raises(ValueError, match="Invalid line_color format"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for line_color"):
             AreaData(time=1640995200, value=100, line_color="invalid_color")
 
     def test_invalid_top_color(self):
         """Test AreaData construction with invalid top color."""
-        with pytest.raises(ValueError, match="Invalid top_color format"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_color"):
             AreaData(time=1640995200, value=100, top_color="invalid_color")
 
     def test_invalid_bottom_color(self):
         """Test AreaData construction with invalid bottom color."""
-        with pytest.raises(ValueError, match="Invalid bottom_color format"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for bottom_color"):
             AreaData(time=1640995200, value=100, bottom_color="invalid_color")
 
     def test_none_value(self):
         """Test AreaData construction with None value."""
-        with pytest.raises(ValueError):
+        with pytest.raises(RequiredFieldError):
             AreaData(time=1640995200, value=None)
 
     def test_invalid_time(self):
         """Test AreaData construction with invalid time."""
-        with pytest.raises(ValueError):
+        with pytest.raises(TimeValidationError):
             AreaData(time="invalid_time", value=100)
 
 
@@ -188,7 +201,11 @@ class TestAreaDataSerialization:
     def test_to_dict_with_whitespace_colors(self):
         """Test AreaData to_dict with whitespace-only color strings."""
         data = AreaData(
-            time=1640995200, value=100, line_color="   ", top_color="   ", bottom_color="   "
+            time=1640995200,
+            value=100,
+            line_color="   ",
+            top_color="   ",
+            bottom_color="   ",
         )
         data_dict = data.asdict()
 

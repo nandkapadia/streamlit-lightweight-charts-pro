@@ -13,8 +13,6 @@ import {
   SeriesType,
   SeriesOptionsMap,
 } from 'lightweight-charts';
-import { ChartConfig } from '../../types';
-import { SeriesConfiguration, SeriesInfo } from '../../types/SeriesTypes';
 
 // Base mock configuration interface
 export interface MockConfig {
@@ -359,6 +357,16 @@ export class MockFactory {
             bottom: 600,
             x: 0,
             y: 0,
+            toJSON: () => ({
+              width: 800,
+              height: 600,
+              top: 0,
+              left: 0,
+              right: 800,
+              bottom: 600,
+              x: 0,
+              y: 0,
+            }),
           },
           borderBoxSize: [{ blockSize: 600, inlineSize: 800 }],
           contentBoxSize: [{ blockSize: 600, inlineSize: 800 }],

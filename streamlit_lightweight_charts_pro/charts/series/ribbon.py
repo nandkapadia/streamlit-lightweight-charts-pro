@@ -1,5 +1,4 @@
-"""
-Ribbon series for streamlit-lightweight-charts.
+"""Ribbon series for streamlit-lightweight-charts.
 
 This module provides the RibbonSeries class for creating ribbon charts
 that display upper and lower bands with fill areas between them.
@@ -21,8 +20,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_property
 @chainable_property("fill", str, validator="color")
 @chainable_property("fill_visible", bool)
 class RibbonSeries(Series):
-    """
-    Ribbon series for lightweight charts.
+    """Ribbon series for lightweight charts.
 
     This class represents a ribbon series that displays upper and lower bands
     with a fill area between them. It's commonly used for technical indicators
@@ -51,8 +49,7 @@ class RibbonSeries(Series):
         price_scale_id: str = "",
         pane_id: Optional[int] = 0,
     ):
-        """
-        Initialize RibbonSeries.
+        """Initialize RibbonSeries.
 
         Args:
             data: List of data points or DataFrame

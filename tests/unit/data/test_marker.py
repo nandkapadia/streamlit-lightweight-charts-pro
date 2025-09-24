@@ -15,6 +15,11 @@ from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
 from streamlit_lightweight_charts_pro.data.data import Data
 from streamlit_lightweight_charts_pro.data.line_data import LineData
 from streamlit_lightweight_charts_pro.data.marker import BarMarker, Marker, MarkerBase, PriceMarker
+from streamlit_lightweight_charts_pro.exceptions import (
+    RequiredFieldError,
+    TimeValidationError,
+    UnsupportedTimeTypeError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
 
 
@@ -101,7 +106,10 @@ class TestMarkerBaseConstruction:
         """Test Marker construction with datetime."""
         dt = datetime(2022, 1, 1)
         marker = Marker(
-            time=dt, position=MarkerPosition.ABOVE_BAR, color="#ff0000", shape=MarkerShape.CIRCLE
+            time=dt,
+            position=MarkerPosition.ABOVE_BAR,
+            color="#ff0000",
+            shape=MarkerShape.CIRCLE,
         )
 
         # Time is normalized to UNIX timestamp format
@@ -114,7 +122,10 @@ class TestMarkerBaseConstruction:
         """Test Marker construction with pandas Timestamp."""
         ts = pd.Timestamp("2022-01-01")
         marker = Marker(
-            time=ts, position=MarkerPosition.ABOVE_BAR, color="#ff0000", shape=MarkerShape.CIRCLE
+            time=ts,
+            position=MarkerPosition.ABOVE_BAR,
+            color="#ff0000",
+            shape=MarkerShape.CIRCLE,
         )
 
         # Time is normalized to UNIX timestamp format
@@ -131,7 +142,10 @@ class TestMarkerBaseConstruction:
 
         for position in positions:
             marker = Marker(
-                time=1640995200, position=position, color="#ff0000", shape=MarkerShape.CIRCLE
+                time=1640995200,
+                position=position,
+                color="#ff0000",
+                shape=MarkerShape.CIRCLE,
             )
             assert marker.position == position
 
@@ -146,7 +160,10 @@ class TestMarkerBaseConstruction:
 
         for shape in shapes:
             marker = Marker(
-                time=1640995200, position=MarkerPosition.ABOVE_BAR, color="#ff0000", shape=shape
+                time=1640995200,
+                position=MarkerPosition.ABOVE_BAR,
+                color="#ff0000",
+                shape=shape,
             )
             assert marker.shape == shape
 
@@ -176,7 +193,7 @@ class TestMarkerValidation:
 
     def test_invalid_time(self):
         """Test Marker construction with invalid time."""
-        with pytest.raises(ValueError):
+        with pytest.raises(TimeValidationError):
             Marker(
                 time="invalid_time",
                 position=MarkerPosition.ABOVE_BAR,
@@ -224,7 +241,7 @@ class TestMarkerValidation:
 
     def test_none_time_raises_error(self):
         """Test that None time raises an error."""
-        with pytest.raises(TypeError):
+        with pytest.raises(UnsupportedTimeTypeError):
             Marker(
                 time=None,
                 position=MarkerPosition.ABOVE_BAR,
@@ -234,7 +251,7 @@ class TestMarkerValidation:
 
     def test_empty_string_time_raises_error(self):
         """Test that empty string time raises an error."""
-        with pytest.raises(ValueError):
+        with pytest.raises(TimeValidationError):
             Marker(
                 time="",
                 position=MarkerPosition.ABOVE_BAR,
@@ -301,7 +318,7 @@ class TestPriceMarkerConstruction:
 
     def test_missing_price_raises_error(self):
         """Test that PriceMarker without price raises an error."""
-        with pytest.raises(ValueError, match="Price is required for PriceMarker"):
+        with pytest.raises(RequiredFieldError):
             PriceMarker(
                 time=1640995200,
                 position=MarkerPosition.AT_PRICE_TOP,
@@ -473,7 +490,10 @@ class TestMarkerSerialization:
 
         for position, expected_value in positions:
             marker = Marker(
-                time=1640995200, position=position, color="#ff0000", shape=MarkerShape.CIRCLE
+                time=1640995200,
+                position=position,
+                color="#ff0000",
+                shape=MarkerShape.CIRCLE,
             )
             marker_dict = marker.asdict()
             assert marker_dict["position"] == expected_value
@@ -489,7 +509,10 @@ class TestMarkerSerialization:
 
         for shape, expected_value in shapes:
             marker = Marker(
-                time=1640995200, position=MarkerPosition.ABOVE_BAR, color="#ff0000", shape=shape
+                time=1640995200,
+                position=MarkerPosition.ABOVE_BAR,
+                color="#ff0000",
+                shape=shape,
             )
             marker_dict = marker.asdict()
             assert marker_dict["shape"] == expected_value

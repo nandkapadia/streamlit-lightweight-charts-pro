@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Quick Start: Minimal Working Example
+"""Quick Start: Minimal Working Example
 
 Copy this code and run it immediately!
 
@@ -12,6 +11,7 @@ Usage:
 """
 
 import streamlit as st
+
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import LineData

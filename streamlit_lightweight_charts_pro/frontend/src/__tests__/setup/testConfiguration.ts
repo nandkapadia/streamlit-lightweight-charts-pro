@@ -8,6 +8,7 @@
 
 import { vi } from 'vitest';
 import { MockFactory, MockConfig, MockPresets, setupGlobalMocks } from '../mocks/MockFactory';
+
 import {
   TestDataFactory,
   TestDataConfig,
@@ -485,7 +486,8 @@ declare global {
   var clearPerformanceMetrics: () => void;
   var performanceThresholds: TestEnvironmentConfig['performanceThresholds'];
   var trackObject: <T extends object>(obj: T) => T;
-  var gc: (() => void) | undefined;
+  // @ts-ignore - Global gc function type conflicts
+  var gc: any;
 }
 
 /**
@@ -552,4 +554,5 @@ export function forceGarbageCollection(): void {
 }
 
 // Export everything for easy importing
-export { MockFactory, MockConfig, MockPresets, TestDataFactory, TestDataConfig, TestDataPresets };
+export { MockFactory, MockPresets, TestDataFactory, TestDataPresets };
+export type { MockConfig, TestDataConfig };

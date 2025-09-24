@@ -79,7 +79,10 @@ export const ChartTradeManager: React.FC<ChartTradeManagerProps> = ({
           if (!tradesBySeries.has(seriesKey)) {
             tradesBySeries.set(seriesKey, []);
           }
-          tradesBySeries.get(seriesKey)!.push(trade);
+          const trades = tradesBySeries.get(seriesKey);
+          if (trades) {
+            trades.push(trade);
+          }
         });
 
         // Process each series

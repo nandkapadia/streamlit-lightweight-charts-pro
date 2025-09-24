@@ -1,5 +1,4 @@
-"""
-Base series class for streamlit-lightweight-charts.
+"""Base series class for streamlit-lightweight-charts.
 
 This module provides the base Series class that defines the common interface
 for all series types in the library. It includes core functionality for
@@ -14,6 +13,7 @@ Example:
     ```python
     from streamlit_lightweight_charts_pro.charts.series.base import Series
 
+
     class MyCustomSeries(Series):
         def to_frontend_config(self):
             return {"type": "custom", "data": self.data}
@@ -26,17 +26,23 @@ from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
 import pandas as pd
 
 # Import options classes for dynamic creation
-from streamlit_lightweight_charts_pro.charts.options import (
-    PriceLineOptions,
-)
+from streamlit_lightweight_charts_pro.charts.options import PriceLineOptions
 from streamlit_lightweight_charts_pro.data import Data
 from streamlit_lightweight_charts_pro.data.data import classproperty
 from streamlit_lightweight_charts_pro.data.marker import MarkerBase
-from streamlit_lightweight_charts_pro.logging_config import get_logger
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    LineStyle,
-    PriceLineSource,
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColumnMappingRequiredError,
+    DataFrameMissingColumnError,
+    DataItemsTypeError,
+    InvalidDataFormatError,
+    InvalidMarkerPositionError,
+    MissingRequiredColumnsError,
+    PaneIdNonNegativeError,
+    TimeColumnNotFoundError,
+    ValueValidationError,
 )
+from streamlit_lightweight_charts_pro.logging_config import get_logger
+from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle, PriceLineSource
 from streamlit_lightweight_charts_pro.utils import chainable_property
 from streamlit_lightweight_charts_pro.utils.data_utils import snake_to_camel
 
@@ -62,10 +68,9 @@ logger = get_logger(__name__)
 @chainable_property("price_line_style", top_level=True)
 @chainable_property("tooltip", allow_none=True, top_level=True)
 @chainable_property("legend", allow_none=True, top_level=True)
-class Series(ABC):
+class Series(ABC):  # noqa: B024
     # Type annotations for attributes to enable automatic type inspection
-    """
-    Abstract base class for all series types.
+    """Abstract base class for all series types.
 
     This class defines the common interface and functionality that all series
     classes must implement. It provides core data handling, configuration
@@ -106,8 +111,7 @@ class Series(ABC):
         price_scale_id: str = "",
         pane_id: Optional[int] = 0,
     ):
-        """
-        Initialize a series with data and configuration.
+        """Initialize a series with data and configuration.
 
         Creates a new series instance with the provided data and configuration options.
         The constructor supports multiple data input types including lists of Data
@@ -136,24 +140,16 @@ class Series(ABC):
             series = LineSeries(data=line_data)
 
             # Series with DataFrame
-            series = LineSeries(
-                data=df,
-                column_mapping={'time': 'datetime', 'value': 'close'}
-            )
+            series = LineSeries(data=df, column_mapping={"time": "datetime", "value": "close"})
 
             # Series with Series
-            series = LineSeries(
-                data=series_data,
-                column_mapping={'time': 'index', 'value': 'values'}
-            )
+             series = LineSeries(
+                 data=series_data,
+                 column_mapping={"time": "index", "value": "values"}
+             )
 
             # Series with custom configuration
-            series = LineSeries(
-                data=line_data,
-                visible=False,
-                price_scale_id="right",
-                pane_id=1
-            )
+            series = LineSeries(data=line_data, visible=False, price_scale_id="right", pane_id=1)
             ```
         """
         # Validate and process data
@@ -161,23 +157,16 @@ class Series(ABC):
             self.data = []
         elif isinstance(data, (pd.DataFrame, pd.Series)):
             if column_mapping is None:
-                raise ValueError(
-                    "column_mapping is required when providing DataFrame or Series data"
-                )
+                raise ColumnMappingRequiredError()
             # Process DataFrame/Series using from_dataframe logic
             self.data = self._process_dataframe_input(data, column_mapping)
         elif isinstance(data, list):
             # Validate that all items are Data instances
             if data and not all(isinstance(item, Data) for item in data):
-                raise ValueError(
-                    "All items in data list must be instances of Data or its subclasses"
-                )
+                raise DataItemsTypeError()
             self.data = data
         else:
-            raise ValueError(
-                "data must be a list of SingleValueData objects, DataFrame, or Series, "
-                f"got {type(data)}"
-            )
+            raise InvalidDataFormatError(type(data))
 
         self._title = None
         self._visible = visible
@@ -199,9 +188,8 @@ class Series(ABC):
         self._legend = None
 
     @staticmethod
-    def prepare_index(df: pd.DataFrame, column_mapping: Dict[str, str]) -> pd.DataFrame:
-        """
-        Prepare index for column mapping.
+    def prepare_index(data_frame: pd.DataFrame, column_mapping: Dict[str, str]) -> pd.DataFrame:
+        """Prepare index for column mapping.
 
         Handles all index-related column mapping cases:
         - Time column mapping with DatetimeIndex
@@ -211,7 +199,7 @@ class Series(ABC):
         - Single index reset for non-time columns
 
         Args:
-            df: DataFrame to prepare
+            data_frame: DataFrame to prepare
             column_mapping: Mapping of required fields to column names
 
         Returns:
@@ -223,87 +211,78 @@ class Series(ABC):
         # Handle time column mapping first (special case for DatetimeIndex)
         if "time" in column_mapping:
             time_col = column_mapping["time"]
-            if time_col not in df.columns:
+            if time_col not in data_frame.columns:
                 # Handle single DatetimeIndex
-                if isinstance(df.index, pd.DatetimeIndex):
-                    if df.index.name is None:
+                if isinstance(data_frame.index, pd.DatetimeIndex):
+                    if data_frame.index.name is None:
                         # Set name and reset index to make it a regular column
-                        df.index.name = time_col
-                        df = df.reset_index()
-                    elif df.index.name == time_col:
+                        data_frame.index.name = time_col
+                        data_frame = data_frame.reset_index()
+                    elif data_frame.index.name == time_col:
                         # Index name already matches, just reset to make it a regular column
-                        df = df.reset_index()
+                        data_frame = data_frame.reset_index()
 
                 # Handle MultiIndex with DatetimeIndex level
-                elif isinstance(df.index, pd.MultiIndex):
-                    for i, level in enumerate(df.index.levels):
+                elif isinstance(data_frame.index, pd.MultiIndex):
+                    for i, level in enumerate(data_frame.index.levels):
                         if isinstance(level, pd.DatetimeIndex):
-                            if df.index.names[i] is None:
+                            if data_frame.index.names[i] is None:
                                 # Set name for this level and reset it
-                                new_names = list(df.index.names)
+                                new_names = list(data_frame.index.names)
                                 new_names[i] = time_col
-                                df.index.names = new_names
-                                df = df.reset_index(level=time_col)
+                                data_frame.index.names = new_names
+                                data_frame = data_frame.reset_index(level=time_col)
                                 break
-                            elif df.index.names[i] == time_col:
+                            if data_frame.index.names[i] == time_col:
                                 # Level name already matches, reset this level
-                                df = df.reset_index(level=time_col)
+                                data_frame = data_frame.reset_index(level=time_col)
                                 break
                     else:
                         # No DatetimeIndex level found, check if any level name matches
-                        if time_col in df.index.names:
+                        if time_col in data_frame.index.names or time_col == "index":
                             # Reset the entire MultiIndex to get all levels as columns
-                            df = df.reset_index()
+                            data_frame = data_frame.reset_index()
                         else:
-                            # No matching level found, check if time_col is "index" or integer level position
-                            if time_col == "index":
-                                # Reset the entire MultiIndex to get all levels as columns
-                                df = df.reset_index()
-                            else:
-                                # Check if time_col is an integer level position
-                                try:
-                                    level_idx = int(time_col)
-                                    if 0 <= level_idx < len(df.index.levels):
-                                        # Reset the entire MultiIndex to get all levels as columns
-                                        df = df.reset_index()
-                                    else:
-                                        # Invalid level position, just pass through
-                                        pass
-                                except ValueError:
-                                    # Not an integer, just pass through
+                            # Check if time_col is an integer level position
+                            try:
+                                level_idx = int(time_col)
+                                if 0 <= level_idx < len(data_frame.index.levels):
+                                    # Reset the entire MultiIndex to get all levels as columns
+                                    data_frame = data_frame.reset_index()
+                                else:
+                                    # Invalid level position, just pass through
                                     pass
+                            except ValueError:
+                                # Not an integer, just pass through
+                                pass
+                # No DatetimeIndex found
+                # Check if time_col is "index" and we have a regular index to reset
+                elif time_col == "index":
+                    # Reset the index to make it a regular column
+                    idx_name = data_frame.index.name
+                    data_frame = data_frame.reset_index()
+                    new_col_name = idx_name if idx_name is not None else "index"
+                    column_mapping["time"] = new_col_name
+                elif time_col == data_frame.index.name:
+                    # Time column matches index name, reset the index
+                    data_frame = data_frame.reset_index()
                 else:
-                    # No DatetimeIndex found
-                    # Check if time_col is "index" and we have a regular index to reset
-                    if time_col == "index":
-                        # Reset the index to make it a regular column
-                        idx_name = df.index.name
-                        df = df.reset_index()
-                        new_col_name = idx_name if idx_name is not None else "index"
-                        column_mapping["time"] = new_col_name
-                    elif time_col == df.index.name:
-                        # Time column matches index name, reset the index
-                        df = df.reset_index()
-                    else:
-                        raise ValueError(
-                            f"Time column '{time_col}' not found in DataFrame columns and no "
-                            "DatetimeIndex available in the index"
-                        )
+                    raise TimeColumnNotFoundError(time_col)
 
         # Handle other index columns
         for field, col_name in column_mapping.items():
             if field == "time":
                 continue  # Already handled above
 
-            if col_name not in df.columns:
-                if isinstance(df.index, pd.MultiIndex):
-                    level_names = list(df.index.names)
+            if col_name not in data_frame.columns:
+                if isinstance(data_frame.index, pd.MultiIndex):
+                    level_names = list(data_frame.index.names)
 
                     # Integer string or int: treat as level position
                     try:
                         level_idx = int(col_name)
-                        if 0 <= level_idx < len(df.index.levels):
-                            df = df.reset_index(level=level_idx)
+                        if 0 <= level_idx < len(data_frame.index.levels):
+                            data_frame = data_frame.reset_index(level=level_idx)
                             level_name = level_names[level_idx]
                             # Update column mapping to use actual column name
                             new_col_name = (
@@ -318,7 +297,7 @@ class Series(ABC):
                     if col_name == "index":
                         unnamed_levels = [i for i, name in enumerate(level_names) if name is None]
                         level_idx = unnamed_levels[0] if unnamed_levels else 0
-                        df = df.reset_index(level=level_idx)
+                        data_frame = data_frame.reset_index(level=level_idx)
                         level_name = level_names[level_idx]
                         new_col_name = (
                             level_name if level_name is not None else f"level_{level_idx}"
@@ -329,25 +308,25 @@ class Series(ABC):
                     # Named level
                     if col_name in level_names:
                         level_idx = level_names.index(col_name)
-                        df = df.reset_index(level=level_idx)
+                        data_frame = data_frame.reset_index(level=level_idx)
                         continue
 
-                else:
-                    # Single index
-                    if col_name == "index" or col_name == df.index.name:
-                        idx_name = df.index.name
-                        df = df.reset_index()
-                        new_col_name = idx_name if idx_name is not None else "index"
-                        column_mapping[field] = new_col_name
-                        continue
+                # Single index
+                elif col_name in ("index", data_frame.index.name):
+                    idx_name = data_frame.index.name
+                    data_frame = data_frame.reset_index()
+                    new_col_name = idx_name if idx_name is not None else "index"
+                    column_mapping[field] = new_col_name
+                    continue
 
-        return df
+        return data_frame
 
     def _process_dataframe_input(
-        self, data: Union[pd.DataFrame, pd.Series], column_mapping: Dict[str, str]
+        self,
+        data: Union[pd.DataFrame, pd.Series],
+        column_mapping: Dict[str, str],
     ) -> List[Data]:
-        """
-        Process DataFrame or Series input into a list of Data objects.
+        """Process DataFrame or Series input into a list of Data objects.
 
         This method duplicates the logic from from_dataframe to handle
         DataFrame/Series input in the constructor. It validates the input
@@ -389,28 +368,34 @@ class Series(ABC):
 
         # Create normalized versions of both sets for comparison
         normalized_required = {normalize_key(key) for key in required}
-        normalized_mapping_keys = {normalize_key(key) for key in column_mapping.keys()}
+        normalized_mapping_keys = {normalize_key(key) for key in column_mapping}
 
         missing_required = normalized_required - normalized_mapping_keys
         if missing_required:
             # Convert back to original format for error message
-            original_missing = {key for key in required if normalize_key(key) in missing_required}
-            raise ValueError(f"DataFrame is missing required column mapping: {original_missing}")
+            missing_original = {key for key in required if normalize_key(key) in missing_required}
+            raise ValueValidationError(
+                "DataFrame",
+                f"is missing required column mapping: {missing_original}",
+            )
 
         # Prepare index for all column mappings
-        df = self.prepare_index(data, column_mapping)
+        data_frame = self.prepare_index(data, column_mapping)
 
         # Check if all required columns are present in the DataFrame
         mapped_columns = set(column_mapping.values())
-        available_columns = set(df.columns.tolist())
+        available_columns = set(data_frame.columns.tolist())
         missing_columns = mapped_columns - available_columns
 
         if missing_columns:
-            raise ValueError(f"DataFrame is missing required column: {missing_columns}")
+            raise ValueValidationError(
+                "DataFrame",
+                f"is missing required column: {missing_columns}",
+            )
 
         # Create data objects
         result = []
-        for _, row in df.iterrows():
+        for _, row in data_frame.iterrows():
             kwargs = {}
             # Process both required and optional columns
             for key in required.union(optional):
@@ -423,7 +408,7 @@ class Series(ABC):
 
                 if mapped_key:
                     col_name = column_mapping[mapped_key]
-                    if col_name in df.columns:
+                    if col_name in data_frame.columns:
                         value = row[col_name]
                         kwargs[key] = value
             data_obj = data_class(**kwargs)
@@ -433,8 +418,7 @@ class Series(ABC):
 
     @property
     def data_dict(self) -> List[Dict[str, Any]]:
-        """
-        Get the data in dictionary format.
+        """Get the data in dictionary format.
 
         Converts the series data to a list of dictionaries suitable for
         frontend serialization. Handles various data formats including
@@ -471,8 +455,7 @@ class Series(ABC):
         return self.data
 
     def add_marker(self, marker: MarkerBase) -> "Series":
-        """
-        Add a marker to this series.
+        """Add a marker to this series.
 
         Adds a marker object to the series for highlighting specific data points
         or events. The marker must be a valid MarkerBase subclass (BarMarker or PriceMarker).
@@ -489,7 +472,9 @@ class Series(ABC):
         Example:
             ```python
             from streamlit_lightweight_charts_pro.data.marker import BarMarker, PriceMarker
-            from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
+             from streamlit_lightweight_charts_pro.type_definitions.enums import (
+                 MarkerPosition, MarkerShape
+             )
 
             # Add a bar marker
             bar_marker = BarMarker(
@@ -497,7 +482,7 @@ class Series(ABC):
                 position=MarkerPosition.ABOVE_BAR,
                 color="red",
                 shape=MarkerShape.CIRCLE,
-                text="Buy Signal"
+                text="Buy Signal",
             )
             series.add_marker(bar_marker)
 
@@ -508,7 +493,7 @@ class Series(ABC):
                 color="#00ff00",
                 shape=MarkerShape.ARROW_UP,
                 price=100.50,
-                text="Resistance Level"
+                text="Resistance Level",
             )
             series.add_marker(price_marker)
 
@@ -518,16 +503,13 @@ class Series(ABC):
         """
         # Validate the marker position
         if not marker.validate_position():
-            raise ValueError(
-                f"Invalid position '{marker.position}' for marker type {type(marker).__name__}"
-            )
+            raise InvalidMarkerPositionError(marker.position, type(marker).__name__)
 
         self._markers.append(marker)
         return self
 
     def add_markers(self, markers: List[MarkerBase]) -> "Series":
-        """
-        Add multiple markers to this series.
+        """Add multiple markers to this series.
 
         Adds a list of markers to the series. Returns self for method chaining.
 
@@ -543,16 +525,13 @@ class Series(ABC):
         # Validate all markers before adding
         for marker in markers:
             if not marker.validate_position():
-                raise ValueError(
-                    f"Invalid position '{marker.position}' for marker type {type(marker).__name__}"
-                )
+                raise InvalidMarkerPositionError(marker.position, type(marker).__name__)
 
         self._markers.extend(markers)
         return self
 
     def clear_markers(self) -> "Series":
-        """
-        Clear all markers from this series.
+        """Clear all markers from this series.
 
         Removes all markers from the series. Returns self for method chaining.
 
@@ -563,8 +542,7 @@ class Series(ABC):
         return self
 
     def add_price_line(self, price_line: PriceLineOptions) -> "Series":
-        """
-        Add a price line option to this series.
+        """Add a price line option to this series.
 
         Args:
             price_line (PriceLineOptions): The price line option to add.
@@ -576,8 +554,7 @@ class Series(ABC):
         return self
 
     def clear_price_lines(self) -> "Series":
-        """
-        Remove all price line options from this series.
+        """Remove all price line options from this series.
 
         Returns:
             Series: Self for method chaining.
@@ -586,8 +563,7 @@ class Series(ABC):
         return self
 
     def _validate_pane_config(self) -> None:
-        """
-        Validate pane configuration for the series.
+        """Validate pane configuration for the series.
 
         This method ensures that pane_id is properly set.
         It should be called by subclasses in their asdict() method.
@@ -596,14 +572,12 @@ class Series(ABC):
             ValueError: If pane_id is negative.
         """
         if self._pane_id is not None and self._pane_id < 0:
-            raise ValueError("pane_id must be non-negative")
+            raise PaneIdNonNegativeError()
         if self._pane_id is None:
             self._pane_id = 0
 
     def _get_attr_name(self, key: str) -> str:
-        """
-        Get the attribute name for a given key.
-        """
+        """Get the attribute name for a given key."""
         # Convert camelCase to snake_case for attribute lookup
         attr_name = self._camel_to_snake(key)
 
@@ -626,8 +600,7 @@ class Series(ABC):
         return attr_name
 
     def update(self, updates: Dict[str, Any]) -> "Series":
-        """
-        Update series configuration with a dictionary of values.
+        """Update series configuration with a dictionary of values.
 
         This method updates series properties using a configuration dictionary. It supports
         updating simple attributes, nested options objects, and lists of options. Keys may be
@@ -648,10 +621,14 @@ class Series(ABC):
             series = LineSeries(data=data)
             series.update({"visible": False, "price_scale_id": "left"})
             series.update({"price_format": {"precision": 2, "minMove": 0.01}})
-            series.update({"price_lines": [
-                {"price": 105, "color": "#00ff00"},
-                {"price": 110, "color": "#ff0000"}
-            ]})
+            series.update(
+                {
+                    "price_lines": [
+                        {"price": 105, "color": "#00ff00"},
+                        {"price": 110, "color": "#ff0000"},
+                    ]
+                }
+            )
             series.update({"visible": True}).update({"pane_id": 1})
             ```
         """
@@ -662,7 +639,6 @@ class Series(ABC):
             attr_name = self._get_attr_name(key)
 
             if attr_name is None:
-
                 continue
 
             try:
@@ -672,15 +648,14 @@ class Series(ABC):
                     self._update_list_value(attr_name, value)
                 else:
                     setattr(self, attr_name, value)
-            except Exception as exc:
-                logger.error("Failed to update attribute '%s': %s", attr_name, exc)
+            except Exception:
+                logger.exception("Failed to update attribute '%s'", attr_name)
                 raise
 
         return self
 
     def _update_dict_value(self, attr_name: str, value: dict) -> None:
-        """
-        Update a nested options object attribute with a dictionary.
+        """Update a nested options object attribute with a dictionary.
 
         Args:
             attr_name (str): Attribute name to update.
@@ -689,7 +664,6 @@ class Series(ABC):
         Raises:
             AttributeError: If the attribute cannot be updated.
         """
-
         current_value = getattr(self, attr_name, None)
 
         if current_value is not None and hasattr(current_value, "update"):
@@ -701,7 +675,6 @@ class Series(ABC):
         attr_type = type_hints.get(attr_name)
 
         if attr_type is None:
-
             return
 
         # Handle Union types (e.g., Optional[T])
@@ -716,16 +689,15 @@ class Series(ABC):
                 instance = attr_type()
                 setattr(self, attr_name, instance)
                 instance.update(value)
-            except Exception as exc:
-                logger.error("Failed to instantiate or update %s: %s", attr_name, exc)
+            except Exception:
+                logger.exception("Failed to instantiate or update %s", attr_name)
                 raise
         else:
             # No update method for this attribute
             pass
 
     def _update_list_value(self, attr_name: str, value: list) -> None:
-        """
-        Update a list attribute, instantiating and updating items as needed.
+        """Update a list attribute, instantiating and updating items as needed.
 
         Args:
             attr_name (str): Attribute name to update.
@@ -734,7 +706,6 @@ class Series(ABC):
         Raises:
             AttributeError: If the attribute cannot be updated.
         """
-
         current_value = getattr(self, attr_name, None)
 
         type_hints = get_type_hints(self.__class__)
@@ -749,7 +720,6 @@ class Series(ABC):
             item_type = attr_type.__args__[0]
 
             if not hasattr(item_type, "update"):
-
                 setattr(self, attr_name, value)
                 return
 
@@ -757,15 +727,16 @@ class Series(ABC):
                 current_value = []
                 setattr(self, attr_name, current_value)
 
-            for i, item in enumerate(value):
+            for _i, item in enumerate(value):
                 if isinstance(item, dict):
                     try:
                         instance = item_type()
                         instance.update(item)
                         current_value.append(instance)
-                    except Exception as exc:
-                        logger.error(
-                            "Failed to instantiate or update list item for %s: %s", attr_name, exc
+                    except Exception:
+                        logger.exception(
+                            "Failed to instantiate or update list item for %s",
+                            attr_name,
                         )
                         raise
                 else:
@@ -774,8 +745,7 @@ class Series(ABC):
             setattr(self, attr_name, value)
 
     def _camel_to_snake(self, camel_case: str) -> str:
-        """
-        Convert camelCase to snake_case.
+        """Convert camelCase to snake_case.
 
         Args:
             camel_case: String in camelCase format.
@@ -788,8 +758,7 @@ class Series(ABC):
         return re.sub(r"(?<!^)(?=[A-Z])", "_", camel_case).lower()
 
     def asdict(self) -> Dict[str, Any]:
-        """
-        Convert series to dictionary representation.
+        """Convert series to dictionary representation.
 
         This method creates a dictionary representation of the series
         that can be consumed by the frontend React component.
@@ -837,7 +806,7 @@ class Series(ABC):
             # Handle objects with asdict() method
             if (
                 hasattr(attr_value, "asdict")
-                and callable(getattr(attr_value, "asdict"))
+                and callable(attr_value.asdict)
                 and not isinstance(attr_value, type)
             ):
                 # Rule 3: If property ends with _options, flatten it into options
@@ -856,7 +825,7 @@ class Series(ABC):
                 isinstance(attr_value, list)
                 and attr_value
                 and hasattr(attr_value[0], "asdict")
-                and callable(getattr(attr_value[0], "asdict"))
+                and callable(attr_value[0].asdict)
             ):
                 # Convert list of objects to list of dictionaries
                 key = snake_to_camel(attr_name)
@@ -880,10 +849,9 @@ class Series(ABC):
                 if is_top_level:
                     # Include empty strings for top-level properties (they are valid)
                     config[key] = attr_value
-                else:
-                    # Skip empty strings for options (they are not meaningful)
-                    if attr_value != "":
-                        options[key] = attr_value
+                # Skip empty strings for options (they are not meaningful)
+                elif attr_value != "":
+                    options[key] = attr_value
 
         # Only include options field if it's not empty
         if options:
@@ -892,8 +860,7 @@ class Series(ABC):
         return config
 
     def _is_chainable_property(self, attr_name: str) -> bool:
-        """
-        Check if an attribute is decorated with chainable_property.
+        """Check if an attribute is decorated with chainable_property.
 
         Args:
             attr_name: Name of the attribute to check
@@ -903,13 +870,11 @@ class Series(ABC):
         """
         return (
             hasattr(self.__class__, "_chainable_properties")
-            and attr_name
-            in self.__class__._chainable_properties  # pylint: disable=protected-access
+and attr_name in self.__class__._chainable_properties  # pylint: disable=protected-access
         )
 
     def _is_allow_none(self, attr_name: str) -> bool:
-        """
-        Check if a chainable property allows None values.
+        """Check if a chainable property allows None values.
 
         Args:
             attr_name: Name of the attribute to check
@@ -918,14 +883,12 @@ class Series(ABC):
             bool: True if the property allows None values
         """
         if self._is_chainable_property(attr_name):
-            return self.__class__._chainable_properties[attr_name][
-                "allow_none"
-            ]  # pylint: disable=protected-access
+            # pylint: disable=protected-access
+            return self.__class__._chainable_properties[attr_name]["allow_none"]
         return False
 
     def _is_top_level(self, attr_name: str) -> bool:
-        """
-        Check if a chainable property should be output at the top level.
+        """Check if a chainable property should be output at the top level.
 
         Args:
             attr_name: Name of the attribute to check
@@ -934,19 +897,16 @@ class Series(ABC):
             bool: True if the attribute should be at the top level
         """
         if self._is_chainable_property(attr_name):
-            return self.__class__._chainable_properties[attr_name][
-                "top_level"
-            ]  # pylint: disable=protected-access
+            # pylint: disable=protected-access
+            return self.__class__._chainable_properties[attr_name]["top_level"]
         return False
 
     @classproperty
-    def data_class(cls) -> Type[Data]:  # pylint: disable=no-self-argument
-        """
-        Return the first DATA_CLASS found in the MRO (most-derived class wins).
-        """
-        for base in cls.__mro__:
+    def data_class(self) -> Type[Data]:  # pylint: disable=no-self-argument
+        """Return the first DATA_CLASS found in the MRO (most-derived class wins)."""
+        for base in self.__mro__:
             if hasattr(base, "DATA_CLASS"):
-                return getattr(base, "DATA_CLASS")
+                return base.DATA_CLASS
         raise NotImplementedError("No DATA_CLASS defined in the class hierarchy.")
 
     @classmethod
@@ -957,8 +917,7 @@ class Series(ABC):
         price_scale_id: str = "",
         **kwargs,
     ) -> "Series":
-        """
-        Create a Series instance from a pandas DataFrame or Series.
+        """Create a Series instance from a pandas DataFrame or Series.
 
         Args:
             df (Union[pd.DataFrame, pd.Series]): The input DataFrame or Series.
@@ -976,8 +935,9 @@ class Series(ABC):
             AttributeError: If the data class does not define REQUIRED_COLUMNS.
         """
         # Convert Series to DataFrame if needed
-        if isinstance(df, pd.Series):
-            df = df.to_frame()
+        dataframe = df
+        if isinstance(dataframe, pd.Series):
+            dataframe = dataframe.to_frame()
 
         data_class = cls.data_class
         required = data_class.required_columns
@@ -986,42 +946,35 @@ class Series(ABC):
         # Check required columns in column_mapping
         missing_mapping = [col for col in required if col not in column_mapping]
         if missing_mapping:
-            raise ValueError(
-                f"Missing required columns in column_mapping: {missing_mapping}\n"
-                f"Required columns: {required}\n"
-                f"Column mapping: {column_mapping}"
-            )
-        else:
-            pass  # Removed print
+            raise MissingRequiredColumnsError(missing_mapping, required, column_mapping)
+        # Removed print
 
         # Prepare index for all column mappings
-        df = cls.prepare_index(df, column_mapping)
+        data_frame = cls.prepare_index(dataframe, column_mapping)
 
         # Check required columns in DataFrame (including index) - after processing
         for key in required:
             col = column_mapping[key]
-            if col not in df.columns:
-                raise ValueError(f"DataFrame is missing required column: {col}")
-            else:
-                pass  # Removed print
+            if col not in data_frame.columns:
+                raise DataFrameMissingColumnError(col)
+            # Removed print
 
         # Build data objects
         data = []
-        for i in range(len(df)):
+        for i in range(len(dataframe)):
             kwargs_data = {}
             for key in required.union(optional):
                 if key in column_mapping:
                     col = column_mapping[key]
-                    if col in df.columns:
-                        value = df.iloc[i][col]
+                    if col in data_frame.columns:
+                        value = data_frame.iloc[i][col]
                         kwargs_data[key] = value
                     else:
-                        raise ValueError(f"DataFrame is missing required column: {col}")
+                        raise DataFrameMissingColumnError(col)
                 else:
                     # Skip optional columns that are not in column_mapping
                     continue
 
             data.append(data_class(**kwargs_data))
 
-        result = cls(data=data, price_scale_id=price_scale_id, **kwargs)
-        return result
+        return cls(data=data, price_scale_id=price_scale_id, **kwargs)

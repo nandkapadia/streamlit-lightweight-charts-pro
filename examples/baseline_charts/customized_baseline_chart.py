@@ -1,14 +1,12 @@
-"""
-Customized Baseline Chart Example.
+"""Customized Baseline Chart Example.
 
 This example demonstrates advanced styling and customization options for BaselineSeries
 including colors, baseline values, and interactive features.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
@@ -16,7 +14,7 @@ from examples.utilities.data_samples import get_baseline_data
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import BaselineSeries
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
@@ -51,7 +49,10 @@ def main():
     baseline_series = BaselineSeries(data=baseline_data)
 
     # Apply customizations
-    baseline_series.base_value = {"type": "price", "price": baseline_value}  # pylint: disable=no-member
+    baseline_series.base_value = {
+        "type": "price",
+        "price": baseline_value,
+    }  # pylint: disable=no-member
     baseline_series.relative_gradient = relative_gradient  # pylint: disable=no-member
     baseline_series.top_fill_color1 = top_fill_color1  # pylint: disable=no-member
     baseline_series.top_fill_color2 = top_fill_color2  # pylint: disable=no-member
@@ -114,11 +115,19 @@ def main():
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Above Baseline", above_baseline, delta=f"{above_baseline/len(values)*100:.1f}%")
+        st.metric(
+            "Above Baseline",
+            above_baseline,
+            delta=f"{above_baseline / len(values) * 100:.1f}%",
+        )
     with col2:
-        st.metric("Below Baseline", below_baseline, delta=f"-{below_baseline/len(values)*100:.1f}%")
+        st.metric(
+            "Below Baseline",
+            below_baseline,
+            delta=f"-{below_baseline / len(values) * 100:.1f}%",
+        )
     with col3:
-        st.metric("At Baseline", at_baseline, delta=f"{at_baseline/len(values)*100:.1f}%")
+        st.metric("At Baseline", at_baseline, delta=f"{at_baseline / len(values) * 100:.1f}%")
 
     # Calculate distance from baseline
     distances = [abs(v - baseline_value) for v in values]
@@ -144,7 +153,7 @@ def main():
             "bottom_fill_color1": baseline_series.bottom_fill_color1,  # pylint: disable=no-member
             "bottom_fill_color2": baseline_series.bottom_fill_color2,  # pylint: disable=no-member
             "bottom_line_color": baseline_series.bottom_line_color,  # pylint: disable=no-member
-        }
+        },
     )
 
 

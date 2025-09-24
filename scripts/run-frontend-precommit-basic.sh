@@ -31,11 +31,21 @@ print_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
-# Check if we're in the right directory
-if [ ! -f "pyproject.toml" ]; then
-    print_error "Not in project root directory. Please run from streamlit-lightweight-charts-pro root."
+# Find project root directory (where pyproject.toml is located)
+PROJECT_ROOT=""
+if [ -f "pyproject.toml" ]; then
+    PROJECT_ROOT="."
+elif [ -f "../pyproject.toml" ]; then
+    PROJECT_ROOT=".."
+elif [ -f "../../pyproject.toml" ]; then
+    PROJECT_ROOT="../.."
+else
+    print_error "Cannot find project root directory with pyproject.toml"
     exit 1
 fi
+
+# Navigate to project root
+cd "$PROJECT_ROOT"
 
 # Navigate to frontend directory
 FRONTEND_DIR="streamlit_lightweight_charts_pro/frontend"

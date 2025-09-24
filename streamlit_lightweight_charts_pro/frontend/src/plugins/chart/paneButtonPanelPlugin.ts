@@ -225,7 +225,7 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
         setTimeout(() => this.createButtonPanel(chartElement, paneId), 300);
         return;
       }
-    } catch (error) {
+    } catch {
       setTimeout(() => this.createButtonPanel(chartElement, paneId), 300);
       return;
     }
@@ -257,14 +257,16 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           seriesConfigs: new Map(),
         });
       } else {
-        const state = this.paneStates.get(paneId)!;
-        state.buttonElement = this.containerElement;
-        state.reactRoot = reactRoot;
+        const state = this.paneStates.get(paneId);
+        if (state) {
+          state.buttonElement = this.containerElement;
+          state.reactRoot = reactRoot;
+        }
       }
 
       // Position will be handled by the layout manager automatically
-    } catch (error) {
-      console.error('Pane button panel operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -337,8 +339,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       } else {
         console.error('Failed to create dialog root for series configuration');
       }
-    } catch (error) {
-      console.error('Pane button panel operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -359,8 +361,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           onConfigChange: () => {},
         })
       );
-    } catch (error) {
-      console.error('Pane button panel operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -402,8 +404,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           });
         });
       }
-    } catch (error) {
-      console.error('Pane button panel operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
 
     return seriesList;
@@ -455,8 +457,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       if (this.config.onSeriesConfigChange) {
         this.config.onSeriesConfigChange(paneId, seriesId, config as Record<string, unknown>);
       }
-    } catch (error) {
-      console.error('Pane button panel operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -467,8 +469,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     try {
       const storageKey = `series-config-${seriesId}`;
       localStorage.setItem(storageKey, JSON.stringify(config));
-    } catch (error) {
-      console.error('Pane button panel operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -542,8 +544,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       } else {
         this.collapsePane(paneId);
       }
-    } catch (error) {
-      console.error('Pane button panel operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -581,8 +583,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       if (this.config.onPaneCollapse) {
         this.config.onPaneCollapse(paneId, true);
       }
-    } catch (error) {
-      console.error('Pane button panel operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -613,8 +615,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       if (this.config.onPaneExpand) {
         this.config.onPaneExpand(paneId, false);
       }
-    } catch (error) {
-      console.error('Pane button panel operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 
@@ -642,8 +644,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           });
         }
       }
-    } catch (error) {
-      console.error('Pane button panel operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 

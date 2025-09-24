@@ -1,14 +1,14 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 
 
 @dataclass
 class CandlestickData(OhlcData):
-    """
-    Data class for candlestick chart points.
+    """Data class for candlestick chart points.
 
     Inherits from OhlcData and adds optional color fields for styling.
 
@@ -28,8 +28,8 @@ class CandlestickData(OhlcData):
         - Color should be a valid hex (e.g., #2196F3) or rgba string (e.g., rgba(33,150,243,1)).
     """
 
-    REQUIRED_COLUMNS = set()
-    OPTIONAL_COLUMNS = {"color", "border_color", "wick_color"}
+    REQUIRED_COLUMNS: ClassVar[set] = set()
+    OPTIONAL_COLUMNS: ClassVar[set] = {"color", "border_color", "wick_color"}
 
     color: Optional[str] = None
     border_color: Optional[str] = None
@@ -42,9 +42,5 @@ class CandlestickData(OhlcData):
 
         for prop_name in color_properties:
             color_value = getattr(self, prop_name)
-            if color_value is not None and color_value != "":
-                if not is_valid_color(color_value):
-                    raise ValueError(
-                        f"Invalid color format for {prop_name}: {color_value!r}. "
-                        "Must be hex or rgba."
-                    )
+            if color_value is not None and color_value != "" and not is_valid_color(color_value):
+                raise ColorValidationError(prop_name, color_value)

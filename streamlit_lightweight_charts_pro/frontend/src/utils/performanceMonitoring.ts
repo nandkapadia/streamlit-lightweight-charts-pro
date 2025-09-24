@@ -157,7 +157,7 @@ export class PerformanceMonitor {
 
       metrics.initialBundleSize = totalSize;
       metrics.cacheHitRate = resourceEntries.length > 0 ? cacheHits / resourceEntries.length : 0;
-    } catch (error) {
+    } catch {
       // Ignore errors in metrics collection
     }
 
@@ -205,7 +205,7 @@ export class PerformanceMonitor {
       if (memInfo) {
         memoryUsage = memInfo.usedJSHeapSize;
       }
-    } catch (error) {
+    } catch {
       // Memory API not available
     }
 
@@ -293,7 +293,7 @@ export class PerformanceMonitor {
         layoutShiftObserver.observe({ entryTypes: ['layout-shift'] });
         this.observers.push(layoutShiftObserver);
       }
-    } catch (error) {
+    } catch {
       // Observers not supported
     }
   }
@@ -313,7 +313,7 @@ export class PerformanceMonitor {
         if (memInfo) {
           this.recordMetric('memoryUsage', memInfo.usedJSHeapSize, 'memory');
         }
-      } catch (error) {
+      } catch {
         // Memory API not available
       }
     };

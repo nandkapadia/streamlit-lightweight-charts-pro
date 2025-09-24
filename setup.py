@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Setup script for streamlit-lightweight-charts-pro package.
+
 Includes pre-built frontend assets in the wheel distribution.
 """
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -12,28 +14,58 @@ from setuptools.command.bdist_wheel import bdist_wheel
 from setuptools.command.build_py import build_py
 from setuptools.command.sdist import sdist
 
+from streamlit_lightweight_charts_pro.exceptions import (
+    FrontendBuildFailedError,
+    NodeNotFoundError,
+    NpmNotFoundError,
+)
+
 
 def check_node_installed():
     """Check if Node.js is installed and available."""
     try:
-        result = subprocess.run(["node", "--version"], capture_output=True, text=True, check=True)
+        node_path = shutil.which("node")
+        if not node_path:
+            raise NodeNotFoundError()
+        # Validate node_path to prevent command injection
+        if not node_path or not Path(node_path).exists():
+            raise ValueError("Invalid node path")
+        result = subprocess.run(
+            [node_path, "--version"],
+            capture_output=True,
+            text=True,
+            check=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
+        )
         print(f"✅ Node.js found: {result.stdout.strip()}")
-        return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("❌ Node.js not found. Please install Node.js first.")
         print("   Visit: https://nodejs.org/")
         return False
+    return True
 
 
 def check_npm_installed():
     """Check if npm is installed and available."""
     try:
-        result = subprocess.run(["npm", "--version"], capture_output=True, text=True, check=True)
+        npm_path = shutil.which("npm")
+        if not npm_path:
+            raise NpmNotFoundError()
+        # Validate npm_path to prevent command injection
+        if not npm_path or not Path(npm_path).exists():
+            raise ValueError("Invalid npm path")
+        result = subprocess.run(
+            [npm_path, "--version"],
+            capture_output=True,
+            text=True,
+            check=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
+        )
         print(f"✅ npm found: {result.stdout.strip()}")
-        return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("❌ npm not found. Please install npm first.")
         return False
+    return True
 
 
 def build_frontend():
@@ -59,19 +91,33 @@ def build_frontend():
 
         # Install dependencies
         print("📦 Installing frontend dependencies...")
-        subprocess.run(["npm", "install"], check=True)
+        npm_path = shutil.which("npm")
+        if not npm_path:
+
+            def _raise_npm_not_found():
+                raise NpmNotFoundError()  # noqa: TRY301
+
+            _raise_npm_not_found()
+
+        # Validate npm_path to prevent command injection
+        def _raise_invalid_npm_path():
+            raise ValueError("Invalid npm path")  # noqa: TRY301
+
+        if not npm_path or not Path(npm_path).exists():
+            _raise_invalid_npm_path()
+        subprocess.run([npm_path, "install"], check=True, shell=False)
 
         # Build frontend
         print("🔨 Building frontend...")
-        subprocess.run(["npm", "run", "build"], check=True)
+        subprocess.run([npm_path, "run", "build"], check=True, shell=False)
 
         # Verify build output
         build_dir = frontend_dir / "build"
         if build_dir.exists() and (build_dir / "static").exists():
             print("✅ Frontend build successful!")
-            return True
-        print("❌ Frontend build failed - no build output found")
-        return False
+        else:
+            print("❌ Frontend build failed - no build output found")
+            return False
 
     except subprocess.CalledProcessError as e:
         print(f"❌ Frontend build failed: {e}")
@@ -83,6 +129,8 @@ def build_frontend():
         # Return to original directory
         os.chdir(setup_dir)
 
+    return True
+
 
 def ensure_frontend_built():
     """Ensure frontend is built before packaging."""
@@ -92,7 +140,7 @@ def ensure_frontend_built():
     if not build_dir.exists() or not (build_dir / "static").exists():
         print("🔨 Frontend not built, building now...")
         if not build_frontend():
-            raise RuntimeError("Frontend build failed")
+            raise FrontendBuildFailedError()
     else:
         print("✅ Frontend already built, using existing assets.")
 
@@ -172,7 +220,7 @@ if __name__ == "__main__":
             "Bug Reports": "https://github.com/nandkapadia/streamlit-lightweight-charts-pro/issues",
             "Source": "https://github.com/nandkapadia/streamlit-lightweight-charts-pro",
             "Changelog": (
-                "https://github.com/nandkapadia/streamlit-lightweight-charts-pro/blob/main/CHANGELOG.md"
+"https://github.com/nandkapadia/streamlit-lightweight-charts-pro/blob/main/CHANGELOG.md"
             ),
         },
         license="MIT",

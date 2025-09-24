@@ -10,8 +10,19 @@ import pandas as pd
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
+from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.charts.series.baseline import BaselineSeries
 from streamlit_lightweight_charts_pro.data.baseline_data import BaselineData
+from streamlit_lightweight_charts_pro.data.marker import BarMarker
+from streamlit_lightweight_charts_pro.exceptions import (
+    BaseValueFormatError,
+    ColorValidationError,
+    ColumnMappingRequiredError,
+    DataItemsTypeError,
+    InvalidDataFormatError,
+    PaneIdNonNegativeError,
+    TypeValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
 
@@ -65,8 +76,11 @@ class TestBaselineSeriesConstruction:
 
     def test_construction_with_dataframe(self):
         """Test BaselineSeries construction with DataFrame."""
-        df = pd.DataFrame({"time": [1640995200, 1641081600], "value": [100.5, 105.2]})
-        series = BaselineSeries(data=df, column_mapping={"time": "time", "value": "value"})
+        test_dataframe = pd.DataFrame({"time": [1640995200, 1641081600], "value": [100.5, 105.2]})
+        series = BaselineSeries(
+            data=test_dataframe,
+            column_mapping={"time": "time", "value": "value"},
+        )
 
         assert len(series.data) == 2
         assert isinstance(series.data[0], BaselineData)
@@ -227,9 +241,7 @@ class TestBaselineSeriesValidation:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data)
 
-        with pytest.raises(
-            ValueError, match="base_value dict must contain 'type' and 'price' keys"
-        ):
+        with pytest.raises(BaseValueFormatError):
             series.base_value = {"price": 100}
 
     def test_validation_invalid_base_value_type(self):
@@ -237,9 +249,7 @@ class TestBaselineSeriesValidation:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data)
 
-        with pytest.raises(
-            ValueError, match="base_value must be a number or dict with 'type' and 'price' keys"
-        ):
+        with pytest.raises(BaseValueFormatError):
             series.base_value = "invalid"
 
     def test_validation_invalid_top_fill_color1(self):
@@ -247,7 +257,7 @@ class TestBaselineSeriesValidation:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data)
 
-        with pytest.raises(ValueError, match="Invalid color format for top_fill_color1"):
+        with pytest.raises(ColorValidationError):
             series.top_fill_color1 = "invalid_color"
 
     def test_validation_invalid_top_fill_color2(self):
@@ -255,7 +265,7 @@ class TestBaselineSeriesValidation:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data)
 
-        with pytest.raises(ValueError, match="Invalid color format for top_fill_color2"):
+        with pytest.raises(ColorValidationError):
             series.top_fill_color2 = "invalid_color"
 
     def test_validation_invalid_top_line_color(self):
@@ -263,7 +273,7 @@ class TestBaselineSeriesValidation:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data)
 
-        with pytest.raises(ValueError, match="Invalid color format for top_line_color"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_line_color"):
             series.top_line_color = "invalid_color"
 
     def test_validation_invalid_bottom_fill_color1(self):
@@ -271,7 +281,10 @@ class TestBaselineSeriesValidation:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data)
 
-        with pytest.raises(ValueError, match="Invalid color format for bottom_fill_color1"):
+        with pytest.raises(
+            ColorValidationError,
+            match="Invalid color format for bottom_fill_color1",
+        ):
             series.bottom_fill_color1 = "invalid_color"
 
     def test_validation_invalid_bottom_fill_color2(self):
@@ -279,7 +292,10 @@ class TestBaselineSeriesValidation:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data)
 
-        with pytest.raises(ValueError, match="Invalid color format for bottom_fill_color2"):
+        with pytest.raises(
+            ColorValidationError,
+            match="Invalid color format for bottom_fill_color2",
+        ):
             series.bottom_fill_color2 = "invalid_color"
 
     def test_validation_invalid_bottom_line_color(self):
@@ -287,22 +303,23 @@ class TestBaselineSeriesValidation:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data)
 
-        with pytest.raises(ValueError, match="Invalid color format for bottom_line_color"):
+        with pytest.raises(
+            ColorValidationError,
+            match="Invalid color format for bottom_line_color",
+        ):
             series.bottom_line_color = "invalid_color"
 
     def test_validation_dataframe_without_column_mapping(self):
         """Test validation when DataFrame is provided without column_mapping."""
-        df = pd.DataFrame({"time": [1640995200, 1641081600], "value": [100.5, 105.2]})
+        test_dataframe = pd.DataFrame({"time": [1640995200, 1641081600], "value": [100.5, 105.2]})
 
-        with pytest.raises(
-            ValueError, match="column_mapping is required when providing DataFrame or Series data"
-        ):
-            BaselineSeries(data=df)
+        with pytest.raises(ColumnMappingRequiredError):
+            BaselineSeries(data=test_dataframe)
 
     def test_validation_invalid_data_type(self):
         """Test validation with invalid data type."""
         with pytest.raises(
-            ValueError,
+            InvalidDataFormatError,
             match=(
                 "data must be a list of SingleValueData objects, DataFrame, or Series, got <class"
                 " 'str'>"
@@ -313,7 +330,8 @@ class TestBaselineSeriesValidation:
     def test_validation_invalid_list_data(self):
         """Test validation with invalid list data."""
         with pytest.raises(
-            ValueError, match="All items in data list must be instances of Data or its subclasses"
+            DataItemsTypeError,
+            match="All items in data list must be instances of Data or its subclasses",
         ):
             BaselineSeries(data=["invalid", "data"])
 
@@ -322,7 +340,7 @@ class TestBaselineSeriesValidation:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data, pane_id=-1)
 
-        with pytest.raises(ValueError, match="pane_id must be non-negative"):
+        with pytest.raises(PaneIdNonNegativeError, match="pane_id must be non-negative"):
             series.asdict()
 
 
@@ -395,7 +413,6 @@ class TestBaselineSeriesSerialization:
         series = BaselineSeries(data=data)
 
         # Add a marker using the correct method signature
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -450,7 +467,6 @@ class TestBaselineSeriesMethods:
         series = BaselineSeries(data=data)
 
         # Add marker using the correct method signature
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -486,7 +502,6 @@ class TestBaselineSeriesMethods:
         price_line = PriceLineOptions(price=150.0, color="#FF0000")
 
         # Test chaining
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -510,13 +525,11 @@ class TestBaselineSeriesInheritance:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data)
 
-        from streamlit_lightweight_charts_pro.charts.series.base import Series
-
         assert isinstance(series, Series)
 
     def test_data_class_property(self):
         """Test DATA_CLASS property."""
-        assert BaselineSeries.DATA_CLASS == BaselineData
+        assert BaselineData == BaselineSeries.DATA_CLASS
 
     def test_chart_type_property(self):
         """Test chart_type property."""
@@ -596,17 +609,17 @@ class TestBaselineSeriesEdgeCases:
         series.relative_gradient = False
         assert series.relative_gradient is False
 
-        # Test invalid values - should raise TypeError
-        with pytest.raises(TypeError, match="relative_gradient must be a boolean"):
+        # Test invalid values - should raise TypeValidationError
+        with pytest.raises(TypeValidationError, match="relative_gradient must be boolean"):
             series.relative_gradient = 1
 
-        with pytest.raises(TypeError, match="relative_gradient must be a boolean"):
+        with pytest.raises(TypeValidationError, match="relative_gradient must be boolean"):
             series.relative_gradient = "True"
 
-        with pytest.raises(TypeError, match="relative_gradient must be a boolean"):
+        with pytest.raises(TypeValidationError, match="relative_gradient must be boolean"):
             series.relative_gradient = 0
 
-        with pytest.raises(TypeError, match="relative_gradient must be a boolean"):
+        with pytest.raises(TypeValidationError, match="relative_gradient must be boolean"):
             series.relative_gradient = ""
 
 
@@ -640,11 +653,15 @@ class TestBaselineSeriesIntegration:
 
     def test_dataframe_with_datetime_index(self):
         """Test BaselineSeries with DataFrame that has datetime index."""
-        df = pd.DataFrame(
-            {"value": [100.5, 105.2]}, index=pd.to_datetime(["2022-01-01", "2022-01-02"])
+        test_dataframe = pd.DataFrame(
+            {"value": [100.5, 105.2]},
+            index=pd.to_datetime(["2022-01-01", "2022-01-02"]),
         )
 
-        series = BaselineSeries(data=df, column_mapping={"time": "index", "value": "value"})
+        series = BaselineSeries(
+            data=test_dataframe,
+            column_mapping={"time": "index", "value": "value"},
+        )
 
         assert len(series.data) == 2
         assert isinstance(series.data[0], BaselineData)
@@ -653,13 +670,16 @@ class TestBaselineSeriesIntegration:
 
     def test_dataframe_with_multi_index(self):
         """Test BaselineSeries with DataFrame that has multi-index."""
-        df = pd.DataFrame({"value": [100.5, 105.2, 110.0, 115.5]})
-        df.index = pd.MultiIndex.from_tuples(
+        test_dataframe = pd.DataFrame({"value": [100.5, 105.2, 110.0, 115.5]})
+        test_dataframe.index = pd.MultiIndex.from_tuples(
             [("2022-01-01", "A"), ("2022-01-01", "B"), ("2022-01-02", "A"), ("2022-01-02", "B")],
             names=["date", "category"],
         )
 
-        series = BaselineSeries(data=df, column_mapping={"time": "date", "value": "value"})
+        series = BaselineSeries(
+            data=test_dataframe,
+            column_mapping={"time": "date", "value": "value"},
+        )
 
         assert len(series.data) == 4
         assert isinstance(series.data[0], BaselineData)
@@ -687,7 +707,6 @@ class TestBaselineSeriesJsonStructure:
         series = BaselineSeries(data=data)
 
         # Add marker using the correct method signature
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -731,7 +750,6 @@ class TestBaselineSeriesJsonStructure:
         series = BaselineSeries(data=data)
 
         # Add marker and price line using correct method signatures
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,

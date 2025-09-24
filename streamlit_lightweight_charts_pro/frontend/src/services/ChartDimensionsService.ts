@@ -79,7 +79,7 @@ export class ChartDimensionsService {
         if (attempt < maxAttempts - 1) {
           await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt)));
         }
-      } catch (error) {
+      } catch {
         if (attempt < maxAttempts - 1) {
           await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt)));
         }
@@ -112,7 +112,7 @@ export class ChartDimensionsService {
       }
 
       return { width, height };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -185,7 +185,7 @@ export class ChartDimensionsService {
           return timeScale.height();
         }
       }
-    } catch (error) {
+    } catch {
       // Fallback to default
     }
     return DIMENSIONS.timeAxis.defaultHeight;
@@ -202,7 +202,7 @@ export class ChartDimensionsService {
           return priceScale.width();
         }
       }
-    } catch (error) {
+    } catch {
       // Fallback to default
     }
     return DIMENSIONS.priceScale.defaultWidth;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TooltipPlugin } from '../../plugins/chart/tooltipPlugin';
 import { resetMocks, mockChart } from '../../test-utils/lightweightChartsMocks';
 

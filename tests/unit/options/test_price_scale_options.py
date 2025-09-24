@@ -12,6 +12,7 @@ from streamlit_lightweight_charts_pro.charts.options.price_scale_options import 
     PriceScaleMargins,
     PriceScaleOptions,
 )
+from streamlit_lightweight_charts_pro.exceptions import TypeValidationError
 from streamlit_lightweight_charts_pro.type_definitions.enums import PriceScaleMode
 
 
@@ -37,8 +38,7 @@ class TestPriceScaleMargins:
 
         options = PriceScaleMargins()
 
-        with pytest.raises(TypeError, match="top must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_top("invalid")
 
     def test_validation_bottom(self):
@@ -46,8 +46,7 @@ class TestPriceScaleMargins:
 
         options = PriceScaleMargins()
 
-        with pytest.raises(TypeError, match="bottom must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_bottom("invalid")
 
     def test_to_dict(self):
@@ -109,8 +108,7 @@ class TestPriceScaleOptions:
 
         options = PriceScaleOptions()
 
-        with pytest.raises(TypeError, match="visible must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_visible("invalid")
 
     def test_validation_auto_scale(self):
@@ -118,8 +116,7 @@ class TestPriceScaleOptions:
 
         options = PriceScaleOptions()
 
-        with pytest.raises(TypeError, match="auto_scale must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_auto_scale("invalid")
 
     def test_validation_mode(self):
@@ -127,8 +124,7 @@ class TestPriceScaleOptions:
 
         options = PriceScaleOptions()
 
-        with pytest.raises(TypeError, match="mode must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_mode("invalid")
 
     def test_validation_invert_scale(self):
@@ -136,8 +132,7 @@ class TestPriceScaleOptions:
 
         options = PriceScaleOptions()
 
-        with pytest.raises(TypeError, match="invert_scale must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_invert_scale("invalid")
 
     def test_validation_border_visible(self):
@@ -145,20 +140,19 @@ class TestPriceScaleOptions:
 
         options = PriceScaleOptions()
 
-        with pytest.raises(TypeError, match="border_visible must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_border_visible("invalid")
 
     def test_validation_border_color(self):
         """Test validation of border_color field."""
         options = PriceScaleOptions()
-        with pytest.raises(TypeError, match="border_color must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_border_color(123)
 
     def test_validation_text_color(self):
         """Test validation of text_color field."""
         options = PriceScaleOptions()
-        with pytest.raises(TypeError, match="text_color must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_text_color(123)
 
     def test_validation_ticks_visible(self):
@@ -166,8 +160,7 @@ class TestPriceScaleOptions:
 
         options = PriceScaleOptions()
 
-        with pytest.raises(TypeError, match="ticks_visible must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_ticks_visible("invalid")
 
     def test_validation_ensure_edge_tick_marks_visible(self):
@@ -175,8 +168,7 @@ class TestPriceScaleOptions:
 
         options = PriceScaleOptions()
 
-        with pytest.raises(TypeError, match="ensure_edge_tick_marks_visible must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_ensure_edge_tick_marks_visible("invalid")
 
     def test_validation_align_labels(self):
@@ -184,8 +176,7 @@ class TestPriceScaleOptions:
 
         options = PriceScaleOptions()
 
-        with pytest.raises(TypeError, match="align_labels must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_align_labels("invalid")
 
     def test_validation_entire_text_only(self):
@@ -193,8 +184,7 @@ class TestPriceScaleOptions:
 
         options = PriceScaleOptions()
 
-        with pytest.raises(TypeError, match="entire_text_only must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_entire_text_only("invalid")
 
     def test_validation_minimum_width(self):
@@ -202,20 +192,19 @@ class TestPriceScaleOptions:
 
         options = PriceScaleOptions()
 
-        with pytest.raises(TypeError, match="minimum_width must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_minimum_width("invalid")
 
     def test_validation_scale_margins(self):
         """Test validation of scale_margins field."""
         options = PriceScaleOptions()
-        with pytest.raises(TypeError, match="scale_margins must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_scale_margins("invalid")
 
     def test_validation_price_scale_id(self):
         """Test validation of price_scale_id field."""
         options = PriceScaleOptions()
-        with pytest.raises(TypeError, match="price_scale_id must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_price_scale_id(123)
 
     def test_to_dict_basic(self):

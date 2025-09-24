@@ -1,5 +1,4 @@
-"""
-Chainable decorators for enabling method chaining on properties and fields.
+"""Chainable decorators for enabling method chaining on properties and fields.
 
 This module provides decorators that automatically create setter methods
 for properties and dataclass fields, allowing both direct assignment and
@@ -24,6 +23,7 @@ Example Usage:
     ```python
     from streamlit_lightweight_charts_pro.utils import chainable_property, chainable_field
 
+
     # Using chainable_property for class properties
     @chainable_property("color", str, validator="color")
     @chainable_property("width", int)
@@ -32,6 +32,7 @@ Example Usage:
             self._color = "#000000"
             self._width = 800
 
+
     # Using chainable_field for dataclass fields
     @dataclass
     @chainable_field("color", str)
@@ -39,6 +40,7 @@ Example Usage:
     class Options:
         color: str = "#000000"
         width: int = 800
+
 
     # Usage examples
     config = ChartConfig()
@@ -59,6 +61,13 @@ License: MIT
 
 from typing import Any, Callable, Optional, Type, Union, get_args, get_origin
 
+from ..exceptions import (
+    ColorValidationError,
+    InstanceTypeError,
+    TypeMismatchError,
+    TypeValidationError,
+    ValueValidationError,
+)
 from .data_utils import (
     is_valid_color,
     validate_min_move,
@@ -68,8 +77,7 @@ from .data_utils import (
 
 
 def _is_list_of_markers(value_type) -> bool:
-    """
-    Check if the type is List[MarkerBase] or similar.
+    """Check if the type is List[MarkerBase] or similar.
 
     This function examines the type annotation to determine if it represents
     a list of marker objects. It handles both direct MarkerBase types and
@@ -103,8 +111,7 @@ def _is_list_of_markers(value_type) -> bool:
 
 
 def _validate_list_of_markers(value, attr_name: str) -> bool:
-    """
-    Validate that a value is a list of markers.
+    """Validate that a value is a list of markers.
 
     This function performs runtime validation to ensure that a value is a list
     containing valid marker objects. It checks both the list structure and
@@ -125,7 +132,7 @@ def _validate_list_of_markers(value, attr_name: str) -> bool:
         with the marker module.
     """
     if not isinstance(value, list):
-        raise TypeError(f"{attr_name} must be a list")
+        raise TypeValidationError(attr_name, "list")
 
     try:
         # Lazy load MarkerBase to avoid circular imports
@@ -135,17 +142,17 @@ def _validate_list_of_markers(value, attr_name: str) -> bool:
         if MarkerBase is not None:
             for item in value:
                 if not isinstance(item, MarkerBase):
-                    raise TypeError(f"All items in {attr_name} must be instances of MarkerBase")
+                    raise ValueValidationError(attr_name, "all items must be MarkerBase instances")
         else:
             # If MarkerBase is None (e.g., when patched), check for marker-like attributes
             for item in value:
                 if not hasattr(item, "time") or not hasattr(item, "position"):
-                    raise TypeError(f"All items in {attr_name} must be valid markers")
+                    raise ValueValidationError(attr_name, "all items must be valid markers")
     except ImportError as exc:
         # If we can't import MarkerBase, just check that all items have marker-like attributes
         for item in value:
             if not hasattr(item, "time") or not hasattr(item, "position"):
-                raise TypeError(f"All items in {attr_name} must be valid markers") from exc
+                raise ValueValidationError(attr_name, "all items must be valid markers") from exc
     return True
 
 
@@ -156,8 +163,7 @@ def chainable_property(
     allow_none: bool = False,
     top_level: bool = False,
 ):
-    """
-    Decorator that creates both a property setter and a chaining method with optional validation.
+    """Decorator that creates both a property setter and a chaining method with optional validation.
 
     This decorator enables two usage patterns for the same attribute:
     1. Property assignment: `obj.attr = value`
@@ -207,6 +213,7 @@ def chainable_property(
                 self._base_value = 0
                 self._price_scale_id = "right"
 
+
         # Usage examples
         series = MySeries()
 
@@ -242,43 +249,33 @@ def chainable_property(
 
             # Apply type validation if specified
             if value_type is not None:
-                if value_type == bool:
+                if value_type is bool:
                     # For boolean properties, only accept actual boolean values
                     if not isinstance(value, bool):
-                        raise TypeError(f"{attr_name} must be a boolean")
+                        raise TypeValidationError(attr_name, "boolean")
                 elif not isinstance(value, value_type):
                     # Create user-friendly error message
-                    if value_type == str:
-                        raise TypeError(f"{attr_name} must be a string")
-                    elif value_type == int:
-                        raise TypeError(f"{attr_name} must be an integer")
-                    elif value_type == float:
-                        raise TypeError(f"{attr_name} must be a number")
-                    elif value_type == bool:
-                        raise TypeError(f"{attr_name} must be a boolean")
-                    elif hasattr(value_type, "__name__"):
+                    if value_type is str:
+                        raise TypeValidationError(attr_name, "string")
+                    if value_type is int:
+                        raise TypeValidationError(attr_name, "integer")
+                    if value_type is float:
+                        raise TypeValidationError(attr_name, "number")
+                    if value_type is bool:
+                        raise TypeValidationError(attr_name, "boolean")
+                    if hasattr(value_type, "__name__"):
                         # For complex types, use a more user-friendly message
                         if allow_none:
-                            raise TypeError(
-                                f"{attr_name} must be an instance of {value_type.__name__} or None"
-                            )
-                        else:
-                            raise TypeError(
-                                f"{attr_name} must be an instance of {value_type.__name__}"
-                            )
-                    elif isinstance(value_type, tuple):
+                            raise InstanceTypeError(attr_name, value_type, allow_none=True)
+                        raise InstanceTypeError(attr_name, value_type)
+                    if isinstance(value_type, tuple):
                         # For tuple types like (int, float), create a user-friendly message
                         type_names = [
                             t.__name__ if hasattr(t, "__name__") else str(t) for t in value_type
                         ]
                         if len(type_names) == 2 and "int" in type_names and "float" in type_names:
-                            raise TypeError(f"{attr_name} must be a number")
-                        else:
-                            raise TypeError(f"{attr_name} must be one of {', '.join(type_names)}")
-                    else:
-                        raise TypeError(
-                            f"{attr_name} must be of type {value_type}, got {type(value)}"
-                        )
+                            raise TypeValidationError(attr_name, "number")
+                        raise TypeMismatchError(attr_name, value_type, type(value))
 
             # Apply custom validation if specified
             if validator is not None:
@@ -286,10 +283,7 @@ def chainable_property(
                     # Built-in validators
                     if validator == "color":
                         if not is_valid_color(value):
-                            raise ValueError(
-                                f"Invalid color format for {attr_name}: {value!r}. "
-                                "Must be hex or rgba."
-                            )
+                            raise ColorValidationError(attr_name, value)
                     elif validator == "price_format_type":
                         value = validate_price_format_type(value)
                     elif validator == "precision":
@@ -297,7 +291,7 @@ def chainable_property(
                     elif validator == "min_move":
                         value = validate_min_move(value)
                     else:
-                        raise ValueError(f"Unknown built-in validator: {validator}")
+                        raise ValueValidationError("validator", "unknown validator")
                 else:
                     # Custom validator function
                     value = validator(value)
@@ -318,46 +312,36 @@ def chainable_property(
 
             # Apply type validation if specified
             if value_type is not None:
-                if value_type == bool:
+                if value_type is bool:
                     # For boolean properties, only accept actual boolean values
                     if not isinstance(value, bool):
-                        raise TypeError(f"{attr_name} must be a boolean")
+                        raise TypeValidationError(attr_name, "boolean")
                 elif _is_list_of_markers(value_type):
                     # Special handling for List[MarkerBase] and similar types
                     _validate_list_of_markers(value, attr_name)
                 elif not isinstance(value, value_type):
                     # Create user-friendly error message
-                    if value_type == str:
-                        raise TypeError(f"{attr_name} must be a string")
-                    elif value_type == int:
-                        raise TypeError(f"{attr_name} must be an integer")
-                    elif value_type == float:
-                        raise TypeError(f"{attr_name} must be a number")
-                    elif value_type == bool:
-                        raise TypeError(f"{attr_name} must be a boolean")
-                    elif hasattr(value_type, "__name__"):
+                    if value_type is str:
+                        raise TypeValidationError(attr_name, "string")
+                    if value_type is int:
+                        raise TypeValidationError(attr_name, "integer")
+                    if value_type is float:
+                        raise TypeValidationError(attr_name, "number")
+                    if value_type is bool:
+                        raise TypeValidationError(attr_name, "boolean")
+                    if hasattr(value_type, "__name__"):
                         # For complex types, use a more user-friendly message
                         if allow_none:
-                            raise TypeError(
-                                f"{attr_name} must be an instance of {value_type.__name__} or None"
-                            )
-                        else:
-                            raise TypeError(
-                                f"{attr_name} must be an instance of {value_type.__name__}"
-                            )
-                    elif isinstance(value_type, tuple):
+                            raise InstanceTypeError(attr_name, value_type, allow_none=True)
+                        raise InstanceTypeError(attr_name, value_type)
+                    if isinstance(value_type, tuple):
                         # For tuple types like (int, float), create a user-friendly message
                         type_names = [
                             t.__name__ if hasattr(t, "__name__") else str(t) for t in value_type
                         ]
                         if len(type_names) == 2 and "int" in type_names and "float" in type_names:
-                            raise TypeError(f"{attr_name} must be a number")
-                        else:
-                            raise TypeError(f"{attr_name} must be one of {', '.join(type_names)}")
-                    else:
-                        raise TypeError(
-                            f"{attr_name} must be of type {value_type}, got {type(value)}"
-                        )
+                            raise TypeValidationError(attr_name, "number")
+                        raise TypeMismatchError(attr_name, value_type, type(value))
 
             # Apply custom validation if specified
             if validator is not None:
@@ -365,10 +349,7 @@ def chainable_property(
                     # Built-in validators
                     if validator == "color":
                         if not is_valid_color(value):
-                            raise ValueError(
-                                f"Invalid color format for {attr_name}: {value!r}. "
-                                "Must be hex or rgba."
-                            )
+                            raise ColorValidationError(attr_name, value)
                     elif validator == "price_format_type":
                         value = validate_price_format_type(value)
                     elif validator == "precision":
@@ -376,7 +357,7 @@ def chainable_property(
                     elif validator == "min_move":
                         value = validate_min_move(value)
                     else:
-                        raise ValueError(f"Unknown built-in validator: {validator}")
+                        raise ValueValidationError("validator", "unknown validator")
                 else:
                     # Custom validator function
                     value = validator(value)
@@ -412,8 +393,7 @@ def chainable_field(
     value_type: Optional[Union[Type, tuple]] = None,
     validator: Optional[Union[Callable[[Any], Any], str]] = None,
 ):
-    """
-    Decorator that creates a setter method for dataclass fields with optional validation.
+    """Decorator that creates a setter method for dataclass fields with optional validation.
 
     This decorator enables method chaining for dataclass fields by creating a setter
     method that applies validation and returns the instance for chaining. Unlike
@@ -448,6 +428,7 @@ def chainable_field(
         from dataclasses import dataclass
         from streamlit_lightweight_charts_pro.utils import chainable_field
 
+
         @dataclass
         @chainable_field("color", str, validator="color")
         @chainable_field("width", int)
@@ -456,6 +437,7 @@ def chainable_field(
             color: str = "#000000"
             width: int = 800
             line_options: Optional[LineOptions] = None
+
 
         # Usage examples
         options = MyOptions()
@@ -493,8 +475,7 @@ def chainable_field(
 
 
 def _validate_value(field_name: str, value, value_type=None, validator=None):
-    """
-    Helper function to validate a value according to type and custom validators.
+    """Helper function to validate a value according to type and custom validators.
 
     This function applies both type checking and custom validation to a value
     before it is assigned to a field or property. It supports built-in validators
@@ -520,15 +501,15 @@ def _validate_value(field_name: str, value, value_type=None, validator=None):
     """
     # Apply type validation if specified
     if value_type is not None:
-        if value_type == bool:
+        if value_type is bool:
             # For boolean fields, only accept actual boolean values
             if not isinstance(value, bool):
-                raise TypeError(f"{field_name} must be a boolean")
+                raise TypeValidationError("field", "boolean")
         elif _is_list_of_markers(value_type):
             # Special handling for List[MarkerBase] and similar types
             _validate_list_of_markers(value, field_name)
         elif not isinstance(value, value_type):
-            raise TypeError(f"{field_name} must be of type {value_type}, got {type(value)}")
+            raise TypeValidationError("value", "invalid type")
 
     # Apply custom validation if specified
     if validator is not None:
@@ -536,9 +517,7 @@ def _validate_value(field_name: str, value, value_type=None, validator=None):
             # Built-in validators
             if validator == "color":
                 if not is_valid_color(value):
-                    raise ValueError(
-                        f"Invalid color format for {field_name}: {value!r}. Must be hex or rgba."
-                    )
+                    raise ColorValidationError(field_name, value)
             elif validator == "price_format_type":
                 value = validate_price_format_type(value)
             elif validator == "precision":
@@ -546,7 +525,7 @@ def _validate_value(field_name: str, value, value_type=None, validator=None):
             elif validator == "min_move":
                 value = validate_min_move(value)
             else:
-                raise ValueError(f"Unknown built-in validator: {validator}")
+                raise ValueValidationError("validator", "unknown validator")
         else:
             # Custom validator function
             value = validator(value)

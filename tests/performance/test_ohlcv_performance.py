@@ -14,6 +14,7 @@ Test datasets are based on real-world trading scenarios:
 - Very Large: 9 years of 1-minute data (~850,000 candles)
 """
 
+import concurrent.futures
 import gc
 import math
 import time
@@ -56,7 +57,7 @@ class TestOhlcvDataPerformance:
                     low=low_price,
                     close=close_price,
                     volume=volume,
-                )
+                ),
             )
         return data
 
@@ -83,7 +84,7 @@ class TestOhlcvDataPerformance:
                         low=low_price,
                         close=close_price,
                         volume=volume,
-                    )
+                    ),
                 )
         return data
 
@@ -110,7 +111,7 @@ class TestOhlcvDataPerformance:
                         low=low_price,
                         close=close_price,
                         volume=volume,
-                    )
+                    ),
                 )
         return data
 
@@ -143,7 +144,7 @@ class TestOhlcvDataPerformance:
                             low=low_price,
                             close=close_price,
                             volume=volume,
-                        )
+                        ),
                     )
         return data
 
@@ -161,7 +162,7 @@ class TestOhlcvDataPerformance:
         creation_time = end_time - start_time
         memory_used = end_memory - start_memory
 
-        print(f"\nSmall Dataset Performance:")
+        print("\nSmall Dataset Performance:")
         print(f"  Data points: {data_count:,}")
         print(f"  Creation time: {creation_time:.4f} seconds")
         print(f"  Memory used: {memory_used:.2f} MB")
@@ -186,7 +187,7 @@ class TestOhlcvDataPerformance:
         creation_time = end_time - start_time
         memory_used = end_memory - start_memory
 
-        print(f"\nMedium Dataset Performance:")
+        print("\nMedium Dataset Performance:")
         print(f"  Data points: {data_count:,}")
         print(f"  Creation time: {creation_time:.4f} seconds")
         print(f"  Memory used: {memory_used:.2f} MB")
@@ -211,7 +212,7 @@ class TestOhlcvDataPerformance:
         creation_time = end_time - start_time
         memory_used = end_memory - start_memory
 
-        print(f"\nLarge Dataset Performance:")
+        print("\nLarge Dataset Performance:")
         print(f"  Data points: {data_count:,}")
         print(f"  Creation time: {creation_time:.4f} seconds")
         print(f"  Memory used: {memory_used:.2f} MB")
@@ -236,7 +237,7 @@ class TestOhlcvDataPerformance:
         creation_time = end_time - start_time
         memory_used = end_memory - start_memory
 
-        print(f"\nVery Large Dataset Performance:")
+        print("\nVery Large Dataset Performance:")
         print(f"  Data points: {data_count:,}")
         print(f"  Creation time: {creation_time:.4f} seconds")
         print(f"  Memory used: {memory_used:.2f} MB")
@@ -261,7 +262,7 @@ class TestOhlcvDataPerformance:
         serialization_time = end_time - start_time
         memory_used = end_memory - start_memory
 
-        print(f"\nSmall Dataset Serialization Performance:")
+        print("\nSmall Dataset Serialization Performance:")
         print(f"  Data points: {len(small_dataset):,}")
         print(f"  Serialization time: {serialization_time:.4f} seconds")
         print(f"  Memory used: {memory_used:.2f} MB")
@@ -298,7 +299,7 @@ class TestOhlcvDataPerformance:
         serialization_time = end_time - start_time
         memory_used = end_memory - start_memory
 
-        print(f"\nMedium Dataset Serialization Performance:")
+        print("\nMedium Dataset Serialization Performance:")
         print(f"  Data points: {len(medium_dataset):,}")
         print(f"  Serialization time: {serialization_time:.4f} seconds")
         print(f"  Memory used: {memory_used:.2f} MB")
@@ -322,7 +323,7 @@ class TestOhlcvDataPerformance:
         serialization_time = end_time - start_time
         memory_used = end_memory - start_memory
 
-        print(f"\nLarge Dataset Serialization Performance:")
+        print("\nLarge Dataset Serialization Performance:")
         print(f"  Data points: {len(large_dataset):,}")
         print(f"  Serialization time: {serialization_time:.4f} seconds")
         print(f"  Memory used: {memory_used:.2f} MB")
@@ -357,12 +358,13 @@ class TestOhlcvDataPerformance:
         serialization_time = end_time - start_time
         memory_used = end_memory - start_memory
 
-        print(f"\nVery Large Dataset Serialization Performance:")
+        print("\nVery Large Dataset Serialization Performance:")
         print(f"  Data points: {len(very_large_dataset):,}")
         print(f"  Serialization time: {serialization_time:.4f} seconds")
         print(f"  Memory used: {memory_used:.2f} MB")
         print(
-            f"  Time per data point: {(serialization_time / len(very_large_dataset)) * 1000:.4f} ms"
+            "  Time per data point: "
+            f"{(serialization_time / len(very_large_dataset)) * 1000:.4f} ms",
         )
         print(f"  Memory per data point: {(memory_used / len(very_large_dataset)) * 1024:.2f} KB")
 
@@ -388,14 +390,15 @@ class TestOhlcvDataPerformance:
         gc.collect()
         memory_after_cleanup = psutil.Process().memory_info().rss / 1024 / 1024  # MB
 
-        print(f"\nSmall Dataset Memory Efficiency:")
+        print("\nSmall Dataset Memory Efficiency:")
         print(f"  Initial memory: {start_memory:.2f} MB")
         print(f"  After creation: {memory_after_creation:.2f} MB")
         print(f"  After serialization: {memory_after_serialization:.2f} MB")
         print(f"  After cleanup: {memory_after_cleanup:.2f} MB")
         print(f"  Memory overhead: {memory_after_creation - start_memory:.2f} MB")
         print(
-            f"  Serialization overhead: {memory_after_serialization - memory_after_creation:.2f} MB"
+            "  Serialization overhead: "
+            f"{memory_after_serialization - memory_after_creation:.2f} MB",
         )
 
         # Memory efficiency assertions
@@ -423,14 +426,15 @@ class TestOhlcvDataPerformance:
         gc.collect()
         memory_after_cleanup = psutil.Process().memory_info().rss / 1024 / 1024  # MB
 
-        print(f"\nLarge Dataset Memory Efficiency:")
+        print("\nLarge Dataset Memory Efficiency:")
         print(f"  Initial memory: {start_memory:.2f} MB")
         print(f"  After creation: {memory_after_creation:.2f} MB")
         print(f"  After serialization: {memory_after_serialization:.2f} MB")
         print(f"  After cleanup: {memory_after_cleanup:.2f} MB")
         print(f"  Memory overhead: {memory_after_creation - start_memory:.2f} MB")
         print(
-            f"  Serialization overhead: {memory_after_serialization - memory_after_creation:.2f} MB"
+            "  Serialization overhead: "
+            f"{memory_after_serialization - memory_after_creation:.2f} MB",
         )
 
         # Memory efficiency assertions
@@ -456,7 +460,7 @@ class TestOhlcvDataPerformance:
         end_time = time.time()
         validation_time = end_time - start_time
 
-        print(f"\nSmall Dataset Validation Performance:")
+        print("\nSmall Dataset Validation Performance:")
         print(f"  Data points: {len(small_dataset):,}")
         print(f"  Validation time: {validation_time:.4f} seconds")
         print(f"  Time per data point: {(validation_time / len(small_dataset)) * 1000:.4f} ms")
@@ -480,7 +484,7 @@ class TestOhlcvDataPerformance:
         end_time = time.time()
         validation_time = end_time - start_time
 
-        print(f"\nLarge Dataset Validation Performance:")
+        print("\nLarge Dataset Validation Performance:")
         print(f"  Data points: {len(large_dataset):,}")
         print(f"  Validation time: {validation_time:.4f} seconds")
         print(f"  Time per data point: {(validation_time / len(large_dataset)) * 1000:.4f} ms")
@@ -490,7 +494,6 @@ class TestOhlcvDataPerformance:
 
     def test_concurrent_processing_small_dataset(self, small_dataset):
         """Test concurrent processing performance for small dataset."""
-        import concurrent.futures
 
         start_time = time.time()
 
@@ -498,14 +501,13 @@ class TestOhlcvDataPerformance:
             """Process a single data point."""
             serialized = data.asdict()
             # Simulate some processing
-            processed = {
+            return {
                 "timestamp": serialized["time"],
                 "price_change": serialized["close"] - serialized["open"],
                 "volume_weighted": (
                     serialized["volume"] * (serialized["high"] + serialized["low"]) / 2
                 ),
             }
-            return processed
 
         # Process data concurrently
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
@@ -514,7 +516,7 @@ class TestOhlcvDataPerformance:
         end_time = time.time()
         processing_time = end_time - start_time
 
-        print(f"\nSmall Dataset Concurrent Processing Performance:")
+        print("\nSmall Dataset Concurrent Processing Performance:")
         print(f"  Data points: {len(small_dataset):,}")
         print(f"  Processing time: {processing_time:.4f} seconds")
         print(f"  Time per data point: {(processing_time / len(small_dataset)) * 1000:.4f} ms")
@@ -526,7 +528,6 @@ class TestOhlcvDataPerformance:
 
     def test_concurrent_processing_large_dataset(self, large_dataset):
         """Test concurrent processing performance for large dataset."""
-        import concurrent.futures
 
         start_time = time.time()
 
@@ -534,14 +535,13 @@ class TestOhlcvDataPerformance:
             """Process a single data point."""
             serialized = data.asdict()
             # Simulate some processing
-            processed = {
+            return {
                 "timestamp": serialized["time"],
                 "price_change": serialized["close"] - serialized["open"],
                 "volume_weighted": (
                     serialized["volume"] * (serialized["high"] + serialized["low"]) / 2
                 ),
             }
-            return processed
 
         # Process data concurrently
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
@@ -550,7 +550,7 @@ class TestOhlcvDataPerformance:
         end_time = time.time()
         processing_time = end_time - start_time
 
-        print(f"\nLarge Dataset Concurrent Processing Performance:")
+        print("\nLarge Dataset Concurrent Processing Performance:")
         print(f"  Data points: {len(large_dataset):,}")
         print(f"  Processing time: {processing_time:.4f} seconds")
         print(f"  Time per data point: {(processing_time / len(large_dataset)) * 1000:.4f} ms")
@@ -589,7 +589,7 @@ class TestOhlcvDataPerformance:
         end_time = time.time()
         processing_time = end_time - start_time
 
-        print(f"\nLarge Dataset Batch Processing Performance:")
+        print("\nLarge Dataset Batch Processing Performance:")
         print(f"  Data points: {len(large_dataset):,}")
         print(f"  Batch size: {batch_size}")
         print(f"  Number of batches: {len(batches)}")
@@ -622,7 +622,7 @@ class TestOhlcvDataPerformance:
         # Measure memory after cleanup
         memory_after_cleanup = psutil.Process().memory_info().rss / 1024 / 1024  # MB
 
-        print(f"\nMemory Cleanup Performance:")
+        print("\nMemory Cleanup Performance:")
         print(f"  Initial memory: {start_memory:.2f} MB")
         print(f"  After processing: {memory_after_processing:.2f} MB")
         print(f"  After cleanup: {memory_after_cleanup:.2f} MB")
@@ -636,7 +636,7 @@ class TestOhlcvDataPerformance:
             ) * 100
             print(f"  Cleanup efficiency: {cleanup_efficiency:.1f}%")
         else:
-            print(f"  Cleanup efficiency: N/A (no memory allocated during processing)")
+            print("  Cleanup efficiency: N/A (no memory allocated during processing)")
 
         # Memory cleanup assertions
         assert memory_after_cleanup <= start_memory + 100  # Should clean up properly

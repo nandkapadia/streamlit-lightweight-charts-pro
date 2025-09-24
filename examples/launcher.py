@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Streamlit Lightweight Charts Pro - Examples Launcher
+"""Streamlit Lightweight Charts Pro - Examples Launcher
 
 This launcher provides an interactive way to browse and run all examples
 in the examples directory. It organizes examples by category and provides
@@ -15,7 +14,10 @@ import streamlit as st
 
 # Page configuration
 st.set_page_config(
-    page_title="Examples Launcher", page_icon="🚀", layout="wide", initial_sidebar_state="expanded"
+    page_title="Examples Launcher",
+    page_icon="🚀",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 # Get the examples directory
@@ -125,7 +127,10 @@ EXAMPLE_CATEGORIES = {
         },
     },
     "🎨 Advanced Features": {
-        "description": "Advanced functionality including customization, multi-pane charts, and interactive features.",
+        "description": (
+            "Advanced functionality including customization, "
+            "multi-pane charts, and interactive features."
+        ),
         "examples": {
             "chart_customization.py": {
                 "title": "Chart Customization",
@@ -149,21 +154,6 @@ EXAMPLE_CATEGORIES = {
             },
         },
     },
-    "🎯 Trading Features": {
-        "description": "Trading-specific features and financial chart examples.",
-        "examples": {
-            "supertrend_example.py": {
-                "title": "Supertrend Indicator",
-                "description": "Supertrend indicator with TrendFill series for smooth trend visualization.",
-                "path": "trading_features/supertrend_example.py",
-            },
-            "signal_series_example.py": {
-                "title": "Signal Series",
-                "description": "Background coloring based on trading signals.",
-                "path": "trading_features/signal_series_example.py",
-            },
-        },
-    },
 }
 
 
@@ -173,8 +163,20 @@ def run_example(example_path):
     if full_path.exists():
         try:
             # Run the example in a subprocess
+            # Validate paths to prevent command injection
+            def _raise_invalid_python_path():
+                raise ValueError("Invalid Python executable path")  # noqa: TRY301
+
+            def _raise_invalid_file_path():
+                raise ValueError(f"Invalid example file path: {full_path}")  # noqa: TRY301
+
+            if not sys.executable or not Path(sys.executable).exists():
+                _raise_invalid_python_path()
+            if not full_path.exists() or not full_path.is_file():
+                _raise_invalid_file_path()
+
             cmd = [sys.executable, "-m", "streamlit", "run", str(full_path)]
-            subprocess.run(cmd, check=True)
+            subprocess.run(cmd, check=True, shell=False)
         except subprocess.CalledProcessError as e:
             st.error(f"Error running example: {e}")
         except Exception as e:
@@ -206,7 +208,7 @@ def main():
         """
     Welcome to the Examples Launcher! This interactive tool helps you browse and run
     all available examples organized by category. Click on any example to run it.
-    """
+    """,
     )
 
     # Sidebar for navigation

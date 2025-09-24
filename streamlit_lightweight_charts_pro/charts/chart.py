@@ -1,5 +1,4 @@
-"""
-Chart implementation for streamlit-lightweight-charts.
+"""Chart implementation for streamlit-lightweight-charts.
 
 This module provides the Chart class, which is the primary chart type for displaying
 financial data in a single pane. It supports multiple series types, annotations,
@@ -19,9 +18,11 @@ Example:
     data = [SingleValueData("2024-01-01", 100), SingleValueData("2024-01-02", 105)]
 
     # Create chart with method chaining
-    chart = (Chart(series=LineSeries(data))
-             .update_options(height=400)
-             .add_annotation(create_text_annotation("2024-01-01", 100, "Start")))
+    chart = (
+        Chart(series=LineSeries(data))
+        .update_options(height=400)
+        .add_annotation(create_text_annotation("2024-01-01", 100, "Start"))
+    )
 
     # Render in Streamlit
     chart.render(key="my_chart")
@@ -30,8 +31,8 @@ Example:
 
 import time
 import uuid
-from typing import Any, Dict, List, Optional, Sequence, Union
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import pandas as pd
 
@@ -46,11 +47,24 @@ from streamlit_lightweight_charts_pro.charts.series import (
     LineSeries,
     Series,
 )
-from streamlit_lightweight_charts_pro.component import get_component_func
+from streamlit_lightweight_charts_pro.component import (  # pylint: disable=import-outside-toplevel
+    get_component_func,
+    reinitialize_component,
+)
 from streamlit_lightweight_charts_pro.data.annotation import Annotation, AnnotationManager
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
 from streamlit_lightweight_charts_pro.data.tooltip import TooltipConfig, TooltipManager
 from streamlit_lightweight_charts_pro.data.trade import TradeData
+from streamlit_lightweight_charts_pro.exceptions import (
+    AnnotationItemsTypeError,
+    ComponentNotAvailableError,
+    DuplicateError,
+    PriceScaleIdStringError,
+    PriceScaleOptionsTypeError,
+    SeriesItemsTypeError,
+    TypeValidationError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.logging_config import get_logger
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     ColumnNames,
@@ -63,44 +77,41 @@ logger = get_logger(__name__)
 
 
 class Chart:
-    """
-    Single pane chart for displaying financial data.
+    """Single pane chart for displaying financial data.
 
-    This class represents a single pane chart that can display multiple series
-    of financial data. It supports various chart types including candlestick,
-    line, area, bar, and histogram series. The chart includes comprehensive
-    annotation support, trade visualization, and method chaining for fluent
-    API usage.
+            This class represents a single pane chart that can display multiple series
+            of financial data. It supports various chart types including candlestick,
+        line, area, bar, and histogram series. The chart includes comprehensive
+        annotation support, trade visualization, and method chaining for fluent
+                                        API usage.
 
-    The Chart class provides a complete interface for creating interactive
-    financial visualizations with support for:
-    - Multiple series types in a single chart
-    - Advanced annotation system with layers
-    - Trade visualization with buy/sell markers
-    - Price and volume series from pandas DataFrames
-    - Overlay price scales for complex visualizations
-    - Comprehensive customization options
+        The Chart class provides a complete interface for creating interactive
+                                        financial visualizations with support for:
+                                        - Multiple series types in a single chart
+                                        - Advanced annotation system with layers
+                                        - Trade visualization with buy/sell markers
+                                        - Price and volume series from pandas DataFrames
+                                        - Overlay price scales for complex visualizations
+                                        - Comprehensive customization options
 
-    Attributes:
-        series (List[Series]): List of series objects to display in the chart.
-        options (ChartOptions): Chart configuration options including layout, grid, etc.
-        annotation_manager (AnnotationManager): Manager for chart annotations and layers.
+                                        Attributes:
+            series (List[Series]): List of series objects to display in the chart.
+                    options (ChartOptions): Chart configuration options including layout, grid, etc.
+    annotation_manager (AnnotationManager): Manager for chart annotations and layers.
 
-    Example:
-        ```python
-        # Basic usage
-        chart = Chart(series=LineSeries(data))
+                                        Example:
+                                            ```python
+                                            # Basic usage
+                                            chart = Chart(series=LineSeries(data))
 
-        # With method chaining
-        chart = (Chart(series=LineSeries(data))
-                 .update_options(height=400)
-                 .add_annotation(text_annotation))
+                                            # With method chaining
+chart = Chart(series=LineSeries(data)).update_options(height=400).add_annotation(text_annotation)
 
-        # From DataFrame with price and volume
-        chart = Chart.from_price_volume_dataframe(
+                                            # From DataFrame with price and volume
+                                            chart = Chart.from_price_volume_dataframe(
             df, column_mapping={"time": "timestamp", "open": "o", "high": "h"}
-        )
-        ```
+                                            )
+                                            ```
     """
 
     def __init__(
@@ -111,8 +122,7 @@ class Chart:
         chart_group_id: int = 0,
         chart_manager: Optional[Any] = None,
     ):
-        """
-        Initialize a single pane chart.
+        """Initialize a single pane chart.
 
         Args:
             series (Optional[Union[Series, List[Series]]]): Optional single series
@@ -140,10 +150,7 @@ class Chart:
             chart = Chart(series=[line_series, candlestick_series])
 
             # Create chart with custom options
-            chart = Chart(
-                series=line_series,
-                options=ChartOptions(height=600, width=800)
-            )
+            chart = Chart(series=line_series, options=ChartOptions(height=600, width=800))
             ```
         """
         # Convert single series to list for consistent handling
@@ -155,14 +162,10 @@ class Chart:
             # Validate that all items in the list are Series instances
             for item in series:
                 if not isinstance(item, Series):
-                    raise TypeError(
-                        f"All items in series list must be Series instances, got {type(item)}"
-                    )
+                    raise SeriesItemsTypeError()
             self.series = series
         else:
-            raise TypeError(
-                f"series must be a Series instance or list of Series instances, got {type(series)}"
-            )
+            raise TypeValidationError("series", "Series instance or list")
 
         # Initialize chart options
         self.options = options or ChartOptions()
@@ -182,18 +185,14 @@ class Chart:
         # Add initial annotations if provided
         if annotations is not None:
             if not isinstance(annotations, list):
-                raise TypeError(f"annotations must be a list, got {type(annotations)}")
+                raise TypeValidationError("annotations", "list")
             for annotation in annotations:
                 if not isinstance(annotation, Annotation):
-                    raise TypeError(
-                        "All items in annotations list must be Annotation instances, "
-                        f"got {type(annotation)}"
-                    )
+                    raise AnnotationItemsTypeError()
                 self.add_annotation(annotation)
 
     def add_series(self, series: Series) -> "Chart":
-        """
-        Add a series to the chart.
+        """Add a series to the chart.
 
         Adds a new series object to the chart's series list. The series will be
         displayed according to its type (line, candlestick, area, etc.) and
@@ -222,28 +221,29 @@ class Chart:
             ```
         """
         if not isinstance(series, Series):
-            raise TypeError("series must be an instance of Series")
+            raise TypeValidationError("series", "Series instance")
 
         # Check if series has a custom price_scale_id that's not "left" or "right"
         price_scale_id = series.price_scale_id
-        if price_scale_id and price_scale_id not in ["left", "right", ""]:
-            # Check if the price scale exists in overlay_price_scales
-            if price_scale_id not in self.options.overlay_price_scales:
-                logger.warning(
-                    "Series with price_scale_id '%s' does not have a corresponding "
-                    "overlay price scale configuration. Creating empty price scale object.",
-                    price_scale_id,
-                )
-                # Create an empty PriceScaleOptions object
-                empty_scale = PriceScaleOptions(price_scale_id=price_scale_id)
-                self.options.overlay_price_scales[price_scale_id] = empty_scale
+        if (
+            price_scale_id
+            and price_scale_id not in ["left", "right", ""]
+            and price_scale_id not in self.options.overlay_price_scales
+        ):
+            logger.warning(
+                "Series with price_scale_id '%s' does not have a corresponding "
+                "overlay price scale configuration. Creating empty price scale object.",
+                price_scale_id,
+            )
+            # Create an empty PriceScaleOptions object
+            empty_scale = PriceScaleOptions(price_scale_id=price_scale_id)
+            self.options.overlay_price_scales[price_scale_id] = empty_scale
 
         self.series.append(series)
         return self
 
     def update_options(self, **kwargs) -> "Chart":
-        """
-        Update chart options.
+        """Update chart options.
 
         Updates the chart's configuration options using keyword arguments.
         Only valid ChartOptions attributes will be updated; invalid attributes
@@ -285,8 +285,7 @@ class Chart:
         return self
 
     def add_annotation(self, annotation: Annotation, layer_name: str = "default") -> "Chart":
-        """
-        Add an annotation to the chart.
+        """Add an annotation to the chart.
 
         Adds a single annotation to the specified annotation layer. If the layer
         doesn't exist, it will be created automatically. Annotations can include
@@ -313,24 +312,25 @@ class Chart:
             ```
         """
         if annotation is None:
-            raise TypeError("annotation cannot be None")
+            raise ValueValidationError("annotation", "cannot be None")
         if not isinstance(annotation, Annotation):
-            raise TypeError(f"annotation must be an Annotation instance, got {type(annotation)}")
+            raise TypeValidationError("annotation", "Annotation instance")
 
         # Use default layer name if None is provided
         if layer_name is None:
             layer_name = "default"
         elif not layer_name or not isinstance(layer_name, str):
-            raise ValueError("layer_name must be a non-empty string")
+            raise ValueValidationError("layer_name", "must be a non-empty string")
 
         self.annotation_manager.add_annotation(annotation, layer_name)
         return self
 
     def add_annotations(
-        self, annotations: List[Annotation], layer_name: str = "default"
+        self,
+        annotations: List[Annotation],
+        layer_name: str = "default",
     ) -> "Chart":
-        """
-        Add multiple annotations to the chart.
+        """Add multiple annotations to the chart.
 
         Adds multiple annotation objects to the specified annotation layer. This
         is more efficient than calling add_annotation multiple times as it
@@ -350,7 +350,7 @@ class Chart:
             annotations = [
                 create_text_annotation("2024-01-01", 100, "Start"),
                 create_arrow_annotation("2024-01-02", 105, "Trend"),
-                create_shape_annotation("2024-01-03", 110, "rectangle")
+                create_shape_annotation("2024-01-03", 110, "rectangle"),
             ]
             chart.add_annotations(annotations)
 
@@ -359,24 +359,20 @@ class Chart:
             ```
         """
         if annotations is None:
-            raise TypeError("annotations cannot be None")
+            raise TypeValidationError("annotations", "list")
         if not isinstance(annotations, list):
-            raise TypeError(f"annotations must be a list, got {type(annotations)}")
+            raise TypeValidationError("annotations", "list")
         if not layer_name or not isinstance(layer_name, str):
-            raise ValueError("layer_name must be a non-empty string")
+            raise ValueValidationError("layer_name", "must be a non-empty string")
 
         for annotation in annotations:
             if not isinstance(annotation, Annotation):
-                raise TypeError(
-                    "All items in annotations list must be Annotation instances, "
-                    f"got {type(annotation)}"
-                )
+                raise AnnotationItemsTypeError()
             self.add_annotation(annotation, layer_name)
         return self
 
     def create_annotation_layer(self, name: str) -> "Chart":
-        """
-        Create a new annotation layer.
+        """Create a new annotation layer.
 
         Creates a new annotation layer with the specified name. Annotation layers
         allow you to organize and manage groups of annotations independently.
@@ -400,15 +396,14 @@ class Chart:
             ```
         """
         if name is None:
-            raise TypeError("name cannot be None")
-        elif not name or not isinstance(name, str):
-            raise ValueError("name must be a non-empty string")
+            raise TypeValidationError("name", "string")
+        if not name or not isinstance(name, str):
+            raise ValueValidationError("name", "must be a non-empty string")
         self.annotation_manager.create_layer(name)
         return self
 
     def hide_annotation_layer(self, name: str) -> "Chart":
-        """
-        Hide an annotation layer.
+        """Hide an annotation layer.
 
         Hides the specified annotation layer, making all annotations in that
         layer invisible on the chart. The layer and its annotations are preserved
@@ -431,13 +426,12 @@ class Chart:
             ```
         """
         if not name or not isinstance(name, str):
-            raise ValueError("name must be a non-empty string")
+            raise ValueValidationError("name", "must be a non-empty string")
         self.annotation_manager.hide_layer(name)
         return self
 
     def show_annotation_layer(self, name: str) -> "Chart":
-        """
-        Show an annotation layer.
+        """Show an annotation layer.
 
         Makes the specified annotation layer visible on the chart. This will
         display all annotations that were previously added to this layer.
@@ -460,13 +454,12 @@ class Chart:
             ```
         """
         if not name or not isinstance(name, str):
-            raise ValueError("name must be a non-empty string")
+            raise ValueValidationError("name", "must be a non-empty string")
         self.annotation_manager.show_layer(name)
         return self
 
     def clear_annotations(self, layer_name: Optional[str] = None) -> "Chart":
-        """
-        Clear annotations from the chart.
+        """Clear annotations from the chart.
 
         Removes all annotations from the specified layer or from all layers if
         no layer name is provided. The layer itself is preserved and can be
@@ -492,13 +485,12 @@ class Chart:
             ```
         """
         if layer_name is not None and (not layer_name or not isinstance(layer_name, str)):
-            raise ValueError("layer_name must be None or a non-empty string")
+            raise ValueValidationError("layer_name", "must be None or a non-empty string")
         self.annotation_manager.clear_layer(layer_name)
         return self
 
     def add_overlay_price_scale(self, scale_id: str, options: "PriceScaleOptions") -> "Chart":
-        """
-        Add or update a custom overlay price scale configuration.
+        """Add or update a custom overlay price scale configuration.
 
         Adds or updates an overlay price scale configuration for the chart.
         Overlay price scales allow multiple series to share the same price axis
@@ -535,15 +527,15 @@ class Chart:
             ```
         """
         if not scale_id or not isinstance(scale_id, str):
-            raise ValueError("scale_id must be a non-empty string")
+            raise ValueValidationError("scale_id", "must be a non-empty string")
         if options is None:
-            raise TypeError("options cannot be None")
+            raise TypeValidationError("options", "PriceScaleOptions")
         if not isinstance(options, PriceScaleOptions):
-            raise ValueError("options must be a PriceScaleOptions instance")
+            raise ValueValidationError("options", "must be a PriceScaleOptions instance")
 
         # Check for duplicate scale_id
         if scale_id in self.options.overlay_price_scales:
-            raise ValueError(f"Price scale with id '{scale_id}' already exists")
+            raise DuplicateError("Price scale", scale_id)
 
         self.options.overlay_price_scales[scale_id] = options
         return self
@@ -551,14 +543,13 @@ class Chart:
     def add_price_volume_series(
         self,
         data: Union[Sequence[OhlcvData], pd.DataFrame],
-        column_mapping: dict = None,
+        column_mapping: Optional[dict] = None,
         price_type: str = "candlestick",
         price_kwargs=None,
         volume_kwargs=None,
         pane_id: int = 0,
     ) -> "Chart":
-        """
-        Add price and volume series to the chart.
+        """Add price and volume series to the chart.
 
         Creates and adds both price and volume series to the chart from OHLCV data.
         The price series is displayed on the main price scale, while the volume
@@ -587,32 +578,32 @@ class Chart:
             chart.add_price_volume_series(
                 ohlcv_data,
                 column_mapping={"time": "timestamp", "volume": "vol"},
-                price_type="candlestick"
+                price_type="candlestick",
             )
 
             # Add line chart with custom volume colors
             chart.add_price_volume_series(
                 ohlcv_data,
                 price_type="line",
-                volume_kwargs={"up_color": "green", "down_color": "red"}
+                volume_kwargs={"up_color": "green", "down_color": "red"},
             )
             ```
         """
         # Validate inputs
         if data is None:
-            raise TypeError("data cannot be None")
+            raise TypeValidationError("data", "list or DataFrame")
         if not isinstance(data, (list, pd.DataFrame)) or (
             isinstance(data, list) and len(data) == 0
         ):
-            raise ValueError("data must be a non-empty list or DataFrame")
+            raise ValueValidationError("data", "must be a non-empty list or DataFrame")
 
         if column_mapping is None:
-            raise TypeError("column_mapping cannot be None")
+            raise TypeValidationError("column_mapping", "dict")
         if not isinstance(column_mapping, dict):
-            raise TypeError("column_mapping must be a dict")
+            raise TypeValidationError("column_mapping", "dict")
 
         if pane_id < 0:
-            raise ValueError("pane_id must be non-negative")
+            raise ValueValidationError("pane_id", "must be non-negative")
 
         price_kwargs = price_kwargs or {}
         volume_kwargs = volume_kwargs or {}
@@ -642,7 +633,7 @@ class Chart:
                 **price_kwargs,
             )
         else:
-            raise ValueError("price_type must be 'candlestick' or 'line'")
+            raise ValueValidationError("price_type", "must be 'candlestick' or 'line'")
 
         # Extract volume-specific kwargs
         volume_up_color = volume_kwargs.get("up_color", "rgba(38,166,154,0.5)")
@@ -684,8 +675,7 @@ class Chart:
         return self
 
     def add_trades(self, trades: List[TradeData]) -> "Chart":
-        """
-        Add trade visualization to the chart.
+        """Add trade visualization to the chart.
 
         Converts TradeData objects to visual elements and adds them to the chart for
         visualization. Each trade will be displayed with entry and exit markers,
@@ -712,7 +702,7 @@ class Chart:
                     exit_time="2024-01-01 15:00:00",
                     exit_price=105.0,
                     quantity=100,
-                    trade_type=TradeType.LONG
+                    trade_type=TradeType.LONG,
                 )
             ]
 
@@ -724,14 +714,14 @@ class Chart:
             ```
         """
         if trades is None:
-            raise TypeError("trades cannot be None")
+            raise TypeValidationError("trades", "list")
         if not isinstance(trades, list):
-            raise TypeError(f"trades must be a list, got {type(trades)}")
+            raise TypeValidationError("trades", "list")
 
         # Validate that all items are TradeData objects
         for trade in trades:
             if not isinstance(trade, TradeData):
-                raise TypeError(f"All items in trades must be TradeData objects, got {type(trade)}")
+                raise ValueValidationError("trades", "all items must be TradeData objects")
 
         # Store trades for frontend processing
         self._trades = trades
@@ -762,8 +752,7 @@ class Chart:
         return self
 
     def set_tooltip_manager(self, tooltip_manager) -> "Chart":
-        """
-        Set the tooltip manager for the chart.
+        """Set the tooltip manager for the chart.
 
         Args:
             tooltip_manager: TooltipManager instance to handle tooltip functionality.
@@ -771,16 +760,14 @@ class Chart:
         Returns:
             Chart: Self for method chaining.
         """
-
         if not isinstance(tooltip_manager, TooltipManager):
-            raise TypeError("tooltip_manager must be a TooltipManager instance")
+            raise TypeValidationError("tooltip_manager", "TooltipManager instance")
 
         self._tooltip_manager = tooltip_manager
         return self
 
     def add_tooltip_config(self, name: str, config) -> "Chart":
-        """
-        Add a tooltip configuration to the chart.
+        """Add a tooltip configuration to the chart.
 
         Args:
             name: Name for the tooltip configuration.
@@ -789,9 +776,8 @@ class Chart:
         Returns:
             Chart: Self for method chaining.
         """
-
         if not isinstance(config, TooltipConfig):
-            raise TypeError("config must be a TooltipConfig instance")
+            raise TypeValidationError("config", "TooltipConfig instance")
 
         if self._tooltip_manager is None:
             self._tooltip_manager = TooltipManager()
@@ -800,8 +786,7 @@ class Chart:
         return self
 
     def set_chart_group_id(self, group_id: int) -> "Chart":
-        """
-        Set the chart group ID for synchronization.
+        """Set the chart group ID for synchronization.
 
         Charts with the same group_id will be synchronized with each other.
         This is different from sync_group which is used by ChartManager.
@@ -823,8 +808,7 @@ class Chart:
 
     @property
     def chart_group_id(self) -> int:
-        """
-        Get the chart group ID for synchronization.
+        """Get the chart group ID for synchronization.
 
         Returns:
             int: The chart group ID.
@@ -839,8 +823,7 @@ class Chart:
 
     @chart_group_id.setter
     def chart_group_id(self, group_id: int) -> None:
-        """
-        Set the chart group ID for synchronization.
+        """Set the chart group ID for synchronization.
 
         Args:
             group_id (int): Group ID for synchronization.
@@ -852,12 +835,11 @@ class Chart:
             ```
         """
         if not isinstance(group_id, int):
-            raise TypeError("chart_group_id must be an integer")
+            raise TypeValidationError("chart_group_id", "integer")
         self._chart_group_id = group_id
 
     def _filter_range_switcher_by_data(self, chart_config: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Filter range switcher options based on available data timespan.
+        """Filter range switcher options based on available data timespan.
 
         This method calculates the actual data timespan from all series and removes
         range options that exceed the available data range. This provides a cleaner
@@ -870,8 +852,7 @@ class Chart:
             Dict[str, Any]: Modified chart configuration with filtered range options
         """
         # Only process if range switcher is configured
-        if not (chart_config.get("rangeSwitcher") and
-                chart_config["rangeSwitcher"].get("ranges")):
+        if not (chart_config.get("rangeSwitcher") and chart_config["rangeSwitcher"].get("ranges")):
             return chart_config
 
         # Calculate data timespan from all series
@@ -903,17 +884,17 @@ class Chart:
         max_time = None
 
         for series in self.series:
-            if not hasattr(series, 'data') or not series.data:
+            if not hasattr(series, "data") or not series.data:
                 continue
 
             for data_point in series.data:
                 time_value = None
 
                 # Extract time from various data formats
-                if hasattr(data_point, 'time'):
+                if hasattr(data_point, "time"):
                     time_value = data_point.time
-                elif isinstance(data_point, dict) and 'time' in data_point:
-                    time_value = data_point['time']
+                elif isinstance(data_point, dict) and "time" in data_point:
+                    time_value = data_point["time"]
 
                 if time_value is None:
                     continue
@@ -937,57 +918,56 @@ class Chart:
         """Convert various time formats to timestamp."""
         if isinstance(time_value, (int, float)):
             return float(time_value)
-        elif isinstance(time_value, str):
+        if isinstance(time_value, str):
             try:
                 # Try parsing ISO format
-                dt = datetime.fromisoformat(time_value.replace('Z', '+00:00'))
+                dt = datetime.fromisoformat(time_value.replace("Z", "+00:00"))
                 return dt.timestamp()
             except (ValueError, AttributeError):
                 try:
                     # Try parsing as date
-                    dt = datetime.strptime(time_value, '%Y-%m-%d')
+                    dt = datetime.strptime(time_value, "%Y-%m-%d")
                     return dt.timestamp()
                 except ValueError:
                     return None
-        elif hasattr(time_value, 'timestamp'):
+        elif hasattr(time_value, "timestamp"):
             return time_value.timestamp()
         return None
 
     def _get_range_seconds(self, range_config: Dict[str, Any]) -> Optional[float]:
         """Extract seconds from range configuration."""
-        range_value = range_config.get('range')
+        range_value = range_config.get("range")
 
-        if range_value is None or range_value == 'ALL':
+        if range_value is None or range_value == "ALL":
             return None
 
         # Handle TimeRange enum values
         range_seconds_map = {
-            'FIVE_MINUTES': 300,
-            'FIFTEEN_MINUTES': 900,
-            'THIRTY_MINUTES': 1800,
-            'ONE_HOUR': 3600,
-            'FOUR_HOURS': 14400,
-            'ONE_DAY': 86400,
-            'ONE_WEEK': 604800,
-            'TWO_WEEKS': 1209600,
-            'ONE_MONTH': 2592000,
-            'THREE_MONTHS': 7776000,
-            'SIX_MONTHS': 15552000,
-            'ONE_YEAR': 31536000,
-            'TWO_YEARS': 63072000,
-            'FIVE_YEARS': 157680000,
+            "FIVE_MINUTES": 300,
+            "FIFTEEN_MINUTES": 900,
+            "THIRTY_MINUTES": 1800,
+            "ONE_HOUR": 3600,
+            "FOUR_HOURS": 14400,
+            "ONE_DAY": 86400,
+            "ONE_WEEK": 604800,
+            "TWO_WEEKS": 1209600,
+            "ONE_MONTH": 2592000,
+            "THREE_MONTHS": 7776000,
+            "SIX_MONTHS": 15552000,
+            "ONE_YEAR": 31536000,
+            "TWO_YEARS": 63072000,
+            "FIVE_YEARS": 157680000,
         }
 
         if isinstance(range_value, str) and range_value in range_seconds_map:
             return range_seconds_map[range_value]
-        elif isinstance(range_value, (int, float)):
+        if isinstance(range_value, (int, float)):
             return float(range_value)
 
         return None
 
     def to_frontend_config(self) -> Dict[str, Any]:
-        """
-        Convert chart to frontend configuration dictionary.
+        """Convert chart to frontend configuration dictionary.
 
         Converts the chart and all its components (series, options, annotations)
         to a dictionary format suitable for frontend consumption. This method
@@ -1011,9 +991,9 @@ class Chart:
             config = chart.to_frontend_config()
 
             # Access chart configuration
-            chart_config = config['charts'][0]
-            series_config = chart_config['series']
-            options_config = chart_config['chart']
+            chart_config = config["charts"][0]
+            series_config = chart_config["series"]
+            options_config = chart_config["chart"]
             ```
         """
         # Group series by pane_id and sort by z_index within each pane
@@ -1048,7 +1028,7 @@ class Chart:
             series_by_pane[pane_id].append(series_config)
 
         # Sort series within each pane by z_index (lower values render first/behind)
-        for pane_id, series_list in series_by_pane.items():
+        for series_list in series_by_pane.values():
             series_list.sort(key=lambda x: x.get("zIndex", 0) if isinstance(x, dict) else 0)
 
         # Flatten sorted series back to a single list, maintaining pane order
@@ -1064,47 +1044,46 @@ class Chart:
             try:
                 chart_config["rightPriceScale"] = self.options.right_price_scale.asdict()
                 # Validate price scale ID is a string if provided
-                if (self.options.right_price_scale.price_scale_id is not None and
-                    not isinstance(self.options.right_price_scale.price_scale_id, str)):
-                    raise TypeError(
-                        f"right_price_scale.price_scale_id must be a string, "
-                        f"got {type(self.options.right_price_scale.price_scale_id).__name__}"
+                if self.options.right_price_scale.price_scale_id is not None and not isinstance(
+                    self.options.right_price_scale.price_scale_id,
+                    str,
+                ):
+                    raise PriceScaleIdStringError(
+                        field_name="right_price_scale.price_scale_id",
+                        expected_type="string",
                     )
             except AttributeError as e:
                 if isinstance(self.options.right_price_scale, bool):
-                    raise TypeError(
-                        "right_price_scale must be a PriceScaleOptions object, not a boolean. "
-                        "To enable the right price scale, use: "
-                        "right_price_scale=PriceScaleOptions(visible=True) or remove the parameter "
-                        "(it's enabled by default)."
+                    raise PriceScaleOptionsTypeError(
+                        "right_price_scale",
+                        type(self.options.right_price_scale),
                     ) from e
-                else:
-                    raise TypeError(
-                        f"right_price_scale must be a PriceScaleOptions object, "
-                        f"got {type(self.options.right_price_scale).__name__}"
-                    ) from e
+                raise PriceScaleOptionsTypeError(
+                    "right_price_scale",
+                    type(self.options.right_price_scale),
+                ) from e
         if self.options and self.options.left_price_scale is not None:
             try:
                 chart_config["leftPriceScale"] = self.options.left_price_scale.asdict()
                 # Validate price scale ID is a string if provided
-                if (self.options.left_price_scale.price_scale_id is not None and
-                    not isinstance(self.options.left_price_scale.price_scale_id, str)):
-                    raise TypeError(
-                        f"left_price_scale.price_scale_id must be a string, "
-                        f"got {type(self.options.left_price_scale.price_scale_id).__name__}"
+                if self.options.left_price_scale.price_scale_id is not None and not isinstance(
+                    self.options.left_price_scale.price_scale_id,
+                    str,
+                ):
+                    raise PriceScaleIdStringError(
+                        field_name="left_price_scale.price_scale_id",
+                        expected_type="string",
                     )
             except AttributeError as e:
                 if isinstance(self.options.left_price_scale, bool):
-                    raise TypeError(
-                        "left_price_scale must be a PriceScaleOptions object, not a boolean. "
-                        "To enable the left price scale, use: "
-                        "left_price_scale=PriceScaleOptions(visible=True)"
+                    raise PriceScaleOptionsTypeError(
+                        "left_price_scale",
+                        type(self.options.left_price_scale),
                     ) from e
-                else:
-                    raise TypeError(
-                        f"left_price_scale must be a PriceScaleOptions object, "
-                        f"got {type(self.options.left_price_scale).__name__}"
-                    ) from e
+                raise PriceScaleOptionsTypeError(
+                    "left_price_scale",
+                    type(self.options.left_price_scale),
+                ) from e
 
         if self.options and self.options.overlay_price_scales is not None:
             chart_config["overlayPriceScales"] = {
@@ -1128,7 +1107,6 @@ class Chart:
             "series": series_configs,
             "annotations": annotations_config,
         }
-
 
         # Add trades to chart configuration if they exist
         if trades_config:
@@ -1194,8 +1172,7 @@ class Chart:
         return config
 
     def render(self, key: Optional[str] = None) -> Any:
-        """
-        Render the chart in Streamlit.
+        """Render the chart in Streamlit.
 
         Converts the chart to frontend configuration and renders it using the
         Streamlit component. This is the final step in the chart creation process
@@ -1226,16 +1203,12 @@ class Chart:
 
         if component_func is None:
             # Try to reinitialize the component
-            from streamlit_lightweight_charts_pro.component import reinitialize_component
 
             if reinitialize_component():
                 component_func = get_component_func()
 
             if component_func is None:
-                raise RuntimeError(
-                    "Component function not available. "
-                    "Please check if the component is properly initialized."
-                )
+                raise ComponentNotAvailableError()
 
         kwargs = {"config": config}
 
@@ -1248,7 +1221,6 @@ class Chart:
 
         # Generate a unique key if none provided or if it's empty/invalid
         if key is None or not isinstance(key, str) or not key.strip():
-
             # Generate a unique key using timestamp and UUID
             unique_id = str(uuid.uuid4())[:8]
             key = f"chart_{int(time.time() * 1000)}_{unique_id}"

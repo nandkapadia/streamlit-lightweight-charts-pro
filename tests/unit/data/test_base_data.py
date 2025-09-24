@@ -11,6 +11,11 @@ import pandas as pd
 import pytest
 
 from streamlit_lightweight_charts_pro.data.line_data import LineData
+from streamlit_lightweight_charts_pro.exceptions import (
+    RequiredFieldError,
+    TimeValidationError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.utils.data_utils import from_utc_timestamp, to_utc_timestamp
 
 
@@ -52,7 +57,8 @@ class TestSingleValueData:
     def test_concrete_subclass_data_class(self):
         """Test concrete subclass data_class property."""
         # LineData doesn't have data_class property, it IS the data class
-        assert LineData == LineData
+        # This test verifies LineData is properly defined
+        assert LineData is not None
 
 
 class TestTimeNormalization:
@@ -92,7 +98,7 @@ class TestTimeNormalization:
 
     def test_to_utc_timestamp_invalid_input(self):
         """Test to_utc_timestamp with invalid input."""
-        with pytest.raises(ValueError):
+        with pytest.raises(TimeValidationError):
             to_utc_timestamp("invalid_date")
 
     def test_from_utc_timestamp(self):
@@ -122,12 +128,12 @@ class TestDataValidation:
 
     def test_line_data_with_none_value(self):
         """Test LineData with None value."""
-        with pytest.raises(ValueError):
+        with pytest.raises(RequiredFieldError):
             LineData(time=1640995200, value=None)
 
     def test_line_data_with_invalid_time(self):
         """Test LineData with invalid time."""
-        with pytest.raises(ValueError):
+        with pytest.raises(TimeValidationError):
             LineData(time="invalid_time", value=100)
 
     def test_line_data_with_color(self):
@@ -137,7 +143,7 @@ class TestDataValidation:
 
     def test_line_data_with_invalid_color(self):
         """Test LineData with invalid color."""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             LineData(time=1640995200, value=100, color="invalid_color")
 
 
@@ -200,7 +206,8 @@ class TestInheritance:
     def test_data_class_property(self):
         """Test data_class property returns correct class."""
         # LineData doesn't have data_class property, it IS the data class
-        assert LineData == LineData
+        # This test verifies LineData is properly defined
+        assert LineData is not None
 
     def test_classproperty_decorator(self):
         """Test that classproperty decorator works correctly."""

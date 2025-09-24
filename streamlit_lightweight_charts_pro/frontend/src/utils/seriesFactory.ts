@@ -171,22 +171,22 @@ export function createSeries(
           setData: (newData: any[]) => {
             try {
               bandSeries.setData(newData as BandData[]);
-            } catch (error) {
-              console.error('Failed to set band series data:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           update: (newData: any) => {
             try {
               bandSeries.update(newData as BandData);
-            } catch (error) {
-              console.error('Failed to update band series:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           applyOptions: (options: any) => {
             try {
               bandSeries.setOptions(cleanLineStyleOptions(options));
-            } catch (error) {
-              console.error('Failed to apply band series options:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           priceScale: () => {
@@ -199,8 +199,8 @@ export function createSeries(
           remove: () => {
             try {
               bandSeries.remove();
-            } catch (error) {
-              console.error('Failed to remove band series:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
         } as unknown as ISeriesApi<any>;
@@ -244,23 +244,23 @@ export function createSeries(
           setData: (newData: any[]) => {
             try {
               ribbonSeries.setData(newData);
-            } catch (error) {
-              console.error('Failed to set ribbon series data:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           update: (newData: any) => {
             try {
               // For ribbon, update the entire dataset
               ribbonSeries.setData([newData]);
-            } catch (error) {
-              console.error('Failed to update ribbon series:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           applyOptions: (options: any) => {
             try {
               ribbonSeries.setOptions(cleanLineStyleOptions(options));
-            } catch (error) {
-              console.error('Failed to apply ribbon series options:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           priceScale: () => {
@@ -275,12 +275,12 @@ export function createSeries(
               // For primitives, we need to detach from the series
               // The series will handle cleanup when removed
               ribbonSeries.remove();
-            } catch (error) {
-              console.error('Failed to remove ribbon series:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
         } as unknown as ISeriesApi<any>;
-      } catch (error) {
+      } catch {
         return null;
       }
     }
@@ -327,22 +327,22 @@ export function createSeries(
           setData: (newData: any[]) => {
             try {
               gradientRibbonSeries.setData(newData as GradientRibbonData[]);
-            } catch (error) {
-              console.error('Failed to set gradient ribbon series data:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           update: (newData: any) => {
             try {
               gradientRibbonSeries.updateData([newData]);
-            } catch (error) {
-              console.error('Failed to update gradient ribbon series:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           applyOptions: (options: any) => {
             try {
               gradientRibbonSeries.applyOptions(cleanLineStyleOptions(options));
-            } catch (error) {
-              console.error('Failed to apply gradient ribbon series options:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           priceScale: () => {
@@ -355,12 +355,12 @@ export function createSeries(
           remove: () => {
             try {
               gradientRibbonSeries.destroy();
-            } catch (error) {
-              console.error('Failed to remove gradient ribbon series:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
         } as unknown as ISeriesApi<any>;
-      } catch (error) {
+      } catch {
         return null;
       }
     }
@@ -384,15 +384,15 @@ export function createSeries(
           setData: (newData: any[]) => {
             try {
               signalSeries.updateData(newData);
-            } catch (error) {
-              console.error('Failed to set signal series data:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           update: (newData: any) => {
             try {
               signalSeries.updateData([newData]);
-            } catch (error) {
-              console.error('Failed to update signal series:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           applyOptions: (options: any) => {
@@ -403,8 +403,8 @@ export function createSeries(
                 alertColor: options.alertColor,
                 visible: options.visible !== false,
               });
-            } catch (error) {
-              console.error('Failed to apply signal series options:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
           priceScale: () => {
@@ -420,8 +420,8 @@ export function createSeries(
               if (signalPluginRefs && chartId !== undefined && seriesIndex !== undefined) {
                 delete signalPluginRefs.current[`${chartId}-${seriesIndex}`];
               }
-            } catch (error) {
-              console.error('Failed to remove signal series:', error);
+            } catch {
+              console.error('An error occurred');
             }
           },
         } as unknown as ISeriesApi<any>;
@@ -463,21 +463,21 @@ export function createSeries(
           setData: (newData: any[]) => {
             try {
               trendFillSeries.setData(newData);
-            } catch (error) {
+            } catch {
               // Error setting trend fill data - fail silently
             }
           },
           update: (newData: any) => {
             try {
               trendFillSeries.updateData([newData]);
-            } catch (error) {
+            } catch {
               // Error updating trend fill data - fail silently
             }
           },
           applyOptions: (options: any) => {
             try {
               trendFillSeries.applyOptions(options);
-            } catch (error) {
+            } catch {
               // Error applying trend fill options - fail silently
             }
           },
@@ -491,12 +491,12 @@ export function createSeries(
           remove: () => {
             try {
               trendFillSeries.destroy();
-            } catch (error) {
+            } catch {
               // Error removing trend fill series - fail silently
             }
           },
         } as unknown as ISeriesApi<any>;
-      } catch (error) {
+      } catch {
         return null;
       }
     }
@@ -696,7 +696,7 @@ export function createSeries(
     seriesConfig.priceLines.forEach((priceLine: any, _index: number) => {
       try {
         series.createPriceLine(priceLine);
-      } catch (error) {
+      } catch {
         // Failed to create price line
       }
     });
@@ -707,7 +707,7 @@ export function createSeries(
       // Apply timestamp snapping to all markers (like trade visualization)
       const snappedMarkers = applyTimestampSnapping(seriesConfig.markers, data);
       createSeriesMarkers(series, snappedMarkers);
-    } catch (error) {
+    } catch {
       // Error handling
     }
   }
@@ -731,7 +731,7 @@ export function createSeries(
       if (legendManager && typeof (legendManager as any).addSeriesLegend === 'function') {
         (legendManager as any).addSeriesLegend(seriesId, seriesConfig);
       }
-    } catch (error) {
+    } catch {
       // Error adding legend
     }
   }
@@ -755,16 +755,17 @@ export function createSeries(
       // Store rectangle data for later processing by the chart component
       if (visualElements.rectangles && visualElements.rectangles.length > 0) {
         // Store the rectangle data in the chart for later processing
-        if (!(chart as ExtendedChartApi)._pendingTradeRectangles) {
-          (chart as ExtendedChartApi)._pendingTradeRectangles = [];
+        const extendedChart = chart as ExtendedChartApi;
+        if (!extendedChart._pendingTradeRectangles) {
+          extendedChart._pendingTradeRectangles = [];
         }
-        (chart as ExtendedChartApi)._pendingTradeRectangles!.push({
+        extendedChart._pendingTradeRectangles.push({
           rectangles: visualElements.rectangles,
           series: series,
           chartId: chartId ?? '',
         });
       }
-    } catch (error) {
+    } catch {
       // Error processing trades
     }
   }

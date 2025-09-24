@@ -2,7 +2,7 @@
  * @fileoverview Test Helper Verification - Simple tests to verify our enhanced utilities work
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Import our enhanced testing utilities
 import { MemoryLeakDetector } from './MemoryLeakDetector';
@@ -202,7 +202,7 @@ describe('Test Helper Verification', () => {
           detector.trackObject(chart);
 
           // Add some series
-          ChartTestHelpers.addTestSeries(chart, 'LineSeries', 100);
+          ChartTestHelpers.addTestSeries(chart, 'Line' as any, 100);
 
           // Simulate some operations
           await new Promise(resolve => setTimeout(resolve, 5));

@@ -6,8 +6,6 @@
  * for chart operations with configurable thresholds and detailed reporting.
  */
 
-import { vi } from 'vitest';
-
 export interface PerformanceThresholds {
   chartCreation: number; // milliseconds
   seriesAddition: number; // milliseconds
@@ -83,7 +81,7 @@ export class PerformanceTestHelpers {
     const startMemory = this.getCurrentMemoryUsage();
     const startTime = performance.now();
 
-    const result = fn();
+    fn();
 
     const endTime = performance.now();
     const endMemory = this.getCurrentMemoryUsage();
@@ -121,7 +119,7 @@ export class PerformanceTestHelpers {
     const startMemory = this.getCurrentMemoryUsage();
     const startTime = performance.now();
 
-    const result = await fn();
+    await fn();
 
     const endTime = performance.now();
     const endMemory = this.getCurrentMemoryUsage();
@@ -224,7 +222,7 @@ export class PerformanceTestHelpers {
   }> {
     const frames: number[] = [];
     let lastFrameTime = performance.now();
-    let animationId: number;
+    let animationId: number | undefined;
 
     const frameCallback = () => {
       const now = performance.now();
@@ -263,7 +261,7 @@ export class PerformanceTestHelpers {
     const caf =
       (typeof global !== 'undefined' && global.cancelAnimationFrame) ||
       (typeof window !== 'undefined' && window.cancelAnimationFrame);
-    if (caf) {
+    if (caf && animationId) {
       caf(animationId);
     } else if (typeof animationId === 'number') {
       clearTimeout(animationId);
@@ -524,8 +522,8 @@ export class PerformanceTestHelpers {
   }
 
   private static getCurrentMemoryUsage(): number {
-    if (typeof performance !== 'undefined' && performance.memory) {
-      return performance.memory.usedJSHeapSize;
+    if (typeof performance !== 'undefined' && (performance as any).memory) {
+      return (performance as any).memory.usedJSHeapSize;
     }
 
     if (typeof process !== 'undefined' && process.memoryUsage) {

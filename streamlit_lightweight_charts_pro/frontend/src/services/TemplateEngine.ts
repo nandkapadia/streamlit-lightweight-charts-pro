@@ -308,7 +308,7 @@ export class TemplateEngine {
     if (locale) {
       try {
         return value.toLocaleString(locale);
-      } catch (error) {
+      } catch {
         // Invalid locale - fall back to default formatting
       }
     }
@@ -344,7 +344,7 @@ export class TemplateEngine {
 
       // Default formatting
       return date.toLocaleString();
-    } catch (error) {
+    } catch {
       // Error formatting time - fall back to string conversion
       return time.toString();
     }

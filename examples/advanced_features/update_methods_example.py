@@ -1,5 +1,4 @@
-"""
-Example demonstrating the update methods for Options and Series classes.
+"""Example demonstrating the update methods for Options and Series classes.
 
 This example shows how to use the dictionary-based update functionality
 for both Options and Series classes, including nested object handling.
@@ -66,13 +65,13 @@ def main():
     series.update({"visible": False, "price_scale_id": "left", "pane_id": 1})
 
     st.write("**Updated Series Properties:**")
-    st.write(f"- Visible: {series.visible  # pylint: disable=no-member}")
-    st.write(f"- Price Scale ID: {series.price_scale_id  # pylint: disable=no-member}")
-    st.write(f"- Pane ID: {series.pane_id  # pylint: disable=no-member}")
+    st.write(f"- Visible: {series.visible}")  # pylint: disable=no-member
+    st.write(f"- Price Scale ID: {series.price_scale_id}")  # pylint: disable=no-member
+    st.write(f"- Pane ID: {series.pane_id}")  # pylint: disable=no-member
 
     # Nested options updates
     series.update(
-        {"line_options": {"color": "#0000ff", "line_width": 4, "line_style": LineStyle.SOLID}}
+        {"line_options": {"color": "#0000ff", "line_width": 4, "line_style": LineStyle.SOLID}},
     )
 
     st.write("**Updated Nested Options:**")
@@ -86,12 +85,12 @@ def main():
             "visible": True,
             "price_scale_id": "right",
             "line_options": {"color": "#ff6600", "line_width": 2, "line_style": LineStyle.DASHED},
-        }
+        },
     )
 
     st.write("**After Complex Updates:**")
-    st.write(f"- Visible: {series.visible  # pylint: disable=no-member}")
-    st.write(f"- Price Scale ID: {series.price_scale_id  # pylint: disable=no-member}")
+    st.write(f"- Visible: {series.visible}")  # pylint: disable=no-member
+    st.write(f"- Price Scale ID: {series.price_scale_id}")  # pylint: disable=no-member
     st.write(f"- Line Color: {series.line_options.color}")
 
     st.header("3. Method Chaining")
@@ -110,9 +109,9 @@ def main():
     )
 
     st.write("**After Method Chaining:**")
-    st.write(f"- Visible: {chain_series.visible  # pylint: disable=no-member}")
-    st.write(f"- Price Scale ID: {chain_series.price_scale_id  # pylint: disable=no-member}")
-    st.write(f"- Pane ID: {chain_series.pane_id  # pylint: disable=no-member}")
+    st.write(f"- Visible: {chain_series.visible}")  # pylint: disable=no-member
+    st.write(f"- Price Scale ID: {chain_series.price_scale_id}")  # pylint: disable=no-member
+    st.write(f"- Pane ID: {chain_series.pane_id}")  # pylint: disable=no-member
     st.write(f"- Line Color: {chain_series.line_options.color}")
     st.write(f"- Result is same object: {result is chain_series}")
 
@@ -137,7 +136,7 @@ def main():
             "visible": False,
             "price_scale_id": "left",
             "line_options": {"color": "#00ff00", "line_width": 2},
-        }
+        },
     )
 
     # Serialize to dictionary
@@ -185,7 +184,7 @@ def main():
             "price_scale_id": "right",
             "pane_id": 0,
             "line_options": {"color": "#ff6600", "line_width": 3, "line_style": LineStyle.SOLID},
-        }
+        },
     )
 
     # Create and display chart

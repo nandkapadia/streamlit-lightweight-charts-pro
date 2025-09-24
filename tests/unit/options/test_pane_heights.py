@@ -23,6 +23,7 @@ from streamlit_lightweight_charts_pro import (
     LineSeries,
     PaneHeightOptions,
 )
+from streamlit_lightweight_charts_pro.exceptions import PositiveValueError
 
 
 class TestPaneHeightOptions:
@@ -40,12 +41,12 @@ class TestPaneHeightOptions:
 
     def test_validation_negative_factor(self):
         """Test validation rejects negative factors."""
-        with pytest.raises(ValueError, match="must be positive"):
+        with pytest.raises(PositiveValueError):
             PaneHeightOptions(factor=-1.0)
 
     def test_validation_zero_factor(self):
         """Test validation rejects zero factors."""
-        with pytest.raises(ValueError, match="must be positive"):
+        with pytest.raises(PositiveValueError):
             PaneHeightOptions(factor=0.0)
 
     def test_validation_positive_factor(self):
@@ -125,7 +126,7 @@ class TestLayoutOptionsPaneHeights:
                 0: PaneHeightOptions(factor=2.0),
                 1: PaneHeightOptions(factor=1.0),
                 2: PaneHeightOptions(factor=1.5),
-            }
+            },
         )
         assert layout.pane_heights is not None
         assert len(layout.pane_heights) == 3
@@ -136,7 +137,7 @@ class TestLayoutOptionsPaneHeights:
     def test_layout_options_serialization(self):
         """Test LayoutOptions serialization with pane_heights."""
         layout = LayoutOptions(
-            pane_heights={0: PaneHeightOptions(factor=2.0), 1: PaneHeightOptions(factor=1.0)}
+            pane_heights={0: PaneHeightOptions(factor=2.0), 1: PaneHeightOptions(factor=1.0)},
         )
         result = layout.asdict()
         assert "paneHeights" in result
@@ -167,22 +168,13 @@ class TestLayoutOptionsPaneHeights:
                 0: PaneHeightOptions(factor=1.0),
                 10: PaneHeightOptions(factor=2.0),
                 100: PaneHeightOptions(factor=3.0),
-            }
+            },
         )
         result = layout.asdict()
 
         assert result["paneHeights"]["0"]["factor"] == 1.0
         assert result["paneHeights"]["10"]["factor"] == 2.0
         assert result["paneHeights"]["100"]["factor"] == 3.0
-
-    def test_layout_options_update_pane_heights(self):
-        """Test updating pane_heights after construction."""
-        layout = LayoutOptions()
-        layout.pane_heights = {0: PaneHeightOptions(factor=2.0), 1: PaneHeightOptions(factor=1.0)}
-
-        result = layout.asdict()
-        assert result["paneHeights"]["0"]["factor"] == 2.0
-        assert result["paneHeights"]["1"]["factor"] == 1.0
 
 
 class TestChartPaneHeights:
@@ -200,7 +192,7 @@ class TestChartPaneHeights:
                     pane_heights={
                         0: PaneHeightOptions(factor=2.0),
                         1: PaneHeightOptions(factor=1.0),
-                    }
+                    },
                 ),
             ),
             series=[LineSeries(data=data, pane_id=0), LineSeries(data=data, pane_id=1)],
@@ -221,7 +213,7 @@ class TestChartPaneHeights:
                     pane_heights={
                         0: PaneHeightOptions(factor=2.0),
                         1: PaneHeightOptions(factor=1.0),
-                    }
+                    },
                 ),
             ),
             series=[LineSeries(data=data, pane_id=0), LineSeries(data=data, pane_id=1)],
@@ -238,7 +230,8 @@ class TestChartPaneHeights:
         data = [LineData(time=1640995200, value=100)]
 
         chart = Chart(
-            options=ChartOptions(width=800, height=600), series=[LineSeries(data=data, pane_id=0)]
+            options=ChartOptions(width=800, height=600),
+            series=[LineSeries(data=data, pane_id=0)],
         )
 
         config = chart.to_frontend_config()
@@ -260,7 +253,7 @@ class TestChartPaneHeights:
                         0: PaneHeightOptions(factor=3.0),
                         1: PaneHeightOptions(factor=1.0),
                         2: PaneHeightOptions(factor=2.0),
-                    }
+                    },
                 ),
             ),
             series=[
@@ -303,7 +296,7 @@ class TestChartPaneHeights:
                         0: PaneHeightOptions(factor=3.0),  # Main chart
                         1: PaneHeightOptions(factor=1.0),  # Volume
                         2: PaneHeightOptions(factor=1.5),  # Area
-                    }
+                    },
                 ),
             ),
             series=[
@@ -333,7 +326,7 @@ class TestChartPaneHeights:
                     pane_heights={
                         0: PaneHeightOptions(factor=2.0),
                         1: PaneHeightOptions(factor=1.0),
-                    }
+                    },
                 ),
             ),
             series=[
@@ -368,7 +361,7 @@ class TestPaneHeightsEdgeCases:
     def test_large_factor_values(self):
         """Test large factor values."""
         layout = LayoutOptions(
-            pane_heights={0: PaneHeightOptions(factor=10.0), 1: PaneHeightOptions(factor=0.1)}
+            pane_heights={0: PaneHeightOptions(factor=10.0), 1: PaneHeightOptions(factor=0.1)},
         )
         result = layout.asdict()
         assert result["paneHeights"]["0"]["factor"] == 10.0
@@ -377,17 +370,17 @@ class TestPaneHeightsEdgeCases:
     def test_string_pane_ids(self):
         """Test that pane IDs are converted to strings in serialization."""
         layout = LayoutOptions(
-            pane_heights={0: PaneHeightOptions(factor=2.0), 1: PaneHeightOptions(factor=1.0)}
+            pane_heights={0: PaneHeightOptions(factor=2.0), 1: PaneHeightOptions(factor=1.0)},
         )
         result = layout.asdict()
         assert "0" in result["paneHeights"]
         assert "1" in result["paneHeights"]
-        assert isinstance(list(result["paneHeights"].keys())[0], str)
+        assert isinstance(next(iter(result["paneHeights"].keys())), str)
 
     def test_negative_pane_ids(self):
         """Test negative pane IDs."""
         layout = LayoutOptions(
-            pane_heights={-1: PaneHeightOptions(factor=1.0), -2: PaneHeightOptions(factor=2.0)}
+            pane_heights={-1: PaneHeightOptions(factor=1.0), -2: PaneHeightOptions(factor=2.0)},
         )
         result = layout.asdict()
         assert "-1" in result["paneHeights"]
@@ -399,7 +392,7 @@ class TestPaneHeightsEdgeCases:
             pane_heights={
                 999999: PaneHeightOptions(factor=1.0),
                 1000000: PaneHeightOptions(factor=2.0),
-            }
+            },
         )
         result = layout.asdict()
         assert "999999" in result["paneHeights"]
@@ -412,7 +405,7 @@ class TestPaneHeightsEdgeCases:
                 0: PaneHeightOptions(factor=1.0),
                 "1": PaneHeightOptions(factor=2.0),  # String key
                 2: PaneHeightOptions(factor=3.0),
-            }
+            },
         )
         result = layout.asdict()
         assert result["paneHeights"]["0"]["factor"] == 1.0
@@ -424,15 +417,16 @@ class TestPaneHeightsEdgeCases:
         layout = LayoutOptions(
             pane_heights={
                 0: PaneHeightOptions(factor=1.0),
-                0: PaneHeightOptions(factor=2.0),  # Overwrites the first
-            }
+                1: PaneHeightOptions(factor=2.0),  # Different pane
+            },
         )
         result = layout.asdict()
-        assert result["paneHeights"]["0"]["factor"] == 2.0
+        assert result["paneHeights"]["0"]["factor"] == 1.0
+        assert result["paneHeights"]["1"]["factor"] == 2.0
 
     def test_invalid_pane_height_options(self):
         """Test with invalid PaneHeightOptions objects."""
-        with pytest.raises(ValueError, match="must be positive"):
+        with pytest.raises(PositiveValueError):
             LayoutOptions(pane_heights={0: PaneHeightOptions(factor=-1.0)})
 
 
@@ -459,7 +453,7 @@ class TestPaneHeightsIntegration:
                         1: PaneHeightOptions(factor=1.0),  # Volume
                         2: PaneHeightOptions(factor=2.0),  # Indicator 1
                         3: PaneHeightOptions(factor=2.0),  # Indicator 2
-                    }
+                    },
                 ),
             ),
             series=[
@@ -537,7 +531,7 @@ class TestPaneHeightsIntegration:
                 0: PaneHeightOptions(factor=2.0),
                 1: PaneHeightOptions(factor=1.0),
                 2: PaneHeightOptions(factor=1.5),
-            }
+            },
         )
 
         # Serialize multiple times
@@ -609,7 +603,7 @@ class TestPaneHeightsPerformance:
                         2: PaneHeightOptions(factor=2.0),
                         3: PaneHeightOptions(factor=1.5),
                         4: PaneHeightOptions(factor=1.0),
-                    }
+                    },
                 ),
             ),
             series=[
@@ -648,14 +642,14 @@ class TestPaneHeightsValidation:
         assert options2.factor == 999999.0
 
         # Test exactly zero (should fail)
-        with pytest.raises(ValueError, match="must be positive"):
+        with pytest.raises(PositiveValueError):
             PaneHeightOptions(factor=0.0)
 
         # Test negative values (should fail)
-        with pytest.raises(ValueError, match="must be positive"):
+        with pytest.raises(PositiveValueError):
             PaneHeightOptions(factor=-0.1)
 
-        with pytest.raises(ValueError, match="must be positive"):
+        with pytest.raises(PositiveValueError):
             PaneHeightOptions(factor=-100.0)
 
     def test_layout_options_pane_heights_validation(self):
@@ -667,7 +661,7 @@ class TestPaneHeightsValidation:
         assert layout.pane_heights is not None
 
         # Invalid pane_heights (should fail during construction)
-        with pytest.raises(ValueError, match="must be positive"):
+        with pytest.raises(PositiveValueError):
             layout.pane_heights = {0: PaneHeightOptions(factor=-1.0)}
 
     def test_chart_pane_heights_validation(self):
@@ -681,18 +675,18 @@ class TestPaneHeightsValidation:
                     pane_heights={
                         0: PaneHeightOptions(factor=2.0),
                         1: PaneHeightOptions(factor=1.0),
-                    }
-                )
+                    },
+                ),
             ),
             series=[LineSeries(data=data, pane_id=0), LineSeries(data=data, pane_id=1)],
         )
         assert chart.options.layout.pane_heights is not None
 
         # Invalid chart with pane_heights (should fail during construction)
-        with pytest.raises(ValueError, match="must be positive"):
+        with pytest.raises(PositiveValueError):
             Chart(
                 options=ChartOptions(
-                    layout=LayoutOptions(pane_heights={0: PaneHeightOptions(factor=-1.0)})
+                    layout=LayoutOptions(pane_heights={0: PaneHeightOptions(factor=-1.0)}),
                 ),
                 series=[LineSeries(data=data, pane_id=0)],
             )

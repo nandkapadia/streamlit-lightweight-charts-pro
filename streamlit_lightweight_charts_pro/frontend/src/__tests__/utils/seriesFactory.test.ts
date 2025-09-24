@@ -52,7 +52,7 @@ describe('Series Factory', () => {
 
       const series = createSeries(chart, seriesConfig);
       expect(series).toBeDefined();
-      expect(series.setData).toHaveBeenCalledWith(seriesConfig.data);
+      expect(series?.setData).toHaveBeenCalledWith(seriesConfig.data);
     });
 
     it('should create line series with custom options', () => {
@@ -409,7 +409,7 @@ describe('Series Factory', () => {
         options: {},
       };
 
-      const series = createSeries(chart, seriesConfig);
+      const series = createSeries(chart, seriesConfig as any);
       expect(series).toBeDefined();
     });
 
@@ -420,7 +420,7 @@ describe('Series Factory', () => {
         options: {},
       };
 
-      const series = createSeries(chart, seriesConfig);
+      const series = createSeries(chart, seriesConfig as any);
       expect(series).toBeDefined();
     });
 

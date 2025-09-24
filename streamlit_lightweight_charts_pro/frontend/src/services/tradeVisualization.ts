@@ -50,7 +50,7 @@ function parseTime(time: string | number): UTCTimestamp | null {
     }
 
     return null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -427,7 +427,7 @@ export function convertTradeRectanglesToPluginFormat(
         };
 
         return pluginRect;
-      } catch (error) {
+      } catch {
         return null;
       }
     })
@@ -481,7 +481,7 @@ export async function convertTradeRectanglesToPluginFormatWhenReady(
 
     // Now convert coordinates
     return convertTradeRectanglesToPluginFormat(tradeRectangles, chart, series);
-  } catch (error) {
+  } catch {
     // Fallback to immediate conversion
     return convertTradeRectanglesToPluginFormat(tradeRectangles, chart, series);
   }

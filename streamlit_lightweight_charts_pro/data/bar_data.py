@@ -1,14 +1,14 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 
 
 @dataclass
 class BarData(OhlcData):
-    """
-    Data class for a single value (line/area/histogram) chart point.
+    """Data class for a single value (line/area/histogram) chart point.
 
     Inherits from SingleValueData and adds an optional color field.
 
@@ -24,13 +24,12 @@ class BarData(OhlcData):
         - Color should be a valid hex (e.g., #2196F3) or rgba string (e.g., rgba(33,150,243,1)).
     """
 
-    REQUIRED_COLUMNS = set()
-    OPTIONAL_COLUMNS = {"color"}
+    REQUIRED_COLUMNS: ClassVar[set] = set()
+    OPTIONAL_COLUMNS: ClassVar[set] = {"color"}
 
     color: Optional[str] = None
 
     def __post_init__(self):
         super().__post_init__()
-        if self.color is not None and self.color != "":
-            if not is_valid_color(self.color):
-                raise ValueError(f"Invalid color format: {self.color!r}. Must be hex or rgba.")
+        if self.color is not None and self.color != "" and not is_valid_color(self.color):
+            raise ValueValidationError("color", "Invalid color format")

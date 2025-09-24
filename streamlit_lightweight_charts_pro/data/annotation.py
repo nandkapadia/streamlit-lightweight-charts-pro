@@ -1,5 +1,4 @@
-"""
-Annotation system for streamlit-lightweight-charts.
+"""Annotation system for streamlit-lightweight-charts.
 
 This module provides a comprehensive annotation system for adding text, arrows,
 shapes, and other visual elements to charts. It includes classes for individual
@@ -16,7 +15,9 @@ The annotation system supports:
 Example:
     ```python
     from streamlit_lightweight_charts_pro.data.annotation import (
-        create_text_annotation, create_arrow_annotation, AnnotationManager
+        create_text_annotation,
+        create_arrow_annotation,
+        AnnotationManager,
     )
 
     # Create annotations
@@ -24,10 +25,12 @@ Example:
     arrow_ann = create_arrow_annotation("2024-01-02", 105, "Buy Signal")
 
     # Use with annotation manager
-    manager = (AnnotationManager()
-               .create_layer("events")
-               .add_annotation(text_ann, "events")
-               .add_annotation(arrow_ann, "events"))
+    manager = (
+        AnnotationManager()
+        .create_layer("events")
+        .add_annotation(text_ann, "events")
+        .add_annotation(arrow_ann, "events")
+    )
     ```
 """
 
@@ -37,6 +40,14 @@ from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
+from streamlit_lightweight_charts_pro.exceptions import (
+    AnnotationTextRequiredError,
+    BorderWidthNonNegativeError,
+    FontSizePositiveError,
+    LayerNameRequiredError,
+    OpacityRangeError,
+    PriceMustBeNumberError,
+)
 from streamlit_lightweight_charts_pro.logging_config import get_logger
 from streamlit_lightweight_charts_pro.type_definitions import ColumnNames
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
@@ -50,8 +61,7 @@ logger = get_logger("data.annotation")
 
 
 class Annotation:
-    """
-    Represents a chart annotation.
+    """Represents a chart annotation.
 
     This class defines an annotation that can be displayed on charts to
     provide additional context, highlight important events, or add
@@ -127,27 +137,27 @@ class Annotation:
 
         # Validate price value
         if not isinstance(price, (int, float)):
-            raise ValueError("Price must be a number")
+            raise PriceMustBeNumberError("price")
         self.price = price
 
         # Validate text content
         if not text:
-            raise ValueError("Annotation text cannot be empty")
+            raise AnnotationTextRequiredError()
         self.text = text
 
         # Validate opacity range
         if not 0 <= opacity <= 1:
-            raise ValueError("Opacity must be between 0 and 1")
+            raise OpacityRangeError("opacity", opacity)
         self.opacity = opacity
 
         # Validate font size
         if font_size <= 0:
-            raise ValueError("Font size must be positive")
+            raise FontSizePositiveError("font_size")
         self.font_size = font_size
 
         # Validate border width
         if border_width < 0:
-            raise ValueError("Border width must be non-negative")
+            raise BorderWidthNonNegativeError("border_width")
         self.border_width = border_width
 
         self.color = color
@@ -160,8 +170,7 @@ class Annotation:
 
     @property
     def timestamp(self) -> Union[int, str]:
-        """
-        Get time as UTC timestamp.
+        """Get time as UTC timestamp.
 
         Returns:
             Union[int, str]: UTC timestamp as integer (seconds) or
@@ -171,8 +180,7 @@ class Annotation:
 
     @property
     def datetime_value(self) -> pd.Timestamp:
-        """
-        Get time as pandas Timestamp.
+        """Get time as pandas Timestamp.
 
         Returns:
             pd.Timestamp: Pandas Timestamp object representing the
@@ -181,8 +189,7 @@ class Annotation:
         return pd.Timestamp(from_utc_timestamp(self._timestamp))
 
     def asdict(self) -> Dict[str, Any]:
-        """
-        Convert annotation to dictionary for serialization.
+        """Convert annotation to dictionary for serialization.
 
         This method creates a dictionary representation of the annotation
         suitable for JSON serialization or frontend consumption.
@@ -212,8 +219,7 @@ class Annotation:
 
 @dataclass
 class AnnotationLayer:
-    """
-    Manages a layer of annotations for a chart.
+    """Manages a layer of annotations for a chart.
 
     This class provides functionality for grouping related annotations
     together and applying bulk operations to them. Layers can be shown,
@@ -232,21 +238,19 @@ class AnnotationLayer:
     opacity: float = 1.0
 
     def __post_init__(self):
-        """
-        Validate annotation layer after initialization.
+        """Validate annotation layer after initialization.
 
         Raises:
             ValueError: If layer name is empty or opacity is invalid.
         """
         if not self.name:
-            raise ValueError("Layer name cannot be empty")
+            raise LayerNameRequiredError()
 
         if not 0 <= self.opacity <= 1:
-            raise ValueError("Opacity must be between 0 and 1")
+            raise OpacityRangeError("opacity", self.opacity)
 
     def add_annotation(self, annotation: Annotation) -> "AnnotationLayer":
-        """
-        Add annotation to layer.
+        """Add annotation to layer.
 
         Adds a single annotation to this layer and returns self for
         method chaining.
@@ -266,8 +270,7 @@ class AnnotationLayer:
         return self
 
     def remove_annotation(self, index: int) -> "AnnotationLayer":
-        """
-        Remove annotation by index.
+        """Remove annotation by index.
 
         Removes an annotation from the layer by its index position
         and returns self for method chaining.
@@ -288,8 +291,7 @@ class AnnotationLayer:
         return self
 
     def clear_annotations(self) -> "AnnotationLayer":
-        """
-        Clear all annotations from layer.
+        """Clear all annotations from layer.
 
         Removes all annotations from this layer and returns self
         for method chaining.
@@ -306,8 +308,7 @@ class AnnotationLayer:
         return self
 
     def hide(self) -> "AnnotationLayer":
-        """
-        Hide the layer.
+        """Hide the layer.
 
         Makes this layer and all its annotations invisible and
         returns self for method chaining.
@@ -324,8 +325,7 @@ class AnnotationLayer:
         return self
 
     def show(self) -> "AnnotationLayer":
-        """
-        Show the layer.
+        """Show the layer.
 
         Makes this layer and all its annotations visible and
         returns self for method chaining.
@@ -342,8 +342,7 @@ class AnnotationLayer:
         return self
 
     def set_opacity(self, opacity: float) -> "AnnotationLayer":
-        """
-        Set layer opacity.
+        """Set layer opacity.
 
         Sets the overall opacity of this layer and returns self
         for method chaining.
@@ -363,7 +362,7 @@ class AnnotationLayer:
             ```
         """
         if not 0 <= opacity <= 1:
-            raise ValueError("Opacity must be between 0 and 1")
+            raise OpacityRangeError(field_name="opacity", value=opacity)
         self.opacity = opacity
         return self
 
@@ -372,8 +371,7 @@ class AnnotationLayer:
         start_time: Union[pd.Timestamp, datetime, str, int, float],
         end_time: Union[pd.Timestamp, datetime, str, int, float],
     ) -> List[Annotation]:
-        """
-        Filter annotations by time range.
+        """Filter annotations by time range.
 
         Returns a list of annotations that fall within the specified
         time range.
@@ -387,9 +385,7 @@ class AnnotationLayer:
 
         Example:
             ```python
-            annotations = layer.filter_by_time_range(
-                "2024-01-01", "2024-01-31"
-            )
+            annotations = layer.filter_by_time_range("2024-01-01", "2024-01-31")
             ```
         """
         start_ts = to_utc_timestamp(start_time)
@@ -402,8 +398,7 @@ class AnnotationLayer:
         ]
 
     def filter_by_price_range(self, min_price: float, max_price: float) -> List[Annotation]:
-        """
-        Filter annotations by price range.
+        """Filter annotations by price range.
 
         Returns a list of annotations that fall within the specified
         price range.
@@ -427,8 +422,7 @@ class AnnotationLayer:
         ]
 
     def asdict(self) -> Dict[str, Any]:
-        """
-        Convert layer to dictionary for serialization.
+        """Convert layer to dictionary for serialization.
 
         Creates a dictionary representation of the layer including
         its properties and all contained annotations.
@@ -445,8 +439,7 @@ class AnnotationLayer:
 
 
 class AnnotationManager:
-    """
-    Manages multiple annotation layers for a chart.
+    """Manages multiple annotation layers for a chart.
 
     This class provides a centralized way to manage multiple annotation
     layers, allowing for organization of annotations into logical groups.
@@ -461,16 +454,14 @@ class AnnotationManager:
     """
 
     def __init__(self):
-        """
-        Initialize the annotation manager.
+        """Initialize the annotation manager.
 
         Creates a new AnnotationManager with an empty layers dictionary.
         """
         self.layers: Dict[str, AnnotationLayer] = {}
 
     def create_layer(self, name: str) -> "AnnotationManager":
-        """
-        Create a new annotation layer.
+        """Create a new annotation layer.
 
         Creates a new empty annotation layer with the specified name.
         If a layer with that name already exists, returns self for method chaining.
@@ -492,8 +483,7 @@ class AnnotationManager:
         return self
 
     def get_layer(self, name: str) -> Optional["AnnotationLayer"]:
-        """
-        Get an annotation layer by name.
+        """Get an annotation layer by name.
 
         Args:
             name: Name of the layer to retrieve.
@@ -511,8 +501,7 @@ class AnnotationManager:
         return self.layers.get(name)
 
     def remove_layer(self, name: str) -> bool:
-        """
-        Remove an annotation layer by name.
+        """Remove an annotation layer by name.
 
         Removes the specified layer and all its annotations. Returns
         True if the layer was found and removed, False otherwise.
@@ -536,8 +525,7 @@ class AnnotationManager:
         return False
 
     def clear_all_layers(self) -> "AnnotationManager":
-        """
-        Clear all annotation layers.
+        """Clear all annotation layers.
 
         Removes all layers and their annotations. Returns self for
         method chaining.
@@ -554,10 +542,11 @@ class AnnotationManager:
         return self
 
     def add_annotation(
-        self, annotation: Annotation, layer_name: str = "default"
+        self,
+        annotation: Annotation,
+        layer_name: str = "default",
     ) -> "AnnotationManager":
-        """
-        Add annotation to a specific layer.
+        """Add annotation to a specific layer.
 
         Adds an annotation to the specified layer. If the layer doesn't exist,
         it will be created automatically. Returns self for method chaining.
@@ -581,8 +570,7 @@ class AnnotationManager:
         return self
 
     def hide_layer(self, name: str) -> "AnnotationManager":
-        """
-        Hide a specific annotation layer.
+        """Hide a specific annotation layer.
 
         Makes the specified layer and all its annotations invisible.
         Returns self for method chaining.
@@ -603,8 +591,7 @@ class AnnotationManager:
         return self
 
     def show_layer(self, name: str) -> "AnnotationManager":
-        """
-        Show a specific annotation layer.
+        """Show a specific annotation layer.
 
         Makes the specified layer and all its annotations visible.
         Returns self for method chaining.
@@ -625,8 +612,7 @@ class AnnotationManager:
         return self
 
     def clear_layer(self, name: str) -> "AnnotationManager":
-        """
-        Clear all annotations from a specific layer.
+        """Clear all annotations from a specific layer.
 
         Removes all annotations from the specified layer while keeping
         the layer itself. Returns self for method chaining.
@@ -647,8 +633,7 @@ class AnnotationManager:
         return self
 
     def get_all_annotations(self) -> List[Annotation]:
-        """
-        Get all annotations from all layers.
+        """Get all annotations from all layers.
 
         Returns a flat list of all annotations from all layers,
         regardless of layer visibility.
@@ -667,8 +652,7 @@ class AnnotationManager:
         return all_annotations
 
     def hide_all_layers(self) -> "AnnotationManager":
-        """
-        Hide all annotation layers.
+        """Hide all annotation layers.
 
         Makes all layers and their annotations invisible. Returns
         self for method chaining.
@@ -686,8 +670,7 @@ class AnnotationManager:
         return self
 
     def show_all_layers(self) -> "AnnotationManager":
-        """
-        Show all annotation layers.
+        """Show all annotation layers.
 
         Makes all layers and their annotations visible. Returns
         self for method chaining.
@@ -705,8 +688,7 @@ class AnnotationManager:
         return self
 
     def asdict(self) -> Dict[str, Any]:
-        """
-        Convert manager to dictionary for serialization.
+        """Convert manager to dictionary for serialization.
 
         Creates a dictionary representation of all layers and their
         annotations suitable for serialization.
@@ -724,8 +706,7 @@ def create_text_annotation(
     text: str,
     **kwargs,
 ) -> Annotation:
-    """
-    Create a text annotation.
+    """Create a text annotation.
 
     Convenience function for creating text annotations with sensible
     defaults. Additional styling options can be passed as keyword arguments.
@@ -747,15 +728,21 @@ def create_text_annotation(
 
         # With custom styling
         ann = create_text_annotation(
-            "2024-01-01", 100, "Buy Signal",
+            "2024-01-01",
+            100,
+            "Buy Signal",
             color="green",
             background_color="rgba(0, 255, 0, 0.2)",
-            font_size=14
+            font_size=14,
         )
         ```
     """
     return Annotation(
-        time=time, price=price, text=text, annotation_type=AnnotationType.TEXT, **kwargs
+        time=time,
+        price=price,
+        text=text,
+        annotation_type=AnnotationType.TEXT,
+        **kwargs,
     )
 
 
@@ -765,8 +752,7 @@ def create_arrow_annotation(
     text: str,
     **kwargs,
 ) -> Annotation:
-    """
-    Create an arrow annotation.
+    """Create an arrow annotation.
 
     Convenience function for creating arrow annotations with sensible
     defaults. Additional styling options can be passed as keyword arguments.
@@ -787,14 +773,16 @@ def create_arrow_annotation(
 
         # With custom styling
         ann = create_arrow_annotation(
-            "2024-01-01", 100, "Sell Signal",
-            color="red",
-            position=AnnotationPosition.BELOW
+            "2024-01-01", 100, "Sell Signal", color="red", position=AnnotationPosition.BELOW
         )
         ```
     """
     return Annotation(
-        time=time, price=price, text=text, annotation_type=AnnotationType.ARROW, **kwargs
+        time=time,
+        price=price,
+        text=text,
+        annotation_type=AnnotationType.ARROW,
+        **kwargs,
     )
 
 
@@ -804,8 +792,7 @@ def create_shape_annotation(
     text: str,
     **kwargs,
 ) -> Annotation:
-    """
-    Create a shape annotation.
+    """Create a shape annotation.
 
     Convenience function for creating shape annotations with sensible
     defaults. Additional styling options can be passed as keyword arguments.
@@ -827,13 +814,14 @@ def create_shape_annotation(
 
         # With custom styling
         ann = create_shape_annotation(
-            "2024-01-01", 100, "Important",
-            color="yellow",
-            border_color="orange",
-            border_width=2
+            "2024-01-01", 100, "Important", color="yellow", border_color="orange", border_width=2
         )
         ```
     """
     return Annotation(
-        time=time, price=price, text=text, annotation_type=AnnotationType.SHAPE, **kwargs
+        time=time,
+        price=price,
+        text=text,
+        annotation_type=AnnotationType.SHAPE,
+        **kwargs,
     )

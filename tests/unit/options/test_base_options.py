@@ -7,7 +7,7 @@ ensuring proper serialization, validation, inheritance behavior, and edge cases.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 import pytest
 
@@ -81,7 +81,10 @@ class TestOptionsSerialization:
     def test_to_dict_basic_fields(self):
         """Test basic field serialization."""
         options = MockOptions(
-            string_field="hello", int_field=123, float_field=2.718, bool_field=False
+            string_field="hello",
+            int_field=123,
+            float_field=2.718,
+            bool_field=False,
         )
         result = options.asdict()
 
@@ -256,8 +259,11 @@ class TestOptionsSerialization:
         assert "emptyStringField" not in result
 
 
-class TestOptionsEdgeCases:
-    """Test edge cases and error conditions."""
+@dataclass
+class MockOptionsEdgeCases(Options):
+    """Mock options for testing edge cases and error conditions."""
+
+    test_field: str = "test"
 
     def test_to_dict_with_circular_reference(self):
         """Test handling of circular references (should cause infinite recursion)."""
@@ -278,7 +284,7 @@ class TestOptionsEdgeCases:
         """Test with complex enum values."""
 
         class ComplexEnum(Enum):
-            COMPLEX_VALUE = {"key": "value", "number": 42}
+            COMPLEX_VALUE: ClassVar[dict] = {"key": "value", "number": 42}
 
         @dataclass
         class ComplexOptions(Options):
@@ -480,7 +486,8 @@ class TestOptionsIntegration:
         background_opts = ConfigOptions(setting="background", enabled=False)
         layout_opts = ConfigOptions(setting="layout", enabled=True)
         complex_opts = ComplexOptions(
-            background_options=background_opts, layout_options=layout_opts
+            background_options=background_opts,
+            layout_options=layout_opts,
         )
         result = complex_opts.asdict()
 
@@ -503,20 +510,20 @@ class TestOptionsIntegration:
 # ============================================================================
 
 
-class TestEnum(Enum):
-    """Test enum for testing enum value conversion."""
+class MockTestEnum(Enum):
+    """Mock enum for testing enum value conversion."""
 
     VALUE1 = "value1"
     VALUE2 = "value2"
 
 
-class TestEnumLike:
-    """Test enum-like class for testing enum-like value conversion."""
+class MockTestEnumLike:
+    """Mock enum-like class for testing enum-like value conversion."""
 
     def __init__(self, value):
         self.value = value
 
-    class __class__:
+    class __class__:  # noqa: N801
         __bases__ = (Enum,)
 
 
@@ -529,8 +536,8 @@ class NestedOptions(Options):
 
 
 @dataclass
-class TestOptionsEdgeCases(Options):
-    """Test options class for testing edge cases."""
+class MockOptionsDataClass(Options):
+    """Mock options class for testing edge cases."""
 
     background_color: str = "#ffffff"
     text_color: str = "#000000"
@@ -538,15 +545,15 @@ class TestOptionsEdgeCases(Options):
     nested_options: Optional[NestedOptions] = None
     options_list: Optional[List[NestedOptions]] = None
     options_dict: Optional[Dict[str, NestedOptions]] = None
-    enum_value: Optional[TestEnum] = None
+    enum_value: Optional[MockTestEnum] = None
 
 
-class TestOptionsEdgeCasesAdvanced:
+class MockOptionsDataClassAdvanced:
     """Test advanced edge cases in the Options class."""
 
     def test_asdict_with_none_nested_options(self):
         """Test asdict with None nested options."""
-        options = TestOptionsEdgeCases(nested_options=None)
+        options = MockOptionsDataClass(nested_options=None)
 
         result = options.asdict()
 
@@ -558,7 +565,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_empty_list(self):
         """Test asdict with empty list."""
-        options = TestOptionsEdgeCases(options_list=[])
+        options = MockOptionsDataClass(options_list=[])
 
         result = options.asdict()
 
@@ -569,7 +576,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_empty_dict(self):
         """Test asdict with empty dict."""
-        options = TestOptionsEdgeCases(options_dict={})
+        options = MockOptionsDataClass(options_dict={})
 
         result = options.asdict()
 
@@ -579,7 +586,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_none_enum(self):
         """Test asdict with None enum."""
-        options = TestOptionsEdgeCases(enum_value=None)
+        options = MockOptionsDataClass(enum_value=None)
 
         result = options.asdict()
 
@@ -591,7 +598,7 @@ class TestOptionsEdgeCasesAdvanced:
         """Test asdict with nested options list."""
         nested1 = NestedOptions(color="#ff0000", width=2)
         nested2 = NestedOptions(color="#00ff00", width=3)
-        options = TestOptionsEdgeCases(options_list=[nested1, nested2])
+        options = MockOptionsDataClass(options_list=[nested1, nested2])
 
         result = options.asdict()
 
@@ -606,7 +613,7 @@ class TestOptionsEdgeCasesAdvanced:
         """Test asdict with nested options dict."""
         nested1 = NestedOptions(color="#ff0000", width=2)
         nested2 = NestedOptions(color="#00ff00", width=3)
-        options = TestOptionsEdgeCases(options_dict={"first": nested1, "second": nested2})
+        options = MockOptionsDataClass(options_dict={"first": nested1, "second": nested2})
 
         result = options.asdict()
 
@@ -619,7 +626,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_enum_value(self):
         """Test asdict with enum value."""
-        options = TestOptionsEdgeCases(enum_value=TestEnum.VALUE1)
+        options = MockOptionsDataClass(enum_value=MockTestEnum.VALUE1)
 
         result = options.asdict()
 
@@ -629,7 +636,7 @@ class TestOptionsEdgeCasesAdvanced:
     def test_asdict_with_nested_options(self):
         """Test asdict with nested options."""
         nested = NestedOptions(color="#ff0000", width=2)
-        options = TestOptionsEdgeCases(nested_options=nested)
+        options = MockOptionsDataClass(nested_options=nested)
 
         result = options.asdict()
 
@@ -640,7 +647,7 @@ class TestOptionsEdgeCasesAdvanced:
     def test_asdict_with_mixed_none_values(self):
         """Test asdict with mixed None and valid values."""
         nested = NestedOptions(color="#ff0000", width=2)
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             nested_options=nested,
             options_list=None,
             options_dict=None,
@@ -657,7 +664,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_all_none_optional_values(self):
         """Test asdict with all optional values as None."""
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             nested_options=None,
             options_list=None,
             options_dict=None,
@@ -681,11 +688,11 @@ class TestOptionsEdgeCasesAdvanced:
         nested2 = NestedOptions(color="#00ff00", width=3)
 
         # Create options with complex nested structure
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             nested_options=nested1,
             options_list=[nested1, nested2],
             options_dict={"first": nested1, "second": nested2},
-            enum_value=TestEnum.VALUE2,
+            enum_value=MockTestEnum.VALUE2,
         )
 
         result = options.asdict()
@@ -715,7 +722,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_empty_string_values(self):
         """Test asdict with empty string values."""
-        options = TestOptionsEdgeCases(background_color="", text_color="")
+        options = MockOptionsDataClass(background_color="", text_color="")
 
         result = options.asdict()
 
@@ -726,7 +733,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_false_boolean_value(self):
         """Test asdict with False boolean value."""
-        options = TestOptionsEdgeCases(is_visible=False)
+        options = MockOptionsDataClass(is_visible=False)
 
         result = options.asdict()
 
@@ -780,7 +787,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_special_string_values(self):
         """Test asdict with special string values."""
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             background_color="transparent",
             text_color="inherit",
         )
@@ -795,7 +802,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_unicode_string_values(self):
         """Test asdict with unicode string values."""
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             background_color="rgba(255, 0, 0, 0.5)",
             text_color="hsl(120, 100%, 50%)",
         )
@@ -811,7 +818,7 @@ class TestOptionsEdgeCasesAdvanced:
     def test_asdict_with_very_long_string_values(self):
         """Test asdict with very long string values."""
         long_string = "A" * 1000
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             background_color=long_string,
             text_color=long_string,
         )
@@ -827,7 +834,7 @@ class TestOptionsEdgeCasesAdvanced:
     def test_asdict_with_special_characters_in_strings(self):
         """Test asdict with special characters in strings."""
         special_string = "!@#$%^&*()_+-=[]{}|;':\",./<>?"
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             background_color=special_string,
             text_color=special_string,
         )
@@ -844,7 +851,7 @@ class TestOptionsEdgeCasesAdvanced:
         """Test asdict with mixed data types in list (should handle gracefully)."""
         # This test documents current behavior - the asdict method should handle
         # mixed data types in lists gracefully
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             # Note: This would normally cause a type error, but we're testing
             # the serialization behavior
             options_list=None,  # We'll set this manually to avoid type errors
@@ -871,7 +878,7 @@ class TestOptionsEdgeCasesAdvanced:
             "dict": {"nested": "value"},
         }
 
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             options_dict=mixed_dict,
         )
 
@@ -948,8 +955,8 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_custom_enum_like_object(self):
         """Test asdict with custom enum-like object."""
-        enum_like = TestEnumLike("custom_value")
-        options = TestOptionsEdgeCases()
+        enum_like = MockTestEnumLike("custom_value")
+        options = MockOptionsDataClass()
 
         # Manually set the enum-like value (since it's not in the dataclass)
         options.enum_value = enum_like
@@ -966,7 +973,7 @@ class TestOptionsEdgeCasesAdvanced:
         large_list = [NestedOptions(color=f"#ff{i:04x}", width=i) for i in range(100)]
         large_dict = {f"key_{i}": NestedOptions(color=f"#ff{i:04x}", width=i) for i in range(100)}
 
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             options_list=large_list,
             options_dict=large_dict,
         )
@@ -981,7 +988,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_none_in_list(self):
         """Test asdict with None values in list."""
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             options_list=[NestedOptions(), None, NestedOptions()],
         )
 
@@ -996,7 +1003,7 @@ class TestOptionsEdgeCasesAdvanced:
 
     def test_asdict_with_none_in_dict_values(self):
         """Test asdict with None values in dict."""
-        options = TestOptionsEdgeCases(
+        options = MockOptionsDataClass(
             options_dict={"valid": NestedOptions(), "none": None},
         )
 

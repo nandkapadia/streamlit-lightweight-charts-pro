@@ -60,7 +60,7 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
                 }, 50);
               }
             }
-          } catch (error) {
+          } catch {
             // Ignore invalid sync data
           }
         }
@@ -86,7 +86,7 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
       try {
         localStorage.setItem('chart-crosshair-sync', JSON.stringify(syncData));
         onSyncEvent?.('crosshairMove', syncData);
-      } catch (error) {
+      } catch {
         // Ignore localStorage errors
       }
     };
@@ -130,7 +130,7 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
                 }, 100);
               }
             }
-          } catch (error) {
+          } catch {
             // Ignore invalid sync data
           }
         }
@@ -156,7 +156,7 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
 
         localStorage.setItem('chart-timerange-sync', JSON.stringify(syncData));
         onSyncEvent?.('timeRangeChange', syncData);
-      } catch (error) {
+      } catch {
         // Ignore localStorage errors
       }
     };
@@ -184,7 +184,7 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
       try {
         localStorage.setItem('chart-click-sync', JSON.stringify(syncData));
         onSyncEvent?.('click', syncData);
-      } catch (error) {
+      } catch {
         // Ignore localStorage errors
       }
     };

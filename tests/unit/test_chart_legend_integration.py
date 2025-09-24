@@ -5,6 +5,8 @@ This module provides comprehensive tests for legend integration at the chart lev
 covering chart options, series legends, and frontend integration.
 """
 
+import time
+
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
@@ -301,7 +303,6 @@ class TestChartLegendPerformance:
 
     def test_chart_legend_construction_performance(self):
         """Test performance of chart construction with legends."""
-        import time
 
         # Create multiple series with legends
         series_list = []
@@ -309,7 +310,9 @@ class TestChartLegendPerformance:
             data = [LineData(time=f"2023-01-{(i % 28) + 1:02d}", value=100 + i)]
             series = LineSeries(data=data)
             series.legend = LegendOptions(
-                position="top-right", visible=True, text=f"Series {i}: {{value}}"
+                position="top-right",
+                visible=True,
+                text=f"Series {i}: {{value}}",
             )
             series_list.append(series)
 
@@ -324,15 +327,15 @@ class TestChartLegendPerformance:
 
     def test_chart_legend_serialization_performance(self):
         """Test performance of chart serialization with legends."""
-        import time
-
         # Create chart with multiple series and legends
         series_list = []
         for i in range(5):
             data = [LineData(time=f"2023-01-{(i % 28) + 1:02d}", value=100 + i)]
             series = LineSeries(data=data)
             series.legend = LegendOptions(
-                position="top-right", visible=True, text=f"Series {i}: {{value}}"
+                position="top-right",
+                visible=True,
+                text=f"Series {i}: {{value}}",
             )
             series_list.append(series)
 

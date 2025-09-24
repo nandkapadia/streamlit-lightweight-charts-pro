@@ -5,8 +5,10 @@ This module tests the component initialization and management functionality
 for the Streamlit Lightweight Charts Pro component.
 """
 
+import inspect
 from unittest.mock import Mock, patch
 
+import streamlit_lightweight_charts_pro.component as component_module
 from streamlit_lightweight_charts_pro.component import (
     _RELEASE,
     _component_func,
@@ -25,7 +27,6 @@ class TestComponentInitialization:
         original_func = _component_func
         try:
             # Mock the module to set _component_func to None
-            import streamlit_lightweight_charts_pro.component as component_module
 
             component_module._component_func = None
 
@@ -42,8 +43,6 @@ class TestComponentInitialization:
         # Temporarily set _component_func to mock
         original_func = _component_func
         try:
-            import streamlit_lightweight_charts_pro.component as component_module
-
             component_module._component_func = mock_func
 
             result = get_component_func()
@@ -77,7 +76,7 @@ class TestComponentInitialization:
 
     def test_debug_component_status_with_frontend_dir(self):
         """Test debug_component_status when frontend directory exists."""
-        with patch("pathlib.Path.exists", return_value=True):
+        with patch("pathlib.Path.exists", return_value=True):  # noqa: SIM117
             with patch("pathlib.Path.glob", return_value=[Mock(name="test.js")]):
                 status = debug_component_status()
 
@@ -103,7 +102,7 @@ class TestComponentReinitialization:
     @patch("streamlit_lightweight_charts_pro.component._RELEASE", True)
     @patch("pathlib.Path.exists", return_value=True)
     @patch("streamlit.components.v1.declare_component")
-    def test_reinitialize_component_production_success(self, mock_declare, mock_exists):
+    def test_reinitialize_component_production_success(self, mock_declare, _mock_exists):
         """Test successful reinitialization in production mode."""
         mock_component = Mock()
         mock_declare.return_value = mock_component
@@ -111,8 +110,6 @@ class TestComponentReinitialization:
         # Temporarily set _component_func to None
         original_func = _component_func
         try:
-            import streamlit_lightweight_charts_pro.component as component_module
-
             component_module._component_func = None
 
             result = reinitialize_component()
@@ -126,7 +123,7 @@ class TestComponentReinitialization:
 
     @patch("streamlit_lightweight_charts_pro.component._RELEASE", True)
     @patch("pathlib.Path.exists", return_value=False)
-    def test_reinitialize_component_production_no_frontend_dir(self, mock_exists):
+    def test_reinitialize_component_production_no_frontend_dir(self, _mock_exists):
         """Test reinitialization failure when frontend directory doesn't exist."""
         result = reinitialize_component()
         assert result is False
@@ -134,7 +131,7 @@ class TestComponentReinitialization:
     @patch("streamlit_lightweight_charts_pro.component._RELEASE", True)
     @patch("pathlib.Path.exists", return_value=True)
     @patch("streamlit.components.v1.declare_component", side_effect=ImportError("Test error"))
-    def test_reinitialize_component_production_import_error(self, mock_declare, mock_exists):
+    def test_reinitialize_component_production_import_error(self, _mock_declare, _mock_exists):
         """Test reinitialization failure due to import error."""
         result = reinitialize_component()
         assert result is False
@@ -142,7 +139,7 @@ class TestComponentReinitialization:
     @patch("streamlit_lightweight_charts_pro.component._RELEASE", True)
     @patch("pathlib.Path.exists", return_value=True)
     @patch("streamlit.components.v1.declare_component", side_effect=Exception("Test error"))
-    def test_reinitialize_component_production_general_error(self, mock_declare, mock_exists):
+    def test_reinitialize_component_production_general_error(self, _mock_declare, _mock_exists):
         """Test reinitialization failure due to general error."""
         result = reinitialize_component()
         assert result is False
@@ -157,8 +154,6 @@ class TestComponentReinitialization:
         # Temporarily set _component_func to None
         original_func = _component_func
         try:
-            import streamlit_lightweight_charts_pro.component as component_module
-
             component_module._component_func = None
 
             result = reinitialize_component()
@@ -166,7 +161,8 @@ class TestComponentReinitialization:
             assert result is True
             assert component_module._component_func == mock_component
             mock_declare.assert_called_once_with(
-                "streamlit_lightweight_charts_pro", url="http://localhost:3001"
+                "streamlit_lightweight_charts_pro",
+                url="http://localhost:3001",
             )
         finally:
             # Restore original value
@@ -174,14 +170,14 @@ class TestComponentReinitialization:
 
     @patch("streamlit_lightweight_charts_pro.component._RELEASE", False)
     @patch("streamlit.components.v1.declare_component", side_effect=ImportError("Test error"))
-    def test_reinitialize_component_development_import_error(self, mock_declare):
+    def test_reinitialize_component_development_import_error(self, _mock_declare):
         """Test reinitialization failure in development mode due to import error."""
         result = reinitialize_component()
         assert result is False
 
     @patch("streamlit_lightweight_charts_pro.component._RELEASE", False)
     @patch("streamlit.components.v1.declare_component", side_effect=Exception("Test error"))
-    def test_reinitialize_component_development_general_error(self, mock_declare):
+    def test_reinitialize_component_development_general_error(self, _mock_declare):
         """Test reinitialization failure in development mode due to general error."""
         result = reinitialize_component()
         assert result is False
@@ -192,7 +188,6 @@ class TestComponentModuleStructure:
 
     def test_module_imports(self):
         """Test that the module can be imported successfully."""
-        import streamlit_lightweight_charts_pro.component as component_module
 
         # Check that all expected attributes exist
         assert hasattr(component_module, "get_component_func")
@@ -204,7 +199,6 @@ class TestComponentModuleStructure:
 
     def test_logger_initialization(self):
         """Test that the logger is properly initialized."""
-        import streamlit_lightweight_charts_pro.component as component_module
 
         assert component_module.logger is not None
         assert hasattr(component_module.logger, "info")
@@ -213,7 +207,6 @@ class TestComponentModuleStructure:
 
     def test_release_flag(self):
         """Test that the release flag is properly set."""
-        import streamlit_lightweight_charts_pro.component as component_module
 
         # The release flag should be a boolean
         assert isinstance(component_module._RELEASE, bool)
@@ -228,14 +221,12 @@ class TestComponentErrorHandling:
         # Temporarily set _component_func to None
         original_func = _component_func
         try:
-            import streamlit_lightweight_charts_pro.component as component_module
-
             component_module._component_func = None
 
             get_component_func()
 
             mock_logger.warning.assert_called_once_with(
-                "Component function is not initialized. This may indicate a loading issue."
+                "Component function is not initialized. This may indicate a loading issue.",
             )
         finally:
             # Restore original value
@@ -260,7 +251,6 @@ class TestComponentIntegration:
 
             # Streamlit components use *args and **kwargs for flexibility
             # The function should be callable with any arguments
-            import inspect
 
             sig = inspect.signature(_component_func)
             params = list(sig.parameters.keys())
@@ -272,8 +262,6 @@ class TestComponentIntegration:
     def test_component_func_availability(self):
         """Test that the component function is available after module import."""
         # Re-import the module to ensure initialization
-
-        import streamlit_lightweight_charts_pro.component as component_module
 
         # The component function should be available (either None or callable)
         assert (

@@ -51,7 +51,7 @@ if [ -n "$CHANGED_FILES" ]; then
     if echo "$CHANGED_FILES" | grep -q -E '\.(py)$'; then
         PYTHON_CHANGES=true
     fi
-    
+
     # Check for frontend changes
     if echo "$CHANGED_FILES" | grep -q -E 'streamlit_lightweight_charts_pro/frontend/.*\.(ts|tsx|js|jsx)$'; then
         FRONTEND_CHANGES=true
@@ -73,7 +73,7 @@ print_status "Fast mode: $FAST_MODE"
 if [ "$PYTHON_CHANGES" = true ]; then
     echo ""
     print_status "🐍 Running Python code quality checks..."
-    
+
     # Check if Python is available
     if ! command -v python &> /dev/null; then
         print_error "Python is not available. Please install Python."
@@ -106,7 +106,7 @@ if [ "$PYTHON_CHANGES" = true ]; then
 
     # Step 4: Run functionality tests (excluding performance)
     print_status "Step 4: Running functionality tests (excluding performance)..."
-    
+
     # Use pytest plugin to exclude performance tests
     if ! python -m pytest tests/unit/ tests/integration/ tests/e2e/ \
         --tb=short -q --maxfail=3 \
@@ -129,33 +129,33 @@ fi
 if [ "$FRONTEND_CHANGES" = true ] && [ "$SKIP_FRONTEND" != true ]; then
     echo ""
     print_status "⚛️  Running frontend code quality checks..."
-    
+
     FRONTEND_DIR="streamlit_lightweight_charts_pro/frontend"
-    
+
     if [ ! -d "$FRONTEND_DIR" ]; then
         print_error "Frontend directory not found: $FRONTEND_DIR"
         exit 1
     fi
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # Check if Node.js and npm are available
     if ! command -v node &> /dev/null; then
         print_error "Node.js is not available. Please install Node.js."
         exit 1
     fi
-    
+
     if ! command -v npm &> /dev/null; then
         print_error "npm is not available. Please install npm."
         exit 1
     fi
-    
+
     # Install dependencies if node_modules doesn't exist
     if [ ! -d "node_modules" ]; then
         print_status "Installing frontend dependencies..."
         npm install
     fi
-    
+
     # Step 1: Code formatting
     print_status "Step 1: Checking code formatting with Prettier..."
     if ! npm run format:check; then
@@ -163,7 +163,7 @@ if [ "$FRONTEND_CHANGES" = true ] && [ "$SKIP_FRONTEND" != true ]; then
         exit 1
     fi
     print_success "Code formatting is correct"
-    
+
     if [ "$FAST_MODE" = true ]; then
         print_status "Fast mode: Skipping TypeScript and ESLint checks"
     else
@@ -179,7 +179,7 @@ if [ "$FRONTEND_CHANGES" = true ] && [ "$SKIP_FRONTEND" != true ]; then
                 --ignore-pattern "src/**/__tests__/**" \
                 --ignore-pattern "src/**/*.test.*" \
                 --fix || true
-            
+
             # Check for remaining errors (ignore warnings)
             print_status "Checking for critical errors only..."
             if npx eslint src --ext .ts,.tsx,.js,.jsx \
@@ -193,7 +193,7 @@ if [ "$FRONTEND_CHANGES" = true ] && [ "$SKIP_FRONTEND" != true ]; then
         else
             print_success "No ESLint issues found"
         fi
-        
+
         # Step 3: TypeScript type checking
         print_status "Step 3: Running TypeScript type checking..."
         if ! npm run type-check; then
@@ -202,7 +202,7 @@ if [ "$FRONTEND_CHANGES" = true ] && [ "$SKIP_FRONTEND" != true ]; then
         fi
         print_success "No type errors found"
     fi
-    
+
     # Step 4: Build check (quick)
     print_status "Step 4: Checking build capability..."
     if npm run build > /dev/null 2>&1; then
@@ -210,10 +210,10 @@ if [ "$FRONTEND_CHANGES" = true ] && [ "$SKIP_FRONTEND" != true ]; then
     else
         print_warning "Build check had issues, but continuing (TypeScript errors may exist)"
     fi
-    
+
     # Return to project root
     cd - > /dev/null
-    
+
     print_success "✅ Frontend checks completed successfully!"
 else
     if [ "$SKIP_FRONTEND" = true ]; then

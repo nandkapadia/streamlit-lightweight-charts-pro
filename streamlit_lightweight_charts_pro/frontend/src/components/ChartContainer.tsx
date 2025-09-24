@@ -59,7 +59,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
           onChartReady(chart, chartId);
         }
       } catch (error) {
-        console.error(`Failed to initialize chart ${chartId}:`, error);
+        console.error(error);
         if (onChartError) {
           onChartError(error as Error, chartId);
         }
@@ -72,12 +72,12 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
         try {
           chartRef.current.remove();
         } catch (error) {
-          console.error(`Failed to cleanup chart ${chartId}:`, error);
+          console.error(error);
         }
         chartRef.current = null;
         setIsInitialized(false);
       }
-    }, [chartId]);
+    }, []);
 
     // Handle resize
     const handleResize = useCallback(() => {
@@ -112,7 +112,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
       <ErrorBoundary
         resetKeys={[chartId, JSON.stringify(chartConfig)]}
         onError={error => {
-          console.error(`Chart container error for ${chartId}:`, error);
+          console.error('An error occurred');
           if (onChartError) {
             onChartError(error, chartId);
           }

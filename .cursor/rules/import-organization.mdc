@@ -1,0 +1,239 @@
+# Import Organization Rules
+
+## CRITICAL: All Imports Must Be at the Top of the File
+
+**ALL imports must be placed at the top of the file** unless there is a very valid justification. This ensures code readability, maintainability, and follows Python best practices.
+
+### Standard Import Placement
+
+```python
+# ✅ CORRECT: All imports at the top
+from __future__ import annotations
+
+import json
+import logging
+from pathlib import Path
+from typing import List, Optional, Union
+
+import pandas as pd
+import streamlit as st
+from lightweight_charts import ChartOptions
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.data import SingleValueData
+from streamlit_lightweight_charts_pro.exceptions import ChartError
+
+# Rest of the code...
+def create_chart(data: List[SingleValueData]) -> Chart:
+    """Create a chart with the provided data."""
+    return Chart(data=data)
+```
+
+### Valid Justifications for Non-Top Imports
+
+#### 1. **Circular Import Resolution**
+When avoiding circular imports is necessary:
+
+```python
+# ✅ VALID: Circular import resolution
+def get_chart_instance():
+    """Get chart instance to avoid circular import."""
+    from streamlit_lightweight_charts_pro.charts.chart import Chart
+    return Chart()
+
+# Document the reason:
+# NOTE: Import moved inside function to avoid circular import
+# between Chart and ChartOptions classes
+```
+
+#### 2. **Conditional/Lazy Loading for Performance**
+When imports are expensive and only needed conditionally:
+
+```python
+# ✅ VALID: Lazy loading for performance
+def process_large_dataset():
+    """Process large dataset with optional heavy dependencies."""
+    # Only import heavy libraries when actually needed
+    try:
+        import numpy as np
+        import scipy.stats
+        # Process with heavy libraries
+        return np.array(data)
+    except ImportError:
+        # Fallback to standard library
+        return list(data)
+
+# Document the reason:
+# NOTE: Heavy imports moved inside function to avoid
+# loading expensive libraries when not needed
+```
+
+#### 3. **Platform-Specific Imports**
+When importing platform-specific modules:
+
+```python
+# ✅ VALID: Platform-specific imports
+import platform
+
+if platform.system() == "Windows":
+    import winsound
+    def play_sound():
+        winsound.Beep(1000, 500)
+elif platform.system() == "Darwin":  # macOS
+    import subprocess
+    def play_sound():
+        subprocess.run(["afplay", "/System/Library/Sounds/Glass.aiff"])
+else:  # Linux
+    import os
+    def play_sound():
+        os.system("aplay /usr/share/sounds/alsa/Front_Left.wav")
+
+# Document the reason:
+# NOTE: Platform-specific imports moved inside conditional
+# blocks to avoid ImportError on unsupported platforms
+```
+
+#### 4. **Optional Dependencies**
+When dealing with optional dependencies that might not be installed:
+
+```python
+# ✅ VALID: Optional dependencies
+def export_to_excel(data, filename):
+    """Export data to Excel if openpyxl is available."""
+    try:
+        import openpyxl
+        # Export logic here
+        return True
+    except ImportError:
+        print("Excel export requires openpyxl package")
+        return False
+
+# Document the reason:
+# NOTE: openpyxl import moved inside function as it's
+# an optional dependency that may not be installed
+```
+
+#### 5. **Test-Specific Imports**
+When imports are only needed for testing:
+
+```python
+# ✅ VALID: Test-specific imports
+def run_tests():
+    """Run tests with test-specific imports."""
+    import pytest
+    import unittest.mock
+    # Test logic here
+
+# Document the reason:
+# NOTE: Test imports moved inside function to avoid
+# importing test dependencies in production code
+```
+
+### Invalid Reasons for Non-Top Imports
+
+```python
+# ❌ WRONG: No valid justification
+def process_data():
+    import pandas as pd  # WRONG: No justification
+    return pd.DataFrame(data)
+
+# ❌ WRONG: "Cleaner code" is not valid
+def create_chart():
+    import streamlit as st  # WRONG: Not a valid reason
+    st.write("Chart created")
+
+# ❌ WRONG: "Avoiding unused imports" is not valid
+def main():
+    import json  # WRONG: Use proper import organization instead
+    # Use json here
+```
+
+### Documentation Requirements
+
+**Every non-top import MUST be documented** with a clear justification:
+
+```python
+# ✅ CORRECT: Properly documented non-top import
+def get_optional_feature():
+    """Get optional feature if available."""
+    # NOTE: Import moved inside function to handle optional dependency
+    # 'optional_package' may not be installed in all environments
+    try:
+        import optional_package
+        return optional_package.Feature()
+    except ImportError:
+        return None
+```
+
+### Import Organization Standards
+
+1. **Standard library imports** first
+2. **Third-party imports** second
+3. **Local application imports** last
+4. **Each group separated** by blank lines
+5. **Alphabetical order** within each group
+
+```python
+# ✅ CORRECT: Proper import organization
+from __future__ import annotations
+
+import json
+import logging
+from pathlib import Path
+from typing import List, Optional
+
+import pandas as pd
+import streamlit as st
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.data import SingleValueData
+```
+
+### Pre-commit Hook Integration
+
+The pre-commit hooks should:
+- **Flag non-top imports** without documentation
+- **Require justification comments** for any non-top imports
+- **Validate import organization** follows the standard order
+- **Check for unused imports** and suggest removal
+
+### Examples in Context
+
+```python
+# ✅ CORRECT: Well-organized file with documented non-top import
+from __future__ import annotations
+
+import logging
+from typing import List, Optional
+
+import streamlit as st
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.data import SingleValueData
+
+logger = logging.getLogger(__name__)
+
+def create_chart(data: List[SingleValueData]) -> Chart:
+    """Create a chart with the provided data."""
+    return Chart(data=data)
+
+def export_to_optional_format(data: List[SingleValueData]) -> bool:
+    """Export to optional format if available."""
+    # NOTE: Import moved inside function to handle optional dependency
+    # 'optional_export_lib' is not required for core functionality
+    try:
+        import optional_export_lib
+        return optional_export_lib.export(data)
+    except ImportError:
+        logger.warning("Optional export library not available")
+        return False
+```
+
+## Summary
+
+- **All imports at the top** unless there's a valid justification
+- **Document every non-top import** with clear reasoning
+- **Follow standard import organization** (stdlib, third-party, local)
+- **Use alphabetical ordering** within each group
+- **Pre-commit hooks** should enforce these rules
+- **Valid justifications**: circular imports, lazy loading, platform-specific, optional dependencies, test-specific

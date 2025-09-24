@@ -6,8 +6,6 @@
  * for chart components with configurable thresholds and detailed reporting.
  */
 
-import { vi } from 'vitest';
-
 export interface MemoryLeakReport {
   hasLeaks: boolean;
   leakedObjects: number;
@@ -271,9 +269,9 @@ export class MemoryLeakDetector {
 
   private async getCurrentMemoryUsage(): Promise<number> {
     // Try modern Memory API first
-    if (typeof performance !== 'undefined' && performance.measureUserAgentSpecificMemory) {
+    if (typeof performance !== 'undefined' && (performance as any).measureUserAgentSpecificMemory) {
       try {
-        const result = await performance.measureUserAgentSpecificMemory();
+        const result = await (performance as any).measureUserAgentSpecificMemory();
         return result.bytes;
       } catch {
         // Fallback to process memory usage
@@ -417,6 +415,7 @@ export async function testChartMemoryLeaks(
 if (typeof WeakRef === 'undefined') {
   global.WeakRef = class MockWeakRef<T> {
     private target: T | undefined;
+    [Symbol.toStringTag] = 'WeakRef';
 
     constructor(target: T) {
       this.target = target;
@@ -425,5 +424,5 @@ if (typeof WeakRef === 'undefined') {
     deref(): T | undefined {
       return this.target;
     }
-  };
+  } as any;
 }

@@ -1,10 +1,10 @@
-"""
-Gradient Ribbon Series Example.
+"""Gradient Ribbon Series Example.
 
 This script demonstrates how to create and use the GradientRibbonSeries
 with gradient color transitions based on data values. The gradient ribbon
 shows upper and lower bands with dynamic color fills.
 """
+
 # pylint: disable=no-member
 
 import pandas as pd
@@ -33,7 +33,7 @@ def create_sample_gradient_data():
         gradient_value = 0.3 + 0.4 * (i / len(dates)) + 0.3 * (i % 15) / 15
 
         data.append(
-            GradientRibbonData(str(date.date()), upper=upper, lower=lower, gradient=gradient_value)
+            GradientRibbonData(str(date.date()), upper=upper, lower=lower, gradient=gradient_value),
         )
 
     return data
@@ -61,7 +61,7 @@ def main():
     st.title("Gradient Ribbon Series Demo")
     st.write(
         "This demonstrates the GradientRibbonSeries functionality with "
-        "dynamic color transitions based on gradient values."
+        "dynamic color transitions based on gradient values.",
     )
 
     # Sidebar controls
@@ -74,7 +74,9 @@ def main():
     )
 
     gradient_end_color = st.sidebar.color_picker(
-        "Gradient End Color", value="#F44336", help="Ending color for gradient fills (high values)"
+        "Gradient End Color",
+        value="#F44336",
+        help="Ending color for gradient fills (high values)",
     )
 
     normalize_gradients = st.sidebar.checkbox(
@@ -97,7 +99,7 @@ def main():
     st.write("### Gradient Ribbon Chart")
     st.write(
         "The gradient ribbon shows dynamic color transitions based on gradient values. "
-        "Colors transition from start color (low values) to end color (high values)."
+        "Colors transition from start color (low values) to end color (high values).",
     )
 
     # Main gradient ribbon chart
@@ -134,7 +136,7 @@ def main():
         st.write("### Comparison: Gradient Ribbon vs Regular Ribbon")
         st.write(
             "The chart below shows both gradient ribbon (with dynamic colors) "
-            "and regular ribbon (with static fill color) for comparison."
+            "and regular ribbon (with static fill color) for comparison.",
         )
 
         comparison_chart = Chart()
@@ -155,7 +157,9 @@ def main():
 
         # Add regular ribbon series for comparison
         regular_ribbon_series = RibbonSeries(
-            data=regular_data, visible=True, price_scale_id="right"
+            data=regular_data,
+            visible=True,
+            price_scale_id="right",
         )
 
         regular_ribbon_series.upper_line.color = "#666666"  # pylint: disable=no-member
@@ -199,7 +203,7 @@ def main():
                 "Gradient": f"{data.gradient:.3f}" if data.gradient is not None else "N/A",
             }
             for data in gradient_data[:10]  # Show first 10 points
-        ]
+        ],
     )
     st.dataframe(sample_df)
 
@@ -212,29 +216,29 @@ def main():
         st.write(f"Chart Type: {gradient_ribbon_series.chart_type}")
         st.write(f"Visible: {gradient_ribbon_series.visible}")  # pylint: disable=no-member
         st.write(
-            f"Gradient Start Color: {gradient_ribbon_series.gradient_start_color}"
+            f"Gradient Start Color: {gradient_ribbon_series.gradient_start_color}",
         )  # pylint: disable=no-member
         st.write(
-            f"Gradient End Color: {gradient_ribbon_series.gradient_end_color}"
+            f"Gradient End Color: {gradient_ribbon_series.gradient_end_color}",
         )  # pylint: disable=no-member
         st.write(
-            f"Normalize Gradients: {gradient_ribbon_series.normalize_gradients}"
+            f"Normalize Gradients: {gradient_ribbon_series.normalize_gradients}",
         )  # pylint: disable=no-member
         st.write(f"Fill Visible: {gradient_ribbon_series.fill_visible}")
 
     with col2:
         st.write("**Line Styling:**")
         st.write(
-            f"Upper Line Color: {gradient_ribbon_series.upper_line.color}"
+            f"Upper Line Color: {gradient_ribbon_series.upper_line.color}",
         )  # pylint: disable=no-member
         st.write(
-            f"Lower Line Color: {gradient_ribbon_series.lower_line.color}"
+            f"Lower Line Color: {gradient_ribbon_series.lower_line.color}",
         )  # pylint: disable=no-member
         st.write(
-            f"Line Width: {gradient_ribbon_series.upper_line.line_width}"
+            f"Line Width: {gradient_ribbon_series.upper_line.line_width}",
         )  # pylint: disable=no-member
         st.write(
-            f"Line Style: {gradient_ribbon_series.upper_line.line_style}"
+            f"Line Style: {gradient_ribbon_series.upper_line.line_style}",
         )  # pylint: disable=no-member
 
     # Usage instructions
@@ -242,17 +246,17 @@ def main():
     st.markdown(
         """
     **Gradient Ribbon Series Features:**
-    
+
     1. **Dynamic Colors**: The fill area between bands changes color based on gradient values
     2. **Customizable Colors**: Set start and end colors for the gradient transition
     3. **Normalization**: Option to normalize gradient values to 0-1 range for consistent coloring
     4. **Two Bands**: Upper and lower bands with individual styling options
-    
+
     **Use Cases:**
     - Volatility indicators where color intensity represents volatility level
     - Momentum indicators where color shows trend strength
     - Any ribbon-based indicator where color provides additional information
-    
+
     **Data Format:**
     ```python
     GradientRibbonData(
@@ -262,10 +266,11 @@ def main():
         gradient=0.7  # Value between 0-1 or raw value
     )
     ```
-    
-    **Note**: There's currently a TODO in the codebase about frontend support for gradient colors per bar. 
+
+    **Note**: There's currently a TODO in the codebase about frontend support for
+        gradient colors per bar.
     The gradient functionality may be limited in the current implementation.
-    """
+    """,
     )
 
 

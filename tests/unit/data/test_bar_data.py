@@ -15,6 +15,7 @@ import pytest
 from streamlit_lightweight_charts_pro.charts.series.bar_series import BarSeries
 from streamlit_lightweight_charts_pro.data.bar_data import BarData
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
+from streamlit_lightweight_charts_pro.exceptions import NonNegativeValueError, ValueValidationError
 
 
 class TestBarDataConstruction:
@@ -34,7 +35,12 @@ class TestBarDataConstruction:
     def test_construction_with_color(self):
         """Test BarData construction with color."""
         data = BarData(
-            time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0, color="#FF0000"
+            time=1640995200,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            color="#FF0000",
         )
 
         assert data.time == 1640995200
@@ -121,7 +127,7 @@ class TestBarDataValidation:
         assert data.high == data.low
 
         # Invalid case: high < low
-        with pytest.raises(ValueError, match="high must be greater than or equal to low"):
+        with pytest.raises(ValueValidationError, match="high must be greater than or equal to low"):
             BarData(time=1640995200, open=100.0, high=95.0, low=110.0, close=105.0)
 
     def test_validation_non_negative_values(self):
@@ -137,19 +143,19 @@ class TestBarDataValidation:
         assert all(val >= 0 for val in [data.open, data.high, data.low, data.close])
 
         # Invalid case: negative open
-        with pytest.raises(ValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(NonNegativeValueError, match="all OHLC values must be non-negative"):
             BarData(time=1640995200, open=-100.0, high=110.0, low=95.0, close=105.0)
 
         # Invalid case: negative high (but high < low, so different error)
-        with pytest.raises(ValueError, match="high must be greater than or equal to low"):
+        with pytest.raises(ValueValidationError, match="high must be greater than or equal to low"):
             BarData(time=1640995200, open=100.0, high=-110.0, low=95.0, close=105.0)
 
         # Invalid case: negative low
-        with pytest.raises(ValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(NonNegativeValueError, match="all OHLC values must be non-negative"):
             BarData(time=1640995200, open=100.0, high=110.0, low=-95.0, close=105.0)
 
         # Invalid case: negative close
-        with pytest.raises(ValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(NonNegativeValueError, match="all OHLC values must be non-negative"):
             BarData(time=1640995200, open=100.0, high=110.0, low=95.0, close=-105.0)
 
     def test_validation_none_values(self):
@@ -174,7 +180,12 @@ class TestBarDataValidation:
         """Test validation of color format."""
         # Valid hex color
         data = BarData(
-            time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0, color="#FF0000"
+            time=1640995200,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            color="#FF0000",
         )
         assert data.color == "#FF0000"
 
@@ -190,7 +201,7 @@ class TestBarDataValidation:
         assert data.color == "rgba(255, 0, 0, 0.5)"
 
         # Invalid color format
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ValueValidationError, match="color Invalid color format"):
             BarData(
                 time=1640995200,
                 open=100.0,
@@ -226,7 +237,12 @@ class TestBarDataSerialization:
     def test_to_dict_with_color(self):
         """Test to_dict with color."""
         data = BarData(
-            time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0, color="#FF0000"
+            time=1640995200,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            color="#FF0000",
         )
 
         result = data.asdict()
@@ -324,7 +340,11 @@ class TestBarDataEdgeCases:
     def test_large_numbers(self):
         """Test handling of large numbers."""
         data = BarData(
-            time=1640995200, open=1000000.0, high=1000001.0, low=999999.0, close=1000000.5
+            time=1640995200,
+            open=1000000.0,
+            high=1000001.0,
+            low=999999.0,
+            close=1000000.5,
         )
 
         assert data.open == 1000000.0
@@ -352,7 +372,12 @@ class TestBarDataEdgeCases:
     def test_json_serialization(self):
         """Test JSON serialization."""
         data = BarData(
-            time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0, color="#FF0000"
+            time=1640995200,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            color="#FF0000",
         )
 
         result = data.asdict()
@@ -372,11 +397,21 @@ class TestBarDataComparison:
     def test_equality_same_values(self):
         """Test equality with same values."""
         data1 = BarData(
-            time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0, color="#FF0000"
+            time=1640995200,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            color="#FF0000",
         )
 
         data2 = BarData(
-            time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0, color="#FF0000"
+            time=1640995200,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            color="#FF0000",
         )
 
         assert data1 == data2
@@ -384,11 +419,21 @@ class TestBarDataComparison:
     def test_equality_different_colors(self):
         """Test equality with different colors."""
         data1 = BarData(
-            time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0, color="#FF0000"
+            time=1640995200,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            color="#FF0000",
         )
 
         data2 = BarData(
-            time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0, color="#00FF00"
+            time=1640995200,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            color="#00FF00",
         )
 
         assert data1 != data2
@@ -396,7 +441,12 @@ class TestBarDataComparison:
     def test_equality_one_with_color_one_without(self):
         """Test equality with one having color and one without."""
         data1 = BarData(
-            time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0, color="#FF0000"
+            time=1640995200,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            color="#FF0000",
         )
 
         data2 = BarData(time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0)
@@ -412,7 +462,12 @@ class TestBarDataIntegration:
         data = [
             BarData(time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0),
             BarData(
-                time=1641081600, open=105.0, high=115.0, low=100.0, close=110.0, color="#FF0000"
+                time=1641081600,
+                open=105.0,
+                high=115.0,
+                low=100.0,
+                close=110.0,
+                color="#FF0000",
             ),
         ]
 
@@ -429,7 +484,7 @@ class TestBarDataIntegration:
 
     def test_with_dataframe_conversion(self):
         """Test BarData with DataFrame conversion."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "time": [1640995200, 1641081600],
                 "open": [100.0, 105.0],
@@ -437,11 +492,11 @@ class TestBarDataIntegration:
                 "low": [95.0, 100.0],
                 "close": [105.0, 110.0],
                 "color": ["#FF0000", "#00FF00"],
-            }
+            },
         )
 
         series = BarSeries.from_dataframe(
-            df,
+            test_dataframe,
             column_mapping={
                 "time": "time",
                 "open": "open",

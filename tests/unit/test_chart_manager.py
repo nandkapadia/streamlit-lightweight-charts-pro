@@ -14,6 +14,7 @@ from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 from streamlit_lightweight_charts_pro.charts.options.sync_options import SyncOptions
 from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
 from streamlit_lightweight_charts_pro.data.line_data import LineData
+from streamlit_lightweight_charts_pro.exceptions import DuplicateError, NotFoundError
 
 
 class TestChartManagerInitialization:
@@ -79,7 +80,7 @@ class TestChartManagerAddChart:
 
         manager.add_chart(chart1, "test_chart")
 
-        with pytest.raises(ValueError, match="Chart with ID 'test_chart' already exists"):
+        with pytest.raises(DuplicateError):
             manager.add_chart(chart2, "test_chart")
 
 
@@ -102,7 +103,7 @@ class TestChartManagerRemoveChart:
         """Test removing a non-existent chart raises error."""
         manager = ChartManager()
 
-        with pytest.raises(ValueError, match="Chart with ID 'nonexistent' not found"):
+        with pytest.raises(NotFoundError):
             manager.remove_chart("nonexistent")
 
 
@@ -123,7 +124,7 @@ class TestChartManagerGetChart:
         """Test getting a non-existent chart raises error."""
         manager = ChartManager()
 
-        with pytest.raises(ValueError, match="Chart with ID 'nonexistent' not found"):
+        with pytest.raises(NotFoundError):
             manager.get_chart("nonexistent")
 
 
@@ -148,7 +149,7 @@ class TestChartManagerRenderChart:
         """Test rendering a non-existent chart raises error."""
         manager = ChartManager()
 
-        with pytest.raises(ValueError, match="Chart with ID 'nonexistent' not found"):
+        with pytest.raises(NotFoundError):
             manager.render_chart("nonexistent")
 
 

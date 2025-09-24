@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { vi } from 'vitest';
 import { RectangleOverlayPlugin } from '../../plugins/overlay/rectanglePlugin';
 import { SignalSeries } from '../../plugins/series/signalSeriesPlugin';

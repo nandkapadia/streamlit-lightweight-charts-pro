@@ -442,10 +442,14 @@ class TestPriceScaleIntegrationValidation:
         # Create chart with price scale options
         chart_options = ChartOptions()
         chart_options.right_price_scale = PriceScaleOptions(
-            visible=True, auto_scale=False, invert_scale=True
+            visible=True,
+            auto_scale=False,
+            invert_scale=True,
         )
         chart_options.left_price_scale = PriceScaleOptions(
-            visible=False, auto_scale=True, invert_scale=False
+            visible=False,
+            auto_scale=True,
+            invert_scale=False,
         )
 
         chart = Chart(options=chart_options, series=[series])
@@ -475,7 +479,11 @@ class TestComplexConfigurationValidation:
         # Create price series
         price_data = [
             CandlestickData(
-                time=1640995200 + i, open=100 + i, high=105 + i, low=98 + i, close=102 + i
+                time=1640995200 + i,
+                open=100 + i,
+                high=105 + i,
+                low=98 + i,
+                close=102 + i,
             )
             for i in range(10)
         ]
@@ -499,7 +507,9 @@ class TestComplexConfigurationValidation:
         # Create chart with custom options
         chart_options = ChartOptions()
         chart_options.right_price_scale = PriceScaleOptions(
-            visible=True, auto_scale=True, invert_scale=False
+            visible=True,
+            auto_scale=True,
+            invert_scale=False,
         )
         chart_options.left_price_scale = PriceScaleOptions(visible=False)
 
@@ -623,7 +633,7 @@ class TestPerformanceValidation:
         assert "rightPriceScale" in chart_config["chart"]
 
         # Validate each series
-        for i, series_config in enumerate(chart_config["series"]):
+        for _i, series_config in enumerate(chart_config["series"]):
             assert len(series_config["data"]) == 100
             assert "legend" in series_config
             assert series_config["legend"]["visible"] is True

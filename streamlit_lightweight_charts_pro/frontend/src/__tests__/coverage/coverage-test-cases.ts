@@ -6,7 +6,6 @@
  * across different areas of the codebase with systematic test generation.
  */
 
-import { vi } from 'vitest';
 import { CoverageConfig, CoverageThresholds, COVERAGE_AREAS } from './coverage-config';
 
 export interface CoverageTestCase {

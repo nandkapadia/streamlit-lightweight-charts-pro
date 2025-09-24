@@ -79,9 +79,9 @@ class SeriesConfigChangesResult(Options):
     @classmethod
     def fromdict(cls, data: dict) -> "SeriesConfigChangesResult":
         """Create from dictionary with proper change object conversion."""
-        changes = []
-        for change_data in data.get("changes", []):
-            changes.append(SeriesConfigChange.fromdict(change_data))
+        changes = [
+            SeriesConfigChange.fromdict(change_data) for change_data in data.get("changes", [])
+        ]
 
         return cls(
             type=data.get("type", "series_config_changes"),
@@ -225,18 +225,18 @@ ChartSeriesConfigs = Dict[str, Any]  # {paneId: {seriesId: SeriesConfigState}}
 
 # Export all types for easy importing
 __all__ = [
-    "SeriesConfigChange",
-    "SeriesConfigState",
     "ChartSeriesConfigs",
     "CompleteSeriesConfigState",
+    "ConfigDict",
+    "ConfigValue",
     "SeriesConfigBackendData",
+    "SeriesConfigChange",
     "SeriesConfigChangesResult",
     "SeriesConfigPersistenceOptions",
-    "SeriesStyleConfig",
-    "SeriesVisibilityConfig",
-    "SeriesInputConfig",
+    "SeriesConfigState",
     "SeriesConfiguration",
+    "SeriesInputConfig",
+    "SeriesStyleConfig",
     "SeriesType",
-    "ConfigValue",
-    "ConfigDict",
+    "SeriesVisibilityConfig",
 ]

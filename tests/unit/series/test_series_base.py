@@ -5,6 +5,8 @@ This module tests the abstract Series class functionality including
 data handling, configuration, method chaining, edge cases, and legend integration.
 """
 
+# pylint: disable=no-member,protected-access
+
 from unittest.mock import Mock
 
 import pandas as pd
@@ -17,11 +19,24 @@ from streamlit_lightweight_charts_pro.charts.options.price_scale_options import 
     PriceScaleOptions,
 )
 from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
+from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
 from streamlit_lightweight_charts_pro.charts.series.base import Series
+from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
 from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
+from streamlit_lightweight_charts_pro.data.area_data import AreaData
+from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
 from streamlit_lightweight_charts_pro.data.data import classproperty
 from streamlit_lightweight_charts_pro.data.line_data import LineData
-from streamlit_lightweight_charts_pro.data.marker import Marker, MarkerBase
+from streamlit_lightweight_charts_pro.data.marker import BarMarker, Marker, MarkerBase
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColumnMappingRequiredError,
+    DataItemsTypeError,
+    InvalidDataFormatError,
+    MissingRequiredColumnsError,
+    PaneIdNonNegativeError,
+    TimeColumnNotFoundError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     ChartType,
     LineStyle,
@@ -29,7 +44,7 @@ from streamlit_lightweight_charts_pro.type_definitions.enums import (
     MarkerShape,
     PriceScaleMode,
 )
-from tests.unit.utils import _get_enum_value
+from tests.unit.series_utils import _get_enum_value
 
 
 class ConcreteSeries(Series):
@@ -51,49 +66,73 @@ class ConcreteSeries(Series):
                 column_mapping = {"time": "time", "value": "value"}
 
             # Process DataFrame using the same logic as from_dataframe
-            df = data.copy()
+            processed_data = data.copy()
 
             # Get index names for normalization
-            index_names = df.index.names if hasattr(df.index, "names") else [df.index.name]
+            index_names = (
+                processed_data.index.names
+                if hasattr(processed_data.index, "names")
+                else [processed_data.index.name]
+            )
 
             # Normalize index as column if needed
-            for key, col in column_mapping.items():
-                if col in df.columns:
+            for col in column_mapping.values():
+                if col in processed_data.columns:
                     continue
 
                 # Handle DatetimeIndex with no name
-                if isinstance(df.index, pd.DatetimeIndex) and df.index.name is None:
-                    df.index.name = col
-                    df = df.reset_index()
+                if (
+                    isinstance(processed_data.index, pd.DatetimeIndex)
+                    and processed_data.index.name is None
+                ):
+                    processed_data.index.name = col
+                    processed_data = processed_data.reset_index()
                 # Handle MultiIndex with unnamed DatetimeIndex level
-                elif isinstance(df.index, pd.MultiIndex):
+                elif isinstance(processed_data.index, pd.MultiIndex):
                     # Find the level index that matches the column name
-                    for i, name in enumerate(df.index.names):
-                        if name is None and i < len(df.index.levels):
-                            # Check if this level is a DatetimeIndex
-                            if isinstance(df.index.levels[i], pd.DatetimeIndex):
-                                # Set the name for this level
-                                new_names = list(df.index.names)
-                                new_names[i] = col
-                                df.index.names = new_names
-                                df = df.reset_index(level=col)
-                                break
+                    for i, name in enumerate(processed_data.index.names):
+                        if (
+                            name is None
+                            and i < len(processed_data.index.levels)
+                            and isinstance(processed_data.index.levels[i], pd.DatetimeIndex)
+                        ):
+                            # Set the name for this level
+                            new_names = list(processed_data.index.names)
+                            new_names[i] = col
+                            processed_data.index.names = new_names
+                            processed_data = processed_data.reset_index(level=col)
+                            break
                     # If not found as unnamed DatetimeIndex, check if it's a named level
                     else:
-                        if col in df.index.names:
-                            df = df.reset_index(level=col)
+                        if col in processed_data.index.names:
+                            processed_data = processed_data.reset_index(level=col)
                 # Handle regular index with matching name
                 elif col in index_names:
-                    df = df.reset_index()
+                    processed_data = processed_data.reset_index()
 
             # Process the DataFrame into data objects
-            data = self._process_dataframe(df)
+            data = self._process_dataframe(processed_data)
 
         super().__init__(data=data, **kwargs)
-
-    def asdict(self):
-        # Use the parent's asdict method to test the new logic
-        return super().asdict()
+        # Initialize attributes with defaults, but don't override if set by parent
+        if not hasattr(self, "price_scale"):
+            self.price_scale = None
+        if not hasattr(self, "_visible"):
+            self._visible = True
+        if not hasattr(self, "price_format"):
+            self.price_format = None
+        if not hasattr(self, "price_lines"):
+            self.price_lines = []
+        if not hasattr(self, "markers"):
+            self.markers = []
+        if not hasattr(self, "last_value_visible"):
+            self.last_value_visible = True
+        if not hasattr(self, "legend"):
+            self.legend = None
+        if not hasattr(self, "price_scale_id"):
+            self.price_scale_id = ""
+        if not hasattr(self, "pane_id"):
+            self.pane_id = 0
 
     def _process_dataframe(self, df):
         """Process DataFrame into LineData objects."""
@@ -125,9 +164,9 @@ class TestSeriesBase:
 
     def test_construction_with_dataframe(self):
         """Test Series construction with DataFrame."""
-        df = pd.DataFrame({"time": [1640995200, 1641081600], "value": [100, 110]})
+        test_data = pd.DataFrame({"time": [1640995200, 1641081600], "value": [100, 110]})
 
-        series = ConcreteSeries(data=df, column_mapping={"time": "time", "value": "value"})
+        series = ConcreteSeries(data=test_data, column_mapping={"time": "time", "value": "value"})
 
         assert len(series.data) == 2
         assert all(isinstance(d, LineData) for d in series.data)
@@ -171,8 +210,6 @@ class TestSeriesBase:
         """Test the add_marker method."""
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
-
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -224,9 +261,6 @@ class TestSeriesBase:
         """Test the clear_markers method."""
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
-
-        # Add some markers first
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -327,10 +361,11 @@ class TestSeriesBase:
 
     def test_from_dataframe_classmethod(self):
         """Test the from_dataframe class method."""
-        df = pd.DataFrame({"time": [1640995200, 1641081600], "value": [100, 110]})
+        test_data = pd.DataFrame({"time": [1640995200, 1641081600], "value": [100, 110]})
 
         series = ConcreteSeries.from_dataframe(
-            df=df, column_mapping={"time": "time", "value": "value"}
+            df=test_data,
+            column_mapping={"time": "time", "value": "value"},
         )
 
         assert len(series.data) == 2
@@ -340,10 +375,14 @@ class TestSeriesBase:
 
     def test_from_dataframe_with_index_columns(self):
         """Test from_dataframe with index columns."""
-        df = pd.DataFrame({"value": [100, 110]}, index=pd.to_datetime(["2022-01-01", "2022-01-02"]))
+        test_data = pd.DataFrame(
+            {"value": [100, 110]},
+            index=pd.to_datetime(["2022-01-01", "2022-01-02"]),
+        )
 
         series = ConcreteSeries.from_dataframe(
-            df=df, column_mapping={"time": "datetime", "value": "value"}
+            df=test_data,
+            column_mapping={"time": "datetime", "value": "value"},
         )
 
         assert len(series.data) == 2
@@ -352,12 +391,13 @@ class TestSeriesBase:
     def test_from_dataframe_with_multi_index(self):
         """Test from_dataframe with multi-index."""
         # Create DataFrame with multi-index already as columns
-        df = pd.DataFrame(
-            {"date": [1640995200, 1641081600], "symbol": ["A", "B"], "value": [100, 110]}
+        test_data = pd.DataFrame(
+            {"date": [1640995200, 1641081600], "symbol": ["A", "B"], "value": [100, 110]},
         )
 
         series = ConcreteSeries.from_dataframe(
-            df=df, column_mapping={"time": "date", "value": "value"}
+            df=test_data,
+            column_mapping={"time": "date", "value": "value"},
         )
 
         assert len(series.data) == 2
@@ -365,10 +405,14 @@ class TestSeriesBase:
 
     def test_from_dataframe_with_unnamed_datetime_index(self):
         """Test from_dataframe with unnamed DatetimeIndex."""
-        df = pd.DataFrame({"value": [100, 110]}, index=pd.to_datetime(["2022-01-01", "2022-01-02"]))
+        test_data = pd.DataFrame(
+            {"value": [100, 110]},
+            index=pd.to_datetime(["2022-01-01", "2022-01-02"]),
+        )
 
         series = ConcreteSeries.from_dataframe(
-            df=df, column_mapping={"time": "datetime", "value": "value"}
+            df=test_data,
+            column_mapping={"time": "datetime", "value": "value"},
         )
 
         assert len(series.data) == 2
@@ -380,16 +424,17 @@ class TestSeriesBase:
     def test_from_dataframe_with_unnamed_datetime_multi_index(self):
         """Test from_dataframe with MultiIndex containing unnamed DatetimeIndex level."""
         # Create DataFrame with datetime column already available
-        df = pd.DataFrame(
+        test_data = pd.DataFrame(
             {
                 "datetime": [pd.Timestamp("2022-01-01"), pd.Timestamp("2022-01-02")],
                 "symbol": ["A", "B"],
                 "value": [100, 110],
-            }
+            },
         )
 
         series = ConcreteSeries.from_dataframe(
-            df=df, column_mapping={"time": "datetime", "value": "value"}
+            df=test_data,
+            column_mapping={"time": "datetime", "value": "value"},
         )
 
         assert len(series.data) == 2
@@ -414,9 +459,9 @@ class TestSeriesBase:
         """Test _validate_pane_config with invalid pane_id."""
         data = [LineData(time=1640995200, value=100)]
 
-        # Should raise ValueError for negative pane_id
+        # Should raise PaneIdNonNegativeError for negative pane_id
         series = ConcreteSeries(data=data, pane_id=-1)
-        with pytest.raises(ValueError, match="pane_id must be non-negative"):
+        with pytest.raises(PaneIdNonNegativeError):
             series._validate_pane_config()
 
     def test_method_chaining(self):
@@ -426,7 +471,6 @@ class TestSeriesBase:
 
         # Test chaining multiple methods
         series.visible = False
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -449,45 +493,40 @@ class TestSeriesBase:
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""
         # The new implementation should raise an error for invalid data types
-        with pytest.raises(
-            ValueError, match="data must be a list of SingleValueData objects, DataFrame, or Series"
-        ):
+        with pytest.raises(InvalidDataFormatError):
             ConcreteSeries(data="invalid_data")
 
     def test_error_handling_missing_required_columns(self):
         """Test error handling with missing required columns."""
-        df = pd.DataFrame({"value": [100, 110]})  # Missing 'time' column
+        invalid_data = pd.DataFrame({"value": [100, 110]})  # Missing 'time' column
 
-        with pytest.raises(ValueError, match="Time column 'time' not found"):
-            ConcreteSeries.from_dataframe(df=df, column_mapping={"time": "time", "value": "value"})
+        with pytest.raises(TimeColumnNotFoundError):
+            ConcreteSeries.from_dataframe(
+                df=invalid_data,
+                column_mapping={"time": "time", "value": "value"},
+            )
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(
-            ValueError, match="data must be a list of SingleValueData objects, DataFrame, or Series"
-        ):
+        with pytest.raises(InvalidDataFormatError):
             ConcreteSeries(data="invalid_data")
 
     def test_error_handling_dataframe_without_column_mapping(self):
         """Test error handling with DataFrame without column_mapping."""
-        df = pd.DataFrame({"time": [1640995200], "value": [100]})
+        test_data = pd.DataFrame({"time": [1640995200], "value": [100]})
 
         # Create a Series subclass that doesn't override __init__
         class TestSeries(Series):
             DATA_CLASS = LineData
 
-        with pytest.raises(
-            ValueError, match="column_mapping is required when providing DataFrame or Series data"
-        ):
-            TestSeries(data=df)
+        with pytest.raises(ColumnMappingRequiredError):
+            TestSeries(data=test_data)
 
     def test_error_handling_invalid_list_data(self):
         """Test error handling with list containing non-SingleValueData objects."""
         invalid_data = [{"time": 1640995200, "value": 100}]  # dict instead of SingleValueData
 
-        with pytest.raises(
-            ValueError, match="All items in data list must be instances of Data or its subclasses"
-        ):
+        with pytest.raises(DataItemsTypeError):
             ConcreteSeries(data=invalid_data)
 
 
@@ -521,7 +560,6 @@ class TestSeriesBaseAdvanced:
         # Add complex options
         series.price_format = PriceFormatOptions(type="price", precision=2)
         series.add_price_line(PriceLineOptions(price=100, color="#ff0000"))
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -605,16 +643,17 @@ class TestSeriesBaseAdvanced:
     def test_from_dataframe_with_complex_multi_index(self):
         """Test from_dataframe with complex MultiIndex scenarios."""
         # Test with DataFrame that has datetime and symbol columns
-        df = pd.DataFrame(
+        test_data = pd.DataFrame(
             {
                 "datetime": [pd.Timestamp("2022-01-01"), pd.Timestamp("2022-01-02")],
                 "symbol": ["A", "B"],
                 "value": [100, 110],
-            }
+            },
         )
 
         series = ConcreteSeries.from_dataframe(
-            df=df, column_mapping={"time": "datetime", "value": "value"}
+            df=test_data,
+            column_mapping={"time": "datetime", "value": "value"},
         )
 
         assert len(series.data) == 2
@@ -622,12 +661,13 @@ class TestSeriesBaseAdvanced:
 
     def test_from_dataframe_with_datetime_index_no_name(self):
         """Test from_dataframe with DatetimeIndex that has no name."""
-        df = pd.DataFrame({"value": [100, 110]})
-        df.index = pd.to_datetime(["2022-01-01", "2022-01-02"])
-        df.index.name = None  # Ensure no name
+        test_data = pd.DataFrame({"value": [100, 110]})
+        test_data.index = pd.to_datetime(["2022-01-01", "2022-01-02"])
+        test_data.index.name = None  # Ensure no name
 
         series = ConcreteSeries.from_dataframe(
-            df=df, column_mapping={"time": "datetime", "value": "value"}
+            df=test_data,
+            column_mapping={"time": "datetime", "value": "value"},
         )
 
         assert len(series.data) == 2
@@ -638,7 +678,8 @@ class TestSeriesBaseAdvanced:
         series_data = pd.Series([100, 110], index=pd.to_datetime(["2022-01-01", "2022-01-02"]))
 
         series = ConcreteSeries.from_dataframe(
-            df=series_data, column_mapping={"time": "index", "value": 0}
+            df=series_data,
+            column_mapping={"time": "index", "value": 0},
         )
 
         assert len(series.data) == 2
@@ -646,18 +687,20 @@ class TestSeriesBaseAdvanced:
 
     def test_from_dataframe_error_handling(self):
         """Test from_dataframe error handling."""
-        df = pd.DataFrame({"value": [100, 110]})
+        test_data = pd.DataFrame({"value": [100, 110]})
 
         # Test missing required column in column_mapping
-        with pytest.raises(ValueError, match="Missing required columns in column_mapping"):
+        with pytest.raises(MissingRequiredColumnsError):
             ConcreteSeries.from_dataframe(
-                df=df, column_mapping={"value": "value"}  # Missing 'time'
+                df=test_data,
+                column_mapping={"value": "value"},  # Missing 'time'
             )
 
         # Test missing column in DataFrame
-        with pytest.raises(ValueError, match="Time column 'missing_column' not found"):
+        with pytest.raises(TimeColumnNotFoundError):
             ConcreteSeries.from_dataframe(
-                df=df, column_mapping={"time": "missing_column", "value": "value"}
+                df=test_data,
+                column_mapping={"time": "missing_column", "value": "value"},
             )
 
     def test_constructor_with_series_data(self):
@@ -719,7 +762,7 @@ class TestSeriesBaseAdvanced:
                 position=MarkerPosition.ABOVE_BAR,
                 color="#ff0000",
                 shape=MarkerShape.CIRCLE,
-            )
+            ),
         ]
         series.markers = markers
         assert series.markers == markers
@@ -868,7 +911,11 @@ class TestPriceScaleProperty:
 
         # Set price_scale
         price_scale = PriceScaleOptions(
-            price_scale_id="custom", visible=True, auto_scale=False, mode=1, invert_scale=True
+            price_scale_id="custom",
+            visible=True,
+            auto_scale=False,
+            mode=1,
+            invert_scale=True,
         )
         series.price_scale = price_scale
 
@@ -1122,13 +1169,14 @@ class TestSeriesPrepareIndexEdgeCases:
         """Test prepare_index with MultiIndex using integer level position."""
         # Create MultiIndex DataFrame
         index = pd.MultiIndex.from_tuples(
-            [("A", 1), ("A", 2), ("B", 1), ("B", 2)], names=["category", "level"]
+            [("A", 1), ("A", 2), ("B", 1), ("B", 2)],
+            names=["category", "level"],
         )
-        df = pd.DataFrame({"value": [10, 20, 30, 40]}, index=index)
+        test_data = pd.DataFrame({"value": [10, 20, 30, 40]}, index=index)
 
         column_mapping = {"time": "0", "value": "value"}  # Use integer string for level position
 
-        result = Series.prepare_index(df, column_mapping)
+        result = Series.prepare_index(test_data, column_mapping)
 
         # Should reset the first level (position 0)
         assert "category" in result.columns
@@ -1138,26 +1186,28 @@ class TestSeriesPrepareIndexEdgeCases:
     def test_prepare_index_multiindex_invalid_level_position(self):
         """Test prepare_index with MultiIndex using invalid level position."""
         index = pd.MultiIndex.from_tuples(
-            [("A", 1), ("A", 2), ("B", 1), ("B", 2)], names=["category", "level"]
+            [("A", 1), ("A", 2), ("B", 1), ("B", 2)],
+            names=["category", "level"],
         )
-        df = pd.DataFrame({"value": [10, 20, 30, 40]}, index=index)
+        test_data = pd.DataFrame({"value": [10, 20, 30, 40]}, index=index)
 
         column_mapping = {"time": "999", "value": "value"}  # Invalid level position
 
         # Should not raise error, just pass through
-        result = Series.prepare_index(df, column_mapping)
-        assert result.equals(df)
+        result = Series.prepare_index(test_data, column_mapping)
+        assert result.equals(test_data)
 
     def test_prepare_index_multiindex_named_level(self):
         """Test prepare_index with MultiIndex using named level."""
         index = pd.MultiIndex.from_tuples(
-            [("A", 1), ("A", 2), ("B", 1), ("B", 2)], names=["category", "level"]
+            [("A", 1), ("A", 2), ("B", 1), ("B", 2)],
+            names=["category", "level"],
         )
-        df = pd.DataFrame({"value": [10, 20, 30, 40]}, index=index)
+        test_data = pd.DataFrame({"value": [10, 20, 30, 40]}, index=index)
 
         column_mapping = {"time": "category", "value": "value"}
 
-        result = Series.prepare_index(df, column_mapping)
+        result = Series.prepare_index(test_data, column_mapping)
 
         # Should reset the 'category' level
         assert "category" in result.columns
@@ -1167,13 +1217,14 @@ class TestSeriesPrepareIndexEdgeCases:
     def test_prepare_index_multiindex_index_keyword(self):
         """Test prepare_index with MultiIndex using 'index' keyword."""
         index = pd.MultiIndex.from_tuples(
-            [("A", 1), ("A", 2), ("B", 1), ("B", 2)], names=[None, "level"]  # First level unnamed
+            [("A", 1), ("A", 2), ("B", 1), ("B", 2)],
+            names=[None, "level"],  # First level unnamed
         )
-        df = pd.DataFrame({"value": [10, 20, 30, 40]}, index=index)
+        test_data = pd.DataFrame({"value": [10, 20, 30, 40]}, index=index)
 
         column_mapping = {"time": "index", "value": "value"}
 
-        result = Series.prepare_index(df, column_mapping)
+        result = Series.prepare_index(test_data, column_mapping)
 
         # Should reset the first unnamed level
         assert "level_0" in result.columns or "level" in result.columns
@@ -1185,11 +1236,11 @@ class TestSeriesPrepareIndexEdgeCases:
             [("A", 1), ("A", 2), ("B", 1), ("B", 2)],
             names=["category", "level"],  # All levels named
         )
-        df = pd.DataFrame({"value": [10, 20, 30, 40]}, index=index)
+        test_data = pd.DataFrame({"value": [10, 20, 30, 40]}, index=index)
 
         column_mapping = {"time": "index", "value": "value"}
 
-        result = Series.prepare_index(df, column_mapping)
+        result = Series.prepare_index(test_data, column_mapping)
 
         # Should reset the first level when all are named
         assert "category" in result.columns
@@ -1198,12 +1249,12 @@ class TestSeriesPrepareIndexEdgeCases:
 
     def test_prepare_index_single_index_with_name(self):
         """Test prepare_index with single index that has a name."""
-        df = pd.DataFrame({"value": [10, 20, 30, 40]})
-        df.index.name = "timestamp"
+        test_data = pd.DataFrame({"value": [10, 20, 30, 40]})
+        test_data.index.name = "timestamp"
 
         column_mapping = {"time": "timestamp", "value": "value"}
 
-        result = Series.prepare_index(df, column_mapping)
+        result = Series.prepare_index(test_data, column_mapping)
 
         # Should reset the index
         assert "timestamp" in result.columns
@@ -1211,12 +1262,12 @@ class TestSeriesPrepareIndexEdgeCases:
 
     def test_prepare_index_single_index_without_name(self):
         """Test prepare_index with single index without name."""
-        df = pd.DataFrame({"value": [10, 20, 30, 40]})
-        df.index.name = None
+        test_data = pd.DataFrame({"value": [10, 20, 30, 40]})
+        test_data.index.name = None
 
         column_mapping = {"time": "index", "value": "value"}
 
-        result = Series.prepare_index(df, column_mapping)
+        result = Series.prepare_index(test_data, column_mapping)
 
         # Should reset the index and create 'index' column
         assert "index" in result.columns
@@ -1224,12 +1275,12 @@ class TestSeriesPrepareIndexEdgeCases:
 
     def test_prepare_index_single_index_index_keyword(self):
         """Test prepare_index with single index using 'index' keyword."""
-        df = pd.DataFrame({"value": [10, 20, 30, 40]})
-        df.index.name = "timestamp"
+        test_data = pd.DataFrame({"value": [10, 20, 30, 40]})
+        test_data.index.name = "timestamp"
 
         column_mapping = {"time": "index", "value": "value"}
 
-        result = Series.prepare_index(df, column_mapping)
+        result = Series.prepare_index(test_data, column_mapping)
 
         # Should reset the index
         assert "timestamp" in result.columns
@@ -1245,7 +1296,7 @@ class TestSeriesProcessDataframeInput:
         # Create a mock series class
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805
                 return LineData
 
         # Create Series input
@@ -1262,28 +1313,28 @@ class TestSeriesProcessDataframeInput:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
-        df = pd.DataFrame({"value": [10, 20, 30, 40]})
+        test_data = pd.DataFrame({"value": [10, 20, 30, 40]})
 
         # Missing 'time' column mapping
-        with pytest.raises(ValueError, match="DataFrame is missing required column mapping"):
-            MockSeries(data=df, column_mapping={"value": "value"})
+        with pytest.raises(ValueValidationError):
+            MockSeries(data=test_data, column_mapping={"value": "value"})
 
     def test_process_dataframe_input_missing_dataframe_columns(self):
         """Test _process_dataframe_input with missing DataFrame columns."""
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
-        df = pd.DataFrame({"value": [10, 20, 30, 40]})
+        test_data = pd.DataFrame({"value": [10, 20, 30, 40]})
 
         # Column mapping references non-existent column
-        with pytest.raises(ValueError, match="Time column 'nonexistent' not found"):
-            MockSeries(data=df, column_mapping={"time": "nonexistent", "value": "value"})
+        with pytest.raises(TimeColumnNotFoundError):
+            MockSeries(data=test_data, column_mapping={"time": "nonexistent", "value": "value"})
 
 
 class TestSeriesUpdateMethods:
@@ -1294,7 +1345,7 @@ class TestSeriesUpdateMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1310,7 +1361,7 @@ class TestSeriesUpdateMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1326,7 +1377,7 @@ class TestSeriesUpdateMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1341,7 +1392,7 @@ class TestSeriesUpdateMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1358,7 +1409,7 @@ class TestSeriesUpdateMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1381,7 +1432,7 @@ class TestSeriesValidationMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1395,13 +1446,13 @@ class TestSeriesValidationMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
         series.pane_id = -1
 
-        with pytest.raises(ValueError, match="pane_id must be non-negative"):
+        with pytest.raises(PaneIdNonNegativeError):
             series._validate_pane_config()
 
     def test_validate_pane_config_invalid_pane_id_type(self):
@@ -1409,14 +1460,15 @@ class TestSeriesValidationMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
         series.pane_id = "invalid"
 
         with pytest.raises(
-            TypeError, match="'<' not supported between instances of 'str' and 'int'"
+            TypeError,
+            match="'<' not supported between instances of 'str' and 'int'",
         ):
             series._validate_pane_config()
 
@@ -1429,7 +1481,7 @@ class TestSeriesUtilityMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1443,7 +1495,7 @@ class TestSeriesUtilityMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1457,7 +1509,7 @@ class TestSeriesUtilityMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1474,7 +1526,7 @@ class TestSeriesUtilityMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1493,7 +1545,7 @@ class TestSeriesUtilityMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1512,7 +1564,7 @@ class TestSeriesUtilityMethods:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1535,7 +1587,7 @@ class TestSeriesAsdictMethod:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1556,7 +1608,7 @@ class TestSeriesAsdictMethod:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1576,7 +1628,7 @@ class TestSeriesAsdictMethod:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         series = MockSeries(data=[LineData(time=1, value=10)])
@@ -1609,14 +1661,15 @@ class TestSeriesFromDataframeEdgeCases:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         # Create Series input
         series_data = pd.Series([10, 20, 30, 40], index=pd.date_range("2023-01-01", periods=4))
 
         result = MockSeries.from_dataframe(
-            series_data, column_mapping={"time": "index", "value": 0}
+            series_data,
+            column_mapping={"time": "index", "value": 0},
         )
 
         assert isinstance(result, MockSeries)
@@ -1628,15 +1681,15 @@ class TestSeriesFromDataframeEdgeCases:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
-        df = pd.DataFrame(
-            {"time": pd.date_range("2023-01-01", periods=4), "value": [10, 20, 30, 40]}
+        test_data = pd.DataFrame(
+            {"time": pd.date_range("2023-01-01", periods=4), "value": [10, 20, 30, 40]},
         )
 
         result = MockSeries.from_dataframe(
-            df,
+            test_data,
             column_mapping={"time": "time", "value": "value"},
             visible=False,
             price_scale_id="custom_scale",
@@ -1655,7 +1708,7 @@ class TestSeriesDataClassProperty:
 
         class MockSeries(Series):
             @classproperty
-            def data_class(cls):
+            def data_class(cls):  # noqa: N805  # pylint: disable=no-self-argument
                 return LineData
 
         # Test the class property
@@ -1937,7 +1990,8 @@ class TestSeriesLegendEdgeCases:
         assert config["legend"]["text"] == unicode_text
 
     def test_legend_property_immutability(self):
-        """Test that legend property changes affect the original legend object (shared reference)."""
+        """Test that legend property changes affect the original legend object
+        (shared reference)."""
         series = LineSeries(data=[])
         original_legend = LegendOptions(position="top-left", visible=True)
         series.legend = original_legend
@@ -1983,8 +2037,6 @@ class TestSeriesLegendIntegration:
 
     def test_candlestick_series_legend_integration(self):
         """Test legend integration with CandlestickSeries."""
-        from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
-        from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
 
         data = [CandlestickData(time="2023-01-01", open=100, high=105, low=95, close=102)]
         series = CandlestickSeries(data=data)
@@ -1997,8 +2049,6 @@ class TestSeriesLegendIntegration:
 
     def test_area_series_legend_integration(self):
         """Test legend integration with AreaSeries."""
-        from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
-        from streamlit_lightweight_charts_pro.data.area_data import AreaData
 
         data = [AreaData(time="2023-01-01", value=100)]
         series = AreaSeries(data=data)

@@ -1,5 +1,4 @@
-"""
-Multi-Pane Chart with Legends Example.
+"""Multi-Pane Chart with Legends Example.
 
 This example demonstrates a comprehensive multi-pane chart with legends for each pane:
 - Main chart (pane 0): Candlestick data with moving averages
@@ -9,9 +8,9 @@ This example demonstrates a comprehensive multi-pane chart with legends for each
 Each pane has its own legend configuration with custom templates.
 """
 
+import numpy as np
 import pandas as pd
 import streamlit as st
-import numpy as np
 
 from streamlit_lightweight_charts_pro import (
     CandlestickSeries,
@@ -23,11 +22,7 @@ from streamlit_lightweight_charts_pro import (
     LineSeries,
     PaneHeightOptions,
 )
-from streamlit_lightweight_charts_pro.data import (
-    CandlestickData,
-    HistogramData,
-    LineData,
-)
+from streamlit_lightweight_charts_pro.data import CandlestickData, HistogramData, LineData
 
 st.set_page_config(page_title="Multi-Pane Legends Example", page_icon="📊", layout="wide")
 
@@ -36,23 +31,22 @@ st.markdown(
     """
 This example demonstrates a comprehensive multi-pane chart with legends for each pane:
 - **Main chart (pane 0)**: Candlestick data with moving averages
-- **RSI indicator (pane 1)**: RSI line with overbought/oversold levels  
+- **RSI indicator (pane 1)**: RSI line with overbought/oversold levels
 - **Volume (pane 2)**: Volume histogram with moving average
 
 Each pane has its own legend configuration with custom HTML templates.
-"""
+""",
 )
 
 
 def generate_market_data(days=60):
     """Generate sample market data."""
-
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     dates = pd.date_range(start="2024-01-01", periods=days, freq="D")
 
     # Generate price data
     base_price = 100
-    returns = np.random.normal(0, 0.02, days)
+    returns = rng.normal(0, 0.02, days)
     prices = [base_price]
 
     for ret in returns[1:]:
@@ -61,11 +55,11 @@ def generate_market_data(days=60):
     # Generate OHLC data
     data = []
     for i, (date, price) in enumerate(zip(dates, prices)):
-        high = price * (1 + abs(np.random.normal(0, 0.01)))
-        low = price * (1 - abs(np.random.normal(0, 0.01)))
+        high = price * (1 + abs(rng.normal(0, 0.01)))
+        low = price * (1 - abs(rng.normal(0, 0.01)))
         open_price = prices[i - 1] if i > 0 else price
         close_price = price
-        volume = int(np.random.uniform(1000, 10000))
+        volume = int(rng.uniform(1000, 10000))
 
         data.append(
             {
@@ -75,7 +69,7 @@ def generate_market_data(days=60):
                 "low": round(low, 2),
                 "close": round(close_price, 2),
                 "volume": volume,
-            }
+            },
         )
 
     return pd.DataFrame(data)
@@ -83,63 +77,69 @@ def generate_market_data(days=60):
 
 def calculate_indicators(prices):
     """Calculate technical indicators."""
-    df = prices.copy()
+    market_data = prices.copy()
 
     # Calculate moving averages
-    df["ma20"] = df["close"].rolling(window=20).mean()
-    df["ma50"] = df["close"].rolling(window=50).mean()
+    market_data["ma20"] = market_data["close"].rolling(window=20).mean()
+    market_data["ma50"] = market_data["close"].rolling(window=50).mean()
 
     # Calculate RSI
-    delta = df["close"].diff()
+    delta = market_data["close"].diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
     rs = gain / loss
-    df["rsi"] = 100 - (100 / (1 + rs))
+    market_data["rsi"] = 100 - (100 / (1 + rs))
 
     # Calculate volume moving average
-    df["volume_ma"] = df["volume"].rolling(window=20).mean()
+    market_data["volume_ma"] = market_data["volume"].rolling(window=20).mean()
 
-    return df
+    return market_data
 
 
 # Generate data
-df = generate_market_data(100)
-df = calculate_indicators(df)
+market_data = generate_market_data(100)
+market_data = calculate_indicators(market_data)
 
 # Prepare data for charts
 candlestick_data = [
     CandlestickData(
-        time=row["time"], open=row["open"], high=row["high"], low=row["low"], close=row["close"]
+        time=row["time"],
+        open=row["open"],
+        high=row["high"],
+        low=row["low"],
+        close=row["close"],
     )
-    for _, row in df.iterrows()
+    for _, row in market_data.iterrows()
     if pd.notna(row["open"])
 ]
 
 ma20_data = [
     LineData(time=row["time"], value=row["ma20"])
-    for _, row in df.iterrows()
+    for _, row in market_data.iterrows()
     if pd.notna(row["ma20"])
 ]
 
 ma50_data = [
     LineData(time=row["time"], value=row["ma50"])
-    for _, row in df.iterrows()
+    for _, row in market_data.iterrows()
     if pd.notna(row["ma50"])
 ]
 
 rsi_data = [
-    LineData(time=row["time"], value=row["rsi"]) for _, row in df.iterrows() if pd.notna(row["rsi"])
+    LineData(time=row["time"], value=row["rsi"])
+    for _, row in market_data.iterrows()
+    if pd.notna(row["rsi"])
 ]
 
 volume_data = [
     HistogramData(time=row["time"], value=row["volume"])
-    for _, row in df.iterrows()
+    for _, row in market_data.iterrows()
     if pd.notna(row["volume"])
 ]
 
 volume_ma_data = [
     LineData(time=row["time"], value=row["volume_ma"])
-    for _, row in df.iterrows()
+    for _, row in market_data.iterrows()
     if pd.notna(row["volume_ma"])
 ]
 
@@ -186,7 +186,7 @@ multi_pane_chart = Chart(
                 0: PaneHeightOptions(factor=3.0),  # Main chart (candlestick + MAs)
                 1: PaneHeightOptions(factor=1.5),  # RSI
                 2: PaneHeightOptions(factor=1.0),  # Volume
-            }
+            },
         ),
     ),
     series=[
@@ -240,10 +240,7 @@ multi_pane_chart.series[3].legend = LegendOptions(
     padding=5,
     margin=4,
     z_index=1000,
-    text=(
-        "<div style='color: #9c27b0; font-size: 11px;'><strong>RSI (14)</strong>:"
-        " $$value$$</div>"
-    ),
+    text="<div style='color: #9c27b0; font-size: 11px;'><strong>RSI (14)</strong>: $$value$$</div>",
 )
 
 multi_pane_chart.series[5].legend = LegendOptions(
@@ -286,12 +283,13 @@ with col1:
 LegendOptions(
     position="top-right",
     text="<div style='display: flex; align-items: center; margin-bottom: 4px;'>
-        <span style='width: 12px; height: 2px; background-color: {color}; margin-right: 6px; display: inline-block;'></span>
+        <span style='width: 12px; height: 2px; background-color: {color};
+            margin-right: 6px; display: inline-block;'></span>
         <span style='font-weight: bold;'>{title}</span>
         <span style='margin-left: 8px; color: {color}; font-weight: bold;'>{value}</span>
     </div>"
 )
-"""
+""",
     )
 
 with col2:
@@ -304,7 +302,7 @@ LegendOptions(
         <strong>{title}</strong>: {value}
     </div>"
 )
-"""
+""",
     )
 
 with col3:
@@ -314,12 +312,13 @@ with col3:
 LegendOptions(
     position="top-left",
     text="<div style='display: flex; align-items: center;'>
-        <span style='width: 8px; height: 8px; background-color: {color}; margin-right: 4px; border-radius: 2px;'></span>
+        <span style='width: 8px; height: 8px; background-color: {color};
+            margin-right: 4px; border-radius: 2px;'></span>
         <span>{title}</span>
         <span style='margin-left: 6px; color: {color};'>{value}</span>
     </div>"
 )
-"""
+""",
     )
 
 st.markdown("### Available Template Placeholders")
@@ -352,7 +351,7 @@ conflicts with Python's f-string syntax and other templating systems.
     RSI - $$value$$ (Oscillator)
 </span>
 ```
-"""
+""",
 )
 
 st.markdown("### Key Features")
@@ -365,7 +364,7 @@ st.markdown(
 4. **Flexible Positioning**: Different legend positions for each pane
 5. **Customizable Styling**: Full control over colors, fonts, borders, etc.
 6. **Responsive Design**: Legends adapt to chart size and positioning
-"""
+""",
 )
 
 st.markdown("### Best Practices")
@@ -378,5 +377,5 @@ st.markdown(
 - Use consistent color schemes between series and legend indicators
 - Test templates with different data types and values
 - Consider accessibility when choosing colors and fonts
-"""
+""",
 )

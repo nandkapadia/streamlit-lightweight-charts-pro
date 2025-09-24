@@ -1,16 +1,18 @@
-"""
-Advanced Series Features Example
+"""Advanced Series Features Example
 
 This example demonstrates advanced Series functionality including method chaining,
 configuration management, serialization, and advanced usage patterns.
 """
 
+# pylint: disable=no-member, protected-access
+
 import json
-import os
 
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
 from examples.utilities.data_samples import get_line_data
@@ -18,9 +20,10 @@ from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.options.price_format_options import PriceFormatOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
+from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
@@ -36,16 +39,23 @@ def main():
 
     # Method chaining example
     chained_series = (
-        LineSeries(data=data)
-        .set_visible(True)
-        .add_marker("2018-12-25", MarkerPosition.ABOVE_BAR, "#FF0000", MarkerShape.CIRCLE, "Peak")
+        LineSeries(data=data, visible=True)
+        .add_marker(
+            BarMarker(
+                time="2018-12-25",
+                position=MarkerPosition.ABOVE_BAR,
+                color="#FF0000",
+                shape=MarkerShape.CIRCLE,
+                text="Peak",
+            ),
+        )
         .add_price_line(PriceLineOptions(price=30.0, color="#FF0000", title="Resistance"))
     )
 
     st.write("**Method chaining result:**")
-    st.write(f"Visible: {chained_series.visible  # pylint: disable=no-member}")
-    st.write(f"Markers: {len(chained_series.markers)}")
-    st.write(f"Price lines: {len(chained_series.price_lines)}")
+    st.write(f"Visible: {chained_series.visible}")  # pylint: disable=no-member
+    st.write(f"Markers: {len(chained_series._markers)}")
+    st.write(f"Price lines: {len(chained_series._price_lines)}")
 
     chart = Chart(series=chained_series)
     chart.render(key="chart")
@@ -75,20 +85,32 @@ def main():
 
     # Add markers and price lines
     config_series.add_marker(
-        "2018-12-25", MarkerPosition.ABOVE_BAR, "#FF0000", MarkerShape.CIRCLE, "Peak"
+        BarMarker(
+            time="2018-12-25",
+            position=MarkerPosition.ABOVE_BAR,
+            color="#FF0000",
+            shape=MarkerShape.CIRCLE,
+            text="Peak",
+        ),
     )
     config_series.add_marker(
-        "2018-12-30", MarkerPosition.BELOW_BAR, "#00FF00", MarkerShape.SQUARE, "Low"
+        BarMarker(
+            time="2018-12-30",
+            position=MarkerPosition.BELOW_BAR,
+            color="#00FF00",
+            shape=MarkerShape.SQUARE,
+            text="Low",
+        ),
     )
     config_series.add_price_line(PriceLineOptions(price=30.0, color="#FF0000", title="Resistance"))
     config_series.add_price_line(PriceLineOptions(price=20.0, color="#00FF00", title="Support"))
 
     st.write("**Full Configuration:**")
-    st.write(f"Visible: {config_series.visible  # pylint: disable=no-member}")
-    st.write(f"Price Scale ID: {config_series.price_scale_id  # pylint: disable=no-member}")
-    st.write(f"Pane ID: {config_series.pane_id  # pylint: disable=no-member}")
-    st.write(f"Markers: {len(config_series.markers)}")
-    st.write(f"Price Lines: {len(config_series.price_lines)}")
+    st.write(f"Visible: {config_series.visible}")  # pylint: disable=no-member
+    st.write(f"Price Scale ID: {config_series.price_scale_id}")  # pylint: disable=no-member
+    st.write(f"Pane ID: {config_series.pane_id}")  # pylint: disable=no-member
+    st.write(f"Markers: {len(config_series._markers)}")
+    st.write(f"Price Lines: {len(config_series._price_lines)}")
 
     chart = Chart(series=config_series)
     chart.render(key="chart")
@@ -97,7 +119,15 @@ def main():
     st.write("Serialize series to different formats:")
 
     series = LineSeries(data=data)
-    series.add_marker("2018-12-25", MarkerPosition.ABOVE_BAR, "#FF0000", MarkerShape.CIRCLE, "Peak")
+    series.add_marker(
+        BarMarker(
+            time="2018-12-25",
+            position=MarkerPosition.ABOVE_BAR,
+            color="#FF0000",
+            shape=MarkerShape.CIRCLE,
+            text="Peak",
+        ),
+    )
     series.add_price_line(PriceLineOptions(price=30.0, color="#FF0000", title="Resistance"))
 
     # Serialize to dictionary
@@ -137,21 +167,23 @@ def main():
     st.write("Use factory methods for series creation:")
 
     # Create DataFrame for factory method
-    import pandas as pd
-
-    df = pd.DataFrame({"datetime": [d.time for d in data], "close": [d.value for d in data]})
+    test_dataframe = pd.DataFrame(
+        {"datetime": [d.time for d in data], "close": [d.value for d in data]},
+    )
 
     st.write("**DataFrame for factory method:**")
-    st.write(df.head())
+    st.write(test_dataframe.head())
 
     # Use from_dataframe factory method
     factory_series = LineSeries.from_dataframe(
-        df=df, column_mapping={"time": "datetime", "value": "close"}, price_scale_id="right"
+        df=test_dataframe,
+        column_mapping={"time": "datetime", "value": "close"},
+        price_scale_id="right",
     )
 
     st.write("**Series from factory method:**")
     st.write(f"Data points: {len(factory_series.data)}")
-    st.write(f"Price scale ID: {factory_series.price_scale_id  # pylint: disable=no-member}")
+    st.write(f"Price scale ID: {factory_series.price_scale_id}")  # pylint: disable=no-member
 
     chart = Chart(series=factory_series)
     chart.render(key="chart")
@@ -172,7 +204,13 @@ def main():
         enhanced_series = (
             LineSeries(data=data)
             .add_marker(
-                "2018-12-25", MarkerPosition.ABOVE_BAR, "#FF0000", MarkerShape.CIRCLE, "Peak"
+                BarMarker(
+                    time="2018-12-25",
+                    position=MarkerPosition.ABOVE_BAR,
+                    color="#FF0000",
+                    shape=MarkerShape.CIRCLE,
+                    text="Peak",
+                ),
             )
             .add_price_line(PriceLineOptions(price=30.0, color="#FF0000", title="Resistance"))
         )

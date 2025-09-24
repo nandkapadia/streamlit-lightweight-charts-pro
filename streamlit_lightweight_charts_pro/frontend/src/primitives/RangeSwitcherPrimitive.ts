@@ -502,7 +502,7 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
           to: endTime as Time,
         });
       }
-    } catch (error) {
+    } catch {
       // Silently handle chart range application errors
     }
   }
@@ -543,7 +543,7 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
       this.dataTimespan = timespanSeconds;
 
       return timespanSeconds;
-    } catch (error) {
+    } catch {
       // Return null if we can't determine data timespan
       return null;
     }

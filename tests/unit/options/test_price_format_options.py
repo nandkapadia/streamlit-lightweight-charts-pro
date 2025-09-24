@@ -1,11 +1,21 @@
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.options.price_format_options import PriceFormatOptions
+from streamlit_lightweight_charts_pro.exceptions import (
+    InvalidTypeValueError,
+    MinMovePositiveError,
+    PrecisionNonNegativeError,
+    TypeValidationError,
+    ValueValidationError,
+)
 
 
 def test_standard_construction():
     opts = PriceFormatOptions(
-        type="price", precision=4, min_move=0.001, formatter="custom_formatter"
+        type="price",
+        precision=4,
+        min_move=0.001,
+        formatter="custom_formatter",
     )
     assert opts.type == "price"
     assert opts.precision == 4
@@ -72,11 +82,11 @@ def test_type_validation_in_chainable_methods():
     opts.set_type("custom")
 
     # Invalid type
-    with pytest.raises(ValueError, match="Invalid type"):
+    with pytest.raises(InvalidTypeValueError):
         opts.set_type("invalid")
 
     # Type validation
-    with pytest.raises(TypeError, match="type must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_type(123)
 
 
@@ -90,13 +100,13 @@ def test_precision_validation_in_chainable_methods():
     opts.set_precision(10)
 
     # Invalid precision values
-    with pytest.raises(ValueError, match="precision must be a non-negative integer"):
+    with pytest.raises(PrecisionNonNegativeError):
         opts.set_precision(-1)
 
-    with pytest.raises(TypeError, match="precision must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_precision("invalid")
 
-    with pytest.raises(TypeError, match="precision must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_precision(1.5)
 
 
@@ -110,13 +120,13 @@ def test_min_move_validation_in_chainable_methods():
     opts.set_min_move(100)
 
     # Invalid min_move values
-    with pytest.raises(ValueError, match="min_move must be a positive number"):
+    with pytest.raises(MinMovePositiveError):
         opts.set_min_move(0)
 
-    with pytest.raises(ValueError, match="min_move must be a positive number"):
+    with pytest.raises(MinMovePositiveError):
         opts.set_min_move(-1)
 
-    with pytest.raises(TypeError, match="min_move must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_min_move("invalid")
 
 
@@ -173,7 +183,7 @@ def test_static_validators():
     assert PriceFormatOptions._validate_type_static("percent") == "percent"
     assert PriceFormatOptions._validate_type_static("custom") == "custom"
 
-    with pytest.raises(ValueError, match="Invalid type"):
+    with pytest.raises(InvalidTypeValueError):
         PriceFormatOptions._validate_type_static("invalid")
 
     # Precision validator
@@ -181,7 +191,7 @@ def test_static_validators():
     assert PriceFormatOptions._validate_precision_static(5) == 5
     assert PriceFormatOptions._validate_precision_static(10) == 10
 
-    with pytest.raises(ValueError, match="precision must be a non-negative integer"):
+    with pytest.raises(ValueValidationError):
         PriceFormatOptions._validate_precision_static(-1)
 
     # Min move validator
@@ -189,8 +199,8 @@ def test_static_validators():
     assert PriceFormatOptions._validate_min_move_static(1.0) == 1.0
     assert PriceFormatOptions._validate_min_move_static(100) == 100
 
-    with pytest.raises(ValueError, match="min_move must be a positive number"):
+    with pytest.raises(ValueValidationError):
         PriceFormatOptions._validate_min_move_static(0)
 
-    with pytest.raises(ValueError, match="min_move must be a positive number"):
+    with pytest.raises(ValueValidationError):
         PriceFormatOptions._validate_min_move_static(-1)

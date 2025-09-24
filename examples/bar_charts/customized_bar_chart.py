@@ -1,14 +1,12 @@
-"""
-Customized Bar Chart Example.
+"""Customized Bar Chart Example.
 
 This example demonstrates advanced styling and customization options for BarSeries
 including colors, visibility settings, and interactive features.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
@@ -16,7 +14,7 @@ from examples.utilities.data_samples import get_bar_data
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import BarSeries
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
@@ -107,26 +105,26 @@ def main():
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Up Moves", up_moves, delta=f"{up_moves/(len(closes)-1)*100:.1f}%")
+        st.metric("Up Moves", up_moves, delta=f"{up_moves / (len(closes) - 1) * 100:.1f}%")
     with col2:
-        st.metric("Down Moves", down_moves, delta=f"-{down_moves/(len(closes)-1)*100:.1f}%")
+        st.metric("Down Moves", down_moves, delta=f"-{down_moves / (len(closes) - 1) * 100:.1f}%")
     with col3:
-        st.metric("Flat Moves", flat_moves, delta=f"{flat_moves/(len(closes)-1)*100:.1f}%")
+        st.metric("Flat Moves", flat_moves, delta=f"{flat_moves / (len(closes) - 1) * 100:.1f}%")
 
     # Show series properties
     st.subheader("Series Properties")
     st.json(
         {
             "chart_type": bar_series.chart_type,
-            "visible": bar_series.visible  # pylint: disable=no-member,
-            "price_scale_id": bar_series.price_scale_id  # pylint: disable=no-member,
-            "pane_id": bar_series.pane_id  # pylint: disable=no-member,
+            "visible": bar_series.visible,  # pylint: disable=no-member
+            "price_scale_id": bar_series.price_scale_id,  # pylint: disable=no-member
+            "pane_id": bar_series.pane_id,  # pylint: disable=no-member
             "up_color": bar_series.up_color,
             "down_color": bar_series.down_color,
             "color": bar_series.color,
             "open_visible": bar_series.open_visible,
             "thin_bars": bar_series.thin_bars,
-        }
+        },
     )
 
 

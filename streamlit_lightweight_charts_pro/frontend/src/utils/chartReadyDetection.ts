@@ -35,7 +35,7 @@ export class ChartReadyDetector {
                   return;
                 }
               }
-            } catch (apiError) {
+            } catch {
               // Chart API method failed, trying DOM fallback
             }
 
@@ -46,7 +46,7 @@ export class ChartReadyDetector {
                 resolve(true);
                 return;
               }
-            } catch (domError) {
+            } catch {
               // DOM method failed
             }
           }
@@ -57,7 +57,7 @@ export class ChartReadyDetector {
           } else {
             resolve(false);
           }
-        } catch (error) {
+        } catch {
           if (attempts < maxAttempts) {
             const delay = baseDelay * Math.pow(1.5, attempts);
             setTimeout(() => checkReady(attempts + 1), delay);
@@ -190,7 +190,7 @@ export class ChartReadyDetector {
 
         // All checks passed - chart is ready for primitives
         return true;
-      } catch (error) {
+      } catch {
         // Log attempt for debugging with more details
       }
 
@@ -265,7 +265,7 @@ export class ChartReadyDetector {
       }
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -291,7 +291,7 @@ export class ChartReadyDetector {
             return true;
           }
         }
-      } catch (error) {
+      } catch {
         // API method failed, continue to DOM
       }
 
@@ -299,10 +299,10 @@ export class ChartReadyDetector {
       try {
         const containerRect = container.getBoundingClientRect();
         return containerRect.width >= minWidth && containerRect.height >= minHeight;
-      } catch (error) {
+      } catch {
         return false;
       }
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -335,7 +335,7 @@ export class ChartReadyDetector {
           } else {
             resolve(null);
           }
-        } catch (error) {
+        } catch {
           if (attempts < maxAttempts) {
             const delay = baseDelay * Math.pow(1.5, attempts);
             setTimeout(() => checkElement(attempts + 1), delay);

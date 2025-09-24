@@ -1,5 +1,5 @@
-"""
-Professional Trading Chart with Range Switcher
+"""Professional Trading Chart with Range Switcher
+
 ==============================================
 
 A comprehensive trading chart example featuring:
@@ -17,12 +17,11 @@ import streamlit as st
 
 from streamlit_lightweight_charts_pro import (
     AreaSeries,
+    CandlestickSeries,
     Chart,
     ChartOptions,
-    CandlestickSeries,
     HistogramSeries,
     LineSeries,
-    ChartManager,
 )
 from streamlit_lightweight_charts_pro.charts.options.ui_options import (
     LegendOptions,
@@ -30,12 +29,7 @@ from streamlit_lightweight_charts_pro.charts.options.ui_options import (
     RangeSwitcherOptions,
     TimeRange,
 )
-from streamlit_lightweight_charts_pro.data import (
-    AreaData,
-    CandlestickData,
-    HistogramData,
-    LineData,
-)
+from streamlit_lightweight_charts_pro.data import AreaData, CandlestickData, HistogramData, LineData
 
 # pylint: disable=no-member
 
@@ -63,10 +57,13 @@ st.set_page_config(page_title="Professional Trading Chart", page_icon="📈", la
 st.title("📈 Professional Trading Chart with Range Switcher")
 st.markdown(
     "A comprehensive trading chart featuring price/volume data, RSI, MACD indicators, "
-    "and configurable range switcher and legend options."
+    "and configurable range switcher and legend options.",
 )
 
-st.info("💡 **Tip**: Use the sidebar controls to configure the chart. The chart should remain stable when changing options.")
+st.info(
+    "💡 **Tip**: Use the sidebar controls to configure the chart. "
+    "The chart should remain stable when changing options.",
+)
 
 
 @st.cache_data
@@ -80,17 +77,20 @@ def generate_trading_data(days=365):
     prices = []
     volume_base = 1000000
 
+    # Create random generator for reproducible results
+    rng = np.random.default_rng(42)
+
     for i, date in enumerate(dates):
         # Simulate price movement with trend and volatility
         trend = i * 0.05  # Slight upward trend
-        volatility = np.random.normal(0, 2)
+        volatility = rng.normal(0, 2)
         base_price = max(50, base_price + trend + volatility)  # Prevent negative prices
 
         # Generate OHLC data
-        open_price = base_price + np.random.normal(0, 0.5)
-        close_price = base_price + np.random.normal(0, 0.5)
-        high_price = max(open_price, close_price) + abs(np.random.normal(0, 1))
-        low_price = min(open_price, close_price) - abs(np.random.normal(0, 1))
+        open_price = base_price + rng.normal(0, 0.5)
+        close_price = base_price + rng.normal(0, 0.5)
+        high_price = max(open_price, close_price) + abs(rng.normal(0, 1))
+        low_price = min(open_price, close_price) - abs(rng.normal(0, 1))
 
         prices.append(
             {
@@ -99,28 +99,28 @@ def generate_trading_data(days=365):
                 "high": high_price,
                 "low": low_price,
                 "close": close_price,
-            }
+            },
         )
 
     # Convert to DataFrame for easier calculations
-    df = pd.DataFrame(prices)
+    price_data = pd.DataFrame(prices)
 
     # Calculate moving averages for MACD
-    df["ema_12"] = df["close"].ewm(span=12).mean()
-    df["ema_26"] = df["close"].ewm(span=26).mean()
-    df["macd"] = df["ema_12"] - df["ema_26"]
-    df["macd_signal"] = df["macd"].ewm(span=9).mean()
-    df["macd_histogram"] = df["macd"] - df["macd_signal"]
+    price_data["ema_12"] = price_data["close"].ewm(span=12).mean()
+    price_data["ema_26"] = price_data["close"].ewm(span=26).mean()
+    price_data["macd"] = price_data["ema_12"] - price_data["ema_26"]
+    price_data["macd_signal"] = price_data["macd"].ewm(span=9).mean()
+    price_data["macd_histogram"] = price_data["macd"] - price_data["macd_signal"]
 
     # Calculate RSI
-    delta = df["close"].diff()
+    delta = price_data["close"].diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
     rs = gain / loss
-    df["rsi"] = 100 - (100 / (1 + rs))
+    price_data["rsi"] = 100 - (100 / (1 + rs))
 
     # Generate volume data
-    df["volume"] = volume_base + np.random.randint(-200000, 300000, len(df))
+    price_data["volume"] = volume_base + rng.integers(-200000, 300000, len(price_data))
 
     # Create data objects
     ohlc_data = []
@@ -130,7 +130,7 @@ def generate_trading_data(days=365):
     macd_signal_data = []
     macd_histogram_data = []
 
-    for _, row in df.iterrows():
+    for _, row in price_data.iterrows():
         if not pd.isna(row["close"]):
             ohlc_data.append(
                 CandlestickData(
@@ -139,7 +139,7 @@ def generate_trading_data(days=365):
                     high=row["high"],
                     low=row["low"],
                     close=row["close"],
-                )
+                ),
             )
 
             volume_data.append(AreaData(time=row["time"], value=row["volume"]))
@@ -153,7 +153,7 @@ def generate_trading_data(days=365):
                 macd_signal_data.append(LineData(time=row["time"], value=row["macd_signal"]))
 
                 macd_histogram_data.append(
-                    HistogramData(time=row["time"], value=row["macd_histogram"])
+                    HistogramData(time=row["time"], value=row["macd_histogram"]),
                 )
 
     return ohlc_data, volume_data, rsi_data, macd_line_data, macd_signal_data, macd_histogram_data
@@ -163,6 +163,7 @@ def generate_trading_data(days=365):
 @st.cache_data
 def get_trading_data():
     return generate_trading_data()
+
 
 (
     ohlc_data,
@@ -177,20 +178,20 @@ def get_trading_data():
 df_data = []
 for i, ohlc in enumerate(ohlc_data):
     row = {
-        'time': ohlc.time,
-        'open': ohlc.open,
-        'high': ohlc.high,
-        'low': ohlc.low,
-        'close': ohlc.close,
-        'volume': volume_data[i].value if i < len(volume_data) else 0,
-        'rsi': rsi_data[i].value if i < len(rsi_data) else None,
-        'macd': macd_line_data[i].value if i < len(macd_line_data) else None,
-        'macd_signal': macd_signal_data[i].value if i < len(macd_signal_data) else None,
-        'macd_histogram': macd_histogram_data[i].value if i < len(macd_histogram_data) else None,
+        "time": ohlc.time,
+        "open": ohlc.open,
+        "high": ohlc.high,
+        "low": ohlc.low,
+        "close": ohlc.close,
+        "volume": volume_data[i].value if i < len(volume_data) else 0,
+        "rsi": rsi_data[i].value if i < len(rsi_data) else None,
+        "macd": macd_line_data[i].value if i < len(macd_line_data) else None,
+        "macd_signal": macd_signal_data[i].value if i < len(macd_signal_data) else None,
+        "macd_histogram": macd_histogram_data[i].value if i < len(macd_histogram_data) else None,
     }
     df_data.append(row)
 
-df = pd.DataFrame(df_data)
+test_data = pd.DataFrame(df_data)
 
 # Sidebar configuration
 st.sidebar.title("Chart Configuration")
@@ -199,7 +200,9 @@ st.sidebar.title("Chart Configuration")
 st.sidebar.subheader("Range Switcher")
 show_range_switcher = st.sidebar.checkbox("Show Range Switcher", value=True)
 range_switcher_position = st.sidebar.selectbox(
-    "Range Switcher Position", ["top-right", "top-left", "bottom-right", "bottom-left"], index=0
+    "Range Switcher Position",
+    ["top-right", "top-left", "bottom-right", "bottom-left"],
+    index=0,
 )
 
 # Legend Configuration
@@ -280,7 +283,7 @@ chart = Chart(
 if show_legends:
     # Add legends to all series
     for series in chart.series:
-        if hasattr(series, 'legend'):
+        if hasattr(series, "legend"):
             series.legend = LegendOptions(
                 visible=True,
                 position=legend_position,
@@ -298,7 +301,7 @@ try:
         st.write(f"**Chart Height**: {chart_height}")
         st.write(f"**Chart Width**: {chart_width}")
         st.write(f"**Data Points**: {len(ohlc_data)}")
-    
+
     chart.render(key="professional_trading_chart")
     st.success("✅ Professional trading chart rendered successfully!")
 except Exception as e:
@@ -312,33 +315,33 @@ st.subheader("📊 Chart Information")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric("Data Points", str(len(df)))
+    st.metric("Data Points", str(len(test_data)))
     st.metric(
         "Price Range",
-        f"${df['low'].min():.2f} - ${df['high'].max():.2f}",
+        f"${test_data['low'].min():.2f} - ${test_data['high'].max():.2f}",
     )
 
 with col2:
     st.metric(
         "RSI Range",
-        f"{df['rsi'].min():.1f} - {df['rsi'].max():.1f}",
+        f"{test_data['rsi'].min():.1f} - {test_data['rsi'].max():.1f}",
     )
-    st.metric("Volume Avg", f"{df['volume'].mean():,.0f}")
+    st.metric("Volume Avg", f"{test_data['volume'].mean():,.0f}")
 
 with col3:
     st.metric(
         "MACD Range",
-        f"{df['macd'].min():.3f} - {df['macd'].max():.3f}",
+        f"{test_data['macd'].min():.3f} - {test_data['macd'].max():.3f}",
     )
-    st.metric("Time Period", f"{len(df)} days")
+    st.metric("Time Period", f"{len(test_data)} days")
 
 # Code example
 with st.expander("📝 Code Example"):
     st.code(
-    """
+        """
 # Professional Trading Chart Setup
 from streamlit_lightweight_charts_pro import (
-    AreaSeries, CandlestickSeries, Chart, ChartOptions, 
+    AreaSeries, CandlestickSeries, Chart, ChartOptions,
     HistogramSeries, LineSeries
 )
 from streamlit_lightweight_charts_pro.charts.options.ui_options import (
@@ -397,8 +400,8 @@ chart = Chart(
 
 chart.render(key="trading_chart")
     """,
-    language="python",
-)
+        language="python",
+    )
 
 # Technical indicators explanation
 st.markdown("---")
@@ -414,7 +417,7 @@ with col1:
         - Range: 0-100
         - Overbought: >70, Oversold: <30
         - Used to identify potential reversal points
-        """
+        """,
     )
 
 with col2:
@@ -425,7 +428,7 @@ with col2:
         - MACD Line: 12-period EMA - 26-period EMA
         - Signal Line: 9-period EMA of MACD Line
         - Histogram: MACD Line - Signal Line
-        """
+        """,
     )
 
 st.markdown("---")
@@ -438,5 +441,5 @@ st.markdown(
     - **Real-time Calculations**: Accurate RSI and MACD indicators
     - **Professional Styling**: Trading platform appearance
     - **Interactive Controls**: Sidebar configuration options
-    """
+    """,
 )

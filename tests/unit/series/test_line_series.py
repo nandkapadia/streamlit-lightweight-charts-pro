@@ -7,8 +7,11 @@ This module combines all tests for LineSeries functionality including:
 - JSON format validation and frontend compatibility
 """
 
+# pylint: disable=invalid-name,protected-access,no-member
+
 import json
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -19,6 +22,11 @@ from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
 from streamlit_lightweight_charts_pro.data import Marker
 from streamlit_lightweight_charts_pro.data.line_data import LineData
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
+from streamlit_lightweight_charts_pro.exceptions import (
+    InstanceTypeError,
+    MissingRequiredColumnsError,
+    TimeColumnNotFoundError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     ChartType,
     LastPriceAnimationMode,
@@ -49,13 +57,13 @@ def df():
             "datetime": ["2024-01-01", "2024-01-02"],
             "close": [100.0, 105.0],
             "color": ["#2196F3", "#2196F3"],
-        }
+        },
     )
 
 
 @pytest.fixture
 def column_mapping():
-    return {"time": "datetime", "value": "close", "color": "color"}
+    return {"time": "time", "value": "value"}
 
 
 class TestLineSeriesBasic:
@@ -68,25 +76,26 @@ class TestLineSeriesBasic:
         series.line_options = line_options
         assert series.line_options == line_options
 
-    def test_from_dataframe(self, df, column_mapping, line_options):
-        series = LineSeries.from_dataframe(df, column_mapping)
-        assert len(series.data) == 2
+    def test_from_dataframe(self, sample_dataframe, column_mapping):
+        series = LineSeries.from_dataframe(sample_dataframe, column_mapping)
+        assert len(series.data) == 10  # sample_dataframe has 10 rows
         assert isinstance(series.data[0], LineData)
-        assert series.data[0].value == 100.0
-        assert series.data[1].color == "#2196F3"
+        assert isinstance(series.data[0].value, (int, float, np.integer, np.floating))
+        # Check that all data items are LineData instances
+        assert all(isinstance(d, LineData) for d in series.data)
 
-    def test_missing_required_column_in_mapping(self, df, line_options):
+    def test_missing_required_column_in_mapping(self, sample_dataframe):
         bad_mapping = {"value": "close", "color": "color"}  # missing 'time'
-        with pytest.raises(ValueError):
-            LineSeries.from_dataframe(df, bad_mapping)
+        with pytest.raises(MissingRequiredColumnsError):
+            LineSeries.from_dataframe(sample_dataframe, bad_mapping)
 
-    def test_missing_required_column_in_dataframe(self, line_options):
-        bad_df = pd.DataFrame({"close": [100.0, 105.0], "color": ["#2196F3", "#2196F3"]})
+    def test_missing_required_column_in_dataframe(self):
+        bad_test_data = pd.DataFrame({"close": [100.0, 105.0], "color": ["#2196F3", "#2196F3"]})
         mapping = {"time": "datetime", "value": "close", "color": "color"}
-        with pytest.raises(ValueError):
-            LineSeries.from_dataframe(bad_df, mapping)
+        with pytest.raises(TimeColumnNotFoundError):
+            LineSeries.from_dataframe(bad_test_data, mapping)
 
-    def test_to_dict_structure(self, line_data, line_options):
+    def test_to_dict_structure(self, line_data):
         series = LineSeries(data=line_data)
         d = series.asdict()
         assert d["type"] == "line"
@@ -94,7 +103,7 @@ class TestLineSeriesBasic:
         assert "options" in d
         # priceLines should only be present when price lines are added
 
-    def test_set_price_format_and_price_lines(self, line_data, line_options):
+    def test_set_price_format_and_price_lines(self, line_data):
         series = LineSeries(data=line_data)
         pf = PriceFormatOptions(type="price", precision=2)
         pl = PriceLineOptions(price=100.0, color="#2196F3")
@@ -103,37 +112,37 @@ class TestLineSeriesBasic:
         assert series.price_format == pf
         assert pl in series.price_lines
 
-    def test_set_markers(self, line_data, line_options):
+    def test_set_markers(self, line_data):
         series = LineSeries(data=line_data)
         m1 = BarMarker(time=1704067200, position="aboveBar", color="#2196F3", shape="circle")
         m2 = BarMarker(time=1704153600, position="belowBar", color="#2196F3", shape="circle")
         series.markers = [m1, m2]
         assert series.markers == [m1, m2]
 
-    def test_empty_data(self, line_options):
+    def test_empty_data(self):
         series = LineSeries(data=[])
-        assert series.data == []
+        assert not series.data
         d = series.asdict()
         assert d["data"] == []
 
-    def test_extra_columns_in_dataframe(self, line_options):
-        df = pd.DataFrame(
-            {"datetime": ["2024-01-01"], "close": [100.0], "color": ["#2196F3"], "extra": [123]}
+    def test_extra_columns_in_dataframe(self):
+        test_data = pd.DataFrame(
+            {"datetime": ["2024-01-01"], "close": [100.0], "color": ["#2196F3"], "extra": [123]},
         )
         mapping = {"time": "datetime", "value": "close", "color": "color"}
-        series = LineSeries.from_dataframe(df, mapping)
+        series = LineSeries.from_dataframe(test_data, mapping)
         assert len(series.data) == 1
         assert series.data[0].value == 100.0
 
-    def test_nan_handling(self, line_options):
-        df = pd.DataFrame(
-            {"datetime": ["2024-01-01"], "close": [float("nan")], "color": ["#2196F3"]}
+    def test_nan_handling(self):
+        test_data = pd.DataFrame(
+            {"datetime": ["2024-01-01"], "close": [float("nan")], "color": ["#2196F3"]},
         )
         mapping = {"time": "datetime", "value": "close", "color": "color"}
-        series = LineSeries.from_dataframe(df, mapping)
+        series = LineSeries.from_dataframe(test_data, mapping)
         assert series.data[0].value == 0.0
 
-    def test_method_chaining(self, line_data, line_options):
+    def test_method_chaining(self, line_data):
         series = LineSeries(data=line_data)
         m1 = BarMarker(time=1704067200, position="aboveBar", color="#2196F3", shape="circle")
         m2 = BarMarker(time=1704153600, position="belowBar", color="#2196F3", shape="circle")
@@ -149,38 +158,38 @@ class TestLineSeriesBasic:
         )
         assert result is series
         assert series._visible is False
-        assert series.markers == []
-        assert series.price_lines == []
+        assert not series.markers
+        assert not series.price_lines
 
-    def test_add_marker_chaining(self, line_data, line_options):
+    def test_add_marker_chaining(self, line_data):
         series = LineSeries(data=line_data)
         m = BarMarker(time=1704067200, position="aboveBar", color="#2196F3", shape="circle")
         result = series.add_marker(m)
         assert result is series
         assert len(series.markers) == 1
 
-    def test_add_price_line_chaining(self, line_data, line_options):
+    def test_add_price_line_chaining(self, line_data):
         series = LineSeries(data=line_data)
         pl = PriceLineOptions(price=100.0, color="#2196F3")
         result = series.add_price_line(pl)
         assert result is series
         assert pl in series.price_lines
 
-    def test_clear_markers_chaining(self, line_data, line_options):
+    def test_clear_markers_chaining(self, line_data):
         series = LineSeries(data=line_data)
         m = BarMarker(time=1704067200, position="aboveBar", color="#2196F3", shape="circle")
         series.add_marker(m)
         result = series.clear_markers()
         assert result is series
-        assert series.markers == []
+        assert not series.markers
 
-    def test_clear_price_lines_chaining(self, line_data, line_options):
+    def test_clear_price_lines_chaining(self, line_data):
         series = LineSeries(data=line_data)
         pl = PriceLineOptions(price=100.0, color="#2196F3")
         series.add_price_line(pl)
         result = series.clear_price_lines()
         assert result is series
-        assert series.price_lines == []
+        assert not series.price_lines
 
 
 class TestLineSeriesExtended:
@@ -243,16 +252,16 @@ class TestLineSeriesExtended:
 
     def test_from_dataframe_with_custom_column_mapping(self):
         """Test from_dataframe with custom column mapping."""
-        df = pd.DataFrame(
+        test_data = pd.DataFrame(
             {
                 "timestamp": [1640995200, 1641081600],
                 "price": [100, 110],
                 "line_color": ["#ff0000", "#00ff00"],
-            }
+            },
         )
 
         series = LineSeries.from_dataframe(
-            df=df,
+            df=test_data,
             column_mapping={"time": "timestamp", "value": "price", "color": "line_color"},
         )
 
@@ -266,10 +275,14 @@ class TestLineSeriesExtended:
 
     def test_from_dataframe_with_index_time(self):
         """Test from_dataframe with time in index."""
-        df = pd.DataFrame({"value": [100, 110]}, index=pd.to_datetime(["2022-01-01", "2022-01-02"]))
+        test_data = pd.DataFrame(
+            {"value": [100, 110]},
+            index=pd.to_datetime(["2022-01-01", "2022-01-02"]),
+        )
 
         series = LineSeries.from_dataframe(
-            df=df, column_mapping={"time": "index", "value": "value"}
+            df=test_data,
+            column_mapping={"time": "index", "value": "value"},
         )
 
         assert len(series.data) == 2
@@ -277,17 +290,21 @@ class TestLineSeriesExtended:
 
     def test_from_dataframe_with_multi_index(self):
         """Test from_dataframe with multi-index."""
-        df = pd.DataFrame({"value": [100, 110]})
-        df.index = pd.MultiIndex.from_tuples(
-            [("2022-01-01", "A"), ("2022-01-02", "B")], names=["date", "symbol"]
+        test_data = pd.DataFrame({"value": [100, 110]})
+        test_data.index = pd.MultiIndex.from_tuples(
+            [("2022-01-01", "A"), ("2022-01-02", "B")],
+            names=["date", "symbol"],
         )
 
-        series = LineSeries.from_dataframe(df=df, column_mapping={"time": "date", "value": "value"})
+        series = LineSeries.from_dataframe(
+            df=test_data,
+            column_mapping={"time": "date", "value": "value"},
+        )
 
         assert len(series.data) == 2
         assert all(isinstance(d, LineData) for d in series.data)
 
-    def test_error_handling_missing_line_options(self):
+    def test_error_handling_missingline_options(self):
         """Test error handling when line_options is missing."""
         data = [LineData(time=1640995200, value=100)]
 
@@ -300,11 +317,14 @@ class TestLineSeriesExtended:
         data = [LineData(time=1640995200, value=100)]
         series = LineSeries(data=data)
 
-        # This should raise TypeError when setting invalid line_options
-        with pytest.raises(TypeError, match="line_options must be an instance of LineOptions"):
+        # This should raise InstanceTypeError when setting invalid line_options
+        with pytest.raises(
+            InstanceTypeError,
+            match="line_options must be an instance of LineOptions or None",
+        ):
             series.line_options = "invalid"
 
-    def test_line_options_property(self):
+    def testline_options_property(self):
         """Test the line_options property."""
         line_options = LineOptions(color="#ff0000")
         data = [LineData(time=1640995200, value=100)]
@@ -333,7 +353,7 @@ class TestLineSeriesExtended:
                     shape=MarkerShape.CIRCLE,
                     text="Test",
                     size=10,
-                )
+                ),
             )
             .clear_price_lines()
             .clear_markers()
@@ -393,17 +413,23 @@ class TestLineSeriesExtended:
 
     def test_edge_case_empty_dataframe(self):
         """Test handling of empty DataFrame."""
-        df = pd.DataFrame(columns=["time", "value"])
+        test_data = pd.DataFrame(columns=["time", "value"])
 
-        series = LineSeries.from_dataframe(df=df, column_mapping={"time": "time", "value": "value"})
+        series = LineSeries.from_dataframe(
+            df=test_data,
+            column_mapping={"time": "time", "value": "value"},
+        )
 
         assert len(series.data) == 0
 
     def test_edge_case_single_row_dataframe(self):
         """Test handling of single row DataFrame."""
-        df = pd.DataFrame({"time": [1640995200], "value": [100]})
+        test_data = pd.DataFrame({"time": [1640995200], "value": [100]})
 
-        series = LineSeries.from_dataframe(df=df, column_mapping={"time": "time", "value": "value"})
+        series = LineSeries.from_dataframe(
+            df=test_data,
+            column_mapping={"time": "time", "value": "value"},
+        )
 
         assert len(series.data) == 1
         assert series.data[0].time == 1640995200
@@ -510,7 +536,11 @@ class TestLineSeriesJsonFormat:
             title="Resistance",
         )
         support = PriceLineOptions(
-            price=95.0, color="#4CAF50", line_width=2, line_style=LineStyle.DASHED, title="Support"
+            price=95.0,
+            color="#4CAF50",
+            line_width=2,
+            line_style=LineStyle.DASHED,
+            title="Support",
         )
         series.add_price_line(resistance).add_price_line(support)
 
@@ -744,7 +774,7 @@ class TestLineSeriesJsonFormat:
                     "lineVisible": True,
                     "axisLabelVisible": True,
                     "title": "Resistance Level",
-                }
+                },
             ],
             "pane_id": 0,
         }

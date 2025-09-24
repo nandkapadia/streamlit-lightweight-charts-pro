@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+from streamlit_lightweight_charts_pro.exceptions import InvalidTypeValueError, ValueValidationError
 from streamlit_lightweight_charts_pro.utils import chainable_field
 
 
@@ -17,8 +18,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_field
 @chainable_field("min_move", (int, float), validator="min_move")
 @chainable_field("formatter", str)
 class PriceFormatOptions(Options):
-    """
-    Encapsulates price formatting options for a series, matching TradingView's API.
+    """Encapsulates price formatting options for a series, matching TradingView's API.
 
     Attributes:
         type (str): Format type ("price", "volume", "percent", "custom").
@@ -36,22 +36,19 @@ class PriceFormatOptions(Options):
     def _validate_type_static(type_value: str) -> str:
         """Static version of type validator for decorator use."""
         if type_value not in {"price", "volume", "percent", "custom"}:
-            raise ValueError(
-                f"Invalid type: {type_value!r}. Must be one of 'price', 'volume', "
-                "'percent', 'custom'."
-            )
+            raise InvalidTypeValueError(type_value)
         return type_value
 
     @staticmethod
     def _validate_precision_static(precision: int) -> int:
         """Static version of precision validator for decorator use."""
         if not isinstance(precision, int) or precision < 0:
-            raise ValueError(f"precision must be a non-negative integer, got {precision}")
+            raise ValueValidationError("precision", "must be a non-negative integer")
         return precision
 
     @staticmethod
     def _validate_min_move_static(min_move: float) -> float:
         """Static version of min_move validator for decorator use."""
         if not isinstance(min_move, (int, float)) or min_move <= 0:
-            raise ValueError(f"min_move must be a positive number, got {min_move}")
+            raise ValueValidationError("min_move", "must be a positive number")
         return min_move

@@ -1,5 +1,4 @@
-"""
-Base options class for streamlit-lightweight-charts.
+"""Base options class for streamlit-lightweight-charts.
 
 This module provides the base Options class that all option classes should inherit from.
 It provides common functionality for serialization, validation, and frontend communication
@@ -19,9 +18,8 @@ logger = get_logger(__name__)
 
 
 @dataclass
-class Options(ABC):
-    """
-    Abstract base class for all option classes.
+class Options(ABC):  # noqa: B024
+    """Abstract base class for all option classes.
 
     This class provides common functionality for option classes including automatic
     camelCase key conversion for frontend serialization, enum value conversion,
@@ -47,31 +45,37 @@ class Options(ABC):
             text_color: str = "#000000"
             is_visible: bool = True
 
+
         @dataclass
         class NestedOptions(Options):
             color: str = "#ff0000"
             width: int = 2
+
 
         @dataclass
         class ContainerOptions(Options):
             main_options: MyOptions = None
             nested_dict: Dict[str, NestedOptions] = None
 
+
         options = ContainerOptions(
-            main_options=MyOptions(),
-            nested_dict={"line": NestedOptions(), "area": NestedOptions()}
+            main_options=MyOptions(), nested_dict={"line": NestedOptions(), "area": NestedOptions()}
         )
         result = options.asdict()
         # Returns: {
-        #     "mainOptions": {"backgroundColor": "#ffffff", "textColor": "#000000", "isVisible": True},
-        #     "nestedDict": {"line": {"color": "#ff0000", "width": 2}, "area": {"color": "#ff0000", "width": 2}}
+        #     "mainOptions": {"backgroundColor": "#ffffff",
+            "textColor": "#000000",
+            "isVisible": True},
+        #     "nestedDict": {"line": {"color": "#ff0000",
+            "width": 2},
+            "area": {"color": "#ff0000",
+            "width": 2}}
         # }
         ```
     """
 
     def update(self, updates: Dict[str, Any]) -> "Options":
-        """
-        Update options with a dictionary of values.
+        """Update options with a dictionary of values.
 
         This method provides a flexible way to update option properties using a dictionary.
         It handles both simple properties and nested objects, automatically creating
@@ -93,18 +97,10 @@ class Options(ABC):
             options = MyOptions()
 
             # Update simple properties
-            options.update({
-                "background_color": "#ff0000",
-                "is_visible": False
-            })
+            options.update({"background_color": "#ff0000", "is_visible": False})
 
             # Update nested objects
-            options.update({
-                "line_options": {
-                    "color": "#00ff00",
-                    "line_width": 3
-                }
-            })
+            options.update({"line_options": {"color": "#00ff00", "line_width": 3}})
 
             # Method chaining
             options.update({"color": "red"}).update({"width": 100})
@@ -141,7 +137,7 @@ class Options(ABC):
 
             # Handle nested Options objects and complex type annotations
             contains_options, options_class, is_dict_type = self._analyze_type_for_options(
-                field_info.type
+                field_info.type,
             )
 
             if contains_options and isinstance(value, dict):
@@ -165,8 +161,7 @@ class Options(ABC):
         return self
 
     def _camel_to_snake(self, camel_case: str) -> str:
-        """
-        Convert camelCase to snake_case.
+        """Convert camelCase to snake_case.
 
         Args:
             camel_case: String in camelCase format.
@@ -179,8 +174,7 @@ class Options(ABC):
         return re.sub(r"(?<!^)(?=[A-Z])", "_", camel_case).lower()
 
     def _process_dict_recursively(self, data: Any) -> Any:
-        """
-        Recursively process data structures to handle Options objects.
+        """Recursively process data structures to handle Options objects.
 
         This method traverses through nested data structures (dicts, lists) and
         converts any Options objects to dictionaries using their asdict() method.
@@ -196,18 +190,16 @@ class Options(ABC):
         """
         if isinstance(data, Options):
             return data.asdict()
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             return {
                 snake_to_camel(str(k)): self._process_dict_recursively(v) for k, v in data.items()
             }
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [self._process_dict_recursively(item) for item in data]
-        else:
-            return data
+        return data
 
     def _analyze_type_for_options(self, field_type: Any) -> tuple[bool, type | None, bool]:
-        """
-        Analyze a type annotation to determine if it contains Options objects.
+        """Analyze a type annotation to determine if it contains Options objects.
 
         Args:
             field_type: The type annotation to analyze.
@@ -261,8 +253,7 @@ class Options(ABC):
         return False, None, False
 
     def asdict(self) -> Dict[str, Any]:
-        """
-        Convert options to dictionary with camelCase keys for frontend.
+        """Convert options to dictionary with camelCase keys for frontend.
 
         This method provides comprehensive serialization of option objects for
         frontend communication. It handles complex nested structures, enum values,
@@ -297,7 +288,7 @@ class Options(ABC):
             value = getattr(self, name)
 
             # Skip None values, empty strings, and empty dictionaries
-            if value is None or value == "" or value == {}:
+            if value is None or value in ("", {}):
                 continue
 
             # Convert enum values to their .value property

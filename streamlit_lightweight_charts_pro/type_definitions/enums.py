@@ -1,5 +1,4 @@
-"""
-Enum definitions for streamlit-lightweight-charts.
+"""Enum definitions for streamlit-lightweight-charts.
 
 This module contains all the enumeration types used throughout the library
 for defining chart types, styling options, and configuration parameters.
@@ -11,8 +10,7 @@ from enum import Enum, IntEnum
 
 
 class ChartType(str, Enum):
-    """
-    Chart type enumeration.
+    """Chart type enumeration.
 
     Defines the available chart types that can be created and rendered.
     Each chart type corresponds to a specific visualization style and
@@ -46,8 +44,7 @@ class ChartType(str, Enum):
 
 
 class ColorType(str, Enum):
-    """
-    Color type enumeration.
+    """Color type enumeration.
 
     Defines how colors should be applied to chart elements.
     Controls whether colors are solid or use gradient effects.
@@ -62,8 +59,7 @@ class ColorType(str, Enum):
 
 
 class LineStyle(IntEnum):
-    """
-    Line style enumeration.
+    """Line style enumeration.
 
     Defines the visual style of lines in charts, including borders,
     grid lines, and series lines.
@@ -82,8 +78,7 @@ class LineStyle(IntEnum):
 
 
 class LineType(IntEnum):
-    """
-    Line type enumeration.
+    """Line type enumeration.
 
     Defines how lines should be drawn between data points.
     Controls the interpolation method used for line series.
@@ -99,8 +94,7 @@ class LineType(IntEnum):
 
 
 class CrosshairMode(IntEnum):
-    """
-    Crosshair mode enumeration.
+    """Crosshair mode enumeration.
 
     Defines how the crosshair behaves when hovering over the chart.
     Controls whether the crosshair snaps to data points or moves freely.
@@ -115,8 +109,7 @@ class CrosshairMode(IntEnum):
 
 
 class LastPriceAnimationMode(IntEnum):
-    """
-    Last price animation mode enumeration.
+    """Last price animation mode enumeration.
 
     Defines how the last price line should be animated when new data
     is added to the chart.
@@ -133,8 +126,7 @@ class LastPriceAnimationMode(IntEnum):
 
 
 class PriceScaleMode(IntEnum):
-    """
-    Price scale mode enumeration.
+    """Price scale mode enumeration.
 
     Defines how the price scale (y-axis) should be displayed and calculated.
     Controls the scale type and reference point for price values.
@@ -153,8 +145,7 @@ class PriceScaleMode(IntEnum):
 
 
 class HorzAlign(str, Enum):
-    """
-    Horizontal alignment enumeration.
+    """Horizontal alignment enumeration.
 
     Defines horizontal text alignment for labels, annotations, and
     other text elements on the chart.
@@ -171,8 +162,7 @@ class HorzAlign(str, Enum):
 
 
 class VertAlign(str, Enum):
-    """
-    Vertical alignment enumeration.
+    """Vertical alignment enumeration.
 
     Defines vertical text alignment for labels, annotations, and
     other text elements on the chart.
@@ -189,8 +179,7 @@ class VertAlign(str, Enum):
 
 
 class TrackingExitMode(str, Enum):
-    """
-    Tracking exit mode enumeration.
+    """Tracking exit mode enumeration.
 
     Defines when the tracking mode should exit.
 
@@ -206,8 +195,7 @@ class TrackingExitMode(str, Enum):
 
 
 class TrackingActivationMode(str, Enum):
-    """
-    Tracking activation mode enumeration.
+    """Tracking activation mode enumeration.
 
     Defines when the tracking mode should be activated.
 
@@ -221,8 +209,7 @@ class TrackingActivationMode(str, Enum):
 
 
 class MarkerPosition(str, Enum):
-    """
-    Marker position enumeration for chart markers.
+    """Marker position enumeration for chart markers.
 
     Defines where markers should be positioned relative to the data bars
     or points on the chart.
@@ -242,8 +229,7 @@ class MarkerPosition(str, Enum):
 
 
 class MarkerShape(str, Enum):
-    """
-    Marker shape enumeration for chart markers.
+    """Marker shape enumeration for chart markers.
 
     Defines the available shapes for chart markers that can be displayed
     on charts to highlight specific data points or events.
@@ -311,8 +297,7 @@ class BackgroundStyle(str, Enum):
 
 
 class PriceLineSource(str, Enum):
-    """
-    Price line source enumeration.
+    """Price line source enumeration.
 
     Defines the source to use for the value of the price line.
     Controls which data point determines the price line position.
@@ -327,8 +312,7 @@ class PriceLineSource(str, Enum):
 
 
 class TooltipType(str, Enum):
-    """
-    Tooltip type enumeration.
+    """Tooltip type enumeration.
 
     Defines the types of tooltips supported by the system.
     Each type corresponds to a specific data format and display style.
@@ -351,8 +335,7 @@ class TooltipType(str, Enum):
 
 
 class TooltipPosition(str, Enum):
-    """
-    Tooltip position enumeration.
+    """Tooltip position enumeration.
 
     Defines how tooltips should be positioned relative to the cursor
     or chart elements.

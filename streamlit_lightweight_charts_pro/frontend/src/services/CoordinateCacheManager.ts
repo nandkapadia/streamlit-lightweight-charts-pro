@@ -121,7 +121,10 @@ export class CoordinateCacheManager {
       this.updateCallbacks.set(cacheKey, new Set());
     }
 
-    this.updateCallbacks.get(cacheKey)!.add(callback);
+    const callbacks = this.updateCallbacks.get(cacheKey);
+    if (callbacks) {
+      callbacks.add(callback);
+    }
 
     // Return unsubscribe function
     return () => {
@@ -144,7 +147,7 @@ export class CoordinateCacheManager {
       callbacks.forEach(callback => {
         try {
           callback();
-        } catch (error) {
+        } catch {
           // Ignore callback errors to prevent cache system failure
         }
       });

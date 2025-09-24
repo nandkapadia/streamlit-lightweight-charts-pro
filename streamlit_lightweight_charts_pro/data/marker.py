@@ -1,21 +1,20 @@
-"""
-Marker data classes for streamlit-lightweight-charts.
+"""Marker data classes for streamlit-lightweight-charts.
 
 This module provides data classes for chart markers used to highlight
 specific data points or events on charts, following the TradingView Lightweight Charts API.
 """
 
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import ClassVar, Optional, Union
 
 from streamlit_lightweight_charts_pro.data.data import Data
+from streamlit_lightweight_charts_pro.exceptions import RequiredFieldError
 from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
 
 
 @dataclass
 class MarkerBase(Data):
-    """
-    Base chart marker definition for highlighting data points.
+    """Base chart marker definition for highlighting data points.
 
     This class represents the base marker that can be displayed on charts to
     highlight specific data points, events, or annotations. Based on the
@@ -31,8 +30,8 @@ class MarkerBase(Data):
         size: Optional size of the marker (default: 1).
     """
 
-    REQUIRED_COLUMNS = {"position", "shape"}
-    OPTIONAL_COLUMNS = {"text", "color", "size", "id"}
+    REQUIRED_COLUMNS: ClassVar[set] = {"position", "shape"}
+    OPTIONAL_COLUMNS: ClassVar[set] = {"text", "color", "size", "id"}
 
     position: Union[str, MarkerPosition] = MarkerPosition.ABOVE_BAR
     shape: Union[str, MarkerShape] = MarkerShape.CIRCLE
@@ -55,8 +54,7 @@ class MarkerBase(Data):
             self.shape = MarkerShape(self.shape)
 
     def validate_position(self) -> bool:
-        """
-        Validate that the position is valid for this marker type.
+        """Validate that the position is valid for this marker type.
 
         Returns:
             bool: True if position is valid, False otherwise.
@@ -67,8 +65,7 @@ class MarkerBase(Data):
 
 @dataclass
 class PriceMarker(MarkerBase):
-    """
-    Price marker for exact Y-axis positioning.
+    """Price marker for exact Y-axis positioning.
 
     This class represents a marker that can be positioned at exact price levels
     on the Y-axis. Based on the TradingView Lightweight Charts SeriesMarkerPrice interface.
@@ -84,8 +81,8 @@ class PriceMarker(MarkerBase):
         size: Optional size of the marker (default: 1).
     """
 
-    REQUIRED_COLUMNS = {"position", "shape", "price"}
-    OPTIONAL_COLUMNS = {"text", "color", "size", "id"}
+    REQUIRED_COLUMNS: ClassVar[set] = {"position", "shape", "price"}
+    OPTIONAL_COLUMNS: ClassVar[set] = {"text", "color", "size", "id"}
 
     price: float = 0.0  # Required for price markers
 
@@ -95,11 +92,10 @@ class PriceMarker(MarkerBase):
 
         # Validate that price is provided
         if self.price == 0.0:
-            raise ValueError("Price is required for PriceMarker")
+            raise RequiredFieldError("Price")
 
     def validate_position(self) -> bool:
-        """
-        Validate that the position is valid for price markers.
+        """Validate that the position is valid for price markers.
 
         Returns:
             bool: True if position is valid, False otherwise.
@@ -114,8 +110,7 @@ class PriceMarker(MarkerBase):
 
 @dataclass
 class BarMarker(MarkerBase):
-    """
-    Bar marker for positioning relative to bars.
+    """Bar marker for positioning relative to bars.
 
     This class represents a marker that can be positioned relative to bars
     on the chart. Based on the TradingView Lightweight Charts SeriesMarkerBar interface.
@@ -131,14 +126,13 @@ class BarMarker(MarkerBase):
         price: Optional price value for exact Y-axis positioning.
     """
 
-    REQUIRED_COLUMNS = {"position", "shape"}
-    OPTIONAL_COLUMNS = {"text", "color", "size", "id", "price"}
+    REQUIRED_COLUMNS: ClassVar[set] = {"position", "shape"}
+    OPTIONAL_COLUMNS: ClassVar[set] = {"text", "color", "size", "id", "price"}
 
     price: Optional[float] = None
 
     def validate_position(self) -> bool:
-        """
-        Validate that the position is valid for bar markers.
+        """Validate that the position is valid for bar markers.
 
         Returns:
             bool: True if position is valid, False otherwise.

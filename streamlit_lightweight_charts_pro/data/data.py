@@ -1,5 +1,4 @@
-"""
-Data classes and utilities for Streamlit Lightweight Charts Pro.
+"""Data classes and utilities for Streamlit Lightweight Charts Pro.
 
 This module provides the base data class and utility functions for time format conversion
 used throughout the library for representing financial data points. The Data class serves
@@ -24,9 +23,11 @@ Example Usage:
     from streamlit_lightweight_charts_pro.data import Data
     from dataclasses import dataclass
 
+
     @dataclass
     class MyData(Data):
         value: float
+
 
     # Create data point with automatic time normalization
     data = MyData(time="2024-01-01T00:00:00", value=100.0)
@@ -44,7 +45,7 @@ import math
 from abc import ABC
 from dataclasses import dataclass, fields
 from enum import Enum
-from typing import Dict
+from typing import ClassVar, Dict
 
 from streamlit_lightweight_charts_pro.logging_config import get_logger
 from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames
@@ -57,9 +58,8 @@ logger = get_logger(__name__)
 # Note: 'classproperty' intentionally uses snake_case for compatibility with Python conventions.
 
 
-class classproperty(property):
-    """
-    Descriptor to create class-level properties.
+class classproperty(property):  # noqa: N801
+    """Descriptor to create class-level properties.
 
     This class provides a way to define properties that work at the class level
     rather than the instance level. It's used for accessing class attributes
@@ -74,14 +74,14 @@ class classproperty(property):
             def required_columns(cls):
                 return {"time", "value"}
 
+
         # Usage
         columns = MyClass.required_columns
         ```
     """
 
     def __get__(self, obj, cls):
-        """
-        Get the class property value.
+        """Get the class property value.
 
         Args:
             obj: The instance (unused for class properties).
@@ -95,8 +95,7 @@ class classproperty(property):
 
 @dataclass
 class Data(ABC):
-    """
-    Abstract base class for chart data points.
+    """Abstract base class for chart data points.
 
     All chart data classes should inherit from Data. This class provides the foundation
     for all data structures in the library, handling time normalization, serialization,
@@ -124,9 +123,11 @@ class Data(ABC):
         from dataclasses import dataclass
         from streamlit_lightweight_charts_pro.data import Data
 
+
         @dataclass
         class MyData(Data):
             value: float
+
 
         # Create data point
         data = MyData(time="2024-01-01T00:00:00", value=100.0)
@@ -142,15 +143,14 @@ class Data(ABC):
         - NaN values are converted to 0.0 for frontend compatibility.
     """
 
-    REQUIRED_COLUMNS = {"time"}  # Required columns for DataFrame conversion
-    OPTIONAL_COLUMNS = set()  # Optional columns for DataFrame conversion
+    REQUIRED_COLUMNS: ClassVar[set] = {"time"}  # Required columns for DataFrame conversion
+    OPTIONAL_COLUMNS: ClassVar[set] = set()  # Optional columns for DataFrame conversion
 
     time: int
 
     @classproperty
-    def required_columns(cls):  # pylint: disable=no-self-argument
-        """
-        Return the union of all REQUIRED_COLUMNS from the class and its parents.
+    def required_columns(self):  # pylint: disable=no-self-argument
+        """Return the union of all REQUIRED_COLUMNS from the class and its parents.
 
         This method traverses the class hierarchy to collect all required columns
         defined in REQUIRED_COLUMNS class attributes. It ensures that all required
@@ -164,23 +164,24 @@ class Data(ABC):
             class ParentData(Data):
                 REQUIRED_COLUMNS = {"time", "value"}
 
+
             class ChildData(ParentData):
                 REQUIRED_COLUMNS = {"time", "volume"}
+
 
             # Returns {"time", "value", "volume"}
             columns = ChildData.required_columns
             ```
         """
         required = set()
-        for base in cls.__mro__:  # pylint: disable=no-member
+        for base in self.__mro__:  # pylint: disable=no-member
             if hasattr(base, "REQUIRED_COLUMNS"):
-                required |= getattr(base, "REQUIRED_COLUMNS")
+                required |= base.REQUIRED_COLUMNS
         return required
 
     @classproperty
-    def optional_columns(cls):  # pylint: disable=no-self-argument
-        """
-        Return the union of all OPTIONAL_COLUMNS from the class and its parents.
+    def optional_columns(self):  # pylint: disable=no-self-argument
+        """Return the union of all OPTIONAL_COLUMNS from the class and its parents.
 
         This method traverses the class hierarchy to collect all optional columns
         defined in OPTIONAL_COLUMNS class attributes. It ensures that all optional
@@ -194,22 +195,23 @@ class Data(ABC):
             class ParentData(Data):
                 OPTIONAL_COLUMNS = {"color"}
 
+
             class ChildData(ParentData):
                 OPTIONAL_COLUMNS = {"size"}
+
 
             # Returns {"color", "size"}
             columns = ChildData.optional_columns
             ```
         """
         optional = set()
-        for base in cls.__mro__:  # pylint: disable=no-member
+        for base in self.__mro__:  # pylint: disable=no-member
             if hasattr(base, "OPTIONAL_COLUMNS"):
-                optional |= getattr(base, "OPTIONAL_COLUMNS")
+                optional |= base.OPTIONAL_COLUMNS
         return optional
 
     def __post_init__(self):
-        """
-        Post-initialization processing to normalize time values.
+        """Post-initialization processing to normalize time values.
 
         This method is automatically called after the dataclass is initialized.
         It normalizes the time value to ensure consistent format across all
@@ -222,8 +224,7 @@ class Data(ABC):
         self.time = normalize_time(self.time)
 
     def asdict(self) -> Dict[str, object]:
-        """
-        Serialize the data class to a dict with camelCase keys for frontend.
+        """Serialize the data class to a dict with camelCase keys for frontend.
 
         Converts the data point to a dictionary format suitable for frontend
         communication. This method handles various data type conversions and
@@ -247,6 +248,7 @@ class Data(ABC):
             class MyData(Data):
                 value: float
                 color: str = "red"
+
 
             data = MyData(time="2024-01-01T00:00:00", value=100.0, color="blue")
             result = data.asdict()

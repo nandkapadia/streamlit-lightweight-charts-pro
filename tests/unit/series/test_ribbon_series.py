@@ -5,9 +5,13 @@ This module provides comprehensive testing for the RibbonSeries class,
 ensuring proper functionality, data handling, and configuration options.
 """
 
+# pylint: disable=no-member,protected-access
+
 import numpy as np
 import pandas as pd
 
+from streamlit_lightweight_charts_pro.charts.series.band import BandSeries
+from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.charts.series.ribbon import RibbonSeries
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
@@ -37,17 +41,18 @@ class TestRibbonSeries:
     def test_ribbon_series_with_dataframe(self):
         """Test RibbonSeries initialization with DataFrame."""
         # Create DataFrame
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "time": ["2024-01-01", "2024-01-02"],
                 "upper": [110, 112],
                 "lower": [100, 102],
-            }
+            },
         )
 
         # Create series with DataFrame
         series = RibbonSeries(
-            data=df, column_mapping={"time": "time", "upper": "upper", "lower": "lower"}
+            data=test_dataframe,
+            column_mapping={"time": "time", "upper": "upper", "lower": "lower"},
         )
 
         # Verify data conversion
@@ -59,12 +64,12 @@ class TestRibbonSeries:
     def test_ribbon_series_with_column_mapping(self):
         """Test RibbonSeries with custom column mapping."""
         # Create DataFrame with different column names
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "datetime": ["2024-01-01", "2024-01-02"],
                 "high": [110, 112],
                 "low": [100, 102],
-            }
+            },
         )
 
         # Create series with column mapping
@@ -74,7 +79,7 @@ class TestRibbonSeries:
             "lower": "low",
         }
 
-        series = RibbonSeries(data=df, column_mapping=column_mapping)
+        series = RibbonSeries(data=test_dataframe, column_mapping=column_mapping)
 
         # Verify data conversion
         assert len(series.data) == 2
@@ -253,9 +258,10 @@ class TestRibbonSeries:
         assert len(series.data) == 0
 
         # Test with empty DataFrame
-        empty_df = pd.DataFrame(columns=["time", "upper", "lower"])
+        empty_dataframe = pd.DataFrame(columns=["time", "upper", "lower"])
         series = RibbonSeries(
-            data=empty_df, column_mapping={"time": "time", "upper": "upper", "lower": "lower"}
+            data=empty_dataframe,
+            column_mapping={"time": "time", "upper": "upper", "lower": "lower"},
         )
         assert len(series.data) == 0
 
@@ -313,13 +319,9 @@ class TestRibbonSeries:
         series = RibbonSeries(data=data)
 
         # Verify inheritance
-        from streamlit_lightweight_charts_pro.charts.series.base import Series
-
         assert isinstance(series, Series)
 
         # Verify it's not an instance of other series types
-        from streamlit_lightweight_charts_pro.charts.series.band import BandSeries
-
         assert not isinstance(series, BandSeries)
 
     def test_ribbon_series_chart_type_consistency(self):

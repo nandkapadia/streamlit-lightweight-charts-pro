@@ -1,5 +1,4 @@
-"""
-Legend Example for streamlit-lightweight-charts-pro.
+"""Legend Example for streamlit-lightweight-charts-pro.
 
 This example demonstrates how to use legends with different chart configurations,
 including multi-pane charts with legends for each pane and custom HTML templates.
@@ -9,12 +8,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from streamlit_lightweight_charts_pro import (
-    AreaSeries,
-    Chart,
-    ChartOptions,
-    LineSeries,
-)
+from streamlit_lightweight_charts_pro import AreaSeries, Chart, ChartOptions, LineSeries
 from streamlit_lightweight_charts_pro.charts.options.layout_options import (
     LayoutOptions,
     PaneHeightOptions,
@@ -29,7 +23,8 @@ st.set_page_config(page_title="Legend Examples", page_icon="📊", layout="wide"
 
 st.title("📊 Legend Examples for Multi-Pane Charts")
 st.markdown(
-    "This example demonstrates how to configure legends at the series level for multi-pane charts with custom styling."
+    "This example demonstrates how to configure legends at the series level "
+    "for multi-pane charts with custom styling.",
 )
 
 
@@ -41,46 +36,51 @@ def generate_sample_data():
     # Price data
     base_price = 100
     price_data = []
-    for i, date in enumerate(dates):
+    rng = np.random.default_rng(42)
+    for _i, date in enumerate(dates):
         # Simulate some price movement
-        change = np.sin(i * 0.1) * 5 + np.random.normal(0, 2)
+        change = np.sin(_i * 0.1) * 5 + rng.normal(0, 2)
         base_price += change
         open_price = base_price
-        high_price = base_price + abs(np.random.normal(0, 3))
-        low_price = base_price - abs(np.random.normal(0, 3))
-        close_price = base_price + np.random.normal(0, 1)
+        high_price = base_price + abs(rng.normal(0, 3))
+        low_price = base_price - abs(rng.normal(0, 3))
+        close_price = base_price + rng.normal(0, 1)
 
         price_data.append(
             CandlestickData(
-                time=date, open=open_price, high=high_price, low=low_price, close=close_price
-            )
+                time=date,
+                open=open_price,
+                high=high_price,
+                low=low_price,
+                close=close_price,
+            ),
         )
 
     # Volume data
     volume_data = []
-    for i, date in enumerate(dates):
-        volume = int(np.random.uniform(1000, 10000))
+    for _i, date in enumerate(dates):
+        volume = int(rng.uniform(1000, 10000))
         volume_data.append(HistogramData(time=date, value=volume))
 
     # Moving averages
     ma20_data = []
     ma50_data = []
-    for i, date in enumerate(dates):
-        if i >= 19:  # 20-day MA
-            ma20 = sum([price_data[j].close for j in range(i - 19, i + 1)]) / 20
+    for _i, date in enumerate(dates):
+        if _i >= 19:  # 20-day MA
+            ma20 = sum([price_data[j].close for j in range(_i - 19, _i + 1)]) / 20
             ma20_data.append(LineData(time=date, value=ma20))
 
-        if i >= 49:  # 50-day MA
-            ma50 = sum([price_data[j].close for j in range(i - 49, i + 1)]) / 50
+        if _i >= 49:  # 50-day MA
+            ma50 = sum([price_data[j].close for j in range(_i - 49, _i + 1)]) / 50
             ma50_data.append(LineData(time=date, value=ma50))
 
     # RSI data
     rsi_data = []
-    for i, date in enumerate(dates):
-        if i >= 14:  # 14-day RSI
+    for _i, date in enumerate(dates):
+        if _i >= 14:  # 14-day RSI
             gains = []
             losses = []
-            for j in range(i - 13, i + 1):
+            for j in range(_i - 13, _i + 1):
                 change = price_data[j].close - price_data[j - 1].close
                 if change > 0:
                     gains.append(change)
@@ -212,7 +212,7 @@ multi_pane_chart = Chart(
                 0: PaneHeightOptions(factor=3.0),  # Main chart
                 1: PaneHeightOptions(factor=1.0),  # Volume
                 2: PaneHeightOptions(factor=1.5),  # RSI
-            }
+            },
         ),
     ),
     series=[price_series, ma20_series_mp, ma50_series_mp, volume_series, rsi_series],
@@ -377,7 +377,12 @@ chart.series[0].legend = LegendOptions(
     border_width=1,
     border_radius=4,
     padding=5,
-    text="<div style='display: flex; align-items: center; margin-bottom: 4px;'><span style='width: 12px; height: 2px; background-color: #2196f3; margin-right: 6px; display: inline-block;'></span><span style='font-weight: bold;'>20-Day MA</span><span style='margin-left: 8px; color: #2196f3; font-weight: bold;'>$$value$$</span></div>"
+    text="<div style='display: flex; align-items: center; margin-bottom: 4px;'>"
+         "<span style='width: 12px; height: 2px; background-color: #2196f3; "
+         "margin-right: 6px; display: inline-block;'></span>"
+         "<span style='font-weight: bold;'>20-Day MA</span>"
+         "<span style='margin-left: 8px; color: #2196f3; font-weight: bold;'>"
+         "$$value$$</span></div>"
 )
 """,
     language="python",
@@ -554,7 +559,11 @@ chart.series[0].legend = LegendOptions(
     border_width=1,
     border_radius=4,
     padding=5,
-    text="<div style='display: flex; align-items: center;'><span style='width: 8px; height: 8px; background-color: #ff5722; margin-right: 4px; border-radius: 2px;'></span><span>Price Area</span><span style='margin-left: 6px; color: #ff5722;'>$$value$$</span></div>"
+    text="<div style='display: flex; align-items: center;'>"
+         "<span style='width: 8px; height: 8px; background-color: #ff5722; "
+         "margin-right: 4px; border-radius: 2px;'></span>"
+         "<span>Price Area</span>"
+         "<span style='margin-left: 6px; color: #ff5722;'>$$value$$</span></div>"
 )
 """,
     language="python",
@@ -567,7 +576,8 @@ st.markdown(
 ### Available Legend Options:
 
 - **visible**: Show/hide the legend (default: true)
-- **position**: Legend position - 'top-left', 'top-right', 'bottom-left', 'bottom-right' (default: 'top-right')
+- **position**: Legend position - 'top-left', 'top-right', 'bottom-left',
+  'bottom-right' (default: 'top-right')
 - **background_color**: Background color (default: 'rgba(255, 255, 255, 0.9)')
 - **border_color**: Border color (default: '#e1e3e6')
 - **border_width**: Border width in pixels (default: 1)
@@ -584,7 +594,7 @@ st.markdown(
 Note: Title and color should be handled directly in your HTML template using
 the series title and color from your series configuration. This avoids
 conflicts with Python's f-string syntax and other templating systems.
-"""
+""",
 )
 
 # Example 7: Interactive legend configuration
@@ -595,7 +605,9 @@ col1, col2 = st.columns(2)
 
 with col1:
     legend_position = st.selectbox(
-        "Legend Position", ["top-left", "top-right", "bottom-left", "bottom-right"], index=1
+        "Legend Position",
+        ["top-left", "top-right", "bottom-left", "bottom-right"],
+        index=1,
     )
 
     legend_padding = st.slider("Padding", 2, 15, 5)
@@ -627,7 +639,11 @@ interactive_chart = Chart(
 interactive_chart.series[0].legend = LegendOptions(
     visible=True,
     position=legend_position,
-    background_color=f"rgba({int(legend_background[1:3], 16)}, {int(legend_background[3:5], 16)}, {int(legend_background[5:7], 16)}, 0.9)",
+    background_color=(
+        f"rgba({int(legend_background[1:3], 16)}, "
+        f"{int(legend_background[3:5], 16)}, "
+        f"{int(legend_background[5:7], 16)}, 0.9)"
+    ),
     border_color=legend_border,
     border_width=1,
     border_radius=4,
@@ -640,7 +656,10 @@ interactive_chart.render(key="interactive_legend")
 st.code(
     """
 # Interactive Legend Configuration
-legend_position = st.selectbox("Legend Position", ["top-left", "top-right", "bottom-left", "bottom-right"])
+legend_position = st.selectbox(
+    "Legend Position",
+    ["top-left", "top-right", "bottom-left", "bottom-right"]
+)
 legend_padding = st.slider("Padding", 2, 15, 5)
 legend_background = st.color_picker("Background Color", "#ffffff")
 legend_border = st.color_picker("Border Color", "#e1e3e6")

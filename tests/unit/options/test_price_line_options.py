@@ -1,6 +1,7 @@
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError, TypeValidationError
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 
 
@@ -120,30 +121,30 @@ def test_type_validation_in_chainable_methods():
     opts = PriceLineOptions()
 
     # Test price validation
-    with pytest.raises(TypeError, match="price must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_price("invalid")
 
     # Test color validation
-    with pytest.raises(TypeError, match="color must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_color(123)
 
-    with pytest.raises(ValueError, match="Invalid color format"):
+    with pytest.raises(ColorValidationError):
         opts.set_color("invalid_color")
 
     # Test line_width validation
-    with pytest.raises(TypeError, match="line_width must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_line_width("invalid")
 
     # Test line_style validation
-    with pytest.raises(TypeError, match="line_style must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_line_style("invalid")
 
         # Test boolean validation
-        with pytest.raises(TypeError, match="line_visible must be a boolean"):
+        with pytest.raises(TypeValidationError):
             opts.set_line_visible("invalid")
 
     # Test string validation
-    with pytest.raises(TypeError, match="id must be of type"):
+    with pytest.raises(TypeValidationError):
         opts.set_id(123)
 
 
@@ -158,10 +159,10 @@ def test_color_validation_in_chainable_methods():
     opts.set_axis_label_text_color("rgba(1,2,3,0.5)")
 
     # Invalid colors
-    with pytest.raises(ValueError, match="Invalid color format"):
+    with pytest.raises(ColorValidationError):
         opts.set_color("notacolor")
 
-    with pytest.raises(ValueError, match="Invalid color format"):
+    with pytest.raises(ColorValidationError):
         opts.set_axis_label_color("notacolor")
 
     # Note: rgb(255,0,0) is now a valid color
@@ -218,7 +219,7 @@ def test_static_color_validator():
     assert PriceLineOptions._validate_color_static("rgba(1,2,3,0.5)", "test") == "rgba(1,2,3,0.5)"
 
     # Invalid colors
-    with pytest.raises(ValueError, match="Invalid color format for test"):
+    with pytest.raises(ColorValidationError):
         PriceLineOptions._validate_color_static("notacolor", "test")
 
     # Note: rgb(255,0,0) is now a valid color

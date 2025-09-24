@@ -1,0 +1,95 @@
+# Debug and Logging Guidelines
+
+## CRITICAL: Avoid F-strings in Debug Messages
+
+**NEVER use f-strings for debug print statements or console messages** in Streamlit applications to prevent lazy loading warnings.
+
+### Why Avoid F-strings in Debug Messages?
+
+- **Lazy Loading Warnings**: F-strings can trigger lazy loading warnings in Streamlit
+- **Performance Impact**: F-strings evaluate expressions immediately, even in debug code
+- **Consistency**: Maintains consistent debugging approach across the codebase
+
+### Correct Debug Message Patterns
+
+```python
+# ✅ CORRECT: Safe debug messages
+print("Debug: Chart data loaded successfully")
+print("Debug: Processing " + str(len(data)) + " data points")
+print("Debug: Chart options: {}".format(options))
+print("Debug: Series count: %d" % len(series_list))
+
+# ❌ WRONG: F-strings cause lazy loading warnings
+print(f"Debug: Chart data loaded successfully")
+print(f"Debug: Processing {len(data)} data points")
+print(f"Debug: Chart options: {options}")
+print(f"Debug: Series count: {len(series_list)}")
+```
+
+### Logging Best Practices
+
+Use proper logging instead of print statements for production code:
+
+```python
+# ✅ CORRECT: Proper logging
+import logging
+logger = logging.getLogger(__name__)
+
+logger.debug("Chart data loaded successfully")
+logger.info("Processing {} data points".format(len(data)))
+logger.warning("Chart options validation failed: {}".format(error))
+logger.error("Failed to render chart: %s", str(exception))
+
+# ❌ WRONG: Debug prints in production code
+print("Debug: Chart data loaded successfully")
+print(f"Debug: Processing {len(data)} data points")
+```
+
+### Debug Code Cleanup
+
+- **Remove all debug print statements** before committing code
+- **Use logging levels** appropriately (DEBUG, INFO, WARNING, ERROR)
+- **Configure logging** in development vs production environments
+
+### Pre-commit Hook Integration
+
+The pre-commit hooks should catch and prevent:
+- F-strings in print statements
+- Debug print statements in committed code
+- Inconsistent string formatting
+
+### Examples in Context
+
+```python
+# ✅ CORRECT: Chart debugging without f-strings
+def create_chart(self, data: list[SingleValueData]) -> Chart:
+    """Create chart with proper debug logging."""
+    logger.debug("Creating chart with %d data points", len(data))
+
+    if not data:
+        logger.warning("No data provided for chart creation")
+        return Chart()
+
+    logger.info("Chart created successfully")
+    return Chart(data=data)
+
+# ❌ WRONG: F-strings in debug messages
+def create_chart(self, data: list[SingleValueData]) -> Chart:
+    """Create chart with f-string debug messages."""
+    print(f"Debug: Creating chart with {len(data)} data points")  # WRONG
+
+    if not data:
+        print(f"Debug: No data provided")  # WRONG
+        return Chart()
+
+    print(f"Debug: Chart created successfully")  # WRONG
+    return Chart(data=data)
+```
+
+## Summary
+
+- **Never use f-strings** for debug print statements
+- **Use string concatenation** or `.format()` for debug messages
+- **Use proper logging** for production code
+- **Remove all debug prints** before committing
+- **Follow consistent formatting** patterns across the codebase

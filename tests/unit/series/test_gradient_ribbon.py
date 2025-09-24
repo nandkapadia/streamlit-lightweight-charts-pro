@@ -5,6 +5,8 @@ This module tests the GradientRibbonSeries class functionality including
 gradient bounds calculation, normalization, and data handling.
 """
 
+import time
+
 import pandas as pd
 
 from streamlit_lightweight_charts_pro.charts.series.gradient_ribbon import GradientRibbonSeries
@@ -38,7 +40,9 @@ class TestGradientRibbonSeries:
         ]
 
         series = GradientRibbonSeries(
-            data=data, gradient_start_color="#FF0000", gradient_end_color="#00FF00"
+            data=data,
+            gradient_start_color="#FF0000",
+            gradient_end_color="#00FF00",
         )
 
         assert series._gradient_start_color == "#FF0000"
@@ -205,18 +209,18 @@ class TestGradientRibbonSeries:
 
     def test_dataframe_integration(self):
         """Test GradientRibbonSeries creation from DataFrame."""
-        df = pd.DataFrame(
+        ribbon_data = pd.DataFrame(
             {
                 "datetime": ["2024-01-01", "2024-01-02"],
                 "upper": [110, 112],
                 "lower": [100, 102],
                 "gradient": [0.5, 0.7],
-            }
+            },
         )
 
         # Set datetime as index to match the expected format
-        df["datetime"] = pd.to_datetime(df["datetime"])
-        df = df.set_index("datetime")
+        ribbon_data["datetime"] = pd.to_datetime(ribbon_data["datetime"])
+        ribbon_data = ribbon_data.set_index("datetime")
 
         column_mapping = {
             "time": "datetime",
@@ -225,7 +229,7 @@ class TestGradientRibbonSeries:
             "gradient": "gradient",
         }
 
-        series = GradientRibbonSeries(data=df, column_mapping=column_mapping)
+        series = GradientRibbonSeries(data=ribbon_data, column_mapping=column_mapping)
 
         assert len(series.data) == 2
         assert series.data[0].gradient == 0.5
@@ -234,11 +238,13 @@ class TestGradientRibbonSeries:
     def test_series_integration(self):
         """Test GradientRibbonSeries creation from pandas Series."""
         # Create a DataFrame from the Series data for proper testing
-        df = pd.DataFrame([{"datetime": "2024-01-01", "upper": 110, "lower": 100, "gradient": 0.5}])
+        ribbon_data = pd.DataFrame(
+            [{"datetime": "2024-01-01", "upper": 110, "lower": 100, "gradient": 0.5}],
+        )
 
         # Set datetime as index to match the expected format
-        df["datetime"] = pd.to_datetime(df["datetime"])
-        df = df.set_index("datetime")
+        ribbon_data["datetime"] = pd.to_datetime(ribbon_data["datetime"])
+        ribbon_data = ribbon_data.set_index("datetime")
 
         column_mapping = {
             "time": "datetime",
@@ -247,7 +253,7 @@ class TestGradientRibbonSeries:
             "gradient": "gradient",
         }
 
-        series = GradientRibbonSeries(data=df, column_mapping=column_mapping)
+        series = GradientRibbonSeries(data=ribbon_data, column_mapping=column_mapping)
 
         assert len(series.data) == 1
         assert series.data[0].gradient == 0.5
@@ -255,22 +261,19 @@ class TestGradientRibbonSeries:
     def test_performance_optimization_verification(self):
         """Test that performance optimizations are working correctly."""
         # Create a large dataset to test performance
-        data = []
-        for i in range(1000):
-            data.append(
-                GradientRibbonData(
-                    f"2024-01-{(i % 31) + 1:02d}",
-                    upper=100 + i * 0.1,
-                    lower=90 + i * 0.1,
-                    gradient=i * 0.001,
-                )
+        data = [
+            GradientRibbonData(
+                f"2024-01-{(i % 31) + 1:02d}",
+                upper=100 + i * 0.1,
+                lower=90 + i * 0.1,
+                gradient=i * 0.001,
             )
+            for i in range(1000)
+        ]
 
         series = GradientRibbonSeries(data=data, normalize_gradients=True)
 
         # Test that bounds calculation is fast and correct
-        import time
-
         start_time = time.perf_counter()
         series._calculate_gradient_bounds()
         end_time = time.perf_counter()

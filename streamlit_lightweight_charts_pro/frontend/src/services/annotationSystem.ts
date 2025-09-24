@@ -32,7 +32,7 @@ export const createAnnotationVisualElements = (
       if (typeof annotations.forEach !== 'function') {
         return { markers, shapes, texts };
       }
-    } catch (error) {
+    } catch {
       return { markers, shapes, texts };
     }
 
@@ -40,7 +40,7 @@ export const createAnnotationVisualElements = (
     let annotationsArray: Annotation[];
     try {
       annotationsArray = Array.from(annotations);
-    } catch (error) {
+    } catch {
       return { markers, shapes, texts };
     }
 
@@ -51,7 +51,7 @@ export const createAnnotationVisualElements = (
 
     // Use try-catch around the entire forEach operation
     try {
-      annotationsArray.forEach((annotation, index) => {
+      annotationsArray.forEach((annotation, _index) => {
         try {
           // Validate annotation object
           if (!annotation || typeof annotation !== 'object') {
@@ -102,8 +102,8 @@ export const createAnnotationVisualElements = (
             };
             texts.push(text);
           }
-        } catch (error) {
-          console.error('Annotation system operation failed:', error);
+        } catch {
+          console.error('An error occurred');
         }
       });
     } catch (forEachError) {

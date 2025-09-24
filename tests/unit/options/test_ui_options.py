@@ -22,12 +22,14 @@ import time
 # Third-party imports
 import pytest
 
-# Local imports
 from streamlit_lightweight_charts_pro.charts.options.ui_options import (
     LegendOptions,
     RangeConfig,
     RangeSwitcherOptions,
 )
+
+# Local imports
+from streamlit_lightweight_charts_pro.exceptions import TypeValidationError
 
 
 class TestRangeConfig:
@@ -74,7 +76,7 @@ class TestRangeConfig:
 
         # Attempt to set invalid type (integer) for text field
         # This should raise TypeError with specific error message
-        with pytest.raises(TypeError, match="text must be of type"):
+        with pytest.raises(TypeValidationError):
             config.set_text(123)
 
     def test_validation_tooltip(self):
@@ -88,7 +90,7 @@ class TestRangeConfig:
 
         # Attempt to set invalid type (integer) for tooltip field
         # This should raise TypeError with specific error message
-        with pytest.raises(TypeError, match="tooltip must be of type"):
+        with pytest.raises(TypeValidationError):
             config.set_tooltip(123)
 
     def test_to_dict(self):
@@ -156,7 +158,7 @@ class TestRangeSwitcherOptions:
 
         # Attempt to set invalid type (string) for visible field
         # This should raise TypeError with specific error message
-        with pytest.raises(TypeError, match="visible must be a boolean"):
+        with pytest.raises(TypeValidationError):
             options.set_visible("invalid")
 
     def test_validation_ranges(self):
@@ -170,7 +172,7 @@ class TestRangeSwitcherOptions:
 
         # Attempt to set invalid type (string) for ranges field
         # This should raise TypeError with specific error message
-        with pytest.raises(TypeError, match="ranges must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_ranges("invalid")
 
     def test_valid_corner_positions(self):
@@ -288,7 +290,7 @@ class TestLegendOptions:
 
         # Attempt to set invalid type (string) for visible field
         # This should raise TypeError with specific error message
-        with pytest.raises(TypeError, match="visible must be a boolean"):
+        with pytest.raises(TypeValidationError):
             options.set_visible("invalid")
 
     def test_validation_position(self):
@@ -302,7 +304,7 @@ class TestLegendOptions:
 
         # Attempt to set invalid type (integer) for position field
         # This should raise TypeError with specific error message
-        with pytest.raises(TypeError, match="position must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_position(123)
 
     def test_to_dict(self):
@@ -871,7 +873,9 @@ class TestUIOptionsValidation:
         ]
         range_switcher = RangeSwitcherOptions(visible=True, ranges=ranges)
         legend = LegendOptions(
-            visible=False, position="top-right", text="<span>{title}: {value}</span>"
+            visible=False,
+            position="top-right",
+            text="<span>{title}: {value}</span>",
         )
 
         # Verify all components maintain their configured values

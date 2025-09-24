@@ -1,25 +1,32 @@
 #!/usr/bin/env python3
-"""
-Enhanced example demonstrating pane heights configuration in multi-pane charts.
+"""Enhanced example demonstrating pane heights configuration in multi-pane charts.
 
 This example shows how to use the pane_heights feature to control
 the relative sizing of different panes in a multi-pane chart with
 various scenarios and configurations.
 """
 
-import os
 import sys
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import streamlit as st
 
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions, LayoutOptions, PaneHeightOptions
-from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries, HistogramSeries, LineSeries
+from streamlit_lightweight_charts_pro.charts.options import (
+    ChartOptions,
+    LayoutOptions,
+    PaneHeightOptions,
+)
+from streamlit_lightweight_charts_pro.charts.series import (
+    CandlestickSeries,
+    HistogramSeries,
+    LineSeries,
+)
 from streamlit_lightweight_charts_pro.data import CandlestickData, HistogramData, LineData
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, str(Path(__file__).parent))
 
 
 st.set_page_config(page_title="Enhanced Pane Heights Example", layout="wide")
@@ -27,46 +34,46 @@ st.title("Enhanced Pane Heights Configuration Example")
 
 st.write(
     """
-This example demonstrates the powerful `pane_heights` configuration feature 
-that allows precise control over the relative sizing of different panes 
-in multi-pane charts. Perfect for creating professional trading dashboards 
+This example demonstrates the powerful `pane_heights` configuration feature
+that allows precise control over the relative sizing of different panes
+in multi-pane charts. Perfect for creating professional trading dashboards
 and financial analysis tools.
-"""
+""",
 )
 
 # Generate comprehensive sample data
-np.random.seed(42)
+rng = np.random.default_rng(42)
 dates = pd.date_range(start="2024-01-01", end="2024-12-31", freq="D")
 n_days = len(dates)
 
 # Price data (main chart)
 base_price = 100
 prices = [base_price]
-for i in range(1, n_days):
-    change = np.random.normal(0, 0.02)
+for _i in range(1, n_days):
+    change = rng.normal(0, 0.02)
     new_price = prices[-1] * (1 + change)
     prices.append(max(new_price, 1))  # Ensure positive prices
 
 # Create OHLC data for candlestick
 ohlc_data = []
-for i, price in enumerate(prices):
+for _i, price in enumerate(prices):
     open_price = price
-    high_price = price * (1 + abs(np.random.normal(0, 0.01)))
-    low_price = price * (1 - abs(np.random.normal(0, 0.01)))
-    close_price = price * (1 + np.random.normal(0, 0.005))
+    high_price = price * (1 + abs(rng.normal(0, 0.01)))
+    low_price = price * (1 - abs(rng.normal(0, 0.01)))
+    close_price = price * (1 + rng.normal(0, 0.005))
 
     ohlc_data.append(
         CandlestickData(
-            time=int(dates[i].timestamp()),
+            time=int(dates[_i].timestamp()),
             open=open_price,
             high=high_price,
             low=low_price,
             close=close_price,
-        )
+        ),
     )
 
 # Volume data
-volumes = np.random.randint(1000, 10000, n_days)
+volumes = rng.integers(1000, 10000, n_days)
 volume_data = [
     HistogramData(time=int(dt.timestamp()), value=vol, color="#2196F3")
     for dt, vol in zip(dates, volumes)
@@ -75,16 +82,16 @@ volume_data = [
 # Simple moving average indicators
 sma_20 = []
 sma_50 = []
-for i in range(n_days):
-    if i < 19:
-        sma_20.append(prices[i])
+for _i in range(n_days):
+    if _i < 19:
+        sma_20.append(prices[_i])
     else:
-        sma_20.append(np.mean(prices[i - 19 : i + 1]))
+        sma_20.append(np.mean(prices[_i - 19 : _i + 1]))
 
-    if i < 49:
-        sma_50.append(prices[i])
+    if _i < 49:
+        sma_50.append(prices[_i])
     else:
-        sma_50.append(np.mean(prices[i - 49 : i + 1]))
+        sma_50.append(np.mean(prices[_i - 49 : _i + 1]))
 
 sma_20_data = [LineData(time=int(dt.timestamp()), value=sma) for dt, sma in zip(dates, sma_20)]
 
@@ -132,7 +139,7 @@ tab1, tab2, tab3, tab4 = st.tabs(
         "🎛️ Interactive Demo",
         "📈 Trading Dashboard",
         "🔧 Advanced Scenarios",
-    ]
+    ],
 )
 
 with tab1:
@@ -141,9 +148,9 @@ with tab1:
         """
     This demonstrates the fundamental pane heights configuration with three panes:
     - **Main Chart (Pane 0)**: 60% of total height (factor: 3.0)
-    - **Volume (Pane 1)**: 20% of total height (factor: 1.0)  
+    - **Volume (Pane 1)**: 20% of total height (factor: 1.0)
     - **RSI (Pane 2)**: 20% of total height (factor: 1.0)
-    """
+    """,
     )
 
     # Basic chart with pane heights
@@ -156,7 +163,7 @@ with tab1:
                     0: PaneHeightOptions(factor=3.0),  # Main chart - 60% of height
                     1: PaneHeightOptions(factor=1.0),  # Volume - 20% of height
                     2: PaneHeightOptions(factor=1.0),  # RSI - 20% of height
-                }
+                },
             ),
         ),
         series=[
@@ -205,7 +212,7 @@ with tab2:
         """
     Experiment with different factor values to see how the pane heights change in real-time.
     The factors determine the relative proportions of each pane.
-    """
+    """,
     )
 
     col1, col2, col3 = st.columns(3)
@@ -230,11 +237,11 @@ with tab2:
 
     st.write(
         f"""
-    **Resulting Heights:** 
-    - Main Chart: {pct_0:.1f}% 
-    - Volume: {pct_1:.1f}% 
+    **Resulting Heights:**
+    - Main Chart: {pct_0:.1f}%
+    - Volume: {pct_1:.1f}%
     - RSI: {pct_2:.1f}%
-    """
+    """,
     )
 
     # Create interactive chart
@@ -247,7 +254,7 @@ with tab2:
                     0: PaneHeightOptions(factor=factor_0),
                     1: PaneHeightOptions(factor=factor_1),
                     2: PaneHeightOptions(factor=factor_2),
-                }
+                },
             ),
         ),
         series=[
@@ -267,7 +274,7 @@ with tab3:
         """
     A comprehensive trading dashboard with optimized pane heights for professional use.
     The main chart gets the most space, with supporting indicators in smaller panes.
-    """
+    """,
     )
 
     # Trading dashboard with optimized heights
@@ -281,7 +288,7 @@ with tab3:
                     1: PaneHeightOptions(factor=1.5),  # Volume - 21% of height
                     2: PaneHeightOptions(factor=1.0),  # RSI - 14% of height
                     3: PaneHeightOptions(factor=0.5),  # Additional indicator - 7% of height
-                }
+                },
             ),
         ),
         series=[
@@ -299,10 +306,10 @@ with tab3:
                 data=[
                     LineData(
                         time=int(dt.timestamp()),
-                        value=((prices[i] - prices[i - 1]) / prices[i - 1]) * 100,
+                        value=((prices[_i] - prices[_i - 1]) / prices[_i - 1]) * 100,
                     )
                     for i, dt in enumerate(dates)
-                    if i > 0
+                    if _i > 0
                 ],
                 pane_id=3,
             ),
@@ -318,7 +325,7 @@ with tab3:
     - **Volume (21%)**: Volume histogram for trading activity
     - **RSI (14%)**: Relative Strength Index for momentum
     - **Price Change (7%)**: Daily price change percentage
-    """
+    """,
     )
 
 with tab4:
@@ -326,7 +333,7 @@ with tab4:
     st.write(
         """
     Explore different pane height configurations for various use cases.
-    """
+    """,
     )
 
     scenario = st.selectbox(
@@ -361,7 +368,7 @@ with tab4:
     - Main Chart: {percentages[0]:.1f}%
     - Volume: {percentages[1]:.1f}%
     - RSI: {percentages[2]:.1f}%
-    """
+    """,
     )
 
     # Create scenario chart
@@ -374,7 +381,7 @@ with tab4:
                     0: PaneHeightOptions(factor=selected_factors[0]),
                     1: PaneHeightOptions(factor=selected_factors[1]),
                     2: PaneHeightOptions(factor=selected_factors[2]),
-                }
+                },
             ),
         ),
         series=[
@@ -420,7 +427,7 @@ with col1:
     - Factors determine relative pane sizes
     - Higher factors = larger panes
     - Total height divided proportionally
-    """
+    """,
     )
 
 with col2:
@@ -431,7 +438,7 @@ with col2:
     - Volume: 1.0-2.0 factor
     - Indicators: 0.5-1.5 factor
     - Total factors: 3.0-8.0 recommended
-    """
+    """,
     )
 
 with col3:
@@ -442,7 +449,7 @@ with col3:
     - Financial analysis
     - Technical indicators
     - Multi-timeframe analysis
-    """
+    """,
     )
 
 st.write(
@@ -458,5 +465,5 @@ st.write(
 - Factors: [3.0, 1.0, 1.0]
 - Total: 5.0
 - Heights: [60%, 20%, 20%]
-"""
+""",
 )

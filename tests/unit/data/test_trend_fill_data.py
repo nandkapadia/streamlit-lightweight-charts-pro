@@ -8,6 +8,11 @@ data validation, property methods, and edge cases.
 import pytest
 
 from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData
+from streamlit_lightweight_charts_pro.exceptions import (
+    TrendDirectionIntegerError,
+    TypeValidationError,
+    ValueValidationError,
+)
 
 
 class TestTrendFillDataInitialization:
@@ -65,24 +70,24 @@ class TestTrendFillDataValidation:
 
     def test_trend_direction_invalid_type(self):
         """Test invalid trend direction type."""
-        with pytest.raises(ValueError, match="trend_direction must be an integer"):
+        with pytest.raises(TrendDirectionIntegerError):
             TrendFillData(time=1640995200, trend_direction="invalid")
 
     def test_trend_direction_invalid_values(self):
         """Test invalid trend direction values."""
         invalid_directions = [-2, 2, 10, -10]
         for direction in invalid_directions:
-            with pytest.raises(ValueError, match="trend_direction must be -1, 0, or 1"):
+            with pytest.raises(ValueValidationError):
                 TrendFillData(time=1640995200, trend_direction=direction)
 
     def test_uptrend_fill_color_invalid_type(self):
         """Test invalid uptrend fill color type."""
-        with pytest.raises(ValueError, match="uptrend_fill_color must be a string"):
+        with pytest.raises(TypeValidationError):
             TrendFillData(time=1640995200, uptrend_fill_color=123)
 
     def test_downtrend_fill_color_invalid_type(self):
         """Test invalid downtrend fill color type."""
-        with pytest.raises(ValueError, match="downtrend_fill_color must be a string"):
+        with pytest.raises(TypeValidationError):
             TrendFillData(time=1640995200, downtrend_fill_color=456)
 
     def test_nan_handling_trend_line(self):
@@ -293,7 +298,10 @@ class TestTrendFillDataEdgeCases:
     def test_negative_values(self):
         """Test with negative values."""
         data = TrendFillData(
-            time=1640995200, base_line=-100.0, trend_line=-95.0, trend_direction=-1
+            time=1640995200,
+            base_line=-100.0,
+            trend_line=-95.0,
+            trend_direction=-1,
         )
 
         assert data.base_line == -100.0

@@ -24,68 +24,73 @@ class TestHistogramSeriesPerformance:
     @pytest.fixture
     def small_dataset(self) -> pd.DataFrame:
         """Create a small dataset (1,000 points)."""
+        rng = np.random.default_rng(42)
         n_points = 1000
         return pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=n_points, freq="1min"),
-                "volume": np.random.randint(1000, 10000, n_points),
-                "open": np.random.uniform(100, 200, n_points),
-                "close": np.random.uniform(100, 200, n_points),
-            }
+                "volume": rng.integers(1000, 10000, n_points),
+                "open": rng.uniform(100, 200, n_points),
+                "close": rng.uniform(100, 200, n_points),
+            },
         )
 
     @pytest.fixture
     def medium_dataset(self) -> pd.DataFrame:
         """Create a medium dataset (10,000 points)."""
+        rng = np.random.default_rng(42)
         n_points = 10000
         return pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=n_points, freq="1min"),
-                "volume": np.random.randint(1000, 10000, n_points),
-                "open": np.random.uniform(100, 200, n_points),
-                "close": np.random.uniform(100, 200, n_points),
-            }
+                "volume": rng.integers(1000, 10000, n_points),
+                "open": rng.uniform(100, 200, n_points),
+                "close": rng.uniform(100, 200, n_points),
+            },
         )
 
     @pytest.fixture
     def large_dataset(self) -> pd.DataFrame:
         """Create a large dataset (100,000 points)."""
+        rng = np.random.default_rng(42)
         n_points = 100000
         return pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=n_points, freq="1min"),
-                "volume": np.random.randint(1000, 10000, n_points),
-                "open": np.random.uniform(100, 200, n_points),
-                "close": np.random.uniform(100, 200, n_points),
-            }
+                "volume": rng.integers(1000, 10000, n_points),
+                "open": rng.uniform(100, 200, n_points),
+                "close": rng.uniform(100, 200, n_points),
+            },
         )
 
     @pytest.fixture
     def very_large_dataset(self) -> pd.DataFrame:
         """Create a very large dataset (1,000,000 points)."""
+        rng = np.random.default_rng(42)
         n_points = 1000000
         return pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=n_points, freq="1min"),
-                "volume": np.random.randint(1000, 10000, n_points),
-                "open": np.random.uniform(100, 200, n_points),
-                "close": np.random.uniform(100, 200, n_points),
-            }
+                "volume": rng.integers(1000, 10000, n_points),
+                "open": rng.uniform(100, 200, n_points),
+                "close": rng.uniform(100, 200, n_points),
+            },
         )
 
     @pytest.fixture
     def nine_years_minute_data(self) -> pd.DataFrame:
         """Create 9 years of 1-minute OHLCV data (realistic scenario)."""
+        rng = np.random.default_rng(42)
         # 9 years * 251 trading days * 375 minutes per day = ~847,125 points
         # But let's use a more manageable subset for testing
         n_points = 100000  # Representative sample
         return pd.DataFrame(
             {
                 "time": pd.date_range("2015-01-01", periods=n_points, freq="1min"),
-                "volume": np.random.randint(1000, 10000, n_points),
-                "open": np.random.uniform(100, 200, n_points),
-                "close": np.random.uniform(100, 200, n_points),
-            }
+                "volume": rng.integers(1000, 10000, n_points),
+                "open": rng.uniform(100, 200, n_points),
+                "close": rng.uniform(100, 200, n_points),
+            },
         )
 
     def test_small_dataset_performance(self, small_dataset):
@@ -285,6 +290,7 @@ class TestHistogramSeriesPerformance:
 
     def test_time_normalization_performance(self, large_dataset):
         """Test performance of time normalization specifically."""
+        rng = np.random.default_rng(42)
         # Test with different timestamp formats
         test_cases = [
             ("pandas_timestamps", large_dataset),
@@ -298,7 +304,7 @@ class TestHistogramSeriesPerformance:
         # Convert to mixed formats for another test
         mixed_df = test_cases[2][1].copy()
         mixed_df["time"] = mixed_df["time"].apply(
-            lambda x: x if pd.isna(x) else str(x) if np.random.random() > 0.5 else x
+            lambda x: x if pd.isna(x) else str(x) if rng.random() > 0.5 else x,
         )
         test_cases[2] = ("mixed_formats", mixed_df)
 
@@ -334,23 +340,24 @@ class TestHistogramSeriesPerformance:
 
     def test_scalability_analysis(self):
         """Analyze scalability across different dataset sizes."""
+        rng = np.random.default_rng(42)
         dataset_sizes = [1000, 5000, 10000, 50000, 100000]
         results = {}
 
         for size in dataset_sizes:
-            df = pd.DataFrame(
+            histogram_data = pd.DataFrame(
                 {
                     "time": pd.date_range("2024-01-01", periods=size, freq="1min"),
-                    "volume": np.random.randint(1000, 10000, size),
-                    "open": np.random.uniform(100, 200, size),
-                    "close": np.random.uniform(100, 200, size),
-                }
+                    "volume": rng.integers(1000, 10000, size),
+                    "open": rng.uniform(100, 200, size),
+                    "close": rng.uniform(100, 200, size),
+                },
             )
 
             start_time = time.time()
 
             volume_series = HistogramSeries.create_volume_series(
-                df,
+                histogram_data,
                 column_mapping={
                     "time": "time",
                     "volume": "volume",
@@ -368,7 +375,7 @@ class TestHistogramSeriesPerformance:
 
             print(
                 f"Dataset size {size}: {processing_time:.4f}s"
-                f" ({size/processing_time:.0f} points/sec)"
+                f" ({size / processing_time:.0f} points/sec)",
             )
 
         # Verify scalability (should be roughly linear or better)
@@ -379,30 +386,31 @@ class TestHistogramSeriesPerformance:
         assert min(points_per_second) > 1000  # At least 1000 points per second
         print(
             f"Performance range: {min(points_per_second):.0f} -"
-            f" {max(points_per_second):.0f} points/sec"
+            f" {max(points_per_second):.0f} points/sec",
         )
 
     def test_memory_scalability(self):
         """Test memory scalability across different dataset sizes."""
+        rng = np.random.default_rng(42)
         dataset_sizes = [1000, 10000, 50000, 100000]
         results = {}
 
         process = psutil.Process()
 
         for size in dataset_sizes:
-            df = pd.DataFrame(
+            histogram_data = pd.DataFrame(
                 {
                     "time": pd.date_range("2024-01-01", periods=size, freq="1min"),
-                    "volume": np.random.randint(1000, 10000, size),
-                    "open": np.random.uniform(100, 200, size),
-                    "close": np.random.uniform(100, 200, size),
-                }
+                    "volume": rng.integers(1000, 10000, size),
+                    "open": rng.uniform(100, 200, size),
+                    "close": rng.uniform(100, 200, size),
+                },
             )
 
             initial_memory = process.memory_info().rss / 1024 / 1024  # MB
 
             volume_series = HistogramSeries.create_volume_series(
-                df,
+                histogram_data,
                 column_mapping={
                     "time": "time",
                     "volume": "volume",
@@ -423,12 +431,12 @@ class TestHistogramSeriesPerformance:
 
             # Clean up
             del volume_series
-            del df
+            del histogram_data
             gc.collect()
 
             print(
                 f"Dataset size {size}: {memory_increase:.2f}MB"
-                f" ({results[size]['bytes_per_point']:.0f} bytes/point)"
+                f" ({results[size]['bytes_per_point']:.0f} bytes/point)",
             )
 
         # Memory usage should be reasonable
@@ -436,5 +444,5 @@ class TestHistogramSeriesPerformance:
         assert all(bpp < 1000 for bpp in bytes_per_point)  # Less than 1KB per point
         print(
             f"Memory efficiency: {min(bytes_per_point):.0f} - {max(bytes_per_point):.0f} bytes per"
-            " point"
+            " point",
         )

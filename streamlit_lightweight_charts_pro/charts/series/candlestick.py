@@ -1,5 +1,4 @@
-"""
-Candlestick series for streamlit-lightweight-charts.
+"""Candlestick series for streamlit-lightweight-charts.
 
 This module provides the CandlestickSeries class for creating candlestick charts that display
 OHLC or OHLCV data. Candlestick series are commonly used for price charts and technical analysis.
@@ -30,6 +29,7 @@ import pandas as pd
 
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.utils import chainable_property
 from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
@@ -81,9 +81,7 @@ class CandlestickSeries(Series):
     def _validate_color(self, color: str, property_name: str) -> str:
         """Validate color format."""
         if not is_valid_color(color):
-            raise ValueError(
-                f"Invalid color format for {property_name}: {color!r}. Must be hex or rgba."
-            )
+            raise ColorValidationError(property_name, color)
         return color
 
     @property

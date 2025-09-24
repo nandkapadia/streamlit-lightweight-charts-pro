@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import { Streamlit } from 'streamlit-component-lib';
 import { useRenderData } from 'streamlit-component-lib-react-hooks';
 
@@ -154,7 +155,7 @@ describe('Index Component', () => {
       const { default: App } = await import('../../index');
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -206,7 +207,7 @@ describe('Index Component', () => {
       const { default: App } = await import('../../index');
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -259,7 +260,7 @@ describe('Index Component', () => {
       const { default: App } = await import('../../index');
 
       // Mock useRenderData to return custom dimensions
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -314,7 +315,7 @@ describe('Index Component', () => {
       // Streamlit already imported at top
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -369,12 +370,12 @@ describe('Index Component', () => {
       // Streamlit already imported at top
 
       // Mock setComponentReady to throw error
-      Streamlit.setComponentReady.mockImplementation(() => {
+      (Streamlit.setComponentReady as ReturnType<typeof vi.fn>).mockImplementation(() => {
         throw new Error('Component ready error');
       });
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -429,7 +430,7 @@ describe('Index Component', () => {
       // Streamlit already imported at top
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -490,12 +491,12 @@ describe('Index Component', () => {
       // Streamlit already imported at top
 
       // Mock setFrameHeight to throw error
-      Streamlit.setFrameHeight.mockImplementation(() => {
+      (Streamlit.setFrameHeight as ReturnType<typeof vi.fn>).mockImplementation(() => {
         throw new Error('Frame height error');
       });
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -551,7 +552,7 @@ describe('Index Component', () => {
       // Streamlit already imported at top
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -614,7 +615,7 @@ describe('Index Component', () => {
       // Streamlit already imported at top
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -679,7 +680,7 @@ describe('Index Component', () => {
       // Streamlit already imported at top
 
       // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -746,7 +747,7 @@ describe('Index Component', () => {
       const { default: App } = await import('../../index');
 
       // Mock useRenderData to return missing config
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: null,
@@ -774,7 +775,7 @@ describe('Index Component', () => {
       const { default: App } = await import('../../index');
 
       // Mock useRenderData to return disabled state
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -819,7 +820,7 @@ describe('Index Component', () => {
       };
 
       // Mock useRenderData to return custom theme
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: {
@@ -895,7 +896,7 @@ describe('Index Component', () => {
       };
 
       // Mock useRenderData to return large config
-      const mockUseRenderData = useRenderData;
+      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
       mockUseRenderData.mockReturnValue({
         args: {
           config: largeConfig,

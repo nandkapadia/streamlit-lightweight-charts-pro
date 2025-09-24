@@ -5,6 +5,11 @@ import pandas as pd
 import pytest
 
 from streamlit_lightweight_charts_pro.data.line_data import LineData
+from streamlit_lightweight_charts_pro.exceptions import (
+    RequiredFieldError,
+    UnsupportedTimeTypeError,
+    ValueValidationError,
+)
 
 
 @pytest.fixture
@@ -41,7 +46,7 @@ def test_color_validation_rgba(valid_time):
 
 
 def test_color_invalid(valid_time):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueValidationError):
         LineData(time=valid_time, value=1.0, color="notacolor")
 
 
@@ -78,12 +83,12 @@ def test_time_normalization_from_pandas_timestamp():
 
 
 def test_error_on_none_value(valid_time):
-    with pytest.raises(ValueError):
+    with pytest.raises(RequiredFieldError):
         LineData(time=valid_time, value=None)
 
 
 def test_error_on_invalid_time():
-    with pytest.raises(TypeError):
+    with pytest.raises(UnsupportedTimeTypeError):
         LineData(time=[1, 2, 3], value=1.0)
 
 

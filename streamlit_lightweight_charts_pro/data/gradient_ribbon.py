@@ -1,5 +1,4 @@
-"""
-Gradient ribbon data classes for streamlit-lightweight-charts.
+"""Gradient ribbon data classes for streamlit-lightweight-charts.
 
 This module provides data classes for gradient ribbon data points used in
 ribbon charts that display upper and lower bands with gradient fill areas.
@@ -7,15 +6,15 @@ ribbon charts that display upper and lower bands with gradient fill areas.
 
 import math
 from dataclasses import dataclass
-from typing import Optional
+from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 
 
 @dataclass
 class GradientRibbonData(RibbonData):
-    """
-    Data point for gradient ribbon charts.
+    """Data point for gradient ribbon charts.
 
     This class represents a ribbon data point with upper and lower values,
     along with optional fill color override and gradient value for color calculation.
@@ -29,8 +28,8 @@ class GradientRibbonData(RibbonData):
         gradient: Optional gradient value for color calculation (0.0 to 1.0 or raw value).
     """
 
-    REQUIRED_COLUMNS = {"upper", "lower"}
-    OPTIONAL_COLUMNS = {"fill", "gradient"}
+    REQUIRED_COLUMNS: ClassVar[set] = {"upper", "lower"}
+    OPTIONAL_COLUMNS: ClassVar[set] = {"fill", "gradient"}
 
     upper: Optional[float] = None
     lower: Optional[float] = None
@@ -44,8 +43,8 @@ class GradientRibbonData(RibbonData):
         # Validate gradient if provided
         if self.gradient is not None:
             if not isinstance(self.gradient, (int, float)):
-                raise ValueError(f"gradient must be numeric, got {type(self.gradient)}")
+                raise ValueValidationError("gradient", "must be numeric")
             if math.isnan(self.gradient):
-                raise ValueError("gradient cannot be NaN")
+                raise ValueValidationError("gradient", "cannot be NaN")
             if math.isinf(self.gradient):
-                raise ValueError("gradient cannot be infinite")
+                raise ValueValidationError("gradient", "cannot be infinite")

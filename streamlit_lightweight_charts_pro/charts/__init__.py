@@ -1,5 +1,4 @@
-"""
-Chart classes for Streamlit Lightweight Charts Pro.
+"""Chart classes for Streamlit Lightweight Charts Pro.
 
 This module provides all chart classes including Chart and various series types
 for creating interactive financial charts. It serves as the main interface for
@@ -30,10 +29,12 @@ Example Usage:
     chart.render(key="my_chart")
 
     # Method 2: Fluent API with method chaining
-    chart = (Chart()
-             .add_series(LineSeries(data, color="#ff0000"))
-             .update_options(height=400)
-             .add_annotation(create_text_annotation("2024-01-01", 100, "Start")))
+    chart = (
+        Chart()
+        .add_series(LineSeries(data, color="#ff0000"))
+        .update_options(height=400)
+        .add_annotation(create_text_annotation("2024-01-01", 100, "Start"))
+    )
     chart.render(key="my_chart")
     ```
 
@@ -68,16 +69,16 @@ from streamlit_lightweight_charts_pro.charts.series import (
 
 __all__ = [
     "AreaSeries",
-    "LineSeries",
-    "CandlestickSeries",
-    "BarSeries",
-    "HistogramSeries",
-    "BaselineSeries",
-    "TrendFillSeries",
-    "RibbonSeries",
-    "GradientRibbonSeries",
-    "SignalSeries",
     "BandSeries",
+    "BarSeries",
+    "BaselineSeries",
+    "CandlestickSeries",
     "Chart",
     "ChartManager",
+    "GradientRibbonSeries",
+    "HistogramSeries",
+    "LineSeries",
+    "RibbonSeries",
+    "SignalSeries",
+    "TrendFillSeries",
 ]

@@ -206,7 +206,7 @@ export class StreamlitSeriesConfigService {
 
       // Clear pending changes after successful sync
       this.pendingChanges = [];
-    } catch (error) {
+    } catch {
       // Don't clear pending changes on error - they can be retried
       // this.pendingChanges = []
     }
@@ -230,8 +230,8 @@ export class StreamlitSeriesConfigService {
           });
         }
       }
-    } catch (error) {
-      console.error('Streamlit series config operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
   }
 

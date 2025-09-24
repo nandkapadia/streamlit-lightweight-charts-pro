@@ -1,12 +1,11 @@
-"""
-Basic Baseline Chart Example.
+"""Basic Baseline Chart Example.
 
 This example demonstrates the fundamental usage of BaselineSeries with sample data
 from the data_samples module.
 
 # Add project root to path for examples imports
 import sys
-import os
+from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
@@ -25,7 +24,7 @@ def main():
     st.title("Basic Baseline Chart Example")
     st.write(
         "This example shows how to create a simple baseline chart using BaselineSeries with sample"
-        " data."
+        " data.",
     )
 
     # Get sample data
@@ -48,7 +47,8 @@ def main():
     st.write("Creating BaselineSeries from pandas DataFrame:")
 
     baseline_series_df = BaselineSeries(
-        data=df_data, column_mapping={"time": "datetime", "value": "value"}
+        data=df_data,
+        column_mapping={"time": "datetime", "value": "value"},
     )
 
     dataframe_chart = Chart()
@@ -89,11 +89,19 @@ def main():
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Above Baseline", above_baseline, delta=f"{above_baseline/len(values)*100:.1f}%")
+        st.metric(
+            "Above Baseline",
+            above_baseline,
+            delta=f"{above_baseline / len(values) * 100:.1f}%",
+        )
     with col2:
-        st.metric("Below Baseline", below_baseline, delta=f"-{below_baseline/len(values)*100:.1f}%")
+        st.metric(
+            "Below Baseline",
+            below_baseline,
+            delta=f"-{below_baseline / len(values) * 100:.1f}%",
+        )
     with col3:
-        st.metric("At Baseline", at_baseline, delta=f"{at_baseline/len(values)*100:.1f}%")
+        st.metric("At Baseline", at_baseline, delta=f"{at_baseline / len(values) * 100:.1f}%")
 
     # Show baseline configuration
     st.subheader("Baseline Configuration")

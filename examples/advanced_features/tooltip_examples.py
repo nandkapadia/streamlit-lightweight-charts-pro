@@ -1,5 +1,4 @@
-"""
-Tooltip Examples for Lightweight Charts
+"""Tooltip Examples for Lightweight Charts
 
 This module demonstrates the comprehensive tooltip functionality with various
 use cases including OHLC data, custom templates, trade information, and markers.
@@ -38,45 +37,49 @@ def create_sample_data():
     """Create sample data for examples."""
     # Generate sample OHLC data
     dates = pd.date_range("2024-01-01", periods=100, freq="D")
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
 
     # Generate price data with some trend
     base_price = 100
     prices = []
-    for i in range(100):
-        if i == 0:
+    for _i in range(100):
+        if _i == 0:
             price = base_price
         else:
-            change = np.random.normal(0, 2)
+            change = rng.normal(0, 2)
             price = prices[-1] + change
         prices.append(max(price, 1))  # Ensure positive prices
 
     # Create OHLC data
     ohlc_data = []
-    for i, (date, price) in enumerate(zip(dates, prices)):
+    for _i, (date, price) in enumerate(zip(dates, prices)):
         open_price = price
-        high_price = price + np.random.uniform(0, 5)
-        low_price = max(price - np.random.uniform(0, 5), 0.1)
-        close_price = price + np.random.uniform(-2, 2)
-        volume = np.random.randint(1000, 10000)
+        high_price = price + rng.uniform(0, 5)
+        low_price = max(price - rng.uniform(0, 5), 0.1)
+        close_price = price + rng.uniform(-2, 2)
+        volume = rng.integers(1000, 10000)
 
         ohlc_data.append(
             CandlestickData(
-                time=date, open=open_price, high=high_price, low=low_price, close=close_price
-            )
+                time=date,
+                open=open_price,
+                high=high_price,
+                low=low_price,
+                close=close_price,
+            ),
         )
 
     # Create line data (moving average)
     line_data = []
-    for i, (date, price) in enumerate(zip(dates, prices)):
-        if i >= 20:  # 20-day moving average
-            ma = sum(prices[i - 20 : i]) / 20
+    for _i, (date, _price) in enumerate(zip(dates, prices)):
+        if _i >= 20:  # 20-day moving average
+            ma = sum(prices[_i - 20 : _i]) / 20
             line_data.append(SingleValueData(time=date, value=ma))
 
     # Create area data (volume)
     area_data = []
-    for i, (date, price) in enumerate(zip(dates, prices)):
-        volume = np.random.randint(1000, 10000)
+    for _i, (date, _price) in enumerate(zip(dates, prices)):
+        volume = rng.integers(1000, 10000)
         area_data.append(AreaData(time=date, value=volume))
 
     return ohlc_data, line_data, area_data
@@ -84,7 +87,7 @@ def create_sample_data():
 
 def create_sample_trades():
     """Create sample trade data."""
-    trades = [
+    return [
         TradeData(
             entry_time="2024-01-15 10:00:00",
             entry_price=105.0,
@@ -116,7 +119,6 @@ def create_sample_trades():
             notes="Trend following",
         ),
     ]
-    return trades
 
 
 def example_basic_ohlc_tooltip():
@@ -145,7 +147,7 @@ def example_custom_template_tooltip():
 
     # Create custom tooltip with template
     custom_tooltip = create_custom_tooltip(
-        template="Price: ${price}\nMoving Average: {value}\nDate: {time}"
+        template="Price: ${price}\nMoving Average: {value}\nDate: {time}",
     )
 
     # Add custom fields for formatting
@@ -359,7 +361,7 @@ def main():
     """Main function to run all tooltip examples."""
     st.title("Lightweight Charts - Tooltip Examples")
     st.write(
-        "This page demonstrates the comprehensive tooltip functionality with various use cases."
+        "This page demonstrates the comprehensive tooltip functionality with various use cases.",
     )
 
     # Create tabs for different examples
@@ -372,7 +374,7 @@ def main():
             "Styled Tooltips",
             "Tooltip Manager",
             "Marker Tooltips",
-        ]
+        ],
     )
 
     with tab1:

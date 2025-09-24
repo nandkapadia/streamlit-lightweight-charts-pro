@@ -6,7 +6,6 @@
  * interaction simulation, and validation helpers.
  */
 
-import { vi } from 'vitest';
 import {
   IChartApi,
   ISeriesApi,
@@ -65,12 +64,6 @@ export class ChartTestHelpers {
   } {
     const container = this.createTestContainer(chartId, config.width, config.height);
 
-    const chartOptions: ChartOptions = {
-      width: config.width,
-      height: config.height,
-      ...config.customOptions,
-    };
-
     // Create chart using centralized mock
     const chart = MockFactory.createChart({
       enableMemoryTracking: config.enableMemoryTracking,
@@ -125,7 +118,7 @@ export class ChartTestHelpers {
     dataPoints: number = 100,
     options: Partial<SeriesOptionsMap[SeriesType]> = {}
   ): ISeriesApi<SeriesType> {
-    const series = chart.addSeries(seriesType, {
+    const series = chart.addSeries(seriesType as any, {
       color: this.generateRandomColor(),
       ...options,
     });
@@ -195,12 +188,12 @@ export class ChartTestHelpers {
     // Performance validation - be more lenient
     if (options.checkPerformance && global.getPerformanceMetrics) {
       try {
-        performanceMetrics = global.getPerformanceMetrics() as Record<string, number>;
+        performanceMetrics = global.getPerformanceMetrics() as unknown as Record<string, number>;
 
         const thresholds = options.performanceThresholds || {};
 
         Object.entries(thresholds).forEach(([operation, threshold]) => {
-          const metrics = (performanceMetrics![operation] as number[]) || [];
+          const metrics = (performanceMetrics![operation] as unknown as number[]) || [];
           const avgTime =
             metrics.length > 0 ? metrics.reduce((sum, time) => sum + time, 0) / metrics.length : 0;
 
@@ -212,7 +205,7 @@ export class ChartTestHelpers {
             );
           }
         });
-      } catch (error) {
+      } catch {
         // Don't fail validation if performance metrics aren't available
       }
     }
@@ -226,7 +219,7 @@ export class ChartTestHelpers {
 
         // Very lenient memory leak checking for tests - only fail on massive leaks
         const isTestEnvironment =
-          process.env.NODE_ENV === 'test' || typeof global.vi !== 'undefined';
+          process.env.NODE_ENV === 'test' || typeof (global as any).vi !== 'undefined';
         const leakThreshold = isTestEnvironment ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB vs 10MB
 
         if (memoryReport.hasLeaks && memoryReport.memoryDelta > leakThreshold) {
@@ -234,9 +227,9 @@ export class ChartTestHelpers {
             `Significant memory leaks detected: ${memoryReport.leakedObjects} objects, ${Math.round(memoryReport.memoryDelta / 1024)}KB delta`
           );
         }
-      } catch (error) {
+      } catch {
         // Don't fail validation if memory detection isn't available
-        console.warn('Memory leak detection failed:', error);
+        console.warn('A warning occurred');
       }
     }
 
@@ -292,11 +285,11 @@ export class ChartTestHelpers {
 
       // Data updates
       if (operations.dataUpdates) {
-        const series = chart.addSeries('LineSeries', { color: 'blue' });
+        const series = chart.addSeries('Line' as any, { color: 'blue' });
 
         for (let i = 0; i < operations.dataUpdates; i++) {
           try {
-            const newData = TestDataFactory.createLineData(10 + i);
+            const newData = TestDataFactory.createLineData({ count: 10 + i });
             series.setData(newData);
             completed++;
           } catch (error) {
@@ -376,16 +369,16 @@ export class ChartTestHelpers {
     if (chart && typeof chart.remove === 'function') {
       try {
         chart.remove();
-      } catch (error) {
-        console.warn(`Error removing chart ${chartId}:`, error);
+      } catch {
+        console.warn('A warning occurred');
       }
     }
 
     if (container && container.parentNode) {
       try {
         container.parentNode.removeChild(container);
-      } catch (error) {
-        console.warn(`Error removing container for ${chartId}:`, error);
+      } catch {
+        console.warn('A warning occurred');
       }
     }
 
@@ -431,18 +424,18 @@ export class ChartTestHelpers {
 
   private static generateSeriesData(seriesType: SeriesType, dataPoints: number): any[] {
     switch (seriesType) {
-      case 'LineSeries':
-        return TestDataFactory.createLineData(dataPoints);
-      case 'AreaSeries':
-        return TestDataFactory.createAreaData(dataPoints);
-      case 'BarSeries':
-        return TestDataFactory.createBarData(dataPoints);
-      case 'CandlestickSeries':
-        return TestDataFactory.createCandlestickData(dataPoints);
-      case 'HistogramSeries':
-        return TestDataFactory.createHistogramData(dataPoints);
+      case 'Line':
+        return TestDataFactory.createLineData({ count: dataPoints });
+      case 'Area':
+        return TestDataFactory.createAreaData({ count: dataPoints });
+      case 'Bar':
+        return TestDataFactory.createBarData({ count: dataPoints });
+      case 'Candlestick':
+        return TestDataFactory.createCandlestickData({ count: dataPoints });
+      case 'Histogram':
+        return TestDataFactory.createHistogramData({ count: dataPoints });
       default:
-        return TestDataFactory.createLineData(dataPoints);
+        return TestDataFactory.createLineData({ count: dataPoints });
     }
   }
 

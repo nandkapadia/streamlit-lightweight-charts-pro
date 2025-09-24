@@ -1,5 +1,4 @@
-"""
-Example: Automatic Range Filtering
+"""Example: Automatic Range Filtering
 
 This example demonstrates how the range switcher automatically hides ranges
 that exceed the available data timespan, providing a better user experience
@@ -7,19 +6,23 @@ by only showing relevant time periods. This filtering happens automatically
 in the frontend - no configuration needed!
 """
 
+import numpy as np
 import pandas as pd
 import streamlit as st
+
 from streamlit_lightweight_charts_pro import st_lightweight_charts
 
 # Configure page
 st.set_page_config(page_title="Data-Aware Range Switcher", layout="wide")
 st.title("📊 Automatic Range Filtering Example")
 
-st.markdown("""
+st.markdown(
+    """
 This example shows how the range switcher can automatically hide ranges that are larger
 than the available data period. This prevents users from selecting time ranges that
 would show mostly empty space.
-""")
+""",
+)
 
 # Create sample data with different timespans
 data_period = st.selectbox(
@@ -29,10 +32,10 @@ data_period = st.selectbox(
         ("1 Day", 24 * 3600),
         ("1 Week", 7 * 24 * 3600),
         ("1 Month", 30 * 24 * 3600),
-        ("6 Months", 180 * 24 * 3600)
+        ("6 Months", 180 * 24 * 3600),
     ],
     format_func=lambda x: x[0],
-    index=2  # Default to 1 Week
+    index=2,  # Default to 1 Week
 )
 
 period_name, period_seconds = data_period
@@ -46,23 +49,24 @@ num_points = min(500, period_seconds // 3600)  # Max 500 points, hourly interval
 time_range = pd.date_range(start=start_time, end=end_time, periods=num_points)
 
 # Generate realistic price data
-import numpy as np
-np.random.seed(42)
-returns = np.random.normal(0.001, 0.02, len(time_range))
+rng = np.random.default_rng(42)
+returns = rng.normal(0.001, 0.02, len(time_range))
 prices = 100 * np.exp(np.cumsum(returns))
 
-data = pd.DataFrame({
-    'time': time_range,
-    'open': prices * (1 + np.random.normal(0, 0.001, len(prices))),
-    'high': prices * (1 + np.abs(np.random.normal(0, 0.005, len(prices)))),
-    'low': prices * (1 - np.abs(np.random.normal(0, 0.005, len(prices)))),
-    'close': prices,
-    'volume': np.random.randint(1000, 10000, len(prices))
-})
+data = pd.DataFrame(
+    {
+        "time": time_range,
+        "open": prices * (1 + rng.normal(0, 0.001, len(prices))),
+        "high": prices * (1 + np.abs(rng.normal(0, 0.005, len(prices)))),
+        "low": prices * (1 - np.abs(rng.normal(0, 0.005, len(prices)))),
+        "close": prices,
+        "volume": rng.integers(1000, 10000, len(prices)),
+    },
+)
 
 # Ensure high >= max(open, close) and low <= min(open, close)
-data['high'] = np.maximum(data['high'], np.maximum(data['open'], data['close']))
-data['low'] = np.minimum(data['low'], np.minimum(data['open'], data['close']))
+data["high"] = np.maximum(data["high"], np.maximum(data["open"], data["close"]))
+data["low"] = np.minimum(data["low"], np.minimum(data["open"], data["close"]))
 
 # Display data information
 col1, col2 = st.columns(2)
@@ -81,14 +85,14 @@ with col1:
     hide_invalid = st.checkbox(
         "Hide Invalid Ranges",
         value=True,
-        help="Hide ranges that are larger than the available data period"
+        help="Hide ranges that are larger than the available data period",
     )
 
 with col2:
     range_preset = st.selectbox(
         "Range Preset:",
         options=["Trading", "Short Term", "Long Term", "Minimal"],
-        help="Different preset range configurations"
+        help="Different preset range configurations",
     )
 
 # Define ranges based on preset
@@ -99,7 +103,7 @@ range_configs = {
         {"text": "1M", "range": "ONE_MONTH"},
         {"text": "3M", "range": "THREE_MONTHS"},
         {"text": "1Y", "range": "ONE_YEAR"},
-        {"text": "All", "range": "ALL"}
+        {"text": "All", "range": "ALL"},
     ],
     "Short Term": [
         {"text": "5M", "range": "FIVE_MINUTES"},
@@ -108,7 +112,7 @@ range_configs = {
         {"text": "1H", "range": "ONE_HOUR"},
         {"text": "4H", "range": "FOUR_HOURS"},
         {"text": "1D", "range": "ONE_DAY"},
-        {"text": "All", "range": "ALL"}
+        {"text": "All", "range": "ALL"},
     ],
     "Long Term": [
         {"text": "1M", "range": "ONE_MONTH"},
@@ -117,32 +121,32 @@ range_configs = {
         {"text": "1Y", "range": "ONE_YEAR"},
         {"text": "2Y", "range": "TWO_YEARS"},
         {"text": "5Y", "range": "FIVE_YEARS"},
-        {"text": "All", "range": "ALL"}
+        {"text": "All", "range": "ALL"},
     ],
     "Minimal": [
         {"text": "1D", "range": "ONE_DAY"},
         {"text": "1W", "range": "ONE_WEEK"},
         {"text": "1M", "range": "ONE_MONTH"},
-        {"text": "All", "range": "ALL"}
-    ]
+        {"text": "All", "range": "ALL"},
+    ],
 }
 
 # Chart configuration
 chart_options = {
     "layout": {
         "textColor": "black",
-        "background": {"color": "white"}
+        "background": {"color": "white"},
     },
     "grid": {
         "vertLines": {"color": "rgba(42, 46, 57, 0.1)"},
-        "horzLines": {"color": "rgba(42, 46, 57, 0.1)"}
+        "horzLines": {"color": "rgba(42, 46, 57, 0.1)"},
     },
     "timeScale": {
-        "borderColor": "rgba(42, 46, 57, 0.1)"
+        "borderColor": "rgba(42, 46, 57, 0.1)",
     },
     "rightPriceScale": {
-        "borderColor": "rgba(42, 46, 57, 0.1)"
-    }
+        "borderColor": "rgba(42, 46, 57, 0.1)",
+    },
 }
 
 # Range switcher configuration
@@ -150,43 +154,45 @@ range_switcher_config = {
     "visible": True,
     "position": "top-right",
     "ranges": range_configs[range_preset],
-    "hideInvalidRanges": hide_invalid
+    "hideInvalidRanges": hide_invalid,
 }
 
 # Legend configuration
 legend_config = {
     "visible": True,
     "position": "top-left",
-    "text": "OHLC"
+    "text": "OHLC",
 }
 
 # UI options
 ui_options = {
     "rangeSwitcher": range_switcher_config,
-    "legend": legend_config
+    "legend": legend_config,
 }
 
 # Create the chart
 st.subheader("📈 Chart with Data-Aware Range Switcher")
 
 chart_data = st_lightweight_charts(
-    data.to_dict('records'),
+    data.to_dict("records"),
     chart_type="candlestick",
     height=600,
     width=None,
     chart_options=chart_options,
     ui_options=ui_options,
-    key=f"chart_{period_name}_{hide_invalid}_{range_preset}"
+    key=f"chart_{period_name}_{hide_invalid}_{range_preset}",
 )
 
 # Information about the feature
 st.subheader("ℹ️ How Data-Aware Range Filtering Works")
 
-st.markdown(f"""
+st.markdown(
+    f"""
 **Current Data Period:** {period_name} ({period_seconds:,} seconds)
 
 **Frontend Range Filtering Logic:**
-- When `hideInvalidRanges` is enabled, the frontend JavaScript analyzes the chart's actual data timespan
+- When `hideInvalidRanges` is enabled,
+    the frontend JavaScript analyzes the chart's actual data timespan
 - Range buttons that exceed the data period by more than 10% are dynamically hidden (display: none)
 - The "All" range is always visible as it shows the complete dataset
 - Buttons are hidden/shown in real-time as data changes without full page reloads
@@ -195,7 +201,8 @@ st.markdown(f"""
 **Expected Frontend Behavior for {period_name} data:**
 
 *Note: The filtering happens in the frontend JavaScript after the chart loads the data.*
-""")
+""",
+)
 
 # Show which ranges should be visible
 range_seconds_map = {
@@ -212,7 +219,7 @@ range_seconds_map = {
     "ONE_YEAR": 31536000,
     "TWO_YEARS": 63072000,
     "FIVE_YEARS": 157680000,
-    "ALL": None
+    "ALL": None,
 }
 
 current_ranges = range_configs[range_preset]
@@ -228,7 +235,9 @@ for range_item in current_ranges:
     elif range_seconds <= (period_seconds * buffer_multiplier):
         status = "✅ Visible"
     else:
-        status = "❌ Hidden (exceeds data period)" if hide_invalid else "⚠️ Visible (but mostly empty)"
+        status = (
+            "❌ Hidden (exceeds data period)" if hide_invalid else "⚠️ Visible (but mostly empty)"
+        )
 
     if range_seconds:
         st.write(f"- **{range_name}** ({range_seconds:,}s): {status}")
@@ -238,15 +247,19 @@ for range_item in current_ranges:
 # Tips for usage
 st.subheader("💡 Usage Tips")
 
-st.markdown("""
+st.markdown(
+    """
 1. **Frontend Processing:** Range filtering happens in the browser after chart data is loaded
 2. **Real-time Updates:** Button visibility updates automatically when chart data changes
-3. **Performance:** Efficient DOM manipulation - buttons are hidden/shown rather than destroyed/recreated
+3. **Performance:** Efficient DOM manipulation - buttons are hidden/shown rather than
+    destroyed/recreated
 4. **Configuration:** Enable/disable filtering via the `hideInvalidRanges` option
 5. **Debugging:** Hidden buttons have `data-hidden-reason="exceeds-data-range"` attribute
-6. **Data Detection:** Frontend monitors chart data changes and updates button visibility accordingly
+6. **Data Detection:** Frontend monitors chart data changes and updates button
+    visibility accordingly
 7. **No Page Reloads:** All filtering happens client-side for smooth user experience
-""")
+""",
+)
 
 # Show raw data sample
 with st.expander("📋 View Sample Data"):

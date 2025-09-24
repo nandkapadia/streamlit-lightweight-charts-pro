@@ -16,6 +16,7 @@ Note: Range filtering is always enabled in the frontend - no configuration neede
 
 # Local imports
 from streamlit_lightweight_charts_pro.charts.options.ui_options import (
+    LegendOptions,
     RangeConfig,
     RangeSwitcherOptions,
     TimeRange,
@@ -172,8 +173,6 @@ class TestRangeSwitcherIntegration:
         Validates that range switcher and legend options work together
         correctly when automatic filtering is enabled.
         """
-        from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
-
         # Create range switcher with automatic filtering
         ranges = [RangeConfig(text="1D", range=TimeRange.ONE_DAY)]
         range_switcher = RangeSwitcherOptions(ranges=ranges)

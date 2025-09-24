@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Tutorial 3: Customizing Your Chart
+"""Tutorial 3: Customizing Your Chart
 
 What you'll learn:
 - How to customize chart appearance
@@ -18,29 +17,31 @@ Next steps:
 """
 
 import streamlit as st
+
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import LineData
-from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 
 # Page configuration
 st.set_page_config(
     page_title="Tutorial 3: Customizing Charts",
     page_icon="🎨",
-    layout="wide"
+    layout="wide",
 )
 
 st.title("🎨 Tutorial 3: Customizing Your Chart")
 st.markdown("Learn how to make your charts look amazing with colors, styles, and layouts.")
 
 st.header("📚 What You'll Learn")
-st.markdown("""
+st.markdown(
+    """
 - ✅ How to customize colors and line styles
 - ✅ How to set chart size and layout
 - ✅ How to use method chaining for clean code
 - ✅ How to create professional-looking charts
 - ✅ Chart options and configuration
-""")
+""",
+)
 
 # Create sample data for all examples
 sample_data = [
@@ -55,21 +56,26 @@ sample_data = [
 
 st.header("🎨 Basic Customization")
 
-st.markdown("""
+st.markdown(
+    """
 **Start with a basic chart and then customize it step by step.**
-""")
+""",
+)
 
 st.subheader("Default Chart")
 basic_chart = Chart()
 basic_chart.add_series(LineSeries(data=sample_data))
 basic_chart.render(key="basic_chart")
 
-st.code("""
+st.code(
+    """
 # Basic chart (default styling)
 chart = Chart()
 chart.add_series(LineSeries(data=sample_data))
 chart.render(key="basic_chart")
-""", language="python")
+""",
+    language="python",
+)
 
 st.subheader("Customized Chart")
 custom_chart = Chart()
@@ -77,29 +83,39 @@ custom_chart.add_series(LineSeries(data=sample_data))
 custom_chart.update_options(width=800, height=400)
 custom_chart.render(key="custom_chart")
 
-st.code("""
+st.code(
+    """
 # Customized chart with size
 chart = Chart()
 chart.add_series(LineSeries(data=sample_data))
 chart.update_options(width=800, height=400)
 chart.render(key="custom_chart")
-""", language="python")
+""",
+    language="python",
+)
 
 st.header("🔗 Method Chaining (Fluent API)")
 
-st.markdown("""
+st.markdown(
+    """
 **Use method chaining to create clean, readable code.**
-""")
+""",
+)
 
 st.subheader("Method Chaining Example")
-chained_chart = Chart().add_series(LineSeries(data=sample_data)).update_options(width=600, height=300)
+chained_chart = (
+    Chart().add_series(LineSeries(data=sample_data)).update_options(width=600, height=300)
+)
 chained_chart.render(key="chained_chart")
 
-st.code("""
+st.code(
+    """
 # Method chaining - clean and readable
 chart = Chart().add_series(LineSeries(data=sample_data)).update_options(width=600, height=300)
 chart.render(key="chained_chart")
-""", language="python")
+""",
+    language="python",
+)
 
 st.markdown("**Benefits of method chaining:**")
 st.markdown("- ✅ Cleaner, more readable code")
@@ -109,51 +125,61 @@ st.markdown("- ✅ Easy to add more customizations")
 
 st.header("🎨 Colors and Styles")
 
-st.markdown("""
+st.markdown(
+    """
 **Customize the appearance of your series with colors and styles.**
-""")
+""",
+)
 
 col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Color Examples")
-    
+
     # Red line
     red_chart = Chart()
     red_chart.add_series(LineSeries(data=sample_data))
     red_chart.update_options(width=300, height=200)
     red_chart.render(key="red_chart")
-    
-    st.code("""
+
+    st.code(
+        """
 # Red line chart
 chart = Chart()
 chart.add_series(LineSeries(data=sample_data))
 chart.update_options(width=300, height=200)
 chart.render(key="red_chart")
-    """, language="python")
+    """,
+        language="python",
+    )
 
 with col2:
     st.subheader("Style Examples")
-    
+
     # Dashed line
     dashed_chart = Chart()
     dashed_chart.add_series(LineSeries(data=sample_data))
     dashed_chart.update_options(width=300, height=200)
     dashed_chart.render(key="dashed_chart")
-    
-    st.code("""
+
+    st.code(
+        """
 # Dashed line chart
 chart = Chart()
 chart.add_series(LineSeries(data=sample_data))
 chart.update_options(width=300, height=200)
 chart.render(key="dashed_chart")
-    """, language="python")
+    """,
+        language="python",
+    )
 
 st.header("📏 Chart Layout Options")
 
-st.markdown("""
+st.markdown(
+    """
 **Control the overall layout and appearance of your chart.**
-""")
+""",
+)
 
 st.subheader("Layout Options")
 layout_chart = Chart()
@@ -162,11 +188,12 @@ layout_chart.update_options(
     width=800,
     height=400,
     background_color="#f8f9fa",
-    grid_color="#e9ecef"
+    grid_color="#e9ecef",
 )
 layout_chart.render(key="layout_chart")
 
-st.code("""
+st.code(
+    """
 # Chart with custom layout
 chart = Chart()
 chart.add_series(LineSeries(data=sample_data))
@@ -177,58 +204,63 @@ chart.update_options(
     grid_color="#e9ecef"
 )
 chart.render(key="layout_chart")
-""", language="python")
+""",
+    language="python",
+)
 
 st.header("🎛️ Interactive Customization")
 
-st.markdown("""
+st.markdown(
+    """
 **Try customizing a chart interactively!**
-""")
+""",
+)
 
 col1, col2 = st.columns([1, 2])
 
 with col1:
     st.subheader("Customization Controls")
-    
+
     # Chart size
     chart_width = st.slider("Chart Width", 300, 1000, 600)
     chart_height = st.slider("Chart Height", 200, 600, 300)
-    
+
     # Line color
     line_color = st.color_picker("Line Color", "#1f77b4")
-    
+
     # Line style
     line_style = st.selectbox(
         "Line Style",
         ["Solid", "Dashed", "Dotted"],
-        index=0
+        index=0,
     )
-    
+
     # Background color
     bg_color = st.color_picker("Background Color", "#ffffff")
-    
+
     # Grid color
     grid_color = st.color_picker("Grid Color", "#e0e0e0")
 
 with col2:
     st.subheader("Your Customized Chart")
-    
+
     # Create customized chart
     interactive_chart = Chart()
     interactive_chart.add_series(LineSeries(data=sample_data))
-    
+
     # Apply customizations
     interactive_chart.update_options(
         width=chart_width,
         height=chart_height,
         background_color=bg_color,
-        grid_color=grid_color
+        grid_color=grid_color,
     )
-    
+
     interactive_chart.render(key="interactive_chart")
-    
+
     # Show the code
-    st.code(f"""
+    st.code(
+        f"""
 # Your customized chart
 chart = Chart()
 chart.add_series(LineSeries(data=sample_data))
@@ -239,13 +271,17 @@ chart.update_options(
     grid_color="{grid_color}"
 )
 chart.render(key="interactive_chart")
-    """, language="python")
+    """,
+        language="python",
+    )
 
 st.header("📊 Professional Chart Example")
 
-st.markdown("""
+st.markdown(
+    """
 **Here's how to create a professional-looking chart for presentations or dashboards.**
-""")
+""",
+)
 
 # Professional data
 professional_data = [
@@ -268,11 +304,12 @@ professional_chart.update_options(
     height=500,
     background_color="#ffffff",
     grid_color="#f0f0f0",
-    text_color="#333333"
+    text_color="#333333",
 )
 professional_chart.render(key="professional_chart")
 
-st.code("""
+st.code(
+    """
 # Professional chart setup
 chart = Chart()
 chart.add_series(LineSeries(data=professional_data))
@@ -284,11 +321,14 @@ chart.update_options(
     text_color="#333333"
 )
 chart.render(key="professional_chart")
-""", language="python")
+""",
+    language="python",
+)
 
 st.header("💡 Best Practices")
 
-st.markdown("""
+st.markdown(
+    """
 **Tips for creating great-looking charts:**
 
 1. **Consistent Colors**: Use a consistent color palette across your application
@@ -296,7 +336,8 @@ st.markdown("""
 3. **Readable Text**: Ensure good contrast between text and background
 4. **Clean Grid**: Use subtle grid lines that don't distract from data
 5. **Method Chaining**: Use method chaining for cleaner, more maintainable code
-""")
+""",
+)
 
 st.subheader("Color Palette Suggestions")
 col1, col2, col3, col4 = st.columns(4)
@@ -328,7 +369,8 @@ with col4:
 st.header("🔧 Common Customization Patterns")
 
 with st.expander("📈 Trading Dashboard Style"):
-    st.code("""
+    st.code(
+        """
 # Trading dashboard style
 chart = Chart().add_series(LineSeries(data=data)).update_options(
     width=1200,
@@ -337,10 +379,13 @@ chart = Chart().add_series(LineSeries(data=data)).update_options(
     grid_color="#21262d",
     text_color="#f0f6fc"
 )
-    """, language="python")
+    """,
+        language="python",
+    )
 
 with st.expander("📊 Business Presentation Style"):
-    st.code("""
+    st.code(
+        """
 # Business presentation style
 chart = Chart().add_series(LineSeries(data=data)).update_options(
     width=800,
@@ -349,10 +394,13 @@ chart = Chart().add_series(LineSeries(data=data)).update_options(
     grid_color="#e5e5e5",
     text_color="#333333"
 )
-    """, language="python")
+    """,
+        language="python",
+    )
 
 with st.expander("📱 Mobile-Friendly Style"):
-    st.code("""
+    st.code(
+        """
 # Mobile-friendly style
 chart = Chart().add_series(LineSeries(data=data)).update_options(
     width=350,
@@ -360,21 +408,29 @@ chart = Chart().add_series(LineSeries(data=data)).update_options(
     background_color="#f8f9fa",
     grid_color="#dee2e6"
 )
-    """, language="python")
+    """,
+        language="python",
+    )
 
 st.header("➡️ Next Steps")
-st.markdown("""
+st.markdown(
+    """
 Now that you can customize charts, learn about:
 
-1. **[Tutorial 4: Multiple Series and Chart Types](tutorial_04_multiple_series.py)** - Combine different chart types
-2. **[Tutorial 5: Advanced Features](tutorial_05_advanced_features.py)** - Tooltips, markers, and more
-3. **[Advanced Line Chart Example](../line_charts/line_chart_advanced.py)** - More advanced customization
+1. **[Tutorial 4: Multiple Series and Chart Types](tutorial_04_multiple_series.py)**
+    - Combine different chart types
+2. **[Tutorial 5: Advanced Features](tutorial_05_advanced_features.py)** - Tooltips,
+    markers,
+    and more
+3. **[Advanced Line Chart Example](../line_charts/line_chart_advanced.py)** - More
+    advanced customization
 
 **Quick Links:**
 - [All Tutorials](tutorials/) - Complete tutorial series
 - [Examples Index](../launcher.py) - Browse all examples
 - [Chart Options Documentation](https://github.com/your-repo/docs) - Full options reference
-""")
+""",
+)
 
 # Footer
 st.markdown("---")

@@ -2,7 +2,6 @@
  * @fileoverview Tests for ButtonPanelComponent - Fixed version using centralized mocks
  */
 
-import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import { ButtonPanelComponent } from '../../components/ButtonPanelComponent';

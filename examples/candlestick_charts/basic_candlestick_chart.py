@@ -1,14 +1,12 @@
-"""
-Basic Candlestick Chart Example.
+"""Basic Candlestick Chart Example.
 
 This example demonstrates the fundamental usage of CandlestickSeries with sample data
 from the data_samples module.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
@@ -16,7 +14,7 @@ from examples.utilities.data_samples import get_candlestick_data, get_dataframe_
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
@@ -24,7 +22,7 @@ def main():
     st.title("Basic Candlestick Chart Example")
     st.write(
         "This example shows how to create a simple candlestick chart using CandlestickSeries with"
-        " sample data."
+        " sample data.",
     )
 
     # Get sample data
@@ -100,14 +98,18 @@ def main():
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric(
-            "Bullish Candles", bullish_candles, delta=f"{bullish_candles/len(closes)*100:.1f}%"
+            "Bullish Candles",
+            bullish_candles,
+            delta=f"{bullish_candles / len(closes) * 100:.1f}%",
         )
     with col2:
         st.metric(
-            "Bearish Candles", bearish_candles, delta=f"-{bearish_candles/len(closes)*100:.1f}%"
+            "Bearish Candles",
+            bearish_candles,
+            delta=f"-{bearish_candles / len(closes) * 100:.1f}%",
         )
     with col3:
-        st.metric("Doji Candles", doji_candles, delta=f"{doji_candles/len(closes)*100:.1f}%")
+        st.metric("Doji Candles", doji_candles, delta=f"{doji_candles / len(closes) * 100:.1f}%")
 
     # Calculate average body and wick sizes
     body_sizes = [abs(close - open_) for open_, close in zip(opens, closes)]

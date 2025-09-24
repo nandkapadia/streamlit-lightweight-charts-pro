@@ -129,7 +129,7 @@
     .md-typeset .grid {
         grid-template-columns: 1fr;
     }
-    
+
     .md-typeset .comparison-table {
         font-size: 0.85rem;
     }
@@ -140,7 +140,7 @@
     .md-typeset .grid {
         grid-template-columns: 1fr;
     }
-    
+
     .md-typeset .example-code {
         border-left: 2px solid #000;
         background: #f5f5f5;

@@ -381,7 +381,7 @@ export class TooltipPlugin {
       }
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -739,7 +739,7 @@ export class TooltipPlugin {
       }
 
       return parts.join(' ');
-    } catch (error) {
+    } catch {
       return String(time);
     }
   }

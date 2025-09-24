@@ -19,7 +19,7 @@ interface LightweightChartsProps {
 
 // Main chart rendering component
 const LightweightChartsCore: React.FC<LightweightChartsProps> = React.memo(
-  ({ config, height = 400, width = null, onChartsReady }) => {
+  ({ config, height = 400, width = null, onChartsReady: _onChartsReady }) => {
     // React 18 concurrent features
     const [isPending, startTransition] = useTransition();
     const deferredConfig = useDeferredValue(config);
@@ -85,16 +85,16 @@ const LightweightChartsCore: React.FC<LightweightChartsProps> = React.memo(
           }
 
           console.log(`Chart ${chartId} setup completed successfully`);
-        } catch (error) {
-          console.error(`Failed to setup chart ${chartId}:`, error);
+        } catch {
+          console.error('An error occurred');
         }
       },
       [processedChartConfigs, chartManager, seriesManager, pluginManager]
     );
 
     // Handle chart error
-    const handleChartError = useCallback((error: Error, chartId: string) => {
-      console.error(`Chart error for ${chartId}:`, error);
+    const handleChartError = useCallback((error: Error, _chartId: string) => {
+      console.error(error);
     }, []);
 
     // Initialize global registries when config changes

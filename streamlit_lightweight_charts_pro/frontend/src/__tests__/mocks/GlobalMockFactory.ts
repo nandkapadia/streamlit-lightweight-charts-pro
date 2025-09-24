@@ -6,6 +6,7 @@
  */
 
 import { vi } from 'vitest';
+import React from 'react';
 import type {
   IChartApi,
   IPaneApi,
@@ -18,7 +19,7 @@ import type {
 // CORE CHART API MOCKS
 // ============================================================================
 
-export const createMockTimeScale = (): ITimeScaleApi =>
+export const createMockTimeScale = (): ITimeScaleApi<any> =>
   ({
     height: vi.fn(() => 35),
     width: vi.fn(() => 800),
@@ -67,7 +68,7 @@ export const createMockSeries = (): ISeriesApi<any> =>
     subscribeDataChanged: vi.fn(() => vi.fn()),
   }) as any;
 
-export const createMockPane = (): IPaneApi =>
+export const createMockPane = (): IPaneApi<any> =>
   ({
     attachPrimitive: vi.fn(),
     detachPrimitive: vi.fn(),
@@ -214,7 +215,7 @@ export const createMockContainer = (
 export const mockLightweightChartsComponent = {
   default: vi.fn().mockImplementation((props: any) => {
     // Import React dynamically to avoid module loading issues
-    const React = require('react');
+    // Use existing React import at top of file
 
     // Return proper React element instead of DOM element
     return React.createElement(

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Pre-commit test runner that excludes performance and large dataset tests.
+
 This script provides a clean way to run tests for pre-commit hooks.
 """
 
@@ -31,16 +32,29 @@ def run_tests(test_paths, extra_args=None):
     print(f"Running: {' '.join(args)}")
 
     try:
+        # Validate args to prevent injection
+        def _raise_invalid_args():
+            raise ValueError("Invalid args: must be a non-empty list")  # noqa: TRY301
+
+        def _raise_invalid_arg(arg):
+            raise ValueError(f"Invalid arg: {arg} must be a string")  # noqa: TRY301
+
+        if not args or not isinstance(args, list):
+            _raise_invalid_args()
+        for arg in args:
+            if not isinstance(arg, str):
+                _raise_invalid_arg(arg)
+
         result = subprocess.run(
             args,
             check=False,
             cwd=Path(__file__).parent.parent,
             shell=False,  # Explicitly disable shell to prevent command injection
         )
-        return result.returncode
     except Exception as e:
         print(f"Error running tests: {e}")
         return 1
+    return result.returncode
 
 
 def main():

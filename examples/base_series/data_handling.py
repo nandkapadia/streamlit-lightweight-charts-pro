@@ -1,26 +1,21 @@
-"""
-Data Handling Example
+"""Data Handling Example
 
 This example demonstrates the data handling capabilities that all series types share.
 It shows how to work with different data formats: Data objects, DataFrames, and Series.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
-from examples.utilities.data_samples import (
-    get_dataframe_line_data,
-    get_line_data,
-)
+from examples.utilities.data_samples import get_dataframe_line_data, get_line_data
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
@@ -93,7 +88,7 @@ def main():
             "date": df_data["datetime"],
             "price": df_data["close"],
             "volume": [100, 200, 300, 400, 500] * 2,
-        }
+        },
     )
 
     st.write("**Custom DataFrame:**")
@@ -101,7 +96,8 @@ def main():
 
     # Map custom column names
     series_custom_mapping = LineSeries(
-        data=df_custom, column_mapping={"time": "date", "value": "price"}
+        data=df_custom,
+        column_mapping={"time": "date", "value": "price"},
     )
 
     chart = Chart(series=series_custom_mapping)

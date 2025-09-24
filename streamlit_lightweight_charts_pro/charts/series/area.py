@@ -1,5 +1,4 @@
-"""
-Area series for streamlit-lightweight-charts.
+"""Area series for streamlit-lightweight-charts.
 
 This module provides the AreaSeries class for creating area charts that display
 continuous data points with filled areas under the line. Area series are commonly
@@ -37,9 +36,7 @@ import pandas as pd
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.area_data import AreaData
-from streamlit_lightweight_charts_pro.type_definitions import (
-    ChartType,
-)
+from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.utils import chainable_property
 
 
@@ -49,8 +46,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_property
 @chainable_property("relative_gradient", bool)
 @chainable_property("invert_filled_area", bool)
 class AreaSeries(Series):
-    """
-    Area series for lightweight charts.
+    """Area series for lightweight charts.
 
     This class represents an area series that displays continuous data points
     with filled areas under the line. It's commonly used for price charts,
@@ -80,8 +76,7 @@ class AreaSeries(Series):
         price_scale_id: str = "",
         pane_id: Optional[int] = 0,
     ):
-        """
-        Initialize AreaSeries.
+        """Initialize AreaSeries.
 
         Args:
             data: List of data points or DataFrame

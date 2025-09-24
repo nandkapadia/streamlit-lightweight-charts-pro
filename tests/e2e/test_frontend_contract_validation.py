@@ -13,8 +13,9 @@ Key Features:
 - Integration testing with real frontend interfaces
 """
 
+import math
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any, ClassVar, List
 
 import pytest
 
@@ -45,10 +46,12 @@ class FrontendContracts:
     """Frontend field contracts based on TypeScript interfaces."""
 
     # Legend configuration contract
-    LEGEND_FIELDS = [
+    LEGEND_FIELDS: ClassVar[List] = [
         FrontendFieldContract("visible", bool, default_value=True),
         FrontendFieldContract(
-            "position", str, enum_values=["top-left", "top-right", "bottom-left", "bottom-right"]
+            "position",
+            str,
+            enum_values=["top-left", "top-right", "bottom-left", "bottom-right"],
         ),
         FrontendFieldContract("symbolName", str),
         FrontendFieldContract("textColor", str),
@@ -69,7 +72,7 @@ class FrontendContracts:
     ]
 
     # Price scale options contract
-    PRICE_SCALE_FIELDS = [
+    PRICE_SCALE_FIELDS: ClassVar[List] = [
         FrontendFieldContract("visible", bool, default_value=True),
         FrontendFieldContract("autoScale", bool, default_value=True),
         FrontendFieldContract("mode", int, default_value=0),
@@ -87,7 +90,7 @@ class FrontendContracts:
     ]
 
     # Series configuration contract
-    SERIES_FIELDS = [
+    SERIES_FIELDS: ClassVar[List] = [
         FrontendFieldContract(
             "type",
             str,
@@ -119,14 +122,14 @@ class FrontendContracts:
     ]
 
     # Data point contract
-    DATA_POINT_FIELDS = [
+    DATA_POINT_FIELDS: ClassVar[List] = [
         FrontendFieldContract("time", int, required=True),
         FrontendFieldContract("value", float, required=True),
         FrontendFieldContract("color", str),
     ]
 
     # OHLC data point contract
-    OHLC_DATA_POINT_FIELDS = [
+    OHLC_DATA_POINT_FIELDS: ClassVar[List] = [
         FrontendFieldContract("time", int, required=True),
         FrontendFieldContract("open", float, required=True),
         FrontendFieldContract("high", float, required=True),
@@ -160,14 +163,19 @@ class TestFrontendContractValidation:
 
                 # Type validation
                 assert isinstance(
-                    value, field_contract.type
-                ), f"Field '{field_contract.name}' has type {type(value)}, expected {field_contract.type}"
+                    value,
+                    field_contract.type,
+                ), (
+                    f"Field '{field_contract.name}' has type {type(value)}, "
+                    f"expected {field_contract.type}"
+                )
 
                 # Enum validation
                 if field_contract.enum_values:
-                    assert (
-                        value in field_contract.enum_values
-                    ), f"Field '{field_contract.name}' has value '{value}', expected one of {field_contract.enum_values}"
+                    assert value in field_contract.enum_values, (
+                        f"Field '{field_contract.name}' has value '{value}', "
+                        f"expected one of {field_contract.enum_values}"
+                    )
 
         # Verify camelCase field names
         assert "backgroundColor" in legend_dict
@@ -207,14 +215,19 @@ class TestFrontendContractValidation:
 
                 # Type validation
                 assert isinstance(
-                    value, field_contract.type
-                ), f"Field '{field_contract.name}' has type {type(value)}, expected {field_contract.type}"
+                    value,
+                    field_contract.type,
+                ), (
+                    f"Field '{field_contract.name}' has type {type(value)}, "
+                    f"expected {field_contract.type}"
+                )
 
                 # Enum validation
                 if field_contract.enum_values:
-                    assert (
-                        value in field_contract.enum_values
-                    ), f"Field '{field_contract.name}' has value '{value}', expected one of {field_contract.enum_values}"
+                    assert value in field_contract.enum_values, (
+                        f"Field '{field_contract.name}' has value '{value}', "
+                        f"expected one of {field_contract.enum_values}"
+                    )
 
         # Verify specific contract requirements
         assert price_scale_dict["visible"] is True
@@ -243,14 +256,19 @@ class TestFrontendContractValidation:
 
                 # Type validation
                 assert isinstance(
-                    value, field_contract.type
-                ), f"Field '{field_contract.name}' has type {type(value)}, expected {field_contract.type}"
+                    value,
+                    field_contract.type,
+                ), (
+                    f"Field '{field_contract.name}' has type {type(value)}, "
+                    f"expected {field_contract.type}"
+                )
 
                 # Enum validation
                 if field_contract.enum_values:
-                    assert (
-                        value in field_contract.enum_values
-                    ), f"Field '{field_contract.name}' has value '{value}', expected one of {field_contract.enum_values}"
+                    assert value in field_contract.enum_values, (
+                        f"Field '{field_contract.name}' has value '{value}', "
+                        f"expected one of {field_contract.enum_values}"
+                    )
 
         # Verify required fields
         assert "type" in series_dict
@@ -278,8 +296,12 @@ class TestFrontendContractValidation:
 
                 # Type validation
                 assert isinstance(
-                    value, field_contract.type
-                ), f"Field '{field_contract.name}' has type {type(value)}, expected {field_contract.type}"
+                    value,
+                    field_contract.type,
+                ), (
+                    f"Field '{field_contract.name}' has type {type(value)}, "
+                    f"expected {field_contract.type}"
+                )
 
         # Verify required fields
         assert "time" in data_dict
@@ -302,8 +324,12 @@ class TestFrontendContractValidation:
 
                 # Type validation
                 assert isinstance(
-                    value, field_contract.type
-                ), f"Field '{field_contract.name}' has type {type(value)}, expected {field_contract.type}"
+                    value,
+                    field_contract.type,
+                ), (
+                    f"Field '{field_contract.name}' has type {type(value)}, "
+                    f"expected {field_contract.type}"
+                )
 
         # Verify required fields
         assert "time" in data_dict
@@ -493,8 +519,6 @@ class TestFrontendContractValidation:
 
     def test_nan_handling_contract(self):
         """Test that NaN values are handled according to contract."""
-        import math
-
         # Test data point with NaN value
         data = LineData(time=1640995200, value=float("nan"))
         data_dict = data.asdict()
@@ -597,7 +621,9 @@ class TestIntegrationContractValidation:
 
         series2 = CandlestickSeries(data=data2)
         series2.legend = LegendOptions(
-            visible=True, position="bottom-right", text="Candlestick Series"
+            visible=True,
+            position="bottom-right",
+            text="Candlestick Series",
         )
 
         chart = Chart(series=[series1, series2])

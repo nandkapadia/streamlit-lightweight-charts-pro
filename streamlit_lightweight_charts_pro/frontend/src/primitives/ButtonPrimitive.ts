@@ -328,11 +328,15 @@ export class ButtonPrimitive extends BasePanePrimitive<ButtonPrimitiveConfig> {
     if (!this.buttonElement) return;
 
     this.buttonElement.addEventListener('focus', () => {
-      this.buttonElement!.style.outline = ButtonEffects.FOCUS_OUTLINE;
+      if (this.buttonElement) {
+        this.buttonElement.style.outline = ButtonEffects.FOCUS_OUTLINE;
+      }
     });
 
     this.buttonElement.addEventListener('blur', () => {
-      this.buttonElement!.style.outline = 'none';
+      if (this.buttonElement) {
+        this.buttonElement.style.outline = 'none';
+      }
     });
   }
 

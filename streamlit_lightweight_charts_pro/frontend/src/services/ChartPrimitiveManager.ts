@@ -43,7 +43,11 @@ export class ChartPrimitiveManager {
     if (!ChartPrimitiveManager.instances.has(chartId)) {
       ChartPrimitiveManager.instances.set(chartId, new ChartPrimitiveManager(chart, chartId));
     }
-    return ChartPrimitiveManager.instances.get(chartId)!;
+    const instance = ChartPrimitiveManager.instances.get(chartId);
+    if (!instance) {
+      throw new Error(`ChartPrimitiveManager instance not found for chartId: ${chartId}`);
+    }
+    return instance;
   }
 
   /**
@@ -84,7 +88,7 @@ export class ChartPrimitiveManager {
       return {
         destroy: () => this.destroyPrimitive(primitiveId),
       };
-    } catch (error) {
+    } catch {
       return { destroy: () => {} };
     }
   }
@@ -118,7 +122,7 @@ export class ChartPrimitiveManager {
       if (seriesReference) {
         try {
           seriesReference.attachPrimitive(legend);
-        } catch (error) {
+        } catch {
           // Fallback to pane attachment if series attachment fails
           this.attachToPaneAsFallback(legend, isPanePrimitive, paneId);
         }
@@ -132,7 +136,7 @@ export class ChartPrimitiveManager {
       return {
         destroy: () => this.destroyPrimitive(primitiveId),
       };
-    } catch (error) {
+    } catch {
       return { destroy: () => {} };
     }
   }
@@ -167,7 +171,7 @@ export class ChartPrimitiveManager {
         destroy: () => this.destroyPrimitive(primitiveId),
         plugin: buttonPanel,
       };
-    } catch (error) {
+    } catch {
       return {
         destroy: () => {},
         plugin: createPaneButtonPanelPlugin(paneId, config, this.chartId),
@@ -197,8 +201,8 @@ export class ChartPrimitiveManager {
           pane.detachPrimitive(primitive);
         });
         this.primitives.delete(primitiveId);
-      } catch (error) {
-        console.error('Chart primitive manager operation failed:', error);
+      } catch {
+        console.error('An error occurred');
       }
     }
   }
@@ -234,8 +238,8 @@ export class ChartPrimitiveManager {
         panes.forEach(pane => {
           pane.detachPrimitive(primitive);
         });
-      } catch (error) {
-        console.error('Chart primitive manager operation failed:', error);
+      } catch {
+        console.error('An error occurred');
       }
     }
 

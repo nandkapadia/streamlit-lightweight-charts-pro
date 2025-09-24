@@ -136,7 +136,7 @@ function parseTime(time: string | number): UTCTimestamp {
     }
 
     return 0 as UTCTimestamp;
-  } catch (error) {
+  } catch {
     return 0 as UTCTimestamp;
   }
 }
@@ -235,7 +235,7 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
         currentItem.trendDirection !== 0
       ) {
         // Check if points are reasonably close (no huge gaps)
-        const xDistance = Math.abs(nextItem.x! - currentItem.x!);
+        const xDistance = Math.abs((nextItem.x ?? 0) - (currentItem.x ?? 0));
         const maxGap = 100; // Maximum pixel gap to consider "consecutive"
 
         if (xDistance <= maxGap) {
@@ -258,16 +258,23 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
     ctx.beginPath();
 
     // Start from point1's baseline
-    ctx.moveTo(point1.x!, point1.baseLineY!);
+    const p1x = point1.x ?? 0;
+    const p1baseY = point1.baseLineY ?? 0;
+    const p1trendY = point1.trendLineY ?? 0;
+    const p2x = point2.x ?? 0;
+    const p2baseY = point2.baseLineY ?? 0;
+    const p2trendY = point2.trendLineY ?? 0;
+
+    ctx.moveTo(p1x, p1baseY);
 
     // Go to point2's baseline
-    ctx.lineTo(point2.x!, point2.baseLineY!);
+    ctx.lineTo(p2x, p2baseY);
 
     // Go to point2's trend line
-    ctx.lineTo(point2.x!, point2.trendLineY!);
+    ctx.lineTo(p2x, p2trendY);
 
     // Go to point1's trend line
-    ctx.lineTo(point1.x!, point1.trendLineY!);
+    ctx.lineTo(p1x, p1trendY);
 
     // Close back to point1's baseline
     ctx.closePath();
@@ -298,8 +305,8 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
       // Start new group if trend direction or color changes
       if (currentTrendDirection !== itemTrendDirection || currentColor !== itemColor) {
         // Draw the current group before starting new one
-        if (currentGroup.length > 0) {
-          this._drawLineGroup(ctx, currentGroup, hRatio, vRatio, currentColor!);
+        if (currentGroup.length > 0 && currentColor) {
+          this._drawLineGroup(ctx, currentGroup, hRatio, vRatio, currentColor);
         }
 
         // Start new group
@@ -334,20 +341,21 @@ class TrendFillPrimitivePaneRenderer implements IPrimitivePaneRenderer {
     if (group.length === 1) {
       // Single point - draw a small circle
       const item = group[0];
-      const trendLineY = item.trendLineY!;
+      const trendLineY = item.trendLineY ?? 0;
+      const itemX = item.x ?? 0;
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(item.x!, trendLineY, 1.5, 0, 2 * Math.PI);
+      ctx.arc(itemX, trendLineY, 1.5, 0, 2 * Math.PI);
       ctx.fill();
     } else {
       // Multiple points - draw continuous line
       ctx.beginPath();
       const firstItem = group[0];
-      ctx.moveTo(firstItem.x!, firstItem.trendLineY!);
+      ctx.moveTo(firstItem.x ?? 0, firstItem.trendLineY ?? 0);
 
       for (let i = 1; i < group.length; i++) {
         const item = group[i];
-        ctx.lineTo(item.x!, item.trendLineY!);
+        ctx.lineTo(item.x ?? 0, item.trendLineY ?? 0);
       }
 
       ctx.stroke();
@@ -447,7 +455,7 @@ class TrendFillPrimitivePaneView implements IPrimitivePaneView {
       } else {
         this._data.data.barWidth = 1; // Default fallback
       }
-    } catch (error) {
+    } catch {
       this._data.data.barWidth = 1; // Default fallback
     }
 
@@ -505,7 +513,7 @@ class TrendFillPrimitivePaneView implements IPrimitivePaneView {
             lineStyle: item.lineStyle,
             trendDirection: item.trendDirection,
           };
-        } catch (error) {
+        } catch {
           return null;
         }
       })
@@ -759,7 +767,7 @@ export class TrendFillSeries implements ISeriesPrimitive<Time> {
     try {
       this.chart.removeSeries(this.baseLineSeries);
       this.chart.removeSeries(this.trendLineSeries);
-    } catch (error) {
+    } catch {
       // Ignore errors during cleanup
     }
   }

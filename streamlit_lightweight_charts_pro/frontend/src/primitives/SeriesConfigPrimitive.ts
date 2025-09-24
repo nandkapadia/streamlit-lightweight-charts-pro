@@ -137,7 +137,9 @@ export class SeriesConfigPrimitive extends BasePanePrimitive<SeriesConfigPrimiti
     this.collapseButton = this.createCollapseButton();
     this.buttonContainer.appendChild(this.collapseButton);
 
-    this.containerElement!.appendChild(this.buttonContainer);
+    if (this.containerElement) {
+      this.containerElement.appendChild(this.buttonContainer);
+    }
   }
 
   /**
@@ -288,7 +290,9 @@ export class SeriesConfigPrimitive extends BasePanePrimitive<SeriesConfigPrimiti
     // Position dialog relative to button panel
     this.positionDialog();
 
-    this.containerElement!.appendChild(this.configDialog);
+    if (this.containerElement) {
+      this.containerElement.appendChild(this.configDialog);
+    }
   }
 
   /**
@@ -309,7 +313,9 @@ export class SeriesConfigPrimitive extends BasePanePrimitive<SeriesConfigPrimiti
       this.renderContent();
     });
 
-    this.configDialog!.appendChild(header);
+    if (this.configDialog) {
+      this.configDialog.appendChild(header);
+    }
   }
 
   /**
@@ -331,7 +337,9 @@ export class SeriesConfigPrimitive extends BasePanePrimitive<SeriesConfigPrimiti
       tabsContainer.appendChild(tabButton);
     });
 
-    this.configDialog!.appendChild(tabsContainer);
+    if (this.configDialog) {
+      this.configDialog.appendChild(tabsContainer);
+    }
   }
 
   /**
@@ -353,7 +361,9 @@ export class SeriesConfigPrimitive extends BasePanePrimitive<SeriesConfigPrimiti
         break;
     }
 
-    this.configDialog!.appendChild(content);
+    if (this.configDialog) {
+      this.configDialog.appendChild(content);
+    }
   }
 
   /**
@@ -505,7 +515,9 @@ export class SeriesConfigPrimitive extends BasePanePrimitive<SeriesConfigPrimiti
     cancelButton.addEventListener('click', () => this.handleCancel());
     okButton.addEventListener('click', () => this.handleOk());
 
-    this.configDialog!.appendChild(footer);
+    if (this.configDialog) {
+      this.configDialog.appendChild(footer);
+    }
   }
 
   /**

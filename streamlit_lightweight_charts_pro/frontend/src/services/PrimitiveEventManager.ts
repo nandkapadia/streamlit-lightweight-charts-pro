@@ -127,7 +127,11 @@ export class PrimitiveEventManager {
     if (!PrimitiveEventManager.instances.has(chartId)) {
       PrimitiveEventManager.instances.set(chartId, new PrimitiveEventManager(chartId));
     }
-    return PrimitiveEventManager.instances.get(chartId)!;
+    const instance = PrimitiveEventManager.instances.get(chartId);
+    if (!instance) {
+      throw new Error(`PrimitiveEventManager instance not found for chartId: ${chartId}`);
+    }
+    return instance;
   }
 
   /**
@@ -169,7 +173,10 @@ export class PrimitiveEventManager {
       this.eventListeners.set(eventKey, new Set());
     }
 
-    this.eventListeners.get(eventKey)!.add(listener);
+    const listeners = this.eventListeners.get(eventKey);
+    if (listeners) {
+      listeners.add(listener);
+    }
 
     return {
       unsubscribe: () => {
@@ -202,7 +209,7 @@ export class PrimitiveEventManager {
       listeners.forEach(listener => {
         try {
           listener(event);
-        } catch (error) {
+        } catch {
           // Error in primitive event listener - fail silently
         }
       });
@@ -226,14 +233,22 @@ export class PrimitiveEventManager {
       }
     };
     this.chart.subscribeCrosshairMove(crosshairMoveHandler);
-    this.chartEventCleanup.push(() => this.chart!.unsubscribeCrosshairMove(crosshairMoveHandler));
+    this.chartEventCleanup.push(() => {
+      if (this.chart) {
+        this.chart.unsubscribeCrosshairMove(crosshairMoveHandler);
+      }
+    });
 
     // Chart click events
     const clickHandler = (param: any) => {
       this.handleChartClick(param);
     };
     this.chart.subscribeClick(clickHandler);
-    this.chartEventCleanup.push(() => this.chart!.unsubscribeClick(clickHandler));
+    this.chartEventCleanup.push(() => {
+      if (this.chart) {
+        this.chart.unsubscribeClick(clickHandler);
+      }
+    });
 
     // Time scale visible range changes with throttling to prevent X-axis lag
     let lastTimeScaleUpdate = 0;
@@ -247,7 +262,12 @@ export class PrimitiveEventManager {
     };
     this.chart.timeScale().subscribeVisibleTimeRangeChange(timeScaleHandler);
     this.chartEventCleanup.push(() => {
-      this.chart!.timeScale().unsubscribeVisibleTimeRangeChange(timeScaleHandler);
+      if (this.chart) {
+        const timeScale = this.chart.timeScale();
+        if (timeScale) {
+          timeScale.unsubscribeVisibleTimeRangeChange(timeScaleHandler);
+        }
+      }
     });
 
     // Chart resize events
@@ -421,7 +441,7 @@ export class PrimitiveEventManager {
     this.chartEventCleanup.forEach(cleanup => {
       try {
         cleanup();
-      } catch (error) {
+      } catch {
         // Error cleaning up chart event listener - fail silently
       }
     });

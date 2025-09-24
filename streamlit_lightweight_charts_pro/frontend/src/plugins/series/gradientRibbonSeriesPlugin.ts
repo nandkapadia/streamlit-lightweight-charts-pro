@@ -190,33 +190,43 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
       const firstItem = validItems[0];
       const lastItem = validItems[validItems.length - 1];
 
-      const fillStartX = firstItem.x! - halfBarWidth - 50;
-      const fillEndX = lastItem.x! + halfBarWidth + 50;
+      const fillStartX = (firstItem.x ?? 0) - halfBarWidth - 50;
+      const fillEndX = (lastItem.x ?? 0) + halfBarWidth + 50;
 
-      ctx.moveTo(fillStartX, firstItem.upperY!);
+      ctx.moveTo(fillStartX, firstItem.upperY ?? 0);
 
       for (let i = 0; i < validItems.length; i++) {
-        ctx.lineTo(validItems[i].x!, validItems[i].upperY!);
+        const item = validItems[i];
+        if (item.x !== null && item.upperY !== null) {
+          ctx.lineTo(item.x, item.upperY);
+        }
       }
 
-      ctx.lineTo(fillEndX, lastItem.upperY!);
-      ctx.lineTo(fillEndX, lastItem.lowerY!);
+      ctx.lineTo(fillEndX, lastItem.upperY ?? 0);
+      ctx.lineTo(fillEndX, lastItem.lowerY ?? 0);
 
       for (let i = validItems.length - 1; i >= 0; i--) {
-        ctx.lineTo(validItems[i].x!, validItems[i].lowerY!);
+        const item = validItems[i];
+        if (item.x !== null && item.lowerY !== null) {
+          ctx.lineTo(item.x, item.lowerY);
+        }
       }
 
-      ctx.lineTo(fillStartX, firstItem.lowerY!);
+      ctx.lineTo(fillStartX, firstItem.lowerY ?? 0);
       ctx.closePath();
 
       const gradient = ctx.createLinearGradient(fillStartX, 0, fillEndX, 0);
-      const sortedItems = [...validItems].sort((a, b) => a.x! - b.x!);
+      const sortedItems = [...validItems]
+        .filter(item => item.x !== null)
+        .sort((a, b) => (a.x ?? 0) - (b.x ?? 0));
 
       for (let i = 0; i < sortedItems.length; i++) {
         const item = sortedItems[i];
-        const position = (item.x! - fillStartX) / (fillEndX - fillStartX);
-        const clampedPosition = Math.max(0, Math.min(1, position));
-        gradient.addColorStop(clampedPosition, item.fillColor);
+        if (item.x !== null) {
+          const position = (item.x - fillStartX) / (fillEndX - fillStartX);
+          const clampedPosition = Math.max(0, Math.min(1, position));
+          gradient.addColorStop(clampedPosition, item.fillColor);
+        }
       }
 
       if (sortedItems.length > 0) {
@@ -228,13 +238,15 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
       ctx.fill();
     } else if (validItems.length === 1) {
       const item = validItems[0];
-      const singleStartX = item.x! - halfBarWidth - 50;
+      const singleStartX = (item.x ?? 0) - halfBarWidth - 50;
       ctx.fillStyle = item.fillColor;
+      const upperY = item.upperY ?? 0;
+      const lowerY = item.lowerY ?? 0;
       ctx.fillRect(
         singleStartX,
-        Math.min(item.upperY!, item.lowerY!),
+        Math.min(upperY, lowerY),
         barWidth + 100,
-        Math.abs(item.upperY! - item.lowerY!)
+        Math.abs(upperY - lowerY)
       );
     }
   }
@@ -265,18 +277,20 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
     const firstItem = validItems[0];
     const lastItem = validItems[validItems.length - 1];
 
-    const lineStartX = firstItem.x! - halfBarWidth - 50;
-    const lineEndX = lastItem.x! + halfBarWidth + 50;
+    const lineStartX = (firstItem.x ?? 0) - halfBarWidth - 50;
+    const lineEndX = (lastItem.x ?? 0) + halfBarWidth + 50;
 
     if (options.upperLine.visible) {
       ctx.beginPath();
-      ctx.moveTo(lineStartX, firstItem.upperY!);
+      ctx.moveTo(lineStartX, firstItem.upperY ?? 0);
 
       for (const item of validItems) {
-        ctx.lineTo(item.x!, item.upperY!);
+        if (item.x !== null && item.upperY !== null) {
+          ctx.lineTo(item.x, item.upperY);
+        }
       }
 
-      ctx.lineTo(lineEndX, lastItem.upperY!);
+      ctx.lineTo(lineEndX, lastItem.upperY ?? 0);
       ctx.strokeStyle = options.upperLine.color;
       ctx.lineWidth = options.upperLine.lineWidth;
       ctx.stroke();
@@ -284,13 +298,15 @@ class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
 
     if (options.lowerLine.visible) {
       ctx.beginPath();
-      ctx.moveTo(lineStartX, firstItem.lowerY!);
+      ctx.moveTo(lineStartX, firstItem.lowerY ?? 0);
 
       for (const item of validItems) {
-        ctx.lineTo(item.x!, item.lowerY!);
+        if (item.x !== null && item.lowerY !== null) {
+          ctx.lineTo(item.x, item.lowerY);
+        }
       }
 
-      ctx.lineTo(lineEndX, lastItem.lowerY!);
+      ctx.lineTo(lineEndX, lastItem.lowerY ?? 0);
       ctx.strokeStyle = options.lowerLine.color;
       ctx.lineWidth = options.lowerLine.lineWidth;
       ctx.stroke();
@@ -358,7 +374,7 @@ class GradientRibbonPrimitivePaneView implements IPrimitivePaneView {
       }
 
       this._data.data.barWidth = Math.max(6, barSpacing);
-    } catch (error) {
+    } catch {
       this._data.data.barWidth = 10; // fallback
     }
 
@@ -405,14 +421,19 @@ class GradientRibbonPrimitivePaneView implements IPrimitivePaneView {
 
     // Find visible range based on x coordinates
     for (let i = 0; i < items.length; i++) {
-      if (items[i].x !== null && items[i].x! >= 0) {
+      if (
+        items[i] &&
+        items[i]?.x !== null &&
+        items[i]?.x !== undefined &&
+        (items[i].x ?? -1) >= 0
+      ) {
         from = i;
         break;
       }
     }
 
     for (let i = items.length - 1; i >= 0; i--) {
-      if (items[i].x !== null) {
+      if (items[i] && items[i].x !== null) {
         to = i + 1;
         break;
       }
@@ -463,7 +484,7 @@ export class GradientRibbonSeries implements ISeriesPrimitive<Time> {
 
       // Attach primitive to upper line series
       this._upperLineSeries.attachPrimitive(this);
-    } catch (error) {
+    } catch {
       // Error creating line series - fail silently for now
       // Could implement proper error reporting here if needed
     }

@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { vi } from 'vitest';
 import { useOptimizedChart } from '../../hooks/useOptimizedChart';
 import { resetMocks } from '../../test-utils/lightweightChartsMocks';

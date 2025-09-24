@@ -5,19 +5,29 @@ This module tests edge cases and error conditions for the Chart class,
 addressing the 52% coverage gap in chart.py.
 """
 
+import gc
+import time
 from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pandas as pd
+import psutil
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.series import (
-    LineSeries,
-)
+from streamlit_lightweight_charts_pro.charts.options.price_scale_options import PriceScaleOptions
+from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import LineData, OhlcvData, TradeData
 from streamlit_lightweight_charts_pro.data.annotation import Annotation
+from streamlit_lightweight_charts_pro.exceptions import (
+    AnnotationItemsTypeError,
+    DuplicateError,
+    SeriesItemsTypeError,
+    TimeValidationError,
+    TypeValidationError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.enums import TradeType
 
 
@@ -36,14 +46,14 @@ class TestChartConstructionEdgeCases:
 
     def test_construction_with_invalid_series_type(self):
         """Test Chart construction with non-Series objects."""
-        with pytest.raises(TypeError):
+        with pytest.raises(SeriesItemsTypeError):
             Chart(series=["not_a_series", 123, None])
 
     def test_construction_with_mixed_valid_invalid_series(self):
         """Test Chart construction with mix of valid and invalid series."""
         valid_series = LineSeries(data=[LineData(time=1640995200, value=100)])
 
-        with pytest.raises(TypeError):
+        with pytest.raises(SeriesItemsTypeError):
             Chart(series=[valid_series, "invalid_series", valid_series])
 
     def test_construction_with_none_options(self):
@@ -63,7 +73,7 @@ class TestChartConstructionEdgeCases:
 
     def test_construction_with_invalid_annotation_type(self):
         """Test Chart construction with invalid annotation type."""
-        with pytest.raises(TypeError):
+        with pytest.raises(AnnotationItemsTypeError):
             Chart(annotations=["not_an_annotation", 123])
 
     def test_construction_with_all_none_parameters(self):
@@ -81,25 +91,25 @@ class TestChartSeriesManagementEdgeCases:
     def test_add_series_with_none(self):
         """Test adding None as series."""
         chart = Chart()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_series(None)
 
     def test_add_series_with_invalid_type(self):
         """Test adding invalid type as series."""
         chart = Chart()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_series("not_a_series")
 
     def test_add_series_with_integer(self):
         """Test adding integer as series."""
         chart = Chart()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_series(123)
 
     def test_add_series_with_empty_list(self):
         """Test adding empty list as series."""
         chart = Chart()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_series([])
 
     def test_add_multiple_invalid_series(self):
@@ -108,7 +118,7 @@ class TestChartSeriesManagementEdgeCases:
         valid_series = LineSeries(data=[LineData(time=1640995200, value=100)])
         chart.add_series(valid_series)
 
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_series("invalid_series")
 
         # Verify chart still has the valid series
@@ -119,7 +129,7 @@ class TestChartSeriesManagementEdgeCases:
         """Test method chaining when add_series fails."""
         chart = Chart()
 
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_series("invalid").add_series("also_invalid")
 
 
@@ -151,7 +161,8 @@ class TestChartOptionsManagementEdgeCases:
     def test_update_options_with_mixed_valid_invalid(self):
         """Test updating options with mix of valid and invalid attributes."""
         chart = Chart()
-        chart.options.height
+        # Access height to ensure it's available
+        _ = chart.options.height
 
         # Should update valid attributes and ignore invalid ones
         chart.update_options(height=500, invalid_attribute="value")
@@ -186,13 +197,13 @@ class TestChartAnnotationManagementEdgeCases:
     def test_add_annotation_with_none(self):
         """Test adding None as annotation."""
         chart = Chart()
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueValidationError):
             chart.add_annotation(None)
 
     def test_add_annotation_with_invalid_type(self):
         """Test adding invalid type as annotation."""
         chart = Chart()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_annotation("not_an_annotation")
 
     def test_add_annotation_with_empty_layer_name(self):
@@ -200,7 +211,7 @@ class TestChartAnnotationManagementEdgeCases:
         chart = Chart()
         annotation = Mock(spec=Annotation)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.add_annotation(annotation, "")
 
     def test_add_annotation_with_none_layer_name(self):
@@ -221,7 +232,7 @@ class TestChartAnnotationManagementEdgeCases:
     def test_add_annotations_with_none_list(self):
         """Test adding None annotations list."""
         chart = Chart()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_annotations(None)
 
     def test_add_annotations_with_mixed_valid_invalid(self):
@@ -229,37 +240,37 @@ class TestChartAnnotationManagementEdgeCases:
         chart = Chart()
         valid_annotation = Mock(spec=Annotation)
 
-        with pytest.raises(TypeError):
+        with pytest.raises(AnnotationItemsTypeError):
             chart.add_annotations([valid_annotation, "invalid_annotation"])
 
     def test_create_annotation_layer_with_empty_name(self):
         """Test creating annotation layer with empty name."""
         chart = Chart()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.create_annotation_layer("")
 
     def test_create_annotation_layer_with_none_name(self):
         """Test creating annotation layer with None name."""
         chart = Chart()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.create_annotation_layer(None)
 
     def test_hide_annotation_layer_with_empty_name(self):
         """Test hiding annotation layer with empty name."""
         chart = Chart()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.hide_annotation_layer("")
 
     def test_show_annotation_layer_with_empty_name(self):
         """Test showing annotation layer with empty name."""
         chart = Chart()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.show_annotation_layer("")
 
     def test_clear_annotations_with_empty_layer_name(self):
         """Test clearing annotations with empty layer name."""
         chart = Chart()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.clear_annotations("")
 
 
@@ -271,7 +282,7 @@ class TestChartPriceScaleManagementEdgeCases:
         chart = Chart()
         options = Mock()
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.add_overlay_price_scale(None, options)
 
     def test_add_overlay_price_scale_with_empty_scale_id(self):
@@ -279,37 +290,33 @@ class TestChartPriceScaleManagementEdgeCases:
         chart = Chart()
         options = Mock()
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.add_overlay_price_scale("", options)
 
     def test_add_overlay_price_scale_with_none_options(self):
         """Test adding overlay price scale with None options."""
         chart = Chart()
 
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_overlay_price_scale("test_scale", None)
 
     def test_add_overlay_price_scale_with_invalid_options_type(self):
         """Test adding overlay price scale with invalid options type."""
         chart = Chart()
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.add_overlay_price_scale("test_scale", "not_options")
 
     def test_add_overlay_price_scale_with_duplicate_scale_id(self):
         """Test adding overlay price scale with duplicate scale ID."""
         chart = Chart()
-        from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
-            PriceScaleOptions,
-        )
-
         options = PriceScaleOptions()
 
         # Add first scale
         chart.add_overlay_price_scale("test_scale", options)
 
-        # Add duplicate scale - should raise ValueError
-        with pytest.raises(ValueError):
+        # Add duplicate scale - should raise DuplicateError
+        with pytest.raises(DuplicateError):
             chart.add_overlay_price_scale("test_scale", options)
 
 
@@ -320,24 +327,26 @@ class TestChartPriceVolumeSeriesEdgeCases:
         """Test creating price-volume series with None data."""
         chart = Chart()
 
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_price_volume_series(data=None, column_mapping={}, price_type="candlestick")
 
     def test_create_price_volume_series_with_empty_data(self):
         """Test creating price-volume series with empty data."""
         chart = Chart()
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.add_price_volume_series(data=[], column_mapping={}, price_type="candlestick")
 
     def test_create_price_volume_series_with_empty_dataframe(self):
         """Test creating price-volume series with empty DataFrame."""
         chart = Chart()
-        empty_df = pd.DataFrame()
+        empty_test_data = pd.DataFrame()
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.add_price_volume_series(
-                data=empty_df, column_mapping={}, price_type="candlestick"
+                data=empty_test_data,
+                column_mapping={},
+                price_type="candlestick",
             )
 
     def test_create_price_volume_series_with_none_column_mapping(self):
@@ -345,7 +354,7 @@ class TestChartPriceVolumeSeriesEdgeCases:
         chart = Chart()
         data = [OhlcvData("2024-01-01", 100, 102, 99, 101, 1000)]
 
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_price_volume_series(data=data, column_mapping=None, price_type="candlestick")
 
     def test_create_price_volume_series_with_invalid_price_type(self):
@@ -353,23 +362,25 @@ class TestChartPriceVolumeSeriesEdgeCases:
         chart = Chart()
         data = [OhlcvData("2024-01-01", 100, 102, 99, 101, 1000)]
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.add_price_volume_series(data=data, column_mapping={}, price_type="invalid_type")
 
     def test_create_price_volume_series_with_missing_columns(self):
         """Test creating price-volume series with missing DataFrame columns."""
         chart = Chart()
-        df = pd.DataFrame(
+        test_data = pd.DataFrame(
             {
                 "time": ["2024-01-01"],
                 "open": [100],
                 # Missing 'high', 'low', 'close', 'volume'
-            }
+            },
         )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.add_price_volume_series(
-                data=df, column_mapping={"time": "time", "open": "open"}, price_type="candlestick"
+                data=test_data,
+                column_mapping={"time": "time", "open": "open"},
+                price_type="candlestick",
             )
 
     def test_create_price_volume_series_with_invalid_pane_ids(self):
@@ -378,32 +389,37 @@ class TestChartPriceVolumeSeriesEdgeCases:
         data = [OhlcvData("2024-01-01", 100, 102, 99, 101, 1000)]
 
         # Test negative pane IDs
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.add_price_volume_series(
-                data=data, column_mapping={}, price_type="candlestick", pane_id=-1
+                data=data,
+                column_mapping={},
+                price_type="candlestick",
+                pane_id=-1,
             )
 
     def test_add_price_volume_series_with_none_data(self):
         """Test adding price-volume series with None data."""
         chart = Chart()
 
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_price_volume_series(data=None, column_mapping={}, price_type="candlestick")
 
     def test_from_price_volume_dataframe_with_none_data(self):
         """Test from_price_volume_dataframe with None data."""
         # Test that None data raises TypeError when adding price-volume series
         chart = Chart()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_price_volume_series(data=None, column_mapping={}, price_type="candlestick")
 
     def test_from_price_volume_dataframe_with_invalid_data_type(self):
         """Test from_price_volume_dataframe with invalid data type."""
         # Test that invalid data type raises ValueError when adding price-volume series
         chart = Chart()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueValidationError):
             chart.add_price_volume_series(
-                data="not_dataframe_or_list", column_mapping={}, price_type="candlestick"
+                data="not_dataframe_or_list",
+                column_mapping={},
+                price_type="candlestick",
             )
 
 
@@ -414,7 +430,7 @@ class TestChartTradeVisualizationEdgeCases:
         """Test adding trade visualization with None trades."""
         chart = Chart()
 
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_trades(None)
 
     def test_add_trade_visualization_with_empty_trades(self):
@@ -429,7 +445,7 @@ class TestChartTradeVisualizationEdgeCases:
         """Test adding trade visualization with invalid trade type."""
         chart = Chart()
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueValidationError):
             chart.add_trades([{"not": "a_trade"}])
 
     def test_add_trade_visualization_with_mixed_valid_invalid_trades(self):
@@ -444,7 +460,7 @@ class TestChartTradeVisualizationEdgeCases:
             trade_type=TradeType.LONG,
         )
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueValidationError):
             chart.add_trades([valid_trade, "invalid_trade"])
 
     def test_add_trade_visualization_without_series(self):
@@ -466,15 +482,10 @@ class TestChartTradeVisualizationEdgeCases:
     def test_add_trade_visualization_with_series_without_markers(self):
         """Test adding trade visualization to series without markers support."""
         chart = Chart()
-        from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-        from streamlit_lightweight_charts_pro.data.line_data import LineData
 
         # Use real series that doesn't have markers
         series_without_markers = LineSeries(data=[LineData(time=1640995200, value=100)])
         chart.add_series(series_without_markers)
-
-        from streamlit_lightweight_charts_pro.data.trade import TradeData
-        from streamlit_lightweight_charts_pro.type_definitions.enums import TradeType
 
         trade = TradeData(
             entry_time="2024-01-01 10:00:00",
@@ -506,8 +517,6 @@ class TestChartFrontendConfigurationEdgeCases:
     def test_to_frontend_config_with_series_without_to_dict(self):
         """Test to_frontend_config with series without to_dict method."""
         chart = Chart()
-        from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-        from streamlit_lightweight_charts_pro.data.line_data import LineData
 
         # Add real series
         series = LineSeries(data=[LineData(time=1640995200, value=100)])
@@ -521,8 +530,6 @@ class TestChartFrontendConfigurationEdgeCases:
     def test_to_frontend_config_with_series_returning_invalid_dict(self):
         """Test to_frontend_config with series returning invalid dict."""
         chart = Chart()
-        from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-        from streamlit_lightweight_charts_pro.data.line_data import LineData
 
         # Add real series
         series = LineSeries(data=[LineData(time=1640995200, value=100)])
@@ -536,8 +543,6 @@ class TestChartFrontendConfigurationEdgeCases:
     def test_to_frontend_config_with_series_without_required_fields(self):
         """Test to_frontend_config with series without required fields."""
         chart = Chart()
-        from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-        from streamlit_lightweight_charts_pro.data.line_data import LineData
 
         # Add real series
         series = LineSeries(data=[LineData(time=1640995200, value=100)])
@@ -551,8 +556,6 @@ class TestChartFrontendConfigurationEdgeCases:
     def test_to_frontend_config_with_series_with_invalid_height(self):
         """Test to_frontend_config with series with invalid height."""
         chart = Chart()
-        from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-        from streamlit_lightweight_charts_pro.data.line_data import LineData
 
         # Add real series
         series = LineSeries(data=[LineData(time=1640995200, value=100)])
@@ -565,8 +568,6 @@ class TestChartFrontendConfigurationEdgeCases:
     def test_to_frontend_config_with_series_with_none_pane_id(self):
         """Test to_frontend_config with series with None pane_id."""
         chart = Chart()
-        from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-        from streamlit_lightweight_charts_pro.data.line_data import LineData
 
         # Add real series
         series = LineSeries(data=[LineData(time=1640995200, value=100)])
@@ -631,7 +632,7 @@ class TestChartRenderingEdgeCases:
         chart = Chart()
         mock_get_component_func.side_effect = Exception("Component error")
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception, match="Component error"):
             chart.render()
 
     @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
@@ -642,9 +643,12 @@ class TestChartRenderingEdgeCases:
         mock_get_component_func.return_value = mock_component
 
         # Mock to_frontend_config to raise error
-        with patch.object(chart, "to_frontend_config", side_effect=Exception("Config error")):
-            with pytest.raises(Exception):
-                chart.render()
+        with patch.object(
+            chart,
+            "to_frontend_config",
+            side_effect=Exception("Config error"),
+        ), pytest.raises(Exception, match="Config error"):
+            chart.render()
 
 
 class TestChartDataValidationEdgeCases:
@@ -700,7 +704,7 @@ class TestChartDataValidationEdgeCases:
     def test_chart_with_invalid_time_formats(self):
         """Test chart with invalid time formats."""
         # Test with invalid time format
-        with pytest.raises(ValueError):
+        with pytest.raises(TimeValidationError):
             LineData(time="invalid_time", value=100)
 
     def test_chart_with_very_large_numbers(self):
@@ -730,13 +734,9 @@ class TestChartMemoryAndPerformanceEdgeCases:
     def test_chart_with_very_large_dataset(self):
         """Test chart with very large dataset."""
         # Create large dataset (10,000 points)
-        large_data = []
-        for i in range(10000):
-            large_data.append(LineData(time=1640995200 + i, value=100 + i))
+        large_data = [LineData(time=1640995200 + i, value=100 + i) for i in range(10000)]
 
         series = LineSeries(data=large_data)
-
-        import time
 
         start_time = time.time()
 
@@ -752,17 +752,12 @@ class TestChartMemoryAndPerformanceEdgeCases:
 
     def test_chart_memory_usage_with_large_dataset(self):
         """Test memory usage with large dataset."""
-        import gc
-
-        import psutil
 
         process = psutil.Process()
         initial_memory = process.memory_info().rss
 
         # Create large dataset (10,000 points)
-        large_data = []
-        for i in range(10000):
-            large_data.append(LineData(time=1640995200 + i, value=100 + i))
+        large_data = [LineData(time=1640995200 + i, value=100 + i) for i in range(10000)]
 
         series = LineSeries(data=large_data)
         chart = Chart(series=series)
@@ -788,8 +783,6 @@ class TestChartMemoryAndPerformanceEdgeCases:
             data = [LineData(time=1640995200, value=100 + i)]
             series = LineSeries(data=data)
             series_list.append(series)
-
-        import time
 
         start_time = time.time()
 

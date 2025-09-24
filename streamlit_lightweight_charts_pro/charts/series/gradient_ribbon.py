@@ -1,10 +1,10 @@
-"""
-Gradient ribbon series for streamlit-lightweight-charts.
+"""Gradient ribbon series for streamlit-lightweight-charts.
 
 This module provides the GradientRibbonSeries class for creating ribbon charts
 that display upper and lower bands with gradient fill areas based on gradient values.
 """
 
+import math
 from typing import List, Optional, Union
 
 import pandas as pd
@@ -23,8 +23,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_property
 @chainable_property("gradient_end_color", str, validator="color")
 @chainable_property("normalize_gradients", bool)
 class GradientRibbonSeries(RibbonSeries):
-    """
-    Gradient ribbon series for lightweight charts.
+    """Gradient ribbon series for lightweight charts.
 
     This class represents a ribbon series that displays upper and lower bands
     with gradient fill areas based on gradient values. It extends RibbonSeries
@@ -60,8 +59,7 @@ class GradientRibbonSeries(RibbonSeries):
         gradient_end_color: str = "#F44336",
         normalize_gradients: bool = False,
     ):
-        """
-        Initialize GradientRibbonSeries.
+        """Initialize GradientRibbonSeries.
 
         Args:
             data: List of data points or DataFrame
@@ -106,20 +104,18 @@ class GradientRibbonSeries(RibbonSeries):
         # Single pass with inline min/max tracking - no list building
         for data_point in self.data:
             gradient = data_point.gradient
-            if gradient is not None:
-                # Ultra-fast validation using direct comparison
-                if isinstance(gradient, (int, float)):
-                    # Fast NaN check: NaN is the only value that doesn't equal itself
-                    if gradient == gradient:  # Not NaN
-                        # Fast infinity check
-                        if gradient != float("inf") and gradient != float("-inf"):
-                            # Update min/max inline - no list operations
-                            if gradient < min_grad:
-                                min_grad = gradient
-                            if gradient > max_grad:
-                                max_grad = gradient
-                            valid_count += 1
-                            continue
+            if (
+                gradient is not None
+                and isinstance(gradient, (int, float))
+                and not math.isnan(gradient)  # Not NaN
+                and gradient != float("inf")
+                and gradient != float("-inf")
+            ):
+                # Update min/max inline - no list operations
+                min_grad = min(min_grad, gradient)
+                max_grad = max(max_grad, gradient)
+                valid_count += 1
+                continue
 
         # Set bounds efficiently - only if we found valid values
         if valid_count > 0:
@@ -155,9 +151,7 @@ class GradientRibbonSeries(RibbonSeries):
                                 normalized = (gradient - min_grad) * range_grad_inv
                                 # Fast clamping using conditional expression
                                 item["gradient"] = (
-                                    0.0
-                                    if normalized < 0.0
-                                    else (1.0 if normalized > 1.0 else normalized)
+                                    0.0 if normalized < 0.0 else (min(normalized, 1.0))
                                 )
                             except (TypeError, ValueError):
                                 item.pop("gradient", None)

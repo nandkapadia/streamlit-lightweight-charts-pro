@@ -198,7 +198,7 @@ document.createElement = vi.fn((tagName: string) => {
       }
       // Return a mock node for other invalid parameters
       return child || element;
-    } catch (error) {
+    } catch {
       // If appendChild fails, just return the element
       return child || element;
     }
@@ -226,9 +226,9 @@ beforeEach(() => {
         container.setAttribute('id', 'react-test-container');
         document.body.appendChild(container);
       }
-    } catch (error) {
+    } catch {
       // Fallback: don't create container if createElement fails
-      console.warn('DOM setup warning:', error);
+      console.warn('A warning occurred');
     }
   }
 
@@ -300,7 +300,7 @@ const originalAppendChild = Element.prototype.appendChild;
 Element.prototype.appendChild = function <T extends Node>(child: T): T {
   try {
     if (child && typeof child === 'object' && (child.nodeType || child instanceof Node)) {
-      return originalAppendChild.call(this, child);
+      return originalAppendChild.call(this, child) as T;
     }
     // Create a proper node if the child is not a valid node
     if (typeof child === 'string') {
@@ -310,13 +310,13 @@ Element.prototype.appendChild = function <T extends Node>(child: T): T {
     // For invalid parameters, create a mock element and return it
     const mockElement = document.createElement('div');
     return originalAppendChild.call(this, mockElement) as T;
-  } catch (error) {
+  } catch {
     // If all else fails, create and return a mock element
     const mockElement = document.createElement('div');
     try {
       return originalAppendChild.call(this, mockElement) as T;
     } catch {
-      return mockElement as T;
+      return mockElement as unknown as T;
     }
   }
 };

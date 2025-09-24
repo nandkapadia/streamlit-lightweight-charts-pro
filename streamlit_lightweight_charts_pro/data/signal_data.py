@@ -1,5 +1,4 @@
-"""
-Signal data for background coloring in charts.
+"""Signal data for background coloring in charts.
 
 This module provides the SignalData class for creating signal-based background
 coloring in financial charts. Signal data consists of time points with binary
@@ -7,16 +6,16 @@ or ternary values that determine background colors for specific time periods.
 """
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 
 
 @dataclass
 class SignalData(SingleValueData):
-    """
-    Signal data point for background coloring.
+    """Signal data point for background coloring.
 
     SignalData represents a single time point with a signal value that determines
     the background color for that time period. This is commonly used in financial
@@ -44,18 +43,17 @@ class SignalData(SingleValueData):
         signal_series = SignalSeries(
             data=signal_data,
             neutral_color="#ffffff",  # White for value=0 (when no individual color)
-            signal_color="#ff0000"   # Red for value=1 (when no individual color)
+            signal_color="#ff0000",  # Red for value=1 (when no individual color)
         )
         ```
     """
 
-    REQUIRED_COLUMNS = set()
-    OPTIONAL_COLUMNS = {"color"}
+    REQUIRED_COLUMNS: ClassVar[set] = set()
+    OPTIONAL_COLUMNS: ClassVar[set] = {"color"}
 
     color: Optional[str] = None
 
     def __post_init__(self):
         super().__post_init__()
-        if self.color is not None and self.color != "":
-            if not is_valid_color(self.color):
-                raise ValueError(f"Invalid color format: {self.color!r}. Must be hex or rgba.")
+        if self.color is not None and self.color != "" and not is_valid_color(self.color):
+            raise ValueValidationError("color", "Invalid color format")

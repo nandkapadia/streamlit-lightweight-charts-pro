@@ -24,8 +24,8 @@ const App: React.FC = () => {
     if (typeof Streamlit !== 'undefined' && Streamlit.setComponentReady) {
       try {
         Streamlit.setComponentReady();
-      } catch (error) {
-        console.error('Index initialization operation failed:', error);
+      } catch {
+        console.error('An error occurred');
       }
     }
   };
@@ -52,8 +52,8 @@ const App: React.FC = () => {
 
       try {
         containerHeight = containerRef.current.scrollHeight;
-      } catch (error) {
-        console.error('Index initialization operation failed:', error);
+      } catch {
+        console.error('An error occurred');
       }
 
       // Method 2: Try computed styles
@@ -61,8 +61,8 @@ const App: React.FC = () => {
         try {
           const computedStyle = window.getComputedStyle(containerRef.current);
           containerHeight = parseInt(computedStyle.height) || 0;
-        } catch (error) {
-          console.error('Index initialization operation failed:', error);
+        } catch {
+          console.error('An error occurred');
         }
       }
 
@@ -70,8 +70,8 @@ const App: React.FC = () => {
       if (!containerHeight) {
         try {
           containerHeight = containerRef.current.offsetHeight;
-        } catch (error) {
-          console.error('Index initialization operation failed:', error);
+        } catch {
+          console.error('An error occurred');
         }
       }
 
@@ -79,8 +79,8 @@ const App: React.FC = () => {
       if (!containerHeight) {
         try {
           containerHeight = containerRef.current.clientHeight;
-        } catch (error) {
-          console.error('Index initialization operation failed:', error);
+        } catch {
+          console.error('An error occurred');
         }
       }
 
@@ -105,13 +105,13 @@ const App: React.FC = () => {
         if (isMountedRef.current && typeof Streamlit !== 'undefined' && Streamlit.setFrameHeight) {
           try {
             Streamlit.setFrameHeight(finalHeight);
-          } catch (error) {
-            console.error('Index initialization operation failed:', error);
+          } catch {
+            console.error('An error occurred');
           }
         }
       }
-    } catch (error) {
-      console.error('Height reporting operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     } finally {
       // Clear reporting flag after a short delay
       setTimeout(() => {
@@ -146,7 +146,7 @@ const App: React.FC = () => {
       if (isMountedRef.current && !isReportingHeight.current) {
         lastReportTime.current = Date.now();
         reportHeightWithFallback().catch(error => {
-          console.error('Height reporting failed:', error);
+          console.error('An error occurred');
         });
       }
     }, 1000); // Increased to 1000ms to reduce frequency
@@ -158,7 +158,7 @@ const App: React.FC = () => {
 
     // Report height immediately
     reportHeightWithFallback().catch(error => {
-      console.error('Initial height reporting failed:', error);
+      console.error('An error occurred');
     });
 
     // Set up ResizeObserver for height changes

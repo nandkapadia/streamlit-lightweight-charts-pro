@@ -8,6 +8,7 @@ construction, validation, and serialization.
 import pytest
 
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
+from streamlit_lightweight_charts_pro.exceptions import NonNegativeValueError
 
 
 class TestOhlcData:
@@ -87,8 +88,8 @@ class TestOhlcData:
         assert data.low == 0.0
         assert data.close == 0.0
 
-        # Negative prices should raise ValueError (OHLC values must be non-negative)
-        with pytest.raises(ValueError, match="all OHLC values must be non-negative"):
+        # Negative prices should raise NonNegativeValueError (OHLC values must be non-negative)
+        with pytest.raises(NonNegativeValueError):
             OhlcData(time=1640995200, open=-100.0, high=-95.0, low=-105.0, close=-102.0)
 
         # Valid integer prices (should be converted to float)
@@ -131,7 +132,11 @@ class TestOhlcData:
         """Test edge cases and boundary conditions."""
         # Very large numbers
         data = OhlcData(
-            time=1640995200, open=999999.99, high=999999.99, low=999999.99, close=999999.99
+            time=1640995200,
+            open=999999.99,
+            high=999999.99,
+            low=999999.99,
+            close=999999.99,
         )
         assert data.open == 999999.99
         assert data.high == 999999.99
@@ -188,7 +193,11 @@ class TestOhlcData:
         data1 = OhlcData(time=1640995200, open=100.0, high=105.0, low=95.0, close=102.0)
         data2 = OhlcData(time=1640995200, open=100.0, high=105.0, low=95.0, close=102.0)
         data3 = OhlcData(
-            time=1640995200, open=100.0, high=105.0, low=95.0, close=103.0  # Different close
+            time=1640995200,
+            open=100.0,
+            high=105.0,
+            low=95.0,
+            close=103.0,  # Different close
         )
 
         assert data1 == data2
@@ -269,7 +278,11 @@ class TestOhlcData:
 
         # Shooting star candle (long upper shadow)
         shooting_star_data = OhlcData(
-            time=1640995200, open=100.0, high=105.0, low=100.0, close=100.5
+            time=1640995200,
+            open=100.0,
+            high=105.0,
+            low=100.0,
+            close=100.5,
         )
         assert shooting_star_data.high > shooting_star_data.open
         assert shooting_star_data.high > shooting_star_data.close

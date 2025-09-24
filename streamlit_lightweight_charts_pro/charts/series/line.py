@@ -1,5 +1,4 @@
-"""
-Line series for streamlit-lightweight-charts.
+"""Line series for streamlit-lightweight-charts.
 
 This module provides the LineSeries class for creating line charts that display
 continuous data points connected by lines. Line series are commonly used for
@@ -36,9 +35,7 @@ import pandas as pd
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.line_data import LineData
-from streamlit_lightweight_charts_pro.type_definitions import (
-    ChartType,
-)
+from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.utils import chainable_property
 
 

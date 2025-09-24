@@ -18,18 +18,18 @@ from .series_config_types import (
 )
 
 __all__ = [
-    "SeriesConfigChange",
-    "SeriesConfigState",
     "ChartSeriesConfigs",
     "CompleteSeriesConfigState",
+    "ConfigDict",
+    "ConfigValue",
     "SeriesConfigBackendData",
+    "SeriesConfigChange",
     "SeriesConfigChangesResult",
     "SeriesConfigPersistenceOptions",
-    "SeriesStyleConfig",
-    "SeriesVisibilityConfig",
-    "SeriesInputConfig",
+    "SeriesConfigState",
     "SeriesConfiguration",
+    "SeriesInputConfig",
+    "SeriesStyleConfig",
     "SeriesType",
-    "ConfigValue",
-    "ConfigDict",
+    "SeriesVisibilityConfig",
 ]

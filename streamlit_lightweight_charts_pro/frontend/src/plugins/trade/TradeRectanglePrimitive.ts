@@ -263,7 +263,7 @@ class TradeRectangleView implements IPrimitivePaneView {
       this._y1 = y1;
       this._x2 = x2;
       this._y2 = y2;
-    } catch (error) {
+    } catch {
       // CRITICAL FIX: Graceful error handling like old canvas overlay approach
       // Don't log errors prominently - just let automatic retry handle it
 
@@ -366,8 +366,8 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
       // Subscribe to events (Lightweight Charts pattern: returns void, store callbacks for cleanup)
       chart.timeScale().subscribeVisibleTimeRangeChange(this._timeScaleCallback);
       chart.subscribeCrosshairMove(this._crosshairCallback);
-    } catch (error) {
-      console.error('Trade rectangle primitive operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
 
     // Request initial update
@@ -380,8 +380,8 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
       try {
         this._chart.timeScale().unsubscribeVisibleTimeRangeChange(this._timeScaleCallback);
         this._timeScaleCallback = null;
-      } catch (error) {
-        console.error('Trade rectangle primitive operation failed:', error);
+      } catch {
+        console.error('An error occurred');
       }
     }
 
@@ -389,8 +389,8 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
       try {
         this._chart.unsubscribeCrosshairMove(this._crosshairCallback);
         this._crosshairCallback = null;
-      } catch (error) {
-        console.error('Trade rectangle primitive operation failed:', error);
+      } catch {
+        console.error('An error occurred');
       }
     }
 

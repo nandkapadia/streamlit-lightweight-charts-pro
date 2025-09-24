@@ -10,7 +10,7 @@ import time
 
 # Standard imports
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 # Third-party imports
 import numpy as np
@@ -106,7 +106,8 @@ def sample_values():
         List[float]: A list of 10 numeric values with trend and noise.
     """
     # Generate values with a base trend and random noise for realistic test data
-    return [100 + i * 10 + np.random.randint(-5, 5) for i in range(10)]
+    rng = np.random.default_rng(42)
+    return [100 + i * 10 + rng.integers(-5, 5) for i in range(10)]
 
 
 @pytest.fixture
@@ -125,23 +126,24 @@ def sample_ohlc_data():
     """
     base_price = 100.0
     data = []
+    rng = np.random.default_rng(42)
 
     # Generate 10 candlesticks with realistic OHLC relationships
     for i in range(10):
         # Calculate open price with trend and noise
-        open_price = base_price + i * 2 + np.random.randint(-5, 5)
+        open_price = base_price + i * 2 + rng.integers(-5, 5)
 
         # High must be >= open price
-        high_price = open_price + np.random.randint(1, 10)
+        high_price = open_price + rng.integers(1, 10)
 
         # Low must be <= open price
-        low_price = open_price - np.random.randint(1, 10)
+        low_price = open_price - rng.integers(1, 10)
 
         # Close price varies around open price
-        close_price = open_price + np.random.randint(-5, 5)
+        close_price = open_price + rng.integers(-5, 5)
 
         # Volume is random but realistic
-        volume = np.random.randint(100, 1000)
+        volume = rng.integers(100, 1000)
 
         # Create OHLC data structure
         data.append(
@@ -151,7 +153,7 @@ def sample_ohlc_data():
                 "low": low_price,
                 "close": close_price,
                 "volume": volume,
-            }
+            },
         )
     return data
 
@@ -167,18 +169,19 @@ def sample_dataframe():
     Returns:
         pd.DataFrame: DataFrame with datetime index and financial data columns.
     """
+    rng = np.random.default_rng(42)
     # Create datetime range for realistic time-series data
-    dates = pd.date_range("2023-01-01", periods=10, freq="H")
+    dates = pd.date_range("2023-01-01", periods=10, freq="h")
 
     # Build dictionary of sample financial data
     data = {
         "time": dates,
-        "value": [100 + i * 10 + np.random.randint(-5, 5) for i in range(10)],
-        "open": [100 + i * 2 + np.random.randint(-5, 5) for i in range(10)],
-        "high": [110 + i * 2 + np.random.randint(1, 10) for i in range(10)],
-        "low": [90 + i * 2 - np.random.randint(1, 10) for i in range(10)],
-        "close": [105 + i * 2 + np.random.randint(-5, 5) for i in range(10)],
-        "volume": [np.random.randint(100, 1000) for _ in range(10)],
+        "value": [100 + i * 10 + rng.integers(-5, 5) for i in range(10)],
+        "open": [100 + i * 2 + rng.integers(-5, 5) for i in range(10)],
+        "high": [110 + i * 2 + rng.integers(1, 10) for i in range(10)],
+        "low": [90 + i * 2 - rng.integers(1, 10) for i in range(10)],
+        "close": [105 + i * 2 + rng.integers(-5, 5) for i in range(10)],
+        "volume": [rng.integers(100, 1000) for _ in range(10)],
     }
     # Return as pandas DataFrame for testing data processing functions
     return pd.DataFrame(data)
@@ -458,7 +461,8 @@ def large_dataset():
     timestamps = [base_timestamp + i * 60 for i in range(n_points)]
 
     # Generate random walk values starting from 100
-    values = np.random.randn(n_points).cumsum() + 100
+    rng = np.random.default_rng(42)
+    values = rng.standard_normal(n_points).cumsum() + 100
 
     # Create LineData objects for the large dataset
     return [LineData(time=ts, value=val) for ts, val in zip(timestamps, values)]
@@ -482,9 +486,10 @@ def wide_dataset():
 
     series_data = []
     # Generate multiple series with different base values
+    rng = np.random.default_rng(42)
     for j in range(n_series):
         # Each series has a different base value (100 + j * 10)
-        values = np.random.randn(n_points).cumsum() + 100 + j * 10
+        values = rng.standard_normal(n_points).cumsum() + 100 + j * 10
         # Create LineData objects for this series
         series_data.append([LineData(time=ts, value=val) for ts, val in zip(timestamps, values)])
 
@@ -581,11 +586,10 @@ def assert_data_equality(actual: Any, expected: Any, tolerance: float = 1e-10):
     elif isinstance(actual, (float, np.floating)) and isinstance(expected, (float, np.floating)):
         if np.isnan(actual) and np.isnan(expected):
             return  # Both are NaN, which is considered equal
-        elif np.isnan(actual) or np.isnan(expected):
-            assert False, f"NaN mismatch: {actual} vs {expected}"
-        else:
-            # Compare with tolerance for floating point precision
-            assert abs(actual - expected) <= tolerance, f"Value mismatch: {actual} vs {expected}"
+        if np.isnan(actual) or np.isnan(expected):
+            raise AssertionError()
+        # Compare with tolerance for floating point precision
+        assert abs(actual - expected) <= tolerance, f"Value mismatch: {actual} vs {expected}"
 
     # Handle exact equality for all other types
     else:
@@ -594,7 +598,7 @@ def assert_data_equality(actual: Any, expected: Any, tolerance: float = 1e-10):
 
 def generate_random_data(
     n_points: int = 100,
-    start_date: datetime = None,
+    start_date: Optional[datetime] = None,
     base_value: float = 100.0,
     volatility: float = 0.1,
     trend: float = 0.0,
@@ -629,10 +633,10 @@ def generate_random_data(
     timestamps = [start_date + timedelta(hours=i) for i in range(n_points)]
 
     # Set random seed for reproducible test results
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
 
     # Generate random returns with specified trend and volatility
-    returns = np.random.normal(trend, volatility, n_points)
+    returns = rng.normal(trend, volatility, n_points)
 
     # Convert returns to price levels using cumulative sum and exponential
     values = base_value * np.exp(np.cumsum(returns))
@@ -732,22 +736,22 @@ def candlestick_data_strategy(draw):
 
     # Generate open price within reasonable bounds
     open_price = draw(
-        st.floats(min_value=0.01, max_value=1e6, allow_nan=False, allow_infinity=False)
+        st.floats(min_value=0.01, max_value=1e6, allow_nan=False, allow_infinity=False),
     )
 
     # High price must be >= open price
     high_price = draw(
-        st.floats(min_value=open_price, max_value=1e6, allow_nan=False, allow_infinity=False)
+        st.floats(min_value=open_price, max_value=1e6, allow_nan=False, allow_infinity=False),
     )
 
     # Low price must be <= open price
     low_price = draw(
-        st.floats(min_value=0.01, max_value=open_price, allow_nan=False, allow_infinity=False)
+        st.floats(min_value=0.01, max_value=open_price, allow_nan=False, allow_infinity=False),
     )
 
     # Close price can be any valid value
     close_price = draw(
-        st.floats(min_value=0.01, max_value=1e6, allow_nan=False, allow_infinity=False)
+        st.floats(min_value=0.01, max_value=1e6, allow_nan=False, allow_infinity=False),
     )
 
     # Return CandlestickData with proper OHLC relationships
@@ -854,10 +858,7 @@ def validate_series_properties(series: Any) -> bool:
             return False
 
     # Validate that data attribute is a list
-    if not isinstance(series.data, list):
-        return False
-
-    return True
+    return isinstance(series.data, list)
 
 
 # =============================================================================
@@ -985,7 +986,7 @@ class MockDataManager:
         data: Dictionary storing the mock data.
     """
 
-    def __init__(self, data: Dict[str, Any] = None):
+    def __init__(self, data: Optional[Dict[str, Any]] = None):
         """Initialize the mock data manager.
 
         Args:

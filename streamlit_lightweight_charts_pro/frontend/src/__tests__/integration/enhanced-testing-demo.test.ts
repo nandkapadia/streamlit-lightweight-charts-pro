@@ -6,14 +6,13 @@
  * performance monitoring, and modular test helpers.
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Import our enhanced testing utilities
 import { MemoryLeakDetector } from '../helpers/MemoryLeakDetector';
 import { ChartTestHelpers, setupChartTest, setupBulkChartTest } from '../helpers/ChartTestHelpers';
 import {
   PerformanceTestHelpers,
-  performanceTest,
   testChartCreationPerformance,
   testDataUpdatePerformance,
 } from '../helpers/PerformanceTestHelpers';
@@ -68,9 +67,9 @@ describe('Enhanced Testing Demo - TradingView Patterns', () => {
 
       try {
         // Add multiple series with realistic data
-        const lineSeries = chartTest.addSeries('LineSeries', 1000);
-        const areaSeries = chartTest.addSeries('AreaSeries', 500);
-        const barSeries = chartTest.addSeries('BarSeries', 300);
+        chartTest.addSeries('Line' as any, 1000);
+        chartTest.addSeries('Area' as any, 500);
+        chartTest.addSeries('Bar' as any, 300);
 
         // Simulate user interactions
         await chartTest.simulate({
@@ -113,8 +112,8 @@ describe('Enhanced Testing Demo - TradingView Patterns', () => {
       try {
         // Add series to all charts
         bulkTest.charts.forEach(({ chart }) => {
-          ChartTestHelpers.addTestSeries(chart, 'LineSeries', 100);
-          ChartTestHelpers.addTestSeries(chart, 'AreaSeries', 50);
+          ChartTestHelpers.addTestSeries(chart, 'Line' as any, 100);
+          ChartTestHelpers.addTestSeries(chart, 'Area' as any, 50);
         });
 
         // Validate all charts
@@ -153,16 +152,16 @@ describe('Enhanced Testing Demo - TradingView Patterns', () => {
           });
 
           // Add multiple series with large datasets
-          const series1 = ChartTestHelpers.addTestSeries(chart, 'LineSeries', 5000);
-          const series2 = ChartTestHelpers.addTestSeries(chart, 'CandlestickSeries', 2000);
-          const series3 = ChartTestHelpers.addTestSeries(chart, 'AreaSeries', 1000);
+          const series1 = ChartTestHelpers.addTestSeries(chart, 'Line' as any, 5000);
+          const series2 = ChartTestHelpers.addTestSeries(chart, 'Candlestick' as any, 2000);
+          const series3 = ChartTestHelpers.addTestSeries(chart, 'Area' as any, 1000);
 
           // Perform memory-intensive operations
           for (let i = 0; i < 10; i++) {
             chart.resize(1200 + i * 10, 800 + i * 5);
 
             // Update data
-            const newData = TestDataFactory.createLineData(100);
+            const newData = TestDataFactory.createLineData({ count: 100 });
             series1.setData(newData);
           }
 
@@ -205,7 +204,7 @@ describe('Enhanced Testing Demo - TradingView Patterns', () => {
           });
 
           // Add data that increases with each iteration
-          ChartTestHelpers.addTestSeries(chart, 'LineSeries', 200 + i * 50);
+          ChartTestHelpers.addTestSeries(chart, 'Line' as any, 200 + i * 50);
           charts.push(chart);
 
           await memoryDetector.takeSnapshot();
@@ -265,12 +264,12 @@ describe('Enhanced Testing Demo - TradingView Patterns', () => {
 
       // Benchmark data updates
       const { chart, cleanup } = ChartTestHelpers.createTestChart('data-perf-chart');
-      const series = ChartTestHelpers.addTestSeries(chart, 'LineSeries', 100);
+      const series = ChartTestHelpers.addTestSeries(chart, 'Line' as any, 100);
 
       try {
         const dataUpdateBenchmark = await testDataUpdatePerformance(
           () => {
-            const newData = TestDataFactory.createLineData(500);
+            const newData = TestDataFactory.createLineData({ count: 500 });
             series.setData(newData);
           },
           50 // iterations
@@ -297,7 +296,7 @@ describe('Enhanced Testing Demo - TradingView Patterns', () => {
           'chart-animation',
           async () => {
             // Simulate animation-like operations
-            const series = ChartTestHelpers.addTestSeries(chart, 'LineSeries', 1000);
+            const series = ChartTestHelpers.addTestSeries(chart, 'Line' as any, 1000);
 
             for (let i = 0; i < 60; i++) {
               // Resize operations that might affect frame rate

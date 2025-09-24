@@ -13,6 +13,10 @@ import pytest
 
 from streamlit_lightweight_charts_pro.data.band import BandData
 from streamlit_lightweight_charts_pro.data.data import Data
+from streamlit_lightweight_charts_pro.exceptions import (
+    UnsupportedTimeTypeError,
+    ValueValidationError,
+)
 
 
 @pytest.fixture
@@ -94,22 +98,22 @@ class TestBandDataValidation:
 
     def test_none_upper_value(self, valid_time):
         """Test error on None upper value."""
-        with pytest.raises(ValueError, match="upper must not be None"):
+        with pytest.raises(ValueValidationError, match="upper must not be None"):
             BandData(time=valid_time, upper=None, middle=105.0, lower=100.0)
 
     def test_none_middle_value(self, valid_time):
         """Test error on None middle value."""
-        with pytest.raises(ValueError, match="middle must not be None"):
+        with pytest.raises(ValueValidationError, match="middle must not be None"):
             BandData(time=valid_time, upper=110.0, middle=None, lower=100.0)
 
     def test_none_lower_value(self, valid_time):
         """Test error on None lower value."""
-        with pytest.raises(ValueError, match="lower must not be None"):
+        with pytest.raises(ValueValidationError, match="lower must not be None"):
             BandData(time=valid_time, upper=110.0, middle=105.0, lower=None)
 
     def test_invalid_time_type(self):
         """Test error on invalid time type."""
-        with pytest.raises(TypeError):
+        with pytest.raises(UnsupportedTimeTypeError):
             BandData(time=[1, 2, 3], upper=110.0, middle=105.0, lower=100.0)
 
     def test_band_relationship_validation(self, valid_time):
@@ -226,7 +230,7 @@ class TestBandDataInheritance:
     def test_has_required_methods(self, valid_time):
         """Test that BandData has required methods."""
         data = BandData(time=valid_time, upper=110.0, middle=105.0, lower=100.0)
-        assert callable(getattr(data, "asdict"))
+        assert callable(data.asdict)
 
 
 class TestBandDataIntegration:
@@ -234,13 +238,16 @@ class TestBandDataIntegration:
 
     def test_with_dataframe_conversion(self, valid_time):
         """Test BandData creation from DataFrame row."""
-        df = pd.DataFrame(
-            {"time": [valid_time], "upper": [110.0], "middle": [105.0], "lower": [100.0]}
+        test_dataframe = pd.DataFrame(
+            {"time": [valid_time], "upper": [110.0], "middle": [105.0], "lower": [100.0]},
         )
 
-        row = df.iloc[0]
+        row = test_dataframe.iloc[0]
         data = BandData(
-            time=row["time"], upper=row["upper"], middle=row["middle"], lower=row["lower"]
+            time=row["time"],
+            upper=row["upper"],
+            middle=row["middle"],
+            lower=row["lower"],
         )
 
         assert data.time == valid_time

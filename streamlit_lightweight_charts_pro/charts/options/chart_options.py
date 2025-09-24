@@ -1,5 +1,4 @@
-"""
-Chart options configuration for streamlit-lightweight-charts.
+"""Chart options configuration for streamlit-lightweight-charts.
 
 This module provides the main ChartOptions class for configuring chart display,
 behavior, and appearance. ChartOptions serves as the central configuration
@@ -26,8 +25,10 @@ from streamlit_lightweight_charts_pro.charts.options.time_scale_options import T
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from streamlit_lightweight_charts_pro.charts.options.ui_options import (
-    RangeSwitcherOptions,
+from streamlit_lightweight_charts_pro.charts.options.ui_options import RangeSwitcherOptions
+from streamlit_lightweight_charts_pro.exceptions import (
+    PriceScaleIdTypeError,
+    PriceScaleOptionsTypeError,
 )
 from streamlit_lightweight_charts_pro.utils import chainable_field
 
@@ -54,8 +55,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_field
 @chainable_field("trade_visualization", TradeVisualizationOptions)
 @chainable_field("range_switcher", RangeSwitcherOptions)
 class ChartOptions(Options):
-    """
-    Configuration options for chart display and behavior.
+    """Configuration options for chart display and behavior.
 
     This class encapsulates all the configuration options that control how a chart
     is displayed, including its size, layout, grid settings, and various interactive
@@ -101,7 +101,7 @@ class ChartOptions(Options):
             height=600,
             layout=LayoutOptions(background_color="#ffffff"),
             handle_scroll=True,
-            handle_scale=True
+            handle_scale=True,
         )
         ```
     """
@@ -143,44 +143,51 @@ class ChartOptions(Options):
     def __post_init__(self):
         """Validate chart options after initialization."""
         # Validate price scale options
-        if self.right_price_scale is not None and not isinstance(self.right_price_scale, PriceScaleOptions):
+        if self.right_price_scale is not None and not isinstance(
+            self.right_price_scale,
+            PriceScaleOptions,
+        ):
             if isinstance(self.right_price_scale, bool):
-                raise TypeError(
-                    f"right_price_scale must be a PriceScaleOptions object, not a boolean. "
-                    f"To enable the right price scale, use: "
-                    f"right_price_scale=PriceScaleOptions(visible=True) or remove the parameter "
-                    f"(it's enabled by default)."
+                raise PriceScaleOptionsTypeError(
+                    "right_price_scale",
+                    type(self.right_price_scale),
                 )
-            else:
-                raise TypeError(
-                    f"right_price_scale must be a PriceScaleOptions object, "
-                    f"got {type(self.right_price_scale).__name__}"
-                )
+            raise PriceScaleOptionsTypeError(
+                "right_price_scale",
+                type(self.right_price_scale),
+            )
 
-        if self.left_price_scale is not None and not isinstance(self.left_price_scale, PriceScaleOptions):
+        if self.left_price_scale is not None and not isinstance(
+            self.left_price_scale,
+            PriceScaleOptions,
+        ):
             if isinstance(self.left_price_scale, bool):
-                raise TypeError(
-                    f"left_price_scale must be a PriceScaleOptions object, not a boolean. "
-                    f"To enable the left price scale, use: "
-                    f"left_price_scale=PriceScaleOptions(visible=True)"
+                raise PriceScaleOptionsTypeError(
+                    "left_price_scale",
+                    type(self.left_price_scale),
                 )
-            else:
-                raise TypeError(
-                    f"left_price_scale must be a PriceScaleOptions object, "
-                    f"got {type(self.left_price_scale).__name__}"
-                )
+            raise PriceScaleOptionsTypeError(
+                "left_price_scale",
+                type(self.left_price_scale),
+            )
 
         # Validate price scale IDs are strings
-        if self.right_price_scale is not None and self.right_price_scale.price_scale_id is not None:
-            if not isinstance(self.right_price_scale.price_scale_id, str):
-                raise TypeError(
-                    f"right_price_scale.price_scale_id must be a string, "
-                    f"got {type(self.right_price_scale.price_scale_id).__name__}"
-                )
+        if (
+            self.right_price_scale is not None
+            and self.right_price_scale.price_scale_id is not None
+            and not isinstance(self.right_price_scale.price_scale_id, str)
+        ):
+            raise PriceScaleIdTypeError(
+                "right_price_scale",
+                type(self.right_price_scale.price_scale_id),
+            )
 
-        if self.left_price_scale is not None and self.left_price_scale.price_scale_id is not None:
-            if not isinstance(self.left_price_scale.price_scale_id, str):
-                raise TypeError(
-                    f"left_price_scale.price_scale_id must be a string, "
-                    f"got {type(self.left_price_scale.price_scale_id).__name__}"
-                )
+        if (
+            self.left_price_scale is not None
+            and self.left_price_scale.price_scale_id is not None
+            and not isinstance(self.left_price_scale.price_scale_id, str)
+        ):
+            raise PriceScaleIdTypeError(
+                "left_price_scale",
+                type(self.left_price_scale.price_scale_id),
+            )

@@ -196,7 +196,7 @@ export class ChartCoordinateService {
       let paneSize: PaneSize | null = null;
       try {
         paneSize = chart.paneSize(paneId);
-      } catch (error) {
+      } catch {
         return null;
       }
 
@@ -212,7 +212,7 @@ export class ChartCoordinateService {
           if (size && typeof size.height === 'number') {
             offsetY += size.height;
           }
-        } catch (error) {
+        } catch {
           // Continue with other panes even if one fails
         }
       }
@@ -225,7 +225,7 @@ export class ChartCoordinateService {
         paneWidth, // Full pane width including price scales
         paneSize.height
       );
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -244,7 +244,7 @@ export class ChartCoordinateService {
       let paneSize: PaneSize | null = null;
       try {
         paneSize = chart.paneSize(paneId);
-      } catch (error) {
+      } catch {
         return null;
       }
 
@@ -260,7 +260,7 @@ export class ChartCoordinateService {
           if (size && typeof size.height === 'number') {
             offsetY += size.height;
           }
-        } catch (error) {
+        } catch {
           // Continue with other panes even if one fails
         }
       }
@@ -324,7 +324,7 @@ export class ChartCoordinateService {
         isMainPane: paneId === 0,
         isLastPane: false, // Will need to be calculated if needed
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -431,7 +431,7 @@ export class ChartCoordinateService {
         isMainPane: paneId === 0,
         isLastPane: false, // Will need to be calculated if needed
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -459,7 +459,7 @@ export class ChartCoordinateService {
     try {
       const { container } = dimensions;
       return container.width >= minWidth && container.height >= minHeight;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -475,7 +475,7 @@ export class ChartCoordinateService {
     try {
       const { container } = dimensions;
       return container.width >= minWidth && container.height >= minHeight;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -498,7 +498,7 @@ export class ChartCoordinateService {
       } else {
         return null;
       }
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -529,7 +529,7 @@ export class ChartCoordinateService {
           });
         }
       }
-    } catch (error) {
+    } catch {
       // Chart API method failed, trying DOM fallback
     }
 
@@ -539,7 +539,7 @@ export class ChartCoordinateService {
       if (result.container.width >= minWidth && result.container.height >= minHeight) {
         return result;
       }
-    } catch (error) {
+    } catch {
       // DOM method failed, using defaults
     }
 
@@ -566,7 +566,7 @@ export class ChartCoordinateService {
       const timeScale = chart.timeScale();
       timeScaleHeight = timeScale.height() || 35;
       timeScaleWidth = timeScale.width() || chartSize.width;
-    } catch (error) {
+    } catch {
       // Time scale API failed, using defaults
     }
 
@@ -576,7 +576,7 @@ export class ChartCoordinateService {
     try {
       const priceScale = chart.priceScale('left');
       priceScaleWidth = priceScale.width() || 70;
-    } catch (error) {
+    } catch {
       // Price scale API failed, using defaults
     }
 
@@ -617,8 +617,8 @@ export class ChartCoordinateService {
       const rect = container.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-    } catch (error) {
-      console.error('Chart coordinate service operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
 
     // Method 2: offset dimensions
@@ -651,8 +651,8 @@ export class ChartCoordinateService {
       const timeScale = chart.timeScale();
       timeScaleHeight = timeScale.height() || 35;
       timeScaleWidth = timeScale.width() || width;
-    } catch (error) {
-      console.error('Chart coordinate service operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
 
     // Get price scale width
@@ -661,8 +661,8 @@ export class ChartCoordinateService {
     try {
       const priceScale = chart.priceScale('left');
       priceScaleWidth = priceScale.width() || 70;
-    } catch (error) {
-      console.error('Chart coordinate service operation failed:', error);
+    } catch {
+      console.error('An error occurred');
     }
 
     return {
@@ -730,7 +730,7 @@ export class ChartCoordinateService {
       } else {
         return null;
       }
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -758,7 +758,7 @@ export class ChartCoordinateService {
       // Get chart layout to account for price scale and time scale dimensions
       try {
         chart.chartElement().querySelector('.tv-lightweight-charts')?.getBoundingClientRect();
-      } catch (e) {
+      } catch {
         // Layout check failed
       }
 
@@ -780,7 +780,7 @@ export class ChartCoordinateService {
             actualPriceScaleWidth = leftPriceScale.width();
           }
         }
-      } catch (e) {
+      } catch {
         // Use fallback values if API calls fail
       }
 
@@ -798,7 +798,7 @@ export class ChartCoordinateService {
             }
             paneCount++;
           }
-        } catch (error) {
+        } catch {
           // When paneSize() throws an error, we've reached the end
         }
         return paneCount;
@@ -893,7 +893,7 @@ export class ChartCoordinateService {
         height: rangeSwitcherDimensions.height,
         zIndex: 1000,
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -988,7 +988,10 @@ export class ChartCoordinateService {
       this.updateCallbacks.set(chartId, new Set());
     }
 
-    this.updateCallbacks.get(chartId)!.add(callback);
+    const callbacks = this.updateCallbacks.get(chartId);
+    if (callbacks) {
+      callbacks.add(callback);
+    }
 
     // Return unsubscribe function
     return () => {
@@ -1061,7 +1064,7 @@ export class ChartCoordinateService {
           };
 
           resolve(coordinates);
-        } catch (error) {
+        } catch {
           resolve(sanitizeCoordinates({}));
         }
       });
@@ -1268,8 +1271,8 @@ export class ChartCoordinateService {
       callbacks.forEach(callback => {
         try {
           callback();
-        } catch (error) {
-          console.error('Chart coordinate service operation failed:', error);
+        } catch {
+          console.error('An error occurred');
         }
       });
     }
@@ -1424,8 +1427,8 @@ export class ChartCoordinateService {
         callbacks.forEach(callback => {
           try {
             callback();
-          } catch (error) {
-            console.error('Chart coordinate service operation failed:', error);
+          } catch {
+            console.error('An error occurred');
           }
         });
       }
@@ -1476,7 +1479,7 @@ export class ChartCoordinateService {
         width: rect.width || chartElement.offsetWidth || 800,
         height: rect.height || chartElement.offsetHeight || 600,
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -1521,7 +1524,7 @@ export class ChartCoordinateService {
         if (leftPriceScaleWidth === 0 && rightPriceScaleWidth === 0) {
           rightPriceScaleWidth = 70; // Default right price scale width
         }
-      } catch (scaleError) {
+      } catch {
         // Fallback values
         rightPriceScaleWidth = 70;
         timeScaleHeight = 35;
@@ -1546,7 +1549,7 @@ export class ChartCoordinateService {
           },
         },
       };
-    } catch (error) {
+    } catch {
       // Error getting chart layout dimensions - use fallback values
       return {
         container: { width: 800, height: 600 },
@@ -1825,7 +1828,7 @@ export class ChartCoordinateService {
       const height = Math.abs(y2 - y1);
 
       return createBoundingBox(x, y, width, height);
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -2157,7 +2160,7 @@ export class ChartCoordinateService {
     try {
       // Get X-axis (time scale) height using ITimeScaleApi
       timeScaleHeight = chart.timeScale().height();
-    } catch (error) {
+    } catch {
       // Use fallback value
     }
 
@@ -2167,7 +2170,7 @@ export class ChartCoordinateService {
       if (leftPriceScale) {
         leftPriceScaleWidth = leftPriceScale.width();
       }
-    } catch (error) {
+    } catch {
       // Left scale doesn't exist or failed - keep default 0
     }
 
@@ -2177,7 +2180,7 @@ export class ChartCoordinateService {
       if (rightPriceScale) {
         rightPriceScaleWidth = rightPriceScale.width();
       }
-    } catch (error) {
+    } catch {
       // Use fallback value
     }
 
@@ -2196,7 +2199,7 @@ export class ChartCoordinateService {
       // Try to get the next pane - if it fails, this is the last pane
       chart.paneSize(paneId + 1);
       return false; // If we get here, there's a next pane
-    } catch (error) {
+    } catch {
       return true; // Error means no next pane exists
     }
   }
@@ -2338,7 +2341,7 @@ export class ChartCoordinateService {
             lastPaneSizes = currentPaneSizes;
             updateLayoutManager();
           }
-        } catch (error) {
+        } catch {
           // Ignore errors in pane change detection
         }
       };
@@ -2350,7 +2353,7 @@ export class ChartCoordinateService {
       setTimeout(() => {
         clearInterval(paneCheckInterval);
       }, 300000); // 5 minutes
-    } catch (error) {
+    } catch {
       // Fallback to periodic checks if ResizeObserver not available
       const intervalId = setInterval(updateLayoutManager, 1000);
 

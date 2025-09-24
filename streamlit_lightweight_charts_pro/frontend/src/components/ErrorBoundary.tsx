@@ -40,7 +40,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // Auto-reset on resetKeys change
     if (hasError && resetKeys && prevProps.resetKeys) {
-      if (resetKeys.some((key, index) => key !== prevProps.resetKeys![index])) {
+      if (resetKeys.some((key, index) => key !== prevProps.resetKeys?.[index])) {
         this.resetErrorBoundary();
       }
     }
@@ -65,7 +65,7 @@ export class ErrorBoundary extends Component<Props, State> {
     // Log error for debugging (only in development)
     if (process.env.NODE_ENV === 'development') {
       console.group('🚨 ErrorBoundary caught an error');
-      console.error('Error:', _error);
+      console.error('An error occurred');
       console.error('Error Info:', _errorInfo);
       console.error('Component Stack:', _errorInfo.componentStack);
       console.groupEnd();
@@ -126,7 +126,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </button>
             {process.env.NODE_ENV === 'development' && (
               <button
-                onClick={() => console.error('Error details:', this.state.error)}
+                onClick={() => console.error(this.state.error)}
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#74b9ff',

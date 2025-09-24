@@ -23,7 +23,10 @@ class TestSyncOptionsInitialization:
     def test_custom_initialization(self):
         """Test initialization with custom values."""
         sync_options = SyncOptions(
-            enabled=True, crosshair=True, time_range=True, group_id="test_group"
+            enabled=True,
+            crosshair=True,
+            time_range=True,
+            group_id="test_group",
         )
 
         assert sync_options.enabled is True
@@ -327,7 +330,10 @@ class TestSyncOptionsAsDict:
     def test_asdict_custom_values(self):
         """Test asdict with custom values."""
         sync_options = SyncOptions(
-            enabled=True, crosshair=True, time_range=True, group_id="test_group"
+            enabled=True,
+            crosshair=True,
+            time_range=True,
+            group_id="test_group",
         )
         result = sync_options.asdict()
 

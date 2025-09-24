@@ -143,11 +143,10 @@ def process_file(file_path: Path, max_length: int = 100) -> bool:
             print(f"Wrapped long lines in {file_path}")
             return True
 
-        return False
-
     except Exception as e:
         print(f"Error processing {file_path}: {e}")
         return False
+    return False
 
 
 def main():

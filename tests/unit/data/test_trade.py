@@ -8,6 +8,7 @@ construction, validation, and serialization.
 import pytest
 
 from streamlit_lightweight_charts_pro.data.trade import TradeData
+from streamlit_lightweight_charts_pro.exceptions import ExitTimeAfterEntryTimeError
 from streamlit_lightweight_charts_pro.type_definitions.enums import TradeType
 
 
@@ -106,13 +107,16 @@ class TestTradeData:
         # Missing quantity
         with pytest.raises(TypeError):
             TradeData(
-                entry_time=1640995200, entry_price=100.0, exit_time=1641081600, exit_price=105.0
+                entry_time=1640995200,
+                entry_price=100.0,
+                exit_time=1641081600,
+                exit_price=105.0,
             )
 
     def test_validation_exit_time_after_entry_time(self):
         """Test validation that exit time must be after entry time."""
         # Exit time before entry time should raise error
-        with pytest.raises(ValueError, match="Exit time must be after entry time"):
+        with pytest.raises(ExitTimeAfterEntryTimeError):
             TradeData(
                 entry_time=1641081600,  # Later time
                 entry_price=100.0,

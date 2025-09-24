@@ -5,6 +5,9 @@ This module contains comprehensive tests for the AreaSeries class,
 covering construction, styling options, serialization, and edge cases.
 """
 
+# pylint: disable=no-member
+import json
+
 import pandas as pd
 import pytest
 
@@ -12,7 +15,15 @@ from streamlit_lightweight_charts_pro.charts.options.line_options import LineOpt
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
 from streamlit_lightweight_charts_pro.charts.series.base import Series
+from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColumnMappingRequiredError,
+    DataItemsTypeError,
+    InvalidDataFormatError,
+    PaneIdNonNegativeError,
+    TypeValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     LineStyle,
     MarkerPosition,
@@ -67,9 +78,12 @@ class TestAreaSeriesConstruction:
 
     def test_construction_with_dataframe(self):
         """Test AreaSeries construction with DataFrame."""
-        df = pd.DataFrame({"datetime": [1640995200, 1641081600], "value": [100, 105]})
+        test_dataframe = pd.DataFrame({"datetime": [1640995200, 1641081600], "value": [100, 105]})
 
-        series = AreaSeries(data=df, column_mapping={"time": "datetime", "value": "value"})
+        series = AreaSeries(
+            data=test_dataframe,
+            column_mapping={"time": "datetime", "value": "value"},
+        )
 
         assert len(series.data) == 2
         assert series.data[0].time == 1640995200
@@ -211,8 +225,6 @@ class TestAreaSeriesSerialization:
         data = [SingleValueData(time=1640995200, value=100)]
         series = AreaSeries(data=data)
 
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position=MarkerPosition.ABOVE_BAR,
@@ -241,7 +253,10 @@ class TestAreaSeriesSerialization:
         series = AreaSeries(data=data)
 
         price_line = PriceLineOptions(
-            price=100, color="#ff0000", line_width=2, line_style=LineStyle.DASHED
+            price=100,
+            color="#ff0000",
+            line_width=2,
+            line_style=LineStyle.DASHED,
         )
         series.add_price_line(price_line)
 
@@ -263,8 +278,6 @@ class TestAreaSeriesMethods:
         """Test add_marker method."""
         data = [SingleValueData(time=1640995200, value=100)]
         series = AreaSeries(data=data)
-
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -291,7 +304,10 @@ class TestAreaSeriesMethods:
         series = AreaSeries(data=data)
 
         price_line = PriceLineOptions(
-            price=100, color="#ff0000", line_width=2, line_style=LineStyle.DASHED
+            price=100,
+            color="#ff0000",
+            line_width=2,
+            line_style=LineStyle.DASHED,
         )
         series.add_price_line(price_line)
 
@@ -308,8 +324,6 @@ class TestAreaSeriesMethods:
         series = AreaSeries(data=data)
 
         # Test chaining add_marker and add_price_line
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position=MarkerPosition.ABOVE_BAR,
@@ -329,10 +343,11 @@ class TestAreaSeriesDataHandling:
 
     def test_from_dataframe_classmethod(self):
         """Test from_dataframe class method."""
-        df = pd.DataFrame({"datetime": [1640995200, 1641081600], "value": [100, 105]})
+        test_dataframe = pd.DataFrame({"datetime": [1640995200, 1641081600], "value": [100, 105]})
 
         series = AreaSeries.from_dataframe(
-            df, column_mapping={"time": "datetime", "value": "value"}
+            test_dataframe,
+            column_mapping={"time": "datetime", "value": "value"},
         )
 
         assert len(series.data) == 2
@@ -343,10 +358,13 @@ class TestAreaSeriesDataHandling:
 
     def test_from_dataframe_with_index_columns(self):
         """Test from_dataframe with index columns."""
-        df = pd.DataFrame({"value": [100, 105]}, index=[1640995200, 1641081600])
-        df.index.name = "time"  # Name the index
+        test_dataframe = pd.DataFrame({"value": [100, 105]}, index=[1640995200, 1641081600])
+        test_dataframe.index.name = "time"  # Name the index
 
-        series = AreaSeries.from_dataframe(df, column_mapping={"time": "index", "value": "value"})
+        series = AreaSeries.from_dataframe(
+            test_dataframe,
+            column_mapping={"time": "index", "value": "value"},
+        )
 
         assert len(series.data) == 2
         assert series.data[0].time == 1640995200
@@ -369,7 +387,7 @@ class TestAreaSeriesValidation:
         data = [SingleValueData(time=1640995200, value=100)]
         series = AreaSeries(data=data, pane_id=-1)
 
-        with pytest.raises(ValueError, match="pane_id must be non-negative"):
+        with pytest.raises(PaneIdNonNegativeError):
             series._validate_pane_config()
 
     def test_error_handling_invalid_data(self):
@@ -379,37 +397,28 @@ class TestAreaSeriesValidation:
 
     def test_error_handling_missing_required_columns(self):
         """Test error handling with missing required columns."""
-        df = pd.DataFrame({"value": [100, 105]})
+        test_dataframe = pd.DataFrame({"value": [100, 105]})
 
-        with pytest.raises(
-            ValueError, match="column_mapping is required when providing DataFrame or Series data"
-        ):
-            AreaSeries(data=df)
+        with pytest.raises(ColumnMappingRequiredError):
+            AreaSeries(data=test_dataframe)
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(
-            ValueError, match="data must be a list of SingleValueData objects, DataFrame, or Series"
-        ):
+        with pytest.raises(InvalidDataFormatError):
             AreaSeries(data="invalid")
 
     def test_error_handling_dataframe_without_column_mapping(self):
         """Test error handling with DataFrame without column mapping."""
-        df = pd.DataFrame({"value": [100, 105]})
+        test_dataframe = pd.DataFrame({"value": [100, 105]})
 
-        with pytest.raises(
-            ValueError, match="column_mapping is required when providing DataFrame or Series data"
-        ):
-            AreaSeries(data=df)
+        with pytest.raises(ColumnMappingRequiredError):
+            AreaSeries(data=test_dataframe)
 
     def test_error_handling_invalid_list_data(self):
         """Test error handling with invalid list data."""
         invalid_data = [{"time": 1640995200, "value": 100}]  # Not SingleValueData objects
 
-        with pytest.raises(
-            ValueError,
-            match="All items in data list must be instances of Data or its subclasses",
-        ):
+        with pytest.raises(DataItemsTypeError):
             AreaSeries(data=invalid_data)
 
 
@@ -564,8 +573,6 @@ class TestAreaSeriesJsonStructure:
         data = [SingleValueData(time=1640995200, value=100)]
         series = AreaSeries(data=data)
 
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position=MarkerPosition.ABOVE_BAR,
@@ -603,7 +610,10 @@ class TestAreaSeriesJsonStructure:
         series = AreaSeries(data=data)
 
         price_line = PriceLineOptions(
-            price=100, color="#ff0000", line_width=2, line_style=LineStyle.DASHED
+            price=100,
+            color="#ff0000",
+            line_width=2,
+            line_style=LineStyle.DASHED,
         )
         series.add_price_line(price_line)
 
@@ -634,8 +644,6 @@ class TestAreaSeriesJsonStructure:
         series.bottom_color = "#00ff00"
 
         # Add marker
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position=MarkerPosition.ABOVE_BAR,
@@ -648,7 +656,10 @@ class TestAreaSeriesJsonStructure:
 
         # Add price line
         price_line = PriceLineOptions(
-            price=100, color="#ff0000", line_width=2, line_style=LineStyle.DASHED
+            price=100,
+            color="#ff0000",
+            line_width=2,
+            line_style=LineStyle.DASHED,
         )
         series.add_price_line(price_line)
 
@@ -686,8 +697,6 @@ class TestAreaSeriesJsonStructure:
 
     def test_json_serialization_consistency(self):
         """Test that JSON serialization is consistent and can be parsed."""
-        import json
-
         data = [SingleValueData(time=1640995200, value=100)]
         line_options = LineOptions(color="#ff0000", line_width=3)
         series = AreaSeries(data=data)
@@ -776,21 +785,19 @@ class TestAreaSeriesPropertyValidation:
         series = AreaSeries(data=data)
 
         # Test line_options validation
-        with pytest.raises(
-            TypeError, match="line_options must be an instance of LineOptions or None"
-        ):
+        with pytest.raises(TypeValidationError):
             series.line_options = "invalid"
 
         # Test top_color validation
-        with pytest.raises(TypeError, match="top_color must be a string"):
+        with pytest.raises(TypeValidationError):
             series.top_color = 123
 
         # Test bottom_color validation
-        with pytest.raises(TypeError, match="bottom_color must be a string"):
+        with pytest.raises(TypeValidationError):
             series.bottom_color = 456
 
         # Test relative_gradient validation - should raise TypeError for non-boolean values
-        with pytest.raises(TypeError, match="relative_gradient must be a boolean"):
+        with pytest.raises(TypeValidationError):
             series.relative_gradient = "invalid"
 
         # Test valid boolean value
@@ -798,7 +805,7 @@ class TestAreaSeriesPropertyValidation:
         assert series.relative_gradient is True
 
         # Test invert_filled_area validation - should raise TypeError for non-boolean values
-        with pytest.raises(TypeError, match="invert_filled_area must be a boolean"):
+        with pytest.raises(TypeValidationError):
             series.invert_filled_area = "invalid"
 
         # Test valid boolean value
@@ -849,27 +856,21 @@ class TestAreaSeriesConstructorEdgeCases:
 
     def test_constructor_with_invalid_data_type(self):
         """Test AreaSeries constructor with invalid data type."""
-        with pytest.raises(
-            ValueError, match="data must be a list of SingleValueData objects, DataFrame, or Series"
-        ):
+        with pytest.raises(InvalidDataFormatError):
             AreaSeries(data=123)
 
     def test_constructor_with_dataframe_without_column_mapping(self):
         """Test AreaSeries constructor with DataFrame without column mapping."""
-        df = pd.DataFrame({"datetime": [1640995200], "value": [100]})
+        test_dataframe = pd.DataFrame({"datetime": [1640995200], "value": [100]})
 
-        with pytest.raises(
-            ValueError, match="column_mapping is required when providing DataFrame or Series data"
-        ):
-            AreaSeries(data=df)
+        with pytest.raises(ColumnMappingRequiredError):
+            AreaSeries(data=test_dataframe)
 
     def test_constructor_with_invalid_list_data(self):
         """Test AreaSeries constructor with invalid list data."""
         invalid_data = [{"time": 1640995200, "value": 100}]  # Dict instead of SingleValueData
 
-        with pytest.raises(
-            ValueError, match="All items in data list must be instances of Data or its subclasses"
-        ):
+        with pytest.raises(DataItemsTypeError):
             AreaSeries(data=invalid_data)
 
     def test_data_dict_property_with_empty_data(self):

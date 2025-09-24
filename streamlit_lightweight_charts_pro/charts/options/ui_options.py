@@ -1,8 +1,8 @@
 """UI option classes for streamlit-lightweight-charts."""
 
 from dataclasses import dataclass, field
-from typing import List, Literal
 from enum import Enum
+from typing import List, Literal
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
 from streamlit_lightweight_charts_pro.utils import chainable_field
@@ -78,8 +78,7 @@ class RangeSwitcherOptions(Options):
 @chainable_field("value_format", str)
 @chainable_field("update_on_crosshair", bool)
 class LegendOptions(Options):
-    """
-    Legend configuration with support for custom HTML templates and dynamic value display.
+    """Legend configuration with support for custom HTML templates and dynamic value display.
 
     The text supports a single placeholder that will be replaced by the frontend:
     - $$value$$: Current value of the series at crosshair position

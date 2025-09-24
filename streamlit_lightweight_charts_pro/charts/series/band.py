@@ -1,5 +1,4 @@
-"""
-Band series for streamlit-lightweight-charts.
+"""Band series for streamlit-lightweight-charts.
 
 This module provides the BandSeries class for creating band charts (e.g., Bollinger Bands)
 that display upper, middle, and lower bands. Band series are commonly used for technical
@@ -33,9 +32,7 @@ import pandas as pd
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.band import BandData
-from streamlit_lightweight_charts_pro.type_definitions import (
-    ChartType,
-)
+from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.utils import chainable_property
 
 
@@ -47,8 +44,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_property
 @chainable_property("upper_fill", bool)
 @chainable_property("lower_fill", bool)
 class BandSeries(Series):
-    """
-    Band series for lightweight charts (e.g., Bollinger Bands).
+    """Band series for lightweight charts (e.g., Bollinger Bands).
 
     This class represents a band series that displays upper, middle, and lower bands.
     It's commonly used for technical indicators like Bollinger Bands, Keltner Channels,
@@ -80,8 +76,7 @@ class BandSeries(Series):
         price_scale_id: str = "",
         pane_id: Optional[int] = 0,
     ):
-        """
-        Initialize BandSeries.
+        """Initialize BandSeries.
 
         Args:
             data: List of data points or DataFrame

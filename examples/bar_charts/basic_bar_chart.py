@@ -1,14 +1,12 @@
-"""
-Basic Bar Chart Example.
+"""Basic Bar Chart Example.
 
 This example demonstrates the fundamental usage of BarSeries with sample data
 from the data_samples module.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
@@ -16,14 +14,14 @@ from examples.utilities.data_samples import get_bar_data, get_dataframe_candlest
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import BarSeries
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
     """Demonstrate basic BarSeries functionality."""
     st.title("Basic Bar Chart Example")
     st.write(
-        "This example shows how to create a simple bar chart using BarSeries with sample data."
+        "This example shows how to create a simple bar chart using BarSeries with sample data.",
     )
 
     # Get sample data

@@ -1,5 +1,4 @@
-"""
-OHLC data classes for streamlit-lightweight-charts.
+"""OHLC data classes for streamlit-lightweight-charts.
 
 This module provides data classes for OHLC (Open, High, Low, Close) data points
 used in candlestick and bar charts.
@@ -7,14 +6,15 @@ used in candlestick and bar charts.
 
 import math
 from dataclasses import dataclass
+from typing import ClassVar
 
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
+from streamlit_lightweight_charts_pro.exceptions import RequiredFieldError, ValueValidationError
 
 
 @dataclass
 class OhlcvData(OhlcData):
-    """
-    Data point for candlestick charts with volume.
+    """Data point for candlestick charts with volume.
 
     This class represents an OHLCV (Open, High, Low, Close, Volume) data point,
     commonly used in financial charts for candlestick representations with volume.
@@ -28,8 +28,8 @@ class OhlcvData(OhlcData):
         volume: Trading volume for the period.
     """
 
-    REQUIRED_COLUMNS = {"volume"}
-    OPTIONAL_COLUMNS = set()
+    REQUIRED_COLUMNS: ClassVar[set] = {"volume"}
+    OPTIONAL_COLUMNS: ClassVar[set] = set()
 
     volume: float
 
@@ -39,11 +39,11 @@ class OhlcvData(OhlcData):
         super().__post_init__()  # Call parent's __post_init__
 
         if self.volume < 0:
-            raise ValueError("volume must be non-negative")
+            raise ValueValidationError("volume", "must be non-negative")
         # Handle NaN values
         for field_name in ["volume"]:
             value = getattr(self, field_name)
             if isinstance(value, float) and math.isnan(value):
                 setattr(self, field_name, 0.0)
             elif value is None:
-                raise ValueError(f"{field_name} must not be None")
+                raise RequiredFieldError(field_name)

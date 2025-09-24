@@ -12,7 +12,9 @@ Key Features:
 - Performance validation for large datasets
 """
 
+import math
 import time
+from typing import Any, ClassVar, Dict
 
 import pytest
 from jsonschema import ValidationError, validate
@@ -26,6 +28,7 @@ from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
 from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
 from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
 from streamlit_lightweight_charts_pro.data.line_data import LineData
+from streamlit_lightweight_charts_pro.type_definitions.enums import PriceScaleMode
 
 
 class FrontendJSONSchemas:
@@ -38,7 +41,7 @@ class FrontendJSONSchemas:
     """
 
     # Base data point schema
-    DATA_POINT_SCHEMA = {
+    DATA_POINT_SCHEMA: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "time": {"type": "integer"},
@@ -50,7 +53,7 @@ class FrontendJSONSchemas:
     }
 
     # OHLC data point schema
-    OHLC_DATA_POINT_SCHEMA = {
+    OHLC_DATA_POINT_SCHEMA: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "time": {"type": "integer"},
@@ -64,7 +67,7 @@ class FrontendJSONSchemas:
     }
 
     # Line options schema
-    LINE_OPTIONS_SCHEMA = {
+    LINE_OPTIONS_SCHEMA: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "color": {"type": "string"},
@@ -85,7 +88,7 @@ class FrontendJSONSchemas:
     }
 
     # Legend configuration schema
-    LEGEND_CONFIG_SCHEMA = {
+    LEGEND_CONFIG_SCHEMA: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "visible": {"type": "boolean"},
@@ -114,7 +117,7 @@ class FrontendJSONSchemas:
     }
 
     # Price scale options schema
-    PRICE_SCALE_OPTIONS_SCHEMA = {
+    PRICE_SCALE_OPTIONS_SCHEMA: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "visible": {"type": "boolean"},
@@ -140,7 +143,7 @@ class FrontendJSONSchemas:
     }
 
     # Series configuration schema
-    SERIES_CONFIG_SCHEMA = {
+    SERIES_CONFIG_SCHEMA: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "type": {
@@ -178,7 +181,7 @@ class FrontendJSONSchemas:
     }
 
     # Chart configuration schema
-    CHART_CONFIG_SCHEMA = {
+    CHART_CONFIG_SCHEMA: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "chart": {"type": "object"},
@@ -198,7 +201,7 @@ class FrontendJSONSchemas:
     }
 
     # Component configuration schema (top-level)
-    COMPONENT_CONFIG_SCHEMA = {
+    COMPONENT_CONFIG_SCHEMA: ClassVar[Dict[str, Any]] = {
         "type": "object",
         "properties": {
             "charts": {"type": "array", "items": CHART_CONFIG_SCHEMA, "minItems": 1},
@@ -304,7 +307,10 @@ class TestJSONSchemaValidation:
     def test_price_scale_options_schema_validation(self):
         """Test that price scale options match frontend schema."""
         price_scale = PriceScaleOptions(
-            visible=True, auto_scale=False, invert_scale=True, border_visible=False
+            visible=True,
+            auto_scale=False,
+            invert_scale=True,
+            border_visible=False,
         )
         price_scale_dict = price_scale.asdict()
 
@@ -353,7 +359,8 @@ class TestJSONSchemaValidation:
         price_scale_valid_dict = price_scale_valid.asdict()
 
         validate(
-            instance=price_scale_valid_dict, schema=FrontendJSONSchemas.PRICE_SCALE_OPTIONS_SCHEMA
+            instance=price_scale_valid_dict,
+            schema=FrontendJSONSchemas.PRICE_SCALE_OPTIONS_SCHEMA,
         )
         assert "priceScaleId" in price_scale_valid_dict
         assert price_scale_valid_dict["priceScaleId"] == "valid_id"
@@ -544,8 +551,6 @@ class TestContractValidation:
 
     def test_nan_handling_contract(self):
         """Test that NaN values are correctly handled."""
-        import math
-
         # Test data point with NaN value
         data = LineData(time=1640995200, value=float("nan"))
         data_dict = data.asdict()
@@ -556,8 +561,6 @@ class TestContractValidation:
 
     def test_enum_serialization_contract(self):
         """Test that enum values are correctly serialized as their .value."""
-        from streamlit_lightweight_charts_pro.type_definitions.enums import PriceScaleMode
-
         price_scale = PriceScaleOptions(mode=PriceScaleMode.LOGARITHMIC)
         price_scale_dict = price_scale.asdict()
 
@@ -572,8 +575,6 @@ class TestPerformanceValidation:
 
     def test_large_dataset_serialization(self):
         """Test serialization performance with large datasets."""
-        import time
-
         # Create large dataset
         data = [LineData(time=1640995200 + i, value=100.0 + i) for i in range(1000)]
         series = LineSeries(data=data)
@@ -610,7 +611,9 @@ class TestPerformanceValidation:
 
         series2 = CandlestickSeries(data=data2)
         series2.legend = LegendOptions(
-            visible=True, position="bottom-right", text="Candlestick Series"
+            visible=True,
+            position="bottom-right",
+            text="Candlestick Series",
         )
 
         chart = Chart(series=[series1, series2])

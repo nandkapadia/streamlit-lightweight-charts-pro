@@ -1,5 +1,4 @@
-"""
-Sample data for streamlit-lightweight-charts examples and testing.
+"""Sample data for streamlit-lightweight-charts examples and testing.
 
 This module contains sample datasets in various formats for demonstrating
 different chart types and features. All data is structured according to
@@ -13,9 +12,7 @@ The module provides:
 
 Example:
     ```python
-    from examples.dataSamples import (
-        get_line_data, get_candlestick_data, get_volume_data
-    )
+    from examples.dataSamples import get_line_data, get_candlestick_data, get_volume_data
 
     # Get data as data model objects
     line_data = get_line_data()
@@ -30,7 +27,7 @@ from typing import Dict, List, Union
 
 import pandas as pd
 
-from streamlit_lightweight_charts_pro.data import LineData, CandlestickData, BarData
+from streamlit_lightweight_charts_pro.data import BarData, CandlestickData, LineData
 from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames
 
 # =============================================================================
@@ -377,8 +374,7 @@ series_volume_chart = [
 
 
 def get_line_data() -> List[LineData]:
-    """
-    Get sample line chart data as LineData objects.
+    """Get sample line chart data as LineData objects.
 
     Returns:
         List[LineData]: List of line data points for line charts.
@@ -398,8 +394,7 @@ def get_line_data() -> List[LineData]:
 
 
 def get_bar_data() -> List[BarData]:
-    """
-    Get sample bar chart data as BarData objects.
+    """Get sample bar chart data as BarData objects.
 
     Returns:
         List[BarData]: List of OHLC data points for bar charts.
@@ -425,8 +420,7 @@ def get_bar_data() -> List[BarData]:
 
 
 def get_candlestick_data() -> List[CandlestickData]:
-    """
-    Get sample candlestick chart data as CandlestickData objects.
+    """Get sample candlestick chart data as CandlestickData objects.
 
     Returns:
         List[CandlestickData]: List of OHLC data points for candlestick charts.
@@ -452,8 +446,7 @@ def get_candlestick_data() -> List[CandlestickData]:
 
 
 def get_volume_data() -> List[LineData]:
-    """
-    Get sample volume chart data as LineData objects.
+    """Get sample volume chart data as LineData objects.
 
     Returns:
         List[LineData]: List of histogram data points for volume charts.
@@ -468,15 +461,16 @@ def get_volume_data() -> List[LineData]:
     """
     return [
         LineData(
-            time=item[ColumnNames.DATETIME], value=item[ColumnNames.VALUE], color=item.get("color")
+            time=item[ColumnNames.DATETIME],
+            value=item[ColumnNames.VALUE],
+            color=item.get("color"),
         )
         for item in series_histogram_chart
     ]
 
 
 def get_baseline_data() -> List[LineData]:
-    """
-    Get sample baseline chart data as LineData objects.
+    """Get sample baseline chart data as LineData objects.
 
     Returns:
         List[LineData]: List of baseline data points for baseline charts.
@@ -496,8 +490,7 @@ def get_baseline_data() -> List[LineData]:
 
 
 def get_multi_area_data_1() -> List[LineData]:
-    """
-    Get first multi-area chart data as LineData objects.
+    """Get first multi-area chart data as LineData objects.
 
     Returns:
         List[LineData]: List of line data points for area charts.
@@ -517,8 +510,7 @@ def get_multi_area_data_1() -> List[LineData]:
 
 
 def get_multi_area_data_2() -> List[LineData]:
-    """
-    Get second multi-area chart data as LineData objects.
+    """Get second multi-area chart data as LineData objects.
 
     Returns:
         List[LineData]: List of line data points for area charts.
@@ -538,8 +530,7 @@ def get_multi_area_data_2() -> List[LineData]:
 
 
 def get_volume_histogram_data() -> List[LineData]:
-    """
-    Get sample volume histogram data as LineData objects.
+    """Get sample volume histogram data as LineData objects.
 
     Returns:
         List[LineData]: List of histogram data points for volume charts.
@@ -559,8 +550,7 @@ def get_volume_histogram_data() -> List[LineData]:
 
 
 def get_dataframe_line_data() -> pd.DataFrame:
-    """
-    Get sample line chart data as a pandas DataFrame.
+    """Get sample line chart data as a pandas DataFrame.
 
     Returns:
         pd.DataFrame: DataFrame with datetime and close columns for line charts.
@@ -577,8 +567,7 @@ def get_dataframe_line_data() -> pd.DataFrame:
 
 
 def get_dataframe_candlestick_data() -> pd.DataFrame:
-    """
-    Get sample candlestick chart data as a pandas DataFrame.
+    """Get sample candlestick chart data as a pandas DataFrame.
 
     Returns:
         pd.DataFrame: DataFrame with OHLC columns for candlestick charts.
@@ -595,8 +584,7 @@ def get_dataframe_candlestick_data() -> pd.DataFrame:
 
 
 def get_dataframe_volume_data() -> pd.DataFrame:
-    """
-    Get sample volume chart data as a pandas DataFrame.
+    """Get sample volume chart data as a pandas DataFrame.
 
     Returns:
         pd.DataFrame: DataFrame with datetime and value columns for volume charts.
@@ -618,8 +606,7 @@ def get_dataframe_volume_data() -> pd.DataFrame:
 
 
 def get_sample_data_for_chart_type(chart_type: str) -> Union[List, pd.DataFrame]:
-    """
-    Get sample data for a specific chart type.
+    """Get sample data for a specific chart type.
 
     Args:
         chart_type: Type of chart ("line", "candlestick", ColumnNames.VOLUME, "baseline", "area").
@@ -643,23 +630,21 @@ def get_sample_data_for_chart_type(chart_type: str) -> Union[List, pd.DataFrame]
 
     if chart_type == "line":
         return get_line_data()
-    elif chart_type == "candlestick":
+    if chart_type == "candlestick":
         return get_candlestick_data()
-    elif chart_type == ColumnNames.VOLUME:
+    if chart_type == ColumnNames.VOLUME:
         return get_volume_data()
-    elif chart_type == "baseline":
+    if chart_type == "baseline":
         return get_baseline_data()
-    elif chart_type == "area":
+    if chart_type == "area":
         return get_multi_area_data_1()
-    elif chart_type == "histogram":
+    if chart_type == "histogram":
         return get_volume_histogram_data()
-    else:
-        raise ValueError(f"Unsupported chart type: {chart_type}")
+    raise ValueError(f"Unsupported chart type: {chart_type}")
 
 
 def get_all_sample_datasets() -> Dict[str, Union[List, pd.DataFrame]]:
-    """
-    Get all available sample datasets.
+    """Get all available sample datasets.
 
     Returns:
         Dict[str, Union[List, pd.DataFrame]]: Dictionary mapping chart types to sample data.

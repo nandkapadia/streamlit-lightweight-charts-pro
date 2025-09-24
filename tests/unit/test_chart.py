@@ -13,6 +13,10 @@ import pytest
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
+from streamlit_lightweight_charts_pro.charts.options.layout_options import (
+    LayoutOptions,
+    PaneHeightOptions,
+)
 from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
     PriceScaleMargins,
     PriceScaleOptions,
@@ -25,6 +29,11 @@ from streamlit_lightweight_charts_pro.charts.series import (
 from streamlit_lightweight_charts_pro.data.annotation import Annotation, AnnotationManager
 from streamlit_lightweight_charts_pro.data.line_data import LineData
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+from streamlit_lightweight_charts_pro.exceptions import (
+    PriceScaleIdTypeError,
+    TypeValidationError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames, PriceScaleMode
 
 
@@ -278,7 +287,10 @@ class TestChartPriceScaleManagement:
         chart = Chart()
         invalid_options = "not a PriceScaleOptions"
 
-        with pytest.raises(ValueError, match="options must be a PriceScaleOptions instance"):
+        with pytest.raises(
+            ValueValidationError,
+            match="options must be a PriceScaleOptions instance",
+        ):
             chart.add_overlay_price_scale("volume", invalid_options)
 
     def test_add_overlay_price_scale_method_chaining(self):
@@ -288,7 +300,8 @@ class TestChartPriceScaleManagement:
         options2 = PriceScaleOptions(visible=False)
 
         result = chart.add_overlay_price_scale("volume", options1).add_overlay_price_scale(
-            "indicator", options2
+            "indicator",
+            options2,
         )
 
         assert result is chart
@@ -316,7 +329,9 @@ class TestChartPriceVolumeSeries:
         }
 
         chart.add_price_volume_series(
-            data=data, column_mapping=column_mapping, price_type="candlestick"
+            data=data,
+            column_mapping=column_mapping,
+            price_type="candlestick",
         )
         price_series = chart.series[0]
         volume_series = chart.series[1]
@@ -362,9 +377,14 @@ class TestChartPriceVolumeSeries:
             "volume": "volume",
         }
 
-        with pytest.raises(ValueError, match="price_type must be 'candlestick' or 'line'"):
+        with pytest.raises(
+            ValueValidationError,
+            match="price_type must be 'candlestick' or 'line'",
+        ):
             chart.add_price_volume_series(
-                data=data, column_mapping=column_mapping, price_type="invalid"
+                data=data,
+                column_mapping=column_mapping,
+                price_type="invalid",
             )
 
     def test_create_price_volume_series_with_custom_kwargs(self):
@@ -413,7 +433,9 @@ class TestChartPriceVolumeSeries:
         }
 
         result = chart.add_price_volume_series(
-            data=data, column_mapping=column_mapping, price_type="candlestick"
+            data=data,
+            column_mapping=column_mapping,
+            price_type="candlestick",
         )
 
         assert result is chart  # Method chaining
@@ -435,7 +457,9 @@ class TestChartPriceVolumeSeries:
 
         chart = Chart()
         chart.add_price_volume_series(
-            data=data, column_mapping=column_mapping, price_type="candlestick"
+            data=data,
+            column_mapping=column_mapping,
+            price_type="candlestick",
         )
 
         assert isinstance(chart, Chart)
@@ -445,7 +469,7 @@ class TestChartPriceVolumeSeries:
 
     def test_from_price_volume_dataframe_with_dataframe(self):
         """Test from_price_volume_dataframe with pandas DataFrame."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "time": [1640995200, 1641081600],
                 "open": [100, 103],
@@ -453,7 +477,7 @@ class TestChartPriceVolumeSeries:
                 "low": [98, 102],
                 "close": [103, 106],
                 "volume": [1000, 1200],
-            }
+            },
         )
         column_mapping = {
             "time": "time",
@@ -466,7 +490,9 @@ class TestChartPriceVolumeSeries:
 
         chart = Chart()
         chart.add_price_volume_series(
-            data=df, column_mapping=column_mapping, price_type="candlestick"
+            data=test_dataframe,
+            column_mapping=column_mapping,
+            price_type="candlestick",
         )
 
         assert isinstance(chart, Chart)
@@ -585,11 +611,6 @@ class TestChartFrontendConfiguration:
 
     def test_to_frontend_config_layout_pane_heights(self):
         """Test that paneHeights is properly configured in chart.layout."""
-        from streamlit_lightweight_charts_pro.charts.options.layout_options import (
-            LayoutOptions,
-            PaneHeightOptions,
-        )
-
         # Create chart with layout options
         layout_options = LayoutOptions()
         layout_options.pane_heights = {
@@ -611,7 +632,8 @@ class TestChartFrontendConfiguration:
         # Verify layout is NOT at top level (duplication fix)
         assert "layout" not in chart_config
 
-        # Verify paneHeights is NOT extracted to top level (frontend now uses chart.layout.paneHeights)
+        # Verify paneHeights is NOT extracted to top level
+        # (frontend now uses chart.layout.paneHeights)
         assert "paneHeights" not in chart_config
         assert chart_config["chart"]["layout"]["paneHeights"]["0"]["factor"] == 0.7
         assert chart_config["chart"]["layout"]["paneHeights"]["1"]["factor"] == 0.3
@@ -721,7 +743,7 @@ class TestChartEdgeCases:
     def test_add_series_with_none(self):
         """Test adding None series (should raise error)."""
         chart = Chart()
-        with pytest.raises(TypeError, match="series must be an instance of Series"):
+        with pytest.raises(TypeValidationError, match="series must be Series instance"):
             chart.add_series(None)
 
     def test_update_options_with_none_values(self):
@@ -733,8 +755,8 @@ class TestChartEdgeCases:
     def test_create_price_volume_series_with_none_data(self):
         """Test creating price-volume series with None data."""
         chart = Chart()
-        # This should raise TypeError since None data is not allowed
-        with pytest.raises(TypeError):
+        # This should raise TypeValidationError since None data is not allowed
+        with pytest.raises(TypeValidationError):
             chart.add_price_volume_series(data=None, column_mapping={})
 
     def test_create_price_volume_series_with_empty_data(self):
@@ -749,10 +771,12 @@ class TestChartEdgeCases:
             "volume": "volume",
         }
 
-        # This should raise ValueError since empty data is not allowed
-        with pytest.raises(ValueError):
+        # This should raise ValueValidationError since empty data is not allowed
+        with pytest.raises(ValueValidationError):
             chart.add_price_volume_series(
-                data=[], column_mapping=column_mapping, price_type="candlestick"
+                data=[],
+                column_mapping=column_mapping,
+                price_type="candlestick",
             )
 
     def test_to_frontend_config_with_none_options(self):
@@ -764,17 +788,23 @@ class TestChartEdgeCases:
         assert "charts" in config
 
     def test_to_frontend_config_right_price_scale_id_validation(self):
-        """Test that non-string right price scale IDs raise TypeError in frontend config."""
+        """Test that non-string right price scale IDs raise PriceScaleIdTypeError."""
         chart = Chart()
 
-        with pytest.raises(TypeError, match="right_price_scale.price_scale_id must be a string"):
+        with pytest.raises(
+            PriceScaleIdTypeError,
+            match="right_price_scale.price_scale_id must be must be a string",
+        ):
             chart.options = ChartOptions(right_price_scale=PriceScaleOptions(price_scale_id=123))
 
     def test_to_frontend_config_left_price_scale_id_validation(self):
-        """Test that non-string left price scale IDs raise TypeError in frontend config."""
+        """Test that non-string left price scale IDs raise PriceScaleIdTypeError."""
         chart = Chart()
 
-        with pytest.raises(TypeError, match="left_price_scale.price_scale_id must be a string"):
+        with pytest.raises(
+            PriceScaleIdTypeError,
+            match="left_price_scale.price_scale_id must be must be a string",
+        ):
             chart.options = ChartOptions(left_price_scale=PriceScaleOptions(price_scale_id=456))
 
     def test_to_frontend_config_valid_price_scale_ids(self):
@@ -865,7 +895,9 @@ class TestChartIntegration:
         # Create chart from price-volume data
         chart = Chart()
         chart.add_price_volume_series(
-            data=data, column_mapping=column_mapping, price_type="candlestick"
+            data=data,
+            column_mapping=column_mapping,
+            price_type="candlestick",
         )
 
         # Add custom options
@@ -873,7 +905,9 @@ class TestChartIntegration:
 
         # Add custom price scale
         volume_scale = PriceScaleOptions(
-            visible=True, auto_scale=True, scale_margins=PriceScaleMargins(top=0.8, bottom=0.0)
+            visible=True,
+            auto_scale=True,
+            scale_margins=PriceScaleMargins(top=0.8, bottom=0.0),
         )
         chart.add_overlay_price_scale("custom_volume", volume_scale)
 

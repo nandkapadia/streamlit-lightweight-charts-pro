@@ -3,7 +3,7 @@
  * without React testing library complications
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { IChartApi } from 'lightweight-charts';
 
 // Mock the ChartManager module
@@ -28,9 +28,9 @@ const mockChartManager = {
     if (chart && typeof chart.remove === 'function') {
       try {
         chart.remove();
-      } catch (error) {
+      } catch {
         // Gracefully handle chart removal errors
-        console.warn(`Error removing chart ${chartId}:`, error);
+        console.warn('A warning occurred');
       }
     }
     delete mockChartManager.charts[chartId];
