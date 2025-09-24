@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @fileoverview Tests for ChartCoordinateService
  */

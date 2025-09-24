@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @fileoverview Performance benchmark tests for critical chart operations
  *

@@ -3,10 +3,10 @@
  * Reduces initial bundle size by loading components and services on demand
  */
 
-import { ComponentType, lazy, LazyExoticComponent } from 'react';
+import React, { ComponentType, lazy, LazyExoticComponent } from 'react';
 
 /**
- * Lazy load a React component with error boundary
+ * Lazy load a React component with error boundary and React 19 optimizations
  */
 export function lazyComponent<T extends ComponentType<any>>(
   importFunc: () => Promise<{ default: T }>,
@@ -21,6 +21,31 @@ export function lazyComponent<T extends ComponentType<any>>(
       };
     })
   );
+}
+
+/**
+ * Enhanced lazy component with Suspense wrapper integration
+ */
+export function lazyComponentWithSuspense<T extends ComponentType<any>>(
+  importFunc: () => Promise<{ default: T }>,
+  fallback?: T,
+  suspenseOptions?: {
+    minLoadingTime?: number;
+    showProgressIndicator?: boolean;
+  }
+): LazyExoticComponent<T> {
+  const LazyComponent = lazyComponent(importFunc, fallback);
+
+  // Return a wrapped component that integrates with our Suspense system
+  const WrappedComponent: T = ((...args: any[]) => {
+    // Component will be wrapped with ChartSuspenseWrapper by parent
+    return React.createElement(LazyComponent, ...args);
+  }) as any as T;
+
+  // Store suspense options for use by parent components
+  (WrappedComponent as any).__suspenseOptions = suspenseOptions;
+
+  return lazy(() => Promise.resolve({ default: WrappedComponent }));
 }
 
 /**
@@ -126,23 +151,55 @@ export const ChartServices = {
 };
 
 /**
- * Lazy load chart components
+ * Lazy load chart components with enhanced Suspense integration
  */
 export const ChartComponents = {
-  SeriesConfigDialog: lazyComponent(
+  SeriesConfigDialog: lazyComponentWithSuspense(
     () =>
       import('../components/SeriesConfigDialog').then(module => ({
         default: module.SeriesConfigDialog,
       })),
-    () => null
+    () => null,
+    {
+      minLoadingTime: 300,
+      showProgressIndicator: true,
+    }
   ),
 
-  ButtonPanelComponent: lazyComponent(
+  ButtonPanelComponent: lazyComponentWithSuspense(
     () =>
       import('../components/ButtonPanelComponent').then(module => ({
         default: module.ButtonPanelComponent,
       })),
-    () => null
+    () => null,
+    {
+      minLoadingTime: 200,
+      showProgressIndicator: false,
+    }
+  ),
+
+  ChartContainer: lazyComponentWithSuspense(
+    () =>
+      import('../components/ChartContainer').then(module => ({
+        default: module.ChartContainer,
+      })),
+    () => null,
+    {
+      minLoadingTime: 400,
+      showProgressIndicator: true,
+    }
+  ),
+
+  ChartAutoSizingManager: lazyComponentWithSuspense(
+    () =>
+      import('../components/ChartAutoSizingManager').then(module => ({
+        default: module.ChartAutoSizingManager,
+      })),
+    () => null,
+    {
+      minLoadingTime: 150,
+      showProgressIndicator: false,
+    }
   ),
 };
 

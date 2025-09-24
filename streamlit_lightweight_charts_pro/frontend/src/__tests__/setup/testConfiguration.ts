@@ -486,7 +486,7 @@ declare global {
   var clearPerformanceMetrics: () => void;
   var performanceThresholds: TestEnvironmentConfig['performanceThresholds'];
   var trackObject: <T extends object>(obj: T) => T;
-  // @ts-ignore - Global gc function type conflicts
+  // @ts-expect-error - Global gc function type conflicts
   var gc: any;
 }
 

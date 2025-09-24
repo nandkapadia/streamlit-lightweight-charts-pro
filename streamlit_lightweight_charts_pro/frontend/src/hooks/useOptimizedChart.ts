@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useTransition, useDeferredValue } from 'react';
 import { IChartApi, ISeriesApi, createChart } from 'lightweight-charts';
 import { ChartReadyDetector } from '../utils/chartReadyDetection';
 import { ResizeObserverManager } from '../utils/resizeObserverManager';
@@ -43,6 +43,10 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
     isInitialized: false,
     isDisposed: false,
   });
+
+  // React 19 concurrent features for better performance
+  const [isPendingChartOperation, startChartTransition] = useTransition();
+  const deferredOptions = useDeferredValue(options);
 
   const resizeObserverManager = useRef<ResizeObserverManager>(new ResizeObserverManager());
   const performanceTimer = useRef<{ start: () => void; end: () => void } | null>(null);
@@ -147,7 +151,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
     }
   }, [autoResize, enhancedResizeObserverCallback, chartId, throttleMs, debounceMs]);
 
-  // Enhanced chart creation with ready detection
+  // Enhanced chart creation with ready detection and concurrent features
   const createChart = useCallback(
     async (container: HTMLElement, chartOptions: any): Promise<IChartApi | null> => {
       if (performanceTimer.current) {
@@ -158,28 +162,44 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
         // Store container reference
         chartRefs.current.container = container;
 
-        // Create chart
-        const chart = createChartFromOptions(container, chartOptions);
-        if (!chart) {
-          throw new Error('Failed to create chart');
-        }
+        // Create chart (heavy operation wrapped in transition)
+        return new Promise<IChartApi | null>((resolve) => {
+          startChartTransition(() => {
+            try {
+              const chart = createChartFromOptions(container, chartOptions);
+              if (!chart) {
+                throw new Error('Failed to create chart');
+              }
 
-        // Store chart reference
-        chartRefs.current.chart = chart;
-        chartRefs.current.isInitialized = true;
+              // Store chart reference
+              chartRefs.current.chart = chart;
+              chartRefs.current.isInitialized = true;
 
-        // Wait for chart to be ready
-        const isReady = await waitForChartReady();
-        if (isReady) {
-          // Setup resize observer after chart is ready
-          setupResizeObserver();
-        }
+              // Setup resize observer and wait for chart readiness (non-blocking)
+              void Promise.resolve(waitForChartReady()).then((isReady) => {
+                if (isReady) {
+                  setupResizeObserver();
+                }
 
-        if (performanceTimer.current) {
-          performanceTimer.current.end();
-        }
+                if (performanceTimer.current) {
+                  performanceTimer.current.end();
+                }
 
-        return chart;
+                resolve(chart);
+              }).catch(() => {
+                if (performanceTimer.current) {
+                  performanceTimer.current.end();
+                }
+                resolve(null);
+              });
+            } catch {
+              if (performanceTimer.current) {
+                performanceTimer.current.end();
+              }
+              resolve(null);
+            }
+          });
+        });
       } catch {
         if (performanceTimer.current) {
           performanceTimer.current.end();
@@ -187,10 +207,10 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
         return null;
       }
     },
-    [waitForChartReady, setupResizeObserver]
+    [waitForChartReady, setupResizeObserver, startChartTransition]
   );
 
-  // Enhanced series addition with ready detection
+  // Enhanced series addition with ready detection and concurrent features
   const addSeries = useCallback(
     (seriesType: any, options: any = {}, _paneId?: number): ISeriesApi<any> | null => {
       if (performanceTimer.current) {
@@ -202,17 +222,25 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
           return null;
         }
 
-        // Use the seriesType parameter instead of hardcoded CandlestickSeries
-        const series = chartRefs.current.chart.addSeries(seriesType, options);
-        if (series) {
-          chartRefs.current.series.push(series);
-        }
+        // Wrap series addition in transition for better performance
+        let newSeries: ISeriesApi<any> | null = null;
+        startChartTransition(() => {
+          try {
+            // Use the seriesType parameter instead of hardcoded CandlestickSeries
+            newSeries = chartRefs.current.chart?.addSeries(seriesType, options) || null;
+            if (newSeries) {
+              chartRefs.current.series.push(newSeries);
+            }
+          } catch {
+            newSeries = null;
+          }
+        });
 
         if (performanceTimer.current) {
           performanceTimer.current.end();
         }
 
-        return series;
+        return newSeries;
       } catch {
         if (performanceTimer.current) {
           performanceTimer.current.end();
@@ -220,7 +248,7 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
         return null;
       }
     },
-    []
+    [startChartTransition]
   );
 
   // Get series by index with validation
@@ -334,6 +362,9 @@ export function useOptimizedChart(options: UseOptimizedChartOptions) {
     chartId,
     waitForChartReady,
     isChartReadySync,
+    // React 19 concurrent features
+    isPendingChartOperation,
+    deferredOptions,
   };
 }
 

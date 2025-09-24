@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState, useTransition, useDeferredValue } from 'react';
+import { flushSync } from 'react-dom';
 import { createChart, IChartApi } from 'lightweight-charts';
 import { ChartConfig } from '../types';
 import { cleanLineStyleOptions } from '../utils/lineStyle';
@@ -20,15 +21,19 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
 
-    // Create chart options with proper styling
+    // React 19 concurrent features
+    const [isPendingChart, startChartTransition] = useTransition();
+    const deferredChartConfig = useDeferredValue(chartConfig);
+
+    // Create chart options with proper styling (using deferred config for better performance)
     const chartOptions = cleanLineStyleOptions({
       width:
-        typeof chartConfig.chart?.width === 'number' ? chartConfig.chart.width : width || undefined,
+        typeof deferredChartConfig.chart?.width === 'number' ? deferredChartConfig.chart.width : width || undefined,
       height:
-        typeof chartConfig.chart?.height === 'number'
-          ? chartConfig.chart.height
-          : chartConfig.chart?.height || height || undefined,
-      ...chartConfig.chart,
+        typeof deferredChartConfig.chart?.height === 'number'
+          ? deferredChartConfig.chart.height
+          : deferredChartConfig.chart?.height || height || undefined,
+      ...deferredChartConfig.chart,
     });
 
     // Container styles
@@ -44,27 +49,33 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
       position: 'relative',
     };
 
-    // Initialize chart
+    // Initialize chart with React 19 optimizations
     const initializeChart = useCallback(() => {
       if (!containerRef.current || isInitialized) return;
 
-      try {
-        // Create the chart
-        const chart = createChart(containerRef.current, chartOptions as any);
-        chartRef.current = chart;
-        setIsInitialized(true);
+      startChartTransition(() => {
+        try {
+          // Create the chart
+          const chart = createChart(containerRef.current as HTMLDivElement, chartOptions as any);
+          chartRef.current = chart;
 
-        // Notify parent component
-        if (onChartReady) {
-          onChartReady(chart, chartId);
+          // Use flushSync for critical DOM update to ensure immediate visual feedback
+          flushSync(() => {
+            setIsInitialized(true);
+          });
+
+          // Notify parent component (non-blocking)
+          if (onChartReady) {
+            onChartReady(chart, chartId);
+          }
+        } catch (error) {
+          console.error(error);
+          if (onChartError) {
+            onChartError(error as Error, chartId);
+          }
         }
-      } catch (error) {
-        console.error(error);
-        if (onChartError) {
-          onChartError(error as Error, chartId);
-        }
-      }
-    }, [chartOptions, chartId, onChartReady, onChartError, isInitialized]);
+      });
+    }, [chartOptions, chartId, onChartReady, onChartError, isInitialized, startChartTransition]);
 
     // Cleanup chart
     const cleanup = useCallback(() => {
@@ -79,11 +90,14 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
       }
     }, []);
 
-    // Handle resize
+    // Handle resize with flushSync for immediate visual updates
     const handleResize = useCallback(() => {
       if (chartRef.current && containerRef.current) {
         const { clientWidth, clientHeight } = containerRef.current;
-        chartRef.current.resize(clientWidth, clientHeight);
+        // Use flushSync for critical resize updates to avoid layout shift
+        flushSync(() => {
+          chartRef.current?.resize(clientWidth, clientHeight);
+        });
       }
     }, []);
 
@@ -119,6 +133,24 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
         }}
       >
         <div style={containerStyle}>
+          {isPendingChart && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              zIndex: 1000,
+              fontSize: '14px',
+              color: '#666'
+            }}>
+              Loading chart...
+            </div>
+          )}
           <div id={containerId} ref={containerRef} style={chartContainerStyle} />
         </div>
       </ErrorBoundary>

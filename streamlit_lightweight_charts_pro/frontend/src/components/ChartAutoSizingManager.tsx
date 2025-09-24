@@ -4,7 +4,7 @@
  * Handles responsive behavior and container dimension management
  */
 
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect, useMemo, useTransition, useDeferredValue } from 'react';
 import { IChartApi } from 'lightweight-charts';
 import { ResizeObserverManager } from '../utils/resizeObserverManager';
 
@@ -19,7 +19,7 @@ interface ChartAutoSizingManagerProps {
 /**
  * Manages chart auto-sizing and responsive behavior
  */
-export const ChartAutoSizingManager: React.FC<ChartAutoSizingManagerProps> = ({
+export const ChartAutoSizingManager: React.FC<ChartAutoSizingManagerProps> = React.memo(({
   chart,
   chartId,
   containerRef,
@@ -28,11 +28,15 @@ export const ChartAutoSizingManager: React.FC<ChartAutoSizingManagerProps> = ({
 }) => {
   const resizeManagerRef = useRef<ResizeObserverManager>(new ResizeObserverManager());
 
+  // React 19 concurrent features for better resize performance
+  const [, startResizeTransition] = useTransition();
+  const deferredAutoSize = useDeferredValue(autoSize);
+
   /**
-   * Get container dimensions safely
+   * Get container dimensions safely (memoized for better performance)
    */
-  const getContainerDimensions = useCallback(
-    (container: HTMLElement) => {
+  const getContainerDimensions = useMemo(
+    () => (container: HTMLElement) => {
       try {
         const rect = container.getBoundingClientRect();
         return {
@@ -48,7 +52,7 @@ export const ChartAutoSizingManager: React.FC<ChartAutoSizingManagerProps> = ({
   );
 
   /**
-   * Enhanced resize handler with performance optimizations
+   * Enhanced resize handler with performance optimizations and React 19 features
    */
   const debouncedResizeHandler = useCallback(
     (entry: ResizeObserverEntry | ResizeObserverEntry[]) => {
@@ -56,22 +60,25 @@ export const ChartAutoSizingManager: React.FC<ChartAutoSizingManagerProps> = ({
       const singleEntry = Array.isArray(entry) ? entry[0] : entry;
       if (!chart || !containerRef.current) return;
 
-      try {
-        const dimensions = getContainerDimensions(singleEntry.target as HTMLElement);
+      // Use transition for non-critical resize operations
+      startResizeTransition(() => {
+        try {
+          const dimensions = getContainerDimensions(singleEntry.target as HTMLElement);
 
-        // Only resize if dimensions actually changed significantly
-        const currentSize = chart.options();
-        const widthChanged = Math.abs((currentSize.width || 0) - dimensions.width) > 10;
-        const heightChanged = Math.abs((currentSize.height || 0) - dimensions.height) > 10;
+          // Only resize if dimensions actually changed significantly
+          const currentSize = chart.options();
+          const widthChanged = Math.abs((currentSize.width || 0) - dimensions.width) > 10;
+          const heightChanged = Math.abs((currentSize.height || 0) - dimensions.height) > 10;
 
-        if (widthChanged || heightChanged) {
-          chart.resize(dimensions.width, dimensions.height, false);
+          if (widthChanged || heightChanged) {
+            chart.resize(dimensions.width, dimensions.height, false);
+          }
+        } catch (error) {
+          onError?.(error as Error, 'resizeHandler');
         }
-      } catch (error) {
-        onError?.(error as Error, 'resizeHandler');
-      }
+      });
     },
-    [chart, containerRef, getContainerDimensions, onError]
+    [chart, containerRef, getContainerDimensions, onError, startResizeTransition]
   );
 
   /**
@@ -111,13 +118,13 @@ export const ChartAutoSizingManager: React.FC<ChartAutoSizingManagerProps> = ({
     onError,
   ]);
 
-  // Setup auto-sizing when chart or container changes
+  // Setup auto-sizing when chart or container changes (using deferred value)
   useEffect(() => {
-    if (autoSize) {
+    if (deferredAutoSize) {
       return setupAutoSizing();
     }
     return undefined;
-  }, [setupAutoSizing, autoSize]);
+  }, [setupAutoSizing, deferredAutoSize]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -129,4 +136,4 @@ export const ChartAutoSizingManager: React.FC<ChartAutoSizingManagerProps> = ({
 
   // This component doesn't render anything - it only manages sizing
   return null;
-};
+});

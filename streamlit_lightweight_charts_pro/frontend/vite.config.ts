@@ -10,18 +10,19 @@ export default defineConfig({
     'import.meta.hot': 'undefined',
   },
   build: {
-    target: 'es2015',
+    target: 'es2020',
     outDir: 'build',
     sourcemap: false,
     minify: 'terser',
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        format: 'iife',
+        format: 'umd',
+        name: 'StreamlitLightweightCharts',
         entryFileNames: 'static/js/[name].[hash].js',
         chunkFileNames: 'static/js/[name].[hash].js',
         assetFileNames: 'static/css/[name].[hash].[ext]',
-        manualChunks: undefined,
-        inlineDynamicImports: true,
+        inlineDynamicImports: true, // Inline for Streamlit compatibility
       },
     },
   },

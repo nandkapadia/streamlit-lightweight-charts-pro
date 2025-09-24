@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useTransition } from 'react';
 import { IChartApi, ISeriesApi, SeriesMarker, Time } from 'lightweight-charts';
 import { SeriesConfig, ChartConfig } from '../types';
 import { SeriesDataPoint } from '../types/ChartInterfaces';
@@ -18,8 +18,12 @@ export interface SeriesManagerAPI {
 }
 
 export const useSeriesManager = (): SeriesManagerAPI => {
-  // Validate series data format
-  const validateSeriesData = useCallback((data: any[], seriesType: string): boolean => {
+  // React 19 concurrent features for better performance
+  const [, startSeriesTransition] = useTransition();
+
+  // Validate series data format (memoized for better performance)
+  const validateSeriesData = useMemo(
+    () => (data: any[], seriesType: string): boolean => {
     if (!Array.isArray(data) || data.length === 0) {
       return false;
     }
@@ -56,7 +60,9 @@ export const useSeriesManager = (): SeriesManagerAPI => {
           return 'value' in point;
       }
     });
-  }, []);
+    },
+    []
+  );
 
   // Add markers to series
   const addMarkersToSeries = useCallback(
@@ -85,18 +91,20 @@ export const useSeriesManager = (): SeriesManagerAPI => {
     []
   );
 
-  // Create all series for a chart
+  // Create all series for a chart with React 19 optimizations
   const createSeriesForChart = useCallback(
     (chart: IChartApi, chartConfig: ChartConfig, chartId: string): ISeriesApi<any>[] => {
       const createdSeries: ISeriesApi<any>[] = [];
 
-      try {
-        if (!chartConfig.series || chartConfig.series.length === 0) {
-          console.warn(`No series configured for chart ${chartId}`);
-          return createdSeries;
-        }
+      // Use transition for non-urgent series creation
+      startSeriesTransition(() => {
+        try {
+          if (!chartConfig.series || chartConfig.series.length === 0) {
+            console.warn(`No series configured for chart ${chartId}`);
+            return;
+          }
 
-        chartConfig.series.forEach((seriesConfig: SeriesConfig, seriesIndex: number) => {
+          chartConfig.series.forEach((seriesConfig: SeriesConfig, seriesIndex: number) => {
           try {
             // Create series using factory
             const series = createSeries(chart, seriesConfig);
@@ -140,13 +148,14 @@ export const useSeriesManager = (): SeriesManagerAPI => {
             console.error(error);
           }
         });
-      } catch (error) {
-        console.error(error);
-      }
+        } catch (error) {
+          console.error(error);
+        }
+      });
 
       return createdSeries;
     },
-    [addMarkersToSeries, validateSeriesData]
+    [addMarkersToSeries, validateSeriesData, startSeriesTransition]
   );
 
   // Update series data
@@ -225,13 +234,16 @@ interface SeriesManagerProviderProps {
 
 const SeriesManagerContext = React.createContext<SeriesManagerAPI | null>(null);
 
-export const SeriesManagerProvider: React.FC<SeriesManagerProviderProps> = ({ children }) => {
+export const SeriesManagerProvider: React.FC<SeriesManagerProviderProps> = React.memo(({ children }) => {
   const seriesManager = useSeriesManager();
 
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => seriesManager, [seriesManager]);
+
   return (
-    <SeriesManagerContext.Provider value={seriesManager}>{children}</SeriesManagerContext.Provider>
+    <SeriesManagerContext.Provider value={contextValue}>{children}</SeriesManagerContext.Provider>
   );
-};
+});
 
 export const useSeriesManagerContext = (): SeriesManagerAPI => {
   const context = React.useContext(SeriesManagerContext);

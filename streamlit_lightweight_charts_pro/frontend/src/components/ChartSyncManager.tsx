@@ -3,7 +3,7 @@
  * Extracted from LightweightCharts.tsx for better separation of concerns
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useTransition } from 'react';
 import { IChartApi } from 'lightweight-charts';
 import { SyncConfig } from '../types';
 import { ExtendedChartApi } from '../types/ChartInterfaces';
@@ -30,6 +30,9 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
     lastSyncTimestamp: 0,
     lastTimeRangeSyncTimestamp: 0,
   });
+
+  // React 19 concurrent features for better sync performance
+  const [, startSyncTransition] = useTransition();
 
   /**
    * Setup crosshair synchronization
@@ -70,25 +73,28 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
       (chart as ExtendedChartApi)._storageListenerAdded = true;
     }
 
-    // Subscribe to crosshair move events
+    // Subscribe to crosshair move events (enhanced with concurrent features)
     const handleCrosshairMove = (param: any) => {
       if ((chart as ExtendedChartApi)._isExternalSync) {
         return;
       }
 
-      // Broadcast sync event
-      const syncData = {
-        chartId,
-        param,
-        timestamp: Date.now(),
-      };
+      // Use transition for non-urgent sync operations to avoid blocking UI
+      startSyncTransition(() => {
+        // Broadcast sync event
+        const syncData = {
+          chartId,
+          param,
+          timestamp: Date.now(),
+        };
 
-      try {
-        localStorage.setItem('chart-crosshair-sync', JSON.stringify(syncData));
-        onSyncEvent?.('crosshairMove', syncData);
-      } catch {
-        // Ignore localStorage errors
-      }
+        try {
+          localStorage.setItem('chart-crosshair-sync', JSON.stringify(syncData));
+          onSyncEvent?.('crosshairMove', syncData);
+        } catch {
+          // Ignore localStorage errors
+        }
+      });
     };
 
     chart.subscribeCrosshairMove(handleCrosshairMove);
@@ -96,7 +102,7 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
     return () => {
       chart.unsubscribeCrosshairMove(handleCrosshairMove);
     };
-  }, [chart, chartId, syncConfig?.crosshair, onSyncEvent]);
+  }, [chart, chartId, syncConfig?.crosshair, onSyncEvent, startSyncTransition]);
 
   /**
    * Setup time range synchronization
@@ -140,25 +146,28 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
       (chart as ExtendedChartApi)._timeRangeStorageListenerAdded = true;
     }
 
-    // Subscribe to visible time range change
+    // Subscribe to visible time range change (enhanced with concurrent features)
     const handleTimeRangeChange = () => {
       if ((chart as ExtendedChartApi)._isExternalTimeRangeSync) {
         return;
       }
 
-      try {
-        const visibleRange = chart.timeScale().getVisibleRange();
-        const syncData = {
-          chartId,
-          timeRange: visibleRange,
-          timestamp: Date.now(),
-        };
+      // Use transition for time range sync to maintain responsiveness
+      startSyncTransition(() => {
+        try {
+          const visibleRange = chart.timeScale().getVisibleRange();
+          const syncData = {
+            chartId,
+            timeRange: visibleRange,
+            timestamp: Date.now(),
+          };
 
-        localStorage.setItem('chart-timerange-sync', JSON.stringify(syncData));
-        onSyncEvent?.('timeRangeChange', syncData);
-      } catch {
-        // Ignore localStorage errors
-      }
+          localStorage.setItem('chart-timerange-sync', JSON.stringify(syncData));
+          onSyncEvent?.('timeRangeChange', syncData);
+        } catch {
+          // Ignore localStorage errors
+        }
+      });
     };
 
     chart.timeScale().subscribeVisibleTimeRangeChange(handleTimeRangeChange);
@@ -166,7 +175,7 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
     return () => {
       chart.timeScale().unsubscribeVisibleTimeRangeChange(handleTimeRangeChange);
     };
-  }, [chart, chartId, syncConfig?.timeRange, onSyncEvent]);
+  }, [chart, chartId, syncConfig?.timeRange, onSyncEvent, startSyncTransition]);
 
   /**
    * Setup click synchronization
@@ -175,18 +184,21 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
     if (!chart || !syncConfig?.click) return undefined;
 
     const handleClick = () => {
-      const syncData = {
-        chartId,
-        event: 'click',
-        timestamp: Date.now(),
-      };
+      // Use transition for click sync to avoid blocking UI updates
+      startSyncTransition(() => {
+        const syncData = {
+          chartId,
+          event: 'click',
+          timestamp: Date.now(),
+        };
 
-      try {
-        localStorage.setItem('chart-click-sync', JSON.stringify(syncData));
-        onSyncEvent?.('click', syncData);
-      } catch {
-        // Ignore localStorage errors
-      }
+        try {
+          localStorage.setItem('chart-click-sync', JSON.stringify(syncData));
+          onSyncEvent?.('click', syncData);
+        } catch {
+          // Ignore localStorage errors
+        }
+      });
     };
 
     chart.subscribeClick(handleClick);
@@ -194,7 +206,7 @@ export const ChartSyncManager: React.FC<ChartSyncManagerProps> = ({
     return () => {
       chart.unsubscribeClick(handleClick);
     };
-  }, [chart, chartId, syncConfig?.click, onSyncEvent]);
+  }, [chart, chartId, syncConfig?.click, onSyncEvent, startSyncTransition]);
 
   // Setup all synchronization types
   useEffect(() => {

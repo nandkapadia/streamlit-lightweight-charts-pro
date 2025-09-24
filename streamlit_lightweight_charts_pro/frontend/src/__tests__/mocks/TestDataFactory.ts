@@ -260,7 +260,7 @@ export class TestDataFactory {
    * Generate chart options for testing
    */
   static createChartOptions(config: Partial<ChartOptions> = {}): ChartOptions {
-    // @ts-ignore - Complex ChartOptions type compatibility
+    // @ts-expect-error - Complex ChartOptions type compatibility
     return {
       width: 800,
       height: 600,

@@ -3,7 +3,7 @@
  * Extracted from LightweightCharts.tsx for better separation of concerns
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useTransition, useDeferredValue } from 'react';
 import { IChartApi, createSeriesMarkers, Time } from 'lightweight-charts';
 import { SeriesConfig, TradeConfig } from '../types';
 import { ExtendedSeriesApi, SeriesDataPoint } from '../types/ChartInterfaces';
@@ -32,6 +32,12 @@ export const ChartSeriesManager: React.FC<ChartSeriesManagerProps> = ({
 }) => {
   const seriesRefsRef = useRef<Map<string, ExtendedSeriesApi>>(new Map());
   const signalSeriesRefsRef = useRef<Map<string, ExtendedSeriesApi>>(new Map());
+
+  // React 19 concurrent features for better performance
+  const [, startSeriesTransition] = useTransition();
+  const [, startDataTransition] = useTransition();
+  const deferredSeriesConfigs = useDeferredValue(seriesConfigs);
+  const deferredTrades = useDeferredValue(trades);
 
   /**
    * Create a single series with error handling
@@ -67,15 +73,15 @@ export const ChartSeriesManager: React.FC<ChartSeriesManagerProps> = ({
   );
 
   /**
-   * Setup trade markers for a series
+   * Setup trade markers for a series (uses deferred trades for better performance)
    */
   const setupTradeMarkers = useCallback(
     (series: ExtendedSeriesApi, seriesConfig: SeriesConfig, index: number) => {
-      if (!trades || trades.length === 0) return;
+      if (!deferredTrades || deferredTrades.length === 0) return;
 
       try {
         const seriesData = seriesConfig.data || [];
-        const markers = trades
+        const markers = deferredTrades
           .filter(trade => {
             // Filter trades relevant to this series
             return (
@@ -110,53 +116,59 @@ export const ChartSeriesManager: React.FC<ChartSeriesManagerProps> = ({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [trades, onError]
+    [deferredTrades, onError]
   );
 
   /**
-   * Create all series from configurations
+   * Create all series from configurations (with React 19 concurrent features)
    */
   const createAllSeries = useCallback(() => {
-    if (!chart || !seriesConfigs || seriesConfigs.length === 0) return;
+    if (!chart || !deferredSeriesConfigs || deferredSeriesConfigs.length === 0) return;
 
-    // Clear existing series
-    seriesRefsRef.current.clear();
-    signalSeriesRefsRef.current.clear();
+    // Use transition for non-urgent series creation to avoid blocking UI
+    startSeriesTransition(() => {
+      // Clear existing series
+      seriesRefsRef.current.clear();
+      signalSeriesRefsRef.current.clear();
 
-    // Create each series
-    seriesConfigs.forEach((seriesConfig, index) => {
-      const series = createSeriesWithErrorHandling(seriesConfig, index);
+      // Create each series with concurrent rendering
+      deferredSeriesConfigs.forEach((seriesConfig, index) => {
+        const series = createSeriesWithErrorHandling(seriesConfig, index);
 
-      if (series) {
-        // Setup trade markers if available
-        setupTradeMarkers(series, seriesConfig, index);
+        if (series) {
+          // Setup trade markers if available (non-blocking)
+          setupTradeMarkers(series, seriesConfig, index);
 
-        // Handle special series types
-        if (seriesConfig.type === 'signal') {
-          const seriesKey = `signal-${chartId}-${index}`;
-          signalSeriesRefsRef.current.set(seriesKey, series);
+          // Handle special series types
+          if (seriesConfig.type === 'signal') {
+            const seriesKey = `signal-${chartId}-${index}`;
+            signalSeriesRefsRef.current.set(seriesKey, series);
+          }
         }
-      }
+      });
     });
-  }, [chart, seriesConfigs, chartId, createSeriesWithErrorHandling, setupTradeMarkers]);
+  }, [chart, deferredSeriesConfigs, chartId, createSeriesWithErrorHandling, setupTradeMarkers, startSeriesTransition]);
 
   /**
-   * Update existing series data
+   * Update existing series data (with React 19 concurrent features)
    */
   const updateSeriesData = useCallback(() => {
-    seriesConfigs.forEach((seriesConfig, index) => {
-      const seriesKey = `series-${chartId}-${index}`;
-      const series = seriesRefsRef.current.get(seriesKey);
+    // Use transition for non-urgent data updates to maintain responsiveness
+    startDataTransition(() => {
+      deferredSeriesConfigs.forEach((seriesConfig, index) => {
+        const seriesKey = `series-${chartId}-${index}`;
+        const series = seriesRefsRef.current.get(seriesKey);
 
-      if (series && seriesConfig.data) {
-        try {
-          series.setData(seriesConfig.data as any);
-        } catch (error) {
-          onError?.(error as Error, `updateSeriesData-${index}`);
+        if (series && seriesConfig.data) {
+          try {
+            series.setData(seriesConfig.data as any);
+          } catch (error) {
+            onError?.(error as Error, `updateSeriesData-${index}`);
+          }
         }
-      }
+      });
     });
-  }, [seriesConfigs, chartId, onError]);
+  }, [deferredSeriesConfigs, chartId, onError, startDataTransition]);
 
   /**
    * Find nearest time in series data

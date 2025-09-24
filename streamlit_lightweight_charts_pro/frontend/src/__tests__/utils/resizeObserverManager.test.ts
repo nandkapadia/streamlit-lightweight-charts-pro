@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { MockedFunction } from 'vitest';
 import { ResizeObserverManager } from '../../utils/resizeObserverManager';

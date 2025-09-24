@@ -119,7 +119,7 @@ const mockCanvas = {
 
 // Mock document.createElement
 const originalCreateElement = document.createElement;
-// @ts-ignore - Complex mock signature compatibility
+// @ts-expect-error - Complex mock signature compatibility
 document.createElement = vi.fn((tagName: any, options?: any) => {
   if (tagName === 'canvas') {
     return mockCanvas as any;

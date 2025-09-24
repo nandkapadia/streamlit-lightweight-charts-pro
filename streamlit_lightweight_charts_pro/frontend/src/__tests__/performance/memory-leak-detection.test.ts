@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @fileoverview Enhanced Memory leak detection tests for chart components
  *
@@ -42,7 +41,7 @@ class MockWeakRef<T> {
   }
 }
 
-// @ts-ignore - Type mismatch for WeakRef constructor
+// @ts-expect-error - Type mismatch for WeakRef constructor
 global.WeakRef = MockWeakRef;
 
 // Enhanced memory tracking
