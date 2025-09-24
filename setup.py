@@ -220,7 +220,7 @@ if __name__ == "__main__":
             "Bug Reports": "https://github.com/nandkapadia/streamlit-lightweight-charts-pro/issues",
             "Source": "https://github.com/nandkapadia/streamlit-lightweight-charts-pro",
             "Changelog": (
-"https://github.com/nandkapadia/streamlit-lightweight-charts-pro/blob/main/CHANGELOG.md"
+                "https://github.com/nandkapadia/streamlit-lightweight-charts-pro/blob/main/CHANGELOG.md"
             ),
         },
         license="MIT",

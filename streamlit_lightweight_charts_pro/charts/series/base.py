@@ -870,7 +870,7 @@ class Series(ABC):  # noqa: B024
         """
         return (
             hasattr(self.__class__, "_chainable_properties")
-and attr_name in self.__class__._chainable_properties  # pylint: disable=protected-access
+            and attr_name in self.__class__._chainable_properties  # pylint: disable=protected-access
         )
 
     def _is_allow_none(self, attr_name: str) -> bool:

@@ -20,40 +20,40 @@ from streamlit_lightweight_charts_pro.utils import chainable_field
 class SyncOptions(Options):
     """Synchronization options for linked charts.
 
-        This class provides configuration options for synchronizing multiple
-            charts in a linked chart system. It controls crosshair and time range
-                                            synchronization behavior across linked charts.
+            This class provides configuration options for synchronizing multiple
+                charts in a linked chart system. It controls crosshair and time range
+                                                synchronization behavior across linked charts.
 
-                                            Attributes:
-        enabled (bool): Whether synchronization is enabled. When True,
-        enables all synchronization features. When False, disables
-                                                    all synchronization. Defaults to False.
-            crosshair (bool): Whether to synchronize crosshair position across
-            linked charts. When enabled, moving the crosshair on one chart
-    will update the crosshair position on all linked charts.
-                                                    Defaults to False.
-            time_range (bool): Whether to synchronize time range across linked
-            charts. When enabled, zooming or panning the time range on one
-            chart will update the visible time range on all linked charts.
-                                                    Defaults to False.
-        group_id (Optional[str]): Optional group identifier for chart
-    synchronization. Charts with the same group_id will be
-    synchronized with each other. If None, all charts in the
-            same LinkedChartManager will be synchronized. Defaults to None.
+                                                Attributes:
+            enabled (bool): Whether synchronization is enabled. When True,
+            enables all synchronization features. When False, disables
+                                                        all synchronization. Defaults to False.
+                crosshair (bool): Whether to synchronize crosshair position across
+                linked charts. When enabled, moving the crosshair on one chart
+        will update the crosshair position on all linked charts.
+                                                        Defaults to False.
+                time_range (bool): Whether to synchronize time range across linked
+                charts. When enabled, zooming or panning the time range on one
+                chart will update the visible time range on all linked charts.
+                                                        Defaults to False.
+            group_id (Optional[str]): Optional group identifier for chart
+        synchronization. Charts with the same group_id will be
+        synchronized with each other. If None, all charts in the
+                same LinkedChartManager will be synchronized. Defaults to None.
 
-                                            Example:
-                                                ```python
-                from streamlit_lightweight_charts_pro.charts.options import SyncOptions
+                                                Example:
+                                                    ```python
+                    from streamlit_lightweight_charts_pro.charts.options import SyncOptions
 
-                                                # Enable all synchronization
-                    sync_options = SyncOptions(enabled=True, crosshair=True, time_range=True)
+                                                    # Enable all synchronization
+                        sync_options = SyncOptions(enabled=True, crosshair=True, time_range=True)
 
-                                                # Enable only crosshair synchronization
-                    sync_options = SyncOptions(enabled=True, crosshair=True, time_range=False)
+                                                    # Enable only crosshair synchronization
+                        sync_options = SyncOptions(enabled=True, crosshair=True, time_range=False)
 
-                                                # Use with group synchronization
-sync_options = SyncOptions(enabled=True, crosshair=True, time_range=True, group_id="price_charts")
-                                                ```
+                                                    # Use with group synchronization
+    sync_options = SyncOptions(enabled=True, crosshair=True, time_range=True, group_id="price_charts")
+                                                    ```
     """
 
     enabled: bool = False

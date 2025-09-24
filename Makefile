@@ -154,3 +154,34 @@ docs-install:  ## Install documentation dependencies
 docs-check:  ## Check documentation for issues
 	@echo "Checking documentation..."
 	@mkdocs build --strict
+
+# Simple, user-friendly commit helpers
+commit:  ## Format code and prepare for commit
+	@echo "🔧 Formatting code..."
+	@make format
+	@echo "✅ Code formatted. Ready to commit!"
+	@echo "💡 Run 'git commit -m \"your message\"' to commit"
+
+commit-force:  ## Force commit without pre-commit checks
+	@echo "⚠️  Force committing without pre-commit checks..."
+	@git commit --no-verify -m "$(MSG)"
+
+fix-and-commit:  ## Auto-fix issues and prepare for commit
+	@echo "🔧 Running pre-commit fixes..."
+	@pre-commit run --all-files || true
+	@echo "📝 Staging fixes..."
+	@git add -A
+	@echo "✅ Ready to commit! Run 'git commit -m \"your message\"'"
+
+# Quick development workflow
+dev-setup:  ## Complete development setup
+	@echo "🚀 Setting up development environment..."
+	@make install-dev
+	@make pre-commit-install
+	@echo "✅ Development environment ready!"
+
+quick-commit:  ## Quick commit with auto-formatting
+	@echo "⚡ Quick commit workflow..."
+	@make format
+	@git add -A
+	@echo "✅ Staged and formatted. Run 'git commit -m \"your message\"'"

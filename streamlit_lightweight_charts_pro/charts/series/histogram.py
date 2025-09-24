@@ -165,28 +165,28 @@ class HistogramSeries(Series):
     ):
         """Initialize a histogram series with data and configuration.
 
-                                                                                        Args:
-                data: Series data as a list of data objects, pandas DataFrame, or pandas Series.
-                column_mapping: Optional column mapping for DataFrame/Series input.
-visible: Whether the series is visible. Defaults to True.
-                        price_scale_id: ID of the price scale to attach to. Defaults to "right".
-        pane_id: The pane index this series belongs to. Defaults to 0.
+        Args:
+        data: Series data as a list of data objects, pandas DataFrame, or pandas Series.
+                        column_mapping: Optional column mapping for DataFrame/Series input.
+        visible: Whether the series is visible. Defaults to True.
+        price_scale_id: ID of the price scale to attach to. Defaults to "right".
+                pane_id: The pane index this series belongs to. Defaults to 0.
 
-                                                                                        Raises:
-                ValueError: If data is not a valid type (list of Data, DataFrame, or Series).
-                ValueError: If DataFrame/Series is provided without column_mapping.
+        Raises:
+        ValueError: If data is not a valid type (list of Data, DataFrame, or Series).
+                        ValueError: If DataFrame/Series is provided without column_mapping.
 
-                                                                                        Example:
-```python
-                        # Basic series with list of data objects
-                                series = HistogramSeries(data=histogram_data)
+        Example:
+        ```python
+                                # Basic series with list of data objects
+                                        series = HistogramSeries(data=histogram_data)
 
-        # Series with DataFrame
-series = HistogramSeries(data=dataframe, column_mapping={"time": "datetime", "value": "volume"})
+                # Series with DataFrame
+        series = HistogramSeries(data=dataframe, column_mapping={"time": "datetime", "value": "volume"})
 
-        # Series with Series
-series = HistogramSeries(data=series_data, column_mapping={"time": "index", "value": "values"})
-                                                                                            ```
+                # Series with Series
+        series = HistogramSeries(data=series_data, column_mapping={"time": "index", "value": "values"})
+        ```
         """
         super().__init__(
             data=data,
