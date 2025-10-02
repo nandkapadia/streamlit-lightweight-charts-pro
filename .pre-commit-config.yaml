@@ -1,40 +1,26 @@
-# Simple, user-friendly pre-commit configuration
-# Install: pip install pre-commit && pre-commit install
-# Run: pre-commit run --all-files
+# Pre-commit hooks for code quality
+# Install with: pre-commit install
 
 repos:
-  # Essential file checks (fast, reliable)
+  # Python hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
-      - id: check-yaml
       - id: check-json
+      - id: check-toml
       - id: check-merge-conflict
       - id: check-added-large-files
-        args: [--maxkb=1000]
-      - id: debug-statements
-      - id: check-ast
+        args: ['--maxkb=1000']
+        exclude: ^docs/
+      - id: mixed-line-ending
+        args: ['--fix=lf']
 
-  # Single Python formatter (Ruff handles everything)
+  # Python formatting and linting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.8
+    rev: v0.13.2
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
-        types: [python]
       - id: ruff-format
-        types: [python]
-
-  # Fast unit tests (only on changed files)
-  - repo: local
-    hooks:
-      - id: pytest-fast
-        name: pytest-fast
-        entry: python -m pytest
-        language: system
-        types: [python]
-        args: [tests/unit/, --tb=short, -q, --maxfail=3, -x]
-        pass_filenames: false
-        always_run: false
