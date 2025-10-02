@@ -38,6 +38,7 @@ from streamlit_lightweight_charts_pro.data.data import classproperty
 from streamlit_lightweight_charts_pro.data.marker import MarkerBase
 from streamlit_lightweight_charts_pro.exceptions import (
     ColumnMappingRequiredError,
+    DataFrameValidationError,
     DataItemsTypeError,
     InvalidMarkerPositionError,
     NotFoundError,
@@ -195,9 +196,7 @@ class Series(ABC):  # noqa: B024
             self.data = data
         else:
             # Raise error for unsupported data types
-            raise ValueError(
-                f"Invalid data format: {type(data)}. Data must be list of Data objects, DataFrame, or Series",
-            )
+            raise DataFrameValidationError.invalid_data_type(type(data))
 
         # Initialize series configuration properties with default values
         self._title = None  # Optional series title for legends and tooltips

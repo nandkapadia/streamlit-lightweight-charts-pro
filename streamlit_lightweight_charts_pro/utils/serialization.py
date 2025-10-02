@@ -277,8 +277,8 @@ class SerializableMixin:
         """
         result = {}
         for key, value in data.items():
-            # Convert key to camelCase if it's a string
-            processed_key = snake_to_camel(str(key)) if isinstance(key, str) else key
+            # Convert key to camelCase if it's a string, or convert to string if it's not
+            processed_key = snake_to_camel(key) if isinstance(key, str) else str(key)
             processed_value = self._process_value_for_serialization(value, config)
             result[processed_key] = processed_value
         return result

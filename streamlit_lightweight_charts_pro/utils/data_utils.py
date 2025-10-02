@@ -225,14 +225,13 @@ def is_valid_color(color: str) -> bool:
 
     This function validates color strings in various formats commonly used
     in web development and chart styling. It supports hex colors, RGB/RGBA
-    colors, empty strings (representing "no color"), and named colors.
+    colors, and named colors.
 
     Args:
         color: Color string to validate. Supported formats:
             - Hex colors: "#FF0000", "#F00", "#FF0000AA"
             - RGB colors: "rgb(255, 0, 0)"
             - RGBA colors: "rgba(255, 0, 0, 1)"
-            - Empty string: "" (represents no color)
             - Named colors: "red", "blue", "white", etc.
 
     Returns:
@@ -244,8 +243,8 @@ def is_valid_color(color: str) -> bool:
         is_valid_color("#F00")  # True
         is_valid_color("rgb(255, 0, 0)")  # True
         is_valid_color("rgba(255, 0, 0, 1)")  # True
-        is_valid_color("")  # True (no color)
         is_valid_color("red")  # True
+        is_valid_color("")  # False (empty string is invalid)
         is_valid_color("invalid")  # False
         is_valid_color("#GG0000")  # False
         ```
@@ -255,13 +254,13 @@ def is_valid_color(color: str) -> bool:
         and accepts both 3-digit and 6-digit hex codes. Named colors
         are case-insensitive.
     """
-    # Validate input: must be a non-empty string
-    if not color or not isinstance(color, str):
+    # Validate input: must be a string
+    if not isinstance(color, str):
         return False
 
-    # Accept empty strings as valid (meaning "no color")
+    # Reject empty strings as invalid colors
     if color == "":
-        return True
+        return False
 
     # Check hex color pattern: matches #RRGGBB (6 hex digits) or #RGB (3 hex digits)
     # Also supports #RRGGBBAA format for alpha channel

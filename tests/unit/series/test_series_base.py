@@ -564,7 +564,7 @@ class TestSeriesBase:
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""
         # The new implementation should raise an error for invalid data types
-        with pytest.raises(ValueValidationError, match="data"):
+        with pytest.raises(DataFrameValidationError):
             ConcreteSeries(data="invalid_data")
 
     def test_error_handling_missing_required_columns(self):
@@ -579,7 +579,7 @@ class TestSeriesBase:
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(ValueValidationError, match="data"):
+        with pytest.raises(DataFrameValidationError):
             ConcreteSeries(data="invalid_data")
 
     def test_error_handling_dataframe_without_column_mapping(self):

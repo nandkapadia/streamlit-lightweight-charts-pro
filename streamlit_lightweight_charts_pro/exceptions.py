@@ -179,7 +179,7 @@ class DataFrameValidationError(ValidationError):
     def invalid_data_type(cls, data_type: type) -> "DataFrameValidationError":
         """Helper for invalid data type validation."""
         return cls(
-            f"data must be a list of Data objects, DataFrame, or Series, got {data_type}",
+            f"data must be a list of SingleValueData objects, DataFrame, or Series, got {data_type}",
         )
 
     @classmethod

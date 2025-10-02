@@ -72,7 +72,7 @@ class TestAreaDataConstruction:
         assert isinstance(data.time, int)
         # The actual timestamp depends on timezone, so we'll check it's a reasonable value
         assert data.time > 1640970000  # Should be around 2022-01-01
-        assert data.time < 1640990000  # Should be around 2022-01-01
+        assert data.time < 1641020000  # Should be around 2022-01-01 (accounting for timezone)
 
     def test_construction_with_pandas_timestamp(self):
         """Test AreaData construction with pandas Timestamp."""
