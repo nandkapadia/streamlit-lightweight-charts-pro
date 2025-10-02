@@ -6,6 +6,7 @@
 import { useCallback } from 'react';
 import { chartScheduler } from './chartScheduler';
 import { react19Monitor } from './react19PerformanceMonitor';
+import { logger } from './logger';
 
 export type AssetType = 'script' | 'style' | 'image' | 'font' | 'data' | 'worker';
 export type AssetPriority = 'critical' | 'high' | 'medium' | 'low';
@@ -99,10 +100,10 @@ class ChartAssetLoader {
           this.preloadedAssets.add(asset.id);
 
           if (process.env.NODE_ENV === 'development') {
-            console.log(`🔄 Prefetched asset: ${asset.id}`);
+            logger.debug(`Asset ${asset.id} preloaded successfully`, 'AssetLoader');
           }
         } catch (error) {
-          console.warn(`Failed to prefetch asset: ${asset.id}`, error);
+          logger.error('Asset priority update failed', 'AssetLoader', error);
         }
       });
     });
@@ -145,7 +146,7 @@ class ChartAssetLoader {
       if (process.env.NODE_ENV === 'development') {
         const totalTime = allResults.reduce((sum, result) => sum + result.loadTime, 0);
         const fromCache = allResults.filter(r => r.fromCache).length;
-        console.log(`📦 Loaded ${allResults.length} assets for ${chartId}:`, {
+        logger.debug(`Asset loading completed`, 'AssetLoader', {
           totalTime: `${totalTime.toFixed(2)}ms`,
           fromCache: `${fromCache}/${allResults.length}`,
           failed: allResults.filter(r => !r.success).length,
@@ -360,7 +361,8 @@ class ChartAssetLoader {
     try {
       const worker = new Worker(asset.url);
       return worker;
-    } catch {
+    } catch (error) {
+      logger.error('Worker loading failed', 'AssetLoader', error);
       throw new Error(`Failed to load worker: ${asset.url}`);
     }
   }
@@ -400,7 +402,7 @@ class ChartAssetLoader {
     const results: AssetLoadResult[] = [];
 
     for (const asset of assets) {
-      const _taskId = chartScheduler.scheduleTask({
+      chartScheduler.scheduleTask({
         id: `load-asset-${asset.id}`,
         name: `Load Asset: ${asset.id}`,
         priority: priority,

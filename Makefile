@@ -1,50 +1,54 @@
 .PHONY: help install-dev lint lint-check format test clean pre-commit-install pre-commit-run pre-commit-test
 
+# Conda environment configuration
+CONDA_ENV = VectorBTPro
+CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh && conda activate $(CONDA_ENV)
+
 help:  ## Show this help message
 	@echo "Available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 install-dev:  ## Install development dependencies
-	pip install -e ".[dev]"
+	$(CONDA_ACTIVATE) && pip install -e ".[dev]"
 
 lint:  ## Run all linting tools and fix issues
-	python lint.py --fix
+	$(CONDA_ACTIVATE) && python lint.py --fix
 
 lint-check:  ## Check for linting issues without fixing
-	python lint.py --check
+	$(CONDA_ACTIVATE) && python lint.py --check
 
 format:  ## Format code with black and isort
-	isort --float-to-top streamlit_lightweight_charts_pro examples tests
-	black streamlit_lightweight_charts_pro examples tests
+	$(CONDA_ACTIVATE) && isort --float-to-top streamlit_lightweight_charts_pro examples tests
+	$(CONDA_ACTIVATE) && black streamlit_lightweight_charts_pro examples tests
 
 format-wrap:  ## Wrap long lines in docstrings, comments, and strings
-	python scripts/wrap_long_lines.py streamlit_lightweight_charts_pro examples tests
+	$(CONDA_ACTIVATE) && python scripts/wrap_long_lines.py streamlit_lightweight_charts_pro examples tests
 
 format-all: format format-wrap  ## Run all formatting including line wrapping
 
 test:  ## Run tests
-	pytest tests/ -v
+	$(CONDA_ACTIVATE) && pytest tests/ -v
 
 test-cov:  ## Run tests with coverage
-	pytest tests/ --cov=streamlit_lightweight_charts_pro --cov-report=html --cov-report=term
+	$(CONDA_ACTIVATE) && pytest tests/ --cov=streamlit_lightweight_charts_pro --cov-report=html --cov-report=term
 
 test-parallel:  ## Run tests with parallel execution (auto workers)
-	pytest tests/ -n auto --dist=loadfile -v
+	$(CONDA_ACTIVATE) && pytest tests/ -n auto --dist=loadfile -v
 
 test-parallel-fast:  ## Run tests with parallel execution (4 workers)
-	pytest tests/ -n 4 --dist=loadfile -v
+	$(CONDA_ACTIVATE) && pytest tests/ -n 4 --dist=loadfile -v
 
 test-parallel-max:  ## Run tests with maximum parallel execution
-	pytest tests/ -n logical --dist=loadfile -v
+	$(CONDA_ACTIVATE) && pytest tests/ -n logical --dist=loadfile -v
 
 test-parallel-cov:  ## Run tests with parallel execution and coverage
-	pytest tests/ -n auto --dist=loadfile --cov=streamlit_lightweight_charts_pro --cov-report=html --cov-report=term -v
+	$(CONDA_ACTIVATE) && pytest tests/ -n auto --dist=loadfile --cov=streamlit_lightweight_charts_pro --cov-report=html --cov-report=term -v
 
 test-unit-parallel:  ## Run unit tests with parallel execution
-	pytest tests/unit/ -n auto --dist=loadfile -v
+	$(CONDA_ACTIVATE) && pytest tests/unit/ -n auto --dist=loadfile -v
 
 test-integration-parallel:  ## Run integration tests with parallel execution
-	pytest tests/integration/ -n auto --dist=loadfile -v
+	$(CONDA_ACTIVATE) && pytest tests/integration/ -n auto --dist=loadfile -v
 
 clean:  ## Clean up build artifacts
 	rm -rf build/
@@ -74,7 +78,7 @@ pre-commit-run:  ## Run pre-commit hooks manually
 
 pre-commit-test:  ## Test pre-commit setup without installing
 	@echo "Testing pre-commit configuration..."
-	@if command -v pre-commit >/dev/null 2>&1; then \
+	@$(CONDA_ACTIVATE) && if command -v pre-commit >/dev/null 2>&1; then \
 		pre-commit run --all-files; \
 	else \
 		echo "Installing pre-commit for testing..."; \
@@ -104,19 +108,19 @@ pre-commit-both:  ## Run both backend and frontend pre-commit checks
 
 pre-commit-fast:  ## Run only fast pre-commit checks (no tests)
 	@echo "Running fast pre-commit checks..."
-	@pre-commit run --all-files --hook-stage manual
+	@$(CONDA_ACTIVATE) && pre-commit run --all-files --hook-stage manual
 
 pre-commit-fix:  ## Run pre-commit and auto-fix issues
 	@echo "Running pre-commit with auto-fix..."
-	@pre-commit run --all-files --hook-stage manual
+	@$(CONDA_ACTIVATE) && pre-commit run --all-files --hook-stage manual
 
 pre-commit-update:  ## Update pre-commit hooks to latest versions
 	@echo "Updating pre-commit hooks..."
-	@pre-commit autoupdate
+	@$(CONDA_ACTIVATE) && pre-commit autoupdate
 
 pre-commit-clean:  ## Clean pre-commit cache
 	@echo "Cleaning pre-commit cache..."
-	@pre-commit clean
+	@$(CONDA_ACTIVATE) && pre-commit clean
 
 test-frontend:  ## Run frontend tests and checks
 	@echo "Running frontend tests..."
@@ -133,15 +137,15 @@ lint-frontend:  ## Lint frontend code
 # Documentation commands
 docs-serve:  ## Serve documentation locally
 	@echo "Serving documentation at http://localhost:8000..."
-	@mkdocs serve
+	@$(CONDA_ACTIVATE) && mkdocs serve
 
 docs-build:  ## Build documentation
 	@echo "Building documentation..."
-	@mkdocs build
+	@$(CONDA_ACTIVATE) && mkdocs build
 
 docs-deploy:  ## Deploy documentation to GitHub Pages
 	@echo "Deploying documentation..."
-	@mkdocs gh-deploy
+	@$(CONDA_ACTIVATE) && mkdocs gh-deploy
 
 docs-clean:  ## Clean documentation build artifacts
 	@echo "Cleaning documentation build artifacts..."
@@ -149,11 +153,11 @@ docs-clean:  ## Clean documentation build artifacts
 
 docs-install:  ## Install documentation dependencies
 	@echo "Installing documentation dependencies..."
-	@pip install -e ".[docs]"
+	@$(CONDA_ACTIVATE) && pip install -e ".[docs]"
 
 docs-check:  ## Check documentation for issues
 	@echo "Checking documentation..."
-	@mkdocs build --strict
+	@$(CONDA_ACTIVATE) && mkdocs build --strict
 
 # Smart commit workflow (handles formatting automatically)
 commit:  ## Format code and commit with auto-staging
@@ -194,7 +198,7 @@ clean-commit:  ## Clean commit: format, stage, and commit in one go
 	@git add -A
 	@if [ -n "$(MSG)" ]; then \
 		echo "📝 Committing with message: $(MSG)"; \
-		git commit -m "$(MSG)"; \
+		$(CONDA_ACTIVATE) && git commit -m "$(MSG)"; \
 		echo "✅ Commit successful!"; \
 	else \
 		echo "⚠️  No commit message provided. Use: make clean-commit MSG=\"your message\""; \

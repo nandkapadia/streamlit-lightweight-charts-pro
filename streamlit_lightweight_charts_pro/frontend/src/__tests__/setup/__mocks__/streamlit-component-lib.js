@@ -2,6 +2,7 @@
  * Mock for streamlit-component-lib
  * Provides Jest-compatible mocks for Streamlit functionality
  */
+/* global jest */
 
 const Streamlit = {
   setComponentValue: jest.fn(),

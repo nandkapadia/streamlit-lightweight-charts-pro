@@ -4,6 +4,7 @@ import { createChart, IChartApi } from 'lightweight-charts';
 import { ChartConfig } from '../types';
 import { cleanLineStyleOptions } from '../utils/lineStyle';
 import { ErrorBoundary } from './ErrorBoundary';
+import { logger } from '../utils/logger';
 
 interface ChartContainerProps {
   chartConfig: ChartConfig;
@@ -69,7 +70,6 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
             onChartReady(chart, chartId);
           }
         } catch (error) {
-          console.error(error);
           if (onChartError) {
             onChartError(error as Error, chartId);
           }
@@ -83,7 +83,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
         try {
           chartRef.current.remove();
         } catch (error) {
-          console.error(error);
+          logger.error('Failed to remove chart during cleanup', 'ChartContainer', error);
         }
         chartRef.current = null;
         setIsInitialized(false);
@@ -126,7 +126,6 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
       <ErrorBoundary
         resetKeys={[chartId, JSON.stringify(chartConfig)]}
         onError={error => {
-          console.error('An error occurred');
           if (onChartError) {
             onChartError(error, chartId);
           }

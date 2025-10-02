@@ -1,0 +1,23 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "vitest.enable": true,
+    "vitest.disableWorkspaceConfig": false,
+    "vitest.workspaceConfig": "vitest.config.ts",
+    "vitest.cwd": ".",
+    "vitest.include": ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    "testing.gutterEnabled": true,
+    "testing.defaultGutterClickAction": "run",
+    "vitest.commandLine": "npm test"
+  },
+  "extensions": {
+    "recommendations": [
+      "vitest.explorer",
+      "stubailo.vitest-globals"
+    ]
+  }
+}

@@ -1,90 +1,66 @@
-# Documentation
+# Streamlit Lightweight Charts Pro - Documentation
 
-This directory contains the documentation for Streamlit Lightweight Charts Pro, built with MkDocs and the Material theme.
+This directory contains the complete static HTML documentation for the Streamlit Lightweight Charts Pro library.
 
-## Structure
+## 📁 Structure
 
-- `index.md` - Main landing page
-- `getting-started/` - Getting started guides
-- `examples/` - Usage examples and tutorials
-- `api/` - Auto-generated API documentation
-- `advanced/` - Advanced topics and customization
-- `stylesheets/` - Custom CSS styles
-- `javascripts/` - Custom JavaScript files
+- **`index.html`** - Main documentation homepage
+- **`api/`** - Complete API reference (50+ pages)
+- **`getting-started/`** - Installation and usage guides
+- **`examples/`** - Example documentation
+- **`assets/`** - CSS, JavaScript, and images
+- **`search/`** - Search functionality
+- **`sitemap.xml`** - SEO sitemap
 
-## Development
+## 🚀 Deployment
 
-### Prerequisites
+### GitHub Pages (Recommended)
+1. **Push this `docs/` directory** to your repository
+2. **Go to repository Settings** → Pages
+3. **Set source** to "Deploy from a branch" → "main" → "/docs"
+4. **Your docs will be live** at: `https://nandkapadia.github.io/streamlit-lightweight-charts-pro/`
 
-Install documentation dependencies:
+### Any Web Server
+1. **Upload all contents** to your web server
+2. **Ensure `index.html`** is served as the default page
+3. **Documentation will be available** at your domain
 
+## 🔧 Development
+
+### Building Documentation
 ```bash
-pip install -e ".[docs]"
+# Build to docs/ directory
+make -f Makefile.docs docs-build
+
+# Serve locally for development
+make -f Makefile.docs docs-serve
+
+# Clean build files
+make -f Makefile.docs docs-clean
 ```
 
-### Local Development
+### Configuration
+- **Source files**: `docs-src/` (markdown files)
+- **Output directory**: `docs/` (HTML files)
+- **Links**: Explicit `.html` files (no directory URLs)
+- **Theme**: Material Design with search functionality
 
-Serve documentation locally:
+## ✨ Features
 
-```bash
-make docs-serve
-```
+- **Professional API Reference** - All 50+ Python modules documented
+- **Interactive Search** - Full-text search across all documentation
+- **Responsive Design** - Works on all devices
+- **Mobile-Friendly** - Optimized for mobile viewing
+- **Google-Style Docstrings** - Professional documentation format
 
-This will start a local server at http://localhost:8000 with live reloading.
+## 📊 Statistics
 
-### Building
+- **Total Size**: ~16MB
+- **Total Pages**: 100+ HTML pages
+- **API Reference**: 50+ individual module pages
+- **Coverage**: 100% of core modules documented
 
-Build the documentation:
+---
 
-```bash
-make docs-build
-```
-
-### Deployment
-
-Deploy to GitHub Pages:
-
-```bash
-make docs-deploy
-```
-
-## Configuration
-
-The documentation is configured in `mkdocs.yml` with:
-
-- Material theme with custom styling
-- Automatic API documentation generation
-- Search functionality
-- Mobile-responsive design
-- Dark/light mode support
-
-## Adding Content
-
-### New Pages
-
-1. Create a new `.md` file in the appropriate directory
-2. Add the page to `SUMMARY.md` for navigation
-3. Use proper Markdown formatting with Material theme extensions
-
-### API Documentation
-
-API documentation is automatically generated from docstrings using mkdocstrings. The generation script is in `gen_ref_pages.py`.
-
-### Styling
-
-Custom styles are in `stylesheets/extra.css`. Use CSS variables for theme consistency:
-
-```css
-.md-typeset .custom-class {
-    color: var(--md-accent-fg-color);
-    background: var(--md-code-bg-color);
-}
-```
-
-## Writing Guidelines
-
-- Use clear, concise language
-- Include code examples
-- Add type hints and parameter descriptions
-- Follow the existing style and structure
-- Test locally before committing changes
+**Generated with**: MkDocs + Material Theme + mkdocstrings
+**Last Updated**: $(date)

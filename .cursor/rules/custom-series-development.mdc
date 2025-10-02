@@ -1,0 +1,884 @@
+---
+description: Comprehensive guide for creating custom series using TradingView's ICustomSeries and ISeriesPrimitive APIs with development best practices
+---
+
+# Custom Series Development Guide
+
+## 🎯 Overview
+
+This guide provides comprehensive instructions for creating custom series using **TradingView's official APIs**, including implementation patterns, best practices, and development guidelines.
+
+**Official Documentation**:
+- ICustomSeries: https://tradingview.github.io/lightweight-charts/docs/api/interfaces/ICustomSeriesPaneView
+- ISeriesPrimitive: https://tradingview.github.io/lightweight-charts/docs/plugins/series-primitives
+
+## 🏛️ Architecture Patterns
+
+We support three architectural patterns for custom series:
+
+### Pattern 1: ICustomSeries Only (Recommended Default)
+**Use when**: Standard series rendering, no z-order control needed
+
+```typescript
+class MyCustomSeries implements ICustomSeriesPaneView<Time> {
+  renderer(): ICustomSeriesPaneRenderer {
+    return new MyRenderer(this._data, this._options);
+  }
+}
+```
+
+**Pros**:
+- Simpler implementation
+- Built-in autoscaling
+- Direct rendering control
+- Easier testing
+
+**Cons**:
+- Cannot control z-order (render layer)
+- Always renders on top of grid/series
+
+### Pattern 2: ISeriesPrimitive Only
+**Use when**: Need z-order control, background rendering
+
+```typescript
+class MyPrimitive implements ISeriesPrimitive<Time> {
+  attached(params: SeriesAttachedParameter<Time>): void { }
+  paneViews(): IPrimitivePaneView[] { }
+  priceAxisViews(): ISeriesPrimitiveAxisView[] { }
+}
+```
+
+**Pros**:
+- Full z-order control (can render behind series)
+- Can attach to any series
+- Independent price axis views
+
+**Cons**:
+- More complex implementation
+- No built-in autoscaling (must implement manually)
+- Requires dummy series attachment
+
+### Pattern 3: Hybrid (ICustomSeries + Optional ISeriesPrimitive) ⭐ NEW
+**Use when**: Want both autoscaling AND z-order control
+
+```typescript
+// ICustomSeries provides autoscaling
+class MyCustomSeries implements ICustomSeriesPaneView<Time> { }
+
+// ISeriesPrimitive handles rendering when attached
+class MyPrimitive implements ISeriesPrimitive<Time> { }
+
+// Factory function creates series with optional primitive
+function createMySeries(chart, options) {
+  const series = chart.addCustomSeries(new MyCustomSeries(), {
+    disableSeriesRendering: options.usePrimitive,
+    lastValueVisible: !options.usePrimitive,
+  });
+
+  if (options.usePrimitive) {
+    const primitive = new MyPrimitive(chart, options);
+    series.attachPrimitive(primitive);
+  }
+
+  return series;
+}
+```
+
+**Pros**:
+- Best of both worlds
+- Autoscaling from series
+- Z-order control from primitive
+- Single API for both modes
+- User chooses rendering mode
+
+**Cons**:
+- Most complex implementation
+- Must maintain both renderers
+- Need to sync data between series and primitive
+
+**Reference Implementation**: `trendFillSeriesPlugin.ts` + `TrendFillPrimitive.ts`
+
+## 📚 Core Interfaces
+
+### ICustomSeries Interface
+
+```typescript
+interface ICustomSeriesPaneView<Time> {
+  priceValueBuilder(plotRow: CustomSeriesPricePlotValues): number;
+  isWhitespace(data: CustomData | WhitespaceData): boolean;
+  renderer(): ICustomSeriesPaneRenderer;
+  update?(data: PaneRendererCustomData, options: CustomSeriesOptions): void;
+  defaultOptions(): CustomSeriesOptions;
+}
+
+interface ICustomSeriesPaneRenderer {
+  draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void;
+}
+```
+
+### ISeriesPrimitive Interface
+
+```typescript
+interface ISeriesPrimitive<Time> {
+  attached?(params: SeriesAttachedParameter<Time>): void;
+  detached?(): void;
+  paneViews?(): readonly IPrimitivePaneView[];
+  priceAxisViews?(): readonly ISeriesPrimitiveAxisView[];
+  updateAllViews?(): void;
+  autoscaleInfo?(startTimePoint: Logical, endTimePoint: Logical): AutoscaleInfo | null;
+}
+
+interface IPrimitivePaneView {
+  renderer(): IPrimitivePaneRenderer;
+  zOrder?(): number;
+}
+
+interface IPrimitivePaneRenderer {
+  draw(target: CanvasRenderingTarget2D): void;
+}
+
+interface ISeriesPrimitiveAxisView {
+  coordinate(): number;
+  text(): string;
+  textColor(): string;
+  backColor(): string;
+  visible(): boolean;
+  tickVisible(): boolean;
+}
+```
+
+## 🔧 Pattern 3: Hybrid Implementation (Recommended for Complex Series)
+
+This is the most powerful pattern. Let's implement a complete example.
+
+### Step 1: Define Shared Data and Options
+
+```typescript
+/**
+ * Shared data interface
+ * Used by both ICustomSeries and ISeriesPrimitive
+ */
+export interface MySeriesData extends CustomData<Time> {
+  time: Time;
+  value1: number;
+  value2: number;
+  direction: number; // -1, 0, 1
+}
+
+/**
+ * Shared options interface
+ * Used by both ICustomSeries and ISeriesPrimitive
+ */
+export interface MySeriesOptions extends CustomSeriesOptions {
+  // Visual options
+  color1: string;
+  color2: string;
+  lineWidth: number;
+  lineStyle: LineStyle;
+  fillVisible: boolean;
+
+  // Rendering control
+  disableSeriesRendering?: boolean; // Auto-set by factory
+  lastValueVisible?: boolean; // Auto-managed by factory
+
+  // Primitive-specific (only used when usePrimitive: true)
+  usePrimitive?: boolean; // User sets this
+  zIndex?: number; // Only for primitive mode
+  useHalfBarWidth?: boolean; // Only for primitive mode
+}
+
+/**
+ * Default options
+ * CRITICAL: Must match Python defaults exactly
+ */
+export const defaultOptions: MySeriesOptions = {
+  ...customSeriesDefaultOptions,
+  color1: '#4CAF50',
+  color2: '#F44336',
+  lineWidth: 2,
+  lineStyle: LineStyle.Solid,
+  fillVisible: true,
+  disableSeriesRendering: false,
+  lastValueVisible: true,
+};
+```
+
+### Step 2: Implement ICustomSeries (Autoscaling + Direct Rendering)
+
+```typescript
+/**
+ * ICustomSeries implementation
+ * Provides:
+ * - Autoscaling
+ * - Direct rendering (when primitive not attached)
+ * - Price value building
+ */
+class MySeries implements ICustomSeriesPaneView<Time> {
+  private _renderer: MySeriesRenderer;
+
+  constructor() {
+    this._renderer = new MySeriesRenderer();
+  }
+
+  priceValueBuilder(plotRow: CustomSeriesPricePlotValues): number {
+    // Return main price value for autoscaling
+    return (plotRow as unknown as MySeriesData).value1;
+  }
+
+  isWhitespace(data: CustomData | WhitespaceData): boolean {
+    return isWhitespaceDataMultiField(data, ['value1', 'value2']);
+  }
+
+  renderer(): ICustomSeriesPaneRenderer {
+    return this._renderer;
+  }
+
+  update(data: PaneRendererCustomData<Time, MySeriesData>, options: MySeriesOptions): void {
+    this._renderer.update(data, options);
+  }
+
+  defaultOptions(): MySeriesOptions {
+    return defaultOptions;
+  }
+}
+
+/**
+ * ICustomSeries renderer
+ * Only used when primitive is NOT attached (disableSeriesRendering: false)
+ */
+class MySeriesRenderer implements ICustomSeriesPaneRenderer {
+  private _data: PaneRendererCustomData<Time, MySeriesData> | null = null;
+  private _options: MySeriesOptions | null = null;
+
+  update(data: PaneRendererCustomData<Time, MySeriesData>, options: MySeriesOptions): void {
+    this._data = data;
+    this._options = options;
+  }
+
+  draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void {
+    target.useBitmapCoordinateSpace((scope) => {
+      if (!this._data || !this._options) return;
+
+      const ctx = scope.context;
+      const hRatio = scope.horizontalPixelRatio;
+      const vRatio = scope.verticalPixelRatio;
+
+      ctx.save();
+
+      // Draw your visualization here
+      this._drawVisualization(ctx, hRatio, vRatio);
+
+      ctx.restore();
+    });
+  }
+
+  private _drawVisualization(ctx: CanvasRenderingContext2D, hRatio: number, vRatio: number): void {
+    // Implementation specific to your series
+  }
+}
+```
+
+### Step 3: Implement ISeriesPrimitive (Z-Order Control + Price Axis)
+
+```typescript
+/**
+ * ISeriesPrimitive implementation
+ * Provides:
+ * - Z-order control (background rendering)
+ * - Independent price axis views
+ * - Syncs data from attached series
+ */
+export class MySeriesPrimitive implements ISeriesPrimitive<Time> {
+  private _chart: IChartApi;
+  private _series: ISeriesApi<Time> | null = null;
+  private _options: MySeriesPrimitiveOptions;
+  private _data: MyProcessedData[] = [];
+  private _paneView: MyPrimitivePaneView;
+  private _priceAxisView: MyPrimitiveAxisView;
+
+  constructor(chart: IChartApi, options: MySeriesPrimitiveOptions) {
+    this._chart = chart;
+    this._options = options;
+    this._paneView = new MyPrimitivePaneView(this);
+    this._priceAxisView = new MyPrimitiveAxisView(this);
+  }
+
+  // Lifecycle
+  attached(params: SeriesAttachedParameter<Time>): void {
+    this._series = params.series;
+    this._syncDataFromSeries();
+  }
+
+  detached(): void {
+    this._series = null;
+    this._data = [];
+  }
+
+  // Views
+  paneViews(): IPrimitivePaneView[] {
+    return [this._paneView];
+  }
+
+  priceAxisViews(): ISeriesPrimitiveAxisView[] {
+    return [this._priceAxisView];
+  }
+
+  // Update
+  updateAllViews(): void {
+    this._syncDataFromSeries();
+  }
+
+  // Public API
+  getChart(): IChartApi {
+    return this._chart;
+  }
+
+  getAttachedSeries(): ISeriesApi<Time> | null {
+    return this._series;
+  }
+
+  getOptions(): MySeriesPrimitiveOptions {
+    return this._options;
+  }
+
+  getProcessedData(): MyProcessedData[] {
+    return this._data;
+  }
+
+  private _syncDataFromSeries(): void {
+    if (!this._series) return;
+
+    // Get data from series
+    const seriesData = this._series.data() as MySeriesData[];
+
+    // Process and convert coordinates
+    this._data = seriesData.map(item => ({
+      time: item.time,
+      value1: item.value1,
+      value2: item.value2,
+      direction: item.direction,
+    }));
+  }
+}
+
+/**
+ * Primitive pane view
+ */
+class MyPrimitivePaneView implements IPrimitivePaneView {
+  private _source: MySeriesPrimitive;
+
+  constructor(source: MySeriesPrimitive) {
+    this._source = source;
+  }
+
+  renderer(): IPrimitivePaneRenderer {
+    return new MyPrimitiveRenderer(this._source);
+  }
+
+  zOrder(): number {
+    const zIndex = this._source.getOptions().zIndex;
+    if (typeof zIndex === 'number') {
+      return zIndex;
+    }
+    return -100; // Default: render behind series
+  }
+}
+
+/**
+ * Primitive renderer
+ * Only used when primitive is attached (disableSeriesRendering: true)
+ */
+class MyPrimitiveRenderer implements IPrimitivePaneRenderer {
+  private _source: MySeriesPrimitive;
+
+  constructor(source: MySeriesPrimitive) {
+    this._source = source;
+  }
+
+  draw(target: CanvasRenderingTarget2D): void {
+    target.useBitmapCoordinateSpace((scope) => {
+      const ctx = scope.context;
+      const hRatio = scope.horizontalPixelRatio;
+      const vRatio = scope.verticalPixelRatio;
+
+      ctx.save();
+
+      // Draw visualization using primitive's data
+      this._drawVisualization(ctx, hRatio, vRatio);
+
+      ctx.restore();
+    });
+  }
+
+  private _drawVisualization(ctx: CanvasRenderingContext2D, hRatio: number, vRatio: number): void {
+    // Implementation specific to your series
+    const data = this._source.getProcessedData();
+    const options = this._source.getOptions();
+    const series = this._source.getAttachedSeries();
+
+    if (!series || data.length === 0) return;
+
+    // Convert to screen coordinates and draw
+    // ...
+  }
+}
+
+/**
+ * Primitive price axis view
+ */
+class MyPrimitiveAxisView implements ISeriesPrimitiveAxisView {
+  private _source: MySeriesPrimitive;
+
+  constructor(source: MySeriesPrimitive) {
+    this._source = source;
+  }
+
+  coordinate(): number {
+    const lastItem = this._getLastVisibleItem();
+    if (!lastItem) return 0;
+
+    const series = this._source.getAttachedSeries();
+    if (!series) return 0;
+
+    const coordinate = series.priceToCoordinate(lastItem.value1);
+    return coordinate ?? 0;
+  }
+
+  text(): string {
+    const lastItem = this._getLastVisibleItem();
+    if (!lastItem) return '';
+    return lastItem.value1.toFixed(2);
+  }
+
+  textColor(): string {
+    // Return white for contrast
+    return '#FFFFFF';
+  }
+
+  backColor(): string {
+    const lastItem = this._getLastVisibleItem();
+    if (!lastItem) return 'transparent';
+
+    const options = this._source.getOptions();
+
+    // Use direction to determine color
+    const fillColor = lastItem.direction > 0 ? options.color1 : options.color2;
+
+    // Convert to solid color (remove transparency)
+    return getSolidColorFromFill(fillColor);
+  }
+
+  visible(): boolean {
+    const lastItem = this._getLastVisibleItem();
+    if (!lastItem) return false;
+
+    if (!this._source.getOptions().visible) return false;
+
+    // Primitive's price axis view is independent of series' lastValueVisible
+    return true;
+  }
+
+  tickVisible(): boolean {
+    return true;
+  }
+
+  /**
+   * Get last visible item using time-based range detection
+   *
+   * CRITICAL: Use getVisibleRange() not getVisibleLogicalRange()
+   * - getVisibleRange() returns time coordinates (what user sees)
+   * - getVisibleLogicalRange() returns bar indices (misleading when zoomed)
+   */
+  private _getLastVisibleItem(): MyProcessedData | null {
+    const items = this._source.getProcessedData();
+    if (items.length === 0) return null;
+
+    const chart = this._source.getChart();
+    const timeScale = chart.timeScale();
+    const visibleTimeRange = timeScale.getVisibleRange();
+
+    if (!visibleTimeRange) {
+      return items[items.length - 1];
+    }
+
+    // Find last item within visible range
+    for (let i = items.length - 1; i >= 0; i--) {
+      const itemTime = items[i].time;
+      if ((itemTime as number) <= (visibleTimeRange.to as number)) {
+        return items[i];
+      }
+    }
+
+    return items[0];
+  }
+}
+```
+
+### Step 4: Factory Function (Hybrid Mode Selector)
+
+```typescript
+/**
+ * Factory function to create series with optional primitive
+ *
+ * Two rendering modes:
+ * 1. Direct ICustomSeries rendering (default)
+ *    - Series renders visuals
+ *    - Normal z-order
+ *    - Price axis label from series
+ *
+ * 2. Primitive rendering (usePrimitive: true)
+ *    - Series provides autoscaling only
+ *    - Primitive handles rendering
+ *    - Custom z-order (background)
+ *    - Price axis label from primitive
+ *
+ * @param chart - Chart instance
+ * @param options - Series options
+ * @param options.usePrimitive - Enable primitive rendering mode
+ * @param options.zIndex - Z-order for primitive (default: -100)
+ * @param options.data - Initial data
+ * @returns ICustomSeries instance (with optional primitive)
+ */
+export function createMySeries(
+  chart: IChartApi,
+  options: {
+    // ICustomSeries options
+    color1?: string;
+    color2?: string;
+    lineWidth?: number;
+    lineStyle?: LineStyle;
+    fillVisible?: boolean;
+    priceScaleId?: string;
+    disableSeriesRendering?: boolean;
+
+    // Primitive-specific options
+    usePrimitive?: boolean;
+    zIndex?: number;
+    useHalfBarWidth?: boolean;
+    data?: MySeriesData[];
+  } = {}
+): any {
+  // Determine rendering mode
+  const shouldUsePrimitive = options.usePrimitive || options.disableSeriesRendering;
+
+  // Create ICustomSeries (always created for autoscaling)
+  const series = chart.addCustomSeries(new MySeries(), {
+    color1: options.color1 ?? '#4CAF50',
+    color2: options.color2 ?? '#F44336',
+    lineWidth: options.lineWidth ?? 2,
+    lineStyle: options.lineStyle ?? LineStyle.Solid,
+    fillVisible: options.fillVisible !== false,
+    priceScaleId: options.priceScaleId ?? 'right',
+    disableSeriesRendering: !!shouldUsePrimitive, // Disable if using primitive
+    lastValueVisible: !shouldUsePrimitive, // Hide series label when primitive handles it
+  });
+
+  // Set data on series (for autoscaling)
+  if (options.data && options.data.length > 0) {
+    series.setData(options.data);
+  }
+
+  // Attach primitive if requested
+  if (shouldUsePrimitive) {
+    const primitive = new MySeriesPrimitive(chart, {
+      color1: options.color1 ?? '#4CAF50',
+      color2: options.color2 ?? '#F44336',
+      lineWidth: options.lineWidth ?? 2,
+      lineStyle: Math.min((options.lineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2,
+      fillVisible: options.fillVisible !== false,
+      visible: true,
+      priceScaleId: options.priceScaleId ?? 'right',
+      useHalfBarWidth: options.useHalfBarWidth !== false,
+      zIndex: options.zIndex ?? -100,
+    });
+
+    series.attachPrimitive(primitive);
+  }
+
+  return series;
+}
+```
+
+### Step 5: Usage Examples
+
+```typescript
+// Example 1: Standard ICustomSeries rendering (default)
+const series1 = createMySeries(chart, {
+  color1: 'rgba(76, 175, 80, 0.3)',
+  color2: 'rgba(244, 67, 54, 0.3)',
+  data: myData,
+});
+
+// Example 2: Primitive rendering for background fills
+const series2 = createMySeries(chart, {
+  color1: 'rgba(76, 175, 80, 0.3)',
+  color2: 'rgba(244, 67, 54, 0.3)',
+  usePrimitive: true, // Enable primitive mode
+  zIndex: -100, // Render behind other series
+  data: myData,
+});
+```
+
+## 🧪 Testing Pattern 3 (Hybrid)
+
+```typescript
+describe('MySeries (Hybrid)', () => {
+  describe('Series Creation', () => {
+    it('should create ICustomSeries with default options', () => {
+      const series = createMySeries(mockChart as any);
+
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          disableSeriesRendering: false, // Direct rendering by default
+          lastValueVisible: true, // Series handles price axis
+        })
+      );
+    });
+  });
+
+  describe('Primitive Mode', () => {
+    it('should attach primitive when usePrimitive is true', () => {
+      createMySeries(mockChart as any, {
+        usePrimitive: true,
+        data: testData,
+      });
+
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          disableSeriesRendering: true, // Primitive handles rendering
+          lastValueVisible: false, // Primitive handles price axis
+        })
+      );
+      expect(mockSeries.attachPrimitive).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Price Axis View', () => {
+    it('should show correct last visible value', () => {
+      // Test time-based visible range detection
+      const primitive = new MySeriesPrimitive(chart, options);
+      const axisView = primitive.priceAxisViews()[0];
+
+      expect(axisView.visible()).toBe(true);
+      expect(axisView.text()).toBe('99.00'); // Last visible, not last data
+    });
+  });
+});
+```
+
+## 🐍 Python Backend Implementation
+
+```python
+from dataclasses import dataclass
+from typing import List, Optional, Dict, Any
+from streamlit_lightweight_charts_pro.data.data import Data
+from streamlit_lightweight_charts_pro.charts.series.base import Series
+from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+
+@dataclass
+class MySeriesData(Data):
+    """Data structure for MySeries."""
+    value1: float
+    value2: float
+    direction: int  # -1, 0, 1
+
+@dataclass
+class MySeriesOptions(Options):
+    """
+    Options for MySeries.
+
+    CRITICAL: All defaults must match TypeScript defaults exactly.
+    """
+    color1: str = "#4CAF50"
+    color2: str = "#F44336"
+    line_width: int = 2  # Must match TS: lineWidth: 2
+    line_style: int = 0  # Solid
+    fill_visible: bool = True
+
+class MySeries(Series):
+    """Custom series with hybrid rendering support."""
+
+    data_class = MySeriesData
+
+    def __init__(self, data: Optional[List[MySeriesData]] = None, **kwargs):
+        super().__init__(data=data, **kwargs)
+        self.series_type = "my_series"
+
+    def asdict(self) -> Dict[str, Any]:
+        """Serialize for frontend."""
+        return {
+            "type": self.series_type,
+            "data": [item.asdict() for item in self.data],
+            "options": {
+                "color1": self.options.color1,
+                "color2": self.options.color2,
+                "lineWidth": self.options.line_width,  # snake_case -> camelCase
+                "lineStyle": self.options.line_style,
+                "fillVisible": self.options.fill_visible,
+            }
+        }
+```
+
+## 🚨 Critical Implementation Notes
+
+### 1. Default Value Consistency
+**CRITICAL**: Python and TypeScript defaults MUST match exactly.
+
+```python
+# Python
+line_width: int = 2
+
+# TypeScript
+lineWidth: 2
+```
+
+Use `??` (nullish coalescing) not `||` for numeric defaults:
+
+```typescript
+// ❌ WRONG: 0 is falsy, uses default even when user passes 0
+lineWidth: options.lineWidth || 2
+
+// ✅ CORRECT: Only uses default when undefined/null
+lineWidth: options.lineWidth ?? 2
+```
+
+### 2. Price Axis Label Visibility
+
+When using primitive mode:
+- Set `lastValueVisible: false` on series (disables series label)
+- Primitive's price axis view is independent (returns true in `visible()`)
+- Primitive manages its own label display
+
+```typescript
+// Factory function
+const series = chart.addCustomSeries(new MySeries(), {
+  disableSeriesRendering: !!shouldUsePrimitive,
+  lastValueVisible: !shouldUsePrimitive, // Key: hide series label when primitive active
+});
+```
+
+### 3. Time-Based Visible Range Detection
+
+**CRITICAL**: Use `getVisibleRange()` not `getVisibleLogicalRange()` for price axis views.
+
+```typescript
+// ✅ CORRECT: Time-based (what user sees)
+const visibleRange = timeScale.getVisibleRange();
+
+// ❌ WRONG: Index-based (misleading when zoomed)
+const visibleRange = timeScale.getVisibleLogicalRange();
+```
+
+### 4. Line Style Limitations
+
+ISeriesPrimitive only supports 3 line styles:
+- 0 = Solid
+- 1 = Dotted
+- 2 = Dashed
+
+Clamp values when passing to primitive:
+
+```typescript
+lineStyle: Math.min((options.lineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2
+```
+
+### 5. Color Transparency Handling
+
+Price axis labels don't support transparency. Convert fill colors to solid:
+
+```typescript
+import { getSolidColorFromFill } from '../utils/colorUtils';
+
+backColor(): string {
+  const fillColor = 'rgba(76, 175, 80, 0.3)';
+  return getSolidColorFromFill(fillColor); // Returns 'rgba(76, 175, 80, 1)'
+}
+```
+
+### 6. Coordinate Null Handling
+
+Always check for null coordinates:
+
+```typescript
+const x = timeScale.timeToCoordinate(item.time);
+if (x === null) continue;
+
+const y = priceToCoordinate(item.value);
+if (y === null) continue;
+```
+
+## 📋 Implementation Checklist
+
+### Design Phase
+- [ ] Choose architecture pattern (ICustomSeries, ISeriesPrimitive, or Hybrid)
+- [ ] Define data interface with `Time` type
+- [ ] Define options interface (match Python exactly)
+- [ ] Plan visualization requirements
+- [ ] Determine if z-order control needed (use Pattern 3)
+
+### Implementation Phase
+- [ ] Create ICustomSeries implementation
+- [ ] Create ICustomSeriesPaneRenderer
+- [ ] Create ISeriesPrimitive (if Pattern 2 or 3)
+- [ ] Create IPrimitivePaneView and renderer (if Pattern 2 or 3)
+- [ ] Create ISeriesPrimitiveAxisView (if Pattern 2 or 3)
+- [ ] Implement time-based visible range detection
+- [ ] Create factory function with mode selection
+- [ ] Add default options (match Python)
+- [ ] Implement Python backend class
+
+### Testing Phase
+- [ ] Test ICustomSeries rendering
+- [ ] Test primitive rendering (if applicable)
+- [ ] Test mode switching (if hybrid)
+- [ ] Test price axis views
+- [ ] Test time-based visible range
+- [ ] Test default values (Python ↔ TypeScript)
+- [ ] Test coordinate null handling
+- [ ] Test with empty, small, and large datasets
+
+### Validation Phase
+- [ ] Run `npm run build` - no errors
+- [ ] Run `npm run lint` - no warnings
+- [ ] Run `npm test` - all pass
+- [ ] Verify Python defaults match TypeScript
+- [ ] Test in Streamlit app
+- [ ] Verify autoscaling works
+- [ ] Verify z-order (if using primitive)
+
+## 📖 Reference Implementations
+
+### Pattern 1: ICustomSeries Only
+- Not yet implemented (coming soon)
+
+### Pattern 2: ISeriesPrimitive Only
+- **Ribbon**: `ribbonSeriesPlugin.ts`
+- **Band**: `bandSeriesPlugin.ts`
+
+### Pattern 3: Hybrid (ICustomSeries + ISeriesPrimitive)
+- **TrendFill**: `trendFillSeriesPlugin.ts` + `TrendFillPrimitive.ts` ⭐ **Reference**
+
+## 🎯 Summary
+
+**Key Principles**:
+1. ✅ Choose the right architecture pattern for your needs
+2. ✅ Match Python and TypeScript defaults exactly
+3. ✅ Use `??` not `||` for numeric defaults
+4. ✅ Implement time-based visible range detection
+5. ✅ Handle coordinate nulls properly
+6. ✅ Convert fill colors to solid for price axis
+7. ✅ Control `lastValueVisible` based on rendering mode
+8. ✅ Use `disableSeriesRendering` to switch modes
+
+**When to Use Each Pattern**:
+- **Pattern 1**: Simple series, no z-order control needed
+- **Pattern 2**: Need z-order, no autoscaling needed
+- **Pattern 3**: Need both autoscaling AND z-order control ⭐
+
+---
+
+**Status**: ✅ **COMPLETE** - Comprehensive guide with hybrid pattern
+**Last Updated**: January 2025
+**Next Review**: Quarterly review of custom series development standards

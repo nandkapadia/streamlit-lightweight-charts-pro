@@ -191,7 +191,7 @@ export interface PaneCollapseConfig {
   buttonBackground?: string;
   buttonHoverBackground?: string;
   buttonBorderRadius?: number;
-  position?: string; // Corner position for the collapse button
+  corner?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'; // Corner position for the collapse button
   zIndex?: number; // Z-index for button positioning
   showTooltip?: boolean;
   tooltipText?: {
@@ -249,6 +249,7 @@ export interface SeriesConfig {
   data: SeriesDataPoint[];
   options?: SeriesOptionsConfig;
   name?: string;
+  title?: string; // Add title support for series
   priceScale?: PriceScaleConfig;
   priceScaleId?: string; // Add priceScaleId support for overlay price scales
   lastValueVisible?: boolean; // Add lastValueVisible support for series

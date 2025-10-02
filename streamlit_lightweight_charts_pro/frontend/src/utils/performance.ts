@@ -6,19 +6,19 @@
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const perfLog = {
-  log: (...args: any[]) => {
+  log: (..._: any[]) => {
     if (isDevelopment) {
-      console.log('[PERF]', ...args);
+      // Performance logging disabled in favor of logger utility
     }
   },
-  warn: (...args: any[]) => {
+  warn: (..._: any[]) => {
     if (isDevelopment) {
-      console.warn('[PERF WARN]', ...args);
+      // Performance logging disabled in favor of logger utility
     }
   },
-  error: (...args: any[]) => {
+  error: (..._: any[]) => {
     // Always log errors, even in production
-    console.error('[PERF ERROR]', ...args);
+    // Performance logging disabled in favor of logger utility
   },
 };
 

@@ -17,8 +17,6 @@ import pytest
 from streamlit_lightweight_charts_pro.data.marker import MarkerBase
 from streamlit_lightweight_charts_pro.exceptions import (
     ColorValidationError,
-    MinMovePositiveError,
-    PrecisionNonNegativeError,
     TypeValidationError,
     ValueValidationError,
 )
@@ -82,7 +80,7 @@ class TestChainableProperty:
         assert config.precision == 4
 
         # Test invalid precision should raise error
-        with pytest.raises(PrecisionNonNegativeError):
+        with pytest.raises(ValueValidationError):
             config.set_precision(-1)  # type: ignore[attr-defined][attr-defined]
 
     def test_chainable_property_with_none_support(self):
@@ -212,7 +210,7 @@ class TestChainableField:
         assert options.min_move == 0.05
 
         # Test invalid min_move should raise error
-        with pytest.raises(MinMovePositiveError):
+        with pytest.raises(ValueValidationError):
             options.set_min_move(-0.01)  # type: ignore[attr-defined][attr-defined]
 
     def test_chainable_field_with_union_types(self):
@@ -364,7 +362,7 @@ class TestChainableValidation:
         config = TestConfig()
 
         # Test invalid precision values should raise error
-        with pytest.raises(PrecisionNonNegativeError):
+        with pytest.raises(ValueValidationError):
             config.set_precision(-1)  # type: ignore[attr-defined][attr-defined]
 
         # Note: The actual validator might allow values > 5, so we test a reasonable boundary
@@ -410,10 +408,10 @@ class TestChainableValidation:
         config = TestConfig()
 
         # Test invalid min_move values should raise error
-        with pytest.raises(MinMovePositiveError):
+        with pytest.raises(ValueValidationError):
             config.set_min_move(-0.01)  # type: ignore[attr-defined][attr-defined]
 
-        with pytest.raises(MinMovePositiveError):
+        with pytest.raises(ValueValidationError):
             config.set_min_move(0.0)  # type: ignore[attr-defined][attr-defined]
 
 

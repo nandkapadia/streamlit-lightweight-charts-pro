@@ -193,7 +193,6 @@ export const ChartSuspenseWrapper: React.FC<ChartSuspenseWrapperProps> = React.m
   return (
     <ErrorBoundary
       onError={(error) => {
-        console.error('Chart Suspense Error:', error);
         onError?.(error);
       }}
       fallback={

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
-from streamlit_lightweight_charts_pro.exceptions import InvalidTypeValueError, ValueValidationError
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 from streamlit_lightweight_charts_pro.utils import chainable_field
 
 
@@ -36,7 +36,10 @@ class PriceFormatOptions(Options):
     def _validate_type_static(type_value: str) -> str:
         """Static version of type validator for decorator use."""
         if type_value not in {"price", "volume", "percent", "custom"}:
-            raise InvalidTypeValueError(type_value)
+            raise ValueValidationError(
+                "type",
+                f"must be one of 'price', 'volume', 'percent', 'custom', got {type_value!r}",
+            )
         return type_value
 
     @staticmethod

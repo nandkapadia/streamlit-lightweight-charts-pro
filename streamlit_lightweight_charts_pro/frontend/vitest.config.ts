@@ -10,6 +10,9 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.ts'],
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: ['node_modules', 'build', 'dist'],
+    // Suppress expected console output from performance monitor tests
+    silent: false,
+    reporters: ['verbose'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -28,7 +31,11 @@ export default defineConfig({
     testTimeout: 10000,
     // Handle ES modules properly
     deps: {
-      external: []
+      optimizer: {
+        web: {
+          exclude: []
+        }
+      }
     },
     // Configure environment more specifically for React testing
     environmentOptions: {
@@ -37,4 +44,10 @@ export default defineConfig({
       }
     }
   },
+  // Resolve configuration for better module resolution
+  resolve: {
+    alias: {
+      '@': './src'
+    }
+  }
 });

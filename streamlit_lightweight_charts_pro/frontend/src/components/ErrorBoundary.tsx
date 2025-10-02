@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { logger } from '../utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -64,11 +65,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // Log error for debugging (only in development)
     if (process.env.NODE_ENV === 'development') {
-      console.group('🚨 ErrorBoundary caught an error');
-      console.error('An error occurred');
-      console.error('Error Info:', _errorInfo);
-      console.error('Component Stack:', _errorInfo.componentStack);
-      console.groupEnd();
+      logger.error('ErrorBoundary caught an error', 'ErrorBoundary', _error);
     }
   }
 
@@ -126,7 +123,6 @@ export class ErrorBoundary extends Component<Props, State> {
             </button>
             {process.env.NODE_ENV === 'development' && (
               <button
-                onClick={() => console.error(this.state.error)}
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#74b9ff',

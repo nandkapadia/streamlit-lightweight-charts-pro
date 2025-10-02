@@ -17,7 +17,7 @@ import pandas as pd
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData
-from streamlit_lightweight_charts_pro.type_definitions.enums import ChartType
+from streamlit_lightweight_charts_pro.type_definitions.enums import ChartType, LineStyle
 from streamlit_lightweight_charts_pro.utils import chainable_property
 
 logger = logging.getLogger(__name__)
@@ -95,12 +95,12 @@ class TrendFillSeries(Series):
         self._trend_line = LineOptions(
             color="#2196F3",
             line_width=2,
-            line_style="solid",
+            line_style=LineStyle.SOLID,
         )  # Blue for trend line
         self._base_line = LineOptions(
             color="#666666",
             line_width=1,
-            line_style="dotted",
+            line_style=LineStyle.DOTTED,
             line_visible=False,
         )
         self._fill_visible = True

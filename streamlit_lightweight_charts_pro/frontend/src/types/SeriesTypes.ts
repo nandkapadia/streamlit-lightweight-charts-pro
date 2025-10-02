@@ -21,7 +21,8 @@ export type SeriesType =
   | 'supertrend'
   | 'bollinger_bands'
   | 'sma'
-  | 'ema';
+  | 'ema'
+  | 'ribbon';
 
 /**
  * Base styling configuration for series appearance.
@@ -37,12 +38,18 @@ export interface SeriesStyleConfig {
 
 export interface SeriesConfiguration {
   // Common properties
+  visible?: boolean;
+  title?: string;
   color?: string;
   opacity?: number;
   lineWidth?: number;
-  lineStyle?: 'solid' | 'dashed' | 'dotted';
+  lineStyle?: number;
   lastPriceVisible?: boolean;
+  lastValueVisible?: boolean;
   priceLineVisible?: boolean;
+  priceLineColor?: string;
+  priceLineWidth?: number;
+  priceLineStyle?: number;
   labelsOnPriceScale?: boolean;
   valuesInStatusLine?: boolean;
   precision?: boolean;
@@ -63,6 +70,7 @@ export interface SeriesConfiguration {
   upperLine?: SeriesStyleConfig;
   lowerLine?: SeriesStyleConfig;
   fill?: SeriesStyleConfig;
+  fillVisible?: boolean;
 
   // Moving Averages
   source?: 'close' | 'open' | 'high' | 'low' | 'hl2' | 'hlc3' | 'ohlc4';

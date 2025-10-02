@@ -1,12 +1,12 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import type { MockedFunction } from 'vitest';
+// MockedFunction not needed with proper type annotations
 import { ResizeObserverManager } from '../../utils/resizeObserverManager';
 
 describe('ResizeObserverManager', () => {
   let manager: ResizeObserverManager;
   let mockElement: HTMLElement;
-  let mockObserver: MockedFunction<ResizeObserver>;
-  let mockCallback: MockedFunction;
+  let mockObserver: any;
+  let mockCallback: ReturnType<typeof vi.fn>;
 
   let dateNowSpy: any;
 
@@ -20,10 +20,10 @@ describe('ResizeObserverManager', () => {
       observe: vi.fn(),
       unobserve: vi.fn(),
       disconnect: vi.fn(),
-    } as MockedFunction<ResizeObserver>;
+    };
 
     // Mock ResizeObserver constructor
-    global.ResizeObserver = vi.fn().mockImplementation(() => mockObserver);
+    global.ResizeObserver = vi.fn().mockImplementation(() => mockObserver) as any;
 
     // Mock Date.now for throttling tests - proper Vitest way
     dateNowSpy = vi.spyOn(Date, 'now').mockReturnValue(1000);
@@ -64,8 +64,14 @@ describe('ResizeObserverManager', () => {
       manager.addObserver('test-id', mockElement, mockCallback, { throttleMs, debounceMs: 0 });
 
       // Get the callback that was passed to ResizeObserver
-      const observerCallback = (global.ResizeObserver as MockedFunction).mock.calls[0][0];
-      const mockEntry = { target: mockElement } as ResizeObserverEntry;
+      const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
+      const mockEntry = {
+        target: mockElement,
+        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        borderBoxSize: [],
+        contentBoxSize: [],
+        devicePixelContentBoxSize: []
+      } as ResizeObserverEntry;
 
       // First call should work (lastCallTime starts at 0, now = 1000, diff = 1000 > 100)
       dateNowSpy.mockReturnValue(1000);
@@ -93,8 +99,14 @@ describe('ResizeObserverManager', () => {
       manager.addObserver('test-id', mockElement, mockCallback, { debounceMs });
 
       // Get the callback that was passed to ResizeObserver
-      const observerCallback = (global.ResizeObserver as MockedFunction).mock.calls[0][0];
-      const mockEntry = { target: mockElement } as ResizeObserverEntry;
+      const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
+      const mockEntry = {
+        target: mockElement,
+        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        borderBoxSize: [],
+        contentBoxSize: [],
+        devicePixelContentBoxSize: []
+      } as ResizeObserverEntry;
 
       // Call multiple times rapidly
       observerCallback([mockEntry]);
@@ -121,8 +133,14 @@ describe('ResizeObserverManager', () => {
 
       manager.addObserver('test-id', mockElement, mockCallback, { throttleMs, debounceMs });
 
-      const observerCallback = (global.ResizeObserver as MockedFunction).mock.calls[0][0];
-      const mockEntry = { target: mockElement } as ResizeObserverEntry;
+      const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
+      const mockEntry = {
+        target: mockElement,
+        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        borderBoxSize: [],
+        contentBoxSize: [],
+        devicePixelContentBoxSize: []
+      } as ResizeObserverEntry;
 
       // Multiple rapid calls
       observerCallback([mockEntry]);
@@ -160,8 +178,14 @@ describe('ResizeObserverManager', () => {
 
       manager.addObserver('test-id', mockElement, mockCallback, { debounceMs });
 
-      const observerCallback = (global.ResizeObserver as MockedFunction).mock.calls[0][0];
-      const mockEntry = { target: mockElement } as ResizeObserverEntry;
+      const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
+      const mockEntry = {
+        target: mockElement,
+        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        borderBoxSize: [],
+        contentBoxSize: [],
+        devicePixelContentBoxSize: []
+      } as ResizeObserverEntry;
 
       // Trigger debounced callback
       observerCallback([mockEntry]);
@@ -236,10 +260,10 @@ describe('ResizeObserverManager', () => {
         observe: vi.fn(),
         unobserve: vi.fn(),
         disconnect: vi.fn(),
-      } as MockedFunction<ResizeObserver>;
+      } as any;
 
       // Mock to return different observers
-      (global.ResizeObserver as MockedFunction)
+      (global.ResizeObserver as any)
         .mockImplementationOnce(() => mockObserver)
         .mockImplementationOnce(() => mockObserver2);
 
@@ -265,8 +289,14 @@ describe('ResizeObserverManager', () => {
 
       manager.addObserver('test-id', mockElement, mockCallback, { debounceMs });
 
-      const observerCallback = (global.ResizeObserver as MockedFunction).mock.calls[0][0];
-      const mockEntry = { target: mockElement } as ResizeObserverEntry;
+      const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
+      const mockEntry = {
+        target: mockElement,
+        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        borderBoxSize: [],
+        contentBoxSize: [],
+        devicePixelContentBoxSize: []
+      } as ResizeObserverEntry;
 
       // Trigger debounced callback
       observerCallback([mockEntry]);
@@ -315,8 +345,14 @@ describe('ResizeObserverManager', () => {
         manager.addObserver('test-id', mockElement, errorCallback);
       }).not.toThrow();
 
-      const observerCallback = (global.ResizeObserver as MockedFunction).mock.calls[0][0];
-      const mockEntry = { target: mockElement } as ResizeObserverEntry;
+      const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
+      const mockEntry = {
+        target: mockElement,
+        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        borderBoxSize: [],
+        contentBoxSize: [],
+        devicePixelContentBoxSize: []
+      } as ResizeObserverEntry;
 
       // The current implementation doesn't catch callback errors, so it will throw
       expect(() => {

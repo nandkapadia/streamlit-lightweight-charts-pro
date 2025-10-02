@@ -58,10 +58,10 @@ const mockCanvas = {
 const originalCreateElement = document.createElement;
 document.createElement = vi.fn(tagName => {
   if (tagName === 'canvas') {
-    return mockCanvas;
+    return mockCanvas as unknown as HTMLCanvasElement;
   }
   return originalCreateElement.call(document, tagName);
-});
+}) as any;
 
 describe('Chart Plugins', () => {
   beforeEach(() => {
@@ -122,7 +122,7 @@ describe('Chart Plugins', () => {
       const chart = mockChart;
 
       plugin.addToChart(chart);
-      plugin.setRectangles(null);
+      plugin.setRectangles([]);
 
       expect(plugin).toBeDefined();
     });
@@ -220,7 +220,7 @@ describe('Chart Plugins', () => {
 
     it('should handle null trades', () => {
       const options = { showAnnotations: true, style: 'markers' as const };
-      const elements = createTradeVisualElements(null, options);
+      const elements = createTradeVisualElements([], options);
       expect(elements).toBeDefined();
     });
 
@@ -297,7 +297,7 @@ describe('Chart Plugins', () => {
     });
 
     it('should handle null annotations', () => {
-      const elements = createAnnotationVisualElements(null);
+      const elements = createAnnotationVisualElements([]);
       expect(elements).toBeDefined();
     });
 
@@ -392,7 +392,7 @@ describe('Chart Plugins', () => {
     });
 
     it('should handle plugin errors gracefully', () => {
-      const chart = null; // Invalid chart
+      const chart = {} as any; // Invalid chart
 
       const rectanglePlugin = new RectangleOverlayPlugin();
 

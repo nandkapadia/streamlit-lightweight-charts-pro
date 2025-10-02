@@ -7,6 +7,7 @@
  */
 
 import { SeriesConfiguration, SeriesType } from '../types/SeriesTypes';
+import { logger } from '../utils/logger';
 
 /**
  * Configuration field definition for dynamic form generation
@@ -512,8 +513,8 @@ export class SeriesConfigurationService {
     this.changeHandlers.forEach(handler => {
       try {
         handler(seriesId, seriesType, config);
-      } catch {
-        console.error('An error occurred');
+      } catch (error) {
+        logger.error('Series configuration handler failed', 'SeriesConfigurationService', error);
       }
     });
   }
@@ -562,16 +563,16 @@ class LocalStorageAdapter implements ConfigStorage {
   set(key: string, config: SeriesConfiguration): void {
     try {
       localStorage.setItem(this.prefix + key, JSON.stringify(config));
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Series configuration operation failed', 'SeriesConfigurationService', error);
     }
   }
 
   remove(key: string): void {
     try {
       localStorage.removeItem(this.prefix + key);
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Series configuration operation failed', 'SeriesConfigurationService', error);
     }
   }
 
@@ -580,8 +581,8 @@ class LocalStorageAdapter implements ConfigStorage {
       Object.keys(localStorage)
         .filter(key => key.startsWith(this.prefix))
         .forEach(key => localStorage.removeItem(key));
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Series configuration operation failed', 'SeriesConfigurationService', error);
     }
   }
 }

@@ -1,40 +1,98 @@
-"""
-Tests for CandlestickData class.
+"""Comprehensive unit tests for the CandlestickData class.
 
-This module contains comprehensive tests for the CandlestickData class,
-which represents candlestick chart data points with optional color styling.
+This module contains extensive unit tests for the CandlestickData class,
+which represents candlestick chart data points with optional color styling
+for financial chart visualization. The tests cover construction, validation,
+serialization, and inheritance behavior.
+
+The module includes:
+    - TestCandlestickDataConstruction: Tests for basic construction and validation
+    - TestCandlestickDataValidation: Tests for data validation and error handling
+    - TestCandlestickDataSerialization: Tests for data serialization and conversion
+    - TestCandlestickDataInheritance: Tests for inheritance from OhlcData
+
+Key Features Tested:
+    - OHLC data construction with optional color fields
+    - Color format validation for body, border, and wick colors
+    - Data serialization to frontend-compatible format
+    - Inheritance behavior from OhlcData base class
+    - Error handling for invalid data and color formats
+    - DataFrame integration and column mapping
+    - Required and optional column definitions
+
+Example Test Usage:
+    ```python
+    from tests.unit.data.test_candlestick_data import TestCandlestickDataConstruction
+
+    # Run specific test
+    test_instance = TestCandlestickDataConstruction()
+    test_instance.test_standard_construction()
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
+# Standard Imports
 from datetime import datetime
 
+# Third Party Imports
 import numpy as np
 import pandas as pd
 import pytest
 
+# Local Imports
 from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
 from streamlit_lightweight_charts_pro.exceptions import (
     ColorValidationError,
-    NonNegativeValueError,
     ValueValidationError,
 )
 
 
 class TestCandlestickDataConstruction:
-    """Test CandlestickData construction."""
+    """Test cases for CandlestickData construction and basic functionality.
+
+    This test class focuses on verifying that CandlestickData objects can be
+    properly constructed with various parameter combinations. It tests basic
+    instantiation, default values, and ensures that the data structure is
+    correctly initialized with the expected values.
+
+    The tests ensure that:
+        - Standard construction works with all required OHLC fields
+        - Optional color fields default to None when not provided
+        - All field values are correctly assigned and accessible
+        - The object behaves as expected for basic operations
+    """
 
     def test_standard_construction(self):
-        """Test standard construction with all required fields."""
+        """Test standard construction with all required fields.
+
+        This test verifies that a CandlestickData object can be created with
+        all required OHLC fields and that the optional color fields default
+        to None when not provided.
+
+        The test ensures:
+            - All OHLC values are correctly assigned
+            - Optional color fields are None by default
+            - The object can be accessed and manipulated normally
+        """
+        # Create CandlestickData with all required OHLC fields
+        # Using a fixed timestamp for consistent testing
         data = CandlestickData(time=1640995200, open=100.0, high=105.0, low=98.0, close=103.0)
 
-        assert data.time == 1640995200
-        assert data.open == 100.0
-        assert data.high == 105.0
-        assert data.low == 98.0
-        assert data.close == 103.0
-        assert data.color is None
-        assert data.border_color is None
-        assert data.wick_color is None
+        # Verify all OHLC values are correctly assigned
+        assert data.time == 1640995200  # Verify timestamp is preserved
+        assert data.open == 100.0  # Verify opening price
+        assert data.high == 105.0  # Verify highest price
+        assert data.low == 98.0  # Verify lowest price
+        assert data.close == 103.0  # Verify closing price
+
+        # Verify optional color fields default to None when not provided
+        assert data.color is None  # Body color should be None
+        assert data.border_color is None  # Border color should be None
+        assert data.wick_color is None  # Wick color should be None
 
     def test_construction_with_colors(self):
         """Test construction with optional color fields."""
@@ -110,7 +168,7 @@ class TestCandlestickDataValidation:
 
     def test_validation_non_negative_values(self):
         """Test that all OHLC values must be non-negative."""
-        with pytest.raises(NonNegativeValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(ValueValidationError, match="all OHLC values must be non-negative"):
             CandlestickData(
                 time=1640995200,
                 open=-100.0,
@@ -131,7 +189,7 @@ class TestCandlestickDataValidation:
         """Test validation of invalid hex color."""
         with pytest.raises(
             ColorValidationError,
-            match="Invalid color format for color: 'invalid_hex'. Must be hex or rgba.",
+            match=r"Invalid color format for color: 'invalid_hex'. Must be hex or rgba.",
         ):
             CandlestickData(
                 time=1640995200,
@@ -146,7 +204,7 @@ class TestCandlestickDataValidation:
         """Test validation of invalid rgba color."""
         with pytest.raises(
             ColorValidationError,
-            match="Invalid color format for border_color: 'invalid_rgba'. Must be hex or rgba.",
+            match=r"Invalid color format for border_color: 'invalid_rgba'. Must be hex or rgba.",
         ):
             CandlestickData(
                 time=1640995200,
@@ -310,7 +368,7 @@ class TestCandlestickDataEdgeCases:
 
     def test_construction_with_negative_infinity_value(self):
         """Test construction with negative infinity value."""
-        with pytest.raises(NonNegativeValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(ValueValidationError, match="all OHLC values must be non-negative"):
             CandlestickData(time=1640995200, open=float("-inf"), high=105.0, low=98.0, close=103.0)
 
     def test_very_small_values(self):

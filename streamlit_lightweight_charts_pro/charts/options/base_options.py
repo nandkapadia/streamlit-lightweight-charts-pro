@@ -3,42 +3,94 @@
 This module provides the base Options class that all option classes should inherit from.
 It provides common functionality for serialization, validation, and frontend communication
 through standardized dictionary conversion with camelCase key formatting.
+
+The Options class serves as the foundation for all configuration classes in the library,
+ensuring consistent behavior across different option types and providing a unified
+interface for frontend serialization and validation.
+
+Key Features:
+    - Automatic snake_case to camelCase key conversion for frontend compatibility
+    - Enum value extraction and conversion for proper serialization
+    - Nested option object serialization with recursive handling
+    - Dictionary and list serialization with type-aware processing
+    - Special handling for _options fields with flattening logic
+    - Flexible update mechanism with dictionary-based configuration
+    - Comprehensive validation and error handling
+
+Example:
+    ```python
+    from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+    from dataclasses import dataclass
+
+
+    @dataclass
+    class MyOptions(Options):
+        background_color: str = "#ffffff"
+        text_color: str = "#000000"
+        is_visible: bool = True
+
+
+    # Create and serialize options
+    options = MyOptions()
+    serialized = options.asdict()
+    # Returns: {"backgroundColor": "#ffffff", "textColor": "#000000", "isVisible": True}
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
+# Standard Imports
 from abc import ABC
 from dataclasses import dataclass, fields
-from enum import Enum
 from typing import Any, Dict
 
+# Local Imports
 from streamlit_lightweight_charts_pro.logging_config import get_logger
 from streamlit_lightweight_charts_pro.utils.data_utils import snake_to_camel
+from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
 
 # Initialize logger
 logger = get_logger(__name__)
 
 
 @dataclass
-class Options(ABC):  # noqa: B024
-    """Abstract base class for all option classes.
+class Options(SerializableMixin, ABC):
+    """Abstract base class for all option classes in financial chart configuration.
 
     This class provides common functionality for option classes including automatic
     camelCase key conversion for frontend serialization, enum value conversion,
     and standardized validation patterns. All option classes in the library should
-    inherit from this base class to ensure consistent behavior.
+    inherit from this base class to ensure consistent behavior and frontend compatibility.
 
     The class implements a sophisticated serialization system that handles:
-    - Automatic snake_case to camelCase key conversion
-    - Enum value extraction and conversion
-    - Nested option object serialization
+    - Automatic snake_case to camelCase key conversion for JavaScript compatibility
+    - Enum value extraction and conversion for proper frontend rendering
+    - Nested option object serialization with recursive processing
     - List serialization with recursive option handling
     - Dictionary serialization with recursive Options object detection
     - Special handling for _options fields with flattening logic
+    - Flexible update mechanism with dictionary-based configuration
+
+    Key Features:
+        - Frontend-compatible serialization with camelCase keys
+        - Type-safe validation and error handling
+        - Recursive nested object processing
+        - Enum value extraction and conversion
+        - Method chaining support for fluent API usage
+        - Comprehensive logging for debugging
 
     Attributes:
-        Inherited by subclasses with specific option attributes.
+        Inherited by subclasses with specific option attributes. Each subclass
+        defines its own configuration properties with appropriate default values.
 
     Example:
         ```python
+        from dataclasses import dataclass
+        from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+
+
         @dataclass
         class MyOptions(Options):
             background_color: str = "#ffffff"
@@ -58,20 +110,20 @@ class Options(ABC):  # noqa: B024
             nested_dict: Dict[str, NestedOptions] = None
 
 
+        # Create and serialize options
         options = ContainerOptions(
             main_options=MyOptions(), nested_dict={"line": NestedOptions(), "area": NestedOptions()}
         )
         result = options.asdict()
         # Returns: {
-        #     "mainOptions": {"backgroundColor": "#ffffff",
-            "textColor": "#000000",
-            "isVisible": True},
-        #     "nestedDict": {"line": {"color": "#ff0000",
-            "width": 2},
-            "area": {"color": "#ff0000",
-            "width": 2}}
+        #     "mainOptions": {"backgroundColor": "#ffffff", "textColor": "#000000", "isVisible": True},
+        #     "nestedDict": {"line": {"color": "#ff0000", "width": 2}, "area": {"color": "#ff0000", "width": 2}}
         # }
         ```
+
+    See also:
+        chainable_field: Decorator for creating chainable option properties.
+        snake_to_camel: Utility function for key conversion.
     """
 
     def update(self, updates: Dict[str, Any]) -> "Options":
@@ -282,51 +334,5 @@ class Options(ABC):  # noqa: B024
             - Dictionaries containing Options objects at any nesting level are processed recursively
             - background_options fields are flattened into the parent result
         """
-        result = {}
-        for f in fields(self):
-            name = f.name
-            value = getattr(self, name)
-
-            # Skip None values, empty strings, and empty dictionaries
-            if value is None or value in ("", {}):
-                continue
-
-            # Convert enum values to their .value property
-            if isinstance(value, Enum):
-                value = value.value
-            elif (
-                hasattr(value, "value")
-                and hasattr(value, "__class__")
-                and hasattr(value.__class__, "__bases__")
-            ):
-                # Check if it's an enum-like object
-                for base in value.__class__.__bases__:
-                    if hasattr(base, "__name__") and "Enum" in base.__name__:
-                        value = value.value
-                        break
-
-            # Handle nested Options objects
-            if isinstance(value, Options):
-                value = value.asdict()
-            elif isinstance(value, list):
-                # Handle lists of Options objects
-                value = [item.asdict() if isinstance(item, Options) else item for item in value]
-            elif isinstance(value, dict):
-                # Handle dictionaries that might contain Options objects at any level
-                value = self._process_dict_recursively(value)
-            # Convert to camelCase key
-            key = snake_to_camel(name)
-
-            # Special handling for fields ending in _options: flatten them
-            if name.endswith("_options") and isinstance(value, dict):
-                # Only flatten specific fields that should be flattened
-                if name == "background_options":
-                    # Merge the nested options into the parent result
-                    result.update(value)
-                else:
-                    # For other _options fields, keep them nested but with camelCase key
-                    result[key] = value
-            else:
-                result[key] = value
-
-        return result
+        # Use the inherited serialization from SerializableMixin
+        return dict(self._serialize_to_dict())

@@ -18,10 +18,10 @@ from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.exceptions import (
     ColorValidationError,
     ColumnMappingRequiredError,
+    DataFrameValidationError,
     DataItemsTypeError,
-    InvalidDataFormatError,
-    PaneIdNonNegativeError,
     TypeValidationError,
+    ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.type_definitions import ChartType, MarkerPosition, MarkerShape
 
@@ -540,12 +540,12 @@ class TestCandlestickSeriesValidation:
         data = [CandlestickData(time=1640995200, open=100, high=105, low=98, close=103)]
         series = CandlestickSeries(data=data, pane_id=-1)
 
-        with pytest.raises(PaneIdNonNegativeError):
+        with pytest.raises(ValueValidationError):
             series._validate_pane_config()
 
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(DataFrameValidationError):
             CandlestickSeries(data="invalid_data")
 
     def test_error_handling_missing_required_columns(self):
@@ -563,7 +563,7 @@ class TestCandlestickSeriesValidation:
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(DataFrameValidationError):
             CandlestickSeries(data=123)
 
     def test_error_handling_dataframe_without_column_mapping(self):

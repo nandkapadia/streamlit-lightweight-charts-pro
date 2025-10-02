@@ -38,11 +38,21 @@ License: MIT
 """
 
 from .chainable import chainable_field, chainable_property
+from .serialization import (
+    DEFAULT_CONFIG,
+    SerializableMixin,
+    SerializationConfig,
+    SimpleSerializableMixin,
+)
 
 # Trade visualization utilities have been removed - functionality is handled by frontend plugins
 # to avoid circular imports with the options module
 
 __all__ = [
+    "DEFAULT_CONFIG",
+    "SerializableMixin",
+    "SerializationConfig",
+    "SimpleSerializableMixin",
     "chainable_field",
     "chainable_property",
     # Trade visualization functions are available directly from the module

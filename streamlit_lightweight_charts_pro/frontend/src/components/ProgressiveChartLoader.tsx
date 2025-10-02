@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useCallback, useTransition, useDeferredValue, useMemo } from 'react';
 import { ChartSuspenseWrapper } from './ChartSuspenseWrapper';
 import { react19Monitor } from '../utils/react19PerformanceMonitor';
+import { logger } from '../utils/logger';
 
 interface ProgressiveLoadingConfig {
   priority: 'high' | 'medium' | 'low';
@@ -166,9 +167,9 @@ export const ProgressiveChartLoader: React.FC<ProgressiveChartLoaderProps> = Rea
     });
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`📊 Chart ${chartId} loaded in ${loadTime.toFixed(2)}ms (${deferredConfig.priority} priority)`);
+      logger.debug(`Chart loaded: ${chartId}, Load time: ${loadTime}ms`, 'ProgressiveChartLoader');
     }
-  }, [chartId, loadStartTime, deferredConfig.priority, queue, onLoadComplete, startTransition]);
+  }, [chartId, loadStartTime, queue, onLoadComplete, startTransition]);
 
   // Handle load errors
   const handleLoadError = useCallback((error: Error) => {
@@ -187,12 +188,14 @@ export const ProgressiveChartLoader: React.FC<ProgressiveChartLoaderProps> = Rea
       const preloadTimer = setTimeout(() => {
         // Simulate preloading critical chart resources
         if (process.env.NODE_ENV === 'development') {
-          console.log(`🚀 Preloading high-priority chart: ${chartId}`);
+          logger.debug(`Preloading critical resources for chart: ${chartId}`, 'ProgressiveChartLoader');
         }
       }, 100);
 
       return () => clearTimeout(preloadTimer);
     }
+    // Return undefined for cases where condition isn't met
+    return undefined;
   }, [loadingStrategy.shouldPreload, loadingState, chartId]);
 
   // Progressive loading states

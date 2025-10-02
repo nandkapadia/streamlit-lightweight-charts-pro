@@ -1,7 +1,7 @@
 import { LineStyle } from 'lightweight-charts';
 
 export const validateLineStyle = (lineStyle: any): LineStyle | undefined => {
-  if (!lineStyle) return undefined;
+  if (lineStyle === null || lineStyle === undefined || lineStyle === '') return undefined;
 
   if (typeof lineStyle === 'number' && LineStyle && Object.values(LineStyle).includes(lineStyle)) {
     return lineStyle;
@@ -19,7 +19,7 @@ export const validateLineStyle = (lineStyle: any): LineStyle | undefined => {
   }
 
   if (Array.isArray(lineStyle)) {
-    if (lineStyle.every(val => typeof val === 'number' && val >= 0) && LineStyle) {
+    if (lineStyle.length > 0 && lineStyle.every(val => typeof val === 'number' && val >= 0) && LineStyle) {
       return LineStyle.Solid;
     }
   }

@@ -17,9 +17,8 @@ from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.band import BandData
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.exceptions import (
+    DataFrameValidationError,
     InstanceTypeError,
-    InvalidDataFormatError,
-    PaneIdNonNegativeError,
     TypeValidationError,
     ValueValidationError,
 )
@@ -484,12 +483,12 @@ class TestBandSeriesValidation:
         data = [BandData(time=1640995200, upper=110.0, middle=105.0, lower=100.0)]
         series = BandSeries(data=data, pane_id=-1)
 
-        with pytest.raises(PaneIdNonNegativeError):
+        with pytest.raises(ValueValidationError):
             series._validate_pane_config()
 
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(DataFrameValidationError):
             BandSeries(data="invalid_data")
 
     def test_error_handling_missing_required_columns(self):
@@ -515,7 +514,7 @@ class TestBandSeriesValidation:
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(DataFrameValidationError):
             BandSeries(data=123)
 
 

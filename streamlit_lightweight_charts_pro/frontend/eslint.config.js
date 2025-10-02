@@ -12,6 +12,8 @@ export default [
       'coverage/**',
       '**/*.d.ts',
       'vite.config.ts',
+      'vitest.config.ts',
+      'eslint.config.js',
       'fix-html.js',
       '**/*.bak',
       '**/*.bak*',
@@ -91,7 +93,7 @@ export default [
         Buffer: 'readonly',
         __dirname: 'readonly',
         __filename: 'readonly',
-        // Testing globals
+        // Testing globals (Vitest)
         vi: 'readonly',
         describe: 'readonly',
         it: 'readonly',
@@ -101,7 +103,6 @@ export default [
         afterEach: 'readonly',
         beforeAll: 'readonly',
         afterAll: 'readonly',
-        jest: 'readonly',
       },
     },
     plugins: {

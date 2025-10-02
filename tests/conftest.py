@@ -918,9 +918,9 @@ def assert_performance_target(func, *args, max_time_ms: float = 100.0, **kwargs)
     result, execution_time = benchmark_function(func, *args, **kwargs)
 
     # Assert that execution time meets the performance target
-    assert (
-        execution_time <= max_time_ms
-    ), f"Function execution time {execution_time:.2f}ms exceeds target {max_time_ms}ms"
+    assert execution_time <= max_time_ms, (
+        f"Function execution time {execution_time:.2f}ms exceeds target {max_time_ms}ms"
+    )
 
     return result
 

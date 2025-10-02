@@ -587,9 +587,9 @@ class TestPerformanceValidation:
         validate(instance=series_dict, schema=FrontendJSONSchemas.SERIES_CONFIG_SCHEMA)
 
         # Verify performance (should be under 100ms for 1000 points)
-        assert (
-            serialization_time < 0.1
-        ), f"Serialization took {serialization_time:.3f}s, expected < 0.1s"
+        assert serialization_time < 0.1, (
+            f"Serialization took {serialization_time:.3f}s, expected < 0.1s"
+        )
 
         # Verify data integrity
         assert len(series_dict["data"]) == 1000
@@ -626,9 +626,9 @@ class TestPerformanceValidation:
         validate(instance=config, schema=FrontendJSONSchemas.COMPONENT_CONFIG_SCHEMA)
 
         # Verify performance (should be under 50ms for complex config)
-        assert (
-            serialization_time < 0.05
-        ), f"Complex serialization took {serialization_time:.3f}s, expected < 0.05s"
+        assert serialization_time < 0.05, (
+            f"Complex serialization took {serialization_time:.3f}s, expected < 0.05s"
+        )
 
         # Verify structure
         assert len(config["charts"]) == 1

@@ -7,6 +7,11 @@
  */
 
 import React, { useState } from 'react';
+import {
+  ButtonColors,
+  ButtonDimensions,
+  ButtonEffects,
+} from '../primitives/PrimitiveDefaults';
 
 /**
  * Props for the ButtonPanelComponent.
@@ -24,19 +29,19 @@ interface ButtonPanelComponentProps {
   showCollapseButton?: boolean;
   /** Whether to show the gear (settings) button. Defaults to true. */
   showGearButton?: boolean;
-  /** Visual configuration for the buttons */
-  config: {
-    /** Button size in pixels */
+  /** Visual configuration for the buttons - uses PrimitiveDefaults when not specified */
+  config?: {
+    /** Button size in pixels - defaults to ButtonDimensions.PANE_ACTION_WIDTH */
     buttonSize?: number;
-    /** Default button color */
+    /** Default button color - defaults to ButtonColors.DEFAULT_COLOR */
     buttonColor?: string;
-    /** Button background color */
+    /** Button background color - defaults to ButtonColors.DEFAULT_BACKGROUND */
     buttonBackground?: string;
-    /** Button border radius */
+    /** Button border radius - defaults to 3px */
     buttonBorderRadius?: number;
-    /** Button color on hover */
+    /** Button color on hover - defaults to ButtonColors.HOVER_COLOR */
     buttonHoverColor?: string;
-    /** Button background color on hover */
+    /** Button background color on hover - defaults to ButtonColors.HOVER_BACKGROUND */
     buttonHoverBackground?: string;
     /** Whether to show tooltips */
     showTooltip?: boolean;
@@ -59,8 +64,6 @@ interface ButtonPanelComponentProps {
  * <ButtonPanelComponent
  *   paneId={0}
  *   isCollapsed={false}
- *   onCollapseClick={() => console.log('Collapse clicked')}
- *   onGearClick={() => console.log('Gear clicked')}
  *   showCollapseButton={true}
  *   config={{
  *     buttonSize: 16,
@@ -77,19 +80,19 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
   onGearClick,
   showCollapseButton = true, // Default to true for backward compatibility
   showGearButton = true, // Default to true for backward compatibility
-  config,
+  config = {}, // Default to empty object
 }) => {
   const [hoveredButton, setHoveredButton] = useState<'collapse' | 'gear' | null>(null);
 
-  const buttonSize = config.buttonSize || 16;
-  const buttonColor = config.buttonColor || '#787B86';
-  const buttonBackground = config.buttonBackground || 'rgba(255, 255, 255, 0.9)';
-  const buttonBorderRadius = config.buttonBorderRadius || 3;
-  const buttonHoverColor = config.buttonHoverColor || '#131722';
-  const buttonHoverBackground = config.buttonHoverBackground || 'rgba(255, 255, 255, 1)';
+  // Use PrimitiveDefaults with fallbacks to config overrides
+  const buttonSize = config.buttonSize ?? ButtonDimensions.PANE_ACTION_WIDTH;
+  const buttonColor = config.buttonColor ?? ButtonColors.DEFAULT_COLOR;
+  const buttonBackground = config.buttonBackground ?? ButtonColors.DEFAULT_BACKGROUND;
+  const buttonBorderRadius = config.buttonBorderRadius ?? 3;
+  const buttonHoverColor = config.buttonHoverColor ?? ButtonColors.HOVER_COLOR;
+  const buttonHoverBackground = config.buttonHoverBackground ?? ButtonColors.HOVER_BACKGROUND;
 
   const panelStyle: React.CSSProperties = {
-    position: 'absolute',
     display: 'flex',
     gap: '4px',
     zIndex: 1000,
@@ -101,17 +104,16 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
       width: `${buttonSize}px`,
       height: `${buttonSize}px`,
       background: isHovered ? buttonHoverBackground : buttonBackground,
-      border: `1px solid ${isHovered ? buttonHoverColor : buttonColor}`,
+      border: ButtonEffects.DEFAULT_BORDER,
       borderRadius: `${buttonBorderRadius}px`,
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontSize: '10px',
-      fontWeight: 'bold',
       color: isHovered ? buttonHoverColor : buttonColor,
-      transition: 'all 0.2s ease',
+      transition: ButtonEffects.DEFAULT_TRANSITION,
       userSelect: 'none',
+      boxShadow: isHovered ? ButtonEffects.HOVER_BOX_SHADOW : 'none',
     };
   };
 

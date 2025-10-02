@@ -1,17 +1,51 @@
-"""
-Comprehensive unit tests for the Series base class.
+"""Comprehensive unit tests for the Series base class.
 
-This module tests the abstract Series class functionality including
-data handling, configuration, method chaining, edge cases, and legend integration.
+This module contains extensive unit tests for the abstract Series class functionality,
+covering all major aspects including data handling, configuration, method chaining,
+edge cases, and legend integration. The tests ensure that all series implementations
+work correctly with the base class functionality.
+
+The module includes:
+    - TestSeriesConstruction: Tests for Series initialization and data processing
+    - TestSeriesDataHandling: Tests for DataFrame and data object handling
+    - TestSeriesMethodChaining: Tests for fluent API and method chaining
+    - TestSeriesEdgeCases: Tests for error handling and edge cases
+    - TestSeriesLegendIntegration: Tests for legend functionality integration
+
+Key Features Tested:
+    - Series construction with various data types (lists, DataFrames, Series)
+    - Data validation and conversion processes
+    - Method chaining and fluent API usage
+    - Error handling for invalid inputs and configurations
+    - Legend integration and configuration
+    - Price line and marker management
+    - Column mapping and DataFrame processing
+    - Edge cases and boundary conditions
+
+Example Test Usage:
+    ```python
+    from tests.unit.series.test_series_base import TestSeriesConstruction
+
+    # Run specific test
+    test_instance = TestSeriesConstruction()
+    test_instance.test_series_construction_with_list()
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
 # pylint: disable=no-member,protected-access
 
+# Standard Imports
 from unittest.mock import Mock
 
+# Third Party Imports
 import pandas as pd
 import pytest
 
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.options.price_format_options import PriceFormatOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
@@ -30,11 +64,9 @@ from streamlit_lightweight_charts_pro.data.line_data import LineData
 from streamlit_lightweight_charts_pro.data.marker import BarMarker, Marker, MarkerBase
 from streamlit_lightweight_charts_pro.exceptions import (
     ColumnMappingRequiredError,
+    DataFrameValidationError,
     DataItemsTypeError,
-    InvalidDataFormatError,
-    MissingRequiredColumnsError,
-    PaneIdNonNegativeError,
-    TimeColumnNotFoundError,
+    NotFoundError,
     ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
@@ -48,45 +80,84 @@ from tests.unit.series_utils import _get_enum_value
 
 
 class ConcreteSeries(Series):
-    """Concrete implementation of Series for testing."""
+    """Concrete implementation of Series for testing base class functionality.
+
+    This class provides a concrete implementation of the abstract Series class
+    for testing purposes. It uses LineData as the data class and implements
+    the required chart_type property to enable comprehensive testing of the
+    base Series functionality.
+
+    The class includes custom DataFrame processing logic that mirrors the
+    behavior of the actual series implementations, allowing for thorough
+    testing of data handling, validation, and conversion processes.
+
+    Attributes:
+        DATA_CLASS: The data class type used for this series (LineData).
+        chart_type: Returns ChartType.LINE for line chart identification.
+
+    Example:
+        ```python
+        # Create test series with list data
+        data = [LineData("2024-01-01", 100)]
+        series = ConcreteSeries(data=data)
+
+        # Create test series with DataFrame
+        df = pd.DataFrame({"time": ["2024-01-01"], "value": [100]})
+        series = ConcreteSeries(data=df, column_mapping={"time": "time", "value": "value"})
+        ```
+    """
 
     DATA_CLASS = LineData
 
     @property
     def chart_type(self):
-        """Return chart type for testing."""
+        """Return chart type identifier for testing purposes.
+
+        Returns:
+            ChartType: The line chart type identifier for testing.
+        """
         return ChartType.LINE
 
     def __init__(self, data, **kwargs):
+        """Initialize concrete series with data and configuration for testing.
+
+        Creates a concrete series instance with the provided data and configuration.
+        Includes custom DataFrame processing logic that mirrors the behavior of
+        actual series implementations for comprehensive testing.
+
+        Args:
+            data: Series data as list of data objects, DataFrame, or Series.
+            **kwargs: Additional configuration options for the series.
+        """
         if isinstance(data, pd.DataFrame):
             # Use the new from_dataframe logic for DataFrame processing
             column_mapping = kwargs.get("column_mapping", {})
             if not column_mapping:
-                # Default column mapping if none provided
+                # Default column mapping if none provided for testing
                 column_mapping = {"time": "time", "value": "value"}
 
             # Process DataFrame using the same logic as from_dataframe
             processed_data = data.copy()
 
-            # Get index names for normalization
+            # Get index names for normalization to handle various index types
             index_names = (
                 processed_data.index.names
                 if hasattr(processed_data.index, "names")
                 else [processed_data.index.name]
             )
 
-            # Normalize index as column if needed
+            # Normalize index as column if needed for proper data processing
             for col in column_mapping.values():
                 if col in processed_data.columns:
-                    continue
+                    continue  # Column already exists, skip processing
 
-                # Handle DatetimeIndex with no name
+                # Handle DatetimeIndex with no name (common in test data)
                 if (
                     isinstance(processed_data.index, pd.DatetimeIndex)
                     and processed_data.index.name is None
                 ):
-                    processed_data.index.name = col
-                    processed_data = processed_data.reset_index()
+                    processed_data.index.name = col  # Set the column name as index name
+                    processed_data = processed_data.reset_index()  # Convert index to column
                 # Handle MultiIndex with unnamed DatetimeIndex level
                 elif isinstance(processed_data.index, pd.MultiIndex):
                     # Find the level index that matches the column name
@@ -96,7 +167,7 @@ class ConcreteSeries(Series):
                             and i < len(processed_data.index.levels)
                             and isinstance(processed_data.index.levels[i], pd.DatetimeIndex)
                         ):
-                            # Set the name for this level
+                            # Set the name for this level to enable proper reset
                             new_names = list(processed_data.index.names)
                             new_names[i] = col
                             processed_data.index.names = new_names
@@ -461,7 +532,7 @@ class TestSeriesBase:
 
         # Should raise PaneIdNonNegativeError for negative pane_id
         series = ConcreteSeries(data=data, pane_id=-1)
-        with pytest.raises(PaneIdNonNegativeError):
+        with pytest.raises(ValueValidationError, match="pane_id"):
             series._validate_pane_config()
 
     def test_method_chaining(self):
@@ -493,14 +564,14 @@ class TestSeriesBase:
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""
         # The new implementation should raise an error for invalid data types
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(ValueValidationError, match="data"):
             ConcreteSeries(data="invalid_data")
 
     def test_error_handling_missing_required_columns(self):
         """Test error handling with missing required columns."""
         invalid_data = pd.DataFrame({"value": [100, 110]})  # Missing 'time' column
 
-        with pytest.raises(TimeColumnNotFoundError):
+        with pytest.raises(NotFoundError):
             ConcreteSeries.from_dataframe(
                 df=invalid_data,
                 column_mapping={"time": "time", "value": "value"},
@@ -508,7 +579,7 @@ class TestSeriesBase:
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(ValueValidationError, match="data"):
             ConcreteSeries(data="invalid_data")
 
     def test_error_handling_dataframe_without_column_mapping(self):
@@ -690,14 +761,14 @@ class TestSeriesBaseAdvanced:
         test_data = pd.DataFrame({"value": [100, 110]})
 
         # Test missing required column in column_mapping
-        with pytest.raises(MissingRequiredColumnsError):
+        with pytest.raises(ValueValidationError, match="required columns"):
             ConcreteSeries.from_dataframe(
                 df=test_data,
                 column_mapping={"value": "value"},  # Missing 'time'
             )
 
         # Test missing column in DataFrame
-        with pytest.raises(TimeColumnNotFoundError):
+        with pytest.raises(NotFoundError):
             ConcreteSeries.from_dataframe(
                 df=test_data,
                 column_mapping={"time": "missing_column", "value": "value"},
@@ -1333,7 +1404,7 @@ class TestSeriesProcessDataframeInput:
         test_data = pd.DataFrame({"value": [10, 20, 30, 40]})
 
         # Column mapping references non-existent column
-        with pytest.raises(TimeColumnNotFoundError):
+        with pytest.raises(NotFoundError):
             MockSeries(data=test_data, column_mapping={"time": "nonexistent", "value": "value"})
 
 
@@ -1452,7 +1523,7 @@ class TestSeriesValidationMethods:
         series = MockSeries(data=[LineData(time=1, value=10)])
         series.pane_id = -1
 
-        with pytest.raises(PaneIdNonNegativeError):
+        with pytest.raises(ValueValidationError, match="pane_id"):
             series._validate_pane_config()
 
     def test_validate_pane_config_invalid_pane_id_type(self):

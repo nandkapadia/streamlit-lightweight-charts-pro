@@ -20,6 +20,8 @@ import {
   PrimitivePaneViewZOrder,
 } from 'lightweight-charts';
 import { asLineWidth } from '../../utils/lightweightChartsUtils';
+import { fillVerticalBand, renderWithScaledCanvas } from '../../utils/renderingUtils';
+import { isTransparent } from '../../utils/colorUtils';
 
 export interface SignalData {
   time: string | number;
@@ -55,36 +57,6 @@ interface SignalViewData {
   options: SignalOptions;
 }
 
-/**
- * Check if a color is transparent or effectively invisible
- */
-function isTransparent(color: string): boolean {
-  if (!color) return true;
-
-  // Check for fully transparent colors
-  if (color === 'transparent') return true;
-
-  // Check for rgba with alpha = 0
-  if (color.startsWith('rgba(')) {
-    const match = color.match(/rgba\([^)]+,\s*([^)]+)\)/);
-    if (match && parseFloat(match[1]) === 0) return true;
-  }
-
-  // Check for hex with alpha = 00 (8-digit hex)
-  if (color.startsWith('#') && color.length === 9) {
-    const alpha = color.substring(7, 9);
-    if (alpha === '00') return true;
-  }
-
-  // Check for hex with alpha = 00 (4-digit hex)
-  if (color.startsWith('#') && color.length === 5) {
-    const alpha = color.substring(4, 5);
-    if (alpha === '0') return true;
-  }
-
-  return false;
-}
-
 // Signal primitive pane renderer
 class SignalPrimitivePaneRenderer implements IPrimitivePaneRenderer {
   _viewData: SignalViewData;
@@ -98,16 +70,19 @@ class SignalPrimitivePaneRenderer implements IPrimitivePaneRenderer {
   }
 
   drawBackground(target: any) {
+    // Don't draw anything if the series is not visible
+    if (!this._viewData.options.visible) {
+      return;
+    }
+
     const points: SignalRendererData[] = this._viewData.data;
 
     if (points.length === 0) {
       return;
     }
 
-    target.useBitmapCoordinateSpace((scope: any) => {
-      const ctx = scope.context;
-      ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio);
-
+    // Use DRY canvas setup helper
+    renderWithScaledCanvas(target, (ctx) => {
       // Draw background bands - following TradingView's approach
       for (let i = 0; i < points.length; i += 2) {
         if (i + 1 < points.length) {
@@ -119,17 +94,15 @@ class SignalPrimitivePaneRenderer implements IPrimitivePaneRenderer {
             continue;
           }
 
-          // Use the color exactly as provided by the backend
-          const fillStyle = startPoint.color;
-
-          ctx.fillStyle = fillStyle;
-
-          // FIX: Ensure bands don't overlap by using exact coordinates
-          // Draw the background rectangle with precise boundaries to prevent color blending
-          const width = Math.max(1, endPoint.x - startPoint.x); // Use exact coordinate difference
-          const height = startPoint.y2 - startPoint.y1;
-
-          ctx.fillRect(startPoint.x, startPoint.y1, width, height);
+          // Use utility function for vertical band rendering
+          fillVerticalBand(
+            ctx,
+            startPoint.x as number,
+            endPoint.x as number,
+            startPoint.y1 as number,
+            startPoint.y2 as number,
+            startPoint.color
+          );
         }
       }
     });
@@ -150,6 +123,9 @@ class SignalPrimitivePaneView implements IPrimitivePaneView {
   }
 
   update() {
+    // Update options to reflect current state
+    this._data.options = this._source.getOptions();
+
     const timeScale = this._source.getChart().timeScale();
     const priceScale = this._source.getChart().priceScale('left');
 
@@ -284,7 +260,7 @@ export class SignalSeries implements ISeriesPrimitive<Time> {
       LineSeries,
       {
         color: 'transparent',
-        lineWidth: asLineWidth(0),
+        lineWidth: asLineWidth(3),
         visible: false, // Hide the dummy series completely
         priceScaleId: 'right',
         lastValueVisible: false, // Hide last value
@@ -535,10 +511,35 @@ export class SignalSeries implements ISeriesPrimitive<Time> {
   }
 
   /**
+   * Set visibility
+   */
+  setVisible(visible: boolean): void {
+    this.options.visible = visible;
+    // Update visibility of the dummy series
+    if (this.dummySeries) {
+      this.dummySeries.applyOptions({ visible: false }); // Dummy series always stays hidden
+    }
+    // Update the primitive views to reflect visibility change
+    this.updateAllViews();
+  }
+
+  /**
    * Apply options (for compatibility with ISeriesApi interface)
    */
   applyOptions(options: Partial<SignalOptions>): void {
-    this.updateOptions({ ...this.options, ...options });
+    this.options = { ...this.options, ...options };
+
+    // Handle overall visibility
+    if (options.visible !== undefined) {
+      if (this.dummySeries) {
+        this.dummySeries.applyOptions({ visible: false }); // Dummy series always stays hidden
+      }
+    }
+
+    // Re-process signal data since visibility affects rendering
+    this.processSignalData();
+    // Update the primitive views
+    this.updateAllViews();
   }
 
   /**

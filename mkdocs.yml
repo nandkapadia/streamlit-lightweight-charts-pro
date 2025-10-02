@@ -3,10 +3,17 @@ site_description: Professional-grade financial charting library for Streamlit
 site_author: Nand Kapadia
 site_url: https://nandkapadia.github.io/streamlit-lightweight-charts-pro
 
+# Source and output directories
+docs_dir: docs-src
+site_dir: docs
+
+# Generate explicit .html links instead of directory-style URLs
+use_directory_urls: false
+
 # Repository
 repo_name: nandkapadia/streamlit-lightweight-charts-pro
 repo_url: https://github.com/nandkapadia/streamlit-lightweight-charts-pro
-edit_uri: edit/main/docs/
+edit_uri: edit/main/
 
 # Configuration
 theme:
@@ -124,16 +131,17 @@ plugins:
             merge_init_into_class: false
   - gen-files:
       scripts:
-        - docs/gen_ref_pages.py
+        - gen_ref_pages.py
   - literate-nav:
       nav_file: SUMMARY.md
   - section-index
-  - minify:
-      minify_html: true
-      minify_js: true
-      minify_css: true
-      htmlmin_opts:
-        remove_comments: true
+# Temporarily disabled minify plugin
+  # - minify:
+  #     minify_html: true
+  #     minify_js: true
+  #     minify_css: true
+  #     htmlmin_opts:
+  #       remove_comments: true
 
 # Markdown extensions
 markdown_extensions:
@@ -152,9 +160,7 @@ markdown_extensions:
       smart_enable: all
   - pymdownx.caret
   - pymdownx.details
-  - pymdownx.emoji:
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.emoji
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -176,9 +182,6 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
       combine_header_slug: true
-      slugify: !!python/object/apply:pymdownx.slugs.slugify
-        kwds:
-          case: lower
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde

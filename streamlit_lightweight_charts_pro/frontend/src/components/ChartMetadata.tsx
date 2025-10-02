@@ -5,6 +5,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import { react19Monitor } from '../utils/react19PerformanceMonitor';
+import { logger } from '../utils/logger';
 
 export interface ChartMetadata {
   title?: string;
@@ -136,8 +137,8 @@ export const ChartMetadata: React.FC<ChartMetadataProps> = React.memo(({
       };
 
     } catch (error) {
+      logger.error('Failed to update document metadata', 'ChartMetadata', error);
       react19Monitor.endTransition(transitionId);
-      console.error('Metadata update error:', error);
       return () => {}; // Return cleanup function even on error
     }
   }, [chartId, computedMetadata]);
@@ -263,16 +264,7 @@ export const ChartMetadata: React.FC<ChartMetadataProps> = React.memo(({
   // Development logging
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.group(`🏷️ Metadata for Chart ${chartId}`);
-      console.log('Title:', computedMetadata.fullTitle);
-      console.log('Description:', computedMetadata.description);
-      console.log('Keywords:', computedMetadata.keywords);
-      console.log('Date Range:', computedMetadata.dateRange);
-      console.log('Theme:', computedMetadata.theme);
-      console.log('Open Graph:', enableOpenGraph);
-      console.log('Twitter Card:', enableTwitterCard);
-      console.log('JSON-LD:', enableJsonLd);
-      console.groupEnd();
+      logger.debug(`Metadata updated for chart ${chartId}`, 'ChartMetadata', { computedMetadata, enableOpenGraph, enableTwitterCard, enableJsonLd });
     }
   }, [chartId, computedMetadata, enableOpenGraph, enableTwitterCard, enableJsonLd]);
 

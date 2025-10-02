@@ -19,10 +19,10 @@ from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
 from streamlit_lightweight_charts_pro.exceptions import (
     ColumnMappingRequiredError,
+    DataFrameValidationError,
     DataItemsTypeError,
-    InvalidDataFormatError,
-    PaneIdNonNegativeError,
     TypeValidationError,
+    ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     LineStyle,
@@ -387,7 +387,7 @@ class TestAreaSeriesValidation:
         data = [SingleValueData(time=1640995200, value=100)]
         series = AreaSeries(data=data, pane_id=-1)
 
-        with pytest.raises(PaneIdNonNegativeError):
+        with pytest.raises(ValueValidationError):
             series._validate_pane_config()
 
     def test_error_handling_invalid_data(self):
@@ -404,7 +404,7 @@ class TestAreaSeriesValidation:
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(DataFrameValidationError):
             AreaSeries(data="invalid")
 
     def test_error_handling_dataframe_without_column_mapping(self):
@@ -856,7 +856,7 @@ class TestAreaSeriesConstructorEdgeCases:
 
     def test_constructor_with_invalid_data_type(self):
         """Test AreaSeries constructor with invalid data type."""
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(DataFrameValidationError):
             AreaSeries(data=123)
 
     def test_constructor_with_dataframe_without_column_mapping(self):

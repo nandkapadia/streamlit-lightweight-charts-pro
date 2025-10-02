@@ -337,9 +337,9 @@ class TestChartOptionsSerialization:
             assert field not in result, f"None field '{field}' should not be in result"
 
         # Check that empty dict fields are omitted
-        assert (
-            "overlayPriceScales" not in result
-        ), "Empty dict field 'overlayPriceScales' should not be in result"
+        assert "overlayPriceScales" not in result, (
+            "Empty dict field 'overlayPriceScales' should not be in result"
+        )
 
     def test_to_dict_with_explicit_none_fields(self):
         """Test that explicitly set None fields are omitted from output."""

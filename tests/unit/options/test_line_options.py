@@ -1,5 +1,35 @@
+"""Comprehensive unit tests for the LineOptions class.
+
+This module contains extensive unit tests for the LineOptions class,
+which provides configuration options for line chart styling and behavior.
+The tests cover construction, validation, serialization, and edge cases.
+
+Key Features Tested:
+    - LineOptions construction with various parameters
+    - Color validation for line and marker colors
+    - Default value behavior and assignment
+    - Serialization to frontend-compatible format
+    - Error handling for invalid parameters
+    - Enum value validation and conversion
+    - Animation and interaction options
+
+Example Test Usage:
+    ```python
+    from tests.unit.options.test_line_options import test_standard_construction
+
+    # Run specific test
+    test_standard_construction()
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
+"""
+
+# Third Party Imports
 import pytest
 
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.exceptions import ColorValidationError, TypeValidationError
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
@@ -10,34 +40,50 @@ from streamlit_lightweight_charts_pro.type_definitions.enums import (
 
 
 def test_standard_construction():
+    """Test LineOptions construction with all parameters.
+
+    This test verifies that a LineOptions object can be created with
+    all available parameters and that each parameter is correctly
+    assigned and accessible.
+
+    The test ensures:
+        - All parameters are correctly assigned during construction
+        - Enum values are properly handled
+        - Boolean flags work as expected
+        - Color values are validated and stored
+    """
+    # Create LineOptions with comprehensive parameter set
+    # This tests all available styling and behavior options
     opts = LineOptions(
-        color="#2196F3",
-        line_style=LineStyle.DASHED,
-        line_width=4,
-        line_type=LineType.CURVED,
-        line_visible=False,
-        point_markers_visible=True,
-        point_markers_radius=6,
-        crosshair_marker_visible=False,
-        crosshair_marker_radius=5,
-        crosshair_marker_border_color="#FFFFFF",
-        crosshair_marker_background_color="#000000",
-        crosshair_marker_border_width=3,
-        last_price_animation=LastPriceAnimationMode.CONTINUOUS,
+        color="#2196F3",  # Blue line color
+        line_style=LineStyle.DASHED,  # Dashed line style
+        line_width=4,  # Medium line width
+        line_type=LineType.CURVED,  # Curved line type
+        line_visible=False,  # Hide the line itself
+        point_markers_visible=True,  # Show point markers
+        point_markers_radius=6,  # Large point markers
+        crosshair_marker_visible=False,  # Hide crosshair markers
+        crosshair_marker_radius=5,  # Medium crosshair size
+        crosshair_marker_border_color="#FFFFFF",  # White border
+        crosshair_marker_background_color="#000000",  # Black background
+        crosshair_marker_border_width=3,  # Thick border
+        last_price_animation=LastPriceAnimationMode.CONTINUOUS,  # Continuous animation
     )
-    assert opts.color == "#2196F3"
-    assert opts.line_style == LineStyle.DASHED
-    assert opts.line_width == 4
-    assert opts.line_type == LineType.CURVED
-    assert not opts.line_visible
-    assert opts.point_markers_visible
-    assert opts.point_markers_radius == 6
-    assert not opts.crosshair_marker_visible
-    assert opts.crosshair_marker_radius == 5
-    assert opts.crosshair_marker_border_color == "#FFFFFF"
-    assert opts.crosshair_marker_background_color == "#000000"
-    assert opts.crosshair_marker_border_width == 3
-    assert opts.last_price_animation == LastPriceAnimationMode.CONTINUOUS
+
+    # Verify all parameters are correctly assigned
+    assert opts.color == "#2196F3"  # Verify line color
+    assert opts.line_style == LineStyle.DASHED  # Verify line style enum
+    assert opts.line_width == 4  # Verify line width
+    assert opts.line_type == LineType.CURVED  # Verify line type enum
+    assert not opts.line_visible  # Verify line visibility (False)
+    assert opts.point_markers_visible  # Verify point markers visible (True)
+    assert opts.point_markers_radius == 6  # Verify point marker size
+    assert not opts.crosshair_marker_visible  # Verify crosshair visibility (False)
+    assert opts.crosshair_marker_radius == 5  # Verify crosshair marker size
+    assert opts.crosshair_marker_border_color == "#FFFFFF"  # Verify crosshair border color
+    assert opts.crosshair_marker_background_color == "#000000"  # Verify crosshair background
+    assert opts.crosshair_marker_border_width == 3  # Verify crosshair border width
+    assert opts.last_price_animation == LastPriceAnimationMode.CONTINUOUS  # Verify animation mode
 
 
 def test_default_values():

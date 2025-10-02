@@ -5,6 +5,7 @@
 
 import { useActionState, useCallback, useMemo } from 'react';
 import { react19Monitor } from '../utils/react19PerformanceMonitor';
+import { logger } from '../utils/logger';
 
 export interface ChartFormState {
   data?: any;
@@ -101,7 +102,7 @@ async function chartConfigAction(
     react19Monitor.endTransition(transitionId);
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('📝 Chart config form processed:', config);
+      logger.debug('Chart configuration saved', 'useChartFormActions');
     }
 
     return {
@@ -114,7 +115,6 @@ async function chartConfigAction(
 
   } catch (error) {
     react19Monitor.endTransition(transitionId);
-    console.error('Chart config form error:', error);
 
     return {
       ...prevState,
@@ -185,7 +185,7 @@ async function chartDataImportAction(
     react19Monitor.endTransition(transitionId);
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('📊 Data import processed:', processedData);
+      logger.debug('Chart configuration saved', 'useChartFormActions');
     }
 
     return {
@@ -198,7 +198,6 @@ async function chartDataImportAction(
 
   } catch (error) {
     react19Monitor.endTransition(transitionId);
-    console.error('Data import error:', error);
 
     return {
       ...prevState,
@@ -240,7 +239,7 @@ async function chartExportAction(
     react19Monitor.endTransition(transitionId);
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('📤 Chart export completed:', exportResult);
+      logger.debug('Chart configuration saved', 'useChartFormActions');
     }
 
     return {
@@ -253,7 +252,6 @@ async function chartExportAction(
 
   } catch (error) {
     react19Monitor.endTransition(transitionId);
-    console.error('Export error:', error);
 
     return {
       ...prevState,
@@ -286,7 +284,6 @@ export function useChartConfigForm(initialData?: ChartConfigFormData) {
     isFieldValid: (fieldName: string) => !state.validationErrors?.[fieldName],
     resetForm: () => {
       // This would typically reset form state
-      console.log('Form reset requested');
     },
   }), [state.validationErrors]);
 

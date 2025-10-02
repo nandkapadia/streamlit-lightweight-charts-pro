@@ -99,12 +99,13 @@ export class CoverageTestCases {
             targetFile: 'src/LightweightCharts.tsx',
             expectedCoverage: { statements: 85, branches: 80, functions: 85, lines: 85 },
           },
-          {
+          // Removed - manager architecture deprecated
+          /* {
             name: 'Chart Managers Coverage',
             description: 'Test coverage for chart management hooks',
             targetFile: 'src/managers/ChartManager.ts',
             expectedCoverage: { statements: 90, branches: 85, functions: 90, lines: 90 },
-          },
+          }, */
           {
             name: 'Optimized Chart Hook Coverage',
             description: 'Test coverage for optimized chart hook',
@@ -135,7 +136,8 @@ export class CoverageTestCases {
           },
         ];
 
-      case 'managers':
+      // Removed - manager architecture deprecated
+      /* case 'managers':
         return [
           {
             name: 'Chart Manager Coverage',
@@ -149,7 +151,7 @@ export class CoverageTestCases {
             targetFile: 'src/managers/SeriesManager.ts',
             expectedCoverage: { statements: 85, branches: 80, functions: 85, lines: 85 },
           },
-        ];
+        ]; */
 
       case 'plugins':
         return [
@@ -479,11 +481,10 @@ export const COVERAGE_TEST_SUITES = {
     CoverageTestCases.createTestSuite('Full Coverage', [
       'components',
       'utilities',
-      'managers',
       'plugins',
     ]),
   core: () =>
-    CoverageTestCases.createTestSuite('Core Coverage', ['components', 'utilities', 'managers']),
+    CoverageTestCases.createTestSuite('Core Coverage', ['components', 'utilities']),
   utilities: () => CoverageTestCases.createTestSuite('Utilities Coverage', ['utilities']),
   components: () => CoverageTestCases.createTestSuite('Components Coverage', ['components']),
   plugins: () => CoverageTestCases.createTestSuite('Plugins Coverage', ['plugins']),

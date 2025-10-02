@@ -195,7 +195,6 @@ export const COVERAGE_PRESETS = {
     include: [
       'src/utils/**/*.{ts,tsx}',
       'src/services/**/*.{ts,tsx}',
-      'src/managers/**/*.{ts,tsx}',
     ],
     thresholds: {
       global: {
@@ -255,15 +254,6 @@ export const COVERAGE_AREAS: CoverageArea[] = [
     description: 'Utility functions and services',
     config: COVERAGE_PRESETS.utilities(),
     weight: 0.25,
-  },
-  {
-    name: 'managers',
-    description: 'Chart and state managers',
-    config: {
-      ...DEFAULT_COVERAGE_CONFIG,
-      include: ['src/managers/**/*.{ts,tsx}'],
-    },
-    weight: 0.2,
   },
   {
     name: 'plugins',

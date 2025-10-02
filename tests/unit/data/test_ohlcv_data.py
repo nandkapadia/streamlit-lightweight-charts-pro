@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
-from streamlit_lightweight_charts_pro.exceptions import NonNegativeValueError, ValueValidationError
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 
 
 class TestOhlcvData:
@@ -122,7 +122,7 @@ class TestOhlcvData:
             )
 
         # Test negative OHLC values
-        with pytest.raises(NonNegativeValueError):
+        with pytest.raises(ValueValidationError):
             OhlcvData(
                 time=timestamp,
                 open=-100.0,  # Negative open
@@ -514,7 +514,7 @@ class TestOhlcvData:
         timestamp = 1640995200
 
         # Negative infinity should be handled by the parent class validation
-        with pytest.raises(NonNegativeValueError):
+        with pytest.raises(ValueValidationError):
             OhlcvData(
                 time=timestamp,
                 open=float("-inf"),

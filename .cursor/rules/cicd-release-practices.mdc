@@ -1,0 +1,922 @@
+---
+description: CI/CD and release practices including branching, PR checks, versioning, and changelog
+---
+
+# CI/CD and Release Practices
+
+## 🎯 CI/CD Strategy
+
+The project uses **GitHub Actions** for CI/CD with automated testing, security scanning, and release management.
+
+## 🌿 Branching Strategy
+
+### **1. Git Flow Model**
+Use Git Flow for feature development and releases:
+
+```bash
+# ✅ CORRECT: Git Flow branching model
+main                    # Production-ready code
+├── develop            # Integration branch for features
+├── feature/feature-name    # Feature development
+├── release/version    # Release preparation
+├── hotfix/issue-name  # Critical fixes
+└── bugfix/issue-name  # Bug fixes
+```
+
+### **2. Branch Protection Rules**
+Configure branch protection for main and develop:
+
+```yaml
+# .github/branch-protection.yml
+main:
+  required_status_checks:
+    strict: true
+    contexts:
+      - "ci/python-tests"
+      - "ci/frontend-tests"
+      - "ci/security-scan"
+      - "ci/code-quality"
+  enforce_admins: true
+  required_pull_request_reviews:
+    required_approving_review_count: 2
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+  restrictions:
+    users: []
+    teams: ["maintainers"]
+
+develop:
+  required_status_checks:
+    strict: true
+    contexts:
+      - "ci/python-tests"
+      - "ci/frontend-tests"
+      - "ci/code-quality"
+  enforce_admins: false
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+  restrictions:
+    users: []
+    teams: ["developers"]
+```
+
+### **3. Branch Naming Conventions**
+Use consistent branch naming:
+
+```bash
+# ✅ CORRECT: Branch naming conventions
+feature/add-line-series          # New features
+bugfix/fix-chart-rendering       # Bug fixes
+hotfix/security-vulnerability    # Critical fixes
+release/v0.2.0                   # Release preparation
+chore/update-dependencies        # Maintenance tasks
+docs/update-api-documentation    # Documentation updates
+refactor/improve-chart-api       # Code refactoring
+test/add-integration-tests       # Test improvements
+```
+
+## 🔄 Pull Request Workflow
+
+### **1. PR Template**
+Use comprehensive PR template:
+
+```markdown
+# Pull Request Template
+
+## 📋 Description
+Brief description of changes and motivation.
+
+## 🔗 Related Issues
+- Closes #123
+- Related to #456
+
+## 🧪 Testing
+- [ ] Unit tests pass
+- [ ] Integration tests pass
+- [ ] Frontend tests pass
+- [ ] Manual testing completed
+- [ ] Performance testing completed
+
+## 📚 Documentation
+- [ ] Code is documented
+- [ ] API documentation updated
+- [ ] README updated (if needed)
+- [ ] Changelog updated
+
+## 🔒 Security
+- [ ] Security scan passes
+- [ ] No sensitive data exposed
+- [ ] Dependencies are secure
+
+## 🚀 Deployment
+- [ ] Backward compatibility maintained
+- [ ] Database migrations (if any)
+- [ ] Environment variables updated
+- [ ] Configuration changes documented
+
+## 📸 Screenshots
+<!-- Add screenshots for UI changes -->
+
+## ✅ Checklist
+- [ ] Code follows project style guidelines
+- [ ] Self-review completed
+- [ ] All CI checks pass
+- [ ] Ready for review
+```
+
+### **2. PR Checks**
+Implement comprehensive PR checks:
+
+```yaml
+# .github/workflows/pr-checks.yml
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  python-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run linting
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Run type checking
+        run: mypy streamlit_lightweight_charts_pro/
+
+      - name: Run security scan
+        run: |
+          bandit -r streamlit_lightweight_charts_pro/
+          safety check
+
+      - name: Run tests
+        run: |
+          pytest tests/ --cov=streamlit_lightweight_charts_pro --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+
+  frontend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: streamlit_lightweight_charts_pro/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: streamlit_lightweight_charts_pro/frontend
+        run: npm ci
+
+      - name: Run linting
+        working-directory: streamlit_lightweight_charts_pro/frontend
+        run: npm run lint
+
+      - name: Run type checking
+        working-directory: streamlit_lightweight_charts_pro/frontend
+        run: npm run type-check
+
+      - name: Run tests
+        working-directory: streamlit_lightweight_charts_pro/frontend
+        run: npm run test:unit
+
+      - name: Build frontend
+        working-directory: streamlit_lightweight_charts_pro/frontend
+        run: npm run build
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: [python-checks, frontend-checks]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run integration tests
+        run: pytest tests/integration/ -v
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: [python-checks, frontend-checks]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run E2E tests
+        run: pytest tests/e2e/ -v
+```
+
+## 🏷️ Versioning Strategy
+
+### **1. Semantic Versioning**
+Use semantic versioning (SemVer) for releases:
+
+```python
+# ✅ CORRECT: Semantic versioning
+# Version format: MAJOR.MINOR.PATCH
+# Examples:
+# 1.0.0  - Initial release
+# 1.0.1  - Bug fix
+# 1.1.0  - New feature (backward compatible)
+# 2.0.0  - Breaking change
+
+# Version bump rules:
+# MAJOR: Breaking changes, incompatible API changes
+# MINOR: New features, backward compatible
+# PATCH: Bug fixes, backward compatible
+```
+
+### **2. Version Management**
+Automate version management:
+
+```python
+# scripts/version_manager.py
+#!/usr/bin/env python3
+"""Version management script."""
+
+import re
+import subprocess
+import sys
+from pathlib import Path
+from typing import Tuple, Optional
+
+def get_current_version() -> str:
+    """Get current version from pyproject.toml."""
+    pyproject_path = Path("pyproject.toml")
+    if not pyproject_path.exists():
+        raise FileNotFoundError("pyproject.toml not found")
+
+    content = pyproject_path.read_text()
+    match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
+    if not match:
+        raise ValueError("Version not found in pyproject.toml")
+
+    return match.group(1)
+
+def bump_version(version: str, bump_type: str) -> str:
+    """Bump version according to type."""
+    major, minor, patch = map(int, version.split('.'))
+
+    if bump_type == "major":
+        return f"{major + 1}.0.0"
+    elif bump_type == "minor":
+        return f"{major}.{minor + 1}.0"
+    elif bump_type == "patch":
+        return f"{major}.{minor}.{patch + 1}"
+    else:
+        raise ValueError(f"Invalid bump type: {bump_type}")
+
+def update_version_files(new_version: str) -> None:
+    """Update version in all relevant files."""
+    files_to_update = [
+        "pyproject.toml",
+        "streamlit_lightweight_charts_pro/__init__.py",
+        "streamlit_lightweight_charts_pro/frontend/package.json"
+    ]
+
+    for file_path in files_to_update:
+        if not Path(file_path).exists():
+            continue
+
+        content = Path(file_path).read_text()
+
+        if file_path.endswith("pyproject.toml"):
+            content = re.sub(
+                r'version\s*=\s*["\'][^"\']+["\']',
+                f'version = "{new_version}"',
+                content
+            )
+        elif file_path.endswith("__init__.py"):
+            content = re.sub(
+                r'__version__\s*=\s*["\'][^"\']+["\']',
+                f'__version__ = "{new_version}"',
+                content
+            )
+        elif file_path.endswith("package.json"):
+            content = re.sub(
+                r'"version"\s*:\s*["\'][^"\']+["\']',
+                f'"version": "{new_version}"',
+                content
+            )
+
+        Path(file_path).write_text(content)
+
+def create_git_tag(version: str) -> None:
+    """Create git tag for version."""
+    tag_name = f"v{version}"
+
+    # Create tag
+    subprocess.run(["git", "tag", "-a", tag_name, "-m", f"Release {tag_name}"], check=True)
+
+    # Push tag
+    subprocess.run(["git", "push", "origin", tag_name], check=True)
+
+def main():
+    """Main version management function."""
+    if len(sys.argv) != 2:
+        print("Usage: python version_manager.py <major|minor|patch>")
+        sys.exit(1)
+
+    bump_type = sys.argv[1]
+    if bump_type not in ["major", "minor", "patch"]:
+        print("Invalid bump type. Use: major, minor, or patch")
+        sys.exit(1)
+
+    try:
+        current_version = get_current_version()
+        new_version = bump_version(current_version, bump_type)
+
+        print(f"Bumping version from {current_version} to {new_version}")
+
+        # Update version files
+        update_version_files(new_version)
+
+        # Create git tag
+        create_git_tag(new_version)
+
+        print(f"✅ Version bumped to {new_version}")
+        print(f"✅ Git tag v{new_version} created and pushed")
+
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
+```
+
+### **3. Automated Versioning**
+Use GitHub Actions for automated versioning:
+
+```yaml
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package
+        run: twine check dist/*
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## Changes in this Release
+
+            See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+
+            ## Installation
+
+            ```bash
+            pip install streamlit-lightweight-charts-pro==${{ github.ref_name }}
+            ```
+          draft: false
+          prerelease: false
+```
+
+## 📝 Changelog Management
+
+### **1. Changelog Format**
+Use Keep a Changelog format:
+
+```markdown
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- New features that will be in the next release
+
+### Changed
+- Changes to existing functionality
+
+### Deprecated
+- Features that will be removed in future versions
+
+### Removed
+- Features that have been removed
+
+### Fixed
+- Bug fixes
+
+### Security
+- Security improvements
+
+## [1.0.0] - 2024-01-15
+
+### Added
+- Initial release of Streamlit Lightweight Charts Pro
+- Support for line, candlestick, area, bar, and histogram charts
+- Fluent API for chart configuration
+- Comprehensive documentation and examples
+
+### Changed
+- N/A
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+### Fixed
+- N/A
+
+### Security
+- N/A
+```
+
+### **2. Automated Changelog Generation**
+Use automated changelog generation:
+
+```python
+# scripts/generate_changelog.py
+#!/usr/bin/env python3
+"""Generate changelog from git commits."""
+
+import subprocess
+import re
+from datetime import datetime
+from typing import List, Dict, Any
+from pathlib import Path
+
+def get_git_log(since: str = None) -> List[Dict[str, Any]]:
+    """Get git log entries."""
+    cmd = ["git", "log", "--pretty=format:%H|%s|%an|%ad", "--date=short"]
+    if since:
+        cmd.extend([f"--since={since}"])
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"Git log failed: {result.stderr}")
+
+    commits = []
+    for line in result.stdout.strip().split('\n'):
+        if not line:
+            continue
+
+        parts = line.split('|', 3)
+        if len(parts) >= 4:
+            commits.append({
+                'hash': parts[0],
+                'message': parts[1],
+                'author': parts[2],
+                'date': parts[3]
+            })
+
+    return commits
+
+def categorize_commit(message: str) -> str:
+    """Categorize commit message."""
+    message_lower = message.lower()
+
+    if message.startswith('feat:'):
+        return 'Added'
+    elif message.startswith('fix:'):
+        return 'Fixed'
+    elif message.startswith('docs:'):
+        return 'Documentation'
+    elif message.startswith('style:'):
+        return 'Style'
+    elif message.startswith('refactor:'):
+        return 'Changed'
+    elif message.startswith('perf:'):
+        return 'Performance'
+    elif message.startswith('test:'):
+        return 'Testing'
+    elif message.startswith('chore:'):
+        return 'Maintenance'
+    elif 'security' in message_lower:
+        return 'Security'
+    elif 'breaking' in message_lower:
+        return 'Breaking'
+    else:
+        return 'Other'
+
+def generate_changelog(version: str, since: str = None) -> str:
+    """Generate changelog for version."""
+    commits = get_git_log(since)
+
+    # Group commits by category
+    categories = {}
+    for commit in commits:
+        category = categorize_commit(commit['message'])
+        if category not in categories:
+            categories[category] = []
+        categories[category].append(commit)
+
+    # Generate changelog
+    changelog = f"## [{version}] - {datetime.now().strftime('%Y-%m-%d')}\n\n"
+
+    # Order categories
+    category_order = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security']
+
+    for category in category_order:
+        if category in categories:
+            changelog += f"### {category}\n"
+            for commit in categories[category]:
+                # Clean up commit message
+                message = commit['message']
+                if ':' in message:
+                    message = message.split(':', 1)[1].strip()
+                changelog += f"- {message}\n"
+            changelog += "\n"
+
+    # Add other categories
+    for category, commits in categories.items():
+        if category not in category_order:
+            changelog += f"### {category}\n"
+            for commit in commits:
+                message = commit['message']
+                if ':' in message:
+                    message = message.split(':', 1)[1].strip()
+                changelog += f"- {message}\n"
+            changelog += "\n"
+
+    return changelog
+
+def update_changelog_file(version: str, since: str = None) -> None:
+    """Update CHANGELOG.md file."""
+    changelog_path = Path("CHANGELOG.md")
+
+    if not changelog_path.exists():
+        # Create new changelog
+        content = f"""# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+{generate_changelog(version, since)}
+"""
+    else:
+        # Update existing changelog
+        content = changelog_path.read_text()
+
+        # Find [Unreleased] section and replace with new version
+        unreleased_pattern = r'## \[Unreleased\].*?(?=## \[|\Z)'
+        new_changelog = generate_changelog(version, since)
+
+        if re.search(unreleased_pattern, content, re.DOTALL):
+            content = re.sub(
+                unreleased_pattern,
+                f"## [Unreleased]\n\n{new_changelog}",
+                content,
+                flags=re.DOTALL
+            )
+        else:
+            # Add at the beginning
+            content = content.replace(
+                "# Changelog\n",
+                f"# Changelog\n\n{new_changelog}"
+            )
+
+    changelog_path.write_text(content)
+
+def main():
+    """Main function."""
+    import sys
+
+    if len(sys.argv) < 2:
+        print("Usage: python generate_changelog.py <version> [since]")
+        sys.exit(1)
+
+    version = sys.argv[1]
+    since = sys.argv[2] if len(sys.argv) > 2 else None
+
+    try:
+        update_changelog_file(version, since)
+        print(f"✅ Changelog updated for version {version}")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
+```
+
+## 🚀 Release Process
+
+### **1. Release Checklist**
+Document release process:
+
+```markdown
+# Release Checklist
+
+## Pre-Release
+- [ ] All tests pass
+- [ ] Security scan passes
+- [ ] Documentation is up to date
+- [ ] Changelog is updated
+- [ ] Version is bumped
+- [ ] Release notes are prepared
+
+## Release
+- [ ] Create release branch
+- [ ] Run full test suite
+- [ ] Build and test package
+- [ ] Create git tag
+- [ ] Push to repository
+- [ ] Create GitHub release
+- [ ] Publish to PyPI
+
+## Post-Release
+- [ ] Update documentation
+- [ ] Announce release
+- [ ] Monitor for issues
+- [ ] Update development dependencies
+```
+
+### **2. Automated Release**
+Use GitHub Actions for automated releases:
+
+```yaml
+# .github/workflows/automated-release.yml
+name: Automated Release
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: |
+          pytest tests/ --cov=streamlit_lightweight_charts_pro
+          cd streamlit_lightweight_charts_pro/frontend && npm test
+
+      - name: Bump version
+        run: |
+          python scripts/version_manager.py ${{ github.event.inputs.version_type || 'patch' }}
+
+      - name: Generate changelog
+        run: |
+          python scripts/generate_changelog.py $(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "chore: bump version and update changelog"
+          git push
+
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+          release_name: Release v$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+          body: |
+            ## Changes in this Release
+
+            See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+          draft: false
+          prerelease: false
+```
+
+## 🚫 Anti-Patterns to Avoid
+
+### **❌ Wrong: Direct Commits to Main**
+```bash
+# Don't commit directly to main
+git checkout main
+git add .
+git commit -m "fix bug"  # Wrong: bypasses PR process
+git push origin main
+```
+
+### **❌ Wrong: Skipping Tests**
+```yaml
+# Don't skip tests in CI
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        run: echo "Tests skipped"  # Wrong: no actual testing
+```
+
+### **❌ Wrong: Manual Versioning**
+```bash
+# Don't manually update versions
+echo 'version = "1.0.0"' > pyproject.toml  # Wrong: manual and error-prone
+```
+
+## ✅ Best Practices
+
+### **1. Comprehensive Testing**
+Ensure all tests pass before release:
+
+```yaml
+# ✅ CORRECT: Comprehensive testing
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10, 3.11]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run unit tests
+        run: pytest tests/unit/ -v
+
+      - name: Run integration tests
+        run: pytest tests/integration/ -v
+
+      - name: Run E2E tests
+        run: pytest tests/e2e/ -v
+```
+
+### **2. Security-First Releases**
+Prioritize security in releases:
+
+```yaml
+# ✅ CORRECT: Security-first release process
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run security scan
+        run: |
+          bandit -r streamlit_lightweight_charts_pro/
+          safety check
+          npm audit --audit-level=moderate
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+```
+
+### **3. Automated Quality Gates**
+Implement quality gates:
+
+```yaml
+# ✅ CORRECT: Quality gates
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Code quality check
+        run: |
+          ruff check . --output-format=github
+          mypy streamlit_lightweight_charts_pro/
+          pytest --cov=streamlit_lightweight_charts_pro --cov-fail-under=95
+
+      - name: Performance check
+        run: |
+          pytest tests/performance/ --benchmark-only
+```
+
+## 📋 CI/CD Checklist
+
+- [ ] **Branch protection** rules are configured
+- [ ] **PR template** is comprehensive
+- [ ] **Automated testing** covers all code paths
+- [ ] **Security scanning** is implemented
+- [ ] **Code quality** gates are enforced
+- [ ] **Version management** is automated
+- [ ] **Changelog generation** is automated
+- [ ] **Release process** is documented
+- [ ] **Deployment** is automated
+- [ ] **Monitoring** is configured
+- [ ] **Rollback** procedure is documented
+- [ ] **Performance testing** is included
+- [ ] **Cross-platform testing** is implemented
+- [ ] **Dependency scanning** is automated

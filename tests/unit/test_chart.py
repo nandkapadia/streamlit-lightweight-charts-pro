@@ -1,16 +1,53 @@
-"""
-Tests for Chart class.
+"""Comprehensive tests for the Chart class in Streamlit Lightweight Charts Pro.
 
-This module contains comprehensive tests for the Chart class,
-covering construction, series management, annotations, price scales,
-and frontend configuration.
+This module contains extensive unit tests for the Chart class, covering all
+major functionality including construction, series management, annotations,
+price scales, frontend configuration, and integration with various data types.
+
+The tests are organized into logical test classes that group related functionality
+together, making it easy to understand and maintain the test suite. Each test
+class focuses on a specific aspect of the Chart class behavior.
+
+The module includes:
+    - TestChartConstruction: Tests for Chart initialization and construction
+    - TestSeriesManagement: Tests for adding, removing, and managing series
+    - TestAnnotationManagement: Tests for annotation handling and management
+    - TestPriceScaleManagement: Tests for price scale configuration and validation
+    - TestFrontendConfiguration: Tests for frontend serialization and configuration
+    - TestDataIntegration: Tests for DataFrame and data type integration
+
+Key Features Tested:
+    - Chart construction with various parameter combinations
+    - Series addition, removal, and management operations
+    - Annotation system integration and layer management
+    - Price scale configuration and validation
+    - Frontend configuration generation and serialization
+    - DataFrame integration and column mapping
+    - Error handling and validation
+    - Method chaining and fluent API usage
+
+Example Test Usage:
+    ```python
+    from tests.unit.test_chart import TestChartConstruction
+
+    # Run specific test
+    test_instance = TestChartConstruction()
+    test_instance.test_empty_construction()
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
+# Standard Imports
 from unittest.mock import Mock, patch
 
+# Third Party Imports
 import pandas as pd
 import pytest
 
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.layout_options import (
@@ -38,65 +75,174 @@ from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames,
 
 
 class TestChartConstruction:
-    """Test cases for Chart construction."""
+    """Test cases for Chart class construction and initialization.
+
+    This test class focuses on verifying that the Chart class can be properly
+    constructed with various parameter combinations. It tests the initialization
+    logic, default value assignment, and proper setup of internal components
+    like options, series list, and annotation manager.
+
+    The tests ensure that:
+    - Charts can be created with no parameters (default initialization)
+    - Charts can be created with single or multiple series
+    - Charts can be created with custom options
+    - Charts can be created with annotations
+    - Charts can be created with all parameters combined
+    - Internal components are properly initialized
+    """
 
     def test_empty_construction(self):
-        """Test Chart construction with no parameters."""
+        """Test Chart construction with no parameters.
+
+        This test verifies that a Chart can be created without any parameters
+        and that all internal components are properly initialized with default
+        values. It ensures that the chart starts in a valid state.
+
+        The test checks:
+        - Series list is initialized as empty list
+        - Options are initialized as ChartOptions instance
+        - Annotation manager is initialized as AnnotationManager instance
+        """
+        # Create chart with no parameters to test default initialization
         chart = Chart()
 
+        # Verify that series list is properly initialized as empty
         assert chart.series == []
+        # Verify that options are initialized as ChartOptions instance
         assert isinstance(chart.options, ChartOptions)
+        # Verify that annotation manager is properly initialized
         assert isinstance(chart.annotation_manager, AnnotationManager)
 
     def test_construction_with_single_series(self):
-        """Test Chart construction with a single series."""
+        """Test Chart construction with a single series.
+
+        This test verifies that a Chart can be created with a single series
+        and that the series is properly stored and accessible. It ensures
+        that the series list contains exactly one element and that all
+        internal components are still properly initialized.
+
+        The test checks:
+        - Series list contains exactly one series
+        - The stored series matches the provided series
+        - Options and annotation manager are still properly initialized
+        """
+        # Create test data and series for the chart
         data = [LineData(time=1640995200, value=100)]
         series = LineSeries(data=data)
+
+        # Create chart with single series
         chart = Chart(series=series)
 
+        # Verify that series list contains exactly one series
         assert len(chart.series) == 1
+        # Verify that the stored series matches the provided series
         assert chart.series[0] == series
+        # Verify that options are still properly initialized
         assert isinstance(chart.options, ChartOptions)
+        # Verify that annotation manager is still properly initialized
         assert isinstance(chart.annotation_manager, AnnotationManager)
 
     def test_construction_with_multiple_series(self):
-        """Test Chart construction with multiple series."""
+        """Test Chart construction with multiple series.
+
+        This test verifies that a Chart can be created with multiple series
+        and that all series are properly stored in the correct order. It
+        ensures that the series list maintains the order of series as provided
+        and contains the expected number of elements.
+
+        The test checks:
+        - Series list contains the correct number of series
+        - Series are stored in the correct order
+        - All provided series are accessible
+        """
+        # Create test data for multiple series
         data1 = [LineData(time=1640995200, value=100)]
         data2 = [LineData(time=1640995200, value=200)]
         series1 = LineSeries(data=data1)
         series2 = LineSeries(data=data2)
+
+        # Create chart with multiple series
         chart = Chart(series=[series1, series2])
 
+        # Verify that series list contains the correct number of series
         assert len(chart.series) == 2
+        # Verify that series are stored in the correct order
         assert chart.series[0] == series1
         assert chart.series[1] == series2
 
     def test_construction_with_options(self):
-        """Test Chart construction with custom options."""
+        """Test Chart construction with custom options.
+
+        This test verifies that a Chart can be created with custom options
+        and that the provided options are properly stored and accessible.
+        It ensures that custom option values override default values and
+        that the options object is correctly assigned.
+
+        The test checks:
+        - Options object is properly assigned
+        - Custom option values are accessible
+        - Option properties match the provided values
+        """
+        # Create custom options with specific values
         options = ChartOptions(height=500, width=800)
+
+        # Create chart with custom options
         chart = Chart(options=options)
 
+        # Verify that options object is properly assigned
         assert chart.options == options
+        # Verify that custom option values are accessible
         assert chart.options.height == 500
         assert chart.options.width == 800
 
     def test_construction_with_annotations(self):
-        """Test Chart construction with annotations."""
+        """Test Chart construction with annotations.
+
+        This test verifies that a Chart can be created with annotations
+        and that the annotations are properly added to the annotation manager.
+        It ensures that the annotation system is correctly integrated
+        during chart construction.
+
+        The test checks:
+        - Annotations are added to the annotation manager
+        - Annotation manager has the expected number of layers
+        - Annotation system is properly integrated
+        """
+        # Create mock annotation for testing
         annotation = Mock(spec=Annotation)
+
+        # Create chart with annotations
         chart = Chart(annotations=[annotation])
 
-        # Verify annotation was added to the manager
+        # Verify that annotation was added to the manager
+        # Check that annotation manager has layers (indicating annotations were added)
         assert len(chart.annotation_manager.layers) > 0
 
     def test_construction_with_all_parameters(self):
-        """Test Chart construction with all parameters."""
+        """Test Chart construction with all parameters combined.
+
+        This test verifies that a Chart can be created with all possible
+        parameters (series, options, annotations) simultaneously and that
+        all components work together correctly. It ensures that the chart
+        can handle complex initialization scenarios.
+
+        The test checks:
+        - All parameters are properly processed
+        - Series are correctly stored
+        - Options are properly assigned
+        - Annotations are added to the manager
+        - All components work together
+        """
+        # Create test data, series, options, and annotation
         data = [LineData(time=1640995200, value=100)]
         series = LineSeries(data=data)
         options = ChartOptions(height=500)
         annotation = Mock(spec=Annotation)
 
+        # Create chart with all parameters
         chart = Chart(series=series, options=options, annotations=[annotation])
 
+        # Verify that series list contains the expected series
         assert len(chart.series) == 1
         assert chart.series[0] == series
         assert chart.options == options
@@ -793,7 +939,7 @@ class TestChartEdgeCases:
 
         with pytest.raises(
             PriceScaleIdTypeError,
-            match="right_price_scale.price_scale_id must be must be a string",
+            match=r"right_price_scale.price_scale_id must be must be a string",
         ):
             chart.options = ChartOptions(right_price_scale=PriceScaleOptions(price_scale_id=123))
 
@@ -803,7 +949,7 @@ class TestChartEdgeCases:
 
         with pytest.raises(
             PriceScaleIdTypeError,
-            match="left_price_scale.price_scale_id must be must be a string",
+            match=r"left_price_scale.price_scale_id must be must be a string",
         ):
             chart.options = ChartOptions(left_price_scale=PriceScaleOptions(price_scale_id=456))
 

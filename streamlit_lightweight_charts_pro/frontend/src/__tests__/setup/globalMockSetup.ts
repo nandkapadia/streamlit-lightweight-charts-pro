@@ -76,6 +76,17 @@ vi.mock('../../config/positioningConfig', () => mockPositioningConfig);
 // Mock universal spacing constants
 vi.mock('../../primitives/PrimitiveDefaults', () => ({
   UniversalSpacing: mockUniversalSpacing,
+  ButtonDimensions: { DEFAULT_WIDTH: 24, DEFAULT_HEIGHT: 24, FONT_SIZE: 12 },
+  ButtonSpacing: { PADDING: 4, MARGIN: 2 },
+  ButtonColors: { DEFAULT_COLOR: '#333', HOVER_COLOR: '#555' },
+  ButtonEffects: {
+    DEFAULT_BORDER: '1px solid rgba(255, 255, 255, 0.2)',
+    DEFAULT_TRANSITION: 'all 0.2s ease',
+    HOVER_BOX_SHADOW: '0 2px 4px rgba(0, 0, 0, 0.1)'
+  },
+  LegendDimensions: { MIN_WIDTH: 100, DEFAULT_HEIGHT: 20 },
+  LayoutSpacing: { EDGE_PADDING: 6, WIDGET_GAP: 6, BASE_Z_INDEX: 1000 },
+  TimeRangeSeconds: { ONE_DAY: 86400, ONE_WEEK: 604800 },
 }));
 
 // Mock primitive event manager
@@ -111,7 +122,16 @@ vi.mock('../../plugins/chart/paneButtonPanelPlugin', () => ({
 
 // Mock primitive priority constants
 vi.mock('../../primitives/BasePanePrimitive', () => ({
+  BasePanePrimitive: vi.fn().mockImplementation(() => ({
+    initialize: vi.fn(),
+    destroy: vi.fn(),
+    update: vi.fn(),
+    render: vi.fn(),
+    attachToPane: vi.fn(),
+    detachFromPane: vi.fn(),
+  })),
   PrimitivePriority: mockPrimitivePriority,
+  PrimitiveType: { LEGEND: 'legend', RANGE_SWITCHER: 'range-switcher' },
 }));
 
 // Mock logger (suppress console logs in tests)

@@ -2,6 +2,7 @@
  * Mock for streamlit-component-lib-react-hooks
  * Provides Jest-compatible mocks for Streamlit React hooks
  */
+/* global jest */
 
 const useRenderData = jest.fn(() => ({
   args: {

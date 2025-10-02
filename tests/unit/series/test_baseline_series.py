@@ -18,10 +18,10 @@ from streamlit_lightweight_charts_pro.exceptions import (
     BaseValueFormatError,
     ColorValidationError,
     ColumnMappingRequiredError,
+    DataFrameValidationError,
     DataItemsTypeError,
-    InvalidDataFormatError,
-    PaneIdNonNegativeError,
     TypeValidationError,
+    ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
@@ -319,7 +319,7 @@ class TestBaselineSeriesValidation:
     def test_validation_invalid_data_type(self):
         """Test validation with invalid data type."""
         with pytest.raises(
-            InvalidDataFormatError,
+            DataFrameValidationError,
             match=(
                 "data must be a list of SingleValueData objects, DataFrame, or Series, got <class"
                 " 'str'>"
@@ -340,7 +340,7 @@ class TestBaselineSeriesValidation:
         data = [BaselineData(time=1640995200, value=100.5)]
         series = BaselineSeries(data=data, pane_id=-1)
 
-        with pytest.raises(PaneIdNonNegativeError, match="pane_id must be non-negative"):
+        with pytest.raises(ValueValidationError, match="pane_id must be non-negative"):
             series.asdict()
 
 

@@ -143,7 +143,6 @@ describe('Coverage Tests System Verification', () => {
       const areas = [...new Set(fullTestSuite.testCases.map(tc => tc.area))];
       expect(areas).toContain('components');
       expect(areas).toContain('utilities');
-      expect(areas).toContain('managers');
       expect(areas).toContain('plugins');
     });
   });
@@ -238,7 +237,7 @@ describe('Coverage Tests System Verification', () => {
     });
 
     it('should provide actionable recommendations', async () => {
-      const testCases = CoverageTestCases.generateTestCasesForArea('managers');
+      const testCases = CoverageTestCases.generateTestCasesForArea('utilities');
 
       for (const testCase of testCases.slice(0, 2)) {
         // Test first 2 cases

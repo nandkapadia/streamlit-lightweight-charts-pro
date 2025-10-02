@@ -1,16 +1,48 @@
-"""
-Comprehensive tests for the base Options class.
+"""Comprehensive tests for the base Options class.
 
-This module contains comprehensive tests for the Options base class,
+This module contains extensive unit tests for the Options base class,
 ensuring proper serialization, validation, inheritance behavior, and edge cases.
+The tests verify that all options classes work correctly with the base Options
+functionality and maintain consistent behavior across different option types.
+
+The module includes:
+    - TestOptionsInheritance: Tests for Options class inheritance and basic functionality
+    - TestOptionsSerialization: Tests for Options class serialization behavior
+    - TestOptionsValidation: Tests for validation and error handling
+    - TestOptionsEdgeCases: Tests for edge cases and boundary conditions
+
+Key Features Tested:
+    - Options class inheritance and basic functionality
+    - Serialization to dictionary format with camelCase conversion
+    - Enum value conversion and handling
+    - Validation of field types and values
+    - Edge cases with None values and empty strings
+    - Nested options handling and serialization
+    - Error handling for invalid configurations
+
+Example Test Usage:
+    ```python
+    from tests.unit.options.test_base_options import TestOptionsSerialization
+
+    # Run specific test
+    test_instance = TestOptionsSerialization()
+    test_instance.test_to_dict_basic_fields()
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
+# Standard Imports
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, ClassVar, Dict, List, Optional
 
+# Third Party Imports
 import pytest
 
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
 
 

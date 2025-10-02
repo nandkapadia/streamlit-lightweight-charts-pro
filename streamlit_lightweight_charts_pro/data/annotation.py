@@ -41,12 +41,9 @@ from typing import Any, Dict, List, Optional, Union
 import pandas as pd
 
 from streamlit_lightweight_charts_pro.exceptions import (
-    AnnotationTextRequiredError,
-    BorderWidthNonNegativeError,
-    FontSizePositiveError,
-    LayerNameRequiredError,
-    OpacityRangeError,
-    PriceMustBeNumberError,
+    ColorValidationError,
+    TypeValidationError,
+    ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.logging_config import get_logger
 from streamlit_lightweight_charts_pro.type_definitions import ColumnNames
@@ -137,27 +134,27 @@ class Annotation:
 
         # Validate price value
         if not isinstance(price, (int, float)):
-            raise PriceMustBeNumberError("price")
+            raise TypeValidationError("price", "a number")
         self.price = price
 
         # Validate text content
         if not text:
-            raise AnnotationTextRequiredError()
+            raise ValueValidationError.required_field("text")
         self.text = text
 
         # Validate opacity range
-        if not 0 <= opacity <= 1:
-            raise OpacityRangeError("opacity", opacity)
+        if opacity < 0 or opacity > 1:
+            raise ValueValidationError("opacity", f"must be between 0 and 1, got {opacity}")
         self.opacity = opacity
 
         # Validate font size
         if font_size <= 0:
-            raise FontSizePositiveError("font_size")
+            raise ValueValidationError.positive_value("font_size", font_size)
         self.font_size = font_size
 
         # Validate border width
         if border_width < 0:
-            raise BorderWidthNonNegativeError("border_width")
+            raise ValueValidationError("border_width", f"must be non-negative, got {border_width}")
         self.border_width = border_width
 
         self.color = color
@@ -244,10 +241,13 @@ class AnnotationLayer:
             ValueError: If layer name is empty or opacity is invalid.
         """
         if not self.name:
-            raise LayerNameRequiredError()
+            raise ValueValidationError.required_field("layer name")
 
         if not 0 <= self.opacity <= 1:
-            raise OpacityRangeError("opacity", self.opacity)
+            raise ValueValidationError(
+                "opacity",
+                f"must be between 0.0 and 1.0, got {self.opacity}",
+            )
 
     def add_annotation(self, annotation: Annotation) -> "AnnotationLayer":
         """Add annotation to layer.
@@ -362,7 +362,7 @@ class AnnotationLayer:
             ```
         """
         if not 0 <= opacity <= 1:
-            raise OpacityRangeError(field_name="opacity", value=opacity)
+            raise ValueValidationError("opacity", f"must be between 0 and 1, got {opacity}")
         self.opacity = opacity
         return self
 

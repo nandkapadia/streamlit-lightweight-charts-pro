@@ -1,20 +1,52 @@
-"""
-Comprehensive unit tests for the LineSeries class.
+"""Comprehensive unit tests for the LineSeries class.
 
-This module combines all tests for LineSeries functionality including:
-- Basic construction and functionality
-- Extended features and edge cases
-- JSON format validation and frontend compatibility
+This module contains extensive unit tests for the LineSeries class,
+which represents line chart series for financial chart visualization.
+The tests cover construction, configuration, data handling, and frontend
+compatibility.
+
+The module combines all tests for LineSeries functionality including:
+    - Basic construction and functionality
+    - Extended features and edge cases
+    - JSON format validation and frontend compatibility
+    - DataFrame integration and column mapping
+    - Method chaining and fluent API usage
+    - Error handling and validation
+
+Key Features Tested:
+    - LineSeries construction with various data types
+    - LineOptions integration and configuration
+    - Marker and price line management
+    - DataFrame and Series data handling
+    - Column mapping and data validation
+    - Frontend serialization and JSON compatibility
+    - Method chaining and fluent API patterns
+
+Example Test Usage:
+    ```python
+    from tests.unit.series.test_line_series import TestLineSeriesConstruction
+
+    # Run specific test
+    test_instance = TestLineSeriesConstruction()
+    test_instance.test_line_series_construction_with_list()
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
 # pylint: disable=invalid-name,protected-access,no-member
 
+# Standard Imports
 import json
 
+# Third Party Imports
 import numpy as np
 import pandas as pd
 import pytest
 
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.options.price_format_options import PriceFormatOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
@@ -24,8 +56,8 @@ from streamlit_lightweight_charts_pro.data.line_data import LineData
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.exceptions import (
     InstanceTypeError,
-    MissingRequiredColumnsError,
-    TimeColumnNotFoundError,
+    NotFoundError,
+    ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     ChartType,
@@ -39,14 +71,27 @@ from streamlit_lightweight_charts_pro.type_definitions.enums import (
 
 @pytest.fixture
 def line_options():
+    """Fixture providing LineOptions for testing.
+
+    Returns:
+        LineOptions: Configured line options with blue color and width 2
+    """
+    # Create LineOptions with blue color and medium width for testing
     return LineOptions(color="#2196F3", line_width=2)
 
 
 @pytest.fixture
 def line_data():
+    """Fixture providing LineData list for testing.
+
+    Returns:
+        list[LineData]: List of LineData objects with two data points
+    """
+    # Create a list of LineData objects for testing series functionality
+    # Using sequential timestamps and ascending values for realistic test data
     return [
-        LineData(time=1704067200, value=100.0, color="#2196F3"),
-        LineData(time=1704153600, value=105.0, color="#2196F3"),
+        LineData(time=1704067200, value=100.0, color="#2196F3"),  # First data point
+        LineData(time=1704153600, value=105.0, color="#2196F3"),  # Second data point
     ]
 
 
@@ -86,13 +131,13 @@ class TestLineSeriesBasic:
 
     def test_missing_required_column_in_mapping(self, sample_dataframe):
         bad_mapping = {"value": "close", "color": "color"}  # missing 'time'
-        with pytest.raises(MissingRequiredColumnsError):
+        with pytest.raises(ValueValidationError, match="required"):
             LineSeries.from_dataframe(sample_dataframe, bad_mapping)
 
     def test_missing_required_column_in_dataframe(self):
         bad_test_data = pd.DataFrame({"close": [100.0, 105.0], "color": ["#2196F3", "#2196F3"]})
         mapping = {"time": "datetime", "value": "close", "color": "color"}
-        with pytest.raises(TimeColumnNotFoundError):
+        with pytest.raises(NotFoundError):
             LineSeries.from_dataframe(bad_test_data, mapping)
 
     def test_to_dict_structure(self, line_data):

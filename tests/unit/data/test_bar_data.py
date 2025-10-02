@@ -15,7 +15,7 @@ import pytest
 from streamlit_lightweight_charts_pro.charts.series.bar_series import BarSeries
 from streamlit_lightweight_charts_pro.data.bar_data import BarData
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
-from streamlit_lightweight_charts_pro.exceptions import NonNegativeValueError, ValueValidationError
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 
 
 class TestBarDataConstruction:
@@ -143,7 +143,7 @@ class TestBarDataValidation:
         assert all(val >= 0 for val in [data.open, data.high, data.low, data.close])
 
         # Invalid case: negative open
-        with pytest.raises(NonNegativeValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(ValueValidationError, match="all OHLC values must be non-negative"):
             BarData(time=1640995200, open=-100.0, high=110.0, low=95.0, close=105.0)
 
         # Invalid case: negative high (but high < low, so different error)
@@ -151,11 +151,11 @@ class TestBarDataValidation:
             BarData(time=1640995200, open=100.0, high=-110.0, low=95.0, close=105.0)
 
         # Invalid case: negative low
-        with pytest.raises(NonNegativeValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(ValueValidationError, match="all OHLC values must be non-negative"):
             BarData(time=1640995200, open=100.0, high=110.0, low=-95.0, close=105.0)
 
         # Invalid case: negative close
-        with pytest.raises(NonNegativeValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(ValueValidationError, match="all OHLC values must be non-negative"):
             BarData(time=1640995200, open=100.0, high=110.0, low=95.0, close=-105.0)
 
     def test_validation_none_values(self):

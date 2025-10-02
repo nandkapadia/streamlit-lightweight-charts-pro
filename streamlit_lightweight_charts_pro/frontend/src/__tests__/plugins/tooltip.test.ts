@@ -34,16 +34,6 @@ describe('Tooltip Plugin', () => {
     });
 
     it('should create tooltip with custom options', () => {
-      const customOptions = {
-        backgroundColor: '#ffffff',
-        textColor: '#000000',
-        borderColor: '#cccccc',
-        fontSize: '12px',
-        padding: '8px',
-        borderRadius: '4px',
-        zIndex: 1000,
-      };
-
       const tooltipPlugin = new TooltipPlugin(mockChart, mockContainer, 'test-chart');
 
       expect(tooltipPlugin).toBeDefined();
@@ -94,28 +84,12 @@ describe('Tooltip Plugin', () => {
 
   describe('Tooltip Styling', () => {
     it('should apply custom styles', () => {
-      const customStyles = {
-        backgroundColor: '#000000',
-        textColor: '#ffffff',
-        borderColor: '#ff0000',
-        fontSize: '14px',
-        padding: '12px',
-        borderRadius: '8px',
-        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-      };
-
       const tooltipPlugin = new TooltipPlugin(mockChart, mockContainer, 'test');
 
       expect(tooltipPlugin).toBeDefined();
     });
 
     it('should handle theme-based styling', () => {
-      const theme = {
-        base: 'dark',
-        backgroundColor: '#1e1e1e',
-        textColor: '#ffffff',
-      };
-
       const tooltipPlugin = new TooltipPlugin(mockChart, mockContainer, 'test');
 
       expect(tooltipPlugin).toBeDefined();
@@ -300,7 +274,7 @@ describe('Tooltip Plugin', () => {
       const tooltipPlugin = new TooltipPlugin(mockChart, mockContainer, 'test-chart');
 
       expect(() => {
-        tooltipPlugin.addToChart(null, mockContainer);
+        tooltipPlugin.addToChart({} as any, mockContainer);
       }).not.toThrow();
     });
 
@@ -308,7 +282,7 @@ describe('Tooltip Plugin', () => {
       const tooltipPlugin = new TooltipPlugin(mockChart, mockContainer, 'test-chart');
 
       expect(() => {
-        tooltipPlugin.addToChart(mockChart, null);
+        tooltipPlugin.addToChart(mockChart, {} as any);
       }).not.toThrow();
     });
 

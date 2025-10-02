@@ -135,9 +135,9 @@ class TestLineSeriesProperties:
 
         # Order should be preserved
         for i in range(len(sorted_data) - 1):
-            assert (
-                series.data[i].time <= series.data[i + 1].time
-            ), f"Data ordering not preserved at index {i}"
+            assert series.data[i].time <= series.data[i + 1].time, (
+                f"Data ordering not preserved at index {i}"
+            )
 
     @given(line_data_list_strategy())
     @settings(max_examples=100, deadline=None, suppress_health_check=[HealthCheck.data_too_large])
@@ -211,12 +211,12 @@ class TestChartProperties:
             for j, (original_data, chart_data) in enumerate(
                 zip(original_series.data, chart_series.data),
             ):
-                assert (
-                    original_data.time == chart_data.time
-                ), f"Time mismatch in series {i}, data {j}"
-                assert (
-                    original_data.value == chart_data.value
-                ), f"Value mismatch in series {i}, data {j}"
+                assert original_data.time == chart_data.time, (
+                    f"Time mismatch in series {i}, data {j}"
+                )
+                assert original_data.value == chart_data.value, (
+                    f"Value mismatch in series {i}, data {j}"
+                )
 
     @given(line_data_list_strategy())
     @settings(max_examples=100, deadline=None)

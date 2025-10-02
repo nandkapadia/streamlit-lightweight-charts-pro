@@ -1,27 +1,28 @@
-"""Chainable decorators for enabling method chaining on properties and fields.
+"""Chainable decorators for enabling fluent API design in financial chart configuration.
 
-This module provides decorators that automatically create setter methods
-for properties and dataclass fields, allowing both direct assignment and
-method chaining styles with optional type validation.
+This module provides powerful decorators that automatically create setter methods
+for properties and dataclass fields, enabling both direct assignment and method
+chaining styles with comprehensive type validation and error handling.
 
-The module provides two main decorators:
-    - chainable_property: Creates both property setters and chaining methods
-    - chainable_field: Creates setter methods for dataclass fields
+The module implements the fluent API design pattern used throughout the library,
+allowing for intuitive and readable method chaining when building charts and
+configuring options. This creates a more developer-friendly experience while
+maintaining type safety and validation.
 
-These decorators enable the fluent API design pattern used throughout the library,
-allowing for intuitive method chaining when building charts and configuring options.
-
-Features:
+Key Features:
     - Automatic type validation with customizable validators
     - Support for both property assignment and method chaining
-    - Built-in validators for common types (colors, precision, etc.)
-    - Special handling for marker lists and complex types
-    - Optional None value support
-    - Top-level property configuration for serialization
+    - Built-in validators for common chart types (colors, precision, etc.)
+    - Special handling for complex types (marker lists, nested objects)
+    - Optional None value support for flexible configuration
+    - Top-level property configuration for serialization control
+    - Comprehensive error handling with descriptive messages
+    - Support for Union types and generic type checking
 
 Example Usage:
     ```python
     from streamlit_lightweight_charts_pro.utils import chainable_property, chainable_field
+    from dataclasses import dataclass
 
 
     # Using chainable_property for class properties
@@ -44,23 +45,25 @@ Example Usage:
 
     # Usage examples
     config = ChartConfig()
-    config.color = "#ff0000"  # Property assignment
+    config.color = "#ff0000"  # Direct property assignment
     config.set_width(600).set_color("#00ff00")  # Method chaining
     ```
 
 Built-in Validators:
     - "color": Validates hex color codes and rgba values
     - "price_format_type": Validates price format types
-    - "precision": Validates precision values
-    - "min_move": Validates minimum move values
+    - "precision": Validates precision values for price formatting
+    - "min_move": Validates minimum move values for price scales
 
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
 """
 
+# Standard Imports
 from typing import Any, Callable, Optional, Type, Union, get_args, get_origin
 
+# Local Imports
 from ..exceptions import (
     ColorValidationError,
     InstanceTypeError,

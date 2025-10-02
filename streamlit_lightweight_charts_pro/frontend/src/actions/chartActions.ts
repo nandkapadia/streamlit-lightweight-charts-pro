@@ -12,12 +12,16 @@ export async function saveChartConfig(formData: FormData) {
   const chartId = formData.get('chartId') as string;
   const config = JSON.parse(formData.get('config') as string);
 
+  // Use chartId and config for validation
+  if (!chartId || !config) {
+    throw new Error('Missing required fields');
+  }
+
   try {
     // Simulate saving to backend/database
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // In a real implementation, save to your backend
-    console.log(`Saving chart config for ${chartId}:`, config);
 
     return {
       success: true,

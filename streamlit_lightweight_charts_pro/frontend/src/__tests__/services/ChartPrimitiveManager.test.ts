@@ -14,17 +14,69 @@ import {
 import { createTestEnvironment, createMockPane } from '../mocks/GlobalMockFactory';
 
 // Mock LegendPrimitive
-const LegendPrimitive = vi.fn().mockImplementation(() => ({
+const mockLegendPrimitive = {
   attachTo: vi.fn(),
   detach: vi.fn(),
   updateText: vi.fn(),
   hide: vi.fn(),
   show: vi.fn(),
+};
+vi.mock('../../primitives/LegendPrimitive', () => ({
+  LegendPrimitive: vi.fn().mockImplementation(() => mockLegendPrimitive),
 }));
+
+// Mock RangeSwitcherPrimitive
+const mockRangeSwitcherPrimitive = {
+  attachTo: vi.fn(),
+  detach: vi.fn(),
+  destroy: vi.fn(),
+};
+vi.mock('../../primitives/RangeSwitcherPrimitive', () => ({
+  RangeSwitcherPrimitive: vi.fn().mockImplementation(() => mockRangeSwitcherPrimitive),
+  DefaultRangeConfigs: {},
+}));
+
+// Mock ButtonPanelPrimitive
+const mockButtonPanelPrimitive = {
+  plugin: {},
+  destroy: vi.fn(),
+  attachTo: vi.fn(),
+  detach: vi.fn(),
+};
+vi.mock('../../primitives/ButtonPanelPrimitive', () => ({
+  ButtonPanelPrimitive: vi.fn().mockImplementation(() => mockButtonPanelPrimitive),
+  createButtonPanelPrimitive: vi.fn(() => mockButtonPanelPrimitive),
+}));
+
+// Mock PrimitiveEventManager
+const mockPrimitiveEventManager = {
+  initialize: vi.fn(),
+  on: vi.fn(),
+  off: vi.fn(),
+  emit: vi.fn(),
+  destroy: vi.fn(),
+};
+
+vi.mock('../../services/PrimitiveEventManager', () => ({
+  PrimitiveEventManager: {
+    getInstance: vi.fn(() => mockPrimitiveEventManager),
+    cleanup: vi.fn(),
+  },
+}));
+
+// Mock CornerLayoutManager
+vi.mock('../../services/CornerLayoutManager', () => ({
+  CornerLayoutManager: {
+    cleanup: vi.fn(),
+  },
+}));
+
+// Import the mocked modules
+import { LegendPrimitive } from '../../primitives/LegendPrimitive';
 
 describe('ChartPrimitiveManager', () => {
   let mockChart: IChartApi;
-  let mockPane: IPaneApi;
+  let mockPane: IPaneApi<any>;
   let mockSeries: ExtendedSeriesApi;
   let manager: ChartPrimitiveManager;
   const chartId = 'test-chart';
@@ -36,7 +88,10 @@ describe('ChartPrimitiveManager', () => {
     // Create test environment with centralized mocks
     const testEnv = createTestEnvironment();
     mockChart = testEnv.chart;
-    mockPane = testEnv.pane;
+
+    // Get the same pane that chart.panes() will return
+    const panes = mockChart.panes();
+    mockPane = panes[0]; // Use the first pane from chart.panes()
 
     // Create mock series
     mockSeries = {
@@ -47,6 +102,7 @@ describe('ChartPrimitiveManager', () => {
     // Get manager instance
     manager = ChartPrimitiveManager.getInstance(mockChart, chartId);
 
+    // Clear mocks AFTER manager creation to preserve the pane setup
     vi.clearAllMocks();
   });
 
@@ -96,7 +152,11 @@ describe('ChartPrimitiveManager', () => {
 
   describe('Range Switcher Management', () => {
     it('should add range switcher with default config', () => {
-      const config: RangeSwitcherConfig = {};
+      const config: RangeSwitcherConfig = {
+        ranges: [],
+        position: 'top-left',
+        visible: true
+      };
       const result = manager.addRangeSwitcher(config);
 
       expect(result).toBeDefined();
@@ -126,7 +186,11 @@ describe('ChartPrimitiveManager', () => {
         throw new Error('Panes error');
       });
 
-      const config: RangeSwitcherConfig = {};
+      const config: RangeSwitcherConfig = {
+        ranges: [],
+        position: 'top-left',
+        visible: true
+      };
       const result = manager.addRangeSwitcher(config);
 
       expect(result).toBeDefined();
@@ -134,7 +198,11 @@ describe('ChartPrimitiveManager', () => {
     });
 
     it('should destroy range switcher', () => {
-      const config: RangeSwitcherConfig = {};
+      const config: RangeSwitcherConfig = {
+        ranges: [],
+        position: 'top-left',
+        visible: true
+      };
       const { destroy } = manager.addRangeSwitcher(config);
 
       expect(() => destroy()).not.toThrow();
@@ -313,7 +381,6 @@ describe('ChartPrimitiveManager', () => {
     it('should handle legend value updates', () => {
       const crosshairData: CrosshairEventData = {
         time: 1234567890 as UTCTimestamp,
-        logical: 100,
         point: { x: 200, y: 300 },
         seriesData: new Map() as Map<
           ExtendedSeriesApi<keyof SeriesOptionsMap>,
@@ -349,7 +416,11 @@ describe('ChartPrimitiveManager', () => {
 
     it('should get all primitives', () => {
       const legendConfig: LegendConfig = { text: 'Test Legend' };
-      const rangeSwitcherConfig: RangeSwitcherConfig = {};
+      const rangeSwitcherConfig: RangeSwitcherConfig = {
+        ranges: [],
+        position: 'top-left',
+        visible: true
+      };
 
       manager.addLegend(legendConfig);
       manager.addRangeSwitcher(rangeSwitcherConfig);
@@ -487,8 +558,8 @@ describe('ChartPrimitiveManager', () => {
     });
 
     it('should handle primitive constructor errors', () => {
-      // Mock LegendPrimitive constructor to throw - using existing import
-      LegendPrimitive.mockImplementationOnce(() => {
+      // Mock LegendPrimitive constructor to throw
+      vi.mocked(LegendPrimitive).mockImplementationOnce(() => {
         throw new Error('Constructor error');
       });
 
@@ -553,7 +624,24 @@ describe('ChartPrimitiveManager', () => {
       mockChart.panes = vi.fn(() => {
         const panes = [];
         for (let i = 0; i < paneCount; i++) {
-          panes.push({ attachPrimitive: vi.fn(), detachPrimitive: vi.fn() });
+          panes.push({
+            attachPrimitive: vi.fn(),
+            detachPrimitive: vi.fn(),
+            getHeight: vi.fn(() => 300),
+            setHeight: vi.fn(),
+            moveTo: vi.fn(),
+            paneIndex: i,
+            applyOptions: vi.fn(),
+            options: vi.fn(),
+            height: vi.fn(() => 300),
+            destroy: vi.fn(),
+            getElement: vi.fn(() => document.createElement('div')),
+            isTouchDevice: vi.fn(() => false),
+            subscribeClick: vi.fn(),
+            unsubscribeClick: vi.fn(),
+            subscribeDoubleClick: vi.fn(),
+            unsubscribeDoubleClick: vi.fn(),
+          } as any);
         }
         return panes;
       });

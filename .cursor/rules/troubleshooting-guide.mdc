@@ -186,6 +186,284 @@ logger.debug('Chart data received:', data)
 logger.error('Failed to render chart:', error)
 ```
 
+## 🎨 Frontend Issues & Solutions
+
+### **1. Chart Not Rendering in Browser**
+
+```typescript
+// Issue: Chart component doesn't appear
+// Solution 1: Check container dimensions
+const ChartContainer: React.FC<{ width: number; height: number }> = ({ width, height }) => {
+  return (
+    <div
+      style={{
+        width: `${width}px`,
+        height: `${height}px`,
+        minHeight: '200px' // Ensure minimum height
+      }}
+    >
+      <ChartComponent />
+    </div>
+  )
+}
+
+// Solution 2: Verify ResizeObserver support
+const useResizeObserver = (ref: RefObject<HTMLElement>) => {
+  useEffect(() => {
+    if (!ref.current || !window.ResizeObserver) {
+      console.warn('ResizeObserver not supported')
+      return
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      // Handle resize
+    })
+
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [ref])
+}
+```
+
+### **2. TypeScript Compilation Errors**
+
+```typescript
+// Issue: TypeScript errors in frontend
+// Solution 1: Check type definitions
+interface ChartProps {
+  data: LineData[]
+  options?: Partial<ChartOptions>
+  onReady?: (chart: IChartApi) => void
+}
+
+// Solution 2: Handle optional properties
+const ChartComponent: React.FC<ChartProps> = ({
+  data,
+  options = {},
+  onReady
+}) => {
+  // Implementation
+}
+
+// Solution 3: Type assertions for external libraries
+const chart = createChart(container, options as ChartOptions)
+```
+
+### **3. React State Management Issues**
+
+```typescript
+// Issue: State not updating properly
+// Solution 1: Use functional state updates
+const [chartData, setChartData] = useState<LineData[]>([])
+
+const updateData = useCallback((newData: LineData[]) => {
+  setChartData(prev => [...prev, ...newData])
+}, [])
+
+// Solution 2: Proper dependency arrays
+useEffect(() => {
+  if (chart && data) {
+    chart.setData(data)
+  }
+}, [chart, data]) // Include all dependencies
+
+// Solution 3: Memoize expensive calculations
+const processedData = useMemo(() => {
+  return data.map(item => ({
+    ...item,
+    processed: true
+  }))
+}, [data])
+```
+
+### **4. Memory Leaks in React Components**
+
+```typescript
+// Issue: Memory leaks from event listeners
+// Solution: Proper cleanup
+const ChartComponent: React.FC<ChartProps> = ({ data }) => {
+  const chartRef = useRef<IChartApi | null>(null)
+
+  useEffect(() => {
+    const chart = createChart(container, options)
+    chartRef.current = chart
+
+    // Subscribe to events
+    const unsubscribe = chart.subscribe('timeScaleChanged', handleTimeScaleChange)
+
+    return () => {
+      // Cleanup
+      unsubscribe()
+      chart.remove()
+      chartRef.current = null
+    }
+  }, [])
+
+  // Prevent memory leaks from closures
+  const handleTimeScaleChange = useCallback((timeScale: TimeScale) => {
+    // Handle time scale change
+  }, [])
+}
+```
+
+### **5. Performance Issues with Large Datasets**
+
+```typescript
+// Issue: Slow rendering with large datasets
+// Solution 1: Data sampling
+const sampleData = (data: LineData[], maxPoints: number = 1000): LineData[] => {
+  if (data.length <= maxPoints) return data
+
+  const step = Math.ceil(data.length / maxPoints)
+  return data.filter((_, index) => index % step === 0)
+}
+
+// Solution 2: Virtual scrolling for large datasets
+const VirtualizedChart: React.FC<{ data: LineData[] }> = ({ data }) => {
+  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 100 })
+
+  const visibleData = useMemo(() => {
+    return data.slice(visibleRange.start, visibleRange.end)
+  }, [data, visibleRange])
+
+  return <ChartComponent data={visibleData} />
+}
+
+// Solution 3: Debounced updates
+const useDebouncedValue = <T>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => clearTimeout(handler)
+  }, [value, delay])
+
+  return debouncedValue
+}
+```
+
+### **6. Build and Bundle Issues**
+
+```typescript
+// Issue: Build failures or large bundle sizes
+// Solution 1: Check Vite configuration
+// vite.config.ts
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'lightweight-charts': ['lightweight-charts'],
+          'react': ['react', 'react-dom']
+        }
+      }
+    }
+  }
+})
+
+// Solution 2: Tree shaking for unused code
+import { createChart } from 'lightweight-charts'
+// Instead of: import * as LightweightCharts from 'lightweight-charts'
+
+// Solution 3: Dynamic imports for large dependencies
+const loadChartLibrary = async () => {
+  const { createChart } = await import('lightweight-charts')
+  return createChart
+}
+```
+
+### **7. CSS and Styling Issues**
+
+```typescript
+// Issue: Charts not styled correctly
+// Solution 1: CSS-in-JS for dynamic styling
+const ChartContainer = styled.div<{ theme: 'light' | 'dark' }>`
+  background-color: ${props => props.theme === 'light' ? '#ffffff' : '#1e1e1e'};
+  border: 1px solid ${props => props.theme === 'light' ? '#e0e0e0' : '#333333'};
+  border-radius: 8px;
+  padding: 16px;
+`
+
+// Solution 2: CSS custom properties for theming
+const chartStyles = {
+  '--chart-background': theme === 'light' ? '#ffffff' : '#1e1e1e',
+  '--chart-text': theme === 'light' ? '#000000' : '#ffffff',
+  '--chart-grid': theme === 'light' ? '#e0e0e0' : '#333333'
+} as React.CSSProperties
+
+// Solution 3: Responsive design
+const useResponsiveChart = () => {
+  const [dimensions, setDimensions] = useState({ width: 800, height: 400 })
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      const container = document.getElementById('chart-container')
+      if (container) {
+        setDimensions({
+          width: container.clientWidth,
+          height: Math.max(400, container.clientHeight)
+        })
+      }
+    }
+
+    updateDimensions()
+    window.addEventListener('resize', updateDimensions)
+    return () => window.removeEventListener('resize', updateDimensions)
+  }, [])
+
+  return dimensions
+}
+```
+
+### **8. Error Boundaries and Error Handling**
+
+```typescript
+// Issue: Unhandled errors crash the app
+// Solution: Implement error boundaries
+class ChartErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Chart error:', error, errorInfo)
+    // Log to error reporting service
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="chart-error-fallback">
+          <h3>Chart Error</h3>
+          <p>Something went wrong while rendering the chart.</p>
+          <button onClick={() => this.setState({ hasError: false })}>
+            Try Again
+          </button>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
+// Usage
+<ChartErrorBoundary>
+  <ChartComponent data={data} />
+</ChartErrorBoundary>
+```
+
 ## 🔧 Development Tools
 
 ### Testing Helpers

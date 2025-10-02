@@ -8,7 +8,7 @@ construction, validation, and serialization.
 import pytest
 
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
-from streamlit_lightweight_charts_pro.exceptions import NonNegativeValueError
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 
 
 class TestOhlcData:
@@ -88,8 +88,8 @@ class TestOhlcData:
         assert data.low == 0.0
         assert data.close == 0.0
 
-        # Negative prices should raise NonNegativeValueError (OHLC values must be non-negative)
-        with pytest.raises(NonNegativeValueError):
+        # Negative prices should raise ValueValidationError (OHLC values must be non-negative)
+        with pytest.raises(ValueValidationError):
             OhlcData(time=1640995200, open=-100.0, high=-95.0, low=-105.0, close=-102.0)
 
         # Valid integer prices (should be converted to float)

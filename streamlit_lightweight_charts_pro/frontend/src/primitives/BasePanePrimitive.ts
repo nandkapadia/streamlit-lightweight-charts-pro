@@ -279,6 +279,7 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
     const paneId = this.getPaneId();
     const chartId = this.getChartId();
 
+
     this.layoutManager = CornerLayoutManager.getInstance(chartId, paneId);
     this.layoutManager.setChartApi(this.chart);
 

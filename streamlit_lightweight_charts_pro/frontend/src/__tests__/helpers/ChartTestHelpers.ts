@@ -13,6 +13,7 @@ import {
   SeriesType,
   SeriesOptionsMap,
 } from 'lightweight-charts';
+import { logger } from '../../utils/logger';
 import { MockFactory } from '../mocks/MockFactory';
 import { TestDataFactory } from '../mocks/TestDataFactory';
 
@@ -229,7 +230,6 @@ export class ChartTestHelpers {
         }
       } catch {
         // Don't fail validation if memory detection isn't available
-        console.warn('A warning occurred');
       }
     }
 
@@ -369,16 +369,16 @@ export class ChartTestHelpers {
     if (chart && typeof chart.remove === 'function') {
       try {
         chart.remove();
-      } catch {
-        console.warn('A warning occurred');
+      } catch (error) {
+        logger.error('Failed to remove chart during cleanup', 'ChartTestHelpers', error);
       }
     }
 
     if (container && container.parentNode) {
       try {
         container.parentNode.removeChild(container);
-      } catch {
-        console.warn('A warning occurred');
+      } catch (error) {
+        logger.error('Failed to remove chart container during cleanup', 'ChartTestHelpers', error);
       }
     }
 

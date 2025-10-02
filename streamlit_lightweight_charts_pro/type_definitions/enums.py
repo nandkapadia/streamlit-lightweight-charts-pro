@@ -1,11 +1,51 @@
 """Enum definitions for streamlit-lightweight-charts.
 
-This module contains all the enumeration types used throughout the library
-for defining chart types, styling options, and configuration parameters.
-These enums ensure type safety and provide a consistent interface for
-chart configuration.
+This module contains comprehensive enumeration types used throughout the library
+for defining chart types, styling options, configuration parameters, and behavior
+modes. These enums ensure type safety, provide a consistent interface for chart
+configuration, and enable IntelliSense support for better developer experience.
+
+The module provides enums for:
+    - Chart types and visualization modes
+    - Color and styling options
+    - Line styles and types
+    - Crosshair and interaction modes
+    - Price scale and time scale configurations
+    - Marker positions and shapes
+    - Animation and tracking modes
+
+These enums are designed to be compatible with TradingView's Lightweight Charts
+library while providing a Python-native interface for configuration.
+
+Key Features:
+    - Type-safe enum values with proper string/int representations
+    - Comprehensive coverage of all chart configuration options
+    - Clear documentation for each enum value
+    - Compatibility with frontend JavaScript enum values
+    - IntelliSense support for IDE autocompletion
+
+Example Usage:
+    ```python
+    from streamlit_lightweight_charts_pro.type_definitions.enums import (
+        ChartType,
+        LineStyle,
+        MarkerPosition,
+        PriceScaleMode,
+    )
+
+    # Use enums for type-safe configuration
+    chart_type = ChartType.CANDLESTICK
+    line_style = LineStyle.SOLID
+    marker_pos = MarkerPosition.ABOVE_BAR
+    scale_mode = PriceScaleMode.NORMAL
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
+# Standard Imports
 from enum import Enum, IntEnum
 
 

@@ -370,9 +370,9 @@ class TestFrontendContractValidation:
 
         for snake_case, camel_case in camelcase_mappings.items():
             assert camel_case in legend_dict, f"Expected camelCase field '{camel_case}' not found"
-            assert (
-                snake_case not in legend_dict
-            ), f"snake_case field '{snake_case}' should not be present"
+            assert snake_case not in legend_dict, (
+                f"snake_case field '{snake_case}' should not be present"
+            )
 
         # Test price scale options
         price_scale = PriceScaleOptions(
@@ -399,12 +399,12 @@ class TestFrontendContractValidation:
         }
 
         for snake_case, camel_case in price_scale_mappings.items():
-            assert (
-                camel_case in price_scale_dict
-            ), f"Expected camelCase field '{camel_case}' not found"
-            assert (
-                snake_case not in price_scale_dict
-            ), f"snake_case field '{snake_case}' should not be present"
+            assert camel_case in price_scale_dict, (
+                f"Expected camelCase field '{camel_case}' not found"
+            )
+            assert snake_case not in price_scale_dict, (
+                f"snake_case field '{snake_case}' should not be present"
+            )
 
     def test_boolean_serialization_contract(self):
         """Test that boolean values are correctly serialized according to contract."""

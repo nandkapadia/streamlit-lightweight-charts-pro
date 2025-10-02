@@ -1,0 +1,787 @@
+---
+globs: *.py
+alwaysApply: true
+description: Comprehensive Google-style docstring standards for Python code
+---
+
+# Google-Style Docstring Standards
+
+**CRITICAL**: All Python docstrings MUST follow Google style format with comprehensive inline comments.
+
+## 📋 Overview
+
+This document provides comprehensive Google-style docstring standards that have been implemented across the Streamlit Lightweight Charts Pro project. These standards ensure consistent, clear, and maintainable documentation throughout the codebase.
+
+## 🎯 Key Standards
+
+### 1. **Google-Style Docstring Format**
+- **Module docstrings**: Concise descriptions with practical examples
+- **Class docstrings**: Include Attributes section and usage examples
+- **Function/Method docstrings**: Complete with Args, Returns, Raises, and Example sections
+- **Line length**: All docstrings and code must be <= 100 characters
+
+### 2. **Comprehensive Inline Comments**
+- **Step-by-step logic explanation**: Complex operations must have detailed comments
+- **Beginner-friendly**: Comments explain what and why, not just how
+- **Consistent format**: Brief statement followed by detailed explanation
+
+### 3. **Import Organization**
+- **Standardized sections**: `# Standard Imports`, `# Third Party Imports`, `# Local Imports`
+- **Proper ordering**: Future imports → stdlib → third-party → first-party → local
+- **Clear separation**: Each section clearly marked with comments
+
+### 4. **Mixin Patterns**
+- **SerializableMixin**: Consistent serialization to frontend-compatible dictionaries
+- **Chainable Property Mixin**: Fluent API methods with validation and method chaining
+- **Options Mixin**: Configuration classes with automatic serialization
+- **Data Mixin**: Chart data points with time normalization and serialization
+
+## 📚 Module Docstrings
+
+### Required Format
+```python
+"""Module name and brief description.
+
+Brief description of what module does with clear purpose.
+
+Example:
+    ```python
+    # Practical example demonstrating usage
+    ```
+"""
+```
+
+### ✅ CORRECT Examples
+```python
+"""Chart implementation for streamlit-lightweight-charts.
+
+This module provides the Chart class, which is the primary chart type for displaying
+financial data in a single pane. It supports multiple series types, annotations,
+and comprehensive customization options with a fluent API for method chaining.
+
+Example:
+    ```python
+    from streamlit_lightweight_charts_pro import Chart, LineSeries
+    from streamlit_lightweight_charts_pro.data import SingleValueData
+
+    data = [SingleValueData("2024-01-01", 100),
+            SingleValueData("2024-01-02", 105)]
+
+    chart = (Chart(series=LineSeries(data))
+            .update_options(height=400)
+            .add_annotation(create_text_annotation("2024-01-01", 100, "Start")))
+    chart.render(key="my_chart")
+    ```
+"""
+```
+
+### ❌ WRONG Examples
+```python
+# Missing example
+"""Chart implementation for streamlit-lightweight-charts.
+
+This module provides the Chart class.
+"""
+
+# Too verbose with unnecessary details
+"""Chart implementation for streamlit-lightweight-charts.
+
+This module provides the Chart class, which is the primary chart type for displaying
+financial data in a single pane. It supports multiple series types, annotations,
+and comprehensive customization options with a fluent API for method chaining.
+
+The Chart class provides a complete implementation for rendering interactive
+financial charts with support for candlestick, line, area, bar, and histogram
+series. It includes advanced features like annotations, trade visualization,
+and multi-pane support.
+
+Key Features:
+    - Multiple series types in a single chart
+    - Advanced annotation system with layers
+    - Trade visualization with buy/sell markers
+    - Price and volume series from pandas DataFrames
+    - Overlay price scales for complex visualizations
+    - Comprehensive customization options
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
+"""
+```
+
+## 🏗️ Class Docstrings
+
+### Required Format
+```python
+class ClassName:
+    """Brief one line description.
+
+    Longer description providing details about class functionality.
+
+    Attributes:
+        attr1: Description of attribute 1.
+        attr2: Description of attribute 2.
+
+    Example:
+        ```python
+        # Practical usage example
+        ```
+    """
+```
+
+### ✅ CORRECT Examples
+```python
+class Chart:
+    """Single pane chart for displaying financial data.
+
+    This class represents a single pane chart that can display multiple
+    series of financial data. It supports various chart types including
+    candlestick, line, area, bar, and histogram series. The chart includes
+    comprehensive annotation support, trade visualization, and method chaining
+    for fluent API usage.
+
+    Attributes:
+        series: List of series objects to display in the chart.
+        options: Chart configuration options including layout,
+            grid, etc.
+        annotation_manager: Manager for chart annotations
+            and layers.
+
+    Example:
+        ```python
+        # Basic usage
+        chart = Chart(series=LineSeries(data))
+
+        # With method chaining
+        chart = (Chart(series=LineSeries(data))
+                .update_options(height=400)
+                .add_annotation(text_annotation))
+        ```
+    """
+```
+
+### ❌ WRONG Examples
+```python
+# Missing attributes section
+class Chart:
+    """Single pane chart for displaying financial data.
+
+    This class represents a single pane chart.
+    """
+
+# Too verbose with implementation details
+class Chart:
+    """Single pane chart for displaying financial data.
+
+    This class represents a single pane chart that can display multiple
+    series of financial data. It supports various chart types including
+    candlestick, line, area, bar, and histogram series. The chart includes
+    comprehensive annotation support, trade visualization, and method chaining
+    for fluent API usage.
+
+    The Chart class provides a complete interface for creating interactive
+    financial visualizations with support for:
+    - Multiple series types in a single chart
+    - Advanced annotation system with layers
+    - Trade visualization with buy/sell markers
+    - Price and volume series from pandas DataFrames
+    - Overlay price scales for complex visualizations
+    - Comprehensive customization options
+
+    Class Attributes:
+        DATA_CLASS: The data class type used for this series (LineData).
+
+    See also:
+        Series: Base class providing common series functionality.
+        LineOptions: Configuration class for line styling options.
+        LineData: Data class for line chart data points.
+    """
+```
+
+## 🔧 Function/Method Docstrings
+
+### Required Format
+```python
+def method_name(self, param1: type, param2: type = default) -> "ReturnType":
+    """Brief description of function purpose.
+
+    Longer description explaining what the function does and how it works.
+
+    Args:
+        param1: Description of param1 with requirements.
+        param2: Description of param2 with constraints and format.
+
+    Returns:
+        ReturnType: Description of what the method returns.
+
+    Raises:
+        SpecificError: When this error condition occurs.
+        ValidationError: When validation fails.
+
+    Example:
+        ```python
+        # Working code example with proper line length
+        ```
+    """
+```
+
+### ✅ CORRECT Examples
+```python
+def add_series(self, series: Series) -> "Chart":
+    """Add a series to the chart.
+
+    Adds a new series object to the chart's series list. The series will be
+    displayed according to its type (line, candlestick, area, etc.) and
+    configuration options. Automatically handles price scale configuration
+    for custom price scale IDs.
+
+    Args:
+        series: Series object to add to the chart. Must be an instance of a
+            Series subclass (LineSeries, CandlestickSeries, etc.).
+
+    Returns:
+        Chart: Self for method chaining.
+
+    Raises:
+        TypeValidationError: If the series parameter is not an instance of Series.
+
+    Example:
+        ```python
+        # Add a candlestick series
+        chart.add_series(CandlestickSeries(ohlc_data))
+
+        # Add a line series with custom options
+        chart.add_series(LineSeries(data,
+                                  line_options=LineOptions(color="red")))
+
+        # Method chaining
+        chart.add_series(line_series).add_series(candlestick_series)
+        ```
+    """
+```
+
+### ❌ WRONG Examples
+```python
+# Missing sections
+def add_series(self, series: Series) -> "Chart":
+    """Add a series to the chart."""
+    pass
+
+# Incomplete Args section
+def add_series(self, series: Series) -> "Chart":
+    """Add a series to the chart.
+
+    Args:
+        series: Series object to add.
+    """
+    pass
+
+# Missing type information in Args
+def add_series(self, series: Series) -> "Chart":
+    """Add a series to the chart.
+
+    Args:
+        series: Series object to add to the chart.
+
+    Returns:
+        Chart: Self for method chaining.
+    """
+    pass
+```
+
+## 💬 Inline Comments (Step-by-Step Logic)
+
+### Required Format
+```python
+# Brief statement describing single operation - what this line/group does
+# Detailed explanation for complex logic for novice developers
+```
+
+### ✅ CORRECT Examples
+```python
+def __init__(
+    self,
+    series: Optional[Union[Series, List[Series]]] = None,
+    options: Optional[ChartOptions] = None,
+    annotations: Optional[List[Annotation]] = None,
+    chart_group_id: int = 0,
+    chart_manager: Optional[Any] = None,
+):
+    """Initialize a single pane chart."""
+    # Handle series input - convert to list for uniform processing
+    # This allows the class to accept either a single Series or a list
+    if series is None:
+        # Case 1: No series provided - create empty chart
+        self.series = []
+    elif isinstance(series, Series):
+        # Case 2: Single Series object - wrap in list for consistent handling
+        self.series = [series]
+    elif isinstance(series, list):
+        # Case 3: List of series - validate each item is a Series instance
+        for item in series:
+            if not isinstance(item, Series):
+                # Reject list items that are not Series objects
+                raise SeriesItemsTypeError()
+        self.series = series
+    else:
+        # Case 4: Invalid input type - raise error with clear message
+        raise TypeValidationError("series", "Series instance or list")
+
+    # Set up chart configuration
+    # Use provided options or default ChartOptions instance
+    self.options = options or ChartOptions()
+
+    # Initialize chart synchronization support
+    # Chart group ID enables multiple charts to sync their time ranges
+    self._chart_group_id = chart_group_id
+
+    # Store ChartManager reference for retrieving sync settings
+    # This allows the chart to access manager's configuration
+    self._chart_manager = chart_manager
+```
+
+### ❌ WRONG Examples
+```python
+# Too brief - doesn't explain the logic
+def __init__(self, series=None):
+    if series is None:
+        self.series = []  # Set empty series
+    else:
+        self.series = series  # Set series
+
+# Too verbose - explains obvious things
+def __init__(self, series=None):
+    # Check if series parameter is None, which means no series was provided
+    if series is None:
+        # If no series was provided, create an empty list to store series
+        self.series = []
+    else:
+        # If a series was provided, assign it to the instance variable
+        self.series = series
+
+# Missing comments for complex logic
+def process_dataframe_input(self, data, column_mapping):
+    if isinstance(data, pd.Series):
+        data = data.to_frame()
+    data_class = self.data_class
+    required = data_class.required_columns
+    # ... complex logic without explanation
+```
+
+## 📏 Line Length Requirements
+
+### All docstrings and comments MUST be <= 100 characters
+```python
+# ✅ CORRECT: Proper line wrapping
+def create_chart_with_series(
+    data: List[SingleValueData],
+    chart_options: ChartOptions,
+    series_options: SeriesOptions,
+) -> Chart:
+    """Create a chart with series data and return configured chart instance."""
+    return Chart().add_series(LineSeries(data, series_options)).update_options(chart_options)
+
+# ❌ WRONG: Line too long
+def create_chart_with_series(data: List[SingleValueData], chart_options: ChartOptions, series_options: SeriesOptions) -> Chart:
+    return Chart().add_series(LineSeries(data, series_options)).update_options(chart_options)
+```
+
+## 🔄 Import Organization
+
+### Required Format
+```python
+# Standard Imports
+import warnings
+from pathlib import Path
+
+# Third Party Imports
+import pandas as pd
+
+# Local Imports
+from streamlit_lightweight_charts_pro.charts import Chart, ChartManager
+```
+
+### ✅ CORRECT Examples
+```python
+# Standard Imports
+import time
+import uuid
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Sequence, Union
+
+# Third Party Imports
+import pandas as pd
+
+# Local Imports
+from streamlit_lightweight_charts_pro.charts.options import ChartOptions
+from streamlit_lightweight_charts_pro.charts.series import (
+    CandlestickSeries,
+    HistogramSeries,
+    LineSeries,
+    Series,
+)
+```
+
+### ❌ WRONG Examples
+```python
+# Missing section comments
+import time
+import uuid
+import pandas as pd
+from streamlit_lightweight_charts_pro.charts import Chart
+
+# Incorrect order
+import pandas as pd
+import time
+from streamlit_lightweight_charts_pro.charts import Chart
+import uuid
+
+# Mixed imports without organization
+from streamlit_lightweight_charts_pro.charts import Chart
+import pandas as pd
+import time
+from typing import List
+```
+
+## 🧩 Mixin Patterns
+
+### SerializableMixin Usage
+```python
+# ✅ CORRECT: Using SerializableMixin for consistent serialization
+from dataclasses import dataclass
+from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
+
+@dataclass
+class ChartConfig(SerializableMixin):
+    """Chart configuration with automatic serialization support.
+
+    This class uses SerializableMixin to provide consistent serialization
+    to frontend-compatible dictionaries with camelCase keys.
+
+    Attributes:
+        title: Chart title displayed in the UI.
+        is_visible: Whether the chart is visible by default.
+        background_color: Background color in hex format.
+
+    Example:
+        ```python
+        config = ChartConfig(title="My Chart", is_visible=True)
+        serialized = config.asdict()  # {"title": "My Chart", "isVisible": True}
+        ```
+    """
+    title: str = "My Chart"
+    is_visible: bool = True
+    background_color: str = "#ffffff"
+
+    def asdict(self) -> dict[str, Any]:
+        """Serialize to dictionary with camelCase keys for frontend."""
+        return self._serialize_to_dict()
+```
+
+### Chainable Property Mixin Pattern
+```python
+# ✅ CORRECT: Using chainable_property decorator for fluent API
+from streamlit_lightweight_charts_pro.utils import chainable_property
+
+@chainable_property("color", str, validator="color")
+@chainable_property("width", int)
+@chainable_property("line_options", LineOptions, allow_none=True)
+@chainable_property("price_scale_id", top_level=True)
+class LineSeries(Series):
+    """Line series with chainable property configuration.
+
+    This class demonstrates the chainable_property mixin pattern for creating
+    fluent API methods that return self for method chaining.
+
+    Attributes:
+        color: Line color in hex format with validation.
+        width: Line width in pixels.
+        line_options: Optional line styling options.
+        price_scale_id: Price scale identifier for multi-scale charts.
+
+    Example:
+        ```python
+        # Method chaining with validation
+        series = (LineSeries(data)
+                 .set_color("#ff0000")
+                 .set_width(2)
+                 .set_price_scale_id("right"))
+
+        # Property assignment (same validation)
+        series.color = "#00ff00"
+        series.width = 3
+        ```
+    """
+
+    def __init__(self, data, **kwargs):
+        """Initialize line series with data and configuration."""
+        # Initialize private attributes for chainable properties
+        self._color = "#2196F3"
+        self._width = 1
+        self._line_options = None
+        self._price_scale_id = "right"
+
+        # Call parent constructor
+        super().__init__(data, **kwargs)
+```
+
+### Options Mixin Pattern
+```python
+# ✅ CORRECT: Using Options mixin for configuration classes
+from dataclasses import dataclass
+from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+
+@dataclass
+class LineOptions(Options):
+    """Line styling options with automatic serialization.
+
+    This class inherits from Options mixin to provide consistent
+    serialization and validation for line styling configuration.
+
+    Attributes:
+        color: Line color in hex format.
+        width: Line width in pixels.
+        style: Line style (solid, dotted, dashed).
+        visible: Whether the line is visible.
+
+    Example:
+        ```python
+        # Create and configure line options
+        options = (LineOptions()
+                  .set_color("#ff0000")
+                  .set_width(2)
+                  .set_style(LineStyle.SOLID))
+
+        # Serialize for frontend
+        serialized = options.asdict()
+        # Returns: {"color": "#ff0000", "width": 2, "style": 0}
+        ```
+    """
+    color: str = "#2196F3"
+    width: int = 1
+    style: LineStyle = LineStyle.SOLID
+    visible: bool = True
+
+    def asdict(self) -> dict[str, Any]:
+        """Serialize to dictionary with camelCase keys."""
+        return self._serialize_to_dict()
+```
+
+### Data Mixin Pattern
+```python
+# ✅ CORRECT: Using Data mixin for chart data points
+from dataclasses import dataclass
+from streamlit_lightweight_charts_pro.data.data import Data
+
+@dataclass
+class LineData(Data):
+    """Single value data point for line charts.
+
+    This class inherits from Data mixin to provide automatic time
+    normalization and serialization for line chart data points.
+
+    Attributes:
+        time: UNIX timestamp in seconds (automatically normalized).
+        value: Data value for this point.
+        color: Optional color override for this point.
+
+    Example:
+        ```python
+        # Create data point with automatic time normalization
+        data = LineData(time="2024-01-01T00:00:00", value=100.0)
+
+        # Serialize for frontend
+        serialized = data.asdict()
+        # Returns: {"time": 1704067200, "value": 100.0}
+        ```
+    """
+    value: float
+    color: Optional[str] = None
+
+    def asdict(self) -> dict[str, Any]:
+        """Serialize to dictionary with camelCase keys."""
+        return self._serialize_to_dict()
+```
+
+## 🚫 Common Violations
+
+### Avoid These Patterns:
+```python
+# Missing docstrings
+def process_data(data):
+    return data
+
+# Incomplete docstrings
+def process_data(data):
+    """Process data."""
+    return data
+
+# Wrong docstring format
+def process_data(data):
+    """
+    Process data.
+
+    @param data: The data to process
+    @return: Processed data
+    """
+    return data
+
+# Missing inline comments for complex logic
+def complex_function(data):
+    result = []
+    for item in data:
+        if item.valid:
+            processed = item.process()
+            if processed.success:
+                result.append(processed.value)
+    return result
+
+# Lines too long
+def create_very_long_function_name_that_exceeds_line_length_limits(data, options, configuration, settings):
+    pass
+```
+
+## ✅ Enforcement
+
+### Pre-commit Hooks Check:
+1. **Docstring presence** - All functions, classes, and modules must have docstrings
+2. **Google format compliance** - Docstrings must follow Google style
+3. **Line length** - All lines must be <= 100 characters
+4. **Import organization** - Imports must be properly organized with section comments
+5. **Inline comments** - Complex logic must have explanatory comments
+
+### Manual Review Checklist:
+- [ ] All modules have concise docstrings with examples
+- [ ] All classes have docstrings with Attributes section
+- [ ] All functions have complete docstrings with Args, Returns, Raises, Example
+- [ ] Complex logic has step-by-step inline comments
+- [ ] All lines are <= 100 characters
+- [ ] Imports are organized with proper section comments
+- [ ] Examples in docstrings are practical and working
+
+## 🚀 Benefits
+
+### For Developers
+- **Clear documentation**: Easy to understand code purpose and usage
+- **Consistent patterns**: Standardized approach across the codebase
+- **Better onboarding**: New developers can quickly understand the code
+- **Reduced bugs**: Clear documentation helps prevent misunderstandings
+
+### For Users
+- **Better API documentation**: Clear examples and explanations
+- **Easier integration**: Practical examples show how to use the library
+- **Comprehensive coverage**: All functions and classes are documented
+
+### For Maintenance
+- **Easier refactoring**: Clear documentation makes changes safer
+- **Better testing**: Documented behavior is easier to test
+- **Reduced technical debt**: Good documentation prevents future issues
+
+## 📚 Examples and Documentation Patterns
+
+### Example Structure
+The project includes comprehensive examples organized by category:
+
+- **Getting Started**: [examples/getting_started/](mdc:examples/getting_started/) - Basic usage examples
+- **Chart Types**: [examples/chart_types/](mdc:examples/chart_types/) - Different chart types
+- **Advanced Features**: [examples/advanced_features/](mdc:examples/advanced_features/) - Complex features
+- **Tutorials**: [examples/tutorials/](mdc:examples/tutorials/) - Step-by-step tutorials
+
+### Example Patterns
+
+#### Basic Chart Example
+```python
+# examples/getting_started/basic_line_chart.py
+import streamlit as st
+from streamlit_lightweight_charts_pro import Chart, LineSeries
+from streamlit_lightweight_charts_pro.data import SingleValueData
+
+st.title("Basic Line Chart")
+
+# Create sample data
+data = [
+    SingleValueData("2024-01-01", 100),
+    SingleValueData("2024-01-02", 105),
+    SingleValueData("2024-01-03", 103),
+    SingleValueData("2024-01-04", 108),
+]
+
+# Create and render chart
+chart = Chart(series=LineSeries(data, color="#2196F3"))
+chart.render(key="basic_line_chart")
+```
+
+#### Advanced Example with Method Chaining
+```python
+# examples/advanced_features/chart_customization.py
+from streamlit_lightweight_charts_pro import (
+    Chart, LineSeries, create_text_annotation, create_arrow_annotation
+)
+
+# Fluent API with method chaining
+chart = (Chart()
+         .add_series(LineSeries(data, color="#ff0000"))
+         .update_options(height=400, width=800)
+         .add_annotation(create_text_annotation("2024-01-01", 100, "Support"))
+         .add_annotation(create_arrow_annotation("2024-01-02", 105, "Resistance")))
+```
+
+### Documentation Standards
+
+#### README Structure
+- **Overview**: Project description and key features
+- **Installation**: Setup instructions
+- **Quick Start**: Basic usage examples
+- **API Reference**: Detailed API documentation
+- **Examples**: Links to example files
+- **Contributing**: Development guidelines
+
+#### Code Comments
+- **Complex Logic**: Explain complex algorithms and business logic
+- **API Decisions**: Document why certain API design decisions were made
+- **Performance**: Note performance considerations and optimizations
+- **TODOs**: Use TODO comments for future improvements
+
+### Example Categories
+
+#### Getting Started Examples
+- Basic line chart
+- Data formats
+- Pane heights
+
+#### Chart Type Examples
+- Line charts (basic, advanced, with markers)
+- Candlestick charts (basic, customized, with volume)
+- Area charts (basic, multi-area)
+- Bar charts (basic, customized)
+- Histogram charts (basic, customized)
+- Baseline charts (basic, customized)
+
+#### Advanced Features
+- Chart customization
+- Multi-pane charts
+- Annotations and markers
+- Trade visualization
+- Range switcher
+- Auto-sizing
+- Gradient ribbons
+- Trend fills
+
+#### Integration Examples
+- Pandas DataFrame integration
+- CSV data loading
+- API data integration
+- Dashboard layouts
+
+## 📚 References
+
+- **Google Style Guide**: https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
+- **Sphinx Napoleon**: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
+- **PEP 257**: https://peps.python.org/pep-0257/
+- **PEP 8**: https://peps.python.org/pep-0008/
+
+---
+
+**Status**: ✅ **COMPLETE** - Comprehensive Google-style docstring standards with examples and documentation patterns
+**Last Updated**: December 2024
+**Next Review**: Quarterly review of documentation standards

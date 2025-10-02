@@ -146,7 +146,7 @@ describe('ErrorBoundary Component', () => {
       expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
 
       // Click Try Again to reset error state
-      const tryAgainButton = screen.getByText('Try Again');
+      const tryAgainButton = screen.getByText('🔄 Try Again');
       tryAgainButton.click();
 
       // After clicking Try Again, re-render with non-throwing children

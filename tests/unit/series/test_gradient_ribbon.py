@@ -281,9 +281,9 @@ class TestGradientRibbonSeries:
         execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
 
         # Should complete in under 10ms for 1000 data points
-        assert (
-            execution_time < 10.0
-        ), f"Bounds calculation took {execution_time:.2f}ms, expected < 10ms"
+        assert execution_time < 10.0, (
+            f"Bounds calculation took {execution_time:.2f}ms, expected < 10ms"
+        )
 
         # Verify bounds are correct
         assert series._gradient_bounds == (0.0, 0.999)

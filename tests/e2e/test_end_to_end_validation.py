@@ -574,9 +574,9 @@ class TestPerformanceValidation:
         serialization_time = time.time() - start_time
 
         # Validate performance (should be under 100ms for 1000 points)
-        assert (
-            serialization_time < 0.1
-        ), f"Large dataset serialization took {serialization_time:.3f}s, expected < 0.1s"
+        assert serialization_time < 0.1, (
+            f"Large dataset serialization took {serialization_time:.3f}s, expected < 0.1s"
+        )
 
         # Validate structure
         series_config = config["charts"][0]["series"][0]
@@ -623,9 +623,9 @@ class TestPerformanceValidation:
         serialization_time = time.time() - start_time
 
         # Validate performance (should be under 50ms for complex config)
-        assert (
-            serialization_time < 0.05
-        ), f"Complex configuration serialization took {serialization_time:.3f}s, expected < 0.05s"
+        assert serialization_time < 0.05, (
+            f"Complex configuration serialization took {serialization_time:.3f}s, expected < 0.05s"
+        )
 
         # Validate structure
         chart_config = config["charts"][0]

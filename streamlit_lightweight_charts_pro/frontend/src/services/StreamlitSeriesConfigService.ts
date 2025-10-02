@@ -8,6 +8,7 @@
 
 import { Streamlit } from 'streamlit-component-lib';
 import { SeriesConfiguration, SeriesType } from '../types/SeriesTypes';
+import { logger } from '../utils/logger';
 
 /**
  * Event data for series configuration changes.
@@ -201,7 +202,7 @@ export class StreamlitSeriesConfigService {
       if (typeof Streamlit !== 'undefined' && Streamlit.setComponentValue) {
         Streamlit.setComponentValue(payload);
       } else {
-        console.warn('Streamlit not available - series configuration not synced to backend');
+        logger.debug('Streamlit not available or setComponentValue not found', 'StreamlitSeriesConfigService');
       }
 
       // Clear pending changes after successful sync
@@ -230,8 +231,8 @@ export class StreamlitSeriesConfigService {
           });
         }
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Streamlit series configuration failed', 'StreamlitSeriesConfigService', error);
     }
   }
 

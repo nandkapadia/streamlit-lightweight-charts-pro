@@ -10,7 +10,7 @@ src/__tests__/
 ├── setup/                       # Test configuration and utilities
 │   ├── testSetup.ts            # Global test setup
 │   ├── mockHelpers.ts          # Shared mock utilities
-│   └── jest.config.categories.js # Category-based Jest config
+│   └── vitest.config.ts # Vitest configuration
 ├── unit/                       # Unit tests (isolated functionality)
 │   ├── index.test.tsx          # Main app component tests
 │   └── simple.test.ts          # Basic functionality tests
@@ -100,7 +100,7 @@ npm run test:ci
 ## 🛠 Test Utilities & Setup
 
 ### Global Test Setup (`setup/testSetup.ts`)
-Automatically loaded by Jest, provides:
+Automatically loaded by Vitest, provides:
 - DOM mocking (ResizeObserver, IntersectionObserver, etc.)
 - Canvas and rendering context mocks
 - Performance API mocks
@@ -134,7 +134,8 @@ integration.test.tsx           # Integration tests
 ### Basic Test Template
 ```typescript
 import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
+import { vi } from 'vitest';
 import { createMockRenderData } from '../setup/mockHelpers';
 
 // Import component to test
@@ -142,7 +143,7 @@ import MyComponent from '../../components/MyComponent';
 
 describe('MyComponent', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Rendering', () => {
@@ -203,8 +204,8 @@ describe('MyComponent', () => {
 1. **Timer-based Tests Failing**
    ```typescript
    // Use fake timers and advance them
-   jest.useFakeTimers();
-   jest.advanceTimersByTime(1500);
+   vi.useFakeTimers();
+   vi.advanceTimersByTime(1500);
    ```
 
 2. **Async Operations Not Completing**

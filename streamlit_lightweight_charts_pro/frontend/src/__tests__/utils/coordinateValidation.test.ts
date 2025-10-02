@@ -1,3 +1,8 @@
+// Unmock coordinate validation and its dependencies for this test file since we want to test the actual implementation
+import { vi } from 'vitest';
+vi.unmock('../../utils/coordinateValidation');
+vi.unmock('../../config/positioningConfig');
+
 import {
   validateChartCoordinates,
   validatePaneCoordinates,
@@ -19,12 +24,12 @@ describe('coordinateValidation', () => {
       const validCoordinates: ChartCoordinates = {
         container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
         timeScale: { x: 0, y: 370, width: 800, height: 30 },
-        panes: {
-          0: { width: 800, height: 370, top: 0, left: 0 },
-        },
-        priceScales: {
-          right: { x: 740, y: 0, width: 60, height: 370 },
-        },
+        panes: [{ width: 800, height: 370, x: 0, y: 0, paneId: 0, absoluteX: 0, absoluteY: 0, contentArea: { top: 0, left: 0, width: 800, height: 370 }, margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false }],
+        priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
+        priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
+        contentArea: { x: 60, y: 0, width: 680, height: 370 },
+        timestamp: Date.now(),
+        isValid: true,
       };
 
       const result = validateChartCoordinates(validCoordinates);
@@ -37,8 +42,12 @@ describe('coordinateValidation', () => {
     it('should detect missing container dimensions', () => {
       const invalidCoordinates = {
         timeScale: { x: 0, y: 370, width: 800, height: 30 },
-        panes: {},
-        priceScales: {},
+        panes: [],
+        priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
+        priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
+        contentArea: { x: 60, y: 0, width: 680, height: 370 },
+        timestamp: Date.now(),
+        isValid: true,
       } as any;
 
       const result = validateChartCoordinates(invalidCoordinates);
@@ -51,8 +60,12 @@ describe('coordinateValidation', () => {
       const invalidCoordinates: ChartCoordinates = {
         container: { width: 0, height: -100, offsetTop: 0, offsetLeft: 0 },
         timeScale: { x: 0, y: 370, width: 800, height: 30 },
-        panes: {},
-        priceScales: {},
+        panes: [],
+        priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
+        priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
+        contentArea: { x: 60, y: 0, width: 680, height: 370 },
+        timestamp: Date.now(),
+        isValid: true,
       };
 
       const result = validateChartCoordinates(invalidCoordinates);
@@ -65,9 +78,13 @@ describe('coordinateValidation', () => {
     it('should warn about small container dimensions', () => {
       const smallCoordinates: ChartCoordinates = {
         container: { width: 100, height: 50, offsetTop: 0, offsetLeft: 0 },
-        timeScale: { width: 100, height: 30 },
-        panes: {},
-        priceScales: {},
+        timeScale: { x: 0, y: 20, width: 100, height: 30 },
+        panes: [],
+        priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
+        priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
+        contentArea: { x: 60, y: 0, width: 680, height: 370 },
+        timestamp: Date.now(),
+        isValid: true,
       };
 
       const result = validateChartCoordinates(smallCoordinates);
@@ -79,8 +96,13 @@ describe('coordinateValidation', () => {
     it('should detect missing time scale', () => {
       const invalidCoordinates = {
         container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
-        panes: {},
-        priceScales: {},
+        timeScale: null, // Explicitly set to null
+        panes: [],
+        priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
+        priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
+        contentArea: { x: 60, y: 0, width: 680, height: 370 },
+        timestamp: Date.now(),
+        isValid: true,
       } as any;
 
       const result = validateChartCoordinates(invalidCoordinates);
@@ -95,8 +117,13 @@ describe('coordinateValidation', () => {
       const validPane: PaneCoordinates = {
         width: 800,
         height: 370,
-        top: 0,
-        left: 0,
+        x: 0,
+        y: 0,
+        paneId: 0,
+        absoluteX: 0,
+        absoluteY: 0,
+        contentArea: { top: 0, left: 0, width: 800, height: 370 },
+                        margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false,
       };
 
       const result = validatePaneCoordinates(validPane, 0);
@@ -109,8 +136,13 @@ describe('coordinateValidation', () => {
       const invalidPane: PaneCoordinates = {
         width: -100,
         height: 0,
-        top: 0,
-        left: 0,
+        x: 0,
+        y: 0,
+        paneId: 0,
+        absoluteX: 0,
+        absoluteY: 0,
+        contentArea: { top: 0, left: 0, width: -100, height: 0 },
+                        margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false,
       };
 
       const result = validatePaneCoordinates(invalidPane, 0);
@@ -124,8 +156,13 @@ describe('coordinateValidation', () => {
       const invalidPane: PaneCoordinates = {
         width: 800,
         height: 370,
-        top: -10,
-        left: -5,
+        x: -5,
+        y: -10,
+        paneId: 1,
+        absoluteX: -5,
+        absoluteY: -10,
+        contentArea: { top: -10, left: -5, width: 800, height: 370 },
+                        margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false,
       };
 
       const result = validatePaneCoordinates(invalidPane, 1);
@@ -139,6 +176,8 @@ describe('coordinateValidation', () => {
   describe('validateScaleDimensions', () => {
     it('should validate scale dimensions successfully', () => {
       const validScale: ScaleDimensions = {
+        x: 0,
+        y: 0,
         width: 60,
         height: 370,
       };
@@ -151,6 +190,8 @@ describe('coordinateValidation', () => {
 
     it('should detect invalid scale dimensions', () => {
       const invalidScale: ScaleDimensions = {
+        x: 0,
+        y: 0,
         width: 0,
         height: -100,
       };
@@ -177,6 +218,10 @@ describe('coordinateValidation', () => {
         y: 20,
         width: 100,
         height: 50,
+        top: 20,
+        left: 10,
+        right: 110,
+        bottom: 70,
       };
 
       const result = validateBoundingBox(validBox);
@@ -191,6 +236,10 @@ describe('coordinateValidation', () => {
         y: 20,
         width: 0,
         height: -50,
+        top: 20,
+        left: 10,
+        right: 10,
+        bottom: -30,
       };
 
       const result = validateBoundingBox(invalidBox);
@@ -212,13 +261,13 @@ describe('coordinateValidation', () => {
     it('should sanitize and fallback invalid coordinates', () => {
       const invalidCoordinates: ChartCoordinates = {
         container: { width: -100, height: 0, offsetTop: 0, offsetLeft: 0 },
-        timeScale: { width: -50, height: 0 },
-        panes: {
-          0: { width: 0, height: -100, top: -10, left: -5 },
-        },
-        priceScales: {
-          right: { width: 0, height: -100 },
-        },
+        timeScale: { x: 0, y: 0, width: -50, height: 0 },
+        panes: [{ width: 0, height: -100, x: -5, y: -10, paneId: 0, absoluteX: 0, absoluteY: 0, contentArea: { top: 0, left: 0, width: 0, height: 0 }, margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false }],
+        priceScaleLeft: { x: 0, y: 0, width: 0, height: -100 },
+        priceScaleRight: { x: 0, y: 0, width: 0, height: -100 },
+        contentArea: { x: 0, y: 0, width: 0, height: 0 },
+        timestamp: Date.now(),
+        isValid: false,
       };
 
       const sanitized = sanitizeCoordinates(invalidCoordinates);
@@ -229,20 +278,20 @@ describe('coordinateValidation', () => {
       expect(sanitized.timeScale.height).toBeGreaterThan(0);
       expect(sanitized.panes[0].width).toBeGreaterThan(0);
       expect(sanitized.panes[0].height).toBeGreaterThan(0);
-      expect(sanitized.panes[0].top).toBeGreaterThanOrEqual(0);
-      expect(sanitized.panes[0].left).toBeGreaterThanOrEqual(0);
+      expect(sanitized.panes[0].x).toBeGreaterThanOrEqual(0);
+      expect(sanitized.panes[0].y).toBeGreaterThanOrEqual(0);
     });
 
     it('should preserve valid coordinates', () => {
       const validCoordinates: ChartCoordinates = {
         container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
         timeScale: { x: 0, y: 370, width: 800, height: 30 },
-        panes: {
-          0: { width: 800, height: 370, top: 0, left: 0 },
-        },
-        priceScales: {
-          right: { x: 740, y: 0, width: 60, height: 370 },
-        },
+        panes: [{ width: 800, height: 370, x: 0, y: 0, paneId: 0, absoluteX: 0, absoluteY: 0, contentArea: { top: 0, left: 0, width: 800, height: 370 }, margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false }],
+        priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
+        priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
+        contentArea: { x: 60, y: 0, width: 680, height: 370 },
+        timestamp: Date.now(),
+        isValid: true,
       };
 
       const sanitized = sanitizeCoordinates(validCoordinates);
@@ -256,12 +305,12 @@ describe('coordinateValidation', () => {
       const coordinates: ChartCoordinates = {
         container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
         timeScale: { x: 0, y: 370, width: 800, height: 30 },
-        panes: {
-          0: { width: 800, height: 370, top: 0, left: 0 },
-        },
-        priceScales: {
-          right: { x: 740, y: 0, width: 60, height: 370 },
-        },
+        panes: [{ width: 800, height: 370, x: 0, y: 0, paneId: 0, absoluteX: 0, absoluteY: 0, contentArea: { top: 0, left: 0, width: 800, height: 370 }, margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false }],
+        priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
+        priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
+        contentArea: { x: 60, y: 0, width: 680, height: 370 },
+        timestamp: Date.now(),
+        isValid: true,
       };
 
       const debugInfo = getCoordinateDebugInfo(coordinates);
@@ -276,15 +325,19 @@ describe('coordinateValidation', () => {
       expect(debugInfo.summary).toContain('Container: 800x400');
       expect(debugInfo.summary).toContain('TimeScale: 800x30');
       expect(debugInfo.summary).toContain('Panes: 1');
-      expect(debugInfo.summary).toContain('PriceScales: 1');
+      expect(debugInfo.summary).toContain('PriceScales: 2');
     });
 
     it('should handle invalid coordinates in debug info', () => {
       const invalidCoordinates = {
         container: null,
         timeScale: null,
-        panes: {},
-        priceScales: {},
+        panes: [],
+        priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
+        priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
+        contentArea: { x: 60, y: 0, width: 680, height: 370 },
+        timestamp: Date.now(),
+        isValid: true,
       } as any;
 
       const debugInfo = getCoordinateDebugInfo(invalidCoordinates);

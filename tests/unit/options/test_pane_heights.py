@@ -23,7 +23,7 @@ from streamlit_lightweight_charts_pro import (
     LineSeries,
     PaneHeightOptions,
 )
-from streamlit_lightweight_charts_pro.exceptions import PositiveValueError
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 
 
 class TestPaneHeightOptions:
@@ -41,12 +41,12 @@ class TestPaneHeightOptions:
 
     def test_validation_negative_factor(self):
         """Test validation rejects negative factors."""
-        with pytest.raises(PositiveValueError):
+        with pytest.raises(ValueValidationError):
             PaneHeightOptions(factor=-1.0)
 
     def test_validation_zero_factor(self):
         """Test validation rejects zero factors."""
-        with pytest.raises(PositiveValueError):
+        with pytest.raises(ValueValidationError):
             PaneHeightOptions(factor=0.0)
 
     def test_validation_positive_factor(self):
@@ -426,7 +426,7 @@ class TestPaneHeightsEdgeCases:
 
     def test_invalid_pane_height_options(self):
         """Test with invalid PaneHeightOptions objects."""
-        with pytest.raises(PositiveValueError):
+        with pytest.raises(ValueValidationError):
             LayoutOptions(pane_heights={0: PaneHeightOptions(factor=-1.0)})
 
 
@@ -642,14 +642,14 @@ class TestPaneHeightsValidation:
         assert options2.factor == 999999.0
 
         # Test exactly zero (should fail)
-        with pytest.raises(PositiveValueError):
+        with pytest.raises(ValueValidationError):
             PaneHeightOptions(factor=0.0)
 
         # Test negative values (should fail)
-        with pytest.raises(PositiveValueError):
+        with pytest.raises(ValueValidationError):
             PaneHeightOptions(factor=-0.1)
 
-        with pytest.raises(PositiveValueError):
+        with pytest.raises(ValueValidationError):
             PaneHeightOptions(factor=-100.0)
 
     def test_layout_options_pane_heights_validation(self):
@@ -661,7 +661,7 @@ class TestPaneHeightsValidation:
         assert layout.pane_heights is not None
 
         # Invalid pane_heights (should fail during construction)
-        with pytest.raises(PositiveValueError):
+        with pytest.raises(ValueValidationError):
             layout.pane_heights = {0: PaneHeightOptions(factor=-1.0)}
 
     def test_chart_pane_heights_validation(self):
@@ -683,7 +683,7 @@ class TestPaneHeightsValidation:
         assert chart.options.layout.pane_heights is not None
 
         # Invalid chart with pane_heights (should fail during construction)
-        with pytest.raises(PositiveValueError):
+        with pytest.raises(ValueValidationError):
             Chart(
                 options=ChartOptions(
                     layout=LayoutOptions(pane_heights={0: PaneHeightOptions(factor=-1.0)}),

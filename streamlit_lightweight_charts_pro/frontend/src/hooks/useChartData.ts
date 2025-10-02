@@ -5,6 +5,7 @@
 
 import { useMemo, useTransition, useDeferredValue } from 'react';
 import { react19Monitor } from '../utils/react19PerformanceMonitor';
+import { logger } from '../utils/logger';
 
 interface ChartDataOptions {
   chartId: string;
@@ -178,7 +179,7 @@ export function useMultiChartData(chartConfigs: ChartDataOptions[]) {
 
   // Log batch loading in development
   if (process.env.NODE_ENV === 'development') {
-    console.log(`📊 Batch preparing ${Object.keys(dataPromises).length} charts:`, Object.keys(dataPromises));
+    logger.debug(`Batch loading ${dataPromises.length} chart data requests`, 'useChartData');
   }
 
   return dataPromises;
@@ -198,7 +199,6 @@ export function usePrefetchChartData() {
 
         // Don't await - just start the fetch
         promise.catch(error => {
-          console.warn(`Prefetch failed for chart ${options.chartId}:`, error);
           chartDataCache.delete(cacheKey);
         });
       }

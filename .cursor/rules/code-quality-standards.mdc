@@ -7,6 +7,16 @@ alwaysApply: true
 
 **CRITICAL**: All generated code MUST pass pre-commit hooks. Follow these standards to prevent violations.
 
+## Scope
+This file focuses on **tooling and enforcement** of code quality standards:
+- Pre-commit hook requirements
+- Linting and formatting tools
+- Security scanning
+- Testing requirements
+- CI/CD integration
+
+For **coding patterns and architecture**, see [python-coding-standards.mdc](mdc:.cursor/rules/python-coding-standards.mdc)
+
 ## Python Code Quality (Ruff + Black + isort)
 
 ### Line Length and Formatting
@@ -80,27 +90,57 @@ def process_chart_data(data, chart_id=None):
 ```
 
 ### Docstrings (Google Style)
+**Note**: For comprehensive docstring standards, see [google-docstring-standards.mdc](mdc:.cursor/rules/google-docstring-standards.mdc)
+
+**Key Requirements:**
+- All functions, classes, and modules must have docstrings
+- Google style format with Args, Returns, Raises, Example sections
+- Inline comments for complex logic
+- Line length <= 100 characters
+
+### Mixin Patterns
 ```python
-# ✅ CORRECT: Google-style docstring
-def create_line_series(
-    data: list[SingleValueData],
+# ✅ CORRECT: Using SerializableMixin for consistent serialization
+from dataclasses import dataclass
+from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
+
+@dataclass
+class ChartConfig(SerializableMixin):
+    """Chart configuration with automatic serialization support."""
+    title: str = "My Chart"
+    is_visible: bool = True
+
+    def asdict(self) -> dict[str, Any]:
+        """Serialize to dictionary with camelCase keys for frontend."""
+        return self._serialize_to_dict()
+
+# ✅ CORRECT: Using chainable_property for fluent API
+from streamlit_lightweight_charts_pro.utils import chainable_property
+
+@chainable_property("color", str, validator="color")
+@chainable_property("width", int)
+class LineSeries(Series):
+    """Line series with chainable property configuration."""
+
+    def __init__(self, data, **kwargs):
+        # Initialize private attributes for chainable properties
+        self._color = "#2196F3"
+        self._width = 1
+        super().__init__(data, **kwargs)
+
+# ✅ CORRECT: Using Options mixin for configuration classes
+from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+
+@dataclass
+class LineOptions(Options):
+    """Line styling options with automatic serialization."""
     color: str = "#2196F3"
-) -> LineSeries:
-    """Create a line series with the specified data and styling.
+    width: int = 1
+    visible: bool = True
 
-    Args:
-        data: List of single value data points for the series.
-        color: Hex color code for the line. Defaults to blue.
-
-    Returns:
-        Configured LineSeries instance.
-
-    Raises:
-        ValueError: If data is empty or color is invalid.
-    """
-    if not data:
-        raise ValueError("Data cannot be empty")
-    return LineSeries(data=data, color=color)
+    def asdict(self) -> dict[str, Any]:
+        """Serialize to dictionary with camelCase keys."""
+        return self._serialize_to_dict()
 ```
 
 ### Security (Bandit)

@@ -4,41 +4,43 @@ This module provides the base Series class that defines the common interface
 for all series types in the library. It includes core functionality for
 data handling, configuration, and frontend integration.
 
-The Series class serves as the foundation for all series implementations,
-providing a consistent interface for series creation, configuration, and
-rendering. It supports method chaining for fluent API usage and includes
-comprehensive data validation and conversion capabilities.
-
 Example:
     ```python
     from streamlit_lightweight_charts_pro.charts.series.base import Series
+    from streamlit_lightweight_charts_pro.data import SingleValueData
 
 
     class MyCustomSeries(Series):
-        def to_frontend_config(self):
-            return {"type": "custom", "data": self.data}
+        DATA_CLASS = SingleValueData
+
+        @property
+        def chart_type(self):
+            return ChartType.LINE
+
+
+    # Create series with data
+    data = [SingleValueData("2024-01-01", 100)]
+    series = MyCustomSeries(data=data)
     ```
 """
 
+# Standard Imports
 from abc import ABC
 from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
 
+# Third Party Imports
 import pandas as pd
 
-# Import options classes for dynamic creation
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.options import PriceLineOptions
 from streamlit_lightweight_charts_pro.data import Data
 from streamlit_lightweight_charts_pro.data.data import classproperty
 from streamlit_lightweight_charts_pro.data.marker import MarkerBase
 from streamlit_lightweight_charts_pro.exceptions import (
     ColumnMappingRequiredError,
-    DataFrameMissingColumnError,
     DataItemsTypeError,
-    InvalidDataFormatError,
     InvalidMarkerPositionError,
-    MissingRequiredColumnsError,
-    PaneIdNonNegativeError,
-    TimeColumnNotFoundError,
+    NotFoundError,
     ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.logging_config import get_logger
@@ -69,8 +71,7 @@ logger = get_logger(__name__)
 @chainable_property("tooltip", allow_none=True, top_level=True)
 @chainable_property("legend", allow_none=True, top_level=True)
 class Series(ABC):  # noqa: B024
-    # Type annotations for attributes to enable automatic type inspection
-    """Abstract base class for all series types.
+    """Abstract base class for all series types in financial chart visualization.
 
     This class defines the common interface and functionality that all series
     classes must implement. It provides core data handling, configuration
@@ -82,21 +83,46 @@ class Series(ABC):  # noqa: B024
     fluent API usage and provides extensive customization options.
 
     Key Features:
-        - DataFrame integration with column mapping
-        - Marker and price line management
-        - Price scale and pane configuration
-        - Visibility and formatting controls
-        - Comprehensive data validation
-        - Method chaining support
+        - DataFrame integration with automatic column mapping
+        - Marker and price line management for annotations
+        - Price scale and pane configuration for multi-pane charts
+        - Visibility and formatting controls for UI customization
+        - Comprehensive data validation and error handling
+        - Method chaining support for fluent API design
+        - Frontend serialization for React component integration
 
     Attributes:
-        data (List[Data]): List of data points for this series.
-        visible (bool): Whether the series is currently visible.
+        data (Union[List[Data], pd.DataFrame, pd.Series]): Data points for this series.
+            Can be a list of Data objects, pandas DataFrame, or pandas Series.
+        visible (bool): Whether the series is currently visible on the chart.
         price_scale_id (str): ID of the price scale this series is attached to.
-        price_format (PriceFormatOptions): Price formatting configuration.
-        price_lines (List[PriceLineOptions]): List of price lines for this series.
-        markers (List[Marker]): List of markers to display on this series.
-        pane_id (int): The pane index this series belongs to.
+            Common values are "left", "right", or custom scale IDs.
+        price_format (PriceFormatOptions): Price formatting configuration for display.
+        price_lines (List[PriceLineOptions]): List of price lines for horizontal markers.
+        markers (List[MarkerBase]): List of markers to display on this series.
+        pane_id (Optional[int]): The pane index this series belongs to for multi-pane charts.
+        title (Optional[str]): Optional title for the series in legends and tooltips.
+        z_index (int): Z-index for controlling series rendering order.
+
+    Class Attributes:
+        DATA_CLASS (Type[Data]): The data class type used for this series.
+            Must be defined by subclasses for DataFrame conversion to work.
+
+    Example:
+        ```python
+        from streamlit_lightweight_charts_pro.charts.series import LineSeries
+        from streamlit_lightweight_charts_pro.data import SingleValueData
+
+        # Create series with list of data objects
+        data = [SingleValueData("2024-01-01", 100)]
+        series = LineSeries(data=data)
+
+        # Add markers and price lines
+        series.add_marker(bar_marker).add_price_line(price_line)
+
+        # Configure series properties
+        series.set_visible(True).set_price_scale_id("right")
+        ```
 
     Note:
         Subclasses must define a class-level DATA_CLASS attribute for from_dataframe to work.
@@ -152,40 +178,50 @@ class Series(ABC):  # noqa: B024
             series = LineSeries(data=line_data, visible=False, price_scale_id="right", pane_id=1)
             ```
         """
-        # Validate and process data
+        # Validate and process data input based on type
         if data is None:
+            # Handle None input by creating empty data list
             self.data = []
         elif isinstance(data, (pd.DataFrame, pd.Series)):
+            # DataFrame/Series input requires column mapping for conversion
             if column_mapping is None:
                 raise ColumnMappingRequiredError()
             # Process DataFrame/Series using from_dataframe logic
             self.data = self._process_dataframe_input(data, column_mapping)
         elif isinstance(data, list):
-            # Validate that all items are Data instances
+            # Validate that all items in list are Data instances
             if data and not all(isinstance(item, Data) for item in data):
                 raise DataItemsTypeError()
             self.data = data
         else:
-            raise InvalidDataFormatError(type(data))
+            # Raise error for unsupported data types
+            raise ValueError(
+                f"Invalid data format: {type(data)}. Data must be list of Data objects, DataFrame, or Series",
+            )
 
-        self._title = None
-        self._visible = visible
-        self._price_scale_id = price_scale_id
-        self._price_scale = None
-        self._price_format = None
-        self._price_lines = []
-        self._markers = []
-        self._pane_id = pane_id
-        self._column_mapping = column_mapping
-        self._last_value_visible = True
-        self._price_line_visible = True
-        self._price_line_source = PriceLineSource.LAST_BAR
-        self._price_line_width = 1
-        self._price_line_color = ""
-        self._price_line_style = LineStyle.DASHED
-        self._tooltip = None
-        self._z_index = 100
-        self._legend = None
+        # Initialize series configuration properties with default values
+        self._title = None  # Optional series title for legends and tooltips
+        self._visible = visible  # Series visibility flag
+        self._price_scale_id = price_scale_id  # Price scale attachment ID
+        self._price_scale = None  # Price scale configuration object
+        self._price_format = None  # Price formatting options
+        self._price_lines = []  # List of price line markers
+        self._markers = []  # List of chart markers for annotations
+        self._pane_id = pane_id  # Pane index for multi-pane charts
+        self._column_mapping = column_mapping  # DataFrame column mapping
+
+        # Initialize price line display properties
+        self._last_value_visible = True  # Show last value on price scale
+        self._price_line_visible = True  # Show price line by default
+        self._price_line_source = PriceLineSource.LAST_BAR  # Price line data source
+        self._price_line_width = 1  # Price line width in pixels
+        self._price_line_color = ""  # Price line color (empty for default)
+        self._price_line_style = LineStyle.DASHED  # Price line style
+
+        # Initialize optional UI components
+        self._tooltip = None  # Custom tooltip configuration
+        self._z_index = 100  # Z-index for rendering order
+        self._legend = None  # Legend configuration
 
     @staticmethod
     def prepare_index(data_frame: pd.DataFrame, column_mapping: Dict[str, str]) -> pd.DataFrame:
@@ -267,7 +303,7 @@ class Series(ABC):  # noqa: B024
                     # Time column matches index name, reset the index
                     data_frame = data_frame.reset_index()
                 else:
-                    raise TimeColumnNotFoundError(time_col)
+                    raise NotFoundError("Time Column", time_col)
 
         # Handle other index columns
         for field, col_name in column_mapping.items():
@@ -572,7 +608,7 @@ class Series(ABC):  # noqa: B024
             ValueError: If pane_id is negative.
         """
         if self._pane_id is not None and self._pane_id < 0:
-            raise PaneIdNonNegativeError()
+            raise ValueValidationError("pane_id", "must be non-negative")
         if self._pane_id is None:
             self._pane_id = 0
 
@@ -946,7 +982,10 @@ class Series(ABC):  # noqa: B024
         # Check required columns in column_mapping
         missing_mapping = [col for col in required if col not in column_mapping]
         if missing_mapping:
-            raise MissingRequiredColumnsError(missing_mapping, required, column_mapping)
+            raise ValueValidationError(
+                "column_mapping",
+                f"missing required columns: {missing_mapping}",
+            )
         # Removed print
 
         # Prepare index for all column mappings
@@ -956,7 +995,7 @@ class Series(ABC):  # noqa: B024
         for key in required:
             col = column_mapping[key]
             if col not in data_frame.columns:
-                raise DataFrameMissingColumnError(col)
+                raise NotFoundError("Column", col)
             # Removed print
 
         # Build data objects
@@ -970,7 +1009,7 @@ class Series(ABC):  # noqa: B024
                         value = data_frame.iloc[i][col]
                         kwargs_data[key] = value
                     else:
-                        raise DataFrameMissingColumnError(col)
+                        raise NotFoundError("Column", col)
                 else:
                     # Skip optional columns that are not in column_mapping
                     continue

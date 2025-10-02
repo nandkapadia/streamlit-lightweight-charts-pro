@@ -17,10 +17,11 @@ from streamlit_lightweight_charts_pro.type_definitions.enums import (
     TradeType,
 )
 from streamlit_lightweight_charts_pro.utils.data_utils import from_utc_timestamp, to_utc_timestamp
+from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
 
 
 @dataclass
-class TradeData:
+class TradeData(SerializableMixin):
     """Represents a single trade with entry and exit information.
 
     Attributes:

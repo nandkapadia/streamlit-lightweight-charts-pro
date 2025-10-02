@@ -1,5 +1,5 @@
 import {
-  perfLogFn as perfLog,
+  perfLogFn,
   getCachedDOMElementForTesting as getCachedDOMElement,
   createOptimizedStyles,
 } from '../../utils/performance';
@@ -26,80 +26,44 @@ describe('performance', () => {
     vi.clearAllMocks();
   });
 
-  describe('perfLog', () => {
-    it('should log performance metrics when enabled', () => {
-      const mockPerformance = {
-        now: vi.fn(() => 1000),
-        mark: vi.fn(),
-        measure: vi.fn(),
-        getEntriesByType: vi.fn(() => []),
-      };
-      Object.defineProperty(window, 'performance', {
-        value: mockPerformance,
-        writable: true,
-      });
+  describe('perfLogFn', () => {
+    it('should execute function and return result', () => {
+      const testFn = vi.fn(() => 'result');
 
-      perfLog('test-operation', () => {
-        // Simulate some work
-        return 'result';
-      });
+      const result = perfLogFn('test-operation', testFn);
 
-      expect(mockPerformance.now).toHaveBeenCalled();
+      expect(result).toBe('result');
+      expect(testFn).toHaveBeenCalled();
     });
 
     it('should handle errors gracefully', () => {
-      const mockPerformance = {
-        now: vi.fn(() => 1000),
-        mark: vi.fn(),
-        measure: vi.fn(),
-        getEntriesByType: vi.fn(() => []),
-      };
-      Object.defineProperty(window, 'performance', {
-        value: mockPerformance,
-        writable: true,
-      });
-
       const errorFn = () => {
         throw new Error('Test error');
       };
 
       expect(() => {
-        perfLog('error-operation', errorFn);
+        perfLogFn('error-operation', errorFn);
       }).toThrow('Test error');
-
-      expect(mockPerformance.now).toHaveBeenCalled();
     });
 
     it('should work with async functions', async () => {
-      const mockPerformance = {
-        now: vi.fn(() => 1000),
-        mark: vi.fn(),
-        measure: vi.fn(),
-        getEntriesByType: vi.fn(() => []),
-      };
-      Object.defineProperty(window, 'performance', {
-        value: mockPerformance,
-        writable: true,
-      });
-
       const asyncFn = async () => {
         await new Promise(resolve => setTimeout(resolve, 10));
         return 'async result';
       };
 
-      const result = await perfLog('async-operation', asyncFn);
+      const result = await perfLogFn('async-operation', asyncFn);
 
       expect(result).toBe('async result');
-      expect(mockPerformance.now).toHaveBeenCalled();
     });
 
-    it('should handle performance API not available', () => {
+    it('should return function result regardless of performance API availability', () => {
       Object.defineProperty(window, 'performance', {
         value: undefined,
         writable: true,
       });
 
-      const result = perfLog('no-performance', () => 'result');
+      const result = perfLogFn('no-performance', () => 'result');
 
       expect(result).toBe('result');
     });

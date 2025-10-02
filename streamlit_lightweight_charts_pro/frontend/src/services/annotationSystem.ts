@@ -1,4 +1,5 @@
 import { Annotation, AnnotationLayer, AnnotationText } from '../types';
+import { logger } from '../utils/logger';
 import { ShapeData } from '../types/ChartInterfaces';
 import { UTCTimestamp, SeriesMarker, Time } from 'lightweight-charts';
 
@@ -102,15 +103,15 @@ export const createAnnotationVisualElements = (
             };
             texts.push(text);
           }
-        } catch {
-          console.error('An error occurred');
+        } catch (error) {
+          logger.error('Annotation text extraction failed', 'AnnotationSystem', error);
         }
       });
     } catch (forEachError) {
-      console.error('Annotation forEach operation failed:', forEachError);
+      logger.error('Annotation forEach operation failed', 'AnnotationSystem', forEachError);
     }
   } catch (outerError) {
-    console.error('Annotation outer operation failed:', outerError);
+    logger.error('Annotation system outer operation failed', 'AnnotationSystem', outerError);
   }
 
   return { markers, shapes, texts };

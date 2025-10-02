@@ -20,8 +20,6 @@ from streamlit_lightweight_charts_pro.charts.options import (
 )
 from streamlit_lightweight_charts_pro.exceptions import (
     ColorValidationError,
-    MinMovePositiveError,
-    PrecisionNonNegativeError,
     TypeValidationError,
     ValueValidationError,
 )
@@ -376,7 +374,7 @@ class TestCustomValidators:
         opts.set_precision(10)
 
         # Invalid precision
-        with pytest.raises(PrecisionNonNegativeError):
+        with pytest.raises(ValueValidationError):
             opts.set_precision(-1)
 
         with pytest.raises(TypeValidationError):
@@ -392,10 +390,10 @@ class TestCustomValidators:
         opts.set_min_move(100)
 
         # Invalid min_move
-        with pytest.raises(MinMovePositiveError):
+        with pytest.raises(ValueValidationError):
             opts.set_min_move(0)
 
-        with pytest.raises(MinMovePositiveError):
+        with pytest.raises(ValueValidationError):
             opts.set_min_move(-1)
 
         with pytest.raises(TypeValidationError):

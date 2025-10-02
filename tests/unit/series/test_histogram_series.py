@@ -19,9 +19,8 @@ from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.exceptions import (
     ColumnMappingRequiredError,
+    DataFrameValidationError,
     DataItemsTypeError,
-    InvalidDataFormatError,
-    PaneIdNonNegativeError,
     TypeValidationError,
     ValueValidationError,
 )
@@ -336,13 +335,13 @@ class TestHistogramSeriesValidation:
         data = [HistogramData(time=1640995200, value=100.5)]
         series = HistogramSeries(data=data)
 
-        with pytest.raises(PaneIdNonNegativeError):
+        with pytest.raises(ValueValidationError):
             series.pane_id = -1
             series._validate_pane_config()
 
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(DataFrameValidationError):
             HistogramSeries(data="invalid_data")
 
     def test_error_handling_missing_required_columns(self):
@@ -359,7 +358,7 @@ class TestHistogramSeriesValidation:
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(DataFrameValidationError):
             HistogramSeries(data=123)
 
     def test_error_handling_dataframe_without_column_mapping(self):

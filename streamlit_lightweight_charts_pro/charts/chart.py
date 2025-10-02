@@ -4,11 +4,6 @@ This module provides the Chart class, which is the primary chart type for displa
 financial data in a single pane. It supports multiple series types, annotations,
 and comprehensive customization options with a fluent API for method chaining.
 
-The Chart class provides a complete implementation for rendering interactive
-financial charts with support for candlestick, line, area, bar, and histogram
-series. It includes advanced features like annotations, trade visualization,
-and multi-pane support.
-
 Example:
     ```python
     from streamlit_lightweight_charts_pro import Chart, LineSeries
@@ -29,13 +24,16 @@ Example:
     ```
 """
 
+# Standard Imports
 import time
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Sequence, Union
 
+# Third Party Imports
 import pandas as pd
 
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
     PriceScaleMargins,
@@ -59,7 +57,7 @@ from streamlit_lightweight_charts_pro.exceptions import (
     AnnotationItemsTypeError,
     ComponentNotAvailableError,
     DuplicateError,
-    PriceScaleIdStringError,
+    PriceScaleIdTypeError,
     PriceScaleOptionsTypeError,
     SeriesItemsTypeError,
     TypeValidationError,
@@ -79,39 +77,33 @@ logger = get_logger(__name__)
 class Chart:
     """Single pane chart for displaying financial data.
 
-                    This class represents a single pane chart that can display multiple series
-                    of financial data. It supports various chart types including candlestick,
-                line, area, bar, and histogram series. The chart includes comprehensive
-                annotation support, trade visualization, and method chaining for fluent
-                                                API usage.
+    This class represents a single pane chart that can display multiple
+    series of financial data. It supports various chart types including
+    candlestick, line, area, bar, and histogram series. The chart includes
+    comprehensive annotation support, trade visualization, and method chaining
+    for fluent API usage.
 
-                The Chart class provides a complete interface for creating interactive
-                                                financial visualizations with support for:
-                                                - Multiple series types in a single chart
-                                                - Advanced annotation system with layers
-                                                - Trade visualization with buy/sell markers
-                                                - Price and volume series from pandas DataFrames
-                                                - Overlay price scales for complex visualizations
-                                                - Comprehensive customization options
+    Attributes:
+        series (List[Series]): List of series objects to display in the chart.
+        options (ChartOptions): Chart configuration options including layout,
+            grid, etc.
+        annotation_manager (AnnotationManager): Manager for chart annotations
+            and layers.
 
-                                                Attributes:
-                    series (List[Series]): List of series objects to display in the chart.
-    options (ChartOptions): Chart configuration options including layout, grid, etc.
-            annotation_manager (AnnotationManager): Manager for chart annotations and layers.
+    Example:
+        ```python
+        # Basic usage
+        chart = Chart(series=LineSeries(data))
 
-                                                Example:
-                                                    ```python
-                                                    # Basic usage
-                                                    chart = Chart(series=LineSeries(data))
+        # With method chaining
+        chart = Chart(series=LineSeries(data)).update_options(height=400)
+                                              .add_annotation(text_annotation)
 
-                                                    # With method chaining
-    chart = Chart(series=LineSeries(data)).update_options(height=400).add_annotation(text_annotation)
-
-                                                    # From DataFrame with price and volume
-                                                    chart = Chart.from_price_volume_dataframe(
-                    df, column_mapping={"time": "timestamp", "open": "o", "high": "h"}
-                                                    )
-                                                    ```
+        # From DataFrame with price and volume
+        chart = Chart.from_price_volume_dataframe(
+            df, column_mapping={"time": "timestamp", "open": "o", "high": "h"}
+        )
+        ```
     """
 
     def __init__(
@@ -124,19 +116,34 @@ class Chart:
     ):
         """Initialize a single pane chart.
 
+        Creates a new Chart instance with optional series, configuration options,
+        and annotations. The chart can be configured with multiple series types
+        and supports method chaining for fluent API usage.
+
         Args:
-            series (Optional[Union[Series, List[Series]]]): Optional single series
-                object or list of series objects to display. Each series represents
-                a different data visualization (line, candlestick, area, etc.).
-                If None, an empty chart is created.
-            options (Optional[ChartOptions]): Optional chart configuration options.
-                If not provided, default options will be used.
-            annotations (Optional[List[Annotation]]): Optional list of annotations
-                to add to the chart. Annotations can include text, arrows, shapes, etc.
-            chart_group_id (int): Group ID for synchronization. Charts with the same
+            series: Optional single series object or list of series objects to
+                display. Each series represents a different data visualization
+                (line, candlestick, area, etc.). If None, an empty chart is
+                created.
+            options: Optional chart configuration options. If not provided,
+                default options will be used.
+            annotations: Optional list of annotations to add to the chart.
+                Annotations can include text, arrows, shapes, etc.
+            chart_group_id: Group ID for synchronization. Charts with the same
                 group ID will be synchronized. Defaults to 0.
-            chart_manager (Optional[Any]): Reference to the ChartManager that owns this chart.
+            chart_manager: Reference to the ChartManager that owns this chart.
                 Used to access sync configuration when rendering individual charts.
+
+        Returns:
+            Chart: Initialized chart instance ready for configuration and rendering.
+
+        Raises:
+            SeriesItemsTypeError: If any item in the series list is not a Series
+                instance.
+            TypeValidationError: If series is not a Series instance or list, or if
+                annotations is not a list.
+            AnnotationItemsTypeError: If any item in annotations is not an Annotation
+                instance.
 
         Example:
             ```python
@@ -153,42 +160,63 @@ class Chart:
             chart = Chart(series=line_series, options=ChartOptions(height=600, width=800))
             ```
         """
-        # Convert single series to list for consistent handling
+        # Handle series input - convert to list for uniform processing
+        # This allows the class to accept either a single Series or a list
         if series is None:
+            # Case 1: No series provided - create empty chart
             self.series = []
         elif isinstance(series, Series):
+            # Case 2: Single Series object - wrap in list for consistent handling
             self.series = [series]
         elif isinstance(series, list):
-            # Validate that all items in the list are Series instances
+            # Case 3: List of series - validate each item is a Series instance
             for item in series:
                 if not isinstance(item, Series):
+                    # Reject list items that are not Series objects
                     raise SeriesItemsTypeError()
             self.series = series
         else:
+            # Case 4: Invalid input type - raise error with clear message
             raise TypeValidationError("series", "Series instance or list")
 
-        # Initialize chart options
+        # Set up chart configuration
+        # Use provided options or default ChartOptions instance
         self.options = options or ChartOptions()
 
-        # Initialize chart group ID for synchronization
+        # Initialize chart synchronization support
+        # Chart group ID enables multiple charts to sync their time ranges
         self._chart_group_id = chart_group_id
 
-        # Store reference to ChartManager for sync configuration access
+        # Store ChartManager reference for retrieving sync settings
+        # This allows the chart to access manager's configuration
         self._chart_manager = chart_manager
 
-        # Initialize annotation manager
+        # Set up annotation system that manages chart annotations
+        # AnnotationsManager handles layers, visibility, and annotations
         self.annotation_manager = AnnotationManager()
-        # Store trades for frontend processing
+
+        # Initialize storage for trade data to be processed by frontend
+        # Trades include buy/sell markers and PnL calculations
         self._trades = []
-        # Store tooltip manager
+
+        # Initialize tooltip manager for lazy loading
+        # Tooltips are only loaded if requested to improve performance
         self._tooltip_manager = None
-        # Add initial annotations if provided
+
+        # Process initial annotations if provided
+        # This ensures annotations are added in correct order
         if annotations is not None:
+            # Validate that annotations parameter is a list
             if not isinstance(annotations, list):
+                # Fail fast on invalid annotation container
                 raise TypeValidationError("annotations", "list")
+
+            # Add each annotation to the chart annotation system
             for annotation in annotations:
                 if not isinstance(annotation, Annotation):
+                    # Reject annotation items that are not Annotation objects
                     raise AnnotationItemsTypeError()
+                # Add annotation to the chart's annotation manager
                 self.add_annotation(annotation)
 
     def add_series(self, series: Series) -> "Chart":
@@ -196,17 +224,18 @@ class Chart:
 
         Adds a new series object to the chart's series list. The series will be
         displayed according to its type (line, candlestick, area, etc.) and
-        configuration options.
+        configuration options. Automatically handles price scale configuration
+        for custom price scale IDs.
 
         Args:
-            series (Series): Series object to add to the chart. Must be an instance
-                of a Series subclass (LineSeries, CandlestickSeries, etc.).
+            series: Series object to add to the chart. Must be an instance of a
+                Series subclass (LineSeries, CandlestickSeries, etc.).
 
         Returns:
             Chart: Self for method chaining.
 
         Raises:
-            TypeError: If the series parameter is not an instance of Series.
+            TypeValidationError: If the series parameter is not an instance of Series.
 
         Example:
             ```python
@@ -220,26 +249,35 @@ class Chart:
             chart.add_series(line_series).add_series(candlestick_series)
             ```
         """
+        # Validate input type to ensure it's a proper Series instance
         if not isinstance(series, Series):
             raise TypeValidationError("series", "Series instance")
 
-        # Check if series has a custom price_scale_id that's not "left" or "right"
+        # Check for custom price scale configuration needs
+        # Extract price_scale_id from the series for validation
         price_scale_id = series.price_scale_id
+
+        # Handle custom price scale setup
+        # Only process non-standard scale IDs (not default "left"/"right")
         if (
             price_scale_id
             and price_scale_id not in ["left", "right", ""]
             and price_scale_id not in self.options.overlay_price_scales
         ):
+            # Log warning when series uses custom price scale without configuration
             logger.warning(
                 "Series with price_scale_id '%s' does not have a corresponding "
                 "overlay price scale configuration. Creating empty price scale object.",
                 price_scale_id,
             )
-            # Create an empty PriceScaleOptions object
+            # Create basic price scale configuration for the custom ID
             empty_scale = PriceScaleOptions(price_scale_id=price_scale_id)
             self.options.overlay_price_scales[price_scale_id] = empty_scale
 
+        # Add the validated series to the chart's series collection
         self.series.append(series)
+
+        # Return self for method chaining
         return self
 
     def update_options(self, **kwargs) -> "Chart":
@@ -273,15 +311,20 @@ class Chart:
             chart.update_options(height=500).update_options(width=1000)
             ```
         """
+        # Process each keyword argument to update chart options
         for key, value in kwargs.items():
+            # Check that the attribute exists on options and value is not None
             if value is not None and hasattr(self.options, key):
-                # Only set the attribute if it's a valid type for that attribute
+                # Get the current attribute value for type checking
                 current_value = getattr(self.options, key)
+                # Validate that the new value type matches current attribute type
                 if isinstance(value, type(current_value)) or (
                     current_value is None and value is not None
                 ):
+                    # Update the attribute with the validated value
                     setattr(self.options, key, value)
-            # Silently ignore None values and invalid attributes for method chaining
+            # Silently ignore None values to support method chaining
+        # Return self for method chaining
         return self
 
     def add_annotation(self, annotation: Annotation, layer_name: str = "default") -> "Chart":
@@ -1048,9 +1091,9 @@ class Chart:
                     self.options.right_price_scale.price_scale_id,
                     str,
                 ):
-                    raise PriceScaleIdStringError(
-                        field_name="right_price_scale.price_scale_id",
-                        expected_type="string",
+                    raise PriceScaleIdTypeError(
+                        "right_price_scale",
+                        type(self.options.right_price_scale.price_scale_id),
                     )
             except AttributeError as e:
                 if isinstance(self.options.right_price_scale, bool):
@@ -1070,9 +1113,9 @@ class Chart:
                     self.options.left_price_scale.price_scale_id,
                     str,
                 ):
-                    raise PriceScaleIdStringError(
-                        field_name="left_price_scale.price_scale_id",
-                        expected_type="string",
+                    raise PriceScaleIdTypeError(
+                        "left_price_scale",
+                        type(self.options.left_price_scale.price_scale_id),
                     )
             except AttributeError as e:
                 if isinstance(self.options.left_price_scale, bool):
@@ -1227,4 +1270,174 @@ class Chart:
 
         kwargs["key"] = key
 
-        return component_func(**kwargs)
+        # Initialize series settings API and register series
+        from streamlit_lightweight_charts_pro.charts.series_settings_api import (
+            get_series_settings_api,
+        )
+
+        series_api = get_series_settings_api(key)
+
+        # Register all series with the API (assuming pane 0 for single-pane charts)
+        for _i, series in enumerate(self.series):
+            series_api.register_series(pane_id=0, series=series)
+
+        # Handle series settings API calls if they exist in the returned data
+        result = component_func(**kwargs)
+
+        if result and isinstance(result, dict):
+            self._handle_series_settings_response(result, series_api)
+
+        return result
+
+    def _handle_series_settings_response(self, response: dict, series_api) -> None:
+        """Handle series settings API responses from the frontend.
+
+        Args:
+            response: Response data from the frontend component
+            series_api: SeriesSettingsAPI instance for this chart
+        """
+        try:
+            # Debug logging for all responses
+            logger.debug("Handling series settings response: %s", response)
+
+            # Check for series settings API calls
+            if response.get("type") == "get_pane_state":
+                pane_id = response.get("paneId", 0)
+                message_id = response.get("messageId")
+
+                if message_id:
+                    pane_state = series_api.get_pane_state(pane_id)
+                    # Send response back to frontend via custom event
+                    import streamlit.components.v1 as components
+
+                    components.html(
+                        f"""
+                    <script>
+                    document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
+                        detail: {{
+                            messageId: '{message_id}',
+                            response: {{
+                                success: true,
+                                data: {pane_state}
+                            }}
+                        }}
+                    }}));
+                    </script>
+                    """,
+                        height=0,
+                    )
+
+            elif response.get("type") == "update_series_settings":
+                pane_id = response.get("paneId", 0)
+                series_id = response.get("seriesId", "")
+                config = response.get("config", {})
+                message_id = response.get("messageId")
+
+                if message_id:
+                    success = series_api.update_series_settings(pane_id, series_id, config)
+                    import streamlit.components.v1 as components
+
+                    components.html(
+                        f"""
+                    <script>
+                    document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
+                        detail: {{
+                            messageId: '{message_id}',
+                            response: {{
+                                success: {str(success).lower()}
+                            }}
+                        }}
+                    }}));
+                    </script>
+                    """,
+                        height=0,
+                    )
+
+            elif response.get("type") == "reset_series_defaults":
+                pane_id = response.get("paneId", 0)
+                series_id = response.get("seriesId", "")
+                message_id = response.get("messageId")
+
+                if message_id:
+                    defaults = series_api.reset_series_to_defaults(pane_id, series_id)
+                    success = defaults is not None
+                    import streamlit.components.v1 as components
+
+                    components.html(
+                        f"""
+                    <script>
+                    document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
+                        detail: {{
+                            messageId: '{message_id}',
+                            response: {{
+                                success: {str(success).lower()},
+                                data: {defaults or {}}
+                            }}
+                        }}
+                    }}));
+                    </script>
+                    """,
+                        height=0,
+                    )
+
+            elif response.get("type") == "config_change":
+                # Handle immediate configuration changes from the settings dialog
+                pane_id = response.get("paneId", 0)
+                series_id = response.get("seriesId", "")
+                config_patch = response.get("configPatch", {})
+
+                # Apply the configuration change immediately
+                if series_id and config_patch:
+                    success = series_api.update_series_settings(pane_id, series_id, config_patch)
+
+                    if success:
+                        logger.debug(
+                            "Applied config change for series %s: %s",
+                            series_id,
+                            config_patch,
+                        )
+
+                        # Trigger a rerun to update the chart with the new settings
+                        import streamlit as st
+
+                        st.rerun()
+                    else:
+                        logger.warning("Failed to apply config change for series %s", series_id)
+
+        except Exception as e:
+            logger.exception("Error handling series settings response")
+
+    def get_series_info_for_pane(self, _pane_id: int = 0) -> List[dict]:
+        """Get series information for the series settings dialog.
+
+        Args:
+            pane_id: The pane ID to get series info for (default: 0)
+
+        Returns:
+            List of series information dictionaries
+        """
+        series_info = []
+
+        for i, series in enumerate(self.series):
+            # Get series ID
+            series_id = getattr(series, "id", f"series_{i}")
+
+            # Get display name
+            display_name = series_id
+            if hasattr(series, "name") and series.name:
+                display_name = series.name
+            elif hasattr(series, "title") and series.title:
+                display_name = series.title
+
+            # Get series type
+            series_type = series.__class__.__name__.lower().replace("series", "")
+
+            series_info.append(
+                {
+                    "id": series_id,
+                    "displayName": display_name,
+                    "type": series_type,
+                },
+            )
+
+        return series_info

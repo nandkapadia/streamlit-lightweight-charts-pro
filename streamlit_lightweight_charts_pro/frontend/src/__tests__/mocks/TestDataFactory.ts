@@ -497,6 +497,18 @@ export class TestDataFactory {
           crosshairMarkerRadius: 2,
         },
       },
+      ribbon: {
+        type: 'line' as AppSeriesType, // Ribbon is typically rendered as line
+        name: 'Test Ribbon Series',
+        options: {
+          color: '#E91E63',
+          lineWidth: 3,
+          lineType: 0,
+          lineStyle: 0,
+          crosshairMarkerVisible: true,
+          crosshairMarkerRadius: 3,
+        },
+      },
     };
 
     const baseConfig = baseConfigs[seriesType] || baseConfigs.line;

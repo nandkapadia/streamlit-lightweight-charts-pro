@@ -475,7 +475,6 @@ export async function convertTradeRectanglesToPluginFormatWhenReady(
     });
 
     if (!isReady) {
-      console.warn('Chart not ready for trade rectangle conversion');
       return [];
     }
 

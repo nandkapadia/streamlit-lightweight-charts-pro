@@ -22,13 +22,25 @@ import { IChartApi, IPanePrimitive, PaneAttachedParameter, Time } from 'lightwei
 import { CornerLayoutManager } from '../../services/CornerLayoutManager';
 import { StreamlitSeriesConfigService } from '../../services/StreamlitSeriesConfigService';
 import { PaneCollapseConfig } from '../../types';
+import { logger } from '../../utils/logger';
 import { SeriesType, SeriesConfiguration } from '../../types/SeriesTypes';
 import { Corner, Position, IPositionableWidget, WidgetDimensions } from '../../types/layout';
 import { PrimitivePriority } from '../../primitives/BasePanePrimitive';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ButtonPanelComponent } from '../../components/ButtonPanelComponent';
-import { SeriesConfigDialog, SeriesInfo } from '../../components/SeriesConfigDialog';
+import { SeriesSettingsDialog, SeriesInfo as DialogSeriesInfo } from '../../forms/SeriesSettingsDialog';
+
+/**
+ * Local SeriesInfo interface with config property for plugin use
+ */
+interface SeriesInfo {
+  id: string;
+  displayName?: string;
+  type: SeriesType;
+  config?: SeriesConfiguration;
+  title?: string;
+}
 
 /**
  * Pane state management
@@ -64,7 +76,7 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
 
   // IPositionableWidget implementation
   public readonly id: string;
-  public readonly corner: Corner = 'top-right';
+  public readonly corner: Corner;
   public readonly priority: number = PrimitivePriority.MINIMIZE_BUTTON;
   public visible: boolean = true;
 
@@ -73,9 +85,11 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     this.paneId = paneId;
     this.chartId = chartId;
     this.id = `button-panel-pane-${paneId}-${chartId || 'default'}`;
+    this.corner = config.corner || 'top-right';
 
     this.config = {
       enabled: true,
+      corner: this.corner,
       buttonSize: 16,
       buttonColor: '#787B86',
       buttonHoverColor: '#131722',
@@ -127,6 +141,22 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     // Register with layout manager for proper positioning
     if (this.layoutManager) {
       this.layoutManager.registerWidget(this);
+
+      // Force initial positioning after a short delay to ensure the layout manager has processed
+      setTimeout(() => {
+        if (this.layoutManager && this.containerElement) {
+          const position = this.layoutManager.getWidgetPosition(this.id);
+          if (position) {
+            this.updatePosition(position);
+          } else {
+            // Fallback positioning if layout manager fails
+            this.applyFallbackPositioning();
+          }
+        }
+      }, 100);
+    } else {
+      // Fallback positioning if no layout manager
+      this.applyFallbackPositioning();
     }
   }
 
@@ -150,7 +180,55 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       style.position = 'absolute';
       if (position.top !== undefined) style.top = `${position.top}px`;
       if (position.left !== undefined) style.left = `${position.left}px`;
+      if (position.right !== undefined) style.right = `${position.right}px`;
+      if (position.bottom !== undefined) style.bottom = `${position.bottom}px`;
       if (position.zIndex !== undefined) style.zIndex = position.zIndex.toString();
+
+      // Remove any conflicting positioning from custom logic
+      if (position.left !== undefined) style.right = 'auto';
+      if (position.right !== undefined) style.left = 'auto';
+      if (position.top !== undefined) style.bottom = 'auto';
+      if (position.bottom !== undefined) style.top = 'auto';
+    }
+  }
+
+  /**
+   * Apply fallback positioning when layout manager is unavailable or fails
+   */
+  private applyFallbackPositioning(): void {
+    if (!this.containerElement || !this.chartApi) return;
+
+
+    const style = this.containerElement.style;
+    style.position = 'absolute';
+    style.zIndex = '1000';
+
+    // Position based on corner preference
+    switch (this.corner) {
+      case 'top-right':
+        style.top = '5px';
+        style.right = '5px';
+        style.left = 'auto';
+        style.bottom = 'auto';
+        break;
+      case 'top-left':
+        style.top = '5px';
+        style.left = '5px';
+        style.right = 'auto';
+        style.bottom = 'auto';
+        break;
+      case 'bottom-right':
+        style.bottom = '5px';
+        style.right = '5px';
+        style.left = 'auto';
+        style.top = 'auto';
+        break;
+      case 'bottom-left':
+        style.bottom = '5px';
+        style.left = '5px';
+        style.right = 'auto';
+        style.top = 'auto';
+        break;
     }
   }
 
@@ -234,9 +312,9 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     this.containerElement = document.createElement('div');
     this.containerElement.id = `${this.id}-container`;
     this.containerElement.className = `pane-button-panel-container-${paneId}`;
-    this.containerElement.style.position = 'absolute';
     this.containerElement.style.pointerEvents = 'auto';
     this.containerElement.style.userSelect = 'none';
+    // Remove position styling - let layout manager handle it
 
     try {
       // Append container to chart element
@@ -264,9 +342,21 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
         }
       }
 
-      // Position will be handled by the layout manager automatically
-    } catch {
-      console.error('An error occurred');
+      // Initial positioning - apply fallback until layout manager takes over
+      setTimeout(() => {
+        if (this.layoutManager) {
+          const position = this.layoutManager.getWidgetPosition(this.id);
+          if (position) {
+            this.updatePosition(position);
+          } else {
+            this.applyFallbackPositioning();
+          }
+        } else {
+          this.applyFallbackPositioning();
+        }
+      }, 50);
+    } catch (error) {
+      logger.error('Failed to create button panel', 'PaneButtonPanelPlugin', error);
     }
   }
 
@@ -324,23 +414,35 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
         state.dialogRoot = createRoot(dialogContainer);
       }
 
+      // Create series configurations from allSeries
+      const seriesConfigs: Record<string, any> = {};
+      allSeries.forEach(series => {
+        seriesConfigs[series.id] = series.config || {};
+      });
+
       // Render the dialog with all series
       if (state.dialogRoot) {
         state.dialogRoot.render(
-          React.createElement(SeriesConfigDialog, {
+          React.createElement(SeriesSettingsDialog, {
             isOpen: true,
             onClose: () => this.closeSeriesConfigDialog(paneId),
-            seriesList: allSeries,
-            onConfigChange: (seriesId: string, newConfig: SeriesConfiguration) => {
+            paneId: paneId.toString(),
+            seriesList: allSeries.map(series => ({
+              id: series.id,
+              displayName: series.displayName || series.title || series.id,
+              type: series.type
+            } as DialogSeriesInfo)),
+            seriesConfigs: seriesConfigs,
+            onConfigChange: (seriesId: string, newConfig: any) => {
               this.applySeriesConfig(paneId, seriesId, newConfig);
             },
           })
         );
       } else {
-        console.error('Failed to create dialog root for series configuration');
+        logger.error('Failed to create dialog root for series config', 'PaneButtonPanelPlugin');
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Failed to open series config dialog', 'PaneButtonPanelPlugin', error);
     }
   }
 
@@ -354,15 +456,17 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     try {
       // Render empty dialog (closed state)
       state.dialogRoot.render(
-        React.createElement(SeriesConfigDialog, {
+        React.createElement(SeriesSettingsDialog, {
           isOpen: false,
           onClose: () => {},
+          paneId: paneId.toString(),
           seriesList: [],
+          seriesConfigs: {},
           onConfigChange: () => {},
         })
       );
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Failed to close series config dialog', 'PaneButtonPanelPlugin', error);
     }
   }
 
@@ -398,40 +502,42 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
 
           seriesList.push({
             id: seriesId,
+            displayName: mockSeries.title,
             type: mockSeries.type,
             config: seriesConfig,
             title: mockSeries.title,
           });
         });
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Failed to get series for pane', 'PaneButtonPanelPlugin', error);
     }
 
     return seriesList;
   }
 
   /**
-   * Get mock series data for a pane (replace with actual series detection)
+   * Get actual series data for a pane (matching demo_series_settings.py)
    */
   private getMockSeriesForPane(
     paneId: number,
     _state: PaneState
   ): Array<{ type: SeriesType; title?: string }> {
-    // For demo purposes, create some mock series
+    // Match the exact series from demo_series_settings.py
     if (paneId === 0) {
-      // Main chart pane typically has candlestick + indicators
+      // Main chart pane (Pane 0) has line series and ribbon series
       return [
-        { type: 'candlestick', title: 'OHLC' },
-        { type: 'sma', title: 'SMA 20' },
-        { type: 'ema', title: 'EMA 50' },
+        { type: 'line', title: 'Price Line' },  // LineSeries from demo
+        { type: 'ribbon', title: 'Price Ribbon' },  // RibbonSeries from demo
+      ];
+    } else if (paneId === 1) {
+      // Volume pane (Pane 1) has histogram series
+      return [
+        { type: 'histogram', title: 'Volume' },  // HistogramSeries from demo
       ];
     } else {
-      // Other panes might have indicators
-      return [
-        { type: 'supertrend', title: 'Supertrend' },
-        { type: 'bollinger_bands', title: 'Bollinger Bands' },
-      ];
+      // For any other panes, return empty
+      return [];
     }
   }
 
@@ -446,6 +552,9 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       // Store the configuration locally
       state.seriesConfigs.set(seriesId, config);
 
+      // CRITICAL FIX: Apply configuration changes to actual chart series objects
+      this.applyConfigToChartSeries(paneId, seriesId, config);
+
       // Save to localStorage for immediate persistence
       this.saveSeriesConfig(seriesId, config);
 
@@ -457,8 +566,150 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       if (this.config.onSeriesConfigChange) {
         this.config.onSeriesConfigChange(paneId, seriesId, config as Record<string, unknown>);
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Operation failed', 'PaneButtonPanelPlugin', error);
+    }
+  }
+
+  /**
+   * Apply configuration changes to actual chart series objects
+   */
+  private applyConfigToChartSeries(paneId: number, seriesId: string, config: SeriesConfiguration): void {
+    if (!this.chartApi) {
+      return;
+    }
+
+    try {
+
+      // For demo purposes, we'll implement a basic mapping
+      // In a production system, this would use a proper series registry
+      const seriesOptions: any = {};
+
+      // Map configuration options to LightweightCharts API options
+
+      // Core series properties (direct mapping)
+      if (config.visible !== undefined) {
+        seriesOptions.visible = config.visible;
+      }
+      if (config.color !== undefined) {
+        seriesOptions.color = config.color;
+      }
+      if (config.title !== undefined) {
+        seriesOptions.title = config.title;
+      }
+
+      // Line styling properties (direct mapping for new API)
+      if (config.lineWidth !== undefined) {
+        seriesOptions.lineWidth = config.lineWidth;
+      }
+      if (config.lineStyle !== undefined) {
+        seriesOptions.lineStyle = config.lineStyle;
+      }
+
+      // Price line properties (direct mapping for new API)
+      if (config.lastValueVisible !== undefined) {
+        seriesOptions.lastValueVisible = config.lastValueVisible;
+      }
+      if (config.priceLineVisible !== undefined) {
+        seriesOptions.priceLineVisible = config.priceLineVisible;
+      }
+      if (config.priceLineColor !== undefined) {
+        seriesOptions.priceLineColor = config.priceLineColor;
+      }
+      if (config.priceLineWidth !== undefined) {
+        seriesOptions.priceLineWidth = config.priceLineWidth;
+      }
+      if (config.priceLineStyle !== undefined) {
+        seriesOptions.priceLineStyle = config.priceLineStyle;
+      }
+
+      // Legacy naming support (for backward compatibility with existing dialog)
+      if ((config as any).last_value_visible !== undefined) {
+        seriesOptions.lastValueVisible = (config as any).last_value_visible;
+      }
+      if ((config as any).price_line !== undefined) {
+        seriesOptions.priceLineVisible = (config as any).price_line;
+      }
+      if ((config as any).line_width !== undefined) {
+        seriesOptions.lineWidth = (config as any).line_width;
+      }
+      if ((config as any).line_style !== undefined) {
+        // Convert string style to LineStyle enum value
+        const styleMap: Record<string, number> = { 'solid': 0, 'dashed': 1, 'dotted': 2 };
+        const lineStyle = (config as any).line_style as string;
+        const styleValue = styleMap[lineStyle] ?? 0;
+        seriesOptions.lineStyle = styleValue;
+      }
+
+      // Handle markers (note: LightweightCharts markers are set via setMarkers, not applyOptions)
+      if ((config as any).markers !== undefined) {
+        // Markers would be handled separately via setMarkers API
+      }
+
+
+      // Try to find and update the series
+      // This is a simplified approach - in production you'd have a proper series registry
+      const panes = this.chartApi.panes();
+      if (paneId >= 0 && paneId < panes.length && Object.keys(seriesOptions).length > 0) {
+
+        // CRITICAL FIX: Try to find the actual series objects and apply options
+        let seriesApplied = false;
+
+        try {
+          // Use the proper LightweightCharts API to get series for the target pane
+          const panes = this.chartApi.panes();
+          if (paneId >= 0 && paneId < panes.length) {
+            const targetPane = panes[paneId];
+
+            // Use the official IPanesAPI.getSeries() method
+            const paneseries = targetPane.getSeries();
+
+            if (paneseries.length > 0) {
+              // Parse the series index from the seriesId (e.g., "pane-0-series-0" -> index 0)
+              const seriesIndexMatch = seriesId.match(/series-(\d+)$/);
+              let targetSeriesIndex = -1;
+
+              if (seriesIndexMatch) {
+                targetSeriesIndex = parseInt(seriesIndexMatch[1], 10);
+              } else {
+                logger.error('Failed to parse series index from seriesId', 'PaneButtonPanelPlugin');
+              }
+
+              // Apply options to the specific series or all series if index not found
+              paneseries.forEach((series: any, idx: number) => {
+                // Only apply to the target series index, or all if we couldn't parse the index
+                if (targetSeriesIndex === -1 || idx === targetSeriesIndex) {
+                  if (series && typeof series.applyOptions === 'function') {
+                    try {
+                      series.applyOptions(seriesOptions);
+                      seriesApplied = true;
+                    } catch (applyError) {
+                      logger.error('Failed to apply options to series', 'PaneButtonPanelPlugin', applyError);
+                    }
+                  } else {
+                    logger.error('Series does not have applyOptions method', 'PaneButtonPanelPlugin');
+                  }
+                }
+              });
+            } else {
+              logger.error('No series found in target pane', 'PaneButtonPanelPlugin');
+            }
+          } else {
+            logger.error('Target pane index out of bounds', 'PaneButtonPanelPlugin');
+          }
+
+          if (!seriesApplied) {
+            logger.error('Failed to apply series options to any series', 'PaneButtonPanelPlugin');
+          }
+
+        } catch (findError) {
+          logger.error('Error finding series in pane', 'PaneButtonPanelPlugin', findError);
+        }
+      } else if (Object.keys(seriesOptions).length === 0) {
+        logger.error('No series options to apply', 'PaneButtonPanelPlugin');
+      }
+    } catch (error) {
+      logger.error('Failed to apply config to chart series', 'PaneButtonPanelPlugin', error);
     }
   }
 
@@ -469,8 +720,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     try {
       const storageKey = `series-config-${seriesId}`;
       localStorage.setItem(storageKey, JSON.stringify(config));
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Operation failed', 'PaneButtonPanelPlugin', error);
     }
   }
 
@@ -491,7 +742,7 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       color: '#2196F3',
       opacity: 1,
       lineWidth: 2,
-      lineStyle: 'solid',
+      lineStyle: 0, // solid
       lastPriceVisible: true,
       priceLineVisible: true,
       labelsOnPriceScale: true,
@@ -544,8 +795,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       } else {
         this.collapsePane(paneId);
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Operation failed', 'PaneButtonPanelPlugin', error);
     }
   }
 
@@ -583,8 +834,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       if (this.config.onPaneCollapse) {
         this.config.onPaneCollapse(paneId, true);
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Operation failed', 'PaneButtonPanelPlugin', error);
     }
   }
 
@@ -615,8 +866,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       if (this.config.onPaneExpand) {
         this.config.onPaneExpand(paneId, false);
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Operation failed', 'PaneButtonPanelPlugin', error);
     }
   }
 
@@ -644,8 +895,8 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           });
         }
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Operation failed', 'PaneButtonPanelPlugin', error);
     }
   }
 
@@ -687,6 +938,7 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       }
     }
   }
+
 
   /**
    * Force sync all configurations to backend

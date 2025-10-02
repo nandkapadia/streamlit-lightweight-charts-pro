@@ -42,7 +42,7 @@ class React19PerformanceMonitor {
    * Start tracking a transition
    */
   startTransition(componentName: string, transitionType: TransitionMetrics['transitionType']): string {
-    const transitionId = `${componentName}-${transitionType}-${Date.now()}`;
+    const transitionId = `${componentName}-${transitionType}-${performance.now()}`;
     const metrics: TransitionMetrics = {
       startTime: performance.now(),
       componentName,
@@ -276,8 +276,14 @@ export function useReact19Performance(componentName: string) {
 /**
  * Development-only performance logger for React 19 features
  */
-export function logReact19Performance(): void {
-  if (process.env.NODE_ENV !== 'development') return;
+export function logReact19Performance(options?: { skipEnvCheck?: boolean }): void {
+  // Use both Vite and Node.js environment variables for better compatibility
+  const isDevelopment = (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') ||
+                       (typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'development');
+
+  if (!options?.skipEnvCheck && !isDevelopment) {
+    return;
+  }
 
   const report = react19Monitor.getPerformanceReport();
   const insights = react19Monitor.getCurrentInsights();

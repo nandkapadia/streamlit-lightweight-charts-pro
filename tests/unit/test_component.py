@@ -1,13 +1,36 @@
-"""
-Tests for the component module.
+"""Comprehensive unit tests for the component module.
 
-This module tests the component initialization and management functionality
-for the Streamlit Lightweight Charts Pro component.
+This module contains extensive unit tests for the Streamlit component
+initialization and management functionality. The tests cover component
+lifecycle, error handling, and integration with the Streamlit framework.
+
+Key Features Tested:
+    - Component initialization and status management
+    - Error handling for missing or invalid components
+    - Debug functionality for troubleshooting
+    - Component reinitialization and recovery
+    - Streamlit integration and compatibility
+    - Release version management and validation
+
+Example Test Usage:
+    ```python
+    from tests.unit.test_component import TestComponentInitialization
+
+    # Run specific test
+    test_instance = TestComponentInitialization()
+    test_instance.test_get_component_func_not_initialized()
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
+# Standard Imports
 import inspect
 from unittest.mock import Mock, patch
 
+# Local Imports
 import streamlit_lightweight_charts_pro.component as component_module
 from streamlit_lightweight_charts_pro.component import (
     _RELEASE,
@@ -19,21 +42,45 @@ from streamlit_lightweight_charts_pro.component import (
 
 
 class TestComponentInitialization:
-    """Test component initialization and status functions."""
+    """Test cases for component initialization and status management.
+
+    This test class focuses on verifying that the Streamlit component
+    can be properly initialized, managed, and debugged. It tests the
+    component lifecycle and error handling scenarios.
+
+    The tests ensure that:
+        - Component status can be checked and managed
+        - Error handling works for uninitialized components
+        - Debug functionality provides useful information
+        - Component can be reinitialized when needed
+    """
 
     def test_get_component_func_not_initialized(self):
-        """Test get_component_func when component is not initialized."""
-        # Temporarily set _component_func to None
+        """Test get_component_func when component is not initialized.
+
+        This test verifies that the component function returns None
+        when the component has not been initialized, ensuring proper
+        error handling for uninitialized states.
+
+        The test ensures:
+            - Uninitialized component returns None
+            - No exceptions are raised for uninitialized state
+            - Component state can be safely checked
+        """
+        # Store the original component function to restore later
+        # This ensures we don't permanently break the module state
         original_func = _component_func
         try:
-            # Mock the module to set _component_func to None
-
+            # Simulate uninitialized state by setting component function to None
+            # This tests the behavior when the component hasn't been loaded yet
             component_module._component_func = None
 
+            # Test that get_component_func returns None for uninitialized state
             result = get_component_func()
-            assert result is None
+            assert result is None  # Verify uninitialized component returns None
         finally:
-            # Restore original value
+            # Always restore the original value to prevent test interference
+            # This ensures other tests aren't affected by this test's changes
             component_module._component_func = original_func
 
     def test_get_component_func_initialized(self):

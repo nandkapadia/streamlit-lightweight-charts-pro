@@ -5,22 +5,6 @@ applications. Built on top of TradingView's Lightweight Charts library, this pac
 provides a fluent API for building sophisticated financial visualizations with
 method chaining support.
 
-The library offers enterprise-grade features for financial data visualization
-including candlestick charts, line charts, area charts, volume charts, and more.
-It supports advanced features like annotations, trade visualization, multi-pane
-charts, and seamless pandas DataFrame integration.
-
-Key Features:
-    - Fluent API with method chaining for intuitive chart creation
-    - Support for all major chart types (candlestick, line, area, bar, histogram)
-    - Advanced annotation system with layers and styling
-    - Trade visualization with buy/sell markers and PnL display
-    - Multi-pane synchronized charts with overlay price scales
-    - Responsive design with auto-sizing options
-    - Comprehensive customization options for all chart elements
-    - Seamless pandas DataFrame integration
-    - Type-safe API with comprehensive type hints
-
 Example Usage:
     ```python
     from streamlit_lightweight_charts_pro import Chart, LineSeries, create_text_annotation
@@ -43,22 +27,17 @@ Example Usage:
     chart.render(key="my_chart")
     ```
 
-For detailed documentation and examples, visit the project repository:
+For detailed documentation and examples, visit:
 https://github.com/nandkapadia/streamlit-lightweight-charts-pro
-
-Version: 0.1.0
-Author: Nand Kapadia
-License: MIT
 """
 
-# TODO: Need to implement tooltips for the chart
-# FIXME: The collapse code is not working as expected.
-
-# Import core components
-# Import for development mode detection
+# Standard Imports
 import warnings
 from pathlib import Path
 
+# Third Party Imports
+# (None in this module)
+# Local Imports
 from streamlit_lightweight_charts_pro.charts import Chart, ChartManager
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.layout_options import (
@@ -127,18 +106,31 @@ __version__ = "0.1.0"
 
 # Check if frontend is built on import (for development mode)
 def _check_frontend_build():
-    """Check if frontend is built and warn if not (development mode only)."""
+    """Check if frontend is built and warn if not (development mode only).
+
+    This function verifies that the required frontend assets exist for
+    the package to work correctly. It's only active in development mode
+    where the package is installed with the `-e` flag used.
+
+    Returns:
+        None: This function has no return value, it warns if frontend is missing.
+    """
     # Only check in development mode (when package is installed with -e)
     try:
         # Use importlib.metadata instead of deprecated pkg_resources
+        # This ensures compatibility with modern Python versions
         dist = distribution("streamlit_lightweight_charts_pro")
+
+        # Verify this is a development install by checking file paths
+        # Compare the file location against the current module location
         if dist.locate_file("") and Path(dist.locate_file("")).samefile(
             Path(__file__).parent.parent,
         ):
-            # This is a development install, check frontend
+            # Check for frontend build assets in development mode
             frontend_dir = Path(__file__).parent / "frontend"
             build_dir = frontend_dir / "build"
 
+            # Test existence of required frontend build artifacts
             if not build_dir.exists() or not (build_dir / "static").exists():
                 warnings.warn(
                     "Frontend assets not found in development mode. "
@@ -147,7 +139,8 @@ def _check_frontend_build():
                     stacklevel=2,
                 )
     except (ImportError, OSError):
-        # Not a development install or importlib.metadata not available, skip check
+        # Skip check if importlib.metadata is not available or
+        # if not in development mode (close the security wrapper)
         pass
 
 

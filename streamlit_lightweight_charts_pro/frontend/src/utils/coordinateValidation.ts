@@ -12,6 +12,7 @@ import {
   // ContainerDimensions is used in type imports
 } from '../types/coordinates';
 import { DIMENSIONS, FALLBACKS } from '../config/positioningConfig';
+import { logger } from './logger';
 
 /**
  * Validates complete chart coordinates
@@ -206,13 +207,12 @@ export function validatePaneCoordinates(pane: PaneCoordinates, index?: number): 
     if (pane.height <= 0) {
       errors.push(`${prefix}Invalid height (${pane.height})`);
     }
-    // Check for test-specific properties that may not be in the interface
-    const testPane = pane as any;
-    if (typeof testPane.top === 'number' && testPane.top < 0) {
-      errors.push(`${prefix}Invalid top position (${testPane.top})`);
+    // Check for negative contentArea positioning
+    if (typeof pane.contentArea?.top === 'number' && pane.contentArea.top < 0) {
+      errors.push(`${prefix}Invalid top position (${pane.contentArea.top})`);
     }
-    if (typeof testPane.left === 'number' && testPane.left < 0) {
-      errors.push(`${prefix}Invalid left position (${testPane.left})`);
+    if (typeof pane.contentArea?.left === 'number' && pane.contentArea.left < 0) {
+      errors.push(`${prefix}Invalid left position (${pane.contentArea.left})`);
     }
     return { isValid: errors.length === 0, errors, warnings };
   }
@@ -222,8 +222,11 @@ export function validatePaneCoordinates(pane: PaneCoordinates, index?: number): 
     errors.push(`${prefix}Invalid pane ID`);
   }
 
-  if (pane.width <= 0 || pane.height <= 0) {
-    errors.push(`${prefix}Invalid pane dimensions`);
+  if (pane.width <= 0) {
+    errors.push(`${prefix}Invalid width (${pane.width})`);
+  }
+  if (pane.height <= 0) {
+    errors.push(`${prefix}Invalid height (${pane.height})`);
   }
 
   if (!pane.contentArea) {
@@ -357,7 +360,25 @@ export function sanitizeCoordinates(coordinates: Partial<ChartCoordinates>): Cha
       width: DIMENSIONS.priceScale.rightScaleDefaultWidth,
       height: container.height - timeScale.height,
     },
-    panes: coordinates.panes || [
+    panes: Array.isArray(coordinates.panes) && coordinates.panes.length > 0 ? coordinates.panes.map(pane => ({
+      ...pane,
+      x: pane.x < 0 ? 0 : pane.x,
+      y: pane.y < 0 ? 0 : pane.y,
+      width: pane.width <= 0 ? FALLBACKS.paneWidth : pane.width,
+      height: pane.height <= 0 ? FALLBACKS.paneHeight : pane.height,
+      contentArea: pane.contentArea ? {
+        ...pane.contentArea,
+        top: pane.contentArea.top < 0 ? 0 : pane.contentArea.top,
+        left: pane.contentArea.left < 0 ? FALLBACKS.priceScaleWidth : pane.contentArea.left,
+        width: pane.contentArea.width <= 0 ? FALLBACKS.paneWidth - FALLBACKS.priceScaleWidth : pane.contentArea.width,
+        height: pane.contentArea.height <= 0 ? FALLBACKS.paneHeight - FALLBACKS.timeScaleHeight : pane.contentArea.height,
+      } : {
+        top: 0,
+        left: FALLBACKS.priceScaleWidth,
+        width: FALLBACKS.paneWidth - FALLBACKS.priceScaleWidth,
+        height: FALLBACKS.paneHeight - FALLBACKS.timeScaleHeight,
+      }
+    })) : [
       {
         paneId: 0,
         x: 0,
@@ -426,11 +447,11 @@ export function logValidationResult(result: ValidationResult, _context: string =
   // const prefix = context ? `[${context}] ` : ''
 
   if (!result.isValid) {
-    console.error('Coordinate validation failed:', result.errors);
+    logger.error('Coordinate validation failed', 'CoordinateValidation', result.errors);
   }
 
   if (result.warnings.length > 0) {
-    console.warn('Coordinate validation warnings:', result.warnings);
+    logger.warn('Coordinate validation warnings', 'CoordinateValidation', result.warnings);
   }
 }
 

@@ -2,9 +2,6 @@ import pytest
 
 from streamlit_lightweight_charts_pro.charts.options.price_format_options import PriceFormatOptions
 from streamlit_lightweight_charts_pro.exceptions import (
-    InvalidTypeValueError,
-    MinMovePositiveError,
-    PrecisionNonNegativeError,
     TypeValidationError,
     ValueValidationError,
 )
@@ -82,7 +79,7 @@ def test_type_validation_in_chainable_methods():
     opts.set_type("custom")
 
     # Invalid type
-    with pytest.raises(InvalidTypeValueError):
+    with pytest.raises(ValueValidationError):
         opts.set_type("invalid")
 
     # Type validation
@@ -100,7 +97,7 @@ def test_precision_validation_in_chainable_methods():
     opts.set_precision(10)
 
     # Invalid precision values
-    with pytest.raises(PrecisionNonNegativeError):
+    with pytest.raises(ValueValidationError):
         opts.set_precision(-1)
 
     with pytest.raises(TypeValidationError):
@@ -120,10 +117,10 @@ def test_min_move_validation_in_chainable_methods():
     opts.set_min_move(100)
 
     # Invalid min_move values
-    with pytest.raises(MinMovePositiveError):
+    with pytest.raises(ValueValidationError):
         opts.set_min_move(0)
 
-    with pytest.raises(MinMovePositiveError):
+    with pytest.raises(ValueValidationError):
         opts.set_min_move(-1)
 
     with pytest.raises(TypeValidationError):
@@ -183,7 +180,7 @@ def test_static_validators():
     assert PriceFormatOptions._validate_type_static("percent") == "percent"
     assert PriceFormatOptions._validate_type_static("custom") == "custom"
 
-    with pytest.raises(InvalidTypeValueError):
+    with pytest.raises(ValueValidationError):
         PriceFormatOptions._validate_type_static("invalid")
 
     # Precision validator

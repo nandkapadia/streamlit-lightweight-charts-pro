@@ -298,6 +298,13 @@ export const createMockButtonPanelPlugin = (paneId: number, config: any, chartId
 // ============================================================================
 
 export const mockPrimitiveEventManager = {
+  PrimitiveEventManager: vi.fn().mockImplementation(() => ({
+    initialize: vi.fn(),
+    destroy: vi.fn(),
+    subscribe: vi.fn(() => vi.fn()), // Returns unsubscribe function
+    emit: vi.fn(),
+    cleanup: vi.fn(),
+  })),
   getInstance: vi.fn(() => ({
     initialize: vi.fn(),
     destroy: vi.fn(),
@@ -309,12 +316,25 @@ export const mockPrimitiveEventManager = {
 };
 
 export const mockCornerLayoutManager = {
+  CornerLayoutManager: vi.fn().mockImplementation(() => ({
+    addWidget: vi.fn(),
+    removeWidget: vi.fn(),
+    updateLayout: vi.fn(),
+    destroy: vi.fn(),
+    getPosition: vi.fn(() => ({ x: 0, y: 0 })),
+    setConfig: vi.fn(),
+    refreshLayout: vi.fn(),
+  })),
+  // Static methods
   cleanup: vi.fn(),
   getInstance: vi.fn(() => ({
     addWidget: vi.fn(),
     removeWidget: vi.fn(),
     updateLayout: vi.fn(),
     destroy: vi.fn(),
+    getPosition: vi.fn(() => ({ x: 0, y: 0 })),
+    setConfig: vi.fn(),
+    refreshLayout: vi.fn(),
   })),
 };
 

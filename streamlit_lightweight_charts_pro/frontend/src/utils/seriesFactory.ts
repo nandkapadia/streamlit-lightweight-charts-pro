@@ -23,6 +23,9 @@ import {
   createGradientRibbonSeries,
   GradientRibbonData,
 } from '../plugins/series/gradientRibbonSeriesPlugin';
+import {
+  createTrendFillSeries,
+} from '../plugins/series/trendFillSeriesPlugin';
 import { cleanLineStyleOptions } from './lineStyle';
 import { createTradeVisualElements } from '../services/tradeVisualization';
 
@@ -431,72 +434,19 @@ export function createSeries(
     }
     case 'trend_fill': {
       try {
-        // Create the trend fill series directly (following band series pattern)
-        const trendFillOptions = {
-          uptrendFillColor: cleanedOptions.uptrendFillColor || 'rgba(76, 175, 80, 0.3)',
-          downtrendFillColor: cleanedOptions.downtrendFillColor || 'rgba(244, 67, 54, 0.3)',
-          trendLine: {
-            color: cleanedOptions.trendLine?.color || '#4CAF50',
-            lineWidth: cleanedOptions.trendLine?.lineWidth || 2,
-            lineStyle: cleanedOptions.trendLine?.lineStyle || 0,
-            visible: cleanedOptions.trendLine?.visible !== false,
-          },
-          baseLine: {
-            color: cleanedOptions.baseLine?.color || '#666666',
-            lineWidth: cleanedOptions.baseLine?.lineWidth || 1,
-            lineStyle: cleanedOptions.baseLine?.lineStyle || 1,
-            visible: cleanedOptions.baseLine?.visible !== false,
-          },
-          visible: cleanedOptions.visible !== false,
-          priceScaleId: cleanedOptions.priceScaleId || 'right',
-        };
+        console.log('[TrendFill] Creating with data:', data?.length, 'points');
 
-        // Create the primitive series directly (no dummy series needed)
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { TrendFillSeries } = require('../plugins/series/trendFillSeriesPlugin');
-        const trendFillSeries = new TrendFillSeries(chart, trendFillOptions, 0);
+        // Create TrendFill series with primitive (handles series + primitive creation internally)
+        const trendFillSeries = createTrendFillSeries(chart, {
+          ...cleanedOptions,
+          priceScaleId: priceScaleId || 'right',
+          disableSeriesRendering: true, // Use primitive for rendering
+          data: data,
+        });
 
-        // Set the data
-        trendFillSeries.setData(data || []);
-
-        return {
-          setData: (newData: any[]) => {
-            try {
-              trendFillSeries.setData(newData);
-            } catch {
-              // Error setting trend fill data - fail silently
-            }
-          },
-          update: (newData: any) => {
-            try {
-              trendFillSeries.updateData([newData]);
-            } catch {
-              // Error updating trend fill data - fail silently
-            }
-          },
-          applyOptions: (options: any) => {
-            try {
-              trendFillSeries.applyOptions(options);
-            } catch {
-              // Error applying trend fill options - fail silently
-            }
-          },
-          priceScale: () => {
-            try {
-              return chart.priceScale(priceScaleId || 'right');
-            } catch {
-              return null;
-            }
-          },
-          remove: () => {
-            try {
-              trendFillSeries.destroy();
-            } catch {
-              // Error removing trend fill series - fail silently
-            }
-          },
-        } as unknown as ISeriesApi<any>;
-      } catch {
+        return trendFillSeries as ISeriesApi<any>;
+      } catch (error) {
+        console.error('[TrendFill] Error creating series:', error);
         return null;
       }
     }

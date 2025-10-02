@@ -21,10 +21,9 @@ from streamlit_lightweight_charts_pro.data.annotation import (
     create_text_annotation,
 )
 from streamlit_lightweight_charts_pro.exceptions import (
-    AnnotationTextRequiredError,
-    BorderWidthNonNegativeError,
-    FontSizePositiveError,
-    PriceMustBeNumberError,
+    RequiredFieldError,
+    TypeValidationError,
+    ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.type_definitions.enums import HorzAlign, VertAlign
 
@@ -152,11 +151,11 @@ class TestAnnotation:
         assert annotation.font_size == 10
 
         # Invalid zero font size
-        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
+        with pytest.raises(ValueValidationError, match="font_size must be positive"):
             Annotation(time=1640995200, price=100.0, text="Test", font_size=0)
 
         # Invalid negative font size
-        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
+        with pytest.raises(ValueValidationError, match="font_size must be positive"):
             Annotation(time=1640995200, price=100.0, text="Test", font_size=-5)
 
     def test_validation_text_size(self):
@@ -166,11 +165,11 @@ class TestAnnotation:
         assert annotation.font_size == 12
 
         # Invalid zero font size
-        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
+        with pytest.raises(ValueValidationError, match="font_size must be positive"):
             Annotation(time=1640995200, price=100.0, text="Test", font_size=0)
 
         # Invalid negative font size
-        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
+        with pytest.raises(ValueValidationError, match="font_size must be positive"):
             Annotation(time=1640995200, price=100.0, text="Test", font_size=-12)
 
     def test_validation_border_width(self):
@@ -184,7 +183,7 @@ class TestAnnotation:
         assert annotation.border_width == 0
 
         # Invalid negative border width
-        with pytest.raises(BorderWidthNonNegativeError, match="border_width must be non-negative"):
+        with pytest.raises(ValueValidationError, match="border_width must be non-negative"):
             Annotation(time=1640995200, price=100.0, text="Test", border_width=-2)
 
     def test_validation_colors(self):
@@ -410,17 +409,17 @@ class TestAnnotationEdgeCases:
 
     def test_annotation_init_with_invalid_price(self):
         """Test Annotation initialization with invalid price."""
-        with pytest.raises(PriceMustBeNumberError, match="price must be a number"):
+        with pytest.raises(TypeValidationError, match="price must be a number"):
             Annotation(time="2024-01-01 10:00:00", price="invalid", text="Test annotation")
 
     def test_annotation_init_with_empty_text(self):
         """Test Annotation initialization with empty text."""
-        with pytest.raises(AnnotationTextRequiredError, match="text is required for annotations"):
+        with pytest.raises(ValueValidationError, match="text is required"):
             Annotation(time="2024-01-01 10:00:00", price=100.0, text="")
 
     def test_annotation_init_with_none_text(self):
         """Test Annotation initialization with None text."""
-        with pytest.raises(AnnotationTextRequiredError, match="text is required for annotations"):
+        with pytest.raises(ValueValidationError, match="text is required"):
             Annotation(time="2024-01-01 10:00:00", price=100.0, text=None)
 
     def test_annotation_init_with_very_long_text(self):
@@ -519,13 +518,13 @@ class TestAnnotationEdgeCases:
     def test_annotation_init_with_negative_font_size(self):
         """Test Annotation initialization with negative font size."""
         # Should raise error for negative font size
-        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
+        with pytest.raises(ValueValidationError, match="font_size must be positive"):
             Annotation(time="2024-01-01 10:00:00", price=100.0, text="Test", font_size=-10)
 
     def test_annotation_init_with_zero_font_size(self):
         """Test Annotation initialization with zero font size."""
         # Should raise error for zero font size
-        with pytest.raises(FontSizePositiveError, match="font_size must be positive"):
+        with pytest.raises(ValueValidationError, match="font_size must be positive"):
             Annotation(time="2024-01-01 10:00:00", price=100.0, text="Test", font_size=0)
 
     def test_annotation_init_with_very_large_font_size(self):
@@ -561,7 +560,7 @@ class TestAnnotationEdgeCases:
     def test_annotation_init_with_negative_border_width(self):
         """Test Annotation initialization with negative border width."""
         # Should raise error for negative border width
-        with pytest.raises(BorderWidthNonNegativeError, match="border_width must be non-negative"):
+        with pytest.raises(ValueValidationError, match="border_width must be non-negative"):
             Annotation(time="2024-01-01 10:00:00", price=100.0, text="Test", border_width=-2)
 
     def test_annotation_init_with_float_border_width(self):
@@ -901,7 +900,7 @@ class TestAnnotationFactoryFunctionsEdgeCases:
 
     def test_create_arrow_annotation_with_edge_values(self):
         """Test create_arrow_annotation with edge values."""
-        with pytest.raises(AnnotationTextRequiredError, match="text is required for annotations"):
+        with pytest.raises(ValueValidationError, match="text is required"):
             create_arrow_annotation(
                 time="2024-01-01 10:00:00",
                 price=0.0,

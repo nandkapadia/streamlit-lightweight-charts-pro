@@ -3,6 +3,7 @@ import { ChartReadyDetector } from '../../utils/chartReadyDetection';
 import { ResizeObserverManager } from '../../utils/resizeObserverManager';
 import { ChartCoordinateService } from '../../services/ChartCoordinateService';
 import { UniversalSpacing } from '../../primitives/PrimitiveDefaults';
+import { logger } from '../../utils/logger';
 
 export interface RectangleConfig {
   id: string;
@@ -41,7 +42,7 @@ export class RectangleOverlayPlugin {
 
   setChart(chart: IChartApi, _series?: any) {
     this.chart = chart;
-    this.init().catch(console.error);
+    void this.init();
   }
 
   // Public method for testing compatibility
@@ -108,7 +109,6 @@ export class RectangleOverlayPlugin {
       });
 
       if (!isReady) {
-        console.warn('Chart not ready for rectangle overlay initialization');
         return;
       }
 
@@ -122,8 +122,8 @@ export class RectangleOverlayPlugin {
       if (this.rectangles.length > 0) {
         this.render();
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
     }
   }
 
@@ -154,9 +154,8 @@ export class RectangleOverlayPlugin {
       }
 
       // Set initial canvas size
-      this.resizeCanvas().catch(console.error);
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
     }
   }
 
@@ -178,7 +177,7 @@ export class RectangleOverlayPlugin {
 
           // Check if dimensions are valid before resizing
           if (width > 100 && height > 100) {
-            this.handleResize().catch(console.error);
+            void this.handleResize();
           }
         });
       },
@@ -209,8 +208,8 @@ export class RectangleOverlayPlugin {
           this.scheduleRedraw();
         }
       });
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
     }
   }
 
@@ -299,8 +298,8 @@ export class RectangleOverlayPlugin {
         // Redraw after resize
         this.scheduleRedraw();
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
     }
   }
 
@@ -309,8 +308,8 @@ export class RectangleOverlayPlugin {
 
     try {
       await this.resizeCanvas();
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
     }
   }
 
@@ -337,8 +336,8 @@ export class RectangleOverlayPlugin {
       this.rectangles.forEach(rect => {
         this.drawRectangle(rect);
       });
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
     }
   }
 
@@ -387,8 +386,8 @@ export class RectangleOverlayPlugin {
       if (rect.label) {
         this.drawLabel(rect, rectX, rectY, rectX + rectWidth, rectY + rectHeight);
       }
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
     }
   }
 
@@ -399,8 +398,8 @@ export class RectangleOverlayPlugin {
       // Method 1: Try to use chart's coordinate system (simplified for now)
       try {
         // For now, just use pixel coordinates directly
-      } catch {
-        console.error('An error occurred');
+      } catch (error) {
+        logger.error('Rectangle operation failed', 'RectangleOverlayPlugin', error);
       }
 
       // Method 2: Use pixel coordinates directly
@@ -444,8 +443,8 @@ export class RectangleOverlayPlugin {
 
       // Draw label text
       this.ctx.fillText(rect.label, labelX, labelY);
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
     }
   }
 

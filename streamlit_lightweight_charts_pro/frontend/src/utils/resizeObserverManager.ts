@@ -1,6 +1,7 @@
 /**
  * Utility class for managing ResizeObservers with automatic cleanup
  */
+import { logger } from './logger';
 export class ResizeObserverManager {
   private observers = new Map<string, ResizeObserver>();
   private callbacks = new Map<
@@ -71,8 +72,8 @@ export class ResizeObserverManager {
       this.observers.set(id, observer);
       this.callbacks.set(id, callback);
       this.targets.set(id, target);
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error("ResizeObserver operation failed", "ResizeObserverManager", error);
     }
   }
 
@@ -94,8 +95,8 @@ export class ResizeObserverManager {
           clearTimeout(timeout);
           this.timeouts.delete(id);
         }
-      } catch {
-        console.error('An error occurred');
+      } catch (error) {
+        logger.error("ResizeObserver operation failed", "ResizeObserverManager", error);
       }
     }
   }
@@ -122,7 +123,7 @@ export class ResizeObserverManager {
       try {
         observer.disconnect();
       } catch {
-        console.error('An error occurred');
+        // Observer already disconnected
       }
     });
 
@@ -131,7 +132,7 @@ export class ResizeObserverManager {
       try {
         clearTimeout(timeout);
       } catch {
-        console.error('An error occurred');
+        // Observer already disconnected
       }
     });
 
@@ -156,7 +157,7 @@ export class ResizeObserverManager {
       try {
         observer.disconnect();
       } catch {
-        console.error('An error occurred');
+        // Observer already disconnected
       }
     });
   }
@@ -171,7 +172,7 @@ export class ResizeObserverManager {
         try {
           observer.observe(target);
         } catch {
-          console.error('An error occurred');
+          // Observer already initialized
         }
       }
     });

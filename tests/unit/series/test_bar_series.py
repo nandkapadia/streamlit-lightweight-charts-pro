@@ -18,10 +18,10 @@ from streamlit_lightweight_charts_pro.data.bar_data import BarData
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.exceptions import (
     ColumnMappingRequiredError,
+    DataFrameValidationError,
     DataItemsTypeError,
-    InvalidDataFormatError,
-    PaneIdNonNegativeError,
     TypeValidationError,
+    ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.type_definitions.enums import ChartType, LineStyle
 
@@ -371,7 +371,7 @@ class TestBarSeriesValidation:
         series = BarSeries(data=data)
         series.pane_id = -1
 
-        with pytest.raises(PaneIdNonNegativeError):
+        with pytest.raises(ValueValidationError):
             series._validate_pane_config()
 
     def test_error_handling_invalid_data(self):
@@ -388,7 +388,7 @@ class TestBarSeriesValidation:
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling for invalid data type."""
-        with pytest.raises(InvalidDataFormatError):
+        with pytest.raises(DataFrameValidationError):
             BarSeries(data="invalid_data")
 
     def test_error_handling_dataframe_without_column_mapping(self):

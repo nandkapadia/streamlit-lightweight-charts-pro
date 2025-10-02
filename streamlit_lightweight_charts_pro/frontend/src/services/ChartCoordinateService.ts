@@ -32,6 +32,7 @@ import {
 } from '../utils/coordinateValidation';
 import { DIMENSIONS, TIMING, Z_INDEX, getFallback, getMargins } from '../config/positioningConfig';
 import { UniversalSpacing } from '../primitives/PrimitiveDefaults';
+import { logger } from '../utils/logger';
 
 /**
  * Configuration for chart dimensions validation
@@ -617,8 +618,8 @@ export class ChartCoordinateService {
       const rect = container.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Chart coordinate operation failed', 'ChartCoordinateService', error);
     }
 
     // Method 2: offset dimensions
@@ -651,8 +652,8 @@ export class ChartCoordinateService {
       const timeScale = chart.timeScale();
       timeScaleHeight = timeScale.height() || 35;
       timeScaleWidth = timeScale.width() || width;
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Chart coordinate operation failed', 'ChartCoordinateService', error);
     }
 
     // Get price scale width
@@ -661,8 +662,8 @@ export class ChartCoordinateService {
     try {
       const priceScale = chart.priceScale('left');
       priceScaleWidth = priceScale.width() || 70;
-    } catch {
-      console.error('An error occurred');
+    } catch (error) {
+      logger.error('Chart coordinate operation failed', 'ChartCoordinateService', error);
     }
 
     return {
@@ -1271,8 +1272,8 @@ export class ChartCoordinateService {
       callbacks.forEach(callback => {
         try {
           callback();
-        } catch {
-          console.error('An error occurred');
+        } catch (error) {
+          logger.error('Callback execution failed', 'ChartCoordinateService', error);
         }
       });
     }
@@ -1427,8 +1428,8 @@ export class ChartCoordinateService {
         callbacks.forEach(callback => {
           try {
             callback();
-          } catch {
-            console.error('An error occurred');
+          } catch (error) {
+            logger.error('Cache cleanup callback failed', 'ChartCoordinateService', error);
           }
         });
       }

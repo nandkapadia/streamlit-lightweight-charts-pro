@@ -16,6 +16,7 @@ import {
   COVERAGE_TEST_SUITES,
 } from './coverage-test-cases';
 import { CoverageThresholds, calculateWeightedCoverage, COVERAGE_AREAS } from './coverage-config';
+import { logger } from '../../utils/logger';
 
 export interface CoverageRunResult {
   suite: string;
@@ -369,7 +370,6 @@ export class CoverageRunner {
   private inferAreaFromFile(filePath: string): string {
     if (filePath.includes('/components/') || filePath.includes('/hooks/')) return 'components';
     if (filePath.includes('/utils/')) return 'utilities';
-    if (filePath.includes('/managers/')) return 'managers';
     if (filePath.includes('/plugins/')) return 'plugins';
     if (filePath.includes('/types/')) return 'types';
     return 'other';
@@ -480,29 +480,15 @@ export class CoverageRunner {
    * Log run summary
    */
   private logRunSummary(runResult: CoverageRunResult): void {
-    console.log('\n=== Coverage Test Run Summary ===');
-    console.log(`Suite: ${runResult.suite}`);
-    console.log(`Total Tests: ${runResult.totalTests}`);
-    console.log(`Passed: ${runResult.passedTests}`);
-    console.log(`Failed: ${runResult.failedTests}`);
-    console.log(`Execution Time: ${runResult.executionTime.toFixed(2)}ms`);
-    console.log(`\nTotal Coverage:`);
-    console.log(`  Statements: ${runResult.totalCoverage.statements}%`);
-    console.log(`  Branches: ${runResult.totalCoverage.branches}%`);
-    console.log(`  Functions: ${runResult.totalCoverage.functions}%`);
-    console.log(`  Lines: ${runResult.totalCoverage.lines}%`);
 
     if (runResult.issues.length > 0) {
-      console.log(`\nIssues (${runResult.issues.length}):`);
-      runResult.issues.forEach(issue => console.log(`  - ${issue}`));
+      logger.info(`Found ${runResult.issues.length} coverage issues`, 'CoverageRunner');
     }
 
     if (runResult.recommendations.length > 0) {
-      console.log(`\nRecommendations (${runResult.recommendations.length}):`);
-      runResult.recommendations.forEach(rec => console.log(`  - ${rec}`));
+      logger.info(`Generated ${runResult.recommendations.length} recommendations`, 'CoverageRunner');
     }
 
-    console.log('=================================\n');
   }
 
   /**
@@ -510,7 +496,7 @@ export class CoverageRunner {
    */
   private log(message: string): void {
     if (this.options.verbose) {
-      console.log(`[CoverageRunner] ${message}`);
+      logger.debug(message, 'CoverageRunner');
     }
   }
 

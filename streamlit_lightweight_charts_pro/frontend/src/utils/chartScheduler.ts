@@ -10,7 +10,7 @@ import {
   unstable_cancelCallback as cancelCallback,
   unstable_shouldYield as shouldYield,
   unstable_now as now,
-  unstable_getCurrentPriorityLevel as getCurrentPriorityLevel,
+  // unstable_getCurrentPriorityLevel as getCurrentPriorityLevel,
   unstable_ImmediatePriority as ImmediatePriority,
   unstable_UserBlockingPriority as UserBlockingPriority,
   unstable_NormalPriority as NormalPriority,
@@ -19,6 +19,7 @@ import {
 } from 'scheduler';
 
 import { react19Monitor } from './react19PerformanceMonitor';
+import { logger } from './logger';
 
 export type TaskPriority = 'immediate' | 'user-blocking' | 'normal' | 'low' | 'idle';
 
@@ -70,7 +71,7 @@ class ChartScheduler {
     this.scheduledCallbacks.set(task.id, callbackId);
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`📅 Scheduled task: ${task.name} (${task.priority} priority)`);
+      logger.debug(`Task ${task.name} scheduled with ID: ${task.id}`, 'ChartScheduler');
     }
 
     return task.id;
@@ -88,7 +89,7 @@ class ChartScheduler {
       this.runningTasks.delete(taskId);
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(`❌ Cancelled task: ${taskId}`);
+        logger.debug(`Task ${taskId} cancelled successfully`, 'ChartScheduler');
       }
 
       return true;
@@ -299,7 +300,7 @@ class ChartScheduler {
    * Create a wrapped task callback with monitoring
    */
   private createTaskWrapper(task: ChartTask) {
-    return async () => {
+    return () => {
       const startTime = now();
       this.runningTasks.add(task.id);
       this.taskMetrics.set(task.id, { startTime });
@@ -307,61 +308,66 @@ class ChartScheduler {
       // Start monitoring
       const transitionId = react19Monitor.startTransition(`Task-${task.name}`, 'chart');
 
-      try {
-        // Check dependencies
-        if (task.dependencies) {
-          const unmetDependencies = task.dependencies.filter(dep =>
-            !this.completedTasks.has(dep)
-          );
+      const executeTask = async () => {
+        try {
+          // Check dependencies
+          if (task.dependencies) {
+            const unmetDependencies = task.dependencies.filter(dep =>
+              !this.completedTasks.has(dep)
+            );
 
-          if (unmetDependencies.length > 0) {
-            // Reschedule for later
-            setTimeout(() => {
-              this.scheduleTask(task);
-            }, 10);
-            return;
+            if (unmetDependencies.length > 0) {
+              // Reschedule for later
+              setTimeout(() => {
+                this.scheduleTask(task);
+              }, 10);
+              return;
+            }
           }
+
+          // Execute the task
+          await task.callback();
+
+          const endTime = now();
+          const duration = endTime - startTime;
+
+          // Update metrics
+          const metrics = this.taskMetrics.get(task.id);
+          if (metrics) {
+            metrics.endTime = endTime;
+          }
+
+          this.completedTasks.add(task.id);
+          this.runningTasks.delete(task.id);
+          this.taskQueue.delete(task.id);
+          this.scheduledCallbacks.delete(task.id);
+
+          // End monitoring
+          react19Monitor.endTransition(transitionId);
+
+          // Log task completion in development
+          if (process.env.NODE_ENV === 'development') {
+            const status = duration > (task.estimatedDuration || 20) ? '⚠️ SLOW' : '✅ FAST';
+            logger.debug(`Task ${task.name} completed: ${status}`, 'ChartScheduler');
+          }
+
+          // Request paint for visual updates
+          if (task.priority === 'immediate' || task.priority === 'user-blocking') {
+            requestAnimationFrame(() => {});
+          }
+
+        } catch (error) {
+          logger.error('Task execution failed in scheduler', 'ChartScheduler', error);
+          react19Monitor.endTransition(transitionId);
+
+          this.runningTasks.delete(task.id);
+          this.taskQueue.delete(task.id);
+          this.scheduledCallbacks.delete(task.id);
         }
+      };
 
-        // Execute the task
-        await task.callback();
-
-        const endTime = now();
-        const duration = endTime - startTime;
-
-        // Update metrics
-        const metrics = this.taskMetrics.get(task.id);
-        if (metrics) {
-          metrics.endTime = endTime;
-        }
-
-        this.completedTasks.add(task.id);
-        this.runningTasks.delete(task.id);
-        this.taskQueue.delete(task.id);
-        this.scheduledCallbacks.delete(task.id);
-
-        // End monitoring
-        react19Monitor.endTransition(transitionId);
-
-        // Log task completion in development
-        if (process.env.NODE_ENV === 'development') {
-          const status = duration > (task.estimatedDuration || 20) ? '⚠️ SLOW' : '✅ FAST';
-          console.log(`${status} Task completed: ${task.name} - ${duration.toFixed(2)}ms`);
-        }
-
-        // Request paint for visual updates
-        if (task.priority === 'immediate' || task.priority === 'user-blocking') {
-          requestAnimationFrame(() => {});
-        }
-
-      } catch (error) {
-        console.error(`Task failed: ${task.name}`, error);
-        react19Monitor.endTransition(transitionId);
-
-        this.runningTasks.delete(task.id);
-        this.taskQueue.delete(task.id);
-        this.scheduledCallbacks.delete(task.id);
-      }
+      // Execute the task asynchronously
+      void executeTask();
     };
   }
 }
@@ -421,13 +427,5 @@ export function logSchedulerMetrics(): void {
   if (process.env.NODE_ENV !== 'development') return;
 
   const metrics = chartScheduler.getTaskMetrics();
-  console.group('⚡ Scheduler Performance');
-  console.log('Total Tasks:', metrics.totalTasks);
-  console.log('Completed:', metrics.completedTasks);
-  console.log('Avg Duration:', `${metrics.averageDuration.toFixed(2)}ms`);
-  console.log('Current Priority:', getCurrentPriorityLevel());
-  console.log('High Priority:', metrics.tasksByPriority.immediate + metrics.tasksByPriority['user-blocking']);
-  console.log('Normal Priority:', metrics.tasksByPriority.normal);
-  console.log('Low Priority:', metrics.tasksByPriority.low + metrics.tasksByPriority.idle);
-  console.groupEnd();
+  logger.debug('Chart scheduler performance metrics', 'ChartScheduler', metrics);
 }

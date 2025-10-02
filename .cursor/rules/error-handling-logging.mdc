@@ -1,0 +1,599 @@
+---
+globs: *.py,*.ts,*.tsx,*.js,*.jsx
+description: Error handling and logging conventions across Python and frontend
+---
+
+# Error Handling and Logging Conventions
+
+## 🎯 Error Handling Strategy
+
+The project uses a **consistent error handling approach** across Python and frontend with proper logging, user feedback, and graceful degradation.
+
+## 🐍 Python Error Handling
+
+### **1. Exception Hierarchy**
+Use specific exception types for different error categories:
+
+```python
+# ✅ CORRECT: Specific exception types
+from streamlit_lightweight_charts_pro.exceptions import (
+    ChartError,
+    DataValidationError,
+    TypeValidationError,
+    ValueValidationError,
+    SeriesItemsTypeError
+)
+
+def create_chart(series: Series) -> Chart:
+    """Create chart with proper error handling."""
+    try:
+        # Validate input
+        if not series:
+            raise DataValidationError("Series cannot be empty")
+
+        if not isinstance(series, Series):
+            raise TypeValidationError("series", "Series instance")
+
+        # Create chart
+        chart = Chart(series=series)
+        logger.info("Chart created successfully with %d series", len(series))
+        return chart
+
+    except (DataValidationError, TypeValidationError) as e:
+        # Log validation errors
+        logger.warning("Chart creation failed: %s", str(e))
+        raise
+    except Exception as e:
+        # Log unexpected errors
+        logger.error("Unexpected error creating chart: %s", str(e), exc_info=True)
+        raise ChartError(f"Failed to create chart: {e}") from e
+```
+
+### **2. Error Context and Messages**
+Provide clear, actionable error messages:
+
+```python
+# ✅ CORRECT: Clear error messages with context
+def validate_chart_data(data: List[SingleValueData]) -> None:
+    """Validate chart data with detailed error messages."""
+    if not data:
+        raise DataValidationError(
+            "Chart data is empty",
+            context={"data_type": "SingleValueData", "expected_count": "> 0"}
+        )
+
+    # Check for None values
+    none_indices = [i for i, item in enumerate(data) if item is None]
+    if none_indices:
+        raise DataValidationError(
+            f"Chart data contains None values at indices: {none_indices}",
+            context={
+                "data_type": "SingleValueData",
+                "total_items": len(data),
+                "none_indices": none_indices
+            }
+        )
+
+    # Check for invalid time values
+    invalid_times = []
+    for i, item in enumerate(data):
+        if not hasattr(item, 'time') or item.time is None:
+            invalid_times.append(i)
+
+    if invalid_times:
+        raise DataValidationError(
+            f"Chart data contains invalid time values at indices: {invalid_times}",
+            context={
+                "data_type": "SingleValueData",
+                "invalid_indices": invalid_times,
+                "expected_format": "time attribute with valid value"
+            }
+        )
+```
+
+### **3. Logging Configuration**
+Use structured logging with appropriate levels:
+
+```python
+# ✅ CORRECT: Structured logging
+import logging
+from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
+
+def log_chart_operation(
+    operation: str,
+    chart_id: Optional[str] = None,
+    success: bool = True,
+    error: Optional[Exception] = None,
+    **kwargs: Any
+) -> None:
+    """Log chart operations with structured data."""
+    log_data = {
+        "operation": operation,
+        "chart_id": chart_id,
+        "success": success,
+        "timestamp": datetime.now().isoformat(),
+        **kwargs
+    }
+
+    if success:
+        logger.info("Chart operation completed", extra=log_data)
+    else:
+        log_data["error"] = str(error) if error else "Unknown error"
+        logger.error("Chart operation failed", extra=log_data, exc_info=error)
+```
+
+### **4. Graceful Degradation**
+Handle errors gracefully with fallbacks:
+
+```python
+# ✅ CORRECT: Graceful degradation
+def render_chart_with_fallback(chart: Chart, key: str) -> None:
+    """Render chart with graceful error handling."""
+    try:
+        chart.render(key=key)
+        logger.info("Chart rendered successfully", extra={"key": key})
+
+    except Exception as e:
+        logger.error("Chart rendering failed, showing fallback",
+                    extra={"key": key, "error": str(e)}, exc_info=True)
+
+        # Show fallback UI
+        st.error("Chart failed to load. Please try refreshing the page.")
+        st.info("If the problem persists, please contact support.")
+
+        # Optionally show debug info in development
+        if st.get_option("server.runOnSave"):
+            st.exception(e)
+```
+
+## ⚛️ Frontend Error Handling
+
+### **1. Error Boundaries**
+Use React Error Boundaries for component-level error handling:
+
+```typescript
+// ✅ CORRECT: Error boundary for chart components
+interface ErrorBoundaryState {
+  hasError: boolean
+  error?: Error
+  errorInfo?: ErrorInfo
+}
+
+class ChartErrorBoundary extends React.Component<
+  React.PropsWithChildren<{}>,
+  ErrorBoundaryState
+> {
+  constructor(props: React.PropsWithChildren<{}>) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    this.setState({ error, errorInfo })
+
+    // Log error to monitoring service
+    logger.error('Chart component error', {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack
+    })
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="chart-error-fallback">
+          <h3>Chart Error</h3>
+          <p>Something went wrong while rendering the chart.</p>
+          <button onClick={() => this.setState({ hasError: false })}>
+            Try Again
+          </button>
+          {process.env.NODE_ENV === 'development' && (
+            <details>
+              <summary>Error Details</summary>
+              <pre>{this.state.error?.stack}</pre>
+            </details>
+          )}
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+```
+
+### **2. Async Error Handling**
+Handle async operations with proper error handling:
+
+```typescript
+// ✅ CORRECT: Async error handling
+export const useChartData = (chartId: string) => {
+  const [data, setData] = useState<LineData[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const loadData = useCallback(async (timeRange: TimeRange) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetchChartData(chartId, timeRange)
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const newData = await response.json()
+      setData(newData)
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load chart data'
+      setError(errorMessage)
+
+      // Log error for monitoring
+      logger.error('Chart data loading failed', {
+        chartId,
+        timeRange,
+        error: errorMessage
+      })
+
+    } finally {
+      setIsLoading(false)
+    }
+  }, [chartId])
+
+  return { data, isLoading, error, loadData }
+}
+```
+
+### **3. Validation and Error States**
+Validate inputs and provide clear error states:
+
+```typescript
+// ✅ CORRECT: Input validation with error states
+interface ChartConfig {
+  width: number
+  height: number
+  theme: 'light' | 'dark'
+}
+
+const useChartConfig = () => {
+  const [config, setConfig] = useState<ChartConfig>({
+    width: 800,
+    height: 400,
+    theme: 'light'
+  })
+  const [errors, setErrors] = useState<Partial<Record<keyof ChartConfig, string>>>({})
+
+  const validateConfig = useCallback((newConfig: ChartConfig): boolean => {
+    const newErrors: Partial<Record<keyof ChartConfig, string>> = {}
+
+    if (newConfig.width <= 0) {
+      newErrors.width = 'Width must be greater than 0'
+    }
+    if (newConfig.height <= 0) {
+      newErrors.height = 'Height must be greater than 0'
+    }
+    if (!['light', 'dark'].includes(newConfig.theme)) {
+      newErrors.theme = 'Theme must be either "light" or "dark"'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }, [])
+
+  const updateConfig = useCallback((updates: Partial<ChartConfig>) => {
+    const newConfig = { ...config, ...updates }
+    if (validateConfig(newConfig)) {
+      setConfig(newConfig)
+    }
+  }, [config, validateConfig])
+
+  return { config, errors, updateConfig, isValid: Object.keys(errors).length === 0 }
+}
+```
+
+## 📝 Logging Conventions
+
+### **1. Debug Message Guidelines**
+**CRITICAL**: Avoid f-strings in debug messages to prevent Streamlit lazy loading warnings:
+
+```python
+# ✅ CORRECT: Safe debug messages
+print("Debug: Chart data loaded successfully")
+print("Debug: Processing " + str(len(data)) + " data points")
+print("Debug: Chart options: {}".format(options))
+print("Debug: Series count: %d" % len(series_list))
+
+# ❌ WRONG: F-strings cause lazy loading warnings
+print(f"Debug: Chart data loaded successfully")
+print(f"Debug: Processing {len(data)} data points")
+print(f"Debug: Chart options: {options}")
+print(f"Debug: Series count: {len(series_list)}")
+```
+
+### **2. Debug Code Cleanup**
+- **Remove all debug print statements** before committing code
+- **Use logging levels** appropriately (DEBUG, INFO, WARNING, ERROR)
+- **Configure logging** in development vs production environments
+
+### **3. Python Logging**
+Use structured logging with consistent format:
+
+```python
+# ✅ CORRECT: Structured logging
+import logging
+from datetime import datetime
+from typing import Any, Dict, Optional
+
+# Configure logger
+logger = logging.getLogger(__name__)
+
+def log_chart_event(
+    event: str,
+    chart_id: Optional[str] = None,
+    level: str = "INFO",
+    **kwargs: Any
+) -> None:
+    """Log chart events with structured data."""
+    log_data = {
+        "event": event,
+        "chart_id": chart_id,
+        "timestamp": datetime.now().isoformat(),
+        "level": level,
+        **kwargs
+    }
+
+    # Use appropriate log level
+    if level == "DEBUG":
+        logger.debug("Chart event", extra=log_data)
+    elif level == "INFO":
+        logger.info("Chart event", extra=log_data)
+    elif level == "WARNING":
+        logger.warning("Chart event", extra=log_data)
+    elif level == "ERROR":
+        logger.error("Chart event", extra=log_data)
+    else:
+        logger.info("Chart event", extra=log_data)
+
+# Usage examples
+log_chart_event("chart_created", chart_id="chart_1", series_count=3)
+log_chart_event("chart_error", chart_id="chart_1", error="Data validation failed", level="ERROR")
+log_chart_event("chart_rendered", chart_id="chart_1", render_time=0.5, level="DEBUG")
+```
+
+### **4. Frontend Logging**
+Use consistent logging format across frontend:
+
+```typescript
+// ✅ CORRECT: Frontend logging
+interface LogContext {
+  chartId?: string
+  userId?: string
+  sessionId?: string
+  [key: string]: any
+}
+
+class Logger {
+  private static instance: Logger
+  private context: LogContext = {}
+
+  static getInstance(): Logger {
+    if (!Logger.instance) {
+      Logger.instance = new Logger()
+    }
+    return Logger.instance
+  }
+
+  setContext(context: LogContext) {
+    this.context = { ...this.context, ...context }
+  }
+
+  private log(level: string, message: string, data?: any) {
+    const logEntry = {
+      level,
+      message,
+      timestamp: new Date().toISOString(),
+      context: this.context,
+      data
+    }
+
+    // Console logging for development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[${level}] ${message}`, logEntry)
+    }
+
+    // Send to monitoring service in production
+    if (process.env.NODE_ENV === 'production') {
+      this.sendToMonitoring(logEntry)
+    }
+  }
+
+  debug(message: string, data?: any) {
+    this.log('DEBUG', message, data)
+  }
+
+  info(message: string, data?: any) {
+    this.log('INFO', message, data)
+  }
+
+  warn(message: string, data?: any) {
+    this.log('WARN', message, data)
+  }
+
+  error(message: string, data?: any) {
+    this.log('ERROR', message, data)
+  }
+
+  private sendToMonitoring(logEntry: any) {
+    // Send to monitoring service (e.g., Sentry, LogRocket)
+    // Implementation depends on chosen monitoring service
+  }
+}
+
+export const logger = Logger.getInstance()
+
+// Usage examples
+logger.setContext({ chartId: 'chart_1', userId: 'user_123' })
+logger.info('Chart component mounted')
+logger.error('Chart rendering failed', { error: 'Data validation error' })
+logger.debug('Chart data updated', { dataPoints: 1000 })
+```
+
+## 🚫 Anti-Patterns to Avoid
+
+### **❌ Wrong: Silent Failures**
+```python
+# Don't silently ignore errors
+def create_chart(series: Series) -> Chart:
+    try:
+        return Chart(series=series)
+    except Exception:
+        return None  # Silent failure - user won't know what went wrong
+```
+
+### **❌ Wrong: Generic Error Messages**
+```python
+# Don't use generic error messages
+def validate_data(data: List[SingleValueData]) -> None:
+    if not data:
+        raise Exception("Error")  # Too generic
+```
+
+### **❌ Wrong: Logging Sensitive Data**
+```python
+# Don't log sensitive information
+def process_user_data(user_data: Dict[str, Any]) -> None:
+    logger.info("Processing user data: %s", user_data)  # May contain sensitive info
+```
+
+### **❌ Wrong: Inconsistent Error Handling**
+```typescript
+// Don't handle errors inconsistently
+const loadData = async () => {
+  try {
+    const data = await fetchData()
+    setData(data)
+  } catch (error) {
+    // Sometimes show error, sometimes don't
+    if (Math.random() > 0.5) {
+      setError(error.message)
+    }
+  }
+}
+```
+
+## ✅ Best Practices
+
+### **1. Error Recovery**
+Provide recovery options when possible:
+
+```python
+# ✅ CORRECT: Error recovery
+def render_chart_with_recovery(chart: Chart, key: str) -> None:
+    """Render chart with recovery options."""
+    try:
+        chart.render(key=key)
+
+    except DataValidationError as e:
+        logger.warning("Data validation failed, showing empty chart", extra={"key": key})
+        st.warning("Chart data is invalid. Showing empty chart.")
+        empty_chart = Chart()
+        empty_chart.render(key=f"{key}_empty")
+
+    except Exception as e:
+        logger.error("Chart rendering failed", extra={"key": key}, exc_info=True)
+        st.error("Chart failed to load. Please try again.")
+
+        if st.button("Retry"):
+            st.rerun()
+```
+
+### **2. Error Monitoring**
+Implement error monitoring and alerting:
+
+```python
+# ✅ CORRECT: Error monitoring
+import sentry_sdk
+from sentry_sdk.integrations.logging import LoggingIntegration
+
+# Configure Sentry for error monitoring
+sentry_logging = LoggingIntegration(
+    level=logging.INFO,
+    event_level=logging.ERROR
+)
+
+sentry_sdk.init(
+    dsn="your-sentry-dsn",
+    integrations=[sentry_logging],
+    traces_sample_rate=1.0,
+)
+
+def log_error_with_context(error: Exception, context: Dict[str, Any]) -> None:
+    """Log error with context for monitoring."""
+    with sentry_sdk.push_scope() as scope:
+        for key, value in context.items():
+            scope.set_extra(key, value)
+        sentry_sdk.capture_exception(error)
+```
+
+### **3. User-Friendly Error Messages**
+Provide user-friendly error messages:
+
+```typescript
+// ✅ CORRECT: User-friendly error messages
+const getErrorMessage = (error: Error): string => {
+  if (error.message.includes('NetworkError')) {
+    return 'Unable to connect to the server. Please check your internet connection.'
+  }
+  if (error.message.includes('ValidationError')) {
+    return 'The data provided is invalid. Please check your input and try again.'
+  }
+  if (error.message.includes('TimeoutError')) {
+    return 'The request timed out. Please try again.'
+  }
+  return 'An unexpected error occurred. Please try again or contact support.'
+}
+
+const ErrorDisplay: React.FC<{ error: Error }> = ({ error }) => {
+  const userMessage = getErrorMessage(error)
+
+  return (
+    <div className="error-display">
+      <h3>Error</h3>
+      <p>{userMessage}</p>
+      {process.env.NODE_ENV === 'development' && (
+        <details>
+          <summary>Technical Details</summary>
+          <pre>{error.stack}</pre>
+        </details>
+      )}
+    </div>
+  )
+}
+```
+
+## 📋 Error Handling and Logging Checklist
+
+- [ ] **Specific exceptions** are used for different error types
+- [ ] **Error messages** are clear and actionable
+- [ ] **Error context** is provided for debugging
+- [ ] **Logging** is structured and consistent
+- [ ] **Debug messages** avoid f-strings to prevent Streamlit warnings
+- [ ] **Debug prints** are removed before committing
+- [ ] **Error boundaries** are implemented in React components
+- [ ] **Async operations** have proper error handling
+- [ ] **Input validation** provides clear error states
+- [ ] **Graceful degradation** is implemented
+- [ ] **Error recovery** options are provided
+- [ ] **Error monitoring** is configured
+- [ ] **User-friendly messages** are displayed
+- [ ] **Sensitive data** is not logged
+- [ ] **Error handling** is consistent across the codebase

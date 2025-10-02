@@ -6,6 +6,7 @@ import React, {
   useTransition,
   useDeferredValue,
 } from 'react';
+import { logger } from './utils/logger';
 import {
   createChart,
   IChartApi,
@@ -28,13 +29,12 @@ import {
 import { ExtendedSeriesApi, ExtendedChartApi, SeriesDataPoint } from './types/ChartInterfaces';
 import { createAnnotationVisualElements } from './services/annotationSystem';
 import { SignalSeries } from './plugins/series/signalSeriesPlugin';
-import { TradeRectanglePrimitive } from './plugins/trade/TradeRectanglePrimitive';
+import { TradeRectanglePrimitive } from './primitives/TradeRectanglePrimitive';
 import { ChartReadyDetector } from './utils/chartReadyDetection';
 import { ChartCoordinateService } from './services/ChartCoordinateService';
 import { ChartPrimitiveManager } from './services/ChartPrimitiveManager';
 import { CornerLayoutManager } from './services/CornerLayoutManager';
 
-import './styles/paneCollapse.css';
 import { cleanLineStyleOptions } from './utils/lineStyle';
 import { createSeries } from './utils/seriesFactory';
 import { getCachedDOMElement, createOptimizedStylesAdvanced } from './utils/performance';
@@ -110,11 +110,17 @@ interface LightweightChartsProps {
   height?: number | null;
   width?: number | null;
   onChartsReady?: () => void;
+  configChange?: {
+    paneId: string;
+    seriesId: string;
+    configPatch: any;
+    timestamp: number;
+  } | null;
 }
 
 // Performance optimization: Memoize the component to prevent unnecessary re-renders
 const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
-  ({ config, height = 400, width = null, onChartsReady }) => {
+  ({ config, height = 400, width = null, onChartsReady, configChange }) => {
     // React 18 concurrent features
     const [isPending, startTransition] = useTransition();
     const deferredConfig = useDeferredValue(config);
@@ -196,8 +202,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             if (newHeight != null && newWidth != null) {
               chart.resize(newWidth, newHeight);
             }
-          } catch {
-            // Auto-sizing resize failed
+          } catch (error) {
+            logger.warn('Chart auto-resize failed', 'LightweightCharts', error);
           }
         }, 100); // 100ms debounce
       },
@@ -1859,7 +1865,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   const series = createSeries(
                     chart,
                     seriesConfig,
-                    { signalPluginRefs },
+                    { signalPluginRefs: signalPluginRefs as any },
                     chartId,
                     seriesIndex
                   );
@@ -2157,10 +2163,13 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             // Create individual pane containers and add collapse functionality (synchronous like working version)
             const paneCollapseConfig = chartConfig.paneCollapse || { enabled: true };
 
-            // Hide the gear button temporarily as the functionality is not working
+            // Enable the gear button by default for series settings
             if (paneCollapseConfig.showGearButton === undefined) {
-              paneCollapseConfig.showGearButton = false;
+              paneCollapseConfig.showGearButton = true;
             }
+
+            // Debug logging
+            console.log('Pane collapse config:', paneCollapseConfig);
 
             if (paneCollapseConfig.enabled !== false) {
               try {
@@ -2169,10 +2178,14 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 if (chart && typeof chart.panes === 'function') {
                   try {
                     allPanes = chart.panes();
-                  } catch {
+                    console.log('✅ Successfully got panes:', allPanes?.length || 0);
+                  } catch (error) {
                     // chart.panes() failed, use empty array
+                    console.error('❌ Failed to get panes:', error);
                     allPanes = [];
                   }
+                } else {
+                  console.error('❌ Chart or chart.panes() is not available');
                 }
 
                 // Always set up crosshair subscription for legend value updates
@@ -2201,20 +2214,46 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   }
                 });
 
-                // Only show minimize buttons when there are multiple panes
-                if (allPanes.length > 1) {
+                // Show button panels when there are multiple panes (for collapse) or when gear button is enabled (for series settings)
+                console.log('Button panel condition check:', {
+                  multiplePane: allPanes.length > 1,
+                  gearEnabled: paneCollapseConfig.showGearButton,
+                  shouldCreate: allPanes.length > 1 || paneCollapseConfig.showGearButton,
+                  allPanesLength: allPanes.length
+                });
+
+                if (allPanes.length > 1 || paneCollapseConfig.showGearButton) {
+                  console.log('Creating button panels for', allPanes.length, 'panes');
                   // Set up pane collapse support using ChartPrimitiveManager
                   try {
+                    console.log('🔧 Step 1: Getting primitive manager...');
                     const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId);
+                    console.log('✅ Step 1: Primitive manager obtained:', primitiveManager);
 
+                    console.log('🔧 Step 2: Starting button panel creation loop...');
                     // Create button panels (gear + collapse buttons) for each pane using primitive manager
                     for (const [paneId, _pane] of allPanes.entries()) {
+                      console.log(`🔧 Step 2.${paneId + 1}: Processing pane ${paneId}...`);
+
+                      // Configure button panel based on pane count
+                      const buttonConfig = {
+                        ...paneCollapseConfig,
+                        showCollapseButton: allPanes.length > 1, // Only show collapse button with multiple panes
+                        showGearButton: paneCollapseConfig.showGearButton // Always respect gear button setting
+                      };
+
+                      console.log(`🔧 Step 2.${paneId + 1}: Button config created for pane ${paneId}:`, buttonConfig);
+
+                      console.log(`🔧 Step 2.${paneId + 1}: Calling addButtonPanel for pane ${paneId}...`);
                       // Add button panel using primitive manager
                       const buttonPanelWidget = primitiveManager.addButtonPanel(
                         paneId,
-                        paneCollapseConfig
+                        buttonConfig
                       );
 
+                      console.log(`✅ Step 2.${paneId + 1}: Button panel widget created for pane ${paneId}:`, buttonPanelWidget);
+
+                      console.log(`🔧 Step 2.${paneId + 1}: Storing widget reference for pane ${paneId}...`);
                       // Store widget reference for cleanup
                       if (!window.paneButtonPanelWidgets) {
                         window.paneButtonPanelWidgets = {};
@@ -2223,13 +2262,17 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                         window.paneButtonPanelWidgets[chartId] = [];
                       }
                       window.paneButtonPanelWidgets[chartId].push(buttonPanelWidget);
+                      console.log(`✅ Step 2.${paneId + 1}: Widget reference stored for pane ${paneId}`);
                     }
-                  } catch {
-                    console.error('An error occurred');
+                    console.log('✅ Step 2: All button panels created successfully');
+                  } catch (error) {
+                    console.error('❌ Button panel creation failed at step:', error);
+                    console.error('❌ Error details:', error instanceof Error ? error.message : String(error));
+                    console.error('❌ Error stack:', error instanceof Error ? error.stack : String(error));
                   }
                 }
-              } catch {
-                // Ignore errors during pane collapse setup
+              } catch (error) {
+                console.error('❌ Pane collapse setup failed:', error);
               }
             }
 
@@ -2345,6 +2388,86 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         );
       });
     }, [deferredConfig, width, height]);
+
+    // Handle config changes from series settings dialog
+    useEffect(() => {
+      if (!configChange) return;
+
+      console.log('🔧 Applying config change:', configChange);
+
+      const { paneId, seriesId, configPatch } = configChange;
+
+      // Find the appropriate chart and series to update
+      Object.entries(chartRefs.current).forEach(([chartId, chart]) => {
+        if (!chart) return;
+
+        try {
+          // Get chart series and find the matching one
+          const chartSeries = seriesRefs.current[chartId] || [];
+
+          chartSeries.forEach((series, index) => {
+            // Check if this is the target series
+            // The seriesId format is typically "pane-X-series-Y"
+            const expectedSeriesId = `pane-${paneId}-series-${index}`;
+
+            if (seriesId === expectedSeriesId) {
+              console.log('🎯 Found target series to update:', seriesId, series);
+
+              // Apply the configuration changes to the series
+              // Get current options for reference if needed
+              // const currentOptions = series.options();
+
+              // Map dialog config to LightweightCharts API
+              const apiConfig: any = {};
+
+              // Basic visibility options
+              if ('visible' in configPatch) {
+                apiConfig.visible = configPatch.visible;
+              }
+
+              if ('last_value_visible' in configPatch) {
+                apiConfig.lastValueVisible = configPatch.last_value_visible;
+              }
+
+              if ('price_line' in configPatch) {
+                apiConfig.priceLineVisible = configPatch.price_line;
+              }
+
+              // Color and styling options
+              if ('color' in configPatch) {
+                apiConfig.color = configPatch.color;
+              }
+
+              if ('line_width' in configPatch) {
+                apiConfig.lineWidth = configPatch.line_width;
+              }
+
+              if ('line_style' in configPatch) {
+                apiConfig.lineStyle = configPatch.line_style;
+              }
+
+              // Marker options
+              if ('markers' in configPatch) {
+                apiConfig.pointMarkersVisible = configPatch.markers;
+              }
+
+              // Title updates
+              if ('title' in configPatch) {
+                apiConfig.title = configPatch.title;
+              }
+
+              // Apply the options to the series
+              if (Object.keys(apiConfig).length > 0) {
+                series.applyOptions(apiConfig);
+                console.log('✅ Applied config to series:', apiConfig);
+              }
+            }
+          });
+        } catch (error) {
+          console.error('❌ Error applying config change:', error);
+        }
+      });
+    }, [configChange]);
 
     if (!config || !config.charts || config.charts.length === 0) {
       return <div>No charts configured</div>;

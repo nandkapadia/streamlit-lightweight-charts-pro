@@ -8,16 +8,14 @@ from dataclasses import dataclass, field
 from typing import Dict, Optional
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
-from streamlit_lightweight_charts_pro.exceptions import PositiveValueError, ValueValidationError
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 from streamlit_lightweight_charts_pro.type_definitions.colors import (
     BackgroundGradient,
     BackgroundSolid,
 )
-from streamlit_lightweight_charts_pro.type_definitions.colors import (
-    _is_valid_color as is_valid_color,
-)
 from streamlit_lightweight_charts_pro.type_definitions.enums import HorzAlign, LineStyle, VertAlign
 from streamlit_lightweight_charts_pro.utils import chainable_field
+from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 
 
 @dataclass
@@ -64,7 +62,7 @@ class PaneHeightOptions(Options):
     def __post_init__(self):
         """Validate factor value."""
         if self.factor <= 0:
-            raise PositiveValueError("Pane height factor", self.factor)
+            raise ValueValidationError.positive_value("Pane height factor", self.factor)
 
 
 @dataclass
