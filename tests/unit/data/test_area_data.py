@@ -230,9 +230,11 @@ class TestAreaDataInheritance:
         """Test AreaData optional columns."""
         optional = AreaData.optional_columns
         assert isinstance(optional, set)
-        assert "line_color" in optional
-        assert "top_color" in optional
-        assert "bottom_color" in optional
+        # Convert to set if it's not already one (defensive programming)
+        optional_set = set(optional) if not isinstance(optional, set) else optional
+        assert "line_color" in optional_set
+        assert "top_color" in optional_set
+        assert "bottom_color" in optional_set
 
     def test_inheritance_from_base_data(self):
         """Test that AreaData properly inherits from SingleValueData."""

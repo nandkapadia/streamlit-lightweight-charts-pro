@@ -409,9 +409,12 @@ class TestHistogramSeriesEdgeCases:
         data = [HistogramData(time=1640995200, value=100.5)]
         series = HistogramSeries(data=data)
 
-        # Should not raise error
+        # Should not raise error and empty strings should be omitted
         series.color = ""
-        assert series.color == ""
+        result = series.asdict()
+        options = result["options"]
+        # Empty strings should be omitted
+        assert "color" not in options
 
 
 class TestHistogramSeriesInheritance:
