@@ -3,7 +3,7 @@
  * Provides consistent positioning across all chart features
  */
 
-import { IChartApi, ISeriesApi, Time } from 'lightweight-charts';
+import { IChartApi, ISeriesApi, Time, PriceToCoordinateConverter } from 'lightweight-charts';
 import {
   ChartCoordinates,
   PaneCoordinates,
@@ -72,6 +72,28 @@ export interface TooltipPosition {
   y: number;
   anchor: 'top' | 'bottom' | 'left' | 'right';
   offset: { x: number; y: number };
+}
+
+/**
+ * Configuration for series data coordinate conversion
+ */
+export interface SeriesDataConversionConfig {
+  /** Keys to extract from data for conversion */
+  valueKeys: string[];
+  /** Whether to validate numeric values */
+  validateNumbers?: boolean;
+  /** Whether to check for finite values */
+  checkFinite?: boolean;
+  /** Custom validation function */
+  customValidator?: (data: any) => boolean;
+}
+
+/**
+ * Result of series data coordinate conversion
+ */
+export interface SeriesDataConversionResult {
+  x: number | null;
+  [key: string]: number | null;
 }
 
 /**
@@ -2364,4 +2386,187 @@ export class ChartCoordinateService {
       }, 60000); // Clean up after 1 minute as fallback
     }
   }
+
+  // ============================================================================
+  // Series Data Coordinate Conversion Methods
+  // ============================================================================
+
+  /**
+   * Convert series data items to screen coordinates with unified validation
+   *
+   * This method provides DRY-compliant coordinate conversion for series plugins,
+   * eliminating the need for duplicated conversion logic across different series.
+   *
+   * @param data - Data items to convert (from series pane view data)
+   * @param scope - Bitmap coordinates rendering scope
+   * @param priceConverter - Price to coordinate converter
+   * @param config - Conversion configuration
+   * @returns Array of converted coordinates
+   */
+  convertSeriesDataToScreenCoordinates(
+    data: Array<{ x: number; originalData: Record<string, any> }>,
+    scope: { horizontalPixelRatio: number; verticalPixelRatio: number },
+    priceConverter: PriceToCoordinateConverter,
+    config: SeriesDataConversionConfig
+  ): SeriesDataConversionResult[] {
+    if (!data) return [];
+
+    const coordinates: SeriesDataConversionResult[] = [];
+    const { valueKeys, validateNumbers = true, checkFinite = true, customValidator } = config;
+
+    for (const item of data) {
+      const originalData = item.originalData;
+
+      // Apply custom validation if provided
+      if (customValidator && !customValidator(originalData)) {
+        continue;
+      }
+
+      // Validate numeric values if enabled
+      if (validateNumbers) {
+        const hasInvalidValues = valueKeys.some(key => {
+          const value = originalData[key];
+          return (
+            typeof value !== 'number' ||
+            isNaN(value) ||
+            (checkFinite && !isFinite(value))
+          );
+        });
+
+        if (hasInvalidValues) {
+          continue;
+        }
+      }
+
+      // Convert values to coordinates
+      const convertedValues: Record<string, number | null> = {};
+      let hasAnyInvalidConversion = false;
+
+      for (const key of valueKeys) {
+        const value = originalData[key];
+        const y = priceConverter(value);
+
+        // Check if conversion is valid
+        if (
+          y == null ||
+          isNaN(y) ||
+          (checkFinite && !isFinite(y))
+        ) {
+          // Mark as having invalid conversion
+          hasAnyInvalidConversion = true;
+          convertedValues[key] = null;
+        } else {
+          convertedValues[key] = y * scope.verticalPixelRatio;
+        }
+      }
+
+      // Add point to coordinates array
+      // Include points with null values to maintain array indices
+      // The rendering functions will handle gaps by detecting null values
+      coordinates.push({
+        x: hasAnyInvalidConversion ? null : item.x * scope.horizontalPixelRatio,
+        ...convertedValues,
+      });
+    }
+
+    return coordinates;
+  }
+
+  /**
+   * Validate numeric data values for series
+   *
+   * @param data - Data object to validate
+   * @param keys - Keys to validate
+   * @param options - Validation options
+   * @returns True if all values are valid
+   */
+  validateSeriesNumericData(
+    data: Record<string, any>,
+    keys: string[],
+    options: {
+      allowNull?: boolean;
+      allowUndefined?: boolean;
+      checkFinite?: boolean;
+    } = {}
+  ): boolean {
+    const { allowNull = false, allowUndefined = false, checkFinite = true } = options;
+
+    return keys.every(key => {
+      const value = data[key];
+
+      if (value === null && allowNull) return true;
+      if (value === undefined && allowUndefined) return true;
+
+      if (typeof value !== 'number') return false;
+      if (isNaN(value)) return false;
+      if (checkFinite && !isFinite(value)) return false;
+
+      return true;
+    });
+  }
+
+  /**
+   * Convert price values to coordinates with error handling
+   *
+   * @param values - Price values to convert
+   * @param priceConverter - Price to coordinate converter
+   * @param pixelRatio - Vertical pixel ratio for scaling
+   * @returns Converted coordinates or null if conversion fails
+   */
+  convertPricesToCoordinates(
+    values: Record<string, number>,
+    priceConverter: PriceToCoordinateConverter,
+    pixelRatio: number
+  ): Record<string, number> | null {
+    const result: Record<string, number> = {};
+
+    for (const [key, value] of Object.entries(values)) {
+      const y = priceConverter(value);
+
+      if (y == null || isNaN(y) || !isFinite(y)) {
+        return null; // Return null if any conversion fails
+      }
+
+      result[key] = y * pixelRatio;
+    }
+
+    return result;
+  }
+
+  /**
+   * Predefined configurations for common series types
+   */
+  static readonly SeriesDataConfigs = {
+    /** Configuration for ribbon series (upper, lower) */
+    ribbon: {
+      valueKeys: ['upper', 'lower'],
+      validateNumbers: true,
+      checkFinite: true,
+    } as SeriesDataConversionConfig,
+
+    /** Configuration for band series (upper, middle, lower) */
+    band: {
+      valueKeys: ['upper', 'middle', 'lower'],
+      validateNumbers: true,
+      checkFinite: true,
+    } as SeriesDataConversionConfig,
+
+    /** Configuration for gradient ribbon series (upper, lower with fillColor) */
+    gradientRibbon: {
+      valueKeys: ['upper', 'lower'],
+      validateNumbers: true,
+      checkFinite: true,
+      customValidator: (data: any) => {
+        // Additional validation for gradient ribbon
+        return data.fillColor !== undefined || data.upper !== undefined;
+      },
+    } as SeriesDataConversionConfig,
+
+    /** Configuration for single value series */
+    singleValue: {
+      valueKeys: ['value'],
+      validateNumbers: true,
+      checkFinite: true,
+    } as SeriesDataConversionConfig,
+  };
 }

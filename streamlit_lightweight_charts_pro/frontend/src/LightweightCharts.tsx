@@ -486,7 +486,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         window.chartInstances = window.chartInstances || {};
         window.chartInstances[chartId] = chart;
       } catch {
-        console.error('An error occurred');
+        logger.error('An error occurred', 'LightweightCharts');
       }
 
       // Crosshair subscription for legend value updates is now handled
@@ -506,89 +506,41 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       let lastClickTime = 0;
       const doubleClickThreshold = 300; // milliseconds
 
-      // Track whether initial fitContent has been called
-      let hasInitialFitContentBeenCalled = false;
-
       // Check if fitContent on load is enabled
       const shouldFitContentOnLoad =
         chartConfig.chart?.timeScale?.fitContentOnLoad !== false &&
         chartConfig.chart?.fitContentOnLoad !== false;
 
       if (shouldFitContentOnLoad) {
-        // Wait for data to be loaded and then fit content
-        const handleDataLoaded = async (retryCount = 0) => {
-          const maxRetries = 50; // Prevent infinite loops
-
-          if (retryCount >= maxRetries) {
-            return;
-          }
-
-          try {
-            // Check if chart has series with data
-            const series = Object.values(seriesRefs.current).flat();
-
-            if (series.length === 0) {
-              // No series yet, try again after a delay
-              setTimeout(() => {
-                handleDataLoaded(retryCount + 1).catch(console.error);
-              }, 100);
-              return;
-            }
-
-            // Trade visualization is now handled synchronously in createSeries
-            // No need to wait for trade data or call addTradeVisualizationWhenReady
-
-            // Check if chart has a visible range (more reliable than checking series data)
-            const visibleRange = timeScale.getVisibleRange();
-
-            if (visibleRange && visibleRange.from && visibleRange.to) {
-              // Safe fitContent with user interaction check - only on initial load
-              const chartElement = chart.chartElement();
-              if (
-                !hasInitialFitContentBeenCalled &&
-                chartElement &&
-                !(chartElement as HTMLElement & { _userHasInteracted?: boolean })._userHasInteracted
-              ) {
-                timeScale.fitContent();
-                hasInitialFitContentBeenCalled = true;
-              }
-              // Trade visualization is now handled synchronously in createSeries
-            } else {
-              // Retry fitContent with user interaction check
-              setTimeout(() => {
-                (async () => {
-                  try {
-                    const chartElement = chart.chartElement();
-                    if (
-                      !hasInitialFitContentBeenCalled &&
-                      chartElement &&
-                      !(chartElement as HTMLElement & { _userHasInteracted?: boolean })
-                        ._userHasInteracted
-                    ) {
-                      timeScale.fitContent();
-                      hasInitialFitContentBeenCalled = true;
-                    }
-                    // Trade visualization is now handled synchronously in createSeries
-                  } catch {
-                    // fitContent after delay failed
-                  }
-                })().catch(console.error);
-              }, 100);
-            }
-          } catch {
-            // fitContent failed
-          }
-        };
-
         // Clear any existing timeout
         if (fitContentTimeoutRef.current) {
           clearTimeout(fitContentTimeoutRef.current);
         }
 
-        // Call fitContent after a longer delay to ensure data is loaded
-        fitContentTimeoutRef.current = setTimeout(() => {
-          handleDataLoaded().catch(console.error);
-        }, 1000); // Increased delay to wait for trade data
+        // Wait for chart to be ready before calling fitContent
+        ChartReadyDetector.waitForChartReady(chart, chart.chartElement(), {
+          minWidth: 200,
+          minHeight: 100,
+          maxAttempts: 50,
+          baseDelay: 100,
+        })
+          .then(isReady => {
+            if (isReady) {
+              try {
+                const chartElement = chart.chartElement();
+                const userInteracted = (chartElement as HTMLElement & { _userHasInteracted?: boolean })._userHasInteracted;
+
+                if (chartElement && !userInteracted) {
+                  timeScale.fitContent();
+                }
+              } catch (error) {
+                logger.error('fitContent on load failed', 'FitContent', error);
+              }
+            }
+          })
+          .catch(error => {
+            logger.error('Chart readiness check failed', 'FitContent', error);
+          });
       }
 
       // Setup double-click to fit content
@@ -967,7 +919,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 // Use createSeriesMarkers instead of setMarkers for compatibility
                 createSeriesMarkers(series, markers);
               } catch {
-                console.error('An error occurred');
+                logger.error('An error occurred', 'LightweightCharts');
               }
             }
           }
@@ -981,7 +933,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             // Style not yet implemented
           }
         } catch {
-          console.error('An error occurred');
+          logger.error('An error occurred', 'LightweightCharts');
         }
       },
       []
@@ -1161,7 +1113,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             })
             .catch(() => {});
         } catch {
-          console.error('An error occurred');
+          logger.error('An error occurred', 'LightweightCharts');
         }
       },
       []
@@ -1186,7 +1138,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         existingPlugins.push(rangeSwitcherWidget);
         window.chartPlugins.set(chartId, existingPlugins);
       } catch {
-        console.error('An error occurred');
+        logger.error('An error occurred', 'LightweightCharts');
       }
     }, []);
 
@@ -1258,7 +1210,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               try {
                 primitiveManager.addLegend(legendConfig, false, paneId);
               } catch (legendError) {
-                console.error('Legend creation failed:', legendError);
+                logger.error('Legend creation failed', 'Legend', legendError);
               }
             } else {
               // No legend configuration provided
@@ -1267,7 +1219,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
           return;
         } catch {
-          console.error('An error occurred');
+          logger.error('An error occurred', 'LightweightCharts');
         }
 
         // OLD SYSTEM BELOW - keeping as fallback but should not be reached
@@ -1389,7 +1341,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               // Remove the incorrectly positioned legend
               kstLegend.remove();
             } catch {
-              console.error('An error occurred');
+              logger.error('An error occurred', 'LightweightCharts');
             }
           }
         }
@@ -1409,7 +1361,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               seriesOptions = series.options;
             }
           } catch {
-            console.error('An error occurred');
+            logger.error('An error occurred', 'LightweightCharts');
           }
 
           // Get the paneId from the series configuration (backend sets this)
@@ -1948,13 +1900,13 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                                     );
                                   }
                                 } catch (attachError) {
-                                  console.error('Plugin attachment failed:', attachError);
+                                  logger.error('Plugin attachment failed', 'Plugin', attachError);
                                 }
                               }
                             } catch {
                               // Error in chart readiness or trade visualization
                             }
-                          })().catch(console.error);
+                          })().catch((error: Error) => logger.error('Async operation failed', 'LightweightCharts', error));
                         }, 50); // Small delay to let chart initialization complete
                       } catch {
                         // Error setting up trade visualization
@@ -2051,7 +2003,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   }
                 })
                 .catch(error => {
-                  console.error('An error occurred');
+                  logger.error('An error occurred', 'LightweightCharts');
                 });
             }
 
@@ -2090,7 +2042,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                             series
                           );
                         } catch {
-                          console.error('An error occurred');
+                          logger.error('An error occurred', 'LightweightCharts');
                         }
                       }
                     });
@@ -2169,23 +2121,19 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             }
 
             // Debug logging
-            console.log('Pane collapse config:', paneCollapseConfig);
-
             if (paneCollapseConfig.enabled !== false) {
               try {
                 // Get all panes and wrap each in its own collapsible container
                 let allPanes: any[] = [];
                 if (chart && typeof chart.panes === 'function') {
                   try {
-                    allPanes = chart.panes();
-                    console.log('✅ Successfully got panes:', allPanes?.length || 0);
-                  } catch (error) {
+                    allPanes = chart.panes();                  } catch (error) {
                     // chart.panes() failed, use empty array
-                    console.error('❌ Failed to get panes:', error);
+                    logger.error('Failed to get panes', 'ButtonPanel', error);
                     allPanes = [];
                   }
                 } else {
-                  console.error('❌ Chart or chart.panes() is not available');
+                  logger.error('Chart or chart.panes() is not available', 'ButtonPanel');
                 }
 
                 // Always set up crosshair subscription for legend value updates
@@ -2210,76 +2158,45 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       });
                     }
                   } catch {
-                    console.error('An error occurred');
+                    logger.error('An error occurred', 'LightweightCharts');
                   }
                 });
 
                 // Show button panels when there are multiple panes (for collapse) or when gear button is enabled (for series settings)
-                console.log('Button panel condition check:', {
-                  multiplePane: allPanes.length > 1,
-                  gearEnabled: paneCollapseConfig.showGearButton,
-                  shouldCreate: allPanes.length > 1 || paneCollapseConfig.showGearButton,
-                  allPanesLength: allPanes.length
-                });
-
-                if (allPanes.length > 1 || paneCollapseConfig.showGearButton) {
-                  console.log('Creating button panels for', allPanes.length, 'panes');
-                  // Set up pane collapse support using ChartPrimitiveManager
-                  try {
-                    console.log('🔧 Step 1: Getting primitive manager...');
-                    const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId);
-                    console.log('✅ Step 1: Primitive manager obtained:', primitiveManager);
-
-                    console.log('🔧 Step 2: Starting button panel creation loop...');
-                    // Create button panels (gear + collapse buttons) for each pane using primitive manager
+                if (allPanes.length > 1 || paneCollapseConfig.showGearButton) {                  // Set up pane collapse support using ChartPrimitiveManager
+                  try {                    const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId);                    // Create button panels (gear + collapse buttons) for each pane using primitive manager
                     for (const [paneId, _pane] of allPanes.entries()) {
-                      console.log(`🔧 Step 2.${paneId + 1}: Processing pane ${paneId}...`);
-
                       // Configure button panel based on pane count
                       const buttonConfig = {
                         ...paneCollapseConfig,
                         showCollapseButton: allPanes.length > 1, // Only show collapse button with multiple panes
                         showGearButton: paneCollapseConfig.showGearButton // Always respect gear button setting
-                      };
-
-                      console.log(`🔧 Step 2.${paneId + 1}: Button config created for pane ${paneId}:`, buttonConfig);
-
-                      console.log(`🔧 Step 2.${paneId + 1}: Calling addButtonPanel for pane ${paneId}...`);
-                      // Add button panel using primitive manager
+                      };                      // Add button panel using primitive manager
                       const buttonPanelWidget = primitiveManager.addButtonPanel(
                         paneId,
                         buttonConfig
-                      );
-
-                      console.log(`✅ Step 2.${paneId + 1}: Button panel widget created for pane ${paneId}:`, buttonPanelWidget);
-
-                      console.log(`🔧 Step 2.${paneId + 1}: Storing widget reference for pane ${paneId}...`);
-                      // Store widget reference for cleanup
+                      );                      // Store widget reference for cleanup
                       if (!window.paneButtonPanelWidgets) {
                         window.paneButtonPanelWidgets = {};
                       }
                       if (!window.paneButtonPanelWidgets[chartId]) {
                         window.paneButtonPanelWidgets[chartId] = [];
                       }
-                      window.paneButtonPanelWidgets[chartId].push(buttonPanelWidget);
-                      console.log(`✅ Step 2.${paneId + 1}: Widget reference stored for pane ${paneId}`);
-                    }
-                    console.log('✅ Step 2: All button panels created successfully');
-                  } catch (error) {
-                    console.error('❌ Button panel creation failed at step:', error);
-                    console.error('❌ Error details:', error instanceof Error ? error.message : String(error));
-                    console.error('❌ Error stack:', error instanceof Error ? error.stack : String(error));
+                      window.paneButtonPanelWidgets[chartId].push(buttonPanelWidget);                    }                  } catch (error) {
+                    logger.error('Button panel creation failed at step', 'ButtonPanel', error);
+                    logger.error('Error details: ' + (error instanceof Error ? error.message : String(error)), 'ButtonPanel');
+                    logger.error('Error stack: ' + (error instanceof Error ? error.stack : String(error)), 'ButtonPanel');
                   }
                 }
               } catch (error) {
-                console.error('❌ Pane collapse setup failed:', error);
+                logger.error('Pane collapse setup failed', 'ButtonPanel', error);
               }
             }
 
             // Initial fitContent is now handled by handleDataLoaded function with proper tracking
             // to prevent multiple calls. This redundant delayed fitContent has been removed.
           } catch {
-            console.error('An error occurred');
+            logger.error('An error occurred', 'LightweightCharts');
           }
         });
 
@@ -2392,9 +2309,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     // Handle config changes from series settings dialog
     useEffect(() => {
       if (!configChange) return;
-
-      console.log('🔧 Applying config change:', configChange);
-
       const { paneId, seriesId, configPatch } = configChange;
 
       // Find the appropriate chart and series to update
@@ -2411,8 +2325,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             const expectedSeriesId = `pane-${paneId}-series-${index}`;
 
             if (seriesId === expectedSeriesId) {
-              console.log('🎯 Found target series to update:', seriesId, series);
-
               // Apply the configuration changes to the series
               // Get current options for reference if needed
               // const currentOptions = series.options();
@@ -2458,13 +2370,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
               // Apply the options to the series
               if (Object.keys(apiConfig).length > 0) {
-                series.applyOptions(apiConfig);
-                console.log('✅ Applied config to series:', apiConfig);
-              }
+                series.applyOptions(apiConfig);              }
             }
           });
         } catch (error) {
-          console.error('❌ Error applying config change:', error);
+          logger.error('Error applying config change', 'SeriesConfig', error);
         }
       });
     }, [configChange]);
@@ -2479,7 +2389,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         resetOnPropsChange={false}
         isolate={true}
         onError={(error, errorInfo) => {
-          console.error('Chart rendering error:', error, errorInfo);
+          logger.error('Chart rendering error: ' + String(errorInfo), 'ErrorBoundary', error);
         }}
       >
         <div

@@ -18,7 +18,7 @@ import {
   createSignalSeriesPlugin,
   SignalData,
 } from '../plugins/series/signalSeriesPlugin';
-import { RibbonSeries, RibbonData } from '../plugins/series/ribbonSeriesPlugin';
+import { createRibbonSeries, RibbonData } from '../plugins/series/ribbonSeriesPlugin';
 import {
   createGradientRibbonSeries,
   GradientRibbonData,
@@ -28,6 +28,7 @@ import {
 } from '../plugins/series/trendFillSeriesPlugin';
 import { cleanLineStyleOptions } from './lineStyle';
 import { createTradeVisualElements } from '../services/tradeVisualization';
+import { logger } from './logger';
 
 interface SeriesFactoryContext {
   signalPluginRefs?: MutableRefObject<{ [key: string]: SignalSeries }>;
@@ -134,236 +135,118 @@ export function createSeries(
     }
     case 'band': {
       try {
-        const bandSeriesOptions: any = {
-          upperLine: cleanedOptions.upperLine || {
-            color: '#4CAF50',
-            lineStyle: 0,
-            lineWidth: 2,
-            lineVisible: true,
-          },
-          middleLine: cleanedOptions.middleLine || {
-            color: '#2196F3',
-            lineStyle: 0,
-            lineWidth: 2,
-            lineVisible: true,
-          },
-          lowerLine: cleanedOptions.lowerLine || {
-            color: '#F44336',
-            lineStyle: 0,
-            lineWidth: 2,
-            lineVisible: true,
-          },
-          upperFillColor: cleanedOptions.upperFillColor || 'rgba(76, 175, 80, 0.1)',
-          lowerFillColor: cleanedOptions.lowerFillColor || 'rgba(244, 67, 54, 0.1)',
-          upperFill: cleanedOptions.upperFill !== undefined ? cleanedOptions.upperFill : true,
-          lowerFill: cleanedOptions.lowerFill !== undefined ? cleanedOptions.lowerFill : true,
+        // Map old nested line options to new flat structure
+        const upperLine = cleanedOptions.upperLine || {};
+        const middleLine = cleanedOptions.middleLine || {};
+        const lowerLine = cleanedOptions.lowerLine || {};
+
+        const bandSeries = createBandSeries(chart, {
+          // Upper line options
+          upperLineColor: upperLine.color ?? '#4CAF50',
+          upperLineWidth: upperLine.lineWidth ?? 2,
+          upperLineStyle: upperLine.lineStyle ?? 0,
+          upperLineVisible: upperLine.lineVisible !== false,
+
+          // Middle line options
+          middleLineColor: middleLine.color ?? '#2196F3',
+          middleLineWidth: middleLine.lineWidth ?? 2,
+          middleLineStyle: middleLine.lineStyle ?? 0,
+          middleLineVisible: middleLine.lineVisible !== false,
+
+          // Lower line options
+          lowerLineColor: lowerLine.color ?? '#F44336',
+          lowerLineWidth: lowerLine.lineWidth ?? 2,
+          lowerLineStyle: lowerLine.lineStyle ?? 0,
+          lowerLineVisible: lowerLine.lineVisible !== false,
+
+          // Fill options
+          upperFillColor: cleanedOptions.upperFillColor ?? 'rgba(76, 175, 80, 0.1)',
+          upperFillVisible: cleanedOptions.upperFill !== false,
+          lowerFillColor: cleanedOptions.lowerFillColor ?? 'rgba(244, 67, 54, 0.1)',
+          lowerFillVisible: cleanedOptions.lowerFill !== false,
+
+          // Chart options
           priceScaleId: priceScaleId || 'right',
-          visible: cleanedOptions.visible !== false,
-          lastValueVisible: lastValueVisible !== undefined ? lastValueVisible : true,
-          priceLineVisible: priceLineVisible !== undefined ? priceLineVisible : true,
-          priceLineSource: priceLineSource !== undefined ? priceLineSource : 'lastBar',
-          priceLineWidth: priceLineWidth !== undefined ? priceLineWidth : 1,
-          priceLineColor: priceLineColor !== undefined ? priceLineColor : '',
-          priceLineStyle: priceLineStyle !== undefined ? priceLineStyle : 2,
-        };
-        const bandSeries = createBandSeries(chart, bandSeriesOptions);
-        if (data && data.length > 0) {
-          bandSeries.setData(data as BandData[]);
-        }
-        return {
-          setData: (newData: any[]) => {
-            try {
-              bandSeries.setData(newData as BandData[]);
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-          update: (newData: any) => {
-            try {
-              bandSeries.update(newData as BandData);
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-          applyOptions: (options: any) => {
-            try {
-              bandSeries.setOptions(cleanLineStyleOptions(options));
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-          priceScale: () => {
-            try {
-              return chart.priceScale(priceScaleId || 'right');
-            } catch {
-              return null;
-            }
-          },
-          remove: () => {
-            try {
-              bandSeries.remove();
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-        } as unknown as ISeriesApi<any>;
-      } catch {
+          usePrimitive: true, // Use primitive for rendering
+          data: data as BandData[],
+        });
+
+        return bandSeries as ISeriesApi<any>;
+      } catch (error) {
+        logger.warn('Error creating band series', 'seriesFactory', error);
         return null;
       }
     }
     case 'ribbon': {
       try {
-        const ribbonSeriesOptions: any = {
-          upperLine: cleanedOptions.upperLine || {
-            color: '#4CAF50',
-            lineStyle: 0,
-            lineWidth: 2,
-            lineVisible: true,
-          },
-          lowerLine: cleanedOptions.lowerLine || {
-            color: '#F44336',
-            lineStyle: 0,
-            lineWidth: 2,
-            lineVisible: true,
-          },
-          fill: cleanedOptions.fill || 'rgba(76, 175, 80, 0.1)',
+        // Map old nested format to new flat format
+        const upperLine = cleanedOptions.upperLine || {};
+        const lowerLine = cleanedOptions.lowerLine || {};
+
+        const ribbonSeries = createRibbonSeries(chart, {
+          // Upper line options
+          upperLineColor: upperLine.color ?? '#4CAF50',
+          upperLineWidth: upperLine.lineWidth ?? 2,
+          upperLineStyle: upperLine.lineStyle ?? 0,
+          upperLineVisible: upperLine.lineVisible !== false,
+
+          // Lower line options
+          lowerLineColor: lowerLine.color ?? '#F44336',
+          lowerLineWidth: lowerLine.lineWidth ?? 2,
+          lowerLineStyle: lowerLine.lineStyle ?? 0,
+          lowerLineVisible: lowerLine.lineVisible !== false,
+
+          // Fill options
+          fillColor: cleanedOptions.fill ?? 'rgba(76, 175, 80, 0.1)',
           fillVisible: cleanedOptions.fillVisible !== false,
+
+          // Chart options
           priceScaleId: priceScaleId || 'right',
-          visible: cleanedOptions.visible !== false,
-          lastValueVisible: lastValueVisible !== undefined ? lastValueVisible : true,
-          priceLineVisible: priceLineVisible !== undefined ? priceLineVisible : true,
-          priceLineSource: priceLineSource !== undefined ? priceLineSource : 'lastBar',
-          priceLineWidth: priceLineWidth !== undefined ? priceLineWidth : 1,
-          priceLineColor: priceLineColor !== undefined ? priceLineColor : '',
-          priceLineStyle: priceLineStyle !== undefined ? priceLineStyle : 2,
-        };
+          usePrimitive: true, // Use primitive for rendering
+          data: data as RibbonData[],
+        });
 
-        const ribbonSeries = new RibbonSeries(chart, ribbonSeriesOptions);
-        if (data && data.length > 0) {
-          ribbonSeries.setData(data as RibbonData[]);
-        }
-
-        return {
-          setData: (newData: any[]) => {
-            try {
-              ribbonSeries.setData(newData);
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-          update: (newData: any) => {
-            try {
-              // For ribbon, update the entire dataset
-              ribbonSeries.setData([newData]);
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-          applyOptions: (options: any) => {
-            try {
-              ribbonSeries.setOptions(cleanLineStyleOptions(options));
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-          priceScale: () => {
-            try {
-              return chart.priceScale(priceScaleId || 'right');
-            } catch {
-              return null;
-            }
-          },
-          remove: () => {
-            try {
-              // For primitives, we need to detach from the series
-              // The series will handle cleanup when removed
-              ribbonSeries.remove();
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-        } as unknown as ISeriesApi<any>;
-      } catch {
+        return ribbonSeries as ISeriesApi<any>;
+      } catch (error) {
+        logger.warn('Error creating ribbon series', 'seriesFactory', error);
         return null;
       }
     }
     case 'gradient_ribbon': {
       try {
-        // Map backend property names to frontend expected names
-        const mapLineOptions = (lineOpts: any, defaultColor: string = '#4CAF50') => {
-          if (!lineOpts)
-            return {
-              color: defaultColor,
-              lineStyle: 0,
-              lineWidth: 2,
-              visible: true,
-            };
-          return {
-            color: lineOpts.color || defaultColor,
-            lineStyle:
-              lineOpts.lineStyle !== undefined ? lineOpts.lineStyle : lineOpts.lineType || 0,
-            lineWidth: lineOpts.lineWidth || 2,
-            visible:
-              lineOpts.visible !== undefined ? lineOpts.visible : lineOpts.lineVisible !== false,
-          };
-        };
+        // Map old nested line options to new flat structure
+        const upperLine = cleanedOptions.upperLine || {};
+        const lowerLine = cleanedOptions.lowerLine || {};
 
-        const gradientRibbonSeriesOptions: any = {
-          upperLine: mapLineOptions(cleanedOptions.upperLine, '#4CAF50'),
-          lowerLine: mapLineOptions(cleanedOptions.lowerLine, '#F44336'),
-          fill: cleanedOptions.fill || 'rgba(76, 175, 80, 0.3)',
+        const gradientRibbonSeries = createGradientRibbonSeries(chart, {
+          // Upper line options
+          upperLineColor: upperLine.color ?? '#4CAF50',
+          upperLineWidth: upperLine.lineWidth ?? 2,
+          upperLineStyle: upperLine.lineStyle ?? 0,
+          upperLineVisible: upperLine.visible !== false,
+
+          // Lower line options
+          lowerLineColor: lowerLine.color ?? '#F44336',
+          lowerLineWidth: lowerLine.lineWidth ?? 2,
+          lowerLineStyle: lowerLine.lineStyle ?? 0,
+          lowerLineVisible: lowerLine.visible !== false,
+
+          // Fill and gradient options
+          fillColor: cleanedOptions.fill ?? 'rgba(76, 175, 80, 0.3)',
           fillVisible: cleanedOptions.fillVisible !== false,
-          gradientStartColor: cleanedOptions.gradientStartColor || '#4CAF50',
-          gradientEndColor: cleanedOptions.gradientEndColor || '#F44336',
-          normalizeGradients: cleanedOptions.normalizeGradients || false,
+          gradientStartColor: cleanedOptions.gradientStartColor ?? '#4CAF50',
+          gradientEndColor: cleanedOptions.gradientEndColor ?? '#F44336',
+          normalizeGradients: cleanedOptions.normalizeGradients ?? false,
+
+          // Chart options
           priceScaleId: priceScaleId || 'right',
-          visible: cleanedOptions.visible !== false,
-          zIndex: cleanedOptions.zIndex || 100,
-        };
+          usePrimitive: true, // Use primitive for rendering
+          data: data as GradientRibbonData[],
+        });
 
-        const gradientRibbonSeries = createGradientRibbonSeries(chart, gradientRibbonSeriesOptions);
-        if (data && data.length > 0) {
-          gradientRibbonSeries.setData(data as GradientRibbonData[]);
-        }
-
-        return {
-          setData: (newData: any[]) => {
-            try {
-              gradientRibbonSeries.setData(newData as GradientRibbonData[]);
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-          update: (newData: any) => {
-            try {
-              gradientRibbonSeries.updateData([newData]);
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-          applyOptions: (options: any) => {
-            try {
-              gradientRibbonSeries.applyOptions(cleanLineStyleOptions(options));
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-          priceScale: () => {
-            try {
-              return chart.priceScale(priceScaleId || 'right');
-            } catch {
-              return null;
-            }
-          },
-          remove: () => {
-            try {
-              gradientRibbonSeries.destroy();
-            } catch {
-              console.error('An error occurred');
-            }
-          },
-        } as unknown as ISeriesApi<any>;
-      } catch {
+        return gradientRibbonSeries as ISeriesApi<any>;
+      } catch (error) {
+        logger.warn('Error creating gradient ribbon series', 'seriesFactory', error);
         return null;
       }
     }
@@ -387,15 +270,15 @@ export function createSeries(
           setData: (newData: any[]) => {
             try {
               signalSeries.updateData(newData);
-            } catch {
-              console.error('An error occurred');
+            } catch (error) {
+              logger.debug('Error updating signal series data', 'seriesFactory', error);
             }
           },
           update: (newData: any) => {
             try {
               signalSeries.updateData([newData]);
-            } catch {
-              console.error('An error occurred');
+            } catch (error) {
+              logger.debug('Error updating signal series', 'seriesFactory', error);
             }
           },
           applyOptions: (options: any) => {
@@ -406,14 +289,15 @@ export function createSeries(
                 alertColor: options.alertColor,
                 visible: options.visible !== false,
               });
-            } catch {
-              console.error('An error occurred');
+            } catch (error) {
+              logger.debug('Error applying signal series options', 'seriesFactory', error);
             }
           },
           priceScale: () => {
             try {
               return chart.priceScale(priceScaleId || 'right');
-            } catch {
+            } catch (error) {
+              logger.debug('Error getting signal series price scale', 'seriesFactory', error);
               return null;
             }
           },
@@ -423,43 +307,44 @@ export function createSeries(
               if (signalPluginRefs && chartId !== undefined && seriesIndex !== undefined) {
                 delete signalPluginRefs.current[`${chartId}-${seriesIndex}`];
               }
-            } catch {
-              console.error('An error occurred');
+            } catch (error) {
+              logger.debug('Error removing signal series', 'seriesFactory', error);
             }
           },
         } as unknown as ISeriesApi<any>;
-      } catch {
+      } catch (error) {
+        logger.warn('Error creating signal series', 'seriesFactory', error);
         return null;
       }
     }
     case 'trend_fill': {
       try {
-        console.log('[TrendFill] Creating with data:', data?.length, 'points');
 
         // Create TrendFill series with primitive (handles series + primitive creation internally)
         const trendFillSeries = createTrendFillSeries(chart, {
           ...cleanedOptions,
           priceScaleId: priceScaleId || 'right',
-          disableSeriesRendering: true, // Use primitive for rendering
+          usePrimitive: true, // Use primitive for rendering
           data: data,
         });
 
         return trendFillSeries as ISeriesApi<any>;
       } catch (error) {
-        console.error('[TrendFill] Error creating series:', error);
+        logger.warn('Error creating trend fill series', 'seriesFactory', error);
         return null;
       }
     }
     case 'baseline': {
       const baselineOptions: any = {
         ...cleanedOptions,
-        baseValue: cleanedOptions.baseValue || { price: 0 },
-        topLineColor: cleanedOptions.topLineColor || 'rgba(76, 175, 80, 0.4)',
-        topFillColor1: cleanedOptions.topFillColor1 || 'rgba(76, 175, 80, 0.0)',
-        topFillColor2: cleanedOptions.topFillColor2 || 'rgba(76, 175, 80, 0.4)',
-        bottomLineColor: cleanedOptions.bottomLineColor || 'rgba(255, 82, 82, 0.4)',
-        bottomFillColor1: cleanedOptions.bottomFillColor1 || 'rgba(255, 82, 82, 0.4)',
-        bottomFillColor2: cleanedOptions.bottomFillColor2 || 'rgba(255, 82, 82, 0.0)',
+        baseValue: cleanedOptions.baseValue || { type: 'price', price: 0 },
+        relativeGradient: cleanedOptions.relativeGradient !== undefined ? cleanedOptions.relativeGradient : false,
+        topLineColor: cleanedOptions.topLineColor || 'rgba(38, 166, 154, 1)',
+        topFillColor1: cleanedOptions.topFillColor1 || 'rgba(38, 166, 154, 0.28)',
+        topFillColor2: cleanedOptions.topFillColor2 || 'rgba(38, 166, 154, 0.05)',
+        bottomLineColor: cleanedOptions.bottomLineColor || 'rgba(239, 83, 80, 1)',
+        bottomFillColor1: cleanedOptions.bottomFillColor1 || 'rgba(239, 83, 80, 0.05)',
+        bottomFillColor2: cleanedOptions.bottomFillColor2 || 'rgba(239, 83, 80, 0.28)',
         lineWidth: cleanedOptions.lineWidth || 2,
         priceScaleId: priceScaleId || '',
         lastValueVisible: lastValueVisible !== undefined ? lastValueVisible : true,

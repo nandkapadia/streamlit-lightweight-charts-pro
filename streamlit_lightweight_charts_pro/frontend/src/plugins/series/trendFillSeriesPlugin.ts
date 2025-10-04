@@ -90,9 +90,6 @@ export interface TrendFillData extends CustomData<Time> {
  * @property baseLineWidth - Width of the base line in pixels
  * @property baseLineStyle - Line style (Solid, Dotted, Dashed, etc.)
  * @property baseLineVisible - Toggle base line visibility
- *
- * Rendering Control:
- * @property disableSeriesRendering - When true, the series doesn't render (used when primitive handles rendering)
  */
 export interface TrendFillSeriesOptions extends CustomSeriesOptions {
   uptrendFillColor: string;
@@ -109,7 +106,8 @@ export interface TrendFillSeriesOptions extends CustomSeriesOptions {
   baseLineStyle: LineStyle;
   baseLineVisible: boolean;
 
-  disableSeriesRendering: boolean;
+  // Internal flag (set automatically by factory)
+  _usePrimitive?: boolean;
 }
 
 // ============================================================================
@@ -189,8 +187,8 @@ class TrendFillSeriesRenderer<TData extends TrendFillData>
       return;
     }
 
-    // Early exit if rendering is disabled (primitive handles rendering)
-    if (this._options.disableSeriesRendering) {
+    // Early exit if primitive handles rendering
+    if (this._options._usePrimitive) {
       return;
     }
 
@@ -469,8 +467,6 @@ class TrendFillSeries<TData extends TrendFillData>
       baseLineWidth: 1,
       baseLineStyle: LineStyle.Dotted,
       baseLineVisible: false, // Hide base line by default
-
-      disableSeriesRendering: false, // Render by default
     };
   }
 }
@@ -493,7 +489,7 @@ class TrendFillSeries<TData extends TrendFillData>
  *    - Price axis label managed by series
  *
  * 2. **Primitive rendering mode (usePrimitive: true)**
- *    - Series provides autoscaling only (disableSeriesRendering: true)
+ *    - Series provides autoscaling only
  *    - Primitive attached to series handles rendering
  *    - Renders behind other series (negative z-index)
  *    - Price axis label managed by primitive
@@ -550,7 +546,6 @@ class TrendFillSeries<TData extends TrendFillData>
  * @param options.baseLineStyle - Line style (default: Dotted)
  * @param options.baseLineVisible - Show/hide base line (default: false)
  * @param options.priceScaleId - Price scale ID (default: 'right')
- * @param options.disableSeriesRendering - Disable series rendering (auto-set when usePrimitive)
  * @param options.usePrimitive - Enable primitive rendering mode (default: false)
  * @param options.zIndex - Z-order for primitive mode (default: -100)
  * @param options.useHalfBarWidth - Half bar width fills in primitive mode (default: false)
@@ -573,7 +568,6 @@ export function createTrendFillSeries(
     baseLineStyle?: LineStyle;
     baseLineVisible?: boolean;
     priceScaleId?: string;
-    disableSeriesRendering?: boolean;
 
     // Primitive-specific options (optional)
     usePrimitive?: boolean;
@@ -582,9 +576,6 @@ export function createTrendFillSeries(
     data?: any[];
   } = {}
 ): any {
-  // Determine if we should use primitive rendering
-  const shouldUsePrimitive = options.usePrimitive || options.disableSeriesRendering;
-
   // Create the ICustomSeries
   const series = chart.addCustomSeries(new TrendFillSeries(), {
     uptrendFillColor: options.uptrendFillColor ?? 'rgba(76, 175, 80, 0.3)',
@@ -599,8 +590,8 @@ export function createTrendFillSeries(
     baseLineStyle: options.baseLineStyle ?? LineStyle.Dotted,
     baseLineVisible: options.baseLineVisible === true,
     priceScaleId: options.priceScaleId ?? 'right',
-    disableSeriesRendering: !!shouldUsePrimitive, // Disable if using primitive
-    lastValueVisible: !shouldUsePrimitive, // Hide series label when primitive handles it
+    lastValueVisible: !options.usePrimitive, // Hide series label when primitive handles it
+    _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
   });
 
   // Set data on series (for autoscaling)
@@ -609,7 +600,7 @@ export function createTrendFillSeries(
   }
 
   // If using primitive, create and attach it
-  if (shouldUsePrimitive) {
+  if (options.usePrimitive) {
     const primitive = new TrendFillPrimitive(chart, {
       uptrendFillColor: options.uptrendFillColor ?? 'rgba(76, 175, 80, 0.3)',
       downtrendFillColor: options.downtrendFillColor ?? 'rgba(244, 67, 54, 0.3)',
@@ -628,7 +619,7 @@ export function createTrendFillSeries(
       visible: true,
       priceScaleId: options.priceScaleId ?? 'right',
       useHalfBarWidth: options.useHalfBarWidth !== false,
-      zIndex: options.zIndex ?? -100,
+      zIndex: options.zIndex ?? 0,
     });
 
     // Attach primitive to series

@@ -9,6 +9,7 @@
 import { Streamlit } from 'streamlit-component-lib';
 import { SeriesConfiguration, SeriesType } from '../types/SeriesTypes';
 import { logger } from '../utils/logger';
+import { Singleton } from '../utils/SingletonBase';
 
 /**
  * Event data for series configuration changes.
@@ -37,8 +38,11 @@ export interface SeriesConfigState {
 /**
  * Service for managing series configuration persistence with Streamlit backend
  */
+// @ts-expect-error - Decorator doesn't support private constructors
+@Singleton()
 export class StreamlitSeriesConfigService {
-  private static instance: StreamlitSeriesConfigService | null = null;
+  static getInstance: () => StreamlitSeriesConfigService;
+
   private configState: SeriesConfigState = {};
   private pendingChanges: SeriesConfigChangeEvent[] = [];
   private debounceTimer: NodeJS.Timeout | null = null;
@@ -46,16 +50,6 @@ export class StreamlitSeriesConfigService {
 
   private constructor() {
     // Private constructor for singleton
-  }
-
-  /**
-   * Get singleton instance
-   */
-  public static getInstance(): StreamlitSeriesConfigService {
-    if (!StreamlitSeriesConfigService.instance) {
-      StreamlitSeriesConfigService.instance = new StreamlitSeriesConfigService();
-    }
-    return StreamlitSeriesConfigService.instance;
   }
 
   /**

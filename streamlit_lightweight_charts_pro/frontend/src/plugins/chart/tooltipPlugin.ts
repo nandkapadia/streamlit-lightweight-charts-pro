@@ -12,6 +12,7 @@
 import { IChartApi, ISeriesApi, SeriesType, Time } from 'lightweight-charts';
 import { ChartCoordinateService } from '../../services/ChartCoordinateService';
 import { UniversalSpacing } from '../../primitives/PrimitiveDefaults';
+import { createSingleton } from '../../utils/SingletonBase';
 
 export interface TooltipField {
   label: string;
@@ -85,17 +86,31 @@ export class TooltipPlugin {
   private currentData: TooltipData | null = null;
   private isVisible = false;
   private chartId: string;
-  private coordinateService: ChartCoordinateService;
+  private _coordinateService: ChartCoordinateService | null = null;
   private tradeData: Map<string, any> = new Map(); // Store trade data for detection
+
+  /**
+   * Lazy getter for coordinate service - avoids module loading order issues
+   */
+  private get coordinateService(): ChartCoordinateService {
+    if (!this._coordinateService) {
+      this._coordinateService = createSingleton(ChartCoordinateService);
+      // Register chart with coordinate service on first access
+      if (this._coordinateService) {
+        this._coordinateService.registerChart(this.chartId, this.chart);
+      }
+    }
+    if (!this._coordinateService) {
+      throw new Error('Failed to initialize ChartCoordinateService');
+    }
+    return this._coordinateService;
+  }
 
   constructor(chart: IChartApi, container: HTMLElement, chartId: string) {
     this.chart = chart;
     this.container = container;
     this.chartId = chartId;
-    this.coordinateService = ChartCoordinateService.getInstance();
-
-    // Register chart with coordinate service
-    this.coordinateService.registerChart(this.chartId, this.chart);
+    // Service is now lazy-loaded via getter to avoid module loading order issues
 
     this.setupEventListeners();
   }

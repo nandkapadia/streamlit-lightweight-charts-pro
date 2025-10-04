@@ -285,7 +285,11 @@ def chainable_property(
                 if isinstance(validator, str):
                     # Built-in validators
                     if validator == "color":
-                        if not is_valid_color(value):
+                        # Treat empty strings as valid (meaning "no color")
+                        if value == "":
+                            # Convert empty string to None for consistent handling
+                            value = None
+                        elif not is_valid_color(value):
                             raise ColorValidationError(attr_name, value)
                     elif validator == "price_format_type":
                         value = validate_price_format_type(value)
@@ -351,7 +355,11 @@ def chainable_property(
                 if isinstance(validator, str):
                     # Built-in validators
                     if validator == "color":
-                        if not is_valid_color(value):
+                        # Treat empty strings as valid (meaning "no color")
+                        if value == "":
+                            # Convert empty string to None for consistent handling
+                            value = None
+                        elif not is_valid_color(value):
                             raise ColorValidationError(attr_name, value)
                     elif validator == "price_format_type":
                         value = validate_price_format_type(value)
@@ -519,7 +527,11 @@ def _validate_value(field_name: str, value, value_type=None, validator=None):
         if isinstance(validator, str):
             # Built-in validators
             if validator == "color":
-                if not is_valid_color(value):
+                # Treat empty strings as valid (meaning "no color")
+                if value == "":
+                    # Convert empty string to None for consistent handling
+                    value = None
+                elif not is_valid_color(value):
                     raise ColorValidationError(field_name, value)
             elif validator == "price_format_type":
                 value = validate_price_format_type(value)

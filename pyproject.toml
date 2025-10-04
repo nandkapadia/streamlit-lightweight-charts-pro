@@ -284,6 +284,8 @@ ignore = [
     "FBT003",
     # Ignore checks for possible passwords
     "S105", "S106", "S107",
+    # Ignore use of random (not cryptographic) - fine for test data generation
+    "S311",
     # Ignore complexity
     "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
     # Allow magic values

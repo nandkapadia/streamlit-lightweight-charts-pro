@@ -60,8 +60,10 @@ class Logger {
         console.info(formattedMessage);
         break;
       case LogLevel.WARN:
+        console.warn(formattedMessage, data);
         break;
       case LogLevel.ERROR:
+        console.error(formattedMessage, data);
         break;
     }
   }

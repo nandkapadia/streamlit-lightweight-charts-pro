@@ -88,35 +88,36 @@ export async function updateChartSeries(chartId: string, seriesData: any[]) {
 
 /**
  * Server Action for batch chart operations
+ * Executes operations in parallel for better performance
  */
 export async function batchChartOperations(operations: Array<{
   type: 'save' | 'load' | 'update';
   chartId: string;
   data?: any;
 }>) {
-  const results = [];
-
-  for (const operation of operations) {
-    try {
-      switch (operation.type) {
-        case 'save':
-          results.push(await saveChartConfig(operation.data));
-          break;
-        case 'load':
-          results.push(await loadChartData(operation.chartId));
-          break;
-        case 'update':
-          results.push(await updateChartSeries(operation.chartId, operation.data));
-          break;
+  // Execute all operations in parallel using Promise.all
+  const results = await Promise.all(
+    operations.map(async (operation) => {
+      try {
+        switch (operation.type) {
+          case 'save':
+            return await saveChartConfig(operation.data);
+          case 'load':
+            return await loadChartData(operation.chartId);
+          case 'update':
+            return await updateChartSeries(operation.chartId, operation.data);
+          default:
+            throw new Error(`Invalid operation type: ${operation.type}`);
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          operation,
+        };
       }
-    } catch (error) {
-      results.push({
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        operation,
-      });
-    }
-  }
+    })
+  );
 
   return {
     success: true,

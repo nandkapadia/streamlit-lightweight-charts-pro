@@ -291,9 +291,11 @@ Object.defineProperty(window, 'CSS', {
 });
 
 // Mock document.execCommand
-Object.defineProperty(document, 'execCommand', {
-  value: vi.fn(() => true),
-});
+if (!document.execCommand) {
+  Object.defineProperty(document, 'execCommand', {
+    value: vi.fn(() => true),
+  });
+}
 
 // Override global appendChild to handle testing library issues
 const originalAppendChild = Element.prototype.appendChild;

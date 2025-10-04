@@ -5,6 +5,7 @@ import { TemplateEngine, TemplateResult } from '../services/TemplateEngine';
 import { TemplateContext } from '../types/ChartInterfaces';
 import { PrimitiveEventManager, EventSubscription } from '../services/PrimitiveEventManager';
 import { Corner, Position, IPositionableWidget, WidgetDimensions } from '../types/layout';
+import { createSingleton } from '../utils/SingletonBase';
 
 /**
  * Base configuration for all pane primitives
@@ -13,12 +14,12 @@ export interface BasePrimitiveConfig {
   /**
    * Position in chart corner
    */
-  corner: Corner;
+  corner?: Corner;
 
   /**
    * Priority for stacking order (lower = higher priority)
    */
-  priority: number;
+  priority?: number;
 
   /**
    * Whether the primitive is visible
@@ -75,9 +76,35 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   protected series: ISeriesApi<any> | null = null;
   protected requestUpdate: (() => void) | null = null;
   protected layoutManager: CornerLayoutManager | null = null;
-  protected coordinateService: ChartCoordinateService;
-  protected templateEngine: TemplateEngine;
+  private _coordinateService: ChartCoordinateService | null = null;
+  private _templateEngine: TemplateEngine | null = null;
   protected eventManager: PrimitiveEventManager | null = null;
+
+  /**
+   * Lazy getter for coordinate service - avoids module loading order issues
+   */
+  protected get coordinateService(): ChartCoordinateService {
+    if (!this._coordinateService) {
+      this._coordinateService = createSingleton(ChartCoordinateService);
+    }
+    if (!this._coordinateService) {
+      throw new Error('Failed to initialize ChartCoordinateService');
+    }
+    return this._coordinateService;
+  }
+
+  /**
+   * Lazy getter for template engine - avoids module loading order issues
+   */
+  protected get templateEngine(): TemplateEngine {
+    if (!this._templateEngine) {
+      this._templateEngine = createSingleton(TemplateEngine);
+    }
+    if (!this._templateEngine) {
+      throw new Error('Failed to initialize TemplateEngine');
+    }
+    return this._templateEngine;
+  }
 
   // Layout state
   protected currentPosition: Position | null = null;
@@ -98,8 +125,7 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
     this.corner = config.corner;
     this.priority = config.priority;
     this.visible = config.visible !== false;
-    this.coordinateService = ChartCoordinateService.getInstance();
-    this.templateEngine = TemplateEngine.getInstance();
+    // Services are now lazy-loaded via getters to avoid module loading order issues
   }
 
   // ===== IPanePrimitive Interface =====

@@ -132,6 +132,11 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   // React 19 hooks for form handling and optimistic updates
   const [isPending, startTransition] = useTransition();
 
+  // Sync optimistic configs when props change
+  useEffect(() => {
+    setOptimisticConfigs(seriesConfigs);
+  }, [seriesConfigs]);
+
   // API hooks for backend communication
   const { updateSeriesSettings } = useSeriesSettingsAPI();
 
@@ -398,9 +403,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
 
         // Send to Streamlit backend for persistence (triggers rerun)
-        console.log('📤 Sending config_change to Streamlit:', updatePayload);
         streamlit.setComponentValue(updatePayload);
-        console.log('✅ config_change sent successfully');
 
       } else {
         logger.warn('Streamlit not accessible for component value update', 'SeriesSettings', {

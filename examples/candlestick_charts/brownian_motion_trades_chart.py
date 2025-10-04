@@ -114,8 +114,8 @@ def identify_trades(ohlcv_data, num_trades=10):
 
     for _i in range(num_trades):
         # Random entry and exit points
-        entry_idx = random.randint(0, n_periods - 2)  # noqa: S311
-        exit_idx = random.randint(entry_idx + 1, n_periods - 1)  # noqa: S311
+        entry_idx = random.randint(0, n_periods - 2)
+        exit_idx = random.randint(entry_idx + 1, n_periods - 1)
 
         entry_data = ohlcv_data[entry_idx]
         exit_data = ohlcv_data[exit_idx]
@@ -134,7 +134,7 @@ def identify_trades(ohlcv_data, num_trades=10):
             entry_price=round(entry_price, 2),
             exit_price=round(exit_price, 2),
             trade_type=trade_type,
-            quantity=random.randint(100, 1000),  # noqa: S311  # Random position size
+            quantity=random.randint(100, 1000),  # Random position size
         )
 
         trades.append(trade)

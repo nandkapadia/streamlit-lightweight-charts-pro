@@ -49,7 +49,7 @@ function createChartDataPromise(options: ChartDataOptions): Promise<ChartDataRes
         const now = Date.now();
         const start = timeRange?.start || (now - 24 * 60 * 60 * 1000); // 24 hours ago
         const end = timeRange?.end || now;
-        const points = Math.min(1000, Math.floor((end - start) / 60000)); // 1 point per minute, max 1000
+        const points = Math.min(1000, Math.max(1, Math.floor((end - start) / 60000))); // 1 point per minute, min 1, max 1000
 
         const data = Array.from({ length: points }, (_, i) => {
           const time = start + (i * (end - start)) / points;

@@ -3,6 +3,8 @@
  * Tracks concurrent features, transitions, and Suspense performance
  */
 
+import { logger } from './logger';
+
 interface React19Metrics {
   transitionDuration: number;
   suspenseLoadTime: number;
@@ -52,7 +54,7 @@ class React19PerformanceMonitor {
     this.activeTransitions.set(transitionId, metrics);
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🚀 React 19 Transition Started: ${componentName} (${transitionType})`);
+      logger.debug(`Starting transition: ${componentName} (${transitionType})`, 'React19PerformanceMonitor');
     }
 
     return transitionId;
@@ -73,15 +75,17 @@ class React19PerformanceMonitor {
 
     if (process.env.NODE_ENV === 'development') {
       const status = duration > 16 ? '⚠️ SLOW' : '✅ FAST';
-      console.log(
-        `${status} React 19 Transition Completed: ${transition.componentName} (${transition.transitionType}) - ${duration.toFixed(2)}ms`
+      logger.debug(
+        `${status} React 19 Transition Completed: ${transition.componentName} (${transition.transitionType}) - ${duration.toFixed(2)}ms`,
+        'React19PerformanceMonitor'
       );
     }
 
     // Log slow transitions in production
     if (duration > 100) {
-      console.warn(
-        `Slow React 19 transition detected: ${transition.componentName} took ${duration.toFixed(2)}ms`
+      logger.warn(
+        `Slow React 19 transition detected: ${transition.componentName} took ${duration.toFixed(2)}ms`,
+        'React19PerformanceMonitor'
       );
     }
 
@@ -95,7 +99,7 @@ class React19PerformanceMonitor {
     this.suspenseLoadTimes.set(componentName, performance.now());
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🔄 Suspense Loading: ${componentName}`);
+      logger.debug(`Starting Suspense load: ${componentName}`, 'React19PerformanceMonitor');
     }
   }
 
@@ -111,7 +115,7 @@ class React19PerformanceMonitor {
 
     if (process.env.NODE_ENV === 'development') {
       const status = loadTime > 1000 ? '⚠️ SLOW' : '✅ FAST';
-      console.log(`${status} Suspense Loaded: ${componentName} - ${loadTime.toFixed(2)}ms`);
+      logger.debug(`${status} Suspense load: ${componentName} - ${loadTime.toFixed(2)}ms`, 'React19PerformanceMonitor');
     }
 
     this.suspenseLoadTimes.delete(componentName);
@@ -125,7 +129,7 @@ class React19PerformanceMonitor {
     this.metrics.deferredValueDelay = Math.max(this.metrics.deferredValueDelay, processingTime);
 
     if (process.env.NODE_ENV === 'development' && processingTime > 50) {
-      console.log(`🔄 Deferred Value: ${valueName} processed in ${processingTime.toFixed(2)}ms`);
+      logger.debug(`Deferred value processing: ${valueName} - ${processingTime.toFixed(2)}ms`, 'React19PerformanceMonitor');
     }
   }
 
@@ -136,13 +140,14 @@ class React19PerformanceMonitor {
     this.metrics.flushSyncCount++;
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`⚡ flushSync used: ${componentName} - ${reason}`);
+      logger.debug(`flushSync called: ${componentName} - ${reason}`, 'React19PerformanceMonitor');
     }
 
     // Warn if flushSync is overused
     if (this.metrics.flushSyncCount > 10) {
-      console.warn(
-        `High flushSync usage detected (${this.metrics.flushSyncCount}). Consider reducing synchronous updates.`
+      logger.warn(
+        `High flushSync usage detected (${this.metrics.flushSyncCount}). Consider reducing synchronous updates.`,
+        'React19PerformanceMonitor'
       );
     }
   }
@@ -279,6 +284,7 @@ export function useReact19Performance(componentName: string) {
 export function logReact19Performance(options?: { skipEnvCheck?: boolean }): void {
   // Use both Vite and Node.js environment variables for better compatibility
   const isDevelopment = (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') ||
+                       // @ts-expect-error - Vite-specific env property
                        (typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'development');
 
   if (!options?.skipEnvCheck && !isDevelopment) {
@@ -286,22 +292,13 @@ export function logReact19Performance(options?: { skipEnvCheck?: boolean }): voi
   }
 
   const report = react19Monitor.getPerformanceReport();
-  const insights = react19Monitor.getCurrentInsights();
-
-  console.group('🚀 React 19 Performance Report');
-  console.log('📊 Metrics:', report.metrics);
-  console.log('💡 Current Insights:', insights);
-  console.log(`📈 Performance Score: ${report.score}/100`);
 
   if (report.recommendations.length > 0) {
-    console.group('⚠️ Recommendations:');
-    report.recommendations.forEach((rec, i) => {
-      console.log(`${i + 1}. ${rec}`);
+    logger.debug('React 19 Performance Recommendations:', 'React19PerformanceMonitor', {
+      score: report.score,
+      recommendations: report.recommendations
     });
-    console.groupEnd();
   }
-
-  console.groupEnd();
 }
 
 // Auto-log performance report every 30 seconds in development

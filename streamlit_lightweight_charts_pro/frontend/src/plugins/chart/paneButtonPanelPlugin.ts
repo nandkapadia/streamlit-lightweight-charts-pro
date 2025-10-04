@@ -30,6 +30,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ButtonPanelComponent } from '../../components/ButtonPanelComponent';
 import { SeriesSettingsDialog, SeriesInfo as DialogSeriesInfo } from '../../forms/SeriesSettingsDialog';
+import { createSingleton } from '../../utils/SingletonBase';
 
 /**
  * Local SeriesInfo interface with config property for plugin use
@@ -70,8 +71,21 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
   private config: PaneCollapseConfig;
   private paneStates = new Map<number, PaneState>();
   private layoutManager: CornerLayoutManager | null = null;
-  private streamlitService: StreamlitSeriesConfigService;
+  private _streamlitService: StreamlitSeriesConfigService | null = null;
   private chartId?: string;
+
+  /**
+   * Lazy getter for streamlit service - avoids module loading order issues
+   */
+  private get streamlitService(): StreamlitSeriesConfigService {
+    if (!this._streamlitService) {
+      this._streamlitService = createSingleton(StreamlitSeriesConfigService);
+    }
+    if (!this._streamlitService) {
+      throw new Error('Failed to initialize StreamlitSeriesConfigService');
+    }
+    return this._streamlitService;
+  }
   private containerElement: HTMLElement | null = null;
 
   // IPositionableWidget implementation
@@ -103,7 +117,7 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       },
       ...config,
     };
-    this.streamlitService = StreamlitSeriesConfigService.getInstance();
+    // Service is now lazy-loaded via getter to avoid module loading order issues
   }
 
   /**

@@ -7,6 +7,7 @@ import { useCallback } from 'react';
 import { chartScheduler } from './chartScheduler';
 import { react19Monitor } from './react19PerformanceMonitor';
 import { logger } from './logger';
+import { Singleton } from './SingletonBase';
 
 export type AssetType = 'script' | 'style' | 'image' | 'font' | 'data' | 'worker';
 export type AssetPriority = 'critical' | 'high' | 'medium' | 'low';
@@ -35,19 +36,14 @@ export interface AssetLoadResult {
 /**
  * Enhanced Asset Loader with React 19 optimizations
  */
+@Singleton()
 class ChartAssetLoader {
-  private static instance: ChartAssetLoader;
+  static getInstance: () => ChartAssetLoader;
+
   private loadedAssets: Map<string, any> = new Map();
   private loadingPromises: Map<string, Promise<AssetLoadResult>> = new Map();
   private preloadedAssets: Set<string> = new Set();
   private assetMetrics: Map<string, AssetLoadResult> = new Map();
-
-  static getInstance(): ChartAssetLoader {
-    if (!ChartAssetLoader.instance) {
-      ChartAssetLoader.instance = new ChartAssetLoader();
-    }
-    return ChartAssetLoader.instance;
-  }
 
   /**
    * Load an asset with intelligent caching and prioritization

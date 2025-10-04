@@ -5,6 +5,7 @@
 
 import React, { Profiler, useMemo, useCallback, useState } from 'react';
 import { react19Monitor } from '../utils/react19PerformanceMonitor';
+import { logger } from '../utils/logger';
 
 interface ChartProfilerProps {
   children: React.ReactNode;
@@ -69,7 +70,6 @@ export const ChartProfiler: React.FC<ChartProfilerProps> = React.memo(({
 
     // Track performance issues
     if (actualDuration > 16) { // Longer than 1 frame
-      console.warn(`🐌 Slow render detected for ${chartId}: ${actualDuration.toFixed(2)}ms (${phase})`);
 
       // Track with React 19 monitor
       react19Monitor.trackFlushSync(chartId, `Slow ${phase} render: ${actualDuration.toFixed(2)}ms`);
@@ -77,7 +77,7 @@ export const ChartProfiler: React.FC<ChartProfilerProps> = React.memo(({
 
     // Log detailed profiler info in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(`📊 Chart Profiler [${chartId}]:`, {
+      logger.debug(`Profiler: ${phase}`, 'ChartProfiler', {
         phase,
         actualDuration: `${actualDuration.toFixed(2)}ms`,
         baseDuration: `${baseDuration.toFixed(2)}ms`,
@@ -112,12 +112,6 @@ ChartProfiler.displayName = 'ChartProfiler';
 function reportPerformanceMetrics(chartId: string, metrics: ProfilerMetrics) {
   if (process.env.NODE_ENV !== 'development') return;
 
-  console.group(`📈 Performance Report - Chart ${chartId}`);
-  console.log('Render Count:', metrics.renderCount);
-  console.log('Average Duration:', `${metrics.averageDuration.toFixed(2)}ms`);
-  console.log('Slowest Render:', `${metrics.slowestRender.toFixed(2)}ms`);
-  console.log('Fastest Render:', `${metrics.fastestRender.toFixed(2)}ms`);
-  console.log('Last Render:', `${metrics.lastRender.toFixed(2)}ms`);
 
   // Performance recommendations
   const recommendations = [];
@@ -130,14 +124,6 @@ function reportPerformanceMetrics(chartId: string, metrics: ProfilerMetrics) {
   if (metrics.renderCount > 100 && metrics.averageDuration > 5) {
     recommendations.push('Optimize state updates and prop drilling');
   }
-
-  if (recommendations.length > 0) {
-    console.group('💡 Recommendations:');
-    recommendations.forEach((rec, i) => console.log(`${i + 1}. ${rec}`));
-    console.groupEnd();
-  }
-
-  console.groupEnd();
 }
 
 /**

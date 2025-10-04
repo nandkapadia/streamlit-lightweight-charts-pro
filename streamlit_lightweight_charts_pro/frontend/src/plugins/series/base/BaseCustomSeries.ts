@@ -26,6 +26,7 @@ import {
   UTCTimestamp,
   LineSeries,
 } from 'lightweight-charts';
+import { logger } from '../../../utils/logger';
 
 // ============================================================================
 // Base Types and Interfaces
@@ -114,13 +115,13 @@ export function parseTime(time: string | number): UTCTimestamp {
  * @template TData - The data type for this series (extends BaseSeriesData)
  * @template TOptions - The options type for this series (extends BaseSeriesOptions)
  * @template TItem - The processed internal data type for rendering
- * @template TRenderData - The coordinate-converted render data type
+ * @template _TRenderData - The coordinate-converted render data type (reserved for future use)
  */
 export abstract class BaseCustomSeries<
   TData extends BaseSeriesData,
   TOptions extends BaseSeriesOptions,
   TItem,
-  TRenderData
+  _TRenderData
 > implements ISeriesPrimitive<Time> {
 
   // Core properties
@@ -380,7 +381,7 @@ export abstract class BaseCustomSeries<
       // Call custom cleanup hook
       this.onDestroy();
     } catch (error) {
-      console.warn('Error during series cleanup:', error);
+      logger.debug('Error during BaseCustomSeries cleanup', 'BaseCustomSeries', error);
     }
   }
 
@@ -405,7 +406,8 @@ export abstract class BaseCustomSeries<
   }
 
   updateAllViews(): void {
-    this._paneViews.forEach(pv => pv.update());
+    // @ts-expect-error - update() is an optional method on custom pane views
+    this._paneViews.forEach(pv => pv.update?.());
   }
 
   paneViews(): IPrimitivePaneView[] {

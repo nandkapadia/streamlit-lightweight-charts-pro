@@ -4,6 +4,7 @@
  */
 
 import { useCallback } from 'react';
+import { Singleton } from './SingletonBase';
 
 import {
   unstable_scheduleCallback as scheduleCallback,
@@ -43,20 +44,16 @@ export interface TaskMetrics {
 /**
  * Advanced Chart Task Scheduler with React 19 optimizations
  */
+@Singleton()
 class ChartScheduler {
-  private static instance: ChartScheduler;
+  static getInstance: () => ChartScheduler;
+
   private taskQueue: Map<string, ChartTask> = new Map();
   private scheduledCallbacks: Map<string, any> = new Map();
   private runningTasks: Set<string> = new Set();
   private completedTasks: Set<string> = new Set();
   private taskMetrics: Map<string, { startTime: number; endTime?: number }> = new Map();
 
-  static getInstance(): ChartScheduler {
-    if (!ChartScheduler.instance) {
-      ChartScheduler.instance = new ChartScheduler();
-    }
-    return ChartScheduler.instance;
-  }
 
   /**
    * Schedule a chart-related task with priority

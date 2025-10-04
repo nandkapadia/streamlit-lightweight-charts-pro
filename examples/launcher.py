@@ -154,6 +154,21 @@ EXAMPLE_CATEGORIES = {
             },
         },
     },
+    "🧪 Test Harness": {
+        "description": "Comprehensive testing tools for all series types and features.",
+        "examples": {
+            "simple_series_test.py": {
+                "title": "Simple Series Test",
+                "description": "Quick test of all series types with minimal configuration - perfect for development testing.",
+                "path": "test_harness/simple_series_test.py",
+            },
+            "comprehensive_series_test.py": {
+                "title": "Comprehensive Series Test",
+                "description": "Complete test harness with all features, annotations, and advanced configurations (lint-free).",
+                "path": "test_harness/comprehensive_series_test.py",
+            },
+        },
+    },
 }
 
 

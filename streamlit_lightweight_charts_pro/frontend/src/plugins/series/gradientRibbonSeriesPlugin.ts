@@ -1,65 +1,133 @@
-import {
-  ISeriesPrimitive,
-  IPrimitivePaneView,
-  IPrimitivePaneRenderer,
-  IChartApi,
-  ISeriesApi,
-  LineSeries,
-  Time,
-  UTCTimestamp,
-} from 'lightweight-charts';
-import { ExtendedChartApi } from '../../types/ChartInterfaces';
-import { asLineWidth } from '../../utils/lightweightChartsUtils';
+/**
+ * Gradient Ribbon Series - Hybrid ICustomSeries + ISeriesPrimitive Implementation
+ *
+ * A custom series that renders two lines (upper and lower) with a gradient-filled area between them.
+ *
+ * Features:
+ * - Two configurable lines (upper and lower)
+ * - Gradient fill area between lines with color interpolation
+ * - Hybrid rendering: ICustomSeries (default) or ISeriesPrimitive (background)
+ * - Full autoscaling support
+ * - Price axis labels for both lines
+ * - Per-point fill colors or gradient interpolation based on spread
+ *
+ * Use cases:
+ * - Volatility indicators with color-coded intensity
+ * - ATR bands with gradient fills
+ * - Any indicator where spread magnitude should be visually encoded
+ *
+ * @see RibbonSeriesPlugin for reference hybrid implementation
+ */
 
-export interface GradientRibbonData {
-  time: string | number;
+import {
+  CustomData,
+  ICustomSeriesPaneView,
+  Time,
+  customSeriesDefaultOptions,
+  CustomSeriesOptions,
+  PaneRendererCustomData,
+  CustomSeriesPricePlotValues,
+  CustomSeriesWhitespaceData,
+  ICustomSeriesPaneRenderer,
+  LineWidth,
+  IChartApi,
+  PriceToCoordinateConverter,
+} from 'lightweight-charts';
+import {
+  BitmapCoordinatesRenderingScope,
+} from 'fancy-canvas';
+import {
+  isWhitespaceDataMultiField,
+} from './base/BaseCustomSeriesView';
+import {
+  LineStyle,
+} from '../../utils/renderingUtils';
+import {
+  drawMultiLine,
+} from './base/commonRendering';
+import { ChartCoordinateService } from '../../services/ChartCoordinateService';
+
+// ============================================================================
+// Data Interface
+// ============================================================================
+
+/**
+ * Data point for Gradient Ribbon series
+ *
+ * @property time - Timestamp for the data point
+ * @property upper - Y value of the upper line
+ * @property lower - Y value of the lower line
+ * @property fillColor - Optional override color for this point's fill
+ */
+export interface GradientRibbonData extends CustomData<Time> {
+  time: Time;
   upper: number;
   lower: number;
-  fillColor?: string;
+  fillColor?: string; // Optional per-point fill color override
+  gradient?: number; // Optional gradient value for color interpolation (0-1 or raw value)
 }
 
-export interface GradientRibbonOptions {
-  upperLine: {
-    color: string;
-    lineWidth: number;
-    lineStyle: number;
-    visible: boolean;
-  };
-  lowerLine: {
-    color: string;
-    lineWidth: number;
-    lineStyle: number;
-    visible: boolean;
-  };
-  fill: string;
+// ============================================================================
+// Options Interface
+// ============================================================================
+
+/**
+ * Configuration options for Gradient Ribbon series
+ */
+export interface GradientRibbonSeriesOptions extends CustomSeriesOptions {
+  // Upper line styling
+  upperLineColor: string;
+  upperLineWidth: LineWidth;
+  upperLineStyle: LineStyle;
+  upperLineVisible: boolean;
+
+  // Lower line styling
+  lowerLineColor: string;
+  lowerLineWidth: LineWidth;
+  lowerLineStyle: LineStyle;
+  lowerLineVisible: boolean;
+
+  // Fill styling
+  fillColor: string; // Base fill color (used when no gradient)
   fillVisible: boolean;
+
+  // Gradient settings
   gradientStartColor: string;
   gradientEndColor: string;
-  normalizeGradients: boolean;
-  priceScaleId: string;
-  visible: boolean;
-  zIndex: number;
+  normalizeGradients: boolean; // If true, gradient is based on spread magnitude
+
+  // Internal flag (set automatically by factory)
+  _usePrimitive?: boolean;
 }
 
-interface GradientRibbonRenderData {
-  x: number | null;
-  upperY: number | null;
-  lowerY: number | null;
-  fillColor: string;
-}
+/**
+ * Default options for Gradient Ribbon series
+ * CRITICAL: Must match Python defaults
+ */
+const defaultGradientRibbonOptions: GradientRibbonSeriesOptions = {
+  ...customSeriesDefaultOptions,
+  upperLineColor: '#4CAF50',
+  upperLineWidth: 2,
+  upperLineStyle: LineStyle.Solid,
+  upperLineVisible: true,
+  lowerLineColor: '#F44336',
+  lowerLineWidth: 2,
+  lowerLineStyle: LineStyle.Solid,
+  lowerLineVisible: true,
+  fillColor: 'rgba(76, 175, 80, 0.1)',
+  fillVisible: true,
+  gradientStartColor: '#4CAF50',
+  gradientEndColor: '#F44336',
+  normalizeGradients: true,
+};
 
-interface GradientRibbonViewData {
-  items: GradientRibbonRenderData[];
-  visibleRange: { from: number; to: number } | null;
-  options: GradientRibbonOptions;
-  data: {
-    chartWidth: number;
-    barWidth: number;
-    timeScale: any;
-    priceScale: any;
-  };
-}
+// ============================================================================
+// Utility Functions
+// ============================================================================
 
+/**
+ * Interpolate between two hex colors
+ */
 function interpolateColor(startColor: string, endColor: string, factor: number): string {
   // Clamp factor to 0-1 range
   factor = Math.max(0, Math.min(1, factor));
@@ -88,519 +156,389 @@ function interpolateColor(startColor: string, endColor: string, factor: number):
   }
 }
 
-function parseTime(time: string | number): UTCTimestamp {
-  try {
-    if (typeof time === 'number') {
-      if (time > 1000000000000) {
-        return Math.floor(time / 1000) as UTCTimestamp;
-      }
-      return Math.floor(time) as UTCTimestamp;
-    }
+// ============================================================================
+// ICustomSeries Implementation
+// ============================================================================
 
-    if (typeof time === 'string') {
-      const timestamp = parseInt(time, 10);
-      if (!isNaN(timestamp)) {
-        if (timestamp > 1000000000000) {
-          return Math.floor(timestamp / 1000) as UTCTimestamp;
-        }
-        return Math.floor(timestamp) as UTCTimestamp;
-      }
+/**
+ * Gradient Ribbon Series - ICustomSeries implementation
+ * Provides autoscaling and direct rendering
+ */
+class GradientRibbonSeries<TData extends GradientRibbonData = GradientRibbonData>
+  implements ICustomSeriesPaneView<Time, TData, GradientRibbonSeriesOptions>
+{
+  private _renderer: GradientRibbonSeriesRenderer<TData>;
 
-      const date = new Date(time);
-      if (isNaN(date.getTime())) {
-        return 0 as UTCTimestamp;
-      }
-      return Math.floor(date.getTime() / 1000) as UTCTimestamp;
-    }
-
-    return 0 as UTCTimestamp;
-  } catch {
-    return 0 as UTCTimestamp;
-  }
-}
-
-class GradientRibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
-  _viewData: GradientRibbonViewData;
-  constructor(data: GradientRibbonViewData) {
-    this._viewData = data;
-  }
-  draw(target: any) {
-    if (!this._viewData.options.upperLine.visible && !this._viewData.options.lowerLine.visible)
-      return;
-
-    target.useBitmapCoordinateSpace((scope: any) => {
-      const ctx = scope.context;
-      if (!ctx) return;
-
-      ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio);
-      this._drawExtendedLines(ctx, scope);
-    });
-  }
-  drawBackground(target: any) {
-    if (!this._viewData.options.fillVisible) return;
-
-    target.useBitmapCoordinateSpace((scope: any) => {
-      const ctx = scope.context;
-      if (!ctx) {
-        return;
-      }
-
-      ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio);
-      this._drawGradientFills(ctx, scope);
-    });
+  constructor() {
+    this._renderer = new GradientRibbonSeriesRenderer();
   }
 
-  private _drawGradientFills(ctx: CanvasRenderingContext2D, _scope: any): void {
-    const { items, visibleRange } = this._viewData;
-
-    if (items.length === 0 || visibleRange === null || visibleRange.to <= visibleRange.from) {
-      return;
-    }
-
-    // First draw a smooth gradient path between data points
-    this._drawSmoothGradientPath(ctx, items, visibleRange);
+  priceValueBuilder(plotRow: TData): CustomSeriesPricePlotValues {
+    // Return both upper and lower for autoscaling
+    return [plotRow.lower, plotRow.upper];
   }
 
-  private _drawSmoothGradientPath(
-    ctx: CanvasRenderingContext2D,
-    items: GradientRibbonRenderData[],
-    visibleRange: { from: number; to: number }
-  ): void {
-    const validItems = [];
-    const searchStart = Math.max(0, visibleRange.from - 1);
-    const searchEnd = Math.min(items.length, visibleRange.to + 1);
-
-    for (let i = searchStart; i < searchEnd; i++) {
-      const item = items[i];
-      if (this._isValidCoordinates(item)) {
-        validItems.push(item);
-      }
-    }
-
-    if (validItems.length < 1) {
-      return;
-    }
-
-    const barWidth = this._viewData.data.barWidth || 6;
-    const halfBarWidth = barWidth / 2;
-
-    if (validItems.length >= 2) {
-      ctx.beginPath();
-
-      const firstItem = validItems[0];
-      const lastItem = validItems[validItems.length - 1];
-
-      const fillStartX = (firstItem.x ?? 0) - halfBarWidth - 50;
-      const fillEndX = (lastItem.x ?? 0) + halfBarWidth + 50;
-
-      ctx.moveTo(fillStartX, firstItem.upperY ?? 0);
-
-      for (let i = 0; i < validItems.length; i++) {
-        const item = validItems[i];
-        if (item.x !== null && item.upperY !== null) {
-          ctx.lineTo(item.x, item.upperY);
-        }
-      }
-
-      ctx.lineTo(fillEndX, lastItem.upperY ?? 0);
-      ctx.lineTo(fillEndX, lastItem.lowerY ?? 0);
-
-      for (let i = validItems.length - 1; i >= 0; i--) {
-        const item = validItems[i];
-        if (item.x !== null && item.lowerY !== null) {
-          ctx.lineTo(item.x, item.lowerY);
-        }
-      }
-
-      ctx.lineTo(fillStartX, firstItem.lowerY ?? 0);
-      ctx.closePath();
-
-      const gradient = ctx.createLinearGradient(fillStartX, 0, fillEndX, 0);
-      const sortedItems = [...validItems]
-        .filter(item => item.x !== null)
-        .sort((a, b) => (a.x ?? 0) - (b.x ?? 0));
-
-      for (let i = 0; i < sortedItems.length; i++) {
-        const item = sortedItems[i];
-        if (item.x !== null) {
-          const position = (item.x - fillStartX) / (fillEndX - fillStartX);
-          const clampedPosition = Math.max(0, Math.min(1, position));
-          gradient.addColorStop(clampedPosition, item.fillColor);
-        }
-      }
-
-      if (sortedItems.length > 0) {
-        gradient.addColorStop(0, sortedItems[0].fillColor);
-        gradient.addColorStop(1, sortedItems[sortedItems.length - 1].fillColor);
-      }
-
-      ctx.fillStyle = gradient;
-      ctx.fill();
-    } else if (validItems.length === 1) {
-      const item = validItems[0];
-      const singleStartX = (item.x ?? 0) - halfBarWidth - 50;
-      ctx.fillStyle = item.fillColor;
-      const upperY = item.upperY ?? 0;
-      const lowerY = item.lowerY ?? 0;
-      ctx.fillRect(
-        singleStartX,
-        Math.min(upperY, lowerY),
-        barWidth + 100,
-        Math.abs(upperY - lowerY)
-      );
-    }
+  isWhitespace(data: TData | CustomSeriesWhitespaceData<Time>): data is CustomSeriesWhitespaceData<Time> {
+    return isWhitespaceDataMultiField(data, ['upper', 'lower']);
   }
 
-  private _drawExtendedLines(ctx: CanvasRenderingContext2D, _scope: any): void {
-    const { items, visibleRange, options } = this._viewData;
-
-    if (items.length === 0 || visibleRange === null || visibleRange.to <= visibleRange.from) {
-      return;
-    }
-
-    const validItems = [];
-    const searchStart = Math.max(0, visibleRange.from - 1);
-    const searchEnd = Math.min(items.length, visibleRange.to + 1);
-
-    for (let i = searchStart; i < searchEnd; i++) {
-      const item = items[i];
-      if (this._isValidCoordinates(item)) {
-        validItems.push(item);
-      }
-    }
-
-    if (validItems.length === 0) return;
-
-    const barWidth = this._viewData.data.barWidth || 6;
-    const halfBarWidth = barWidth / 2;
-
-    const firstItem = validItems[0];
-    const lastItem = validItems[validItems.length - 1];
-
-    const lineStartX = (firstItem.x ?? 0) - halfBarWidth - 50;
-    const lineEndX = (lastItem.x ?? 0) + halfBarWidth + 50;
-
-    if (options.upperLine.visible) {
-      ctx.beginPath();
-      ctx.moveTo(lineStartX, firstItem.upperY ?? 0);
-
-      for (const item of validItems) {
-        if (item.x !== null && item.upperY !== null) {
-          ctx.lineTo(item.x, item.upperY);
-        }
-      }
-
-      ctx.lineTo(lineEndX, lastItem.upperY ?? 0);
-      ctx.strokeStyle = options.upperLine.color;
-      ctx.lineWidth = options.upperLine.lineWidth;
-      ctx.stroke();
-    }
-
-    if (options.lowerLine.visible) {
-      ctx.beginPath();
-      ctx.moveTo(lineStartX, firstItem.lowerY ?? 0);
-
-      for (const item of validItems) {
-        if (item.x !== null && item.lowerY !== null) {
-          ctx.lineTo(item.x, item.lowerY);
-        }
-      }
-
-      ctx.lineTo(lineEndX, lastItem.lowerY ?? 0);
-      ctx.strokeStyle = options.lowerLine.color;
-      ctx.lineWidth = options.lowerLine.lineWidth;
-      ctx.stroke();
-    }
-  }
-
-  private _isValidCoordinates(item: GradientRibbonRenderData): boolean {
-    return item.x !== null && item.upperY !== null && item.lowerY !== null;
-  }
-}
-
-class GradientRibbonPrimitivePaneView implements IPrimitivePaneView {
-  _renderer: GradientRibbonPrimitivePaneRenderer;
-  _data: GradientRibbonViewData;
-  _source: GradientRibbonSeries;
-
-  constructor(source: GradientRibbonSeries) {
-    this._source = source;
-    this._data = {
-      items: [],
-      visibleRange: null,
-      options: source._options,
-      data: {
-        chartWidth: 800,
-        barWidth: 6,
-        timeScale: null,
-        priceScale: null,
-      },
-    };
-    this._renderer = new GradientRibbonPrimitivePaneRenderer(this._data);
-  }
-
-  update(chart: IChartApi, _series: ISeriesApi<'Line'>) {
-    const timeScale = chart.timeScale();
-    const upperLineSeries = this._source._upperLineSeries;
-    const lowerLineSeries = this._source._lowerLineSeries;
-
-    if (!timeScale || !upperLineSeries || !lowerLineSeries) {
-      return;
-    }
-
-    const chartElement = (chart as ExtendedChartApi).chartElement?.();
-    this._data.data.timeScale = timeScale;
-    this._data.data.priceScale = upperLineSeries;
-    this._data.data.chartWidth = chartElement?.clientWidth || 800;
-
-    try {
-      let barSpacing = 6; // default
-
-      if (timeScale && typeof timeScale.options === 'function') {
-        const options = timeScale.options();
-        barSpacing = options.barSpacing || 6;
-      } else {
-        // Fallback to chart model approach
-        const chartModel = (chart as ExtendedChartApi)._model;
-        if (chartModel && chartModel.timeScale) {
-          const chartTimeScale = chartModel.timeScale;
-          if (typeof (chartTimeScale as any).options === 'function') {
-            const options = (chartTimeScale as any).options();
-            barSpacing = options.barSpacing || 6;
-          } else if (typeof chartTimeScale.barSpacing === 'function') {
-            barSpacing = chartTimeScale.barSpacing() || 6;
-          }
-        }
-      }
-
-      this._data.data.barWidth = Math.max(6, barSpacing);
-    } catch {
-      this._data.data.barWidth = 10; // fallback
-    }
-
-    const items = this._source.getProcessedData();
-    const convertedItems = this._batchConvertCoordinates(
-      items,
-      timeScale,
-      upperLineSeries,
-      lowerLineSeries
-    );
-
-    this._data.items = convertedItems;
-    this._data.visibleRange = this._calculateVisibleRange(convertedItems);
-  }
-
-  private _batchConvertCoordinates(
-    items: GradientRibbonData[],
-    timeScale: any,
-    upperSeries: ISeriesApi<'Line'>,
-    lowerSeries: ISeriesApi<'Line'>
-  ): GradientRibbonRenderData[] {
-    return items.map(item => {
-      const time = parseTime(item.time);
-      const x = timeScale.timeToCoordinate(time);
-      const upperY = upperSeries.priceToCoordinate(item.upper);
-      const lowerY = lowerSeries.priceToCoordinate(item.lower);
-
-      return {
-        x,
-        upperY,
-        lowerY,
-        fillColor: item.fillColor || this._data.options.fill,
-      };
-    });
-  }
-
-  private _calculateVisibleRange(
-    items: GradientRibbonRenderData[]
-  ): { from: number; to: number } | null {
-    if (items.length === 0) return null;
-
-    let from = 0;
-    let to = items.length;
-
-    // Find visible range based on x coordinates
-    for (let i = 0; i < items.length; i++) {
-      if (
-        items[i] &&
-        items[i]?.x !== null &&
-        items[i]?.x !== undefined &&
-        (items[i].x ?? -1) >= 0
-      ) {
-        from = i;
-        break;
-      }
-    }
-
-    for (let i = items.length - 1; i >= 0; i--) {
-      if (items[i] && items[i].x !== null) {
-        to = i + 1;
-        break;
-      }
-    }
-
-    return { from, to };
-  }
-
-  renderer() {
+  renderer(): ICustomSeriesPaneRenderer {
     return this._renderer;
   }
+
+  update(data: PaneRendererCustomData<Time, TData>, options: GradientRibbonSeriesOptions): void {
+    this._renderer.update(data, options);
+  }
+
+  defaultOptions(): GradientRibbonSeriesOptions {
+    return defaultGradientRibbonOptions;
+  }
 }
 
-export class GradientRibbonSeries implements ISeriesPrimitive<Time> {
-  private _chart: IChartApi;
-  public _options: GradientRibbonOptions;
-  private _data: GradientRibbonData[] = [];
-  private _paneViews: GradientRibbonPrimitivePaneView[];
-  public _upperLineSeries: ISeriesApi<'Line'> | null = null;
-  public _lowerLineSeries: ISeriesApi<'Line'> | null = null;
+/**
+ * Gradient Ribbon Series Renderer - ICustomSeries
+ * Only used when primitive is NOT attached
+ */
+class GradientRibbonSeriesRenderer<TData extends GradientRibbonData = GradientRibbonData>
+  implements ICustomSeriesPaneRenderer
+{
+  private _data: PaneRendererCustomData<Time, TData> | null = null;
+  private _options: GradientRibbonSeriesOptions | null = null;
 
-  constructor(chart: IChartApi, options: GradientRibbonOptions) {
-    this._chart = chart;
-    this._options = options;
-    this._paneViews = [new GradientRibbonPrimitivePaneView(this)];
-
-    // Create hidden line series for coordinate conversion
-    this._createLineSeries();
-  }
-
-  private _createLineSeries() {
-    try {
-      this._upperLineSeries = this._chart.addSeries(LineSeries, {
-        color: 'transparent', // Make line transparent but keep series visible for price scale
-        lineWidth: asLineWidth(0), // Zero width so line is invisible
-        lineStyle: this._options.upperLine.lineStyle,
-        visible: true, // Keep visible for price scale calculation
-        priceScaleId: this._options.priceScaleId || 'right',
-      });
-
-      this._lowerLineSeries = this._chart.addSeries(LineSeries, {
-        color: 'transparent', // Make line transparent but keep series visible for price scale
-        lineWidth: asLineWidth(0), // Zero width so line is invisible
-        lineStyle: this._options.lowerLine.lineStyle,
-        visible: true, // Keep visible for price scale calculation
-        priceScaleId: this._options.priceScaleId || 'right',
-      });
-
-      // Attach primitive to upper line series
-      this._upperLineSeries.attachPrimitive(this);
-    } catch {
-      // Error creating line series - fail silently for now
-      // Could implement proper error reporting here if needed
-    }
-  }
-
-  getProcessedData(): GradientRibbonData[] {
-    const processed = this._data.map(item => ({
-      ...item,
-      fillColor: item.fillColor || this._getColorForValue(item.upper, item.lower),
-    }));
-
-    return processed;
-  }
-
-  private _getColorForValue(upper: number, lower: number): string {
-    // Always use gradient colors - the normalizeGradients is a backend setting
-    // Calculate gradient factor based on the spread (upper - lower)
-    // Wider spreads get more intense colors
-    const spread = Math.abs(upper - lower);
-    const maxSpread = Math.max(...this._data.map(item => Math.abs(item.upper - item.lower)));
-    const factor = maxSpread > 0 ? Math.min(spread / maxSpread, 1) : 0;
-
-    return interpolateColor(
-      this._options.gradientStartColor,
-      this._options.gradientEndColor,
-      factor
-    );
-  }
-
-  private _createExtendedLineData(
-    data: GradientRibbonData[],
-    field: 'upper' | 'lower'
-  ): Array<{ time: UTCTimestamp; value: number }> {
-    // Simply return the original data - the line extension will be handled
-    // by using a different approach since time-based extension doesn't align well
-    // with pixel-based bar width calculations
-    return data.map(item => ({
-      time: parseTime(item.time),
-      value: item[field],
-    }));
-  }
-
-  setData(data: GradientRibbonData[]) {
+  update(data: PaneRendererCustomData<Time, TData>, options: GradientRibbonSeriesOptions): void {
     this._data = data;
-
-    if (this._upperLineSeries && this._lowerLineSeries) {
-      // Create extended line data to match fill boundaries
-      const extendedUpperData = this._createExtendedLineData(data, 'upper');
-      const extendedLowerData = this._createExtendedLineData(data, 'lower');
-
-      this._upperLineSeries.setData(extendedUpperData);
-      this._lowerLineSeries.setData(extendedLowerData);
-
-      // Force update all views after setting data
-      this.updateAllViews();
-    }
+    this._options = options;
   }
 
-  updateData(data: GradientRibbonData[]) {
-    this.setData(data);
-  }
+  draw(target: any, priceConverter: PriceToCoordinateConverter): void {
+    target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
+      if (!this._data || !this._options || !this._data.bars.length) return;
 
-  applyOptions(options: Partial<GradientRibbonOptions>) {
-    this._options = { ...this._options, ...options };
+      // Early exit if primitive handles rendering
+      if (this._options._usePrimitive) return;
 
-    if (this._upperLineSeries && options.upperLine) {
-      this._upperLineSeries.applyOptions({
-        ...options.upperLine,
-        lineWidth: asLineWidth(options.upperLine.lineWidth || 1),
-      });
-    }
-    if (this._lowerLineSeries && options.lowerLine) {
-      this._lowerLineSeries.applyOptions({
-        ...options.lowerLine,
-        lineWidth: asLineWidth(options.lowerLine.lineWidth || 1),
-      });
-    }
-  }
+      const ctx = scope.context;
+      const hRatio = scope.horizontalPixelRatio;
 
-  destroy() {
-    if (this._upperLineSeries) {
-      this._chart.removeSeries(this._upperLineSeries);
-    }
-    if (this._lowerLineSeries) {
-      this._chart.removeSeries(this._lowerLineSeries);
-    }
-  }
+      ctx.save();
 
-  paneViews(): readonly IPrimitivePaneView[] {
-    return this._paneViews;
-  }
+      // Convert data to screen coordinates
+      const coordinates = this._convertToScreenCoordinates(scope, priceConverter);
 
-  updateAllViews() {
-    this._paneViews.forEach(paneView => {
-      if (this._upperLineSeries) {
-        paneView.update(this._chart, this._upperLineSeries);
+      // Draw gradient fill area first (background)
+      if (this._options.fillVisible && coordinates.length > 1) {
+        this._drawGradientFill(ctx, coordinates, hRatio);
       }
+
+      // Create coordinate arrays for lines (without fillColor)
+      const lineCoordinates = coordinates.map(coord => ({
+        x: coord.x,
+        upper: coord.upper,
+        lower: coord.lower,
+      }));
+
+      // Draw lines (foreground)
+      if (this._options.upperLineVisible) {
+        drawMultiLine(
+          ctx,
+          lineCoordinates,
+          'upper',
+          this._options.upperLineColor,
+          this._options.upperLineWidth * hRatio,
+          this._options.upperLineStyle
+        );
+      }
+
+      if (this._options.lowerLineVisible) {
+        drawMultiLine(
+          ctx,
+          lineCoordinates,
+          'lower',
+          this._options.lowerLineColor,
+          this._options.lowerLineWidth * hRatio,
+          this._options.lowerLineStyle
+        );
+      }
+
+      ctx.restore();
     });
   }
 
-  priceAxisViews(): any[] {
-    return [];
+  private _convertToScreenCoordinates(
+    scope: BitmapCoordinatesRenderingScope,
+    priceConverter: PriceToCoordinateConverter
+  ) {
+    if (!this._data || !this._options) return [];
+
+    // Use the centralized coordinate service for basic conversion
+    const coordinateService = ChartCoordinateService.getInstance();
+    const baseCoordinates = coordinateService.convertSeriesDataToScreenCoordinates(
+      this._data.bars as unknown as Array<{ x: number; originalData: Record<string, any> }>,
+      scope,
+      priceConverter,
+      ChartCoordinateService.SeriesDataConfigs.gradientRibbon
+    );
+
+    // Calculate gradient bounds for normalization
+    let maxSpread = 0;
+    let minGradient = 0;
+    let maxGradient = 1;
+    let gradientRange = 1;
+
+    // Calculate gradient bounds if we have gradient data and normalization is enabled
+    const gradientValues = this._data.bars
+      .map(bar => bar.originalData.gradient)
+      .filter(val => val !== undefined && val !== null) as number[];
+
+    if (gradientValues.length > 0 && this._options.normalizeGradients) {
+      minGradient = Math.min(...gradientValues);
+      maxGradient = Math.max(...gradientValues);
+      gradientRange = maxGradient - minGradient;
+    }
+
+    // Calculate max spread for fallback gradient calculation
+    if (this._options.normalizeGradients && gradientValues.length === 0) {
+      for (const bar of this._data.bars) {
+        const data = bar.originalData;
+        if (
+          typeof data.upper === 'number' &&
+          typeof data.lower === 'number' &&
+          isFinite(data.upper) &&
+          isFinite(data.lower)
+        ) {
+          const spread = Math.abs(data.upper - data.lower);
+          maxSpread = Math.max(maxSpread, spread);
+        }
+      }
+    }
+
+    // Add gradient-specific fill color calculation
+    const coordinates: Array<{
+      x: number;
+      upper: number;
+      lower: number;
+      fillColor: string;
+    }> = [];
+
+    for (let i = 0; i < baseCoordinates.length; i++) {
+      const coord = baseCoordinates[i];
+      const originalData = this._data.bars[i].originalData;
+
+      // Calculate fill color
+      let fillColor = originalData.fillColor || this._options.fillColor;
+
+      // Use gradient property if available, otherwise fall back to spread-based calculation
+      if (!originalData.fillColor) {
+        let factor = 0;
+
+        if (originalData.gradient !== undefined) {
+          // Use explicit gradient value from data
+          if (this._options.normalizeGradients && gradientRange > 0) {
+            // Use pre-calculated gradient bounds for normalization
+            factor = (originalData.gradient - minGradient) / gradientRange;
+            factor = Math.max(0, Math.min(1, factor)); // Clamp to 0-1 range
+          } else {
+            // Use gradient value directly (assuming 0-1 range)
+            factor = Math.max(0, Math.min(1, originalData.gradient));
+          }
+        } else if (this._options.normalizeGradients && maxSpread > 0) {
+          // Fall back to spread-based calculation
+          const spread = Math.abs(originalData.upper - originalData.lower);
+          factor = spread / maxSpread;
+        }
+
+        if (factor > 0) {
+          fillColor = interpolateColor(
+            this._options.gradientStartColor,
+            this._options.gradientEndColor,
+            factor
+          );
+        }
+      }
+
+      // Skip null coordinates
+      if (coord.x !== null && coord.upper !== null && coord.lower !== null) {
+        coordinates.push({
+          x: coord.x,
+          upper: coord.upper,
+          lower: coord.lower,
+          fillColor,
+        });
+      }
+    }
+
+    return coordinates;
   }
 
-  timeAxisViews(): any[] {
-    return [];
-  }
+  private _drawGradientFill(
+    ctx: CanvasRenderingContext2D,
+    coordinates: Array<{ x: number; upper: number; lower: number; fillColor: string }>,
+    _hRatio: number
+  ): void {
+    if (coordinates.length < 2) return;
 
-  hitTest(): null {
-    return null;
+    const firstX = coordinates[0].x;
+    const lastX = coordinates[coordinates.length - 1].x;
+
+    // Create linear gradient from first to last point
+    const gradient = ctx.createLinearGradient(firstX, 0, lastX, 0);
+
+    // Add color stops for each coordinate
+    for (let i = 0; i < coordinates.length; i++) {
+      const coord = coordinates[i];
+      const position = (coord.x - firstX) / (lastX - firstX);
+      const clampedPosition = Math.max(0, Math.min(1, position));
+      gradient.addColorStop(clampedPosition, coord.fillColor);
+    }
+
+    // Draw filled area with gradient
+    ctx.beginPath();
+
+    // Draw upper boundary (left to right)
+    ctx.moveTo(coordinates[0].x, coordinates[0].upper);
+    for (let i = 1; i < coordinates.length; i++) {
+      ctx.lineTo(coordinates[i].x, coordinates[i].upper);
+    }
+
+    // Draw lower boundary (right to left)
+    for (let i = coordinates.length - 1; i >= 0; i--) {
+      ctx.lineTo(coordinates[i].x, coordinates[i].lower);
+    }
+
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
   }
 }
 
+// ============================================================================
+// Factory Function
+// ============================================================================
+
+/**
+ * Factory function to create Gradient Ribbon series with optional primitive
+ *
+ * Two rendering modes:
+ * 1. **Direct ICustomSeries rendering (default, usePrimitive: false)**
+ *    - Series renders lines and gradient fill directly
+ *    - Normal z-order with other series
+ *    - Best for most use cases
+ *
+ * 2. **Primitive rendering mode (usePrimitive: true)**
+ *    - Series provides autoscaling only (no rendering)
+ *    - Primitive handles rendering with custom z-order
+ *    - Can render in background (zIndex: -100) or foreground
+ *    - Best for background indicators
+ *
+ * @param chart - Chart instance
+ * @param options - Gradient Ribbon series options
+ * @param options.upperLineColor - Upper line color (default: '#4CAF50')
+ * @param options.lowerLineColor - Lower line color (default: '#F44336')
+ * @param options.gradientStartColor - Gradient start color (default: '#4CAF50')
+ * @param options.gradientEndColor - Gradient end color (default: '#F44336')
+ * @param options.normalizeGradients - Normalize gradient by spread (default: true)
+ * @param options.usePrimitive - Enable primitive rendering mode
+ * @param options.zIndex - Z-order for primitive mode (default: -100)
+ * @param options.data - Initial data
+ * @returns ICustomSeries instance
+ *
+ * @example Standard usage
+ * ```typescript
+ * const series = createGradientRibbonSeries(chart, {
+ *   gradientStartColor: '#4CAF50',
+ *   gradientEndColor: '#F44336',
+ *   normalizeGradients: true,
+ * });
+ * series.setData(data);
+ * ```
+ *
+ * @example Background rendering with primitive
+ * ```typescript
+ * const series = createGradientRibbonSeries(chart, {
+ *   usePrimitive: true,
+ *   zIndex: -100,
+ *   data: gradientRibbonData,
+ * });
+ * ```
+ */
 export function createGradientRibbonSeries(
   chart: IChartApi,
-  options: GradientRibbonOptions
-): GradientRibbonSeries {
-  return new GradientRibbonSeries(chart, options);
+  options: {
+    // Visual options
+    upperLineColor?: string;
+    upperLineWidth?: LineWidth;
+    upperLineStyle?: LineStyle;
+    upperLineVisible?: boolean;
+    lowerLineColor?: string;
+    lowerLineWidth?: LineWidth;
+    lowerLineStyle?: LineStyle;
+    lowerLineVisible?: boolean;
+    fillColor?: string;
+    fillVisible?: boolean;
+    gradientStartColor?: string;
+    gradientEndColor?: string;
+    normalizeGradients?: boolean;
+    priceScaleId?: string;
+
+    // Rendering control
+    usePrimitive?: boolean;
+
+    // Primitive-specific options
+    zIndex?: number;
+    data?: GradientRibbonData[];
+  } = {}
+): any {
+  // Create ICustomSeries (always created for autoscaling)
+  const series = chart.addCustomSeries(new GradientRibbonSeries(), {
+    upperLineColor: options.upperLineColor ?? '#4CAF50',
+    upperLineWidth: options.upperLineWidth ?? 2,
+    upperLineStyle: options.upperLineStyle ?? LineStyle.Solid,
+    upperLineVisible: options.upperLineVisible !== false,
+    lowerLineColor: options.lowerLineColor ?? '#F44336',
+    lowerLineWidth: options.lowerLineWidth ?? 2,
+    lowerLineStyle: options.lowerLineStyle ?? LineStyle.Solid,
+    lowerLineVisible: options.lowerLineVisible !== false,
+    fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
+    fillVisible: options.fillVisible !== false,
+    gradientStartColor: options.gradientStartColor ?? '#4CAF50',
+    gradientEndColor: options.gradientEndColor ?? '#F44336',
+    normalizeGradients: options.normalizeGradients !== false,
+    priceScaleId: options.priceScaleId ?? 'right',
+    lastValueVisible: !options.usePrimitive,
+    _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
+  });
+
+  // Set data on series (for autoscaling)
+  if (options.data && options.data.length > 0) {
+    series.setData(options.data);
+  }
+
+  // Attach primitive if requested
+  if (options.usePrimitive) {
+    // Dynamic import to avoid circular dependencies
+    void import('../../primitives/GradientRibbonPrimitive').then(({ GradientRibbonPrimitive }) => {
+      const primitive = new GradientRibbonPrimitive(chart, {
+        upperLineColor: options.upperLineColor ?? '#4CAF50',
+        upperLineWidth: options.upperLineWidth ?? 2,
+        upperLineStyle: Math.min((options.upperLineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2,
+        upperLineVisible: options.upperLineVisible !== false,
+        lowerLineColor: options.lowerLineColor ?? '#F44336',
+        lowerLineWidth: options.lowerLineWidth ?? 2,
+        lowerLineStyle: Math.min((options.lowerLineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2,
+        lowerLineVisible: options.lowerLineVisible !== false,
+        fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
+        fillVisible: options.fillVisible !== false,
+        gradientStartColor: options.gradientStartColor ?? '#4CAF50',
+        gradientEndColor: options.gradientEndColor ?? '#F44336',
+        normalizeGradients: options.normalizeGradients !== false,
+        visible: true,
+        priceScaleId: options.priceScaleId ?? 'right',
+        zIndex: options.zIndex ?? 0,
+      });
+
+      series.attachPrimitive(primitive);
+    });
+  }
+
+  return series;
 }

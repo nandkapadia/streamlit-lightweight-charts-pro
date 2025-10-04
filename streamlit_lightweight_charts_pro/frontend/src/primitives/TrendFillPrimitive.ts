@@ -10,6 +10,7 @@
  * - Base line drawn as part of fill path (not separately)
  * - Full bar width fills (no gaps) - enabled by default, optional half-bar-width mode
  * - Z-order control (defaults to -100 for background rendering)
+ * - Proper rendering method separation: fills in drawBackground(), lines in draw()
  * - Price axis label showing last visible trend value with direction-based background color
  * - White text color on price axis labels for optimal contrast
  *
@@ -33,15 +34,17 @@
 
 import {
   IChartApi,
-  ISeriesPrimitive,
-  SeriesAttachedParameter,
-  IPrimitivePaneView,
   IPrimitivePaneRenderer,
-  ISeriesPrimitiveAxisView,
-  Time,
   UTCTimestamp,
+  PrimitivePaneViewZOrder,
+  ISeriesPrimitiveAxisView,
 } from 'lightweight-charts';
 import { getSolidColorFromFill } from '../utils/colorUtils';
+import {
+  BaseSeriesPrimitive,
+  BaseSeriesPrimitiveOptions,
+  BaseSeriesPrimitivePaneView,
+} from './BaseSeriesPrimitive';
 
 // ============================================================================
 // Data Interfaces
@@ -81,8 +84,7 @@ export interface TrendFillPrimitiveData {
  * @property priceScaleId - Price scale ID ('left', 'right', or custom)
  * @property useHalfBarWidth - When true, fills extend half bar width on each side (default: false = full bar width)
  */
-export interface TrendFillPrimitiveOptions {
-  zIndex?: number;
+export interface TrendFillPrimitiveOptions extends BaseSeriesPrimitiveOptions {
   uptrendFillColor: string;
   downtrendFillColor: string;
   trendLine: {
@@ -97,8 +99,6 @@ export interface TrendFillPrimitiveOptions {
     lineStyle: 0 | 1 | 2; // Solid, Dotted, Dashed only
     visible: boolean;
   };
-  visible: boolean;
-  priceScaleId?: string;
   useHalfBarWidth?: boolean;
 }
 
@@ -198,7 +198,9 @@ function parseTime(time: string | number): UTCTimestamp {
 
 /**
  * Trend Fill Primitive Renderer
- * Handles actual drawing on canvas
+ * Handles actual drawing on canvas with proper method separation:
+ * - draw(): Renders trend lines (foreground elements)
+ * - drawBackground(): Renders filled areas (background elements)
  */
 class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
   private _viewData: TrendFillViewData;
@@ -207,13 +209,36 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
     this._viewData = data;
   }
 
-  draw() {
-    // Empty - all drawing happens in drawBackground for z-order control
+  /**
+   * Draw method - handles LINE drawing (foreground elements)
+   * This method renders lines, markers, and other foreground elements
+   * that should appear on top of fills and other series
+   */
+  draw(target: any) {
+    target.useBitmapCoordinateSpace((scope: any) => {
+      const ctx = scope.context;
+
+      // DON'T scale context - multiply coordinates by pixel ratio instead
+      const hRatio = scope.horizontalPixelRatio;
+      const vRatio = scope.verticalPixelRatio;
+
+      ctx.save();
+
+      // Draw trend lines (foreground)
+      if (this._viewData.options.trendLine.visible) {
+        this._drawTrendLines(ctx, hRatio, vRatio);
+      }
+
+      // Note: Base line is drawn as part of the fill path, not separately
+
+      ctx.restore();
+    });
   }
 
   /**
-   * Draw in background layer (before series)
-   * This is why we use primitives - for z-order control
+   * Draw background method - handles FILL rendering (background elements)
+   * This method renders fills, areas, and other background elements
+   * that should appear behind lines and other series
    */
   drawBackground(target: any) {
     target.useBitmapCoordinateSpace((scope: any) => {
@@ -225,15 +250,8 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
 
       ctx.save();
 
-      // Draw fills first (background)
+      // Draw fills (background)
       this._drawTrendFills(ctx, hRatio, vRatio);
-
-      // Draw trend lines (foreground)
-      if (this._viewData.options.trendLine.visible) {
-        this._drawTrendLines(ctx, hRatio, vRatio);
-      }
-
-      // Note: Base line is drawn as part of the fill path, not separately
 
       ctx.restore();
     });
@@ -497,12 +515,11 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
  * Trend Fill Primitive View
  * Handles data processing and coordinate conversion
  */
-class TrendFillPrimitiveView implements IPrimitivePaneView {
-  private _source: TrendFillPrimitive;
+class TrendFillPrimitiveView extends BaseSeriesPrimitivePaneView<TrendFillItem, TrendFillPrimitiveOptions> {
   private _data: TrendFillViewData;
 
   constructor(source: TrendFillPrimitive) {
-    this._source = source;
+    super(source);
     this._data = {
       data: {
         items: [],
@@ -613,7 +630,7 @@ class TrendFillPrimitiveView implements IPrimitivePaneView {
     if (typeof zIndex === 'number' && zIndex >= 0) {
       return zIndex;
     }
-    return -100; // Default to background (negative z-index renders before series)
+    return 0; // Default to normal layer (in front of grid)
   }
 }
 
@@ -792,14 +809,8 @@ class TrendFillPriceAxisView implements ISeriesPrimitiveAxisView {
  * Trend Fill Primitive
  * ISeriesPrimitive implementation with z-order control and price axis label
  */
-export class TrendFillPrimitive implements ISeriesPrimitive<Time> {
-  private chart: IChartApi;
-  private options: TrendFillPrimitiveOptions;
-  private data: TrendFillPrimitiveData[] = [];
-  private _paneViews: TrendFillPrimitiveView[];
-  private _priceAxisView: TrendFillPriceAxisView;
+export class TrendFillPrimitive extends BaseSeriesPrimitive<TrendFillItem, TrendFillPrimitiveOptions> {
   private trendFillItems: TrendFillItem[] = [];
-  private _attachedSeries: any = null; // Series this primitive is attached to
 
   constructor(
     chart: IChartApi,
@@ -821,17 +832,33 @@ export class TrendFillPrimitive implements ISeriesPrimitive<Time> {
       visible: true,
       priceScaleId: 'right',
       useHalfBarWidth: true, // Enable to fill full bar width without gaps
-      zIndex: -100, // Default to background
+      zIndex: 0, // Default to normal layer (in front of grid)
     }
   ) {
-    this.chart = chart;
-    this.options = { ...options };
-    this._paneViews = [new TrendFillPrimitiveView(this)];
-    this._priceAxisView = new TrendFillPriceAxisView(this);
+    super(chart, options);
+  }
+
+  // Required: Initialize views
+  protected _initializeViews(): void {
+    this._addPaneView(new TrendFillPrimitiveView(this));
+    this._addPriceAxisView(new TrendFillPriceAxisView(this));
+  }
+
+  // Required: Process raw data
+  protected _processData(_rawData: any[]): TrendFillItem[] {
+    // This method will be called by the base class
+    // For now, return the existing trendFillItems
+    return this.trendFillItems;
+  }
+
+  // Optional: Custom z-order default
+  protected _getDefaultZOrder(): PrimitivePaneViewZOrder {
+    return 'normal'; // Render in normal layer (in front of grid)
   }
 
   setData(data: TrendFillPrimitiveData[]): void {
-    this.data = data;
+    // Store the raw data and process it
+    (this as any)._rawData = data;
     this.processData();
     this.updateAllViews();
   }
@@ -839,11 +866,11 @@ export class TrendFillPrimitive implements ISeriesPrimitive<Time> {
   private processData(): void {
     this.trendFillItems = [];
 
-    if (!this.data || this.data.length === 0) {
+    if (!(this as any)._rawData || (this as any)._rawData.length === 0) {
       return;
     }
 
-    const sortedData = [...this.data].sort((a, b) => {
+    const sortedData = [...((this as any)._rawData as TrendFillPrimitiveData[])].sort((a, b) => {
       const timeA = parseTime(a.time);
       const timeB = parseTime(b.time);
       return timeA - timeB;
@@ -868,10 +895,10 @@ export class TrendFillPrimitive implements ISeriesPrimitive<Time> {
       }
 
       const isUptrend = trendDirection > 0;
-      const fillColor = isUptrend ? this.options.uptrendFillColor : this.options.downtrendFillColor;
+      const fillColor = isUptrend ? this._options.uptrendFillColor : this._options.downtrendFillColor;
 
       // Use fill color for line color (matches ICustomSeries logic at line 218)
-      const lineColor = isUptrend ? this.options.uptrendFillColor : this.options.downtrendFillColor;
+      const lineColor = isUptrend ? this._options.uptrendFillColor : this._options.downtrendFillColor;
 
       this.trendFillItems.push({
         time,
@@ -880,14 +907,14 @@ export class TrendFillPrimitive implements ISeriesPrimitive<Time> {
         trendDirection,
         fillColor,
         lineColor,
-        lineWidth: this.options.trendLine.lineWidth,
-        lineStyle: this.options.trendLine.lineStyle,
+        lineWidth: this._options.trendLine.lineWidth,
+        lineStyle: this._options.trendLine.lineStyle,
       });
     }
   }
 
   applyOptions(options: Partial<TrendFillPrimitiveOptions>): void {
-    this.options = { ...this.options, ...options };
+    this._options = { ...this._options, ...options };
     this.processData();
     this.updateAllViews();
   }
@@ -898,11 +925,11 @@ export class TrendFillPrimitive implements ISeriesPrimitive<Time> {
 
   // Getters
   getOptions(): TrendFillPrimitiveOptions {
-    return this.options;
+    return this._options;
   }
 
   getChart(): IChartApi {
-    return this.chart;
+    return this._chart;
   }
 
   getProcessedData(): TrendFillItem[] {
@@ -910,30 +937,18 @@ export class TrendFillPrimitive implements ISeriesPrimitive<Time> {
   }
 
   getAttachedSeries(): any {
-    return this._attachedSeries;
+    return this._series;
   }
 
-  // ISeriesPrimitive implementation
-  attached(param: SeriesAttachedParameter<Time>): void {
-    // Store the series reference for coordinate conversion
-    this._attachedSeries = param.series;
-  }
-
-  detached(): void {
-    // Clear series reference
-    this._attachedSeries = null;
-  }
-
+  // Override updateAllViews to also update pane views
   updateAllViews(): void {
-    this._paneViews.forEach(pv => pv.update());
-  }
-
-  paneViews(): IPrimitivePaneView[] {
-    return this._paneViews;
-  }
-
-  priceAxisViews(): ISeriesPrimitiveAxisView[] {
-    return [this._priceAxisView];
+    super.updateAllViews();
+    // Also update the pane views directly for compatibility
+    this._paneViews.forEach(pv => {
+      if ('update' in pv && typeof pv.update === 'function') {
+        pv.update();
+      }
+    });
   }
 
   timeAxisViews(): ISeriesPrimitiveAxisView[] {

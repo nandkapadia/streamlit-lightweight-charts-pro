@@ -15,6 +15,7 @@ This directory contains comprehensive rules and guidelines for the Streamlit Lig
 
 ### **Frontend Development**
 - **[frontend-development.mdc](mdc:.cursor/rules/frontend-development.mdc)** - Comprehensive TypeScript/React guidelines, state management patterns, and project structure
+- **[react-integration-patterns.mdc](mdc:.cursor/rules/react-integration-patterns.mdc)** - React integration patterns for Lightweight Charts (useLayoutEffect, forwardRef, helper hooks)
 - **[pane-primitive-positioning.mdc](mdc:.cursor/rules/pane-primitive-positioning.mdc)** - Critical pattern for primitive positioning in multi-pane charts
 
 ### **Architecture & Patterns**
@@ -50,7 +51,7 @@ These rules are automatically applied to all relevant files:
 
 ### **File-Type Specific Rules**
 - **Python files** (`*.py`): `python-coding-standards.mdc`, `google-docstring-standards.mdc`
-- **Frontend files** (`*.ts`, `*.tsx`, `*.js`, `*.jsx`): `frontend-development.mdc`
+- **Frontend files** (`*.ts`, `*.tsx`, `*.js`, `*.jsx`): `frontend-development.mdc`, `react-integration-patterns.mdc`
 - **Test files** (`test_*.py`, `*_test.py`, `*.test.ts`, `*.test.tsx`): `testing-standards.mdc`
 
 ### **Context-Specific Rules**
@@ -117,6 +118,7 @@ Detailed guidelines, examples, and patterns
 |------|-----------|
 | **Python coding** | `python-coding-standards.mdc` |
 | **Frontend work** | `frontend-development.mdc` |
+| **React integration** | `react-integration-patterns.mdc` |
 | **Chart development** | `architecture-patterns.mdc` |
 | **Custom series** | `custom-series-development.mdc` |
 | **API design** | `api-design-versioning.mdc` |
@@ -131,11 +133,14 @@ Detailed guidelines, examples, and patterns
 
 ---
 
-**Last Updated**: December 2024
-**Total Rules**: 20 files (consolidated from 25, removed 5 files)
+**Last Updated**: October 2024
+**Total Rules**: 21 files
 **Maintained by**: Streamlit Lightweight Charts Pro Contributors
 
 ## 📝 Recent Changes
+
+### **New Rules (October 2024)**
+- **react-integration-patterns.mdc** → React integration patterns with useLayoutEffect, forwardRef/useImperativeHandle, and helper hooks (Phase 1 implementation)
 
 ### **Major Consolidation (December 2024)**
 - **project-overview.mdc**, **quick-reference.mdc**, **development-workflow.mdc** → merged into **project-guide.mdc**

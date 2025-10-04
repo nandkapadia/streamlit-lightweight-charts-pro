@@ -809,6 +809,374 @@ const y = priceToCoordinate(item.value);
 if (y === null) continue;
 ```
 
+### 7. Series Primitive Rendering Method Separation
+
+**CRITICAL**: In series primitives, proper z-order rendering requires separating line drawing and fill rendering into different methods:
+
+#### Proper Method Separation
+
+```typescript
+class MyPrimitiveRenderer implements IPrimitivePaneRenderer {
+  private _source: MySeriesPrimitive;
+
+  constructor(source: MySeriesPrimitive) {
+    this._source = source;
+  }
+
+  /**
+   * Draw method - handles LINE drawing (foreground elements)
+   * This method renders lines, markers, and other foreground elements
+   * that should appear on top of fills and other series
+   */
+  draw(target: CanvasRenderingTarget2D): void {
+    target.useBitmapCoordinateSpace((scope) => {
+      const ctx = scope.context;
+      const hRatio = scope.horizontalPixelRatio;
+      const vRatio = scope.verticalPixelRatio;
+
+      ctx.save();
+
+      // Draw lines, markers, and other foreground elements
+      this._drawLines(ctx, hRatio, vRatio);
+      this._drawMarkers(ctx, hRatio, vRatio);
+
+      ctx.restore();
+    });
+  }
+
+  /**
+   * Draw background method - handles FILL rendering (background elements)
+   * This method renders fills, areas, and other background elements
+   * that should appear behind lines and other series
+   */
+  drawBackground(target: CanvasRenderingTarget2D): void {
+    target.useBitmapCoordinateSpace((scope) => {
+      const ctx = scope.context;
+      const hRatio = scope.horizontalPixelRatio;
+      const vRatio = scope.verticalPixelRatio;
+
+      ctx.save();
+
+      // Draw fills, areas, and other background elements
+      this._drawFills(ctx, hRatio, vRatio);
+      this._drawAreas(ctx, hRatio, vRatio);
+
+      ctx.restore();
+    });
+  }
+
+  private _drawLines(ctx: CanvasRenderingContext2D, hRatio: number, vRatio: number): void {
+    // Draw trend lines, support/resistance lines, etc.
+    // These should appear on top of fills
+  }
+
+  private _drawFills(ctx: CanvasRenderingContext2D, hRatio: number, vRatio: number): void {
+    // Draw filled areas, background bands, etc.
+    // These should appear behind lines
+  }
+}
+```
+
+#### Why This Separation Matters
+
+1. **Z-Order Control**:
+   - `drawBackground()` renders behind other series (negative z-index)
+   - `draw()` renders on top of other series (positive z-index)
+
+2. **Visual Hierarchy**:
+   - Fills provide context and background information
+   - Lines provide precise data points and trends
+   - Proper separation ensures fills don't obscure important line data
+
+3. **Performance**:
+   - Background elements can be rendered once and cached
+   - Foreground elements can be updated more frequently
+   - Reduces overdraw and improves rendering performance
+
+#### Common Patterns
+
+**Pattern A: Fill + Line Series**
+```typescript
+// Background: Fill areas between two lines
+drawBackground(target) {
+  this._drawFillAreas(ctx, hRatio, vRatio);
+}
+
+// Foreground: Draw the actual lines
+draw(target) {
+  this._drawTrendLine(ctx, hRatio, vRatio);
+  this._drawBaseLine(ctx, hRatio, vRatio);
+}
+```
+
+**Pattern B: Band/Ribbon Series**
+```typescript
+// Background: Fill between upper and lower bounds
+drawBackground(target) {
+  this._drawBandFill(ctx, hRatio, vRatio);
+}
+
+// Foreground: Draw boundary lines
+draw(target) {
+  this._drawUpperLine(ctx, hRatio, vRatio);
+  this._drawLowerLine(ctx, hRatio, vRatio);
+}
+```
+
+**Pattern C: Signal Series**
+```typescript
+// Background: Vertical bands for signal periods
+drawBackground(target) {
+  this._drawSignalBands(ctx, hRatio, vRatio);
+}
+
+// Foreground: Signal markers and lines
+draw(target) {
+  this._drawSignalMarkers(ctx, hRatio, vRatio);
+  this._drawSignalLines(ctx, hRatio, vRatio);
+}
+```
+
+#### Implementation Checklist
+
+- [ ] **Fills go in `drawBackground()`** - areas, bands, backgrounds
+- [ ] **Lines go in `draw()`** - trend lines, boundaries, markers
+- [ ] **Z-index is negative for background** - renders behind series
+- [ ] **Z-index is positive for foreground** - renders on top of series
+- [ ] **Both methods use `useBitmapCoordinateSpace()`** - proper pixel rendering
+- [ ] **Coordinate conversion is consistent** - same pixel ratios in both methods
+- [ ] **Performance is optimized** - minimize coordinate conversions
+
+## 🔄 DRY Principles and Code Reuse
+
+**CRITICAL**: Follow DRY (Don't Repeat Yourself) principles to maintain clean, maintainable code.
+
+### Common DRY Violations Found
+
+#### 1. **Series Primitive Lifecycle Methods**
+**Problem**: Every primitive implements identical `attached()`, `detached()`, `paneViews()`, `priceAxisViews()` methods.
+
+```typescript
+// ❌ WRONG: Repeated in every primitive
+class MyPrimitive implements ISeriesPrimitive<Time> {
+  attached(params: SeriesAttachedParameter<Time>): void {
+    this._series = params.series;
+    this._syncDataFromSeries();
+  }
+
+  detached(): void {
+    this._series = null;
+    this._data = [];
+  }
+
+  paneViews(): IPrimitivePaneView[] {
+    return [this._paneView];
+  }
+
+  priceAxisViews(): ISeriesPrimitiveAxisView[] {
+    return [this._priceAxisView];
+  }
+}
+```
+
+**Solution**: Use `BaseSeriesPrimitive` abstract class.
+
+```typescript
+// ✅ CORRECT: Extend BaseSeriesPrimitive
+class MyPrimitive extends BaseSeriesPrimitive<MyData, MyOptions> {
+  protected _initializeViews(): void {
+    this._addPaneView(new MyPaneView(this));
+    this._addPriceAxisView(new MyAxisView(this));
+  }
+
+  protected _processData(rawData: any[]): MyData[] {
+    // Custom data processing logic
+  }
+}
+```
+
+#### 2. **Z-Order Management**
+**Problem**: Every primitive implements identical z-order logic.
+
+```typescript
+// ❌ WRONG: Repeated z-order logic
+zOrder(): PrimitivePaneViewZOrder {
+  const zIndex = this._source.getOptions().zIndex;
+  if (typeof zIndex === 'number') {
+    if (zIndex < 0) return 'bottom';
+    if (zIndex >= 1000) return 'top';
+    return 'normal';
+  }
+  return 'normal';
+}
+```
+
+**Solution**: Use `BaseSeriesPrimitive._getZOrder()` method.
+
+```typescript
+// ✅ CORRECT: Inherited from BaseSeriesPrimitive
+zOrder(): PrimitivePaneViewZOrder {
+  return this._source._getZOrder();
+}
+```
+
+#### 3. **Time-Based Visible Range Detection**
+**Problem**: Every axis view implements identical last visible item detection.
+
+```typescript
+// ❌ WRONG: Repeated time-based detection
+private _getLastVisibleItem(): MyData | null {
+  const items = this._source.getProcessedData();
+  if (items.length === 0) return null;
+
+  const chart = this._source.getChart();
+  const timeScale = chart.timeScale();
+  const visibleTimeRange = timeScale.getVisibleRange();
+
+  if (!visibleTimeRange) {
+    return items[items.length - 1];
+  }
+
+  for (let i = items.length - 1; i >= 0; i--) {
+    const itemTime = items[i].time;
+    if ((itemTime as number) <= (visibleTimeRange.to as number)) {
+      return items[i];
+    }
+  }
+
+  return items[0];
+}
+```
+
+**Solution**: Use `BaseSeriesPrimitiveAxisView._getLastVisibleItem()` method.
+
+```typescript
+// ✅ CORRECT: Inherited from BaseSeriesPrimitiveAxisView
+private _getLastVisibleItem(): MyData | null {
+  return super._getLastVisibleItem();
+}
+```
+
+#### 4. **Coordinate Conversion Patterns**
+**Problem**: Every renderer implements similar coordinate conversion logic.
+
+```typescript
+// ❌ WRONG: Repeated coordinate conversion
+const coordinates = convertToCoordinates(data, chart, series, ['upper', 'lower']);
+const scaledCoords = coordinates.map(coord => ({
+  x: coord.x !== null ? coord.x * hRatio : null,
+  upper: coord.upper !== null ? coord.upper * vRatio : null,
+  lower: coord.lower !== null ? coord.lower * vRatio : null,
+}));
+```
+
+**Solution**: Create utility functions in `commonRendering.ts`.
+
+```typescript
+// ✅ CORRECT: Reusable utility function
+const scaledCoords = scaleCoordinates(coordinates, hRatio, vRatio);
+```
+
+### BaseSeriesPrimitive Usage Pattern
+
+```typescript
+/**
+ * Example: Refactored primitive using BaseSeriesPrimitive
+ */
+export class MySeriesPrimitive extends BaseSeriesPrimitive<MyData, MyOptions> {
+  constructor(chart: IChartApi, options: MyOptions) {
+    super(chart, options);
+  }
+
+  // Required: Initialize views
+  protected _initializeViews(): void {
+    this._addPaneView(new MyPaneView(this));
+    this._addPriceAxisView(new MyAxisView(this));
+  }
+
+  // Required: Process raw data
+  protected _processData(rawData: any[]): MyData[] {
+    return rawData
+      .filter(item => this._isValidData(item))
+      .map(item => this._convertToProcessedData(item));
+  }
+
+  // Optional: Custom z-order default
+  protected _getDefaultZOrder(): PrimitivePaneViewZOrder {
+    return 'normal'; // or 'bottom', 'top'
+  }
+
+  // Optional: Custom lifecycle behavior
+  attached(params: SeriesAttachedParameter<Time>): void {
+    super.attached(params); // Call parent implementation
+    // Add custom logic here
+  }
+}
+
+/**
+ * Example: Refactored pane view using BaseSeriesPrimitivePaneView
+ */
+class MyPaneView extends BaseSeriesPrimitivePaneView<MyData, MyOptions> {
+  renderer(): IPrimitivePaneRenderer {
+    return new MyRenderer(this._source);
+  }
+
+  // Optional: Custom z-order
+  zOrder(): PrimitivePaneViewZOrder {
+    return this._source._getZOrder();
+  }
+}
+
+/**
+ * Example: Refactored axis view using BaseSeriesPrimitiveAxisView
+ */
+class MyAxisView extends BaseSeriesPrimitiveAxisView<MyData, MyOptions> {
+  coordinate(): number {
+    const lastItem = this._getLastVisibleItem(); // Inherited method
+    if (!lastItem) return 0;
+
+    const series = this._source.getAttachedSeries();
+    if (!series) return 0;
+
+    const coordinate = series.priceToCoordinate(lastItem.value);
+    return coordinate ?? 0;
+  }
+
+  text(): string {
+    const lastItem = this._getLastVisibleItem(); // Inherited method
+    if (!lastItem) return '';
+    return lastItem.value.toFixed(2);
+  }
+
+  backColor(): string {
+    const lastItem = this._getLastVisibleItem(); // Inherited method
+    if (!lastItem) return 'transparent';
+
+    const options = this._source.getOptions();
+    return getSolidColorFromFill(options.fillColor);
+  }
+}
+```
+
+### DRY Benefits
+
+1. **Reduced Code Duplication**: Common patterns implemented once
+2. **Consistent Behavior**: All primitives behave the same way
+3. **Easier Maintenance**: Changes in one place affect all primitives
+4. **Better Testing**: Common functionality tested once
+5. **Faster Development**: New primitives require less boilerplate
+
+### DRY Implementation Checklist
+
+- [ ] **Use BaseSeriesPrimitive** for all new series primitives
+- [ ] **Use BaseSeriesPrimitivePaneView** for pane views
+- [ ] **Use BaseSeriesPrimitiveAxisView** for axis views
+- [ ] **Extract common utilities** to shared modules
+- [ ] **Avoid duplicating lifecycle methods**
+- [ ] **Reuse coordinate conversion patterns**
+- [ ] **Share time-based visible range detection**
+- [ ] **Consolidate z-order management**
+
 ## 📋 Implementation Checklist
 
 ### Design Phase
@@ -823,6 +1191,7 @@ if (y === null) continue;
 - [ ] Create ICustomSeriesPaneRenderer
 - [ ] Create ISeriesPrimitive (if Pattern 2 or 3)
 - [ ] Create IPrimitivePaneView and renderer (if Pattern 2 or 3)
+- [ ] **Separate rendering methods** - lines in `draw()`, fills in `drawBackground()`
 - [ ] Create ISeriesPrimitiveAxisView (if Pattern 2 or 3)
 - [ ] Implement time-based visible range detection
 - [ ] Create factory function with mode selection
@@ -871,6 +1240,8 @@ if (y === null) continue;
 6. ✅ Convert fill colors to solid for price axis
 7. ✅ Control `lastValueVisible` based on rendering mode
 8. ✅ Use `disableSeriesRendering` to switch modes
+9. ✅ **Separate line drawing and fill rendering** - lines in `draw()`, fills in `drawBackground()`
+10. ✅ **Follow DRY principles** - use BaseSeriesPrimitive for common functionality
 
 **When to Use Each Pattern**:
 - **Pattern 1**: Simple series, no z-order control needed

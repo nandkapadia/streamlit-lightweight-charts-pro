@@ -2,6 +2,8 @@
  * Performance optimization utilities for the chart component
  */
 
+import { Singleton } from './SingletonBase';
+
 // Production logging control
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -183,16 +185,9 @@ export const getCachedDimensions = memoize(
 );
 
 // Performance monitoring utility
+@Singleton()
 export class PerformanceMonitor {
-  private static instance: PerformanceMonitor;
   private metrics: Map<string, number[]> = new Map();
-
-  static getInstance(): PerformanceMonitor {
-    if (!PerformanceMonitor.instance) {
-      PerformanceMonitor.instance = new PerformanceMonitor();
-    }
-    return PerformanceMonitor.instance;
-  }
 
   startTimer(name: string): () => void {
     const start = performance.now();

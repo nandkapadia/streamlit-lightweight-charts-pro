@@ -18,6 +18,7 @@ export type SeriesType =
   | 'candlestick'
   | 'bar'
   | 'histogram'
+  | 'baseline'
   | 'supertrend'
   | 'bollinger_bands'
   | 'sma'

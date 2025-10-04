@@ -42,7 +42,23 @@ export default defineConfig({
       jsdom: {
         resources: 'usable'
       }
-    }
+    },
+    // Memory management and performance optimizations
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true,
+        isolate: false
+      }
+    },
+    // Reduce memory usage
+    maxConcurrency: 1,
+    minThreads: 1,
+    maxThreads: 1,
+    // Disable file watching for better memory management
+    watch: false,
+    // Force garbage collection between tests
+    isolate: false
   },
   // Resolve configuration for better module resolution
   resolve: {

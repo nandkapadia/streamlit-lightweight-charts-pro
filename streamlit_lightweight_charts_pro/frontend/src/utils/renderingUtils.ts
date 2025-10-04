@@ -164,7 +164,7 @@ export function batchConvertCoordinates<T extends Record<string, any>>(
   seriesMap: Record<string, ISeriesApi<any>>,
   coordinateFields: string[]
 ): Array<RendererDataPoint | null> {
-  return items.map((item, index) => {
+  return items.map((item, _index) => {
     try {
       const x = timeScale.timeToCoordinate(item.time);
       if (!isValidCoordinate(x)) {
@@ -184,8 +184,7 @@ export function batchConvertCoordinates<T extends Record<string, any>>(
       }
 
       return result;
-    } catch (error) {
-      console.warn(`Coordinate conversion failed for item ${index}:`, error);
+    } catch {
       return null;
     }
   });

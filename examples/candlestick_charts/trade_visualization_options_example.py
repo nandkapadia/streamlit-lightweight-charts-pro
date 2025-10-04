@@ -72,8 +72,8 @@ def create_sample_trades(ohlcv_data):
     random.seed(42)
 
     for _i in range(5):
-        entry_idx = random.randint(0, n_periods - 2)  # noqa: S311
-        exit_idx = random.randint(entry_idx + 1, n_periods - 1)  # noqa: S311
+        entry_idx = random.randint(0, n_periods - 2)
+        exit_idx = random.randint(entry_idx + 1, n_periods - 1)
 
         entry_data = ohlcv_data[entry_idx]
         exit_data = ohlcv_data[exit_idx]
@@ -89,7 +89,7 @@ def create_sample_trades(ohlcv_data):
             entry_price=float(round(entry_price, 2)),  # Ensure Python float
             exit_price=float(round(exit_price, 2)),  # Ensure Python float
             trade_type=trade_type,
-            quantity=int(random.randint(100, 1000)),  # noqa: S311  # Ensure Python int
+            quantity=int(random.randint(100, 1000)),  # Ensure Python int
         )
 
         trades.append(trade)

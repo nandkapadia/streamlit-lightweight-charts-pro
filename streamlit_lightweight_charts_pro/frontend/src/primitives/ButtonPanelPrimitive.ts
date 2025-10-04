@@ -21,6 +21,7 @@ import { SeriesType, SeriesConfiguration } from '../types/SeriesTypes';
 import { StreamlitSeriesConfigService } from '../services/StreamlitSeriesConfigService';
 import { SeriesSettingsDialog, SeriesInfo as DialogSeriesInfo } from '../forms/SeriesSettingsDialog';
 import { logger } from '../utils/logger';
+import { createSingleton } from '../utils/SingletonBase';
 
 /**
  * Configuration interface for ButtonPanelPrimitive
@@ -87,7 +88,7 @@ interface SeriesInfo {
  */
 export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitiveConfig> {
   private paneState: PaneState;
-  private streamlitService: StreamlitSeriesConfigService;
+  private _streamlitService: StreamlitSeriesConfigService | null = null;
 
   constructor(id: string, config: ButtonPanelPrimitiveConfig) {
     super(id, {
@@ -104,8 +105,19 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
       collapsedHeight: 45,
       seriesConfigs: new Map(),
     };
+  }
 
-    this.streamlitService = StreamlitSeriesConfigService.getInstance();
+  /**
+   * Lazy getter for streamlit service
+   */
+  private get streamlitService(): StreamlitSeriesConfigService {
+    if (!this._streamlitService) {
+      this._streamlitService = createSingleton(StreamlitSeriesConfigService);
+    }
+    if (!this._streamlitService) {
+      throw new Error('Failed to initialize StreamlitSeriesConfigService');
+    }
+    return this._streamlitService;
   }
 
   // ===== BasePanePrimitive Abstract Methods =====
@@ -504,7 +516,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                 const options = series.options();
                 const title = options?.title || '';
 
-                console.log(`🔍 ButtonPanel - Series ${index} title check:`, title || 'no title');
 
                 if (title.startsWith('__RIBBON_UPPER__') || title.startsWith('__RIBBON_LOWER__')) {
                   // Extract the ribbon name after the prefix
@@ -517,12 +528,11 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                   }
                   ribbonGroups.get(ribbonName)?.push({ series, index, type: title.startsWith('__RIBBON_UPPER__') ? 'upper' : 'lower' });
 
-                  console.log(`🎀 ButtonPanel - Detected ribbon ${title.startsWith('__RIBBON_UPPER__') ? 'upper' : 'lower'} series for: ${ribbonName}`);
                 } else {
                   regularSeries.push({ series, index });
                 }
-              } catch (e) {
-                console.log(`❌ ButtonPanel - Error checking series ${index}:`, e);
+              } catch (error) {
+                logger.warn('Error checking ribbon series name', 'ButtonPanelPrimitive', error);
                 regularSeries.push({ series, index });
               }
             });
@@ -546,7 +556,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                 config: seriesConfig,
               });
 
-              console.log(`✅ ButtonPanel - Added ribbon series: ${displayName}`);
             });
 
             // Add regular series
@@ -567,12 +576,9 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                 // Get title from series options (now properly passed from seriesFactory)
                 if (options?.title) {
                   displayName = options.title;
-                  console.log(`✅ ButtonPanel - Using title: ${displayName}`);
-                } else {
-                  console.log(`❌ ButtonPanel - No title found, using fallback: ${displayName}`);
                 }
-              } catch (e) {
-                console.log(`❌ ButtonPanel - Error getting options for series ${index}:`, e);
+              } catch (error) {
+                logger.warn('Error getting series title', 'ButtonPanelPrimitive', error);
               }
 
               // Get existing config or create default
@@ -590,50 +596,12 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
               });
             });
           } else {
-            // Fallback to mock data if no actual series found
-            const mockSeriesData = this.getMockSeriesForPane();
-
-            mockSeriesData.forEach((mockSeries, index) => {
-              const seriesId = `pane-${this.config.paneId}-series-${index}`;
-
-              // Get existing config or create default
-              let seriesConfig = this.paneState.seriesConfigs.get(seriesId);
-              if (!seriesConfig) {
-                seriesConfig = this.getDefaultSeriesConfig(mockSeries.type);
-                this.paneState.seriesConfigs.set(seriesId, seriesConfig);
-              }
-
-              seriesList.push({
-                id: seriesId,
-                displayName: mockSeries.title || seriesId,
-                type: mockSeries.type,
-                config: seriesConfig,
-              });
-            });
+            // No series found in this pane - this is expected for empty panes
+            logger.debug('No series found in pane', 'ButtonPanelPrimitive', { paneId: this.config.paneId });
           }
         } catch (error) {
-          // If we can't get actual series, fall back to mock data
-          logger.debug('Could not get actual series, using mock data', 'ButtonPanelPrimitive', error);
-
-          const mockSeriesData = this.getMockSeriesForPane();
-
-          mockSeriesData.forEach((mockSeries, index) => {
-            const seriesId = `pane-${this.config.paneId}-series-${index}`;
-
-            // Get existing config or create default
-            let seriesConfig = this.paneState.seriesConfigs.get(seriesId);
-            if (!seriesConfig) {
-              seriesConfig = this.getDefaultSeriesConfig(mockSeries.type);
-              this.paneState.seriesConfigs.set(seriesId, seriesConfig);
-            }
-
-            seriesList.push({
-              id: seriesId,
-              displayName: mockSeries.title || seriesId,
-              type: mockSeries.type,
-              config: seriesConfig,
-            });
-          });
+          // If we can't get actual series, log the error and return empty list
+          logger.error('Failed to get series from pane', 'ButtonPanelPrimitive', error);
         }
       }
     } catch (error) {
@@ -643,24 +611,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     return seriesList;
   }
 
-  private getMockSeriesForPane(): Array<{ type: SeriesType; title?: string }> {
-    // Match the exact series from demo_series_settings.py
-    if (this.config.paneId === 0) {
-      // Main chart pane (Pane 0) has line series and ribbon series
-      return [
-        { type: 'line', title: 'Price Line' },  // LineSeries from demo
-        { type: 'ribbon', title: 'Price Ribbon' },  // RibbonSeries from demo
-      ];
-    } else if (this.config.paneId === 1) {
-      // Volume pane (Pane 1) has histogram series
-      return [
-        { type: 'histogram', title: 'Volume' },  // HistogramSeries from demo
-      ];
-    } else {
-      // For any other panes, return empty
-      return [];
-    }
-  }
 
   private applySeriesConfig(seriesId: string, config: SeriesConfiguration): void {
     try {
@@ -708,7 +658,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
       const seriesOptions: any = {};
 
       // Map configuration options to LightweightCharts API options
-      console.log('🔧 ButtonPanel - Applying config to series:', seriesId, config);
 
       if (config.visible !== undefined) {
         seriesOptions.visible = config.visible;
@@ -732,7 +681,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
         seriesOptions.priceLineVisible = config.priceLineVisible;
       }
 
-      console.log('🎯 ButtonPanel - Mapped series options:', seriesOptions);
 
       // Try to find and update the series
       const panes = this.chart.panes();
@@ -750,9 +698,8 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
             if (ribbonMatch) {
               // This is a ribbon series - apply options to both upper and lower series
               const ribbonName = ribbonMatch[1];
-              console.log(`🎀 ButtonPanel - Applying config to ribbon series: ${ribbonName}`);
 
-              paneseries.forEach((series: any, idx: number) => {
+              paneseries.forEach((series: any, _idx: number) => {
                 try {
                   const options = series.options();
                   const title = options?.title || '';
@@ -760,16 +707,14 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                   if (title === `__RIBBON_UPPER__${ribbonName}` || title === `__RIBBON_LOWER__${ribbonName}`) {
                     if (series && typeof series.applyOptions === 'function') {
                       try {
-                        console.log(`✅ ButtonPanel - Applying ribbon options to series ${idx} (${title}):`, seriesOptions);
                         series.applyOptions(seriesOptions);
-                        console.log(`✅ ButtonPanel - Successfully applied ribbon options to series ${idx}`);
                       } catch (error) {
-                        console.error(`❌ ButtonPanel - Error applying ribbon options to series ${idx}:`, error);
+                        logger.warn('Error applying ribbon series options', 'ButtonPanelPrimitive', error);
                       }
                     }
                   }
-                } catch (e) {
-                  console.log(`❌ ButtonPanel - Error checking ribbon series ${idx}:`, e);
+                } catch (error) {
+                  logger.debug('Error getting ribbon series title', 'ButtonPanelPrimitive', error);
                 }
               });
             } else {
@@ -786,25 +731,21 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                 if (targetSeriesIndex === -1 || idx === targetSeriesIndex) {
                   if (series && typeof series.applyOptions === 'function') {
                     try {
-                      console.log(`✅ ButtonPanel - Applying options to series ${idx}:`, seriesOptions);
                       series.applyOptions(seriesOptions);
-                      console.log(`✅ ButtonPanel - Successfully applied options to series ${idx}`);
                     } catch (error) {
-                      console.error(`❌ ButtonPanel - Error applying options to series ${idx}:`, error);
+                      logger.warn('Error applying series options', 'ButtonPanelPrimitive', error);
                     }
-                  } else {
-                    console.warn(`⚠️ ButtonPanel - Series ${idx} does not have applyOptions method`);
                   }
                 }
               });
             }
           }
-        } catch {
-          // Ignore errors when finding series objects
+        } catch (error) {
+          logger.debug('Error finding series objects', 'ButtonPanelPrimitive', error);
         }
       }
-    } catch {
-      // Ignore errors when applying config to chart series
+    } catch (error) {
+      logger.error('Error applying config to chart series', 'ButtonPanelPrimitive', error);
     }
   }
 

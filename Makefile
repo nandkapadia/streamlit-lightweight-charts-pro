@@ -124,7 +124,7 @@ pre-commit-clean:  ## Clean pre-commit cache
 
 test-frontend:  ## Run frontend tests and checks
 	@echo "Running frontend tests..."
-	@cd streamlit_lightweight_charts_pro/frontend && npm test -- --watchAll=false
+	@cd streamlit_lightweight_charts_pro/frontend && npm run test:all
 
 format-frontend:  ## Format frontend code
 	@echo "Formatting frontend code..."

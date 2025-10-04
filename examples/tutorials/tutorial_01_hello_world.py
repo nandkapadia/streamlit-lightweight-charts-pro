@@ -169,7 +169,7 @@ if st.button("🔄 Regenerate with Random Data"):
     new_data = []
     base_value = 100
     for i in range(7):
-        base_value += random.randint(-10, 15)  # noqa: S311
+        base_value += random.randint(-10, 15)
         new_data.append(LineData(time=f"2024-01-{i + 1:02d}", value=max(base_value, 50)))
 
     # Create new chart

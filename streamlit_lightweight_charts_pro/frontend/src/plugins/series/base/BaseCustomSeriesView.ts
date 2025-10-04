@@ -28,7 +28,9 @@ import {
   CustomSeriesPricePlotValues,
   CustomSeriesWhitespaceData,
   Time,
-  CanvasRenderingTarget2D,
+  // CanvasRenderingTarget2D is declared locally in lightweight-charts
+  // @ts-expect-error - Type declared locally but not exported
+  type CanvasRenderingTarget2D,
   PriceToCoordinateConverter,
 } from 'lightweight-charts';
 
@@ -49,6 +51,7 @@ export interface BaseCustomSeriesData<HorzScaleItem = Time> extends CustomData<H
  * Base options for custom series
  * Extend this interface for your custom series options
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface BaseCustomSeriesOptions extends CustomSeriesOptions {
   // Add custom options in derived interfaces
 }
@@ -117,7 +120,7 @@ export abstract class BaseCustomSeriesPaneRenderer<
     }
 
     // Use bitmap coordinate space for proper pixel-perfect rendering
-    target.useBitmapCoordinateSpace(scope => {
+    target.useBitmapCoordinateSpace((scope: any) => {
       const ctx = scope.context;
 
       // Call abstract draw method

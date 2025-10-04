@@ -13,6 +13,7 @@
 
 import { UTCTimestamp } from 'lightweight-charts';
 import { TemplateContext, TemplateFormatting } from '../types/ChartInterfaces';
+import { Singleton } from '../utils/SingletonBase';
 
 /**
  * Interface for series data used in template processing
@@ -89,18 +90,10 @@ export interface TemplateResult {
 /**
  * TemplateEngine - Centralized template processing for primitives
  */
+// @ts-expect-error - Decorator doesn't support private constructors
+@Singleton()
 export class TemplateEngine {
-  private static instance: TemplateEngine | null = null;
-
-  /**
-   * Singleton instance
-   */
-  public static getInstance(): TemplateEngine {
-    if (!TemplateEngine.instance) {
-      TemplateEngine.instance = new TemplateEngine();
-    }
-    return TemplateEngine.instance;
-  }
+  static getInstance: () => TemplateEngine;
 
   private constructor() {
     // Private constructor for singleton
