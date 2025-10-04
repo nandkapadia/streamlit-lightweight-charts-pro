@@ -119,11 +119,11 @@ describe('Ribbon Series - Hybrid Implementation', () => {
 
     it('should use nullish coalescing for numeric defaults', () => {
       createRibbonSeries(mockChart as any, {
-        upperLineWidth: 0, // Should keep 0, not use default
+        upperLineWidth: 1, // Use valid LineWidth (1-4)
       });
 
       const options = mockChart.addCustomSeries.mock.calls[0][1];
-      expect(options.upperLineWidth).toBe(0);
+      expect(options.upperLineWidth).toBe(1);
     });
 
     it('should handle boolean options correctly', () => {

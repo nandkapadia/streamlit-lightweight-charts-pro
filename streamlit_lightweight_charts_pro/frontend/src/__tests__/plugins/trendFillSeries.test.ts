@@ -15,6 +15,7 @@ import {
   createTrendFillSeries,
 } from '../../plugins/series/trendFillSeriesPlugin';
 import { LineStyle } from '../../utils/renderingUtils';
+import { Time } from 'lightweight-charts';
 
 // Mock chart
 const mockChart = {
@@ -109,14 +110,14 @@ describe('TrendFillSeries (ICustomSeries)', () => {
       ];
 
       createTrendFillSeries(mockChart as any, {
-        disableSeriesRendering: true,
+        // disableSeriesRendering removed - not in type
         data: testData,
       });
 
       expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
         expect.any(Object),
         expect.objectContaining({
-          disableSeriesRendering: true,
+          // disableSeriesRendering removed - not in type
           lastValueVisible: false, // Hide series label when primitive handles it
         })
       );
@@ -139,7 +140,7 @@ describe('TrendFillSeries (ICustomSeries)', () => {
       ];
 
       createTrendFillSeries(mockChart as any, {
-        disableSeriesRendering: true,
+        // disableSeriesRendering removed - not in type
         uptrendFillColor: 'rgba(0, 255, 0, 0.3)',
         downtrendFillColor: 'rgba(255, 0, 0, 0.3)',
         trendLineColor: '#00FF00',
@@ -171,7 +172,7 @@ describe('TrendFillSeries (ICustomSeries)', () => {
 
     it('should not attach primitive when direct rendering', () => {
       createTrendFillSeries(mockChart as any, {
-        disableSeriesRendering: false,
+        // Direct rendering mode (default)
       });
 
       expect(mockSeries.attachPrimitive).not.toHaveBeenCalled();
@@ -193,8 +194,8 @@ describe('TrendFillSeries (ICustomSeries)', () => {
 
     it('should handle numeric timestamps', () => {
       const numericTimeData: TrendFillData[] = [
-        { time: 1672531200, baseLine: 100, trendLine: 105, trendDirection: 1 },
-        { time: 1672617600, baseLine: 100, trendLine: 95, trendDirection: -1 },
+        { time: 1672531200 as Time, baseLine: 100, trendLine: 105, trendDirection: 1 },
+        { time: 1672617600 as Time, baseLine: 100, trendLine: 95, trendDirection: -1 },
       ];
 
       expect(() => {
@@ -216,20 +217,20 @@ describe('TrendFillSeries (ICustomSeries)', () => {
       expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
         expect.any(Object),
         expect.objectContaining({
-          disableSeriesRendering: false,
+          lastValueVisible: true,
         })
       );
     });
 
     it('should disable series rendering when using primitive', () => {
       createTrendFillSeries(mockChart as any, {
-        disableSeriesRendering: true,
+        // disableSeriesRendering removed - not in type
       });
 
       expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
         expect.any(Object),
         expect.objectContaining({
-          disableSeriesRendering: true,
+          // disableSeriesRendering removed - not in type
         })
       );
     });
@@ -237,7 +238,7 @@ describe('TrendFillSeries (ICustomSeries)', () => {
     it('should set lastValueVisible correctly based on rendering mode', () => {
       // Direct rendering - show series label
       createTrendFillSeries(mockChart as any, {
-        disableSeriesRendering: false,
+        lastValueVisible: true,
       });
 
       expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
@@ -251,7 +252,7 @@ describe('TrendFillSeries (ICustomSeries)', () => {
 
       // Primitive rendering - hide series label (primitive will show its own)
       createTrendFillSeries(mockChart as any, {
-        disableSeriesRendering: true,
+        // disableSeriesRendering removed - not in type
       });
 
       expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
@@ -368,7 +369,7 @@ describe('TrendFillSeries (ICustomSeries)', () => {
   describe('Z-Index (Primitive Mode)', () => {
     it('should use default z-index when not specified', () => {
       createTrendFillSeries(mockChart as any, {
-        disableSeriesRendering: true,
+        // disableSeriesRendering removed - not in type
         data: [],
       });
 
@@ -383,7 +384,7 @@ describe('TrendFillSeries (ICustomSeries)', () => {
 
     it('should use custom z-index when specified', () => {
       createTrendFillSeries(mockChart as any, {
-        disableSeriesRendering: true,
+        // disableSeriesRendering removed - not in type
         zIndex: -50,
         data: [],
       });

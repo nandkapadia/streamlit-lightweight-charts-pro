@@ -106,6 +106,9 @@ export interface TrendFillSeriesOptions extends CustomSeriesOptions {
   baseLineStyle: LineStyle;
   baseLineVisible: boolean;
 
+  // Series options
+  lastValueVisible: boolean;
+
   // Internal flag (set automatically by factory)
   _usePrimitive?: boolean;
 }
@@ -568,6 +571,7 @@ export function createTrendFillSeries(
     baseLineStyle?: LineStyle;
     baseLineVisible?: boolean;
     priceScaleId?: string;
+    lastValueVisible?: boolean;
 
     // Primitive-specific options (optional)
     usePrimitive?: boolean;
@@ -590,7 +594,7 @@ export function createTrendFillSeries(
     baseLineStyle: options.baseLineStyle ?? LineStyle.Dotted,
     baseLineVisible: options.baseLineVisible === true,
     priceScaleId: options.priceScaleId ?? 'right',
-    lastValueVisible: !options.usePrimitive, // Hide series label when primitive handles it
+    lastValueVisible: options.lastValueVisible ?? !options.usePrimitive, // Hide series label when primitive handles it
     _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
   });
 

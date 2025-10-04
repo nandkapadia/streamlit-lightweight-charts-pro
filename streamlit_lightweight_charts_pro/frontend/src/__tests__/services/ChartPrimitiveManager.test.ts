@@ -157,7 +157,7 @@ describe('ChartPrimitiveManager', () => {
         position: 'top-left',
         visible: true
       };
-      const result = manager.addRangeSwitcher(config);
+      const _result = manager.addRangeSwitcher(config);
 
       expect(result).toBeDefined();
       expect(typeof result.destroy).toBe('function');
@@ -174,7 +174,7 @@ describe('ChartPrimitiveManager', () => {
         ],
       };
 
-      const result = manager.addRangeSwitcher(config);
+      const _result = manager.addRangeSwitcher(config);
 
       expect(result).toBeDefined();
       expect(typeof result.destroy).toBe('function');
@@ -191,7 +191,7 @@ describe('ChartPrimitiveManager', () => {
         position: 'top-left',
         visible: true
       };
-      const result = manager.addRangeSwitcher(config);
+      const _result = manager.addRangeSwitcher(config);
 
       expect(result).toBeDefined();
       expect(typeof result.destroy).toBe('function');
@@ -216,7 +216,7 @@ describe('ChartPrimitiveManager', () => {
         text: 'Test Legend',
       };
 
-      const result = manager.addLegend(config);
+      const _result = manager.addLegend(config);
 
       expect(result).toBeDefined();
       expect(typeof result.destroy).toBe('function');
@@ -231,7 +231,7 @@ describe('ChartPrimitiveManager', () => {
         valueFormat: '.3f',
       };
 
-      const result = manager.addLegend(config);
+      const _result = manager.addLegend(config);
 
       expect(result).toBeDefined();
       expect(typeof result.destroy).toBe('function');
@@ -242,7 +242,7 @@ describe('ChartPrimitiveManager', () => {
         text: 'Pane Legend',
       };
 
-      const result = manager.addLegend(config, true, 0);
+      const _result = manager.addLegend(config, true, 0);
 
       expect(result).toBeDefined();
       expect(mockPane.attachPrimitive).toHaveBeenCalled();
@@ -253,7 +253,7 @@ describe('ChartPrimitiveManager', () => {
         text: 'Series Legend',
       };
 
-      const result = manager.addLegend(config, false, 0, mockSeries);
+      const _result = manager.addLegend(config, false, 0, mockSeries);
 
       expect(result).toBeDefined();
       expect(mockSeries.attachPrimitive).toHaveBeenCalled();
@@ -268,7 +268,7 @@ describe('ChartPrimitiveManager', () => {
         text: 'Fallback Legend',
       };
 
-      const result = manager.addLegend(config, false, 0, mockSeries);
+      const _result = manager.addLegend(config, false, 0, mockSeries);
 
       expect(result).toBeDefined();
       expect(mockSeries.attachPrimitive).toHaveBeenCalled();
@@ -286,7 +286,7 @@ describe('ChartPrimitiveManager', () => {
         text: 'Error Legend',
       };
 
-      const result = manager.addLegend(config);
+      const _result = manager.addLegend(config);
 
       expect(result).toBeDefined();
       expect(typeof result.destroy).toBe('function');
@@ -323,7 +323,7 @@ describe('ChartPrimitiveManager', () => {
 
   describe('Button Panel Management', () => {
     it('should add button panel with default config', () => {
-      const result = manager.addButtonPanel(0);
+      const _result = manager.addButtonPanel(0);
 
       expect(result).toBeDefined();
       expect(typeof result.destroy).toBe('function');
@@ -339,7 +339,7 @@ describe('ChartPrimitiveManager', () => {
         buttonColor: '#FF0000',
       };
 
-      const result = manager.addButtonPanel(0, config);
+      const _result = manager.addButtonPanel(0, config);
 
       expect(result).toBeDefined();
       expect(typeof result.destroy).toBe('function');
@@ -350,7 +350,7 @@ describe('ChartPrimitiveManager', () => {
       // Mock chart with fewer panes
       mockChart.panes = vi.fn(() => [mockPane]); // Only one pane
 
-      const result = manager.addButtonPanel(5); // Try to attach to pane 5
+      const _result = manager.addButtonPanel(5); // Try to attach to pane 5
 
       expect(result).toBeDefined();
       expect(mockPane.attachPrimitive).toHaveBeenCalled();
@@ -362,7 +362,7 @@ describe('ChartPrimitiveManager', () => {
         throw new Error('Panes error');
       });
 
-      const result = manager.addButtonPanel(0);
+      const _result = manager.addButtonPanel(0);
 
       expect(result).toBeDefined();
       expect(typeof result.destroy).toBe('function');
@@ -564,7 +564,7 @@ describe('ChartPrimitiveManager', () => {
       });
 
       const config: LegendConfig = { text: 'Constructor Error Legend' };
-      const result = manager.addLegend(config);
+      const _result = manager.addLegend(config);
 
       expect(result).toBeDefined();
       expect(typeof result.destroy).toBe('function');

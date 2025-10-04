@@ -93,6 +93,12 @@ export interface BandSeriesOptions extends CustomSeriesOptions {
 
   // Fill styling
   upperFillColor: string;
+
+  // Series options
+  lastValueVisible: boolean;
+  title: string;
+  visible: boolean;
+  priceLineVisible: boolean;
   upperFillVisible: boolean;
   lowerFillColor: string;
   lowerFillVisible: boolean;
@@ -365,6 +371,12 @@ export function createBandSeries(
     lowerFillColor?: string;
     lowerFillVisible?: boolean;
     priceScaleId?: string;
+
+    // Series options
+    lastValueVisible?: boolean;
+    title?: string;
+    visible?: boolean;
+    priceLineVisible?: boolean;
 
     // Rendering control
     usePrimitive?: boolean;

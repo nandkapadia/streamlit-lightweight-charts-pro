@@ -32,7 +32,7 @@ describe('coordinateValidation', () => {
         isValid: true,
       };
 
-      const result = validateChartCoordinates(validCoordinates);
+      const _result = validateChartCoordinates(validCoordinates);
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -50,7 +50,7 @@ describe('coordinateValidation', () => {
         isValid: true,
       } as any;
 
-      const result = validateChartCoordinates(invalidCoordinates);
+      const _result = validateChartCoordinates(invalidCoordinates);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Missing container dimensions');
@@ -68,7 +68,7 @@ describe('coordinateValidation', () => {
         isValid: true,
       };
 
-      const result = validateChartCoordinates(invalidCoordinates);
+      const _result = validateChartCoordinates(invalidCoordinates);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Invalid container width: 0');
@@ -87,7 +87,7 @@ describe('coordinateValidation', () => {
         isValid: true,
       };
 
-      const result = validateChartCoordinates(smallCoordinates);
+      const _result = validateChartCoordinates(smallCoordinates);
 
       expect(result.warnings.length).toBeGreaterThan(0);
       expect(result.warnings.some(w => w.includes('below recommended minimum'))).toBe(true);
@@ -105,7 +105,7 @@ describe('coordinateValidation', () => {
         isValid: true,
       } as any;
 
-      const result = validateChartCoordinates(invalidCoordinates);
+      const _result = validateChartCoordinates(invalidCoordinates);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Missing time scale dimensions');
@@ -126,7 +126,7 @@ describe('coordinateValidation', () => {
                         margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false,
       };
 
-      const result = validatePaneCoordinates(validPane, 0);
+      const _result = validatePaneCoordinates(validPane, 0);
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -145,7 +145,7 @@ describe('coordinateValidation', () => {
                         margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false,
       };
 
-      const result = validatePaneCoordinates(invalidPane, 0);
+      const _result = validatePaneCoordinates(invalidPane, 0);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Pane 0: Invalid width (-100)');
@@ -165,7 +165,7 @@ describe('coordinateValidation', () => {
                         margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false,
       };
 
-      const result = validatePaneCoordinates(invalidPane, 1);
+      const _result = validatePaneCoordinates(invalidPane, 1);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Pane 1: Invalid top position (-10)');
@@ -182,7 +182,7 @@ describe('coordinateValidation', () => {
         height: 370,
       };
 
-      const result = validateScaleDimensions(validScale, 'priceScale');
+      const _result = validateScaleDimensions(validScale, 'priceScale');
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -196,7 +196,7 @@ describe('coordinateValidation', () => {
         height: -100,
       };
 
-      const result = validateScaleDimensions(invalidScale, 'timeScale');
+      const _result = validateScaleDimensions(invalidScale, 'timeScale');
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('timeScale: Invalid width (0)');
@@ -204,7 +204,7 @@ describe('coordinateValidation', () => {
     });
 
     it('should handle missing scale dimensions', () => {
-      const result = validateScaleDimensions(null as any, 'priceScale');
+      const _result = validateScaleDimensions(null as any, 'priceScale');
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('priceScale: Missing scale dimensions');
@@ -224,7 +224,7 @@ describe('coordinateValidation', () => {
         bottom: 70,
       };
 
-      const result = validateBoundingBox(validBox);
+      const _result = validateBoundingBox(validBox);
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -242,7 +242,7 @@ describe('coordinateValidation', () => {
         bottom: -30,
       };
 
-      const result = validateBoundingBox(invalidBox);
+      const _result = validateBoundingBox(invalidBox);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('BoundingBox: Invalid width (0)');
@@ -250,7 +250,7 @@ describe('coordinateValidation', () => {
     });
 
     it('should handle missing bounding box', () => {
-      const result = validateBoundingBox(null as any);
+      const _result = validateBoundingBox(null as any);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('BoundingBox: Missing bounding box data');

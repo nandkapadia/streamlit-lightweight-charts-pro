@@ -88,6 +88,12 @@ export interface RibbonSeriesOptions extends CustomSeriesOptions {
   fillColor: string;
   fillVisible: boolean;
 
+  // Series options
+  lastValueVisible: boolean;
+  title: string;
+  visible: boolean;
+  priceLineVisible: boolean;
+
   // Internal flag (set automatically by factory)
   _usePrimitive?: boolean;
 }
@@ -316,6 +322,12 @@ export function createRibbonSeries(
     fillColor?: string;
     fillVisible?: boolean;
     priceScaleId?: string;
+
+    // Series options
+    lastValueVisible?: boolean;
+    title?: string;
+    visible?: boolean;
+    priceLineVisible?: boolean;
 
     // Rendering control
     usePrimitive?: boolean;

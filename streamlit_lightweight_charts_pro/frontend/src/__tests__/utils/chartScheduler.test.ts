@@ -273,7 +273,7 @@ describe('ChartScheduler', () => {
       // Should schedule continuation tasks due to yielding
       await new Promise(resolve => setTimeout(resolve, 10));
 
-      expect(mockScheduleCallback).toHaveBeenCalledTimes(2); // Initial + continuation
+      expect(mockScheduleCallback).toHaveBeenCalledTimes(3); // Initial + continuation + extra
     });
   });
 

@@ -32,18 +32,9 @@ describe('ProgressiveChartLoader', () => {
   });
 
   describe('LoadingQueue Class', () => {
-    let _LoadingQueue: any;
-
-    beforeEach(async () => {
-      // Access LoadingQueue through dynamic import
-      const _module = await import('../../components/ProgressiveChartLoader');
-      // LoadingQueue is not exported, but we can test it through the component behavior
-      // For now, test what we can access
-    });
-
     it('should manage singleton instance', () => {
       // LoadingQueue.getInstance() should return same instance
-      // Tested indirectly through component behavior
+      // LoadingQueue is not exported, tested indirectly through component behavior
       expect(true).toBe(true);
     });
   });
@@ -153,8 +144,6 @@ describe('ProgressiveChartLoader', () => {
     it('should update queue status periodically', () => {
       const { result } = renderHook(() => useProgressiveLoading());
 
-      const _initialStatus = result.current.queueStatus;
-
       act(() => {
         vi.advanceTimersByTime(1000);
       });
@@ -215,60 +204,30 @@ describe('ProgressiveChartLoader', () => {
 
   describe('Loading Strategy', () => {
     it('should calculate delay for high priority', () => {
-      const _config = {
-        priority: 'high' as const,
-        delayMs: 100,
-        staggerIndex: 0,
-      };
-
       // High priority: 0 + 100 = 100ms total
       const expectedDelay = 0 + 100;
       expect(expectedDelay).toBe(100);
     });
 
     it('should calculate delay for medium priority', () => {
-      const _config = {
-        priority: 'medium' as const,
-        delayMs: 0,
-        staggerIndex: 0,
-      };
-
       // Medium priority: 200 + 0 = 200ms total
       const expectedDelay = 200 + 0;
       expect(expectedDelay).toBe(200);
     });
 
     it('should calculate delay for low priority', () => {
-      const _config = {
-        priority: 'low' as const,
-        delayMs: 0,
-        staggerIndex: 0,
-      };
-
       // Low priority: 500 + 0 = 500ms total
       const expectedDelay = 500 + 0;
       expect(expectedDelay).toBe(500);
     });
 
     it('should add stagger delay', () => {
-      const _config = {
-        priority: 'high' as const,
-        delayMs: 0,
-        staggerIndex: 5,
-      };
-
       // Stagger: 5 * 100 = 500ms
       const staggerDelay = 5 * 100;
       expect(staggerDelay).toBe(500);
     });
 
     it('should combine all delays', () => {
-      const _config = {
-        priority: 'medium' as const,
-        delayMs: 150,
-        staggerIndex: 2,
-      };
-
       // Total: (2 * 100) + 200 + 150 = 550ms
       const totalDelay = (2 * 100) + 200 + 150;
       expect(totalDelay).toBe(550);
@@ -292,6 +251,7 @@ describe('ProgressiveChartLoader', () => {
         preload: true,
       };
 
+      // @ts-expect-error - Testing type comparison between different priority literals
       const shouldPreload = _config.preload && _config.priority === 'high';
       expect(shouldPreload).toBe(false);
     });
@@ -302,6 +262,7 @@ describe('ProgressiveChartLoader', () => {
         preload: true,
       };
 
+      // @ts-expect-error - Testing type comparison between different priority literals
       const shouldPreload = _config.preload && _config.priority === 'high';
       expect(shouldPreload).toBe(false);
     });
@@ -348,11 +309,8 @@ describe('ProgressiveChartLoader', () => {
       };
 
       // Should not throw when callbacks are not provided
-      expect(() => {
-        // Component would handle this internally
-        const _onLoadComplete = undefined;
-        const _onLoadError = undefined;
-      }).not.toThrow();
+      // Component handles this internally
+      expect(_config.priority).toBe('high');
     });
   });
 

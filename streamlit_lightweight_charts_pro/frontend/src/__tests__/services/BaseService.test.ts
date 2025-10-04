@@ -133,7 +133,7 @@ describe('BaseService', () => {
       const error = new Error('Init failed');
 
       expect(() => {
-        const failingService = new (class extends TestService {
+        const __failingService = new (class extends TestService {
           protected onInitialize(): void {
             throw error;
           }
@@ -161,7 +161,7 @@ describe('BaseService', () => {
 
   describe('Singleton Pattern', () => {
     it('should return same instance for same service name', () => {
-      const config = { name: 'singleton-service', singleton: true };
+      const _config = { name: 'singleton-service', singleton: true };
       const service1 = new TestService(config);
 
       // Second instance with same name should return first
@@ -353,7 +353,7 @@ describe('BaseService', () => {
       const listener = vi.fn();
 
       service.on('test-event', listener);
-      const result = service.testEmitEvent('test-event', 'arg1', 'arg2');
+      const _result = service.testEmitEvent('test-event', 'arg1', 'arg2');
 
       expect(result).toBe(true);
       expect(listener).toHaveBeenCalledWith('arg1', 'arg2');
@@ -364,7 +364,7 @@ describe('BaseService', () => {
       const listener = vi.fn();
 
       service.on('test-event', listener);
-      const result = service.testEmitEvent('test-event', 'arg1');
+      const _result = service.testEmitEvent('test-event', 'arg1');
 
       expect(result).toBe(false);
       expect(listener).not.toHaveBeenCalled();
@@ -377,7 +377,7 @@ describe('BaseService', () => {
       service.on('test-event', listener);
       service.destroy();
 
-      const result = service.testEmitEvent('test-event', 'arg1');
+      const _result = service.testEmitEvent('test-event', 'arg1');
 
       expect(result).toBe(false);
     });
@@ -458,7 +458,7 @@ describe('ServiceRegistry', () => {
       const service = new TestService({ name: 'test-service', singleton: false });
 
       registry.register(service);
-      const result = registry.unregister('test-service');
+      const _result = registry.unregister('test-service');
 
       expect(result).toBe(true);
       expect(registry.has('test-service')).toBe(false);
@@ -466,7 +466,7 @@ describe('ServiceRegistry', () => {
     });
 
     it('should return false when unregistering non-existent service', () => {
-      const result = registry.unregister('non-existent');
+      const _result = registry.unregister('non-existent');
 
       expect(result).toBe(false);
     });

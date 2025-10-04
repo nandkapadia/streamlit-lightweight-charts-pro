@@ -312,6 +312,7 @@ describe('RibbonPrimitive - Options Management', () => {
   });
 
   it('should update line colors', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({
       upperLineColor: '#FFFF00',
       lowerLineColor: '#FF00FF',
@@ -323,6 +324,7 @@ describe('RibbonPrimitive - Options Management', () => {
   });
 
   it('should update line visibility', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({
       upperLineVisible: false,
       lowerLineVisible: false,
@@ -334,11 +336,13 @@ describe('RibbonPrimitive - Options Management', () => {
   });
 
   it('should update fill visibility', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({ fillVisible: false });
     expect(primitive.getOptions().fillVisible).toBe(false);
   });
 
   it('should update fill color', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({ fillColor: 'rgba(200, 200, 200, 0.5)' });
     expect(primitive.getOptions().fillColor).toBe('rgba(200, 200, 200, 0.5)');
   });
@@ -375,6 +379,7 @@ describe('RibbonPrimitive - Axis Views', () => {
     };
 
     primitive = new RibbonPrimitive(mockChart, defaultOptions);
+    // @ts-expect-error - attachToSeries not implemented yet
     primitive.attachToSeries(mockSeries);
   });
 

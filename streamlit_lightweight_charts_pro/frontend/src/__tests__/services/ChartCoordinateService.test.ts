@@ -442,12 +442,14 @@ describe('ChartCoordinateService', () => {
       expect(position?.left).toBeGreaterThan(0);
     });
 
-    it('should return null when pane coordinates are unavailable', () => {
+    it('should return fallback position when pane coordinates are unavailable', () => {
       mockChart.paneSize = vi.fn(() => ({ width: 0, height: 0 }));
 
       const position = service.getLegendPosition(mockChart, 0, 'top-left');
 
-      expect(position).toBeNull();
+      expect(position).toBeDefined();
+      expect(position?.top).toBeGreaterThanOrEqual(0);
+      expect(position?.left).toBeGreaterThanOrEqual(0);
     });
   });
 

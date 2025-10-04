@@ -96,6 +96,12 @@ export interface GradientRibbonSeriesOptions extends CustomSeriesOptions {
   gradientEndColor: string;
   normalizeGradients: boolean; // If true, gradient is based on spread magnitude
 
+  // Series options
+  lastValueVisible: boolean;
+  title: string;
+  visible: boolean;
+  priceLineVisible: boolean;
+
   // Internal flag (set automatically by factory)
   _usePrimitive?: boolean;
 }
@@ -479,6 +485,12 @@ export function createGradientRibbonSeries(
     gradientEndColor?: string;
     normalizeGradients?: boolean;
     priceScaleId?: string;
+
+    // Series options
+    lastValueVisible?: boolean;
+    title?: string;
+    visible?: boolean;
+    priceLineVisible?: boolean;
 
     // Rendering control
     usePrimitive?: boolean;

@@ -111,7 +111,7 @@ describe('Coordinate Conversion Functions', () => {
         coordinateFields: ['value'],
       };
 
-      const result = convertToRendererCoordinates(data, timeScale, { value: series as any }, config);
+      const _result = convertToRendererCoordinates(data, timeScale, { value: series as any }, config);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('x');
@@ -126,7 +126,7 @@ describe('Coordinate Conversion Functions', () => {
         coordinateFields: ['value'],
       };
 
-      const result = convertToRendererCoordinates(data, timeScale, {}, config);
+      const _result = convertToRendererCoordinates(data, timeScale, {}, config);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty('x');
@@ -144,7 +144,7 @@ describe('Coordinate Conversion Functions', () => {
         coordinateFields: ['value'],
       };
 
-      const result = convertToRendererCoordinates(data, timeScale, { value: series as any }, config);
+      const _result = convertToRendererCoordinates(data, timeScale, { value: series as any }, config);
 
       expect(result[0].x).toBe(-100);
     });
@@ -160,7 +160,7 @@ describe('Coordinate Conversion Functions', () => {
       const upperSeries = createMockSeries();
       const lowerSeries = createMockSeries();
 
-      const result = convertTwoLineCoordinates(data, timeScale, upperSeries as any, lowerSeries as any);
+      const _result = convertTwoLineCoordinates(data, timeScale, upperSeries as any, lowerSeries as any);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('x');
@@ -172,7 +172,7 @@ describe('Coordinate Conversion Functions', () => {
       const data = [{ time: '2023-01-01' as any, upper: 10, lower: 5 }];
       const timeScale = createMockTimeScale();
 
-      const result = convertTwoLineCoordinates(data, timeScale, null as any, null as any);
+      const _result = convertTwoLineCoordinates(data, timeScale, null as any, null as any);
 
       expect(result).toEqual([]);
     });
@@ -185,7 +185,7 @@ describe('Coordinate Conversion Functions', () => {
       const upperSeries = createMockSeries();
       const lowerSeries = createMockSeries();
 
-      const result = convertTwoLineCoordinates(data, timeScale, upperSeries as any, lowerSeries as any);
+      const _result = convertTwoLineCoordinates(data, timeScale, upperSeries as any, lowerSeries as any);
 
       expect(result[0]).toHaveProperty('fillColor', '#FF0000');
     });
@@ -201,7 +201,7 @@ describe('Coordinate Conversion Functions', () => {
       const middleSeries = createMockSeries();
       const lowerSeries = createMockSeries();
 
-      const result = convertThreeLineCoordinates(
+      const _result = convertThreeLineCoordinates(
         data,
         timeScale,
         upperSeries as any,
@@ -219,7 +219,7 @@ describe('Coordinate Conversion Functions', () => {
     it('should return empty array if series are missing', () => {
       const data = [{ time: '2023-01-01' as any, upper: 15, middle: 10, lower: 5 }];
 
-      const result = convertThreeLineCoordinates(data, null, null as any, null as any, null as any);
+      const _result = convertThreeLineCoordinates(data, null, null as any, null as any, null as any);
 
       expect(result).toEqual([]);
     });
@@ -234,7 +234,7 @@ describe('Coordinate Conversion Functions', () => {
       const timeScale = createMockTimeScale();
       const series = createMockSeries();
 
-      const result = batchConvertCoordinates(items, timeScale, { value: series as any }, ['value']);
+      const _result = batchConvertCoordinates(items, timeScale, { value: series as any }, ['value']);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toBeTruthy();
@@ -248,7 +248,7 @@ describe('Coordinate Conversion Functions', () => {
       };
       const series = createMockSeries();
 
-      const result = batchConvertCoordinates(items, timeScale, { value: series as any }, ['value']);
+      const _result = batchConvertCoordinates(items, timeScale, { value: series as any }, ['value']);
 
       expect(result[0]).toBeNull();
     });
@@ -261,7 +261,7 @@ describe('Coordinate Conversion Functions', () => {
         }),
       };
 
-      const result = batchConvertCoordinates(items, timeScale, {}, ['value']);
+      const _result = batchConvertCoordinates(items, timeScale, {}, ['value']);
 
       expect(result[0]).toBeNull();
     });
@@ -320,7 +320,7 @@ describe('Coordinate Validation Functions', () => {
         { x: 50, y: 60 },
       ];
 
-      const result = filterValidRenderPoints(points);
+      const _result = filterValidRenderPoints(points);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({ x: 10, y: 20 });
@@ -338,7 +338,7 @@ describe('Coordinate Validation Functions', () => {
         { x: 30, y: 40 },
       ];
 
-      const result = filterValidRenderPoints(points);
+      const _result = filterValidRenderPoints(points);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({ x: 30, y: 40 });
@@ -354,7 +354,7 @@ describe('Coordinate Validation Functions', () => {
         { x: 50, upperY: 60 },
       ];
 
-      const result = filterValidCoordinates(points);
+      const _result = filterValidCoordinates(points);
 
       expect(result).toHaveLength(2);
     });
@@ -365,7 +365,7 @@ describe('Coordinate Validation Functions', () => {
         { x: 20, upperY: 30 },
       ];
 
-      const result = filterValidCoordinates(points);
+      const _result = filterValidCoordinates(points);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({ x: 20, upperY: 30 });
@@ -384,7 +384,7 @@ describe('Visible Range Calculation', () => {
         { x: null },
       ];
 
-      const result = calculateVisibleRange(points);
+      const _result = calculateVisibleRange(points);
 
       expect(result).toEqual({ from: 1, to: 4 });
     });
@@ -400,7 +400,7 @@ describe('Visible Range Calculation', () => {
         { x: null },
       ];
 
-      const result = calculateVisibleRange(points);
+      const _result = calculateVisibleRange(points);
 
       // Should find no valid range
       expect(result).toEqual({ from: 0, to: 3 });
@@ -413,7 +413,7 @@ describe('Visible Range Calculation', () => {
         { x: null },
       ];
 
-      const result = calculateVisibleRange(points);
+      const _result = calculateVisibleRange(points);
 
       expect(result).toEqual({ from: 1, to: 2 });
     });
@@ -860,7 +860,7 @@ describe('Gradient Creation Utilities', () => {
         { x: 100, y: 20, color: '#00FF00' },
       ];
 
-      const result = createHorizontalGradient(ctx, 0, 100, coloredPoints);
+      const _result = createHorizontalGradient(ctx, 0, 100, coloredPoints);
 
       expect(ctx.createLinearGradient).toHaveBeenCalledWith(0, 0, 100, 0);
       expect(gradient.addColorStop).toHaveBeenCalledWith(0, '#FF0000');
@@ -872,7 +872,7 @@ describe('Gradient Creation Utilities', () => {
       const gradient = { addColorStop: vi.fn() };
       ctx.createLinearGradient = vi.fn(() => gradient as any);
 
-      const result = createHorizontalGradient(ctx, 0, 100, []);
+      const _result = createHorizontalGradient(ctx, 0, 100, []);
 
       expect(gradient.addColorStop).toHaveBeenCalledWith(0, 'rgba(0,0,0,0)');
       expect(gradient.addColorStop).toHaveBeenCalledWith(1, 'rgba(0,0,0,0)');
@@ -906,7 +906,7 @@ describe('Gradient Creation Utilities', () => {
         { position: 1, color: '#00FF00' },
       ];
 
-      const result = createVerticalGradient(ctx, 0, 100, stops);
+      const _result = createVerticalGradient(ctx, 0, 100, stops);
 
       expect(ctx.createLinearGradient).toHaveBeenCalledWith(0, 0, 0, 100);
       expect(gradient.addColorStop).toHaveBeenCalledTimes(3);
@@ -1080,7 +1080,7 @@ describe('Enhanced Coordinate Validation', () => {
         { x: 50, y: 60 },
       ];
 
-      const result = filterPointsByBounds(points, { minX: 0, maxX: 100, minY: 0, maxY: 100 });
+      const _result = filterPointsByBounds(points, { minX: 0, maxX: 100, minY: 0, maxY: 100 });
 
       expect(result).toHaveLength(2);
     });
@@ -1101,7 +1101,7 @@ describe('Edge Extension Utilities', () => {
         extensionPixels: 50,
       };
 
-      const result = calculateExtendedRange(firstPoint, lastPoint, config);
+      const _result = calculateExtendedRange(firstPoint, lastPoint, config);
 
       expect(result.startX).toBe(45); // 100 - 5 - 50
       expect(result.endX).toBe(255); // 200 + 5 + 50
@@ -1114,7 +1114,7 @@ describe('Edge Extension Utilities', () => {
         barWidth: 10,
       };
 
-      const result = calculateExtendedRange(firstPoint, lastPoint, config);
+      const _result = calculateExtendedRange(firstPoint, lastPoint, config);
 
       expect(result.startX).toBe(45); // 100 - 5 - 50 (default extension)
       expect(result.endX).toBe(255); // 200 + 5 + 50 (default extension)

@@ -30,7 +30,7 @@ describe('performance', () => {
     it('should execute function and return result', () => {
       const testFn = vi.fn(() => 'result');
 
-      const result = perfLogFn('test-operation', testFn);
+      const _result = perfLogFn('test-operation', testFn);
 
       expect(result).toBe('result');
       expect(testFn).toHaveBeenCalled();
@@ -52,7 +52,7 @@ describe('performance', () => {
         return 'async result';
       };
 
-      const result = await perfLogFn('async-operation', asyncFn);
+      const _result = await perfLogFn('async-operation', asyncFn);
 
       expect(result).toBe('async result');
     });
@@ -63,7 +63,7 @@ describe('performance', () => {
         writable: true,
       });
 
-      const result = perfLogFn('no-performance', () => 'result');
+      const _result = perfLogFn('no-performance', () => 'result');
 
       expect(result).toBe('result');
     });
@@ -75,7 +75,7 @@ describe('performance', () => {
       const cache = new Map();
       cache.set('test-id', mockElement);
 
-      const result = getCachedDOMElement('test-id', cache, () => document.createElement('span'));
+      const _result = getCachedDOMElement('test-id', cache, () => document.createElement('span'));
 
       expect(result).toBe(mockElement);
     });
@@ -84,7 +84,7 @@ describe('performance', () => {
       const cache = new Map();
       const createFn = vi.fn(() => document.createElement('div'));
 
-      const result = getCachedDOMElement('new-id', cache, createFn);
+      const _result = getCachedDOMElement('new-id', cache, createFn);
 
       expect(result).toBeInstanceOf(HTMLDivElement);
       expect(createFn).toHaveBeenCalledWith('new-id');
@@ -94,7 +94,7 @@ describe('performance', () => {
     it('should handle null create function', () => {
       const cache = new Map();
 
-      const result = getCachedDOMElement('test-id', cache, null);
+      const _result = getCachedDOMElement('test-id', cache, null);
 
       expect(result).toBeNull();
     });
@@ -103,7 +103,7 @@ describe('performance', () => {
       const cache = new Map();
       const createFn = vi.fn(() => null);
 
-      const result = getCachedDOMElement('test-id', cache, createFn);
+      const _result = getCachedDOMElement('test-id', cache, createFn);
 
       expect(result).toBeNull();
       expect(createFn).toHaveBeenCalledWith('test-id');

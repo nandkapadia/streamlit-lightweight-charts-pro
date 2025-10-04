@@ -14,7 +14,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   StreamlitSeriesConfigService,
-  SeriesConfigChangeEvent,
   SeriesConfigState,
 } from '../../services/StreamlitSeriesConfigService';
 import { SeriesConfiguration } from '../../types/SeriesTypes';
@@ -69,7 +68,7 @@ describe('StreamlitSeriesConfigService', () => {
       instance1.recordConfigChange(0, 'series-1', 'line', { color: '#FF0000' });
 
       const instance2 = StreamlitSeriesConfigService.getInstance();
-      const config = instance2.getSeriesConfig(0, 'series-1');
+      const _config = instance2.getSeriesConfig(0, 'series-1');
 
       expect(config).toEqual({ color: '#FF0000' });
     });
@@ -186,7 +185,7 @@ describe('StreamlitSeriesConfigService', () => {
       service.recordConfigChange(0, 'series-1', 'line', { color: '#FF0000' });
       service.recordConfigChange(0, 'series-1', 'line', { color: '#00FF00' });
 
-      const config = service.getSeriesConfig(0, 'series-1');
+      const _config = service.getSeriesConfig(0, 'series-1');
       expect(config?.color).toBe('#00FF00');
     });
   });
@@ -199,25 +198,25 @@ describe('StreamlitSeriesConfigService', () => {
     });
 
     it('should get series configuration', () => {
-      const config = service.getSeriesConfig(0, 'series-1');
+      const _config = service.getSeriesConfig(0, 'series-1');
 
       expect(config).toEqual({ color: '#FF0000' });
     });
 
     it('should return null for non-existent series', () => {
-      const config = service.getSeriesConfig(0, 'non-existent');
+      const _config = service.getSeriesConfig(0, 'non-existent');
 
       expect(config).toBeNull();
     });
 
     it('should return null for non-existent pane', () => {
-      const config = service.getSeriesConfig(99, 'series-1');
+      const _config = service.getSeriesConfig(99, 'series-1');
 
       expect(config).toBeNull();
     });
 
     it('should return null for non-existent chart', () => {
-      const config = service.getSeriesConfig(0, 'series-1', 'non-existent-chart');
+      const _config = service.getSeriesConfig(0, 'series-1', 'non-existent-chart');
 
       expect(config).toBeNull();
     });
@@ -404,7 +403,7 @@ describe('StreamlitSeriesConfigService', () => {
 
       service.restoreFromBackend(backendState);
 
-      const config = service.getSeriesConfig(0, 'series-1', 'chart-1');
+      const _config = service.getSeriesConfig(0, 'series-1', 'chart-1');
       expect(config).toEqual({ color: '#FF0000' });
     });
 
@@ -424,7 +423,7 @@ describe('StreamlitSeriesConfigService', () => {
 
       service.restoreFromBackend(backendState);
 
-      const config = service.getSeriesConfig(0, 'series-1');
+      const _config = service.getSeriesConfig(0, 'series-1');
       expect(config).toEqual({ color: '#FF0000' });
     });
 
@@ -465,7 +464,7 @@ describe('StreamlitSeriesConfigService', () => {
 
       callback(0, 'series-1', { color: '#FF0000' });
 
-      const config = service.getSeriesConfig(0, 'series-1', 'chart-1');
+      const _config = service.getSeriesConfig(0, 'series-1', 'chart-1');
       expect(config).toEqual({ color: '#FF0000' });
     });
 
@@ -474,7 +473,7 @@ describe('StreamlitSeriesConfigService', () => {
 
       callback(0, 'series-1', { color: '#FF0000' });
 
-      const config = service.getSeriesConfig(0, 'series-1', 'default');
+      const _config = service.getSeriesConfig(0, 'series-1', 'default');
       expect(config).toEqual({ color: '#FF0000' });
     });
   });
@@ -663,14 +662,14 @@ describe('StreamlitSeriesConfigService', () => {
         service.recordConfigChange(0, 'series-1', 'line', { color: `#${i.toString(16).padStart(6, '0')}` });
       }
 
-      const config = service.getSeriesConfig(0, 'series-1');
+      const _config = service.getSeriesConfig(0, 'series-1');
       expect(config).toBeDefined();
     });
 
     it('should handle special characters in series ID', () => {
       service.recordConfigChange(0, 'series-!@#$%^&*()', 'line', { color: '#FF0000' });
 
-      const config = service.getSeriesConfig(0, 'series-!@#$%^&*()');
+      const _config = service.getSeriesConfig(0, 'series-!@#$%^&*()');
       expect(config).toEqual({ color: '#FF0000' });
     });
 
@@ -679,21 +678,21 @@ describe('StreamlitSeriesConfigService', () => {
 
       service.recordConfigChange(0, longId, 'line', { color: '#FF0000' });
 
-      const config = service.getSeriesConfig(0, longId);
+      const _config = service.getSeriesConfig(0, longId);
       expect(config).toEqual({ color: '#FF0000' });
     });
 
     it('should handle empty configuration objects', () => {
       service.recordConfigChange(0, 'series-1', 'line', {});
 
-      const config = service.getSeriesConfig(0, 'series-1');
+      const _config = service.getSeriesConfig(0, 'series-1');
       expect(config).toEqual({});
     });
 
     it('should handle negative pane IDs', () => {
       service.recordConfigChange(-1, 'series-1', 'line', { color: '#FF0000' });
 
-      const config = service.getSeriesConfig(-1, 'series-1');
+      const _config = service.getSeriesConfig(-1, 'series-1');
       expect(config).toEqual({ color: '#FF0000' });
     });
   });

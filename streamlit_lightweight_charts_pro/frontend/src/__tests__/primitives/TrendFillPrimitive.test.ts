@@ -514,7 +514,7 @@ describe('TrendFillPrimitive', () => {
       primitive.setData(data);
 
       const priceAxisView = (primitive as any)._priceAxisViews[0];
-      const coordinate = priceAxisView.coordinate();
+      const _coordinate = priceAxisView.coordinate();
 
       expect(mockAttachedSeries.priceToCoordinate).toHaveBeenCalledWith(30);
     });

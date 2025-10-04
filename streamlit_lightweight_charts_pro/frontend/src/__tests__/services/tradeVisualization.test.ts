@@ -73,7 +73,7 @@ describe('Trade Visualization Service', () => {
     describe('Basic Functionality', () => {
       it('should return empty arrays for no trades', () => {
         const options: TradeVisualizationOptions = { style: 'markers' };
-        const result = createTradeVisualElements([], options);
+        const _result = createTradeVisualElements([], options);
 
         expect(result.markers).toEqual([]);
         expect(result.rectangles).toEqual([]);
@@ -82,7 +82,7 @@ describe('Trade Visualization Service', () => {
 
       it('should return empty arrays for null trades', () => {
         const options: TradeVisualizationOptions = { style: 'markers' };
-        const result = createTradeVisualElements(null as any, options);
+        const _result = createTradeVisualElements(null as any, options);
 
         expect(result.markers).toEqual([]);
         expect(result.rectangles).toEqual([]);
@@ -103,7 +103,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers.length).toBeGreaterThan(0);
         expect(result.rectangles).toEqual([]);
@@ -123,7 +123,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.rectangles.length).toBeGreaterThan(0);
         expect(result.markers).toEqual([]);
@@ -143,7 +143,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'both' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers.length).toBeGreaterThan(0);
         expect(result.rectangles.length).toBeGreaterThan(0);
@@ -165,7 +165,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers.length).toBeGreaterThan(0);
       });
@@ -184,7 +184,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers.length).toBeGreaterThan(0);
       });
@@ -203,7 +203,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers.length).toBeGreaterThan(0);
       });
@@ -222,7 +222,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers.length).toBeGreaterThan(0);
       });
@@ -241,7 +241,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers.length).toBeGreaterThan(0);
       });
@@ -260,7 +260,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers).toEqual([]);
       });
@@ -281,7 +281,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         const entryMarker = result.markers.find(m => m.shape === 'arrowUp');
         expect(entryMarker).toBeDefined();
@@ -302,7 +302,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         const entryMarker = result.markers.find(m => m.shape === 'arrowDown');
         expect(entryMarker).toBeDefined();
@@ -323,7 +323,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers.length).toBe(2); // Entry + Exit
       });
@@ -345,7 +345,7 @@ describe('Trade Visualization Service', () => {
           entryMarkerColorLong: '#FF0000',
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         const entryMarker = result.markers.find(m => m.shape === 'arrowUp');
         expect(entryMarker?.color).toBe('#FF0000');
@@ -368,7 +368,7 @@ describe('Trade Visualization Service', () => {
           entryMarkerColorShort: '#00FF00',
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         const entryMarker = result.markers.find(m => m.shape === 'arrowDown');
         expect(entryMarker?.color).toBe('#00FF00');
@@ -392,7 +392,7 @@ describe('Trade Visualization Service', () => {
           showPnlInMarkers: true,
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         const marker = result.markers[0];
         expect(marker.text).toBe('Custom Trade Text');
@@ -412,7 +412,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers).toEqual([]);
       });
@@ -433,7 +433,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.rectangles.length).toBe(1);
         const rect = result.rectangles[0];
@@ -460,7 +460,7 @@ describe('Trade Visualization Service', () => {
           rectangleColorProfit: '#00FF00',
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.rectangles[0].fillColor).toBe('#00FF00');
       });
@@ -482,7 +482,7 @@ describe('Trade Visualization Service', () => {
           rectangleColorLoss: '#FF0000',
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.rectangles[0].fillColor).toBe('#FF0000');
       });
@@ -504,7 +504,7 @@ describe('Trade Visualization Service', () => {
           rectangleFillOpacity: 0.5,
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.rectangles[0].opacity).toBe(0.5);
       });
@@ -526,7 +526,7 @@ describe('Trade Visualization Service', () => {
           rectangleBorderWidth: 5,
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.rectangles[0].borderWidth).toBe(5);
       });
@@ -545,7 +545,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         const rect = result.rectangles[0];
         expect(rect.time1).toBe(1672531200); // Min time
@@ -577,7 +577,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.rectangles).toEqual([]);
       });
@@ -601,7 +601,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
 
-        const result = createTradeVisualElements(trades, options, chartData);
+        const _result = createTradeVisualElements(trades, options, chartData);
 
         expect(result.rectangles.length).toBe(1);
         expect(result.rectangles[0].time2).toBe(1672704000);
@@ -627,7 +627,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
 
-        const result = createTradeVisualElements(trades, options, chartData);
+        const _result = createTradeVisualElements(trades, options, chartData);
 
         expect(result.rectangles.length).toBe(1);
         // Should snap to nearest available times
@@ -653,7 +653,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
 
-        const result = createTradeVisualElements(trades, options, chartData);
+        const _result = createTradeVisualElements(trades, options, chartData);
 
         expect(result.rectangles.length).toBe(1);
       });
@@ -672,7 +672,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
 
-        const result = createTradeVisualElements(trades, options, []);
+        const _result = createTradeVisualElements(trades, options, []);
 
         expect(result.rectangles.length).toBe(1);
       });
@@ -701,7 +701,7 @@ describe('Trade Visualization Service', () => {
           showTradeType: true,
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.annotations.length).toBe(1);
         const annotation = result.annotations[0];
@@ -730,7 +730,7 @@ describe('Trade Visualization Service', () => {
           annotationBackground: 'rgba(0, 0, 0, 0.5)',
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         const annotation = result.annotations[0];
         expect(annotation.fontSize).toBe(16);
@@ -754,7 +754,7 @@ describe('Trade Visualization Service', () => {
           showAnnotations: true,
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         const annotation = result.annotations[0];
         expect(annotation.time).toBe((1672531200 + 1672617600) / 2);
@@ -778,7 +778,7 @@ describe('Trade Visualization Service', () => {
           showAnnotations: true,
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.annotations).toEqual([]);
       });
@@ -808,7 +808,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'both' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.markers.length).toBe(4); // 2 entry + 2 exit
         expect(result.rectangles.length).toBe(2);
@@ -841,7 +841,7 @@ describe('Trade Visualization Service', () => {
           rectangleColorLoss: '#FF0000',
         };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         expect(result.rectangles[0].fillColor).toBe('#00FF00');
         expect(result.rectangles[1].fillColor).toBe('#FF0000');
@@ -870,7 +870,7 @@ describe('Trade Visualization Service', () => {
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
 
-        const result = createTradeVisualElements(trades, options);
+        const _result = createTradeVisualElements(trades, options);
 
         const longEntry = result.markers.find(
           m => m.shape === 'arrowUp' && m.position === 'belowBar'
@@ -886,7 +886,7 @@ describe('Trade Visualization Service', () => {
   });
 
   describe('convertTradeRectanglesToPluginFormat', () => {
-    const mockChart = {
+    const _mockChart = {
       timeScale: vi.fn(() => ({
         width: vi.fn(() => 800),
       })),
@@ -921,7 +921,7 @@ describe('Trade Visualization Service', () => {
         },
       ];
 
-      const result = convertTradeRectanglesToPluginFormat(rectangles, mockChart, mockSeries);
+      const _result = convertTradeRectanglesToPluginFormat(rectangles, mockChart, mockSeries);
 
       expect(result.length).toBe(1);
       expect(result[0]).toHaveProperty('id');
@@ -933,14 +933,14 @@ describe('Trade Visualization Service', () => {
 
     it('should return empty array if chart is null', () => {
       const rectangles: TradeRectangleData[] = [];
-      const result = convertTradeRectanglesToPluginFormat(rectangles, null, mockSeries);
+      const _result = convertTradeRectanglesToPluginFormat(rectangles, null, mockSeries);
 
       expect(result).toEqual([]);
     });
 
     it('should return empty array if series is null', () => {
       const rectangles: TradeRectangleData[] = [];
-      const result = convertTradeRectanglesToPluginFormat(rectangles, mockChart, null);
+      const _result = convertTradeRectanglesToPluginFormat(rectangles, mockChart, null);
 
       expect(result).toEqual([]);
     });
@@ -965,7 +965,7 @@ describe('Trade Visualization Service', () => {
         },
       ];
 
-      const result = convertTradeRectanglesToPluginFormat(rectangles, mockChartZeroWidth, mockSeries);
+      const _result = convertTradeRectanglesToPluginFormat(rectangles, mockChartZeroWidth, mockSeries);
 
       expect(result).toEqual([]);
     });
@@ -987,14 +987,14 @@ describe('Trade Visualization Service', () => {
         },
       ];
 
-      const result = convertTradeRectanglesToPluginFormat(rectangles, mockChart, mockSeries);
+      const _result = convertTradeRectanglesToPluginFormat(rectangles, mockChart, mockSeries);
 
       expect(result).toEqual([]);
     });
   });
 
   describe('convertTradeRectanglesToPluginFormatWhenReady', () => {
-    const mockChart = {
+    const _mockChart = {
       timeScale: vi.fn(() => ({
         width: vi.fn(() => 800),
       })),
@@ -1028,7 +1028,7 @@ describe('Trade Visualization Service', () => {
         },
       ];
 
-      const result = await convertTradeRectanglesToPluginFormatWhenReady(
+      const _result = await convertTradeRectanglesToPluginFormatWhenReady(
         rectangles,
         mockChart,
         mockSeries
@@ -1039,7 +1039,7 @@ describe('Trade Visualization Service', () => {
 
     it('should return empty array if chart is null', async () => {
       const rectangles: TradeRectangleData[] = [];
-      const result = await convertTradeRectanglesToPluginFormatWhenReady(rectangles, null, mockSeries);
+      const _result = await convertTradeRectanglesToPluginFormatWhenReady(rectangles, null, mockSeries);
 
       expect(result).toEqual([]);
     });
@@ -1051,7 +1051,7 @@ describe('Trade Visualization Service', () => {
       };
       const rectangles: TradeRectangleData[] = [];
 
-      const result = await convertTradeRectanglesToPluginFormatWhenReady(
+      const _result = await convertTradeRectanglesToPluginFormatWhenReady(
         rectangles,
         mockChartNoElement,
         mockSeries
@@ -1066,7 +1066,7 @@ describe('Trade Visualization Service', () => {
 
       const rectangles: TradeRectangleData[] = [];
 
-      const result = await convertTradeRectanglesToPluginFormatWhenReady(
+      const _result = await convertTradeRectanglesToPluginFormatWhenReady(
         rectangles,
         mockChart,
         mockSeries
@@ -1079,7 +1079,7 @@ describe('Trade Visualization Service', () => {
   describe('createTradeRectanglePrimitives (deprecated)', () => {
     it('should return empty array', () => {
       const rectangles: TradeRectangleData[] = [];
-      const result = createTradeRectanglePrimitives(rectangles);
+      const _result = createTradeRectanglePrimitives(rectangles);
 
       expect(result).toEqual([]);
     });

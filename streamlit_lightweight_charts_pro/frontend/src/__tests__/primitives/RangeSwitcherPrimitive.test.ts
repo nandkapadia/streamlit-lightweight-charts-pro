@@ -256,7 +256,7 @@ describe('RangeSwitcherPrimitive - Helper Functions', () => {
 });
 
 describe('RangeSwitcherPrimitive - Construction and Configuration', () => {
-  const mockChart = {
+  const _mockChart = {
     timeScale: vi.fn(() => ({
       fitContent: vi.fn(),
       getVisibleRange: vi.fn(() => ({ from: 1000, to: 2000 })),
@@ -819,13 +819,13 @@ describe('RangeSwitcherPrimitive - Public API', () => {
   describe('getDataTimespanSeconds', () => {
     it('should return cached data timespan', () => {
       // Add a mock chart so the method can access it
-      const mockChart = { timeScale: vi.fn() };
+      const _mockChart = { timeScale: vi.fn() };
       (primitive as any).chart = mockChart;
 
       // Set cached value directly
       (primitive as any).dataTimespan = 86400;
 
-      const result = primitive.getDataTimespanSeconds();
+      const _result = primitive.getDataTimespanSeconds();
 
       expect(result).toBe(86400);
     });
@@ -833,7 +833,7 @@ describe('RangeSwitcherPrimitive - Public API', () => {
     it('should return null if no data timespan is cached', () => {
       (primitive as any).chart = null; // No chart = no timespan
 
-      const result = primitive.getDataTimespanSeconds();
+      const _result = primitive.getDataTimespanSeconds();
 
       expect(result).toBe(null);
     });
@@ -886,7 +886,7 @@ describe('RangeSwitcherPrimitive - Public API', () => {
 
   describe('triggerRangeChange', () => {
     it('should programmatically trigger range change', () => {
-      const mockChart = {
+      const _mockChart = {
         timeScale: vi.fn(() => ({
           fitContent: vi.fn(),
           getVisibleRange: vi.fn(() => ({ from: 1000, to: 2000 })),
@@ -950,7 +950,7 @@ describe('RangeSwitcherPrimitive - Lifecycle and Cleanup', () => {
 
   it('should cleanup interval on detached', () => {
     (primitive as any).dataChangeIntervalId = setInterval(() => {}, 1000);
-    const _intervalId = (primitive as any).dataChangeIntervalId;
+    const __intervalId = (primitive as any).dataChangeIntervalId;
 
     primitive.detached();
 

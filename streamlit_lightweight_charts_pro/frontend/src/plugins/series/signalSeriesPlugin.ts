@@ -18,6 +18,7 @@ import {
   UTCTimestamp,
   LineSeries,
   PrimitivePaneViewZOrder,
+  CustomSeriesOptions,
 } from 'lightweight-charts';
 import { asLineWidth } from '../../utils/lightweightChartsUtils';
 import { fillVerticalBand, renderWithScaledCanvas } from '../../utils/renderingUtils';
@@ -29,11 +30,16 @@ export interface SignalData {
   color?: string;
 }
 
-export interface SignalOptions {
+export interface SignalOptions extends Partial<CustomSeriesOptions> {
   neutralColor?: string;
   signalColor?: string;
   alertColor?: string;
-  visible: boolean;
+  visible?: boolean;
+
+  // Series options
+  lastValueVisible?: boolean;
+  title?: string;
+  priceLineVisible?: boolean;
 }
 
 export interface SignalSeriesConfig {

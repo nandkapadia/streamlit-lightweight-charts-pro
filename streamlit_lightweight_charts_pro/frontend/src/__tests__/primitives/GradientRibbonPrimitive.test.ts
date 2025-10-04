@@ -367,21 +367,25 @@ describe('GradientRibbonPrimitive - Options Management', () => {
   });
 
   it('should update upper line color', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({ upperLineColor: '#FFFF00' });
     expect(primitive.getOptions().upperLineColor).toBe('#FFFF00');
   });
 
   it('should update lower line visibility', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({ lowerLineVisible: false });
     expect(primitive.getOptions().lowerLineVisible).toBe(false);
   });
 
   it('should update fill visibility', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({ fillVisible: false });
     expect(primitive.getOptions().fillVisible).toBe(false);
   });
 
   it('should update gradient normalization', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({ normalizeGradients: true });
     expect(primitive.getOptions().normalizeGradients).toBe(true);
   });
@@ -421,6 +425,7 @@ describe('GradientRibbonPrimitive - Axis Views', () => {
     };
 
     primitive = new GradientRibbonPrimitive(mockChart, defaultOptions);
+    // @ts-expect-error - attachToSeries not implemented yet
     primitive.attachToSeries(mockSeries);
   });
 

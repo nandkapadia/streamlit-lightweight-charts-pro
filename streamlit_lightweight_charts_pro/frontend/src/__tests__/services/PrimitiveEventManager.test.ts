@@ -361,7 +361,7 @@ describe('PrimitiveEventManager', () => {
     it('should emit config change event', () => {
       const manager = PrimitiveEventManager.getInstance('chart-1');
       const listener = vi.fn();
-      const config = { color: '#FF0000', lineWidth: 2 };
+      const _config = { color: '#FF0000', lineWidth: 2 };
 
       manager.subscribe('configChange', listener);
       manager.emitConfigChange('primitive-1', config);

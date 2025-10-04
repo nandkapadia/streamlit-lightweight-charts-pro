@@ -293,9 +293,9 @@ describe('Chart Actions', () => {
 
       const result = await batchChartOperations(operations);
 
-      expect(result.results[0].chartId).toBe('chart-1');
-      expect(result.results[1].chartId).toBe('chart-2');
-      expect(result.results[2].chartId).toBe('chart-3');
+      expect((result.results[0] as any).chartId).toBe('chart-1');
+      expect((result.results[1] as any).chartId).toBe('chart-2');
+      expect((result.results[2] as any).chartId).toBe('chart-3');
     });
 
     it('should handle large batch operations', async () => {
@@ -326,9 +326,9 @@ describe('Chart Actions', () => {
       const result = await batchChartOperations(operations);
 
       expect(result.results[0].success).toBe(false);
-      expect(result.results[0].error).toBeDefined();
-      expect(typeof result.results[0].error).toBe('string');
-      expect(result.results[0].operation).toEqual(operations[0]);
+      expect((result.results[0] as any).error).toBeDefined();
+      expect(typeof (result.results[0] as any).error).toBe('string');
+      expect((result.results[0] as any).operation).toEqual(operations[0]);
     });
   });
 

@@ -336,6 +336,7 @@ describe('BandPrimitive - Options Management', () => {
   });
 
   it('should update line colors', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({
       upperLineColor: '#FFFF00',
       middleLineColor: '#FF00FF',
@@ -349,6 +350,7 @@ describe('BandPrimitive - Options Management', () => {
   });
 
   it('should update line visibility', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({
       upperLineVisible: false,
       middleLineVisible: false,
@@ -362,6 +364,7 @@ describe('BandPrimitive - Options Management', () => {
   });
 
   it('should update fill visibility', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({
       upperFillVisible: false,
       lowerFillVisible: false,
@@ -373,6 +376,7 @@ describe('BandPrimitive - Options Management', () => {
   });
 
   it('should update fill colors', () => {
+    // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({
       upperFillColor: 'rgba(100, 100, 100, 0.5)',
       lowerFillColor: 'rgba(200, 200, 200, 0.5)',
@@ -421,6 +425,7 @@ describe('BandPrimitive - Axis Views', () => {
     };
 
     primitive = new BandPrimitive(mockChart, defaultOptions);
+    // @ts-expect-error - attachToSeries not implemented yet
     primitive.attachToSeries(mockSeries);
   });
 

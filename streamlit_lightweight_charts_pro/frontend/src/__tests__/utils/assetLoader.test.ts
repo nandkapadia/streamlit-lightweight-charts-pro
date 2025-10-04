@@ -133,7 +133,7 @@ describe('AssetLoader', () => {
         priority: 'high',
       };
 
-      const result = await assetLoader.loadAsset(asset);
+      const _result = await assetLoader.loadAsset(asset);
 
       expect(result.asset).toBe(asset);
       expect(result.success).toBe(true);
@@ -150,7 +150,7 @@ describe('AssetLoader', () => {
         priority: 'medium',
       };
 
-      const result = await assetLoader.loadAsset(asset);
+      const _result = await assetLoader.loadAsset(asset);
 
       expect(result.success).toBe(true);
       expect(result.asset.type).toBe('style');
@@ -165,7 +165,7 @@ describe('AssetLoader', () => {
         priority: 'low',
       };
 
-      const result = await assetLoader.loadAsset(asset);
+      const _result = await assetLoader.loadAsset(asset);
 
       expect(result.success).toBe(true);
       expect(result.asset.type).toBe('image');
@@ -180,7 +180,7 @@ describe('AssetLoader', () => {
         priority: 'high',
       };
 
-      const result = await assetLoader.loadAsset(asset);
+      const _result = await assetLoader.loadAsset(asset);
 
       expect(result.success).toBe(true);
       expect(mockAssetLoader.loadAsset).toHaveBeenCalledWith(asset);

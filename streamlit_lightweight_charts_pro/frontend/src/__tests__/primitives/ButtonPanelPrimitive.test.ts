@@ -854,7 +854,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = (primitive as any).getDefaultSeriesConfig('line');
+      const _config = (primitive as any).getDefaultSeriesConfig('line');
 
       expect(config.color).toBe('#2196F3');
       expect(config.lineWidth).toBe(2);
@@ -866,7 +866,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = (primitive as any).getDefaultSeriesConfig('supertrend');
+      const _config = (primitive as any).getDefaultSeriesConfig('supertrend');
 
       expect(config.period).toBe(10);
       expect(config.multiplier).toBe(3.0);
@@ -879,7 +879,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = (primitive as any).getDefaultSeriesConfig('bollinger_bands');
+      const _config = (primitive as any).getDefaultSeriesConfig('bollinger_bands');
 
       expect(config.length).toBe(20);
       expect(config.stdDev).toBe(2);
@@ -892,7 +892,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = (primitive as any).getDefaultSeriesConfig('sma');
+      const _config = (primitive as any).getDefaultSeriesConfig('sma');
 
       expect(config.length).toBe(20);
       expect(config.source).toBe('close');
@@ -904,7 +904,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = (primitive as any).getDefaultSeriesConfig('ema');
+      const _config = (primitive as any).getDefaultSeriesConfig('ema');
 
       expect(config.length).toBe(20);
       expect(config.source).toBe('close');
@@ -915,7 +915,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = (primitive as any).getDefaultSeriesConfig('ribbon');
+      const _config = (primitive as any).getDefaultSeriesConfig('ribbon');
 
       expect(config.upperLine).toBeDefined();
       expect(config.lowerLine).toBeDefined();
@@ -930,7 +930,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = (primitive as any).getDefaultSeriesConfig('band');
+      const _config = (primitive as any).getDefaultSeriesConfig('band');
 
       expect(config.upperLine).toBeDefined();
       expect(config.middleLine).toBeDefined();
@@ -944,7 +944,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = (primitive as any).getDefaultSeriesConfig('gradient_ribbon');
+      const _config = (primitive as any).getDefaultSeriesConfig('gradient_ribbon');
 
       expect(config.gradientStartColor).toBe('#4CAF50');
       expect(config.gradientEndColor).toBe('#F44336');
@@ -956,7 +956,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = (primitive as any).getDefaultSeriesConfig('trend_fill');
+      const _config = (primitive as any).getDefaultSeriesConfig('trend_fill');
 
       expect(config.trendLineColor).toBe('#2196F3');
       expect(config.trendFillColor).toBe('rgba(33, 150, 243, 0.1)');
@@ -970,7 +970,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = { color: '#FF0000' };
+      const _config = { color: '#FF0000' };
       (primitive as any).saveSeriesConfig('series-1', config);
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
@@ -985,7 +985,7 @@ describe('ButtonPanelPrimitive', () => {
         chartId: 'chart-1',
       });
 
-      const config = { color: '#FF0000' };
+      const _config = { color: '#FF0000' };
       const service = (primitive as any).streamlitService;
 
       (primitive as any).applySeriesConfig('series-1', config);
@@ -1000,7 +1000,7 @@ describe('ButtonPanelPrimitive', () => {
         onSeriesConfigChange,
       });
 
-      const config = { color: '#FF0000' };
+      const _config = { color: '#FF0000' };
       (primitive as any).applySeriesConfig('series-1', config);
 
       expect(onSeriesConfigChange).toHaveBeenCalledWith(0, 'series-1', config);
@@ -1011,7 +1011,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = { color: '#FF0000' };
+      const _config = { color: '#FF0000' };
       (primitive as any).applySeriesConfig('series-1', config);
 
       expect((primitive as any).paneState.seriesConfigs.get('series-1')).toEqual(config);
@@ -1051,7 +1051,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = primitive.getSeriesConfig('non-existent');
+      const _config = primitive.getSeriesConfig('non-existent');
 
       expect(config).toBe(null);
     });
@@ -1064,7 +1064,7 @@ describe('ButtonPanelPrimitive', () => {
       const testConfig = { color: '#FF0000' };
       (primitive as any).paneState.seriesConfigs.set('series-1', testConfig);
 
-      const config = primitive.getSeriesConfig('series-1');
+      const _config = primitive.getSeriesConfig('series-1');
 
       expect(config).toEqual(testConfig);
     });
@@ -1074,7 +1074,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const config = { color: '#FF0000' };
+      const _config = { color: '#FF0000' };
       primitive.setSeriesConfig('series-1', config);
 
       expect((primitive as any).paneState.seriesConfigs.get('series-1')).toEqual(config);

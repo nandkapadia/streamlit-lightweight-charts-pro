@@ -86,7 +86,7 @@ describe('lightweightChartsUtils', () => {
         otherProp: 'unchanged',
       };
 
-      const result = createSeriesOptions(input);
+      const _result = createSeriesOptions(input);
 
       expect(result).toEqual({
         lineWidth: 2,
@@ -104,7 +104,7 @@ describe('lightweightChartsUtils', () => {
         color: 'red',
       };
 
-      const result = createSeriesOptions(input);
+      const _result = createSeriesOptions(input);
 
       expect(result).toEqual({
         lineStyle: 1,
@@ -120,7 +120,7 @@ describe('lightweightChartsUtils', () => {
         title: 'Test Series',
       };
 
-      const result = createSeriesOptions(input);
+      const _result = createSeriesOptions(input);
 
       expect(result).toEqual({
         priceLineSource: 'close',
@@ -141,7 +141,7 @@ describe('lightweightChartsUtils', () => {
         baseLineStyle: 0,
       };
 
-      const result = createSeriesOptions(input);
+      const _result = createSeriesOptions(input);
 
       expect(result).toEqual({
         lineWidth: 2,
@@ -157,7 +157,7 @@ describe('lightweightChartsUtils', () => {
     });
 
     it('should handle empty options', () => {
-      const result = createSeriesOptions({});
+      const _result = createSeriesOptions({});
       expect(result).toEqual({});
     });
 
@@ -169,7 +169,7 @@ describe('lightweightChartsUtils', () => {
       };
 
       const original = { ...input };
-      const result = createSeriesOptions(input);
+      const _result = createSeriesOptions(input);
 
       expect(input).toEqual(original);
       expect(result).not.toBe(input);
@@ -187,7 +187,7 @@ describe('lightweightChartsUtils', () => {
         undefinedProp: undefined,
       };
 
-      const result = createSeriesOptions(input);
+      const _result = createSeriesOptions(input);
 
       expect(result).toEqual({
         lineWidth: 2,
@@ -208,7 +208,7 @@ describe('lightweightChartsUtils', () => {
         validProp: 'test',
       };
 
-      const result = createSeriesOptions(input);
+      const _result = createSeriesOptions(input);
 
       expect(result.lineStyle).toBeNaN();
       expect(result.priceLineStyle).toBeNaN();
@@ -219,7 +219,7 @@ describe('lightweightChartsUtils', () => {
   describe('safeSeriesOptions', () => {
     it('should return the input as-is', () => {
       const input = { lineWidth: 2, color: 'red' };
-      const result = safeSeriesOptions(input);
+      const _result = safeSeriesOptions(input);
 
       expect(result).toBe(input);
       expect(result).toEqual(input);
@@ -255,7 +255,7 @@ describe('lightweightChartsUtils', () => {
         },
       };
 
-      const result = safeSeriesOptions(complexObject);
+      const _result = safeSeriesOptions(complexObject);
       expect(result).toBe(complexObject);
       expect(result).toEqual(complexObject);
     });

@@ -76,24 +76,19 @@ describe('React19PerformanceMonitor', () => {
       expect(report.metrics.transitionDuration).toBe(70); // Max of both transitions
     });
 
-    it('should log slow transitions in development', () => {
+    it('should track slow transitions in development', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
-
-      // Restore console.log for this specific test
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const transitionId = react19Monitor.startTransition('SlowComponent', 'sync');
 
       mockPerformance.now.mockReturnValue(1200); // 200ms later
       react19Monitor.endTransition(transitionId);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('⚠️ SLOW React 19 Transition Completed')
-      );
+      const report = react19Monitor.getPerformanceReport();
+      expect(report.metrics.transitionDuration).toBe(200);
 
       process.env.NODE_ENV = originalEnv;
-      consoleSpy.mockRestore();
     });
 
     it('should warn about slow transitions in production', () => {

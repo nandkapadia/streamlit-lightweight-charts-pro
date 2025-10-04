@@ -13,7 +13,7 @@
  * - Default configurations
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Explicitly unmock the module we're testing
 vi.unmock('../../primitives/LegendPrimitive');
@@ -301,32 +301,32 @@ describe('LegendPrimitive - Color Opacity Adjustment', () => {
   });
 
   it('should adjust rgba color opacity', () => {
-    const result = (legend as any).adjustColorOpacity('rgba(255, 0, 0, 0.5)', 0.8);
+    const _result = (legend as any).adjustColorOpacity('rgba(255, 0, 0, 0.5)', 0.8);
     expect(result).toBe('rgba(255, 0, 0, 0.8)');
   });
 
   it('should convert rgb to rgba with opacity', () => {
-    const result = (legend as any).adjustColorOpacity('rgb(255, 0, 0)', 0.5);
+    const _result = (legend as any).adjustColorOpacity('rgb(255, 0, 0)', 0.5);
     expect(result).toBe('rgba(255, 0, 0, 0.5)');
   });
 
   it('should convert hex to rgba with opacity', () => {
-    const result = (legend as any).adjustColorOpacity('#FF0000', 0.7);
+    const _result = (legend as any).adjustColorOpacity('#FF0000', 0.7);
     expect(result).toBe('rgba(255, 0, 0, 0.7)');
   });
 
   it('should handle 6-digit hex colors', () => {
-    const result = (legend as any).adjustColorOpacity('#0088FF', 0.5);
+    const _result = (legend as any).adjustColorOpacity('#0088FF', 0.5);
     expect(result).toBe('rgba(0, 136, 255, 0.5)');
   });
 
   it('should return original color for unsupported formats', () => {
-    const result = (legend as any).adjustColorOpacity('blue', 0.5);
+    const _result = (legend as any).adjustColorOpacity('blue', 0.5);
     expect(result).toBe('blue');
   });
 
   it('should handle rgba with spaces', () => {
-    const result = (legend as any).adjustColorOpacity('rgba( 255 , 128 , 0 , 0.3 )', 0.9);
+    const _result = (legend as any).adjustColorOpacity('rgba( 255 , 128 , 0 , 0.3 )', 0.9);
     expect(result).toBe('rgba(255, 128, 0, 0.9)');
   });
 });
