@@ -35,8 +35,8 @@ import {
   PriceToCoordinateConverter,
   LineWidth,
   ICustomSeriesPaneRenderer,
+  ICustomSeriesPaneView,
 } from 'lightweight-charts';
-import { IBaseCustomPaneView } from './base/IBaseCustomPaneView';
 import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 import { isWhitespaceDataMultiField } from './base/commonRendering';
 import { LineStyle } from '../../utils/renderingUtils';
@@ -389,9 +389,8 @@ class TrendFillSeriesRenderer<TData extends TrendFillData> implements ICustomSer
  * @internal
  */
 class TrendFillSeries<TData extends TrendFillData>
-  implements IBaseCustomPaneView<Time, TData, TrendFillSeriesOptions>
+  implements ICustomSeriesPaneView<Time, TData, TrendFillSeriesOptions>
 {
-  readonly type = 'TrendFill';
   _renderer: TrendFillSeriesRenderer<TData>;
 
   constructor() {
@@ -568,6 +567,7 @@ export function createTrendFillSeries(
 ): any {
   // Create the ICustomSeries
   const series = chart.addCustomSeries(new TrendFillSeries(), {
+    _seriesType: 'TrendFill', // Internal property for series type identification
     uptrendFillColor: options.uptrendFillColor ?? 'rgba(76, 175, 80, 0.3)',
     downtrendFillColor: options.downtrendFillColor ?? 'rgba(244, 67, 54, 0.3)',
     fillVisible: options.fillVisible !== false,
@@ -582,7 +582,7 @@ export function createTrendFillSeries(
     priceScaleId: options.priceScaleId ?? 'right',
     lastValueVisible: options.lastValueVisible ?? !options.usePrimitive, // Hide series label when primitive handles it
     _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
-  });
+  } as any);
 
   // Set data on series (for autoscaling)
   if (options.data && options.data.length > 0) {

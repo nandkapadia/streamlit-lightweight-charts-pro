@@ -28,9 +28,9 @@ import {
   CustomSeriesPricePlotValues,
   CustomSeriesWhitespaceData,
   ICustomSeriesPaneRenderer,
+  ICustomSeriesPaneView,
   IChartApi,
 } from 'lightweight-charts';
-import { IBaseCustomPaneView } from './base/IBaseCustomPaneView';
 import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 import { isTransparent } from '../../utils/colorUtils';
 
@@ -102,15 +102,6 @@ const defaultSignalOptions: SignalSeriesOptions = {
 // ============================================================================
 // Renderer Implementation
 // ============================================================================
-
-/**
- * Bar item with coordinates for rendering
- */
-interface SignalBarItem {
-  x: number;
-  value: number;
-  color: string;
-}
 
 /**
  * Renderer for Signal series
@@ -206,9 +197,8 @@ class SignalSeriesRenderer<TData extends SignalData> implements ICustomSeriesPan
  * Renders vertical background bands based on signal values
  */
 export class SignalSeries<TData extends SignalData = SignalData>
-  implements IBaseCustomPaneView<Time, TData, SignalSeriesOptions>
+  implements ICustomSeriesPaneView<Time, TData, SignalSeriesOptions>
 {
-  readonly type = 'Signal';
   private _renderer: SignalSeriesRenderer<TData>;
 
   constructor() {
@@ -222,10 +212,10 @@ export class SignalSeries<TData extends SignalData = SignalData>
    * When using primitive mode, we return empty array to not affect autoscaling.
    * When not using primitive, we return the signal value to prevent errors.
    *
-   * @param plotRow - Data point
+   * @param _plotRow - Data point (unused)
    * @returns Price value (empty when primitive is used)
    */
-  priceValueBuilder(plotRow: TData): CustomSeriesPricePlotValues {
+  priceValueBuilder(_plotRow: TData): CustomSeriesPricePlotValues {
     // Don't contribute to autoscaling when primitive handles rendering
     return [];
   }
@@ -280,7 +270,7 @@ export class SignalSeries<TData extends SignalData = SignalData>
  *
  * @returns Signal series instance
  */
-export function SignalSeriesPlugin(): IBaseCustomPaneView<Time, SignalData, SignalSeriesOptions> {
+export function SignalSeriesPlugin(): ICustomSeriesPaneView<Time, SignalData, SignalSeriesOptions> {
   return new SignalSeries();
 }
 
@@ -322,6 +312,7 @@ export function createSignalSeries(
 
   // Create ICustomSeries (always created for autoscaling)
   const series = (chart as any).addCustomSeries(SignalSeriesPlugin(), {
+    _seriesType: 'Signal', // Internal property for series type identification
     neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
     signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
     alertColor: options.alertColor ?? 'rgba(244, 67, 54, 0.2)',
@@ -359,7 +350,7 @@ export function createSignalSeries(
  * Legacy factory function for backward compatibility
  * @deprecated Use createSignalSeries instead
  */
-export function createSignalSeriesPlugin(): IBaseCustomPaneView<
+export function createSignalSeriesPlugin(): ICustomSeriesPaneView<
   Time,
   SignalData,
   SignalSeriesOptions

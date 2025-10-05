@@ -64,7 +64,7 @@
     "test:components": "NODE_OPTIONS='--max-old-space-size=2048 --expose-gc' vitest run src/__tests__/components",
     "test:plugins": "NODE_OPTIONS='--max-old-space-size=2048 --expose-gc' vitest run src/__tests__/plugins",
     "test:integration": "NODE_OPTIONS='--max-old-space-size=2048 --expose-gc' vitest run src/__tests__/integration",
-    "test:coverage": "NODE_OPTIONS='--max-old-space-size=2048 --expose-gc' vitest run --coverage",
+    "test:coverage": "NODE_OPTIONS='--max-old-space-size=8192 --expose-gc' vitest run --coverage --no-isolate",
     "test:ci": "NODE_OPTIONS='--max-old-space-size=2048 --expose-gc' vitest run --coverage",
     "type-check": "tsc --noEmit",
     "type-check:strict": "tsc --project tsconfig.strict.json --noEmit",

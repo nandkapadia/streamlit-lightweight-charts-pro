@@ -284,9 +284,6 @@ describe('ProgressiveChartLoader', () => {
   describe('Callback Handlers', () => {
     it('should provide onLoadComplete callback', () => {
       const onLoadComplete = vi.fn();
-      const _config = {
-        priority: 'high' as const,
-      };
 
       // Simulate load complete
       onLoadComplete('chart-1', 500);
@@ -296,9 +293,6 @@ describe('ProgressiveChartLoader', () => {
 
     it('should provide onLoadError callback', () => {
       const onLoadError = vi.fn();
-      const _config = {
-        priority: 'high' as const,
-      };
 
       const error = new Error('Load failed');
       onLoadError('chart-1', error);
@@ -349,11 +343,6 @@ describe('ProgressiveChartLoader', () => {
     });
 
     it('should handle large stagger index', () => {
-      const _config = {
-        priority: 'high' as const,
-        staggerIndex: 100,
-      };
-
       const staggerDelay = 100 * 100;
       expect(staggerDelay).toBe(10000);
     });

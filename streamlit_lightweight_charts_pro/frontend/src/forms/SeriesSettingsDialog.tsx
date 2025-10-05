@@ -3,8 +3,8 @@
  *
  * This component provides a comprehensive series configuration dialog with:
  * - Tabbed interface (one tab per series in pane)
- * - Common settings (visible, markers, last_value_visible, price_line)
- * - Series-specific settings (e.g., Ribbon: upper_line, lower_line, fill)
+ * - Common settings (visible, markers, lastValueVisible, priceLineVisible)
+ * - Series-specific settings (e.g., Ribbon: upperLine, lowerLine, fill)
  * - Live preview with debounced updates
  * - Streamlit backend integration for persistence
  * - React 19 Form Actions with optimistic updates
@@ -12,13 +12,12 @@
 
 import React, { useState, useCallback, useTransition, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Streamlit } from 'streamlit-component-lib';
 import { logger } from '../utils/logger';
 import { LineEditorDialog } from './LineEditorDialog';
 import { ColorPickerDialog } from './ColorPickerDialog';
 import { useSeriesSettingsAPI } from '../hooks/useSeriesSettingsAPI';
 import { toCss } from '../utils/colorUtils';
-import { debounce } from '../utils/performance';
+// import { debounce } from '../utils/performance'; // Reserved for future use
 import '../styles/seriesConfigDialog.css';
 
 /**
@@ -36,30 +35,26 @@ export interface SeriesConfig {
 
   // Line series settings (matching LineSeriesOptions)
   color?: string;
-  lineStyle?: number; // LineStyle enum values
+  lineStyle?: number | 'solid' | 'dashed' | 'dotted'; // Support both number and string
   lineWidth?: number;
 
-  // Legacy/backward compatibility (for existing dialog code)
+  // Additional series configuration properties
   markers?: boolean;
-  last_value_visible?: boolean; // Will be mapped to lastValueVisible
-  price_line?: boolean; // Will be mapped to priceLineVisible
-  line_style?: 'solid' | 'dashed' | 'dotted'; // Will be mapped to lineStyle
-  line_width?: number; // Will be mapped to lineWidth
 
   // Ribbon-specific settings (for ribbon series)
-  upper_line?: {
+  upperLine?: {
     color?: string;
-    line_style?: 'solid' | 'dashed' | 'dotted';
-    line_width?: number;
+    lineStyle?: 'solid' | 'dashed' | 'dotted';
+    lineWidth?: number;
   };
-  lower_line?: {
+  lowerLine?: {
     color?: string;
-    line_style?: 'solid' | 'dashed' | 'dotted';
-    line_width?: number;
+    lineStyle?: 'solid' | 'dashed' | 'dotted';
+    lineWidth?: number;
   };
   fill?: boolean;
-  fill_color?: string;
-  fill_opacity?: number;
+  fillColor?: string;
+  fillOpacity?: number;
 }
 
 /**
@@ -126,12 +121,12 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   const [activeSeriesId, setActiveSeriesId] = useState<string>(seriesList[0]?.id || '');
   const [lineEditorOpen, setLineEditorOpen] = useState<{
     isOpen: boolean;
-    lineType?: 'upper_line' | 'lower_line' | 'main_line';
+    lineType?: 'upperLine' | 'lowerLine' | 'mainLine';
     config?: LineConfig;
   }>({ isOpen: false });
   const [colorPickerOpen, setColorPickerOpen] = useState<{
     isOpen: boolean;
-    colorType?: 'fill_color' | 'line_color';
+    colorType?: 'fillColor' | 'lineColor';
     currentColor?: string;
     currentOpacity?: number;
   }>({ isOpen: false });
@@ -141,15 +136,38 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     useState<Record<string, Partial<SeriesConfig>>>(seriesConfigs);
 
   // React 19 hooks for form handling and optimistic updates
-  const [isPending, startTransition] = useTransition();
-
-  // Sync optimistic configs when props change
-  useEffect(() => {
-    setOptimisticConfigs(seriesConfigs);
-  }, [seriesConfigs]);
+  const [isPending, _startTransition] = useTransition();
 
   // API hooks for backend communication
-  const { updateSeriesSettings } = useSeriesSettingsAPI();
+  const { updateSeriesSettings: _updateSeriesSettings, getPaneState } = useSeriesSettingsAPI();
+
+  // Sync optimistic configs when props change and load from Streamlit session state
+  useEffect(() => {
+    const loadConfigsFromBackend = async () => {
+      const configsWithBackend = { ...seriesConfigs };
+
+      // Load configurations from Streamlit session state for persistence
+      for (const series of seriesList) {
+        try {
+          const backendConfig = await getPaneState(paneId);
+          if (backendConfig && backendConfig.series && backendConfig.series[series.id]) {
+            const storedConfig = backendConfig.series[series.id];
+            configsWithBackend[series.id] = { ...configsWithBackend[series.id], ...storedConfig };
+          }
+        } catch (error) {
+          logger.error(
+            'Failed to load series configuration from Streamlit session state',
+            'SeriesSettings',
+            error
+          );
+        }
+      }
+
+      setOptimisticConfigs(configsWithBackend);
+    };
+
+    void loadConfigsFromBackend();
+  }, [seriesConfigs, seriesList, paneId, getPaneState]);
 
   // Helper function to generate tab titles with fallback logic
   const getTabTitle = useCallback((series: SeriesInfo, index: number): string => {
@@ -164,18 +182,6 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     const seriesNumber = index + 1;
     return `${typeDisplayName} Series ${seriesNumber}`;
   }, []);
-
-  // Debounced config update to avoid excessive API calls
-  const debouncedConfigUpdate = useMemo(
-    () =>
-      debounce((seriesId: string, config: Partial<SeriesConfig>) => {
-        startTransition(() => {
-          void updateSeriesSettings(paneId, seriesId, config);
-          onConfigChange(seriesId, config);
-        });
-      }, 100),
-    [paneId, updateSeriesSettings, onConfigChange]
-  );
 
   // Focus restoration function to return focus to chart after dialog closes
   const restoreFocusToChart = useCallback(() => {
@@ -373,80 +379,21 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
   // Handle configuration changes
   const handleConfigChange = useCallback(
-    (seriesId: string, configPatch: Partial<SeriesConfig>) => {
+    async (seriesId: string, configPatch: Partial<SeriesConfig>) => {
       // Immediately update optimistic state for instant UI feedback
       setOptimisticConfigs(prev => ({
         ...prev,
         [seriesId]: { ...prev[seriesId], ...configPatch },
       }));
 
-      // CRITICAL FIX: Update BOTH frontend and backend for immediate + persistent changes
-
-      // 1. IMMEDIATE FRONTEND UPDATE: Apply to chart series object for instant visual changes
+      // Call the onConfigChange callback which will:
+      // 1. Apply changes to chart series immediately
+      // 2. Send update to backend for persistence
       if (onConfigChange) {
         onConfigChange(seriesId, configPatch);
       }
-
-      // 2. PERSISTENT BACKEND UPDATE: Send to Streamlit for persistence across reruns
-      try {
-        // Try multiple ways to access Streamlit object (same approach as other parts of codebase)
-        let streamlit = null;
-
-        // Method 1: Check global window object
-        if (typeof window !== 'undefined' && (window as any).Streamlit) {
-          streamlit = (window as any).Streamlit;
-        }
-
-        // Method 2: Check globalThis
-        if (!streamlit && typeof globalThis !== 'undefined' && (globalThis as any).Streamlit) {
-          streamlit = (globalThis as any).Streamlit;
-        }
-
-        // Method 3: Check if Streamlit is directly accessible (as in index.tsx)
-        if (!streamlit) {
-          streamlit = Streamlit;
-        }
-
-        if (process.env.NODE_ENV === 'development') {
-          logger.debug('Streamlit connection debug info', 'SeriesSettings', {
-            windowStreamlit: !!(typeof window !== 'undefined' && (window as any).Streamlit),
-            globalStreamlit: !!(typeof globalThis !== 'undefined' && (globalThis as any).Streamlit),
-            directStreamlit: !!Streamlit,
-            foundStreamlit: !!streamlit,
-            hasSetComponentValue: !!(streamlit && streamlit.setComponentValue),
-          });
-        }
-
-        if (streamlit && streamlit.setComponentValue) {
-          const updatePayload = {
-            type: 'config_change',
-            paneId: paneId,
-            seriesId: seriesId,
-            configPatch: configPatch,
-            timestamp: Date.now(),
-          };
-
-          // Send to Streamlit backend for persistence (triggers rerun)
-          streamlit.setComponentValue(updatePayload);
-        } else {
-          logger.warn('Streamlit not accessible for component value update', 'SeriesSettings', {
-            window: typeof window,
-            globalThis: typeof globalThis,
-            Streamlit: typeof Streamlit,
-          });
-        }
-      } catch (error) {
-        logger.error('Failed to send component value to Streamlit', 'SeriesSettings', error);
-      }
-
-      // Optional: Still try the API update for persistence (but Streamlit component value is primary)
-      try {
-        debouncedConfigUpdate(seriesId, configPatch);
-      } catch (error) {
-        logger.error('Failed to update series config via API', 'SeriesSettings', error);
-      }
     },
-    [debouncedConfigUpdate, setOptimisticConfigs, onConfigChange, paneId]
+    [onConfigChange]
   );
 
   // Get current series info and config
@@ -500,14 +447,14 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
   // Line editor handlers
   const openLineEditor = useCallback(
-    (lineType: 'upper_line' | 'lower_line' | 'main_line') => {
+    (lineType: 'upperLine' | 'lowerLine' | 'mainLine') => {
       let lineConfig: any = {};
 
-      if (lineType === 'main_line') {
+      if (lineType === 'mainLine') {
         lineConfig = {
           color: activeSeriesConfig.color,
-          line_style: activeSeriesConfig.line_style,
-          line_width: activeSeriesConfig.line_width,
+          lineStyle: activeSeriesConfig.lineStyle,
+          lineWidth: activeSeriesConfig.lineWidth,
         };
       } else {
         lineConfig = (activeSeriesConfig as any)[lineType] || {};
@@ -518,8 +465,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         lineType,
         config: {
           color: lineConfig.color || '#2196F3',
-          style: lineConfig.line_style || 'solid',
-          width: lineConfig.line_width || 1,
+          style: lineConfig.lineStyle || 'solid',
+          width: lineConfig.lineWidth || 1,
         },
       });
     },
@@ -527,22 +474,22 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   );
 
   const handleLineEditorSave = useCallback(
-    (config: LineConfig) => {
+    async (config: LineConfig) => {
       if (lineEditorOpen.lineType) {
-        if (lineEditorOpen.lineType === 'main_line') {
+        if (lineEditorOpen.lineType === 'mainLine') {
           // For main line, update direct properties
-          handleConfigChange(activeSeriesId, {
+          await handleConfigChange(activeSeriesId, {
             color: config.color,
-            line_style: config.style,
-            line_width: config.width,
+            lineStyle: config.style,
+            lineWidth: config.width,
           });
         } else {
           // For upper/lower lines, update nested properties
-          handleConfigChange(activeSeriesId, {
+          await handleConfigChange(activeSeriesId, {
             [lineEditorOpen.lineType]: {
               color: config.color,
-              line_style: config.style,
-              line_width: config.width,
+              lineStyle: config.style,
+              lineWidth: config.width,
             },
           });
         }
@@ -554,13 +501,12 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
   // Color picker handlers
   const openColorPicker = useCallback(
-    (colorType: 'fill_color' | 'line_color') => {
+    (colorType: 'fillColor' | 'lineColor') => {
       const currentColor =
-        colorType === 'fill_color'
-          ? activeSeriesConfig.fill_color || '#2196F3'
+        colorType === 'fillColor'
+          ? activeSeriesConfig.fillColor || '#2196F3'
           : activeSeriesConfig.color || '#2196F3';
-      const currentOpacity =
-        colorType === 'fill_color' ? activeSeriesConfig.fill_opacity || 20 : 100;
+      const currentOpacity = colorType === 'fillColor' ? activeSeriesConfig.fillOpacity || 20 : 100;
 
       setColorPickerOpen({
         isOpen: true,
@@ -573,14 +519,14 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   );
 
   const handleColorPickerSave = useCallback(
-    (color: string, opacity: number) => {
-      if (colorPickerOpen.colorType === 'fill_color') {
-        handleConfigChange(activeSeriesId, {
-          fill_color: color,
-          fill_opacity: opacity,
+    async (color: string, opacity: number) => {
+      if (colorPickerOpen.colorType === 'fillColor') {
+        await handleConfigChange(activeSeriesId, {
+          fillColor: color,
+          fillOpacity: opacity,
         });
-      } else if (colorPickerOpen.colorType === 'line_color') {
-        handleConfigChange(activeSeriesId, {
+      } else if (colorPickerOpen.colorType === 'lineColor') {
+        await handleConfigChange(activeSeriesId, {
           color: color,
         });
       }
@@ -784,29 +730,29 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
               <div className='checkbox-row'>
                 <input
                   type='checkbox'
-                  id='last_value_visible'
-                  name='last_value_visible'
-                  checked={activeSeriesConfig.last_value_visible !== false}
+                  id='lastValueVisible'
+                  name='lastValueVisible'
+                  checked={activeSeriesConfig.lastValueVisible !== false}
                   onChange={e =>
-                    handleConfigChange(activeSeriesId, { last_value_visible: e.target.checked })
+                    handleConfigChange(activeSeriesId, { lastValueVisible: e.target.checked })
                   }
                   aria-label='Show last value'
                 />
-                <label htmlFor='last_value_visible'>Last Value Visible</label>
+                <label htmlFor='lastValueVisible'>Last Value Visible</label>
               </div>
 
               <div className='checkbox-row'>
                 <input
                   type='checkbox'
-                  id='price_line'
-                  name='price_line'
-                  checked={activeSeriesConfig.price_line !== false}
+                  id='priceLineVisible'
+                  name='priceLineVisible'
+                  checked={activeSeriesConfig.priceLineVisible !== false}
                   onChange={e =>
-                    handleConfigChange(activeSeriesId, { price_line: e.target.checked })
+                    handleConfigChange(activeSeriesId, { priceLineVisible: e.target.checked })
                   }
                   aria-label='Show price line'
                 />
-                <label htmlFor='price_line'>Price Line</label>
+                <label htmlFor='priceLineVisible'>Price Line</label>
               </div>
             </div>
 
@@ -818,13 +764,13 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                 {/* Upper Line */}
                 <div
                   className='line-row'
-                  onClick={() => openLineEditor('upper_line')}
+                  onClick={() => openLineEditor('upperLine')}
                   role='button'
                   tabIndex={0}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      openLineEditor('upper_line');
+                      openLineEditor('upperLine');
                     }
                   }}
                   aria-label='Edit upper line settings'
@@ -834,7 +780,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                     <div
                       className='line-color-swatch'
                       style={{
-                        backgroundColor: activeSeriesConfig.upper_line?.color || '#4CAF50',
+                        backgroundColor: activeSeriesConfig.upperLine?.color || '#4CAF50',
                         width: '20px',
                         height: '12px',
                         border: '1px solid #ddd',
@@ -842,8 +788,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                       }}
                     />
                     <span className='line-style-indicator'>
-                      {activeSeriesConfig.upper_line?.line_style || 'solid'} •{' '}
-                      {activeSeriesConfig.upper_line?.line_width || 2}px
+                      {activeSeriesConfig.upperLine?.lineStyle || 'solid'} •{' '}
+                      {activeSeriesConfig.upperLine?.lineWidth || 2}px
                     </span>
                   </div>
                 </div>
@@ -851,13 +797,13 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                 {/* Lower Line */}
                 <div
                   className='line-row'
-                  onClick={() => openLineEditor('lower_line')}
+                  onClick={() => openLineEditor('lowerLine')}
                   role='button'
                   tabIndex={0}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      openLineEditor('lower_line');
+                      openLineEditor('lowerLine');
                     }
                   }}
                   aria-label='Edit lower line settings'
@@ -867,7 +813,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                     <div
                       className='line-color-swatch'
                       style={{
-                        backgroundColor: activeSeriesConfig.lower_line?.color || '#F44336',
+                        backgroundColor: activeSeriesConfig.lowerLine?.color || '#F44336',
                         width: '20px',
                         height: '12px',
                         border: '1px solid #ddd',
@@ -875,8 +821,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                       }}
                     />
                     <span className='line-style-indicator'>
-                      {activeSeriesConfig.lower_line?.line_style || 'solid'} •{' '}
-                      {activeSeriesConfig.lower_line?.line_width || 2}px
+                      {activeSeriesConfig.lowerLine?.lineStyle || 'solid'} •{' '}
+                      {activeSeriesConfig.lowerLine?.lineWidth || 2}px
                     </span>
                   </div>
                 </div>
@@ -897,13 +843,13 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                 {activeSeriesConfig.fill !== false && (
                   <div
                     className='color-row'
-                    onClick={() => openColorPicker('fill_color')}
+                    onClick={() => openColorPicker('fillColor')}
                     role='button'
                     tabIndex={0}
                     onKeyDown={e => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        openColorPicker('fill_color');
+                        openColorPicker('fillColor');
                       }
                     }}
                     aria-label='Edit fill color'
@@ -914,8 +860,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                         className='color-swatch'
                         style={{
                           backgroundColor: toCss(
-                            activeSeriesConfig.fill_color || '#2196F3',
-                            activeSeriesConfig.fill_opacity || 20
+                            activeSeriesConfig.fillColor || '#2196F3',
+                            activeSeriesConfig.fillOpacity || 20
                           ),
                           width: '32px',
                           height: '12px',
@@ -924,7 +870,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                         }}
                       />
                       <span className='opacity-indicator'>
-                        {activeSeriesConfig.fill_opacity || 20}%
+                        {activeSeriesConfig.fillOpacity || 20}%
                       </span>
                     </div>
                   </div>
@@ -939,13 +885,13 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
                 <div
                   className='line-row'
-                  onClick={() => openLineEditor('main_line')}
+                  onClick={() => openLineEditor('mainLine')}
                   role='button'
                   tabIndex={0}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      openLineEditor('main_line');
+                      openLineEditor('mainLine');
                     }
                   }}
                   aria-label='Edit line settings'
@@ -963,8 +909,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                       }}
                     />
                     <span className='line-style-indicator'>
-                      {activeSeriesConfig.line_style || 'solid'} •{' '}
-                      {activeSeriesConfig.line_width || 1}px
+                      {activeSeriesConfig.lineStyle || 'solid'} •{' '}
+                      {activeSeriesConfig.lineWidth || 1}px
                     </span>
                   </div>
                 </div>
@@ -1012,27 +958,27 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                 const defaultConfig: SeriesConfig = {
                   visible: true,
                   markers: false,
-                  last_value_visible: true,
-                  price_line: true,
+                  lastValueVisible: true,
+                  priceLineVisible: true,
                 };
 
                 if (activeSeriesInfo?.type === 'ribbon') {
                   Object.assign(defaultConfig, {
-                    upper_line: { color: '#4CAF50', line_style: 'solid', line_width: 2 },
-                    lower_line: { color: '#F44336', line_style: 'solid', line_width: 2 },
+                    upperLine: { color: '#4CAF50', lineStyle: 'solid', lineWidth: 2 },
+                    lowerLine: { color: '#F44336', lineStyle: 'solid', lineWidth: 2 },
                     fill: true,
-                    fill_color: '#2196F3',
-                    fill_opacity: 20,
+                    fillColor: '#2196F3',
+                    fillOpacity: 20,
                   });
                 } else if (activeSeriesInfo?.type === 'line') {
                   Object.assign(defaultConfig, {
                     color: '#2196F3',
-                    line_style: 'solid',
-                    line_width: 1,
+                    lineStyle: 'solid',
+                    lineWidth: 1,
                   });
                 }
 
-                handleConfigChange(activeSeriesId, defaultConfig);
+                void handleConfigChange(activeSeriesId, defaultConfig);
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.backgroundColor = '#f8f9fa';

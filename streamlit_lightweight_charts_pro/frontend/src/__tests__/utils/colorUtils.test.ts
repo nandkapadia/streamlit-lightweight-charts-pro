@@ -28,7 +28,6 @@ import {
   clamp,
   getSolidColorFromFill,
   debounce,
-  type RgbaColor,
 } from '../../utils/colorUtils';
 
 describe('Color Parsing Functions', () => {

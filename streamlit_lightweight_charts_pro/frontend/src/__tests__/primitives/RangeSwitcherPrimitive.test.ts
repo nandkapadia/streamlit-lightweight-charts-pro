@@ -262,7 +262,9 @@ describe('RangeSwitcherPrimitive - Helper Functions', () => {
 });
 
 describe('RangeSwitcherPrimitive - Construction and Configuration', () => {
-  const mockChart = {
+  // Mock chart kept for potential future use
+  // @ts-expect-error - Mock chart intentionally unused for future use
+  const _mockChart = {
     timeScale: vi.fn(() => ({
       fitContent: vi.fn(),
       getVisibleRange: vi.fn(() => ({ from: 1000, to: 2000 })),
@@ -913,7 +915,7 @@ describe('RangeSwitcherPrimitive - Factory and Defaults', () => {
   it('should create primitive using factory function', () => {
     const primitive = createRangeSwitcherPrimitive('test-switcher', {
       corner: 'top-right',
-      ranges: DefaultRangeConfigs.trading,
+      ranges: [...DefaultRangeConfigs.trading],
     });
 
     expect(primitive).toBeInstanceOf(RangeSwitcherPrimitive);
@@ -954,6 +956,8 @@ describe('RangeSwitcherPrimitive - Lifecycle and Cleanup', () => {
 
   it('should cleanup interval on detached', () => {
     (primitive as any).dataChangeIntervalId = setInterval(() => {}, 1000);
+    // Store interval ID for potential future verification
+    // @ts-expect-error - Interval ID intentionally unused for future verification
     const _intervalId = (primitive as any).dataChangeIntervalId;
 
     primitive.detached();

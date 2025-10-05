@@ -372,7 +372,7 @@ describe('CornerLayoutManager', () => {
       const pos2 = manager.getWidgetPosition('widget-2');
 
       // Widget 2 should be below widget 1 with gap
-      expect(pos2!.top).toBe(pos1!.top + 20 + 6); // 20 (height) + 6 (gap)
+      expect(pos2?.top).toBe((pos1?.top ?? 0) + 20 + 6); // 20 (height) + 6 (gap)
     });
 
     it('should handle widgets without chart API (fallback mode)', () => {

@@ -27,11 +27,11 @@ import {
   CustomSeriesPricePlotValues,
   CustomSeriesWhitespaceData,
   ICustomSeriesPaneRenderer,
+  ICustomSeriesPaneView,
   LineWidth,
   IChartApi,
   PriceToCoordinateConverter,
 } from 'lightweight-charts';
-import { IBaseCustomPaneView } from './base/IBaseCustomPaneView';
 import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 import { isWhitespaceDataMultiField } from './base/commonRendering';
 import { LineStyle } from '../../utils/renderingUtils';
@@ -131,9 +131,8 @@ const defaultBandOptions: BandSeriesOptions = {
  * Provides autoscaling and direct rendering
  */
 class BandSeries<TData extends BandData = BandData>
-  implements IBaseCustomPaneView<Time, TData, BandSeriesOptions>
+  implements ICustomSeriesPaneView<Time, TData, BandSeriesOptions>
 {
-  readonly type = 'Band';
   private _renderer: BandSeriesRenderer<TData>;
 
   constructor() {
@@ -380,6 +379,7 @@ export function createBandSeries(
 ): any {
   // Create ICustomSeries (always created for autoscaling)
   const series = chart.addCustomSeries(new BandSeries(), {
+    _seriesType: 'Band', // Internal property for series type identification
     upperLineColor: options.upperLineColor ?? '#4CAF50',
     upperLineWidth: options.upperLineWidth ?? 2,
     upperLineStyle: options.upperLineStyle ?? LineStyle.Solid,
@@ -399,7 +399,7 @@ export function createBandSeries(
     priceScaleId: options.priceScaleId ?? 'right',
     lastValueVisible: !options.usePrimitive,
     _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
-  });
+  } as any);
 
   // Set data on series (for autoscaling)
   if (options.data && options.data.length > 0) {

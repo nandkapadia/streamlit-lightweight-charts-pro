@@ -518,6 +518,8 @@ describe('TrendFillPrimitive', () => {
       primitive.setData(data);
 
       const priceAxisView = (primitive as any)._priceAxisViews[0];
+      // Get coordinate for verification
+      // @ts-expect-error - Coordinate intentionally unused for future verification
       const _coordinate = priceAxisView.coordinate();
 
       expect(mockAttachedSeries.priceToCoordinate).toHaveBeenCalledWith(30);

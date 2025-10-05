@@ -25,6 +25,7 @@ Example:
 """
 
 # Standard Imports
+import json
 import time
 import uuid
 from datetime import datetime
@@ -32,6 +33,8 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 
 # Third Party Imports
 import pandas as pd
+import streamlit as st
+import streamlit.components.v1 as components
 
 # Local Imports
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
@@ -44,6 +47,9 @@ from streamlit_lightweight_charts_pro.charts.series import (
     HistogramSeries,
     LineSeries,
     Series,
+)
+from streamlit_lightweight_charts_pro.charts.series_settings_api import (
+    get_series_settings_api,
 )
 from streamlit_lightweight_charts_pro.component import (  # pylint: disable=import-outside-toplevel
     get_component_func,
@@ -1241,7 +1247,30 @@ class Chart:
             chart.add_series(line_series).update_options(height=600).render(key="chart1")
             ```
         """
-        config = self.to_frontend_config()
+        # Generate a unique key if none provided or if it's empty/invalid
+        if key is None or not isinstance(key, str) or not key.strip():
+            # Generate a unique key using timestamp and UUID
+            unique_id = str(uuid.uuid4())[:8]
+            key = f"chart_{int(time.time() * 1000)}_{unique_id}"
+
+        # Store chart instance in session state to persist across reruns
+        session_key = f"chart_instance_{key}"
+        if session_key not in st.session_state:
+            st.session_state[session_key] = self
+        else:
+            # Update existing chart instance with current state
+            existing_chart = st.session_state[session_key]
+            existing_chart.series = self.series
+            existing_chart.options = self.options
+            existing_chart.annotation_manager = self.annotation_manager
+            existing_chart._trades = self._trades
+            existing_chart._tooltip_manager = self._tooltip_manager
+            existing_chart._chart_group_id = self._chart_group_id
+            existing_chart._chart_manager = self._chart_manager
+
+        # Use the persisted chart instance for rendering
+        chart_instance = st.session_state[session_key]
+        config = chart_instance.to_frontend_config()
         component_func = get_component_func()
 
         if component_func is None:
@@ -1256,36 +1285,32 @@ class Chart:
         kwargs = {"config": config}
 
         # Extract height and width from chart options and pass to frontend
-        if self.options:
-            if hasattr(self.options, "height") and self.options.height is not None:
-                kwargs["height"] = self.options.height
-            if hasattr(self.options, "width") and self.options.width is not None:
-                kwargs["width"] = self.options.width
-
-        # Generate a unique key if none provided or if it's empty/invalid
-        if key is None or not isinstance(key, str) or not key.strip():
-            # Generate a unique key using timestamp and UUID
-            unique_id = str(uuid.uuid4())[:8]
-            key = f"chart_{int(time.time() * 1000)}_{unique_id}"
+        if chart_instance.options:
+            if (
+                hasattr(chart_instance.options, "height")
+                and chart_instance.options.height is not None
+            ):
+                kwargs["height"] = chart_instance.options.height
+            if (
+                hasattr(chart_instance.options, "width")
+                and chart_instance.options.width is not None
+            ):
+                kwargs["width"] = chart_instance.options.width
 
         kwargs["key"] = key
 
         # Initialize series settings API and register series
-        from streamlit_lightweight_charts_pro.charts.series_settings_api import (
-            get_series_settings_api,
-        )
-
         series_api = get_series_settings_api(key)
 
         # Register all series with the API (assuming pane 0 for single-pane charts)
-        for _i, series in enumerate(self.series):
+        for _i, series in enumerate(chart_instance.series):
             series_api.register_series(pane_id=0, series=series)
 
         # Handle series settings API calls if they exist in the returned data
         result = component_func(**kwargs)
 
         if result and isinstance(result, dict):
-            self._handle_series_settings_response(result, series_api)
+            chart_instance._handle_series_settings_response(result, series_api)
 
         return result
 
@@ -1308,18 +1333,13 @@ class Chart:
                 if message_id:
                     pane_state = series_api.get_pane_state(pane_id)
                     # Send response back to frontend via custom event
-                    import streamlit.components.v1 as components
-
                     components.html(
                         f"""
                     <script>
                     document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                         detail: {{
                             messageId: '{message_id}',
-                            response: {{
-                                success: true,
-                                data: {pane_state}
-                            }}
+                            response: {json.dumps({"success": True, "data": pane_state})}
                         }}
                     }}));
                     </script>
@@ -1333,24 +1353,30 @@ class Chart:
                 config = response.get("config", {})
                 message_id = response.get("messageId")
 
-                if message_id:
-                    success = series_api.update_series_settings(pane_id, series_id, config)
-                    import streamlit.components.v1 as components
+                # Always update the settings
+                success = series_api.update_series_settings(pane_id, series_id, config)
 
+                # Only send response if messageId was provided
+                if message_id:
                     components.html(
                         f"""
                     <script>
                     document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                         detail: {{
                             messageId: '{message_id}',
-                            response: {{
-                                success: {str(success).lower()}
-                            }}
+                            response: {json.dumps({"success": success})}
                         }}
                     }}));
                     </script>
                     """,
                         height=0,
+                    )
+                # Log the update for debugging
+                elif success:
+                    logger.debug(
+                        "Updated series settings for %s: %s",
+                        series_id,
+                        config,
                     )
 
             elif response.get("type") == "reset_series_defaults":
@@ -1361,48 +1387,19 @@ class Chart:
                 if message_id:
                     defaults = series_api.reset_series_to_defaults(pane_id, series_id)
                     success = defaults is not None
-                    import streamlit.components.v1 as components
-
                     components.html(
                         f"""
                     <script>
                     document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                         detail: {{
                             messageId: '{message_id}',
-                            response: {{
-                                success: {str(success).lower()},
-                                data: {defaults or {}}
-                            }}
+                            response: {json.dumps({"success": success, "data": defaults or {}})}
                         }}
                     }}));
                     </script>
                     """,
                         height=0,
                     )
-
-            elif response.get("type") == "config_change":
-                # Handle immediate configuration changes from the settings dialog
-                pane_id = response.get("paneId", 0)
-                series_id = response.get("seriesId", "")
-                config_patch = response.get("configPatch", {})
-
-                # Apply the configuration change immediately
-                if series_id and config_patch:
-                    success = series_api.update_series_settings(pane_id, series_id, config_patch)
-
-                    if success:
-                        logger.debug(
-                            "Applied config change for series %s: %s",
-                            series_id,
-                            config_patch,
-                        )
-
-                        # Trigger a rerun to update the chart with the new settings
-                        import streamlit as st
-
-                        st.rerun()
-                    else:
-                        logger.warning("Failed to apply config change for series %s", series_id)
 
         except Exception as e:
             logger.exception("Error handling series settings response")

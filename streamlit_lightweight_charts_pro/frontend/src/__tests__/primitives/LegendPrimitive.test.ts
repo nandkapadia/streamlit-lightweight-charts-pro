@@ -643,6 +643,8 @@ describe('LegendPrimitive - Edge Cases', () => {
     expect((legend as any).config.style.textShadow).toBe('1px 1px 2px rgba(0, 0, 0, 0.5)');
   });
 
+  // Helper function kept for potential future use
+  // @ts-expect-error - Helper function intentionally unused for future use
   function _legend(): any {
     return new LegendPrimitive('test-legend', {
       corner: 'top-left',

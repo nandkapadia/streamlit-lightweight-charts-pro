@@ -15,7 +15,7 @@ export default defineConfig({
     reporters: ['verbose'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
         'node_modules/',
         'src/setupTests.ts',
@@ -24,7 +24,34 @@ export default defineConfig({
         'src/__mocks__/**',
         'src/test-utils/**',
         'build/**',
-        'dist/**'
+        'dist/**',
+        // Exclude test files from coverage
+        'src/**/*.test.ts',
+        'src/**/*.test.tsx',
+        'src/**/*.spec.ts',
+        'src/**/*.spec.tsx',
+        // Exclude example/demo files
+        'src/**/examples/**',
+        'src/**/demo/**',
+        // Exclude type definition files
+        'src/**/types.ts',
+        'src/**/index.ts'
+      ],
+      // Set coverage thresholds to maintain quality
+      thresholds: {
+        statements: 80,
+        branches: 75,
+        functions: 75,
+        lines: 80
+      },
+      // Enable all coverage checks
+      all: true,
+      // Clean coverage directory before each run
+      clean: true,
+      // Include source files
+      include: [
+        'src/**/*.ts',
+        'src/**/*.tsx'
       ]
     },
     // Configure test timeout
@@ -44,10 +71,10 @@ export default defineConfig({
       }
     },
     // Memory management and performance optimizations
-    pool: 'threads',
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        singleThread: true,
+      forks: {
+        singleFork: true,
         isolate: false
       }
     },
@@ -58,7 +85,11 @@ export default defineConfig({
     // Disable file watching for better memory management
     watch: false,
     // Force garbage collection between tests
-    isolate: false
+    isolate: false,
+    // Optimize for memory
+    fileParallelism: false,
+    // Set shorter timeouts to fail fast
+    hookTimeout: 30000
   },
   // Resolve configuration for better module resolution
   resolve: {

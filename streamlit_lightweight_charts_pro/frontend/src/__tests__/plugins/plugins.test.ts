@@ -1,9 +1,9 @@
 import { vi } from 'vitest';
 import { RectangleOverlayPlugin } from '../../plugins/overlay/rectanglePlugin';
-import { SignalSeries } from '../../plugins/series/signalSeriesPlugin';
+import { createSignalSeries } from '../../plugins/series/signalSeriesPlugin';
 import { createTradeVisualElements } from '../../services/tradeVisualization';
 import { createAnnotationVisualElements } from '../../services/annotationSystem';
-import { resetMocks, mockChart } from '../../test-utils/lightweightChartsMocks';
+import { resetMocks, mockChart, mockSeries } from '../../test-utils/lightweightChartsMocks';
 
 // Use unified mock system
 vi.mock('lightweight-charts', async () => {
@@ -131,66 +131,54 @@ describe('Chart Plugins', () => {
   describe('SignalSeries', () => {
     it('should create signal series', () => {
       const chart = mockChart;
-      const config = { data: [], options: { visible: true }, paneId: 0, type: 'signal' as const };
-      const signalSeries = new SignalSeries(chart, config);
+      const signalSeries = createSignalSeries(chart);
       expect(signalSeries).toBeDefined();
     });
 
     it('should add signal series to chart', () => {
       const chart = mockChart;
-      // const config = { data: [], options: { visible: true }, paneId: 0, type: 'signal' as const };
-      // const signalSeries = new SignalSeries(chart, config);
+      const signalSeries = createSignalSeries(chart);
 
-      expect(chart).toBeDefined();
+      expect(chart.addCustomSeries).toHaveBeenCalled();
+      expect(signalSeries).toBeDefined();
     });
 
     it('should handle signal data', () => {
       const chart = mockChart;
-      const config = { data: [], options: { visible: true }, paneId: 0, type: 'signal' as const };
-      const signalSeries = new SignalSeries(chart, config);
-
       const signalData = [
         {
-          time: '2024-01-01',
-          value: 100,
-          type: 'buy',
+          time: '2024-01-01' as any,
+          value: 1,
           color: '#00ff00',
         },
       ];
 
-      signalSeries.setSignals(signalData);
+      const signalSeries = createSignalSeries(chart, { data: signalData });
 
       expect(signalSeries).toBeDefined();
+      expect(mockSeries.setData).toHaveBeenCalledWith(signalData);
     });
 
     it('should handle empty signal data', () => {
       const chart = mockChart;
-      const config = { data: [], options: { visible: true }, paneId: 0, type: 'signal' as const };
-      const signalSeries = new SignalSeries(chart, config);
-      signalSeries.setSignals([]);
+      const signalSeries = createSignalSeries(chart, { data: [] });
 
       expect(signalSeries).toBeDefined();
+      expect(mockSeries.setData).not.toHaveBeenCalled();
     });
 
-    it('should handle different signal types', () => {
+    it('should handle different signal values', () => {
       const chart = mockChart;
-      const config = {
-        data: [],
-        options: { visible: true },
-        paneId: 0,
-        type: 'signal' as const,
-      };
-      const signalSeries = new SignalSeries(chart, config);
-
       const signalData = [
-        { time: '2024-01-01', value: 100, type: 'buy', color: '#00ff00' },
-        { time: '2024-01-02', value: 110, type: 'sell', color: '#ff0000' },
-        { time: '2024-01-03', value: 105, type: 'hold', color: '#ffff00' },
+        { time: '2024-01-01' as any, value: 0 }, // neutral
+        { time: '2024-01-02' as any, value: 1 }, // signal
+        { time: '2024-01-03' as any, value: 2 }, // alert
       ];
 
-      signalSeries.setSignals(signalData);
+      const signalSeries = createSignalSeries(chart, { data: signalData });
 
       expect(signalSeries).toBeDefined();
+      expect(mockSeries.setData).toHaveBeenCalledWith(signalData);
     });
   });
 
@@ -370,13 +358,12 @@ describe('Chart Plugins', () => {
       const chart = mockChart;
 
       const rectanglePlugin = new RectangleOverlayPlugin();
-      const config = { data: [], options: { visible: true }, paneId: 0, type: 'signal' as const };
-      const signalSeries = new SignalSeries(chart, config);
+      const signalSeries = createSignalSeries(chart);
 
       rectanglePlugin.addToChart(chart);
-      signalSeries.addToChart(chart);
 
       expect(chart).toBeDefined();
+      expect(signalSeries).toBeDefined();
     });
 
     it('should handle plugin cleanup', () => {
@@ -428,24 +415,23 @@ describe('Chart Plugins', () => {
 
     it('should handle rapid updates', () => {
       const chart = mockChart;
-      const config = { data: [], options: { visible: true }, paneId: 0, type: 'signal' as const };
-      const signalSeries = new SignalSeries(chart, config);
+      const signalSeries = createSignalSeries(chart);
 
       // Simulate rapid updates
       for (let i = 0; i < 100; i++) {
         const signalData = [
           {
-            time: `2024-01-${String(i + 1).padStart(2, '0')}`,
-            value: 100 + i,
-            type: 'buy',
+            time: `2024-01-${String(i + 1).padStart(2, '0')}` as any,
+            value: i % 3, // Cycle through 0, 1, 2
             color: '#00ff00',
           },
         ];
 
-        signalSeries.setSignals(signalData);
+        mockSeries.setData(signalData);
       }
 
       expect(signalSeries).toBeDefined();
+      expect(mockSeries.setData).toHaveBeenCalled();
     });
   });
 

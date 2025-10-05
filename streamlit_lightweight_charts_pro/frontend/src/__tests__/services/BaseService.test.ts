@@ -145,6 +145,8 @@ describe('BaseService', () => {
       const error = new Error('Init failed');
 
       expect(() => {
+        // Create failing service instance
+        // @ts-expect-error - Service instance intentionally unused to test error throwing
         const _failingService = new (class extends TestService {
           protected onInitialize(): void {
             throw error;

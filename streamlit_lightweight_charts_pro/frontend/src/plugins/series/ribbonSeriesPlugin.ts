@@ -28,11 +28,11 @@ import {
   CustomSeriesPricePlotValues,
   CustomSeriesWhitespaceData,
   ICustomSeriesPaneRenderer,
+  ICustomSeriesPaneView,
   LineWidth,
   IChartApi,
   PriceToCoordinateConverter,
 } from 'lightweight-charts';
-import { IBaseCustomPaneView } from './base/IBaseCustomPaneView';
 import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 import { isWhitespaceDataMultiField } from './base/commonRendering';
 import { LineStyle } from '../../utils/renderingUtils';
@@ -116,9 +116,8 @@ const defaultRibbonOptions: RibbonSeriesOptions = {
  * Provides autoscaling and direct rendering
  */
 class RibbonSeries<TData extends RibbonData = RibbonData>
-  implements IBaseCustomPaneView<Time, TData, RibbonSeriesOptions>
+  implements ICustomSeriesPaneView<Time, TData, RibbonSeriesOptions>
 {
-  readonly type = 'Ribbon';
   private _renderer: RibbonSeriesRenderer<TData>;
 
   constructor() {
@@ -333,6 +332,7 @@ export function createRibbonSeries(
 ): any {
   // Create ICustomSeries (always created for autoscaling)
   const series = chart.addCustomSeries(new RibbonSeries(), {
+    _seriesType: 'Ribbon', // Internal property for series type identification
     upperLineColor: options.upperLineColor ?? '#4CAF50',
     upperLineWidth: options.upperLineWidth ?? 2,
     upperLineStyle: options.upperLineStyle ?? LineStyle.Solid,
@@ -346,7 +346,7 @@ export function createRibbonSeries(
     priceScaleId: options.priceScaleId ?? 'right',
     lastValueVisible: !options.usePrimitive,
     _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
-  });
+  } as any);
 
   // Set data on series (for autoscaling)
   if (options.data && options.data.length > 0) {

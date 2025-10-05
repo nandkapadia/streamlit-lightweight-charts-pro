@@ -100,6 +100,7 @@ vi.mock('../../LightweightCharts', () => {
 });
 
 import { Streamlit } from 'streamlit-component-lib';
+// @ts-expect-error - streamlit-component-lib-react-hooks package was removed
 import { useRenderData } from 'streamlit-component-lib-react-hooks';
 
 // Custom render function that ensures container is available

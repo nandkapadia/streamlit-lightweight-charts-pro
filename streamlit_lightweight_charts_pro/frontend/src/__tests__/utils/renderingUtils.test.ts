@@ -49,12 +49,11 @@ import {
   type FillAreaConfig,
   type CanvasState,
   type RectangleConfig,
-  type CoordinateBounds,
   type EdgeExtensionConfig,
 } from '../../utils/renderingUtils';
 
 // Mock canvas context
-const createMockContext = (): jest.Mocked<CanvasRenderingContext2D> =>
+const createMockContext = (): any =>
   ({
     beginPath: vi.fn(),
     moveTo: vi.fn(),
@@ -863,7 +862,7 @@ describe('Gradient Creation Utilities', () => {
         { x: 100, y: 20, color: '#00FF00' },
       ];
 
-      const _result = createHorizontalGradient(ctx, 0, 100, coloredPoints);
+      createHorizontalGradient(ctx, 0, 100, coloredPoints);
 
       expect(ctx.createLinearGradient).toHaveBeenCalledWith(0, 0, 100, 0);
       expect(gradient.addColorStop).toHaveBeenCalledWith(0, '#FF0000');
@@ -875,7 +874,7 @@ describe('Gradient Creation Utilities', () => {
       const gradient = { addColorStop: vi.fn() };
       ctx.createLinearGradient = vi.fn(() => gradient as any);
 
-      const _result = createHorizontalGradient(ctx, 0, 100, []);
+      createHorizontalGradient(ctx, 0, 100, []);
 
       expect(gradient.addColorStop).toHaveBeenCalledWith(0, 'rgba(0,0,0,0)');
       expect(gradient.addColorStop).toHaveBeenCalledWith(1, 'rgba(0,0,0,0)');
@@ -909,7 +908,7 @@ describe('Gradient Creation Utilities', () => {
         { position: 1, color: '#00FF00' },
       ];
 
-      const _result = createVerticalGradient(ctx, 0, 100, stops);
+      createVerticalGradient(ctx, 0, 100, stops);
 
       expect(ctx.createLinearGradient).toHaveBeenCalledWith(0, 0, 0, 100);
       expect(gradient.addColorStop).toHaveBeenCalledTimes(3);

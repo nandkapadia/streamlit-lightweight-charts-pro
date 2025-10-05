@@ -28,11 +28,11 @@ import {
   CustomSeriesPricePlotValues,
   CustomSeriesWhitespaceData,
   ICustomSeriesPaneRenderer,
+  ICustomSeriesPaneView,
   LineWidth,
   IChartApi,
   PriceToCoordinateConverter,
 } from 'lightweight-charts';
-import { IBaseCustomPaneView } from './base/IBaseCustomPaneView';
 import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 import { isWhitespaceDataMultiField } from './base/commonRendering';
 import { LineStyle } from '../../utils/renderingUtils';
@@ -163,9 +163,8 @@ function interpolateColor(startColor: string, endColor: string, factor: number):
  * Provides autoscaling and direct rendering
  */
 class GradientRibbonSeries<TData extends GradientRibbonData = GradientRibbonData>
-  implements IBaseCustomPaneView<Time, TData, GradientRibbonSeriesOptions>
+  implements ICustomSeriesPaneView<Time, TData, GradientRibbonSeriesOptions>
 {
-  readonly type = 'GradientRibbon';
   private _renderer: GradientRibbonSeriesRenderer<TData>;
 
   constructor() {
@@ -497,6 +496,7 @@ export function createGradientRibbonSeries(
 ): any {
   // Create ICustomSeries (always created for autoscaling)
   const series = chart.addCustomSeries(new GradientRibbonSeries(), {
+    _seriesType: 'GradientRibbon', // Internal property for series type identification
     upperLineColor: options.upperLineColor ?? '#4CAF50',
     upperLineWidth: options.upperLineWidth ?? 2,
     upperLineStyle: options.upperLineStyle ?? LineStyle.Solid,
@@ -513,7 +513,7 @@ export function createGradientRibbonSeries(
     priceScaleId: options.priceScaleId ?? 'right',
     lastValueVisible: !options.usePrimitive,
     _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
-  });
+  } as any);
 
   // Set data on series (for autoscaling)
   if (options.data && options.data.length > 0) {

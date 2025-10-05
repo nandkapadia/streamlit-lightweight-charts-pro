@@ -7,7 +7,7 @@
 
 import { vi, beforeEach, afterEach } from 'vitest';
 import { render, RenderOptions } from '@testing-library/react';
-import { ReactElement } from 'react';
+import React, { ReactElement } from 'react';
 
 /**
  * Test configuration interface
@@ -81,6 +81,7 @@ export abstract class BaseTest {
    * Create a mock and store it
    */
   protected createMock<T>(name: string, implementation?: T): T {
+    // @ts-expect-error - Type mismatch between vi.fn and T is expected for mock creation
     const mock = vi.fn(implementation) as T;
     this.mocks.set(name, mock);
     return mock;
@@ -127,7 +128,7 @@ export class ComponentTestUtilities {
   static createTestWrapper(providers: ReactElement[] = []) {
     return ({ children }: { children: ReactElement }) => {
       return providers.reduce(
-        (acc, provider) => React.cloneElement(provider, { children: acc }),
+        (acc, provider) => React.cloneElement(provider, { children: acc } as any),
         children
       );
     };

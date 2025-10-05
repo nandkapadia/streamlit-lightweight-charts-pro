@@ -52,6 +52,11 @@ export function useStreamlitRenderData(): RenderData | undefined {
  */
 export function useStreamlitFrameHeight(): void {
   useEffect(() => {
-    Streamlit.setFrameHeight();
+    // Only call setFrameHeight after component is ready to prevent warnings
+    const timer = setTimeout(() => {
+      Streamlit.setFrameHeight();
+    }, 150); // Slightly longer delay to ensure component is registered
+
+    return () => clearTimeout(timer);
   });
 }

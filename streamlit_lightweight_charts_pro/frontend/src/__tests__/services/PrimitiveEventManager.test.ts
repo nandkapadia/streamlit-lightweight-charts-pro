@@ -450,7 +450,7 @@ describe('PrimitiveEventManager', () => {
       manager.subscribe('click', listener);
       manager.initialize(mockChart);
 
-      const clickHandler = mockChart.subscribeClick.mock.calls[0][0];
+      const clickHandler = (mockChart.subscribeClick as any).mock.calls[0][0];
       clickHandler({
         time: 100,
         point: { x: 10, y: 20 },
@@ -471,7 +471,7 @@ describe('PrimitiveEventManager', () => {
       manager.subscribe('click', listener);
       manager.initialize(mockChart);
 
-      const clickHandler = mockChart.subscribeClick.mock.calls[0][0];
+      const clickHandler = (mockChart.subscribeClick as any).mock.calls[0][0];
       clickHandler({ time: null, point: null });
 
       expect(listener).not.toHaveBeenCalled();
@@ -631,7 +631,7 @@ describe('PrimitiveEventManager', () => {
       manager.initialize(mockChart);
 
       // Make cleanup throw error
-      mockChart.unsubscribeCrosshairMove.mockImplementationOnce(() => {
+      (mockChart.unsubscribeCrosshairMove as any).mockImplementationOnce(() => {
         throw new Error('Cleanup error');
       });
 

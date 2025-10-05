@@ -608,13 +608,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       }
 
       // Clean up signal series plugins
-      Object.values(signalPluginRefs.current).forEach(signalSeries => {
-        try {
-          signalSeries.destroy();
-        } catch {
-          // Signal series already destroyed
-        }
-      });
+      // Note: SignalSeries instances don't need explicit cleanup as they are
+      // managed by the chart's series lifecycle
+      signalPluginRefs.current = {};
 
       // Clean up legend resize observers
       Object.values(legendResizeObserverRefs.current).forEach(resizeObserver => {

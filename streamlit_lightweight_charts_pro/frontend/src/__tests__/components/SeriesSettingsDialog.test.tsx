@@ -70,30 +70,30 @@ describe('SeriesSettingsDialog', () => {
     series1: {
       visible: true,
       markers: false,
-      last_value_visible: true,
-      price_line: true,
+      lastValueVisible: true,
+      priceLineVisible: true,
       color: '#2196F3',
-      line_style: 'solid',
-      line_width: 1,
+      lineStyle: 'solid',
+      lineWidth: 1,
     },
     series2: {
       visible: true,
       markers: false,
-      last_value_visible: true,
-      price_line: true,
-      upper_line: {
+      lastValueVisible: true,
+      priceLineVisible: true,
+      upperLine: {
         color: '#4CAF50',
-        line_style: 'solid',
-        line_width: 2,
+        lineStyle: 'solid',
+        lineWidth: 2,
       },
-      lower_line: {
+      lowerLine: {
         color: '#F44336',
-        line_style: 'solid',
-        line_width: 2,
+        lineStyle: 'solid',
+        lineWidth: 2,
       },
       fill: true,
-      fill_color: '#2196F3',
-      fill_opacity: 20,
+      fillColor: '#2196F3',
+      fillOpacity: 20,
     },
   };
 
@@ -219,8 +219,8 @@ describe('SeriesSettingsDialog', () => {
 
     expect(defaultProps.onConfigChange).toHaveBeenCalledWith('series1', {
       color: '#FF0000',
-      line_style: 'dashed',
-      line_width: 3,
+      lineStyle: 'dashed',
+      lineWidth: 3,
     });
 
     expect(screen.queryByTestId('line-editor')).not.toBeInTheDocument();
@@ -332,11 +332,11 @@ describe('SeriesSettingsDialog', () => {
       expect.objectContaining({
         visible: true,
         markers: false,
-        last_value_visible: true,
-        price_line: true,
+        lastValueVisible: true,
+        priceLineVisible: true,
         color: '#2196F3',
-        line_style: 'solid',
-        line_width: 1,
+        lineStyle: 'solid',
+        lineWidth: 1,
       })
     );
   });

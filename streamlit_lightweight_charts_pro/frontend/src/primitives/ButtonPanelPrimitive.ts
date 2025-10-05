@@ -24,6 +24,12 @@ import {
   SeriesInfo as DialogSeriesInfo,
 } from '../forms/SeriesSettingsDialog';
 import { logger } from '../utils/logger';
+import { Streamlit } from 'streamlit-component-lib';
+
+// Get Streamlit object from imported module
+const getStreamlit = () => {
+  return Streamlit;
+};
 import { createSingleton } from '../utils/SingletonBase';
 
 /**
@@ -204,7 +210,7 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     this.addButtonHoverEffects(button);
 
     button.addEventListener('click', () => {
-      this.openSeriesConfigDialog();
+      void this.openSeriesConfigDialog();
     });
 
     return button;
@@ -394,7 +400,7 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
 
   // ===== Series Configuration Dialog =====
 
-  private openSeriesConfigDialog(): void {
+  private async openSeriesConfigDialog(): Promise<void> {
     if (!this.chart) return;
 
     try {
@@ -419,15 +425,20 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
       }
 
       // Create series configurations from allSeries
+      // Always get the fresh current options directly from the chart series
       const seriesConfigs: Record<string, any> = {};
       allSeries.forEach(series => {
-        seriesConfigs[series.id] = series.config || {};
+        // Get the current series options from the chart (this is the source of truth)
+        const currentOptions = this.getCurrentSeriesOptions(series.id);
+        // Use current options as the base, only fall back to series.config for missing properties
+        seriesConfigs[series.id] = { ...series.config, ...currentOptions };
       });
 
       // Render the dialog with all series
       if (this.paneState.dialogRoot) {
         this.paneState.dialogRoot.render(
           React.createElement(SeriesSettingsDialog, {
+            key: `dialog-${Date.now()}`, // Force remount with fresh state
             isOpen: true,
             onClose: () => this.closeSeriesConfigDialog(),
             paneId: this.config.paneId.toString(),
@@ -441,7 +452,20 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
             ),
             seriesConfigs: seriesConfigs,
             onConfigChange: (seriesId: string, newConfig: any) => {
+              // 1. IMMEDIATELY apply config to chart series for instant visual update
               this.applySeriesConfig(seriesId, newConfig);
+
+              // 2. Send to backend for persistence (no rerun needed)
+              const streamlit = getStreamlit();
+              if (streamlit && streamlit.setComponentValue) {
+                streamlit.setComponentValue({
+                  type: 'update_series_settings',
+                  paneId: this.config.paneId.toString(),
+                  seriesId: seriesId,
+                  config: newConfig,
+                  timestamp: Date.now(),
+                });
+              }
             },
           })
         );
@@ -455,17 +479,17 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     if (!this.paneState.dialogRoot) return;
 
     try {
-      // Render empty dialog (closed state)
-      this.paneState.dialogRoot.render(
-        React.createElement(SeriesSettingsDialog, {
-          isOpen: false,
-          onClose: () => {},
-          paneId: this.config.paneId.toString(),
-          seriesList: [],
-          seriesConfigs: {},
-          onConfigChange: () => {},
-        })
-      );
+      // Unmount the dialog completely to ensure fresh state on next open
+      this.paneState.dialogRoot.unmount();
+
+      // Remove the dialog element from DOM
+      if (this.paneState.dialogElement && this.paneState.dialogElement.parentNode) {
+        this.paneState.dialogElement.parentNode.removeChild(this.paneState.dialogElement);
+      }
+
+      // Clear the references so they'll be recreated fresh next time
+      this.paneState.dialogRoot = undefined;
+      this.paneState.dialogElement = undefined;
     } catch (error) {
       logger.error('Button panel operation failed', 'ButtonPanelPrimitive', error);
     }
@@ -533,13 +557,11 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                   if (!ribbonGroups.has(ribbonName)) {
                     ribbonGroups.set(ribbonName, []);
                   }
-                  ribbonGroups
-                    .get(ribbonName)
-                    ?.push({
-                      series,
-                      index,
-                      type: title.startsWith('__RIBBON_UPPER__') ? 'upper' : 'lower',
-                    });
+                  ribbonGroups.get(ribbonName)?.push({
+                    series,
+                    index,
+                    type: title.startsWith('__RIBBON_UPPER__') ? 'upper' : 'lower',
+                  });
                 } else {
                   regularSeries.push({ series, index });
                 }
@@ -554,12 +576,13 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
               const seriesId = `pane-${this.config.paneId}-ribbon-${ribbonName}`;
               const displayName = ribbonName || 'Ribbon';
 
-              // Get existing config or create default for ribbon
-              let seriesConfig = this.paneState.seriesConfigs.get(seriesId);
-              if (!seriesConfig) {
-                seriesConfig = this.getDefaultSeriesConfig('ribbon');
-                this.paneState.seriesConfigs.set(seriesId, seriesConfig);
-              }
+              // Always get fresh config from the chart, fall back to cached/default if needed
+              const currentOptions = this.getCurrentSeriesOptions(seriesId);
+              const seriesConfig =
+                Object.keys(currentOptions).length > 0
+                  ? currentOptions
+                  : this.paneState.seriesConfigs.get(seriesId) ||
+                    this.getDefaultSeriesConfig('ribbon');
 
               seriesList.push({
                 id: seriesId,
@@ -575,8 +598,34 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
 
               // Try to determine series type from the series object
               let seriesType: SeriesType = 'line'; // default
-              if (series.seriesType) {
-                seriesType = this.mapSeriesType(series.seriesType());
+
+              // First, call series.seriesType() to get the series type
+              try {
+                if (series.seriesType) {
+                  const apiSeriesType = series.seriesType();
+
+                  // If it's a custom series, check the options for the type property
+                  if (apiSeriesType === 'Custom') {
+                    try {
+                      const options = series.options();
+                      // Custom series factories add a _seriesType property to identify the type
+                      if ((options as any)._seriesType) {
+                        seriesType = (options as any)._seriesType.toLowerCase() as SeriesType;
+                      }
+                    } catch (error) {
+                      logger.warn(
+                        'Error getting custom series type from options',
+                        'ButtonPanelPrimitive',
+                        error
+                      );
+                    }
+                  } else {
+                    // For built-in series, map the type
+                    seriesType = this.mapSeriesType(apiSeriesType);
+                  }
+                }
+              } catch (error) {
+                logger.warn('Error getting series type', 'ButtonPanelPrimitive', error);
               }
 
               // Get display name from series options
@@ -592,12 +641,13 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                 logger.warn('Error getting series title', 'ButtonPanelPrimitive', error);
               }
 
-              // Get existing config or create default
-              let seriesConfig = this.paneState.seriesConfigs.get(seriesId);
-              if (!seriesConfig) {
-                seriesConfig = this.getDefaultSeriesConfig(seriesType);
-                this.paneState.seriesConfigs.set(seriesId, seriesConfig);
-              }
+              // Always get fresh config from the chart, fall back to cached/default if needed
+              const currentOptions = this.getCurrentSeriesOptions(seriesId);
+              const seriesConfig =
+                Object.keys(currentOptions).length > 0
+                  ? currentOptions
+                  : this.paneState.seriesConfigs.get(seriesId) ||
+                    this.getDefaultSeriesConfig(seriesType);
 
               seriesList.push({
                 id: seriesId,
@@ -658,6 +708,124 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     }
   }
 
+  private getCurrentSeriesOptions(seriesId: string): any {
+    if (!this.chart) return {};
+
+    try {
+      const panes = this.chart.panes();
+      if (this.config.paneId >= 0 && this.config.paneId < panes.length) {
+        const targetPane = panes[this.config.paneId];
+        const paneseries = targetPane.getSeries();
+
+        // Handle ribbon series
+        const ribbonMatch = seriesId.match(/ribbon-(.+)$/);
+        if (ribbonMatch) {
+          // For ribbon series, we need to get options from both upper and lower series
+          const ribbonName = ribbonMatch[1];
+          const config: any = {};
+
+          paneseries.forEach((series: any) => {
+            try {
+              const options = series.options();
+              const title = options?.title || '';
+
+              if (
+                title === `__RIBBON_UPPER__${ribbonName}` ||
+                title === `__RIBBON_LOWER__${ribbonName}`
+              ) {
+                // Get the current options from the series (now using camelCase)
+                if (options.lastValueVisible !== undefined) {
+                  config.lastValueVisible = options.lastValueVisible;
+                }
+                if (options.priceLineVisible !== undefined) {
+                  config.priceLineVisible = options.priceLineVisible;
+                }
+                if ('lineWidth' in options && options.lineWidth !== undefined) {
+                  config.lineWidth = options.lineWidth;
+                }
+                if ('lineStyle' in options && options.lineStyle !== undefined) {
+                  // Convert number to string for dialog
+                  const styleMap: Record<number, string> = {
+                    0: 'solid',
+                    1: 'dotted',
+                    2: 'dashed',
+                    3: 'large_dashed',
+                    4: 'sparse_dotted',
+                  };
+                  config.lineStyle = styleMap[options.lineStyle] || 'solid';
+                }
+                if ('color' in options && options.color !== undefined) {
+                  config.color = options.color;
+                }
+              }
+            } catch (error) {
+              logger.debug('Error getting ribbon series options', 'ButtonPanelPrimitive', error);
+            }
+          });
+
+          return config;
+        } else {
+          // Regular series - parse the series index
+          const paneSeriesMatch = seriesId.match(/pane-\d+-series-(\d+)$/);
+          const seriesMatch = seriesId.match(/series-(\d+)$/);
+          let targetSeriesIndex = -1;
+
+          if (paneSeriesMatch) {
+            targetSeriesIndex = parseInt(paneSeriesMatch[1], 10);
+          } else if (seriesMatch) {
+            targetSeriesIndex = parseInt(seriesMatch[1], 10);
+          }
+
+          if (targetSeriesIndex >= 0 && targetSeriesIndex < paneseries.length) {
+            const series = paneseries[targetSeriesIndex];
+            if (series) {
+              try {
+                const options = series.options();
+                const config: any = {};
+
+                // Get options in camelCase (no conversion needed)
+                if (options.lastValueVisible !== undefined) {
+                  config.lastValueVisible = options.lastValueVisible;
+                }
+                if (options.priceLineVisible !== undefined) {
+                  config.priceLineVisible = options.priceLineVisible;
+                }
+                if ('lineWidth' in options && options.lineWidth !== undefined) {
+                  config.lineWidth = options.lineWidth;
+                }
+                if ('lineStyle' in options && options.lineStyle !== undefined) {
+                  // Convert number to string for dialog
+                  const styleMap: Record<number, string> = {
+                    0: 'solid',
+                    1: 'dotted',
+                    2: 'dashed',
+                    3: 'large_dashed',
+                    4: 'sparse_dotted',
+                  };
+                  config.lineStyle = styleMap[options.lineStyle] || 'solid';
+                }
+                if ('color' in options && options.color !== undefined) {
+                  config.color = options.color;
+                }
+                if (options.visible !== undefined) {
+                  config.visible = options.visible;
+                }
+
+                return config;
+              } catch (error) {
+                logger.debug('Error getting series options', 'ButtonPanelPrimitive', error);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      logger.debug('Error getting current series options', 'ButtonPanelPrimitive', error);
+    }
+
+    return {};
+  }
+
   private applyConfigToChartSeries(seriesId: string, config: SeriesConfiguration): void {
     if (!this.chart) {
       return;
@@ -669,6 +837,7 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
       const seriesOptions: any = {};
 
       // Map configuration options to LightweightCharts API options
+      // All properties are now in camelCase
 
       if (config.visible !== undefined) {
         seriesOptions.visible = config.visible;
@@ -683,7 +852,19 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
         seriesOptions.lineWidth = config.lineWidth;
       }
       if (config.lineStyle !== undefined) {
-        seriesOptions.lineStyle = config.lineStyle;
+        // Convert string style to number for LightweightCharts if needed
+        if (typeof config.lineStyle === 'string') {
+          const styleMap: Record<string, number> = {
+            solid: 0,
+            dotted: 1,
+            dashed: 2,
+            large_dashed: 3,
+            sparse_dotted: 4,
+          };
+          seriesOptions.lineStyle = styleMap[config.lineStyle] ?? 0;
+        } else {
+          seriesOptions.lineStyle = config.lineStyle;
+        }
       }
       if (config.lastValueVisible !== undefined) {
         seriesOptions.lastValueVisible = config.lastValueVisible;
@@ -739,11 +920,15 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
               });
             } else {
               // Regular series - parse the series index from the seriesId
-              const seriesIndexMatch = seriesId.match(/series-(\d+)$/);
+              // Handle both formats: "pane-0-series-0" and "series-0"
+              const paneSeriesMatch = seriesId.match(/pane-\d+-series-(\d+)$/);
+              const seriesMatch = seriesId.match(/series-(\d+)$/);
               let targetSeriesIndex = -1;
 
-              if (seriesIndexMatch) {
-                targetSeriesIndex = parseInt(seriesIndexMatch[1], 10);
+              if (paneSeriesMatch) {
+                targetSeriesIndex = parseInt(paneSeriesMatch[1], 10);
+              } else if (seriesMatch) {
+                targetSeriesIndex = parseInt(seriesMatch[1], 10);
               }
 
               // Apply options to the specific series or all series if index not found
@@ -752,6 +937,12 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                   if (series && typeof series.applyOptions === 'function') {
                     try {
                       series.applyOptions(seriesOptions);
+                      logger.debug('Applied series options', 'ButtonPanelPrimitive', {
+                        seriesId,
+                        targetSeriesIndex,
+                        actualIndex: idx,
+                        options: seriesOptions,
+                      });
                     } catch (error) {
                       logger.warn('Error applying series options', 'ButtonPanelPrimitive', error);
                     }
