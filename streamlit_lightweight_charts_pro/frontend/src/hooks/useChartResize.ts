@@ -111,7 +111,9 @@ export function useChartResize(options: UseChartResizeOptions): UseChartResizeRe
       debounceTimersRef.current[chartId] = setTimeout(() => {
         try {
           const dimensions = getContainerDimensions(container);
-          const newWidth = chartConfig.autoWidth ? dimensions.width : chartConfig.chart?.width || width;
+          const newWidth = chartConfig.autoWidth
+            ? dimensions.width
+            : chartConfig.chart?.width || width;
           // Prioritize height from chart options (JSON config) over autoHeight
           const newHeight =
             chartConfig.chart?.height ||

@@ -4,7 +4,11 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { react19Monitor, useReact19Performance, logReact19Performance } from '../../utils/react19PerformanceMonitor';
+import {
+  react19Monitor,
+  useReact19Performance,
+  logReact19Performance,
+} from '../../utils/react19PerformanceMonitor';
 
 // Mock performance API
 const mockPerformance = {
@@ -135,9 +139,7 @@ describe('React19PerformanceMonitor', () => {
       mockPerformance.now.mockReturnValue(2500); // 1500ms later
       react19Monitor.endSuspenseLoad('SlowLazyComponent');
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('⚠️ SLOW Suspense Loaded')
-      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('⚠️ SLOW Suspense Loaded'));
 
       process.env.NODE_ENV = originalEnv;
       consoleSpy.mockRestore();

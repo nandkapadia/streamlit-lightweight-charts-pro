@@ -47,12 +47,7 @@ describe('ChartConfigForm', () => {
   });
 
   it('should render form with chart configuration fields', () => {
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={vi.fn()}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={vi.fn()} />);
 
     expect(screen.getByLabelText(/chart title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/width/i)).toBeInTheDocument();
@@ -63,12 +58,7 @@ describe('ChartConfigForm', () => {
     const user = userEvent.setup();
     const onConfigUpdate = vi.fn();
 
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={onConfigUpdate}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={onConfigUpdate} />);
 
     const titleInput = screen.getByLabelText(/chart title/i);
     const widthInput = screen.getByLabelText(/width/i);
@@ -86,12 +76,7 @@ describe('ChartConfigForm', () => {
   it('should show loading state during submission', () => {
     mockFormActions.config.isSubmitting = true;
 
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={vi.fn()}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={vi.fn()} />);
 
     const submitButton = screen.getByRole('button', { name: /updating.../i });
     expect(submitButton).toBeDisabled();
@@ -101,12 +86,7 @@ describe('ChartConfigForm', () => {
     mockFormActions.config.state.error = 'Invalid configuration';
     mockFormActions.config.hasError = true;
 
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={vi.fn()}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={vi.fn()} />);
 
     expect(screen.getByText('Invalid configuration')).toBeInTheDocument();
   });
@@ -117,12 +97,7 @@ describe('ChartConfigForm', () => {
 
     const onConfigUpdate = vi.fn();
 
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={onConfigUpdate}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={onConfigUpdate} />);
 
     expect(screen.getByText(/configuration updated successfully/i)).toBeInTheDocument();
     expect(onConfigUpdate).toHaveBeenCalledWith({ title: 'Updated Chart' });
@@ -134,47 +109,27 @@ describe('ChartConfigForm', () => {
       return null;
     });
 
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={vi.fn()}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={vi.fn()} />);
 
     expect(screen.getByText('Title is required')).toBeInTheDocument();
   });
 
   it('should support progressive enhancement', () => {
-    const { container } = render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={vi.fn()}
-      />
-    );
+    const { container } = render(<ChartConfigForm chartId='test-chart' onConfigUpdate={vi.fn()} />);
 
     const form = container.querySelector('form');
     expect(form).toHaveAttribute('action');
   });
 
   it('should show reset button', () => {
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={vi.fn()}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={vi.fn()} />);
 
     const resetButton = screen.getByRole('button', { name: /reset/i });
     expect(resetButton).toBeInTheDocument();
   });
 
   it('should validate number input fields', () => {
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={vi.fn()}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={vi.fn()} />);
 
     const widthInput = screen.getByLabelText(/width/i);
     expect(widthInput).toHaveAttribute('type', 'number');
@@ -185,12 +140,12 @@ describe('ChartConfigForm', () => {
     const initialConfig = {
       title: 'Initial Chart',
       width: 900,
-      height: 500
+      height: 500,
     };
 
     render(
       <ChartConfigForm
-        chartId="test-chart"
+        chartId='test-chart'
         initialConfig={initialConfig}
         onConfigUpdate={vi.fn()}
       />
@@ -205,12 +160,7 @@ describe('ChartConfigForm', () => {
   it('should support price scale position selection', async () => {
     const user = userEvent.setup();
 
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={vi.fn()}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={vi.fn()} />);
 
     const positionSelect = screen.getByLabelText(/position/i);
 
@@ -224,12 +174,7 @@ describe('ChartConfigForm', () => {
   it('should handle keyboard navigation', async () => {
     const user = userEvent.setup();
 
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={vi.fn()}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={vi.fn()} />);
 
     const titleInput = screen.getByLabelText(/chart title/i);
 
@@ -243,12 +188,7 @@ describe('ChartConfigForm', () => {
   it('should disable inputs when submitting', () => {
     mockFormActions.config.isSubmitting = true;
 
-    render(
-      <ChartConfigForm
-        chartId="test-chart"
-        onConfigUpdate={vi.fn()}
-      />
-    );
+    render(<ChartConfigForm chartId='test-chart' onConfigUpdate={vi.fn()} />);
 
     const titleInput = screen.getByLabelText(/chart title/i);
     const widthInput = screen.getByLabelText(/width/i);

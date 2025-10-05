@@ -528,7 +528,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             if (isReady) {
               try {
                 const chartElement = chart.chartElement();
-                const userInteracted = (chartElement as HTMLElement & { _userHasInteracted?: boolean })._userHasInteracted;
+                const userInteracted = (
+                  chartElement as HTMLElement & { _userHasInteracted?: boolean }
+                )._userHasInteracted;
 
                 if (chartElement && !userInteracted) {
                   timeScale.fitContent();
@@ -1906,7 +1908,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                             } catch {
                               // Error in chart readiness or trade visualization
                             }
-                          })().catch((error: Error) => logger.error('Async operation failed', 'LightweightCharts', error));
+                          })().catch((error: Error) =>
+                            logger.error('Async operation failed', 'LightweightCharts', error)
+                          );
                         }, 50); // Small delay to let chart initialization complete
                       } catch {
                         // Error setting up trade visualization
@@ -2127,7 +2131,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 let allPanes: any[] = [];
                 if (chart && typeof chart.panes === 'function') {
                   try {
-                    allPanes = chart.panes();                  } catch (error) {
+                    allPanes = chart.panes();
+                  } catch (error) {
                     // chart.panes() failed, use empty array
                     logger.error('Failed to get panes', 'ButtonPanel', error);
                     allPanes = [];
@@ -2163,29 +2168,39 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 });
 
                 // Show button panels when there are multiple panes (for collapse) or when gear button is enabled (for series settings)
-                if (allPanes.length > 1 || paneCollapseConfig.showGearButton) {                  // Set up pane collapse support using ChartPrimitiveManager
-                  try {                    const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId);                    // Create button panels (gear + collapse buttons) for each pane using primitive manager
+                if (allPanes.length > 1 || paneCollapseConfig.showGearButton) {
+                  // Set up pane collapse support using ChartPrimitiveManager
+                  try {
+                    const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId); // Create button panels (gear + collapse buttons) for each pane using primitive manager
                     for (const [paneId, _pane] of allPanes.entries()) {
                       // Configure button panel based on pane count
                       const buttonConfig = {
                         ...paneCollapseConfig,
                         showCollapseButton: allPanes.length > 1, // Only show collapse button with multiple panes
-                        showGearButton: paneCollapseConfig.showGearButton // Always respect gear button setting
-                      };                      // Add button panel using primitive manager
+                        showGearButton: paneCollapseConfig.showGearButton, // Always respect gear button setting
+                      }; // Add button panel using primitive manager
                       const buttonPanelWidget = primitiveManager.addButtonPanel(
                         paneId,
                         buttonConfig
-                      );                      // Store widget reference for cleanup
+                      ); // Store widget reference for cleanup
                       if (!window.paneButtonPanelWidgets) {
                         window.paneButtonPanelWidgets = {};
                       }
                       if (!window.paneButtonPanelWidgets[chartId]) {
                         window.paneButtonPanelWidgets[chartId] = [];
                       }
-                      window.paneButtonPanelWidgets[chartId].push(buttonPanelWidget);                    }                  } catch (error) {
+                      window.paneButtonPanelWidgets[chartId].push(buttonPanelWidget);
+                    }
+                  } catch (error) {
                     logger.error('Button panel creation failed at step', 'ButtonPanel', error);
-                    logger.error('Error details: ' + (error instanceof Error ? error.message : String(error)), 'ButtonPanel');
-                    logger.error('Error stack: ' + (error instanceof Error ? error.stack : String(error)), 'ButtonPanel');
+                    logger.error(
+                      'Error details: ' + (error instanceof Error ? error.message : String(error)),
+                      'ButtonPanel'
+                    );
+                    logger.error(
+                      'Error stack: ' + (error instanceof Error ? error.stack : String(error)),
+                      'ButtonPanel'
+                    );
                   }
                 }
               } catch (error) {
@@ -2370,7 +2385,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
               // Apply the options to the series
               if (Object.keys(apiConfig).length > 0) {
-                series.applyOptions(apiConfig);              }
+                series.applyOptions(apiConfig);
+              }
             }
           });
         } catch (error) {

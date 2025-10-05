@@ -54,7 +54,6 @@ class ChartScheduler {
   private completedTasks: Set<string> = new Set();
   private taskMetrics: Map<string, { startTime: number; endTime?: number }> = new Map();
 
-
   /**
    * Schedule a chart-related task with priority
    */
@@ -309,8 +308,8 @@ class ChartScheduler {
         try {
           // Check dependencies
           if (task.dependencies) {
-            const unmetDependencies = task.dependencies.filter(dep =>
-              !this.completedTasks.has(dep)
+            const unmetDependencies = task.dependencies.filter(
+              dep => !this.completedTasks.has(dep)
             );
 
             if (unmetDependencies.length > 0) {
@@ -352,7 +351,6 @@ class ChartScheduler {
           if (task.priority === 'immediate' || task.priority === 'user-blocking') {
             requestAnimationFrame(() => {});
           }
-
         } catch (error) {
           logger.error('Task execution failed in scheduler', 'ChartScheduler', error);
           react19Monitor.endTransition(transitionId);

@@ -29,7 +29,10 @@ import { PrimitivePriority } from '../../primitives/BasePanePrimitive';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ButtonPanelComponent } from '../../components/ButtonPanelComponent';
-import { SeriesSettingsDialog, SeriesInfo as DialogSeriesInfo } from '../../forms/SeriesSettingsDialog';
+import {
+  SeriesSettingsDialog,
+  SeriesInfo as DialogSeriesInfo,
+} from '../../forms/SeriesSettingsDialog';
 import { createSingleton } from '../../utils/SingletonBase';
 
 /**
@@ -211,7 +214,6 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
    */
   private applyFallbackPositioning(): void {
     if (!this.containerElement || !this.chartApi) return;
-
 
     const style = this.containerElement.style;
     style.position = 'absolute';
@@ -441,11 +443,14 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
             isOpen: true,
             onClose: () => this.closeSeriesConfigDialog(paneId),
             paneId: paneId.toString(),
-            seriesList: allSeries.map(series => ({
-              id: series.id,
-              displayName: series.displayName || series.title || series.id,
-              type: series.type
-            } as DialogSeriesInfo)),
+            seriesList: allSeries.map(
+              series =>
+                ({
+                  id: series.id,
+                  displayName: series.displayName || series.title || series.id,
+                  type: series.type,
+                }) as DialogSeriesInfo
+            ),
             seriesConfigs: seriesConfigs,
             onConfigChange: (seriesId: string, newConfig: any) => {
               this.applySeriesConfig(paneId, seriesId, newConfig);
@@ -541,13 +546,13 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     if (paneId === 0) {
       // Main chart pane (Pane 0) has line series and ribbon series
       return [
-        { type: 'line', title: 'Price Line' },  // LineSeries from demo
-        { type: 'ribbon', title: 'Price Ribbon' },  // RibbonSeries from demo
+        { type: 'line', title: 'Price Line' }, // LineSeries from demo
+        { type: 'ribbon', title: 'Price Ribbon' }, // RibbonSeries from demo
       ];
     } else if (paneId === 1) {
       // Volume pane (Pane 1) has histogram series
       return [
-        { type: 'histogram', title: 'Volume' },  // HistogramSeries from demo
+        { type: 'histogram', title: 'Volume' }, // HistogramSeries from demo
       ];
     } else {
       // For any other panes, return empty
@@ -588,13 +593,16 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
   /**
    * Apply configuration changes to actual chart series objects
    */
-  private applyConfigToChartSeries(paneId: number, seriesId: string, config: SeriesConfiguration): void {
+  private applyConfigToChartSeries(
+    paneId: number,
+    seriesId: string,
+    config: SeriesConfiguration
+  ): void {
     if (!this.chartApi) {
       return;
     }
 
     try {
-
       // For demo purposes, we'll implement a basic mapping
       // In a production system, this would use a proper series registry
       const seriesOptions: any = {};
@@ -649,7 +657,7 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       }
       if ((config as any).line_style !== undefined) {
         // Convert string style to LineStyle enum value
-        const styleMap: Record<string, number> = { 'solid': 0, 'dashed': 1, 'dotted': 2 };
+        const styleMap: Record<string, number> = { solid: 0, dashed: 1, dotted: 2 };
         const lineStyle = (config as any).line_style as string;
         const styleValue = styleMap[lineStyle] ?? 0;
         seriesOptions.lineStyle = styleValue;
@@ -660,12 +668,10 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
         // Markers would be handled separately via setMarkers API
       }
 
-
       // Try to find and update the series
       // This is a simplified approach - in production you'd have a proper series registry
       const panes = this.chartApi.panes();
       if (paneId >= 0 && paneId < panes.length && Object.keys(seriesOptions).length > 0) {
-
         // CRITICAL FIX: Try to find the actual series objects and apply options
         let seriesApplied = false;
 
@@ -698,10 +704,17 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
                       series.applyOptions(seriesOptions);
                       seriesApplied = true;
                     } catch (applyError) {
-                      logger.error('Failed to apply options to series', 'PaneButtonPanelPlugin', applyError);
+                      logger.error(
+                        'Failed to apply options to series',
+                        'PaneButtonPanelPlugin',
+                        applyError
+                      );
                     }
                   } else {
-                    logger.error('Series does not have applyOptions method', 'PaneButtonPanelPlugin');
+                    logger.error(
+                      'Series does not have applyOptions method',
+                      'PaneButtonPanelPlugin'
+                    );
                   }
                 }
               });
@@ -715,7 +728,6 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
           if (!seriesApplied) {
             logger.error('Failed to apply series options to any series', 'PaneButtonPanelPlugin');
           }
-
         } catch (findError) {
           logger.error('Error finding series in pane', 'PaneButtonPanelPlugin', findError);
         }
@@ -952,7 +964,6 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       }
     }
   }
-
 
   /**
    * Force sync all configurations to backend

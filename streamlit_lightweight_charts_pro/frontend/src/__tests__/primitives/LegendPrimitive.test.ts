@@ -36,16 +36,26 @@ vi.mock('../../primitives/BasePanePrimitive', () => ({
       this.config = config;
     }
 
-    protected getTemplate(): string { return ''; }
+    protected getTemplate(): string {
+      return '';
+    }
     protected renderContent(): void {}
-    protected getContainerClassName(): string { return 'mock-container'; }
-    protected getPaneId(): number { return 0; }
+    protected getContainerClassName(): string {
+      return 'mock-container';
+    }
+    protected getPaneId(): number {
+      return 0;
+    }
     protected setupCustomEventSubscriptions(): void {}
     protected onCrosshairMove(_event: any): void {}
     protected onContainerCreated(_container: HTMLElement): void {}
-    protected getProcessedContent(): string { return this.config.text || ''; }
+    protected getProcessedContent(): string {
+      return this.config.text || '';
+    }
     protected processTemplate(): void {}
-    protected updateTemplateContext(_context: any): void { this.processTemplate(); }
+    protected updateTemplateContext(_context: any): void {
+      this.processTemplate();
+    }
     protected updateConfig(updates: any): void {
       this.config = { ...this.config, ...updates };
       if (this.mounted) {
@@ -120,7 +130,7 @@ import {
 
 describe('LegendPrimitive - Construction', () => {
   it('should create primitive with required config', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test Legend',
     });
@@ -130,7 +140,7 @@ describe('LegendPrimitive - Construction', () => {
   });
 
   it('should apply default priority', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -139,7 +149,7 @@ describe('LegendPrimitive - Construction', () => {
   });
 
   it('should apply default visibility', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -148,7 +158,7 @@ describe('LegendPrimitive - Construction', () => {
   });
 
   it('should apply default isPanePrimitive', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -157,7 +167,7 @@ describe('LegendPrimitive - Construction', () => {
   });
 
   it('should apply default paneId', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -166,7 +176,7 @@ describe('LegendPrimitive - Construction', () => {
   });
 
   it('should apply custom paneId when provided', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
       paneId: 1,
@@ -176,7 +186,7 @@ describe('LegendPrimitive - Construction', () => {
   });
 
   it('should apply default value format', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -185,7 +195,7 @@ describe('LegendPrimitive - Construction', () => {
   });
 
   it('should apply default styling', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -196,7 +206,7 @@ describe('LegendPrimitive - Construction', () => {
   });
 
   it('should merge custom styling with defaults', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
       style: {
@@ -211,7 +221,7 @@ describe('LegendPrimitive - Construction', () => {
 
 describe('LegendPrimitive - Template Processing', () => {
   it('should return template text', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: '$$value$$',
     });
@@ -220,7 +230,7 @@ describe('LegendPrimitive - Template Processing', () => {
   });
 
   it('should return default template if text is empty', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: '',
     });
@@ -237,7 +247,7 @@ describe('LegendPrimitive - Rendering', () => {
   });
 
   it('should create legend content element', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -250,7 +260,7 @@ describe('LegendPrimitive - Rendering', () => {
   });
 
   it('should set aria attributes for accessibility', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -264,7 +274,7 @@ describe('LegendPrimitive - Rendering', () => {
   });
 
   it('should update existing legend element', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -281,7 +291,7 @@ describe('LegendPrimitive - Rendering', () => {
   });
 
   it('should return early if no container', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -301,39 +311,39 @@ describe('LegendPrimitive - Color Opacity Adjustment', () => {
   });
 
   it('should adjust rgba color opacity', () => {
-    const _result = (legend as any).adjustColorOpacity('rgba(255, 0, 0, 0.5)', 0.8);
+    const result = (legend as any).adjustColorOpacity('rgba(255, 0, 0, 0.5)', 0.8);
     expect(result).toBe('rgba(255, 0, 0, 0.8)');
   });
 
   it('should convert rgb to rgba with opacity', () => {
-    const _result = (legend as any).adjustColorOpacity('rgb(255, 0, 0)', 0.5);
+    const result = (legend as any).adjustColorOpacity('rgb(255, 0, 0)', 0.5);
     expect(result).toBe('rgba(255, 0, 0, 0.5)');
   });
 
   it('should convert hex to rgba with opacity', () => {
-    const _result = (legend as any).adjustColorOpacity('#FF0000', 0.7);
+    const result = (legend as any).adjustColorOpacity('#FF0000', 0.7);
     expect(result).toBe('rgba(255, 0, 0, 0.7)');
   });
 
   it('should handle 6-digit hex colors', () => {
-    const _result = (legend as any).adjustColorOpacity('#0088FF', 0.5);
+    const result = (legend as any).adjustColorOpacity('#0088FF', 0.5);
     expect(result).toBe('rgba(0, 136, 255, 0.5)');
   });
 
   it('should return original color for unsupported formats', () => {
-    const _result = (legend as any).adjustColorOpacity('blue', 0.5);
+    const result = (legend as any).adjustColorOpacity('blue', 0.5);
     expect(result).toBe('blue');
   });
 
   it('should handle rgba with spaces', () => {
-    const _result = (legend as any).adjustColorOpacity('rgba( 255 , 128 , 0 , 0.3 )', 0.9);
+    const result = (legend as any).adjustColorOpacity('rgba( 255 , 128 , 0 , 0.3 )', 0.9);
     expect(result).toBe('rgba(255, 128, 0, 0.9)');
   });
 });
 
 describe('LegendPrimitive - Styling', () => {
   it('should return correct container class name', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -342,7 +352,7 @@ describe('LegendPrimitive - Styling', () => {
   });
 
   it('should return configured pane ID', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
       isPanePrimitive: true,
@@ -353,7 +363,7 @@ describe('LegendPrimitive - Styling', () => {
   });
 
   it('should return default pane ID when not pane-specific', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
       isPanePrimitive: false,
@@ -363,7 +373,7 @@ describe('LegendPrimitive - Styling', () => {
   });
 
   it('should return default pane ID when paneId is undefined', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
       isPanePrimitive: true,
@@ -543,7 +553,7 @@ describe('LegendPrimitive - Public API', () => {
 
 describe('Factory Function - createLegendPrimitive', () => {
   it('should create legend primitive', () => {
-    const _legend = createLegendPrimitive('test-legend', {
+    const legend = createLegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
     });
@@ -553,7 +563,7 @@ describe('Factory Function - createLegendPrimitive', () => {
   });
 
   it('should apply provided config', () => {
-    const _legend = createLegendPrimitive('test-legend', {
+    const legend = createLegendPrimitive('test-legend', {
       corner: 'top-right',
       text: '$$value$$',
       valueFormat: '.0f',
@@ -595,7 +605,7 @@ describe('Default Configurations', () => {
 
 describe('LegendPrimitive - Edge Cases', () => {
   it('should handle undefined text in constructor', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: undefined as any,
     });
@@ -604,7 +614,7 @@ describe('LegendPrimitive - Edge Cases', () => {
   });
 
   it('should handle special characters in text', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: '<b>Bold</b> & "Quoted"',
     });
@@ -613,7 +623,7 @@ describe('LegendPrimitive - Edge Cases', () => {
   });
 
   it('should handle complex nested styling', () => {
-    const _legend = new LegendPrimitive('test-legend', {
+    const legend = new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',
       style: {
@@ -633,7 +643,7 @@ describe('LegendPrimitive - Edge Cases', () => {
     expect((legend as any).config.style.textShadow).toBe('1px 1px 2px rgba(0, 0, 0, 0.5)');
   });
 
-  function legend(): any {
+  function _legend(): any {
     return new LegendPrimitive('test-legend', {
       corner: 'top-left',
       text: 'Test',

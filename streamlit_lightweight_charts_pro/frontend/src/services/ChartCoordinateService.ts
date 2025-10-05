@@ -2426,11 +2426,7 @@ export class ChartCoordinateService {
       if (validateNumbers) {
         const hasInvalidValues = valueKeys.some(key => {
           const value = originalData[key];
-          return (
-            typeof value !== 'number' ||
-            isNaN(value) ||
-            (checkFinite && !isFinite(value))
-          );
+          return typeof value !== 'number' || isNaN(value) || (checkFinite && !isFinite(value));
         });
 
         if (hasInvalidValues) {
@@ -2447,11 +2443,7 @@ export class ChartCoordinateService {
         const y = priceConverter(value);
 
         // Check if conversion is valid
-        if (
-          y == null ||
-          isNaN(y) ||
-          (checkFinite && !isFinite(y))
-        ) {
+        if (y == null || isNaN(y) || (checkFinite && !isFinite(y))) {
           // Mark as having invalid conversion
           hasAnyInvalidConversion = true;
           convertedValues[key] = null;

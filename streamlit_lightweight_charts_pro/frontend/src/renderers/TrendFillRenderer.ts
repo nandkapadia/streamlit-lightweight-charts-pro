@@ -90,9 +90,8 @@ export class TrendFillRenderer {
     }
 
     // Calculate half bar width if enabled
-    const halfBarWidth = options.useHalfBarWidth && options.barSpacing
-      ? (options.barSpacing * hRatio) / 2
-      : 0;
+    const halfBarWidth =
+      options.useHalfBarWidth && options.barSpacing ? (options.barSpacing * hRatio) / 2 : 0;
 
     // Group consecutive bars with same trend direction
     let currentGroup: TrendFillBarData[] = [];

@@ -26,7 +26,6 @@
 
 import {
   CustomData,
-  ICustomSeriesPaneView,
   Time,
   customSeriesDefaultOptions,
   CustomSeriesOptions,
@@ -37,15 +36,10 @@ import {
   LineWidth,
   ICustomSeriesPaneRenderer,
 } from 'lightweight-charts';
-import {
-  BitmapCoordinatesRenderingScope,
-} from 'fancy-canvas';
-import {
-  isWhitespaceDataMultiField,
-} from './base/BaseCustomSeriesView';
-import {
-  LineStyle,
-} from '../../utils/renderingUtils';
+import { IBaseCustomPaneView } from './base/IBaseCustomPaneView';
+import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { isWhitespaceDataMultiField } from './base/commonRendering';
+import { LineStyle } from '../../utils/renderingUtils';
 import { TrendFillPrimitive } from '../../primitives/TrendFillPrimitive';
 
 // ============================================================================
@@ -144,25 +138,17 @@ interface TrendFillBarItem {
  * @template TData - The data type extending TrendFillData
  * @internal
  */
-class TrendFillSeriesRenderer<TData extends TrendFillData>
-  implements ICustomSeriesPaneRenderer
-{
+class TrendFillSeriesRenderer<TData extends TrendFillData> implements ICustomSeriesPaneRenderer {
   _data: PaneRendererCustomData<Time, TData> | null = null;
   _options: TrendFillSeriesOptions | null = null;
 
-  draw(
-    target: any,
-    priceConverter: PriceToCoordinateConverter
-  ): void {
+  draw(target: any, priceConverter: PriceToCoordinateConverter): void {
     target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) =>
       this._drawImpl(scope, priceConverter)
     );
   }
 
-  update(
-    data: PaneRendererCustomData<Time, TData>,
-    options: TrendFillSeriesOptions
-  ): void {
+  update(data: PaneRendererCustomData<Time, TData>, options: TrendFillSeriesOptions): void {
     this._data = data;
     this._options = options;
   }
@@ -403,8 +389,9 @@ class TrendFillSeriesRenderer<TData extends TrendFillData>
  * @internal
  */
 class TrendFillSeries<TData extends TrendFillData>
-  implements ICustomSeriesPaneView<Time, TData, TrendFillSeriesOptions>
+  implements IBaseCustomPaneView<Time, TData, TrendFillSeriesOptions>
 {
+  readonly type = 'TrendFill';
   _renderer: TrendFillSeriesRenderer<TData>;
 
   constructor() {
@@ -434,7 +421,9 @@ class TrendFillSeries<TData extends TrendFillData>
    * @param data - Data point to check
    * @returns True if whitespace
    */
-  isWhitespace(data: TData | CustomSeriesWhitespaceData<Time>): data is CustomSeriesWhitespaceData<Time> {
+  isWhitespace(
+    data: TData | CustomSeriesWhitespaceData<Time>
+  ): data is CustomSeriesWhitespaceData<Time> {
     return isWhitespaceDataMultiField(data, ['baseLine', 'trendLine']);
   }
 
@@ -442,10 +431,7 @@ class TrendFillSeries<TData extends TrendFillData>
     return this._renderer;
   }
 
-  update(
-    data: PaneRendererCustomData<Time, TData>,
-    options: TrendFillSeriesOptions
-  ): void {
+  update(data: PaneRendererCustomData<Time, TData>, options: TrendFillSeriesOptions): void {
     this._renderer.update(data, options);
   }
 
@@ -611,13 +597,13 @@ export function createTrendFillSeries(
       trendLine: {
         color: options.trendLineColor ?? '#2196F3',
         lineWidth: options.trendLineWidth ?? 2,
-        lineStyle: Math.min((options.trendLineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2,
+        lineStyle: Math.min(options.trendLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
         visible: options.trendLineVisible !== false,
       },
       baseLine: {
         color: options.baseLineColor ?? '#666666',
         lineWidth: options.baseLineWidth ?? 1,
-        lineStyle: Math.min((options.baseLineStyle ?? LineStyle.Dotted), 2) as 0 | 1 | 2,
+        lineStyle: Math.min(options.baseLineStyle ?? LineStyle.Dotted, 2) as 0 | 1 | 2,
         visible: options.baseLineVisible === true,
       },
       visible: true,

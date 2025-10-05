@@ -71,8 +71,8 @@ export async function updateChartSeries(chartId: string, seriesData: any[]) {
     await new Promise(resolve => setTimeout(resolve, 50));
 
     // Validate and process data
-    const validData = seriesData.filter(point =>
-      point && typeof point === 'object' && 'time' in point && 'value' in point
+    const validData = seriesData.filter(
+      point => point && typeof point === 'object' && 'time' in point && 'value' in point
     );
 
     return {
@@ -90,14 +90,16 @@ export async function updateChartSeries(chartId: string, seriesData: any[]) {
  * Server Action for batch chart operations
  * Executes operations in parallel for better performance
  */
-export async function batchChartOperations(operations: Array<{
-  type: 'save' | 'load' | 'update';
-  chartId: string;
-  data?: any;
-}>) {
+export async function batchChartOperations(
+  operations: Array<{
+    type: 'save' | 'load' | 'update';
+    chartId: string;
+    data?: any;
+  }>
+) {
   // Execute all operations in parallel using Promise.all
   const results = await Promise.all(
-    operations.map(async (operation) => {
+    operations.map(async operation => {
       try {
         switch (operation.type) {
           case 'save':

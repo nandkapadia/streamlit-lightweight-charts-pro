@@ -12,10 +12,10 @@ import { ColorPickerDialog } from '../../forms/ColorPickerDialog';
 const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
-  clear: vi.fn()
+  clear: vi.fn(),
 };
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
+  value: localStorageMock,
 });
 
 // Mock createPortal
@@ -173,7 +173,7 @@ describe('ColorPickerDialog', () => {
     render(
       <ColorPickerDialog
         isOpen={true}
-        color="#00FF00"
+        color='#00FF00'
         opacity={75}
         onSave={vi.fn()}
         onCancel={vi.fn()}

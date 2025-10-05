@@ -14,22 +14,22 @@ import {
   generateColorPalette,
   parseCssColor,
   cssToHex,
-} from '../../utils/helpers';
+} from '../../utils/colorUtils';
 
 describe('helpers', () => {
   describe('hexToRgba', () => {
     it('should convert 6-digit hex to rgba', () => {
-      const _result = hexToRgba('#2196F3');
+      const result = hexToRgba('#2196F3');
       expect(result).toEqual({ r: 33, g: 150, b: 243, a: 1 });
     });
 
     it('should convert 3-digit hex to rgba', () => {
-      const _result = hexToRgba('#F0F');
+      const result = hexToRgba('#F0F');
       expect(result).toEqual({ r: 255, g: 0, b: 255, a: 1 });
     });
 
     it('should handle hex without #', () => {
-      const _result = hexToRgba('2196F3');
+      const result = hexToRgba('2196F3');
       expect(result).toEqual({ r: 33, g: 150, b: 243, a: 1 });
     });
 
@@ -210,17 +210,17 @@ describe('helpers', () => {
 
   describe('parseCssColor', () => {
     it('should parse hex colors', () => {
-      const _result = parseCssColor('#2196F3');
+      const result = parseCssColor('#2196F3');
       expect(result).toEqual({ r: 33, g: 150, b: 243, a: 1 });
     });
 
     it('should parse rgb colors', () => {
-      const _result = parseCssColor('rgb(33, 150, 243)');
+      const result = parseCssColor('rgb(33, 150, 243)');
       expect(result).toEqual({ r: 33, g: 150, b: 243, a: 1 });
     });
 
     it('should parse rgba colors', () => {
-      const _result = parseCssColor('rgba(33, 150, 243, 0.5)');
+      const result = parseCssColor('rgba(33, 150, 243, 0.5)');
       expect(result).toEqual({ r: 33, g: 150, b: 243, a: 0.5 });
     });
 

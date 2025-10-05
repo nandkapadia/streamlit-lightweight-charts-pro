@@ -136,7 +136,11 @@ vi.mock('../../plugins/series/base/commonRendering', () => ({
 }));
 
 // Import after mocks
-import { RibbonPrimitive, RibbonPrimitiveData, RibbonPrimitiveOptions } from '../../primitives/RibbonPrimitive';
+import {
+  RibbonPrimitive,
+  RibbonPrimitiveData,
+  RibbonPrimitiveOptions,
+} from '../../primitives/RibbonPrimitive';
 
 describe('RibbonPrimitive - Construction', () => {
   let mockChart: any;
@@ -485,9 +489,7 @@ describe('RibbonPrimitive - Edge Cases', () => {
 
   it('should handle upper equal to lower (zero ribbon width)', () => {
     const primitive = new RibbonPrimitive(mockChart, defaultOptions);
-    const data: RibbonPrimitiveData[] = [
-      { time: 1000, upper: 100, lower: 100 },
-    ];
+    const data: RibbonPrimitiveData[] = [{ time: 1000, upper: 100, lower: 100 }];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();

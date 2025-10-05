@@ -13,7 +13,10 @@ import { Time } from 'lightweight-charts';
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createGradientRibbonSeries, GradientRibbonData } from '../../plugins/series/gradientRibbonSeriesPlugin';
+import {
+  createGradientRibbonSeries,
+  GradientRibbonData,
+} from '../../plugins/series/gradientRibbonSeriesPlugin';
 
 // Mock chart and series
 const mockPriceConverter = vi.fn((price: number) => 100 + price);
@@ -192,7 +195,7 @@ describe('Gradient Ribbon Series - Hybrid Implementation', () => {
         data: testData,
         normalizeGradients: true,
         gradientStartColor: '#00FF00', // Low spread
-        gradientEndColor: '#FF0000',   // High spread
+        gradientEndColor: '#FF0000', // High spread
       });
 
       expect(mockCustomSeries.setData).toHaveBeenCalledWith(testData);
@@ -296,7 +299,7 @@ describe('Gradient Ribbon Series - Hybrid Implementation', () => {
     it('should support ATR-based volatility bands', () => {
       createGradientRibbonSeries(mockChart as any, {
         gradientStartColor: '#4CAF50', // Low volatility
-        gradientEndColor: '#F44336',   // High volatility
+        gradientEndColor: '#F44336', // High volatility
         normalizeGradients: true,
         usePrimitive: true,
         zIndex: -100,
@@ -307,9 +310,9 @@ describe('Gradient Ribbon Series - Hybrid Implementation', () => {
 
     it('should support custom volatility visualization', () => {
       const volatilityData: GradientRibbonData[] = [
-        { time: 1000 as Time, upper: 105, lower: 95 },  // Low vol
-        { time: 2000 as Time, upper: 130, lower: 70 },  // High vol
-        { time: 3000 as Time, upper: 110, lower: 90 },  // Medium vol
+        { time: 1000 as Time, upper: 105, lower: 95 }, // Low vol
+        { time: 2000 as Time, upper: 130, lower: 70 }, // High vol
+        { time: 3000 as Time, upper: 110, lower: 90 }, // Medium vol
       ];
 
       createGradientRibbonSeries(mockChart as any, {

@@ -105,7 +105,9 @@ export function convertTwoLineCoordinates<T extends { time: Time; upper: number;
   timeScale: any,
   upperSeries: ISeriesApi<any>,
   lowerSeries: ISeriesApi<any>
-): Array<{ x: Coordinate | number; upperY: Coordinate | number; lowerY: Coordinate | number } & Partial<T>> {
+): Array<
+  { x: Coordinate | number; upperY: Coordinate | number; lowerY: Coordinate | number } & Partial<T>
+> {
   // Safety check: ensure series are available
   if (!upperSeries || !lowerSeries || !timeScale) {
     return [];
@@ -129,13 +131,20 @@ export function convertTwoLineCoordinates<T extends { time: Time; upper: number;
  * @param lowerSeries - Lower line series API
  * @returns Array of coordinate points with x, upperY, middleY, lowerY
  */
-export function convertThreeLineCoordinates<T extends { time: Time; upper: number; middle: number; lower: number }>(
+export function convertThreeLineCoordinates<
+  T extends { time: Time; upper: number; middle: number; lower: number },
+>(
   data: T[],
   timeScale: any,
   upperSeries: ISeriesApi<any>,
   middleSeries: ISeriesApi<any>,
   lowerSeries: ISeriesApi<any>
-): Array<{ x: Coordinate | number; upperY: Coordinate | number; middleY: Coordinate | number; lowerY: Coordinate | number }> {
+): Array<{
+  x: Coordinate | number;
+  upperY: Coordinate | number;
+  middleY: Coordinate | number;
+  lowerY: Coordinate | number;
+}> {
   // Safety check: ensure series are available
   if (!upperSeries || !middleSeries || !lowerSeries || !timeScale) {
     return [];
@@ -229,14 +238,15 @@ export function isValidRenderPoint(point: RenderPoint): boolean {
  * @returns Array of valid points only
  */
 export function filterValidRenderPoints<T extends RenderPoint>(points: T[]): T[] {
-  return points.filter(point =>
-    point &&
-    point.x !== null &&
-    point.y !== null &&
-    typeof point.x === 'number' &&
-    typeof point.y === 'number' &&
-    !isNaN(point.x) &&
-    !isNaN(point.y)
+  return points.filter(
+    point =>
+      point &&
+      point.x !== null &&
+      point.y !== null &&
+      typeof point.x === 'number' &&
+      typeof point.y === 'number' &&
+      !isNaN(point.x) &&
+      !isNaN(point.y)
   );
 }
 
@@ -247,9 +257,10 @@ export function filterValidRenderPoints<T extends RenderPoint>(points: T[]): T[]
  * @returns Array of valid coordinate points
  */
 export function filterValidCoordinates<T extends RendererDataPoint>(points: T[]): T[] {
-  return points.filter(point =>
-    isValidCoordinate(point.x) &&
-    Object.keys(point).some(key => key !== 'x' && isValidCoordinate(point[key]))
+  return points.filter(
+    point =>
+      isValidCoordinate(point.x) &&
+      Object.keys(point).some(key => key !== 'x' && isValidCoordinate(point[key]))
   );
 }
 
@@ -427,7 +438,11 @@ export function createGradientFillPath(
   const validLowerPoints = filterValidRenderPoints(lowerPoints);
   const validColoredPoints = coloredPoints.filter(p => p.x !== null && p.y !== null && p.color);
 
-  if (validUpperPoints.length === 0 || validLowerPoints.length === 0 || validColoredPoints.length === 0)
+  if (
+    validUpperPoints.length === 0 ||
+    validLowerPoints.length === 0 ||
+    validColoredPoints.length === 0
+  )
     return;
 
   ctx.beginPath();
@@ -511,7 +526,10 @@ export interface LineStyleConfig {
  * @param ctx - Canvas rendering context
  * @param lineStyle - Line style enum value
  */
-export function applyLineDashPattern(ctx: CanvasRenderingContext2D, lineStyle: LineStyle = LineStyle.Solid): void {
+export function applyLineDashPattern(
+  ctx: CanvasRenderingContext2D,
+  lineStyle: LineStyle = LineStyle.Solid
+): void {
   switch (lineStyle) {
     case LineStyle.Solid:
       ctx.setLineDash([]);
@@ -1006,7 +1024,10 @@ export function isValidCoordinateWithBounds(
  * @param bounds - Bounds constraints
  * @returns Filtered points within bounds
  */
-export function filterPointsByBounds<T extends RenderPoint>(points: T[], bounds: CoordinateBounds): T[] {
+export function filterPointsByBounds<T extends RenderPoint>(
+  points: T[],
+  bounds: CoordinateBounds
+): T[] {
   return points.filter(
     point =>
       isValidCoordinateWithBounds(point.x, bounds) && isValidCoordinateWithBounds(point.y, bounds)

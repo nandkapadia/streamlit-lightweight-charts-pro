@@ -10,44 +10,56 @@ import type { ChartTask } from '../../utils/chartScheduler';
 import { logger } from '../../utils/logger';
 
 // Mock scheduler API with proper task handling
-const activeTasks = new Map<string, { callback: () => void; priority: number; cancelled: boolean }>();
+const activeTasks = new Map<
+  string,
+  { callback: () => void; priority: number; cancelled: boolean }
+>();
 let taskIdCounter = 0;
 
 // Create mock functions that can be accessed in tests using vi.hoisted
-const mockScheduleCallback = vi.hoisted(() => vi.fn((priority: number, callback: () => void) => {
-  const id = `task-${++taskIdCounter}-${Math.random().toString(36).substr(2, 9)}`;
-  activeTasks.set(id, { callback, priority, cancelled: false });
+const mockScheduleCallback = vi.hoisted(() =>
+  vi.fn((priority: number, callback: () => void) => {
+    const id = `task-${++taskIdCounter}-${Math.random().toString(36).substr(2, 9)}`;
+    activeTasks.set(id, { callback, priority, cancelled: false });
 
-  // Execute callback asynchronously to simulate scheduler behavior
-  setTimeout(() => {
+    // Execute callback asynchronously to simulate scheduler behavior
+    setTimeout(
+      () => {
+        const task = activeTasks.get(id);
+        if (task && !task.cancelled) {
+          try {
+            task.callback();
+          } catch (error) {
+            logger.error('Task execution failed during test', 'ChartSchedulerTest', error);
+          }
+        }
+        activeTasks.delete(id);
+      },
+      Math.max(1, Math.random() * 10)
+    ); // Random delay 1-10ms
+
+    return id;
+  })
+);
+
+const mockCancelCallback = vi.hoisted(() =>
+  vi.fn((id: string) => {
     const task = activeTasks.get(id);
-    if (task && !task.cancelled) {
-      try {
-        task.callback();
-      } catch (error) {
-        logger.error('Task execution failed during test', 'ChartSchedulerTest', error);
-      }
+    if (task) {
+      task.cancelled = true;
+      activeTasks.delete(id);
+      return true;
     }
-    activeTasks.delete(id);
-  }, Math.max(1, Math.random() * 10)); // Random delay 1-10ms
+    return false;
+  })
+);
 
-  return id;
-}));
-
-const mockCancelCallback = vi.hoisted(() => vi.fn((id: string) => {
-  const task = activeTasks.get(id);
-  if (task) {
-    task.cancelled = true;
-    activeTasks.delete(id);
-    return true;
-  }
-  return false;
-}));
-
-const mockShouldYield = vi.hoisted(() => vi.fn(() => {
-  // Sometimes yield to test yielding behavior
-  return Math.random() > 0.8;
-}));
+const mockShouldYield = vi.hoisted(() =>
+  vi.fn(() => {
+    // Sometimes yield to test yielding behavior
+    return Math.random() > 0.8;
+  })
+);
 
 const mockNow = vi.hoisted(() => vi.fn(() => performance.now()));
 const mockGetCurrentPriorityLevel = vi.hoisted(() => vi.fn(() => 3)); // NormalPriority
@@ -98,11 +110,14 @@ describe('ChartScheduler', () => {
     });
 
     // Mock requestAnimationFrame
-    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
-      const id = Math.random();
-      setTimeout(() => callback(performance.now()), 16); // ~60fps
-      return id;
-    }));
+    vi.stubGlobal(
+      'requestAnimationFrame',
+      vi.fn((callback: FrameRequestCallback) => {
+        const id = Math.random();
+        setTimeout(() => callback(performance.now()), 16); // ~60fps
+        return id;
+      })
+    );
 
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
   });
@@ -337,10 +352,7 @@ describe('ChartScheduler', () => {
       // Wait for task execution
       await new Promise(resolve => setTimeout(resolve, 50));
 
-      expect(react19Monitor.startTransition).toHaveBeenCalledWith(
-        'Task-Monitored Task',
-        'chart'
-      );
+      expect(react19Monitor.startTransition).toHaveBeenCalledWith('Task-Monitored Task', 'chart');
       expect(react19Monitor.endTransition).toHaveBeenCalledWith('transition-123');
     });
 

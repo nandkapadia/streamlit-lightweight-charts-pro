@@ -12,7 +12,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { TrendFillRenderer, TrendFillBarData, TrendFillRenderOptions } from '../../renderers/TrendFillRenderer';
+import {
+  TrendFillRenderer,
+  TrendFillBarData,
+  TrendFillRenderOptions,
+} from '../../renderers/TrendFillRenderer';
 import { LineStyle } from '../../utils/renderingUtils';
 
 // Mock Path2D globally
@@ -86,9 +90,30 @@ describe('TrendFillRenderer', () => {
     beforeEach(() => {
       ctx = createMockContext();
       bars = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
       ];
       options = {
         fillVisible: true,
@@ -143,9 +168,30 @@ describe('TrendFillRenderer', () => {
 
     it('should skip neutral bars (trendDirection = 0)', () => {
       const barsWithNeutral = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 0, fillColor: 'gray', lineColor: 'gray' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 0,
+          fillColor: 'gray',
+          lineColor: 'gray',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
       ];
 
       TrendFillRenderer.drawFills(ctx as any, barsWithNeutral, { from: 0, to: 3 }, options);
@@ -163,9 +209,30 @@ describe('TrendFillRenderer', () => {
 
     it('should create separate groups when trend direction changes', () => {
       const barsWithChange = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: -1, fillColor: 'red', lineColor: 'red' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: -1,
+          fillColor: 'red',
+          lineColor: 'red',
+        },
       ];
 
       TrendFillRenderer.drawFills(ctx as any, barsWithChange, { from: 0, to: 3 }, options);
@@ -175,11 +242,7 @@ describe('TrendFillRenderer', () => {
     });
 
     it('should skip undefined bars in visible range', () => {
-      const spareBars = [
-        bars[0],
-        undefined as any,
-        bars[2],
-      ];
+      const spareBars = [bars[0], undefined as any, bars[2]];
 
       TrendFillRenderer.drawFills(ctx as any, spareBars, { from: 0, to: 3 }, options);
 
@@ -189,11 +252,46 @@ describe('TrendFillRenderer', () => {
 
     it('should handle visible range subset', () => {
       const manyBars = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 40, trendLineY: 130, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 50, trendLineY: 140, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 40,
+          trendLineY: 130,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 50,
+          trendLineY: 140,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
       ];
 
       TrendFillRenderer.drawFills(ctx as any, manyBars, { from: 1, to: 4 }, options);
@@ -224,9 +322,30 @@ describe('TrendFillRenderer', () => {
     beforeEach(() => {
       ctx = createMockContext();
       bars = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
       ];
       options = {
         fillVisible: true,
@@ -278,9 +397,30 @@ describe('TrendFillRenderer', () => {
 
     it('should create new path when line color changes', () => {
       const barsWithColorChange = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: -1, fillColor: 'red', lineColor: 'red' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: -1,
+          fillColor: 'red',
+          lineColor: 'red',
+        },
       ];
 
       TrendFillRenderer.drawTrendLine(ctx as any, barsWithColorChange, { from: 0, to: 3 }, options);
@@ -290,11 +430,7 @@ describe('TrendFillRenderer', () => {
     });
 
     it('should skip undefined bars', () => {
-      const spareBars = [
-        bars[0],
-        undefined as any,
-        bars[2],
-      ];
+      const spareBars = [bars[0], undefined as any, bars[2]];
 
       TrendFillRenderer.drawTrendLine(ctx as any, spareBars, { from: 0, to: 3 }, options);
 
@@ -305,7 +441,14 @@ describe('TrendFillRenderer', () => {
       const hRatio = 2;
       const vRatio = 1.5;
 
-      TrendFillRenderer.drawTrendLine(ctx as any, bars, { from: 0, to: 1 }, options, hRatio, vRatio);
+      TrendFillRenderer.drawTrendLine(
+        ctx as any,
+        bars,
+        { from: 0, to: 1 },
+        options,
+        hRatio,
+        vRatio
+      );
 
       // Verify Path2D was created and used
       expect(global.Path2D).toHaveBeenCalled();
@@ -320,10 +463,38 @@ describe('TrendFillRenderer', () => {
 
     it('should handle visible range subset', () => {
       const manyBars = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 40, trendLineY: 130, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 40,
+          trendLineY: 130,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
       ];
 
       TrendFillRenderer.drawTrendLine(ctx as any, manyBars, { from: 1, to: 3 }, options);
@@ -341,9 +512,30 @@ describe('TrendFillRenderer', () => {
     beforeEach(() => {
       ctx = createMockContext();
       bars = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
       ];
       options = {
         fillVisible: true,
@@ -418,10 +610,38 @@ describe('TrendFillRenderer', () => {
 
     it('should handle visible range subset', () => {
       const manyBars = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 40, trendLineY: 130, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 40,
+          trendLineY: 130,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
       ];
 
       TrendFillRenderer.drawBaseLine(ctx as any, manyBars, { from: 1, to: 3 }, options);
@@ -447,9 +667,30 @@ describe('TrendFillRenderer', () => {
     beforeEach(() => {
       ctx = createMockContext();
       bars = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: -1, fillColor: 'red', lineColor: 'red' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: -1,
+          fillColor: 'red',
+          lineColor: 'red',
+        },
       ];
       options = {
         fillVisible: true,
@@ -482,11 +723,46 @@ describe('TrendFillRenderer', () => {
 
     it('should handle complex trend changes', () => {
       const complexBars = [
-        { x: 10, trendLineY: 100, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 20, trendLineY: 110, baseLineY: 150, trendDirection: 1, fillColor: 'green', lineColor: 'green' },
-        { x: 30, trendLineY: 120, baseLineY: 150, trendDirection: 0, fillColor: 'gray', lineColor: 'gray' },
-        { x: 40, trendLineY: 130, baseLineY: 150, trendDirection: -1, fillColor: 'red', lineColor: 'red' },
-        { x: 50, trendLineY: 140, baseLineY: 150, trendDirection: -1, fillColor: 'red', lineColor: 'red' },
+        {
+          x: 10,
+          trendLineY: 100,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 20,
+          trendLineY: 110,
+          baseLineY: 150,
+          trendDirection: 1,
+          fillColor: 'green',
+          lineColor: 'green',
+        },
+        {
+          x: 30,
+          trendLineY: 120,
+          baseLineY: 150,
+          trendDirection: 0,
+          fillColor: 'gray',
+          lineColor: 'gray',
+        },
+        {
+          x: 40,
+          trendLineY: 130,
+          baseLineY: 150,
+          trendDirection: -1,
+          fillColor: 'red',
+          lineColor: 'red',
+        },
+        {
+          x: 50,
+          trendLineY: 140,
+          baseLineY: 150,
+          trendDirection: -1,
+          fillColor: 'red',
+          lineColor: 'red',
+        },
       ];
 
       TrendFillRenderer.drawFills(ctx as any, complexBars, { from: 0, to: 5 }, options);

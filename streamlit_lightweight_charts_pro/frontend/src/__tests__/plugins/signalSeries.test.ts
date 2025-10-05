@@ -10,18 +10,18 @@ import {
   SignalSeries,
   createSignalSeriesPlugin,
   SignalData,
-  SignalSeriesConfig
+  SignalSeriesConfig,
 } from '../../plugins/series/signalSeriesPlugin';
 
 // Mock lightweight-charts
 const mockChart = {
   addSeries: vi.fn(),
   timeScale: vi.fn(() => ({
-    timeToCoordinate: vi.fn((time) => 100 + Math.random() * 300),
+    timeToCoordinate: vi.fn(time => 100 + Math.random() * 300),
     options: vi.fn(() => ({ barSpacing: 6 })),
   })),
   priceScale: vi.fn(() => ({
-    priceToCoordinate: vi.fn((price) => 100 + Math.random() * 300),
+    priceToCoordinate: vi.fn(price => 100 + Math.random() * 300),
   })),
   removeSeries: vi.fn(),
   chartElement: vi.fn(() => ({
@@ -35,7 +35,7 @@ const mockSeries = {
   update: vi.fn(),
   applyOptions: vi.fn(),
   attachPrimitive: vi.fn(),
-  priceToCoordinate: vi.fn((price) => 100 + Math.random() * 300),
+  priceToCoordinate: vi.fn(price => 100 + Math.random() * 300),
   options: vi.fn(() => ({
     crosshairMarkerVisible: false,
     lineWidth: 3,
@@ -48,7 +48,7 @@ vi.mock('lightweight-charts', () => ({
 }));
 
 vi.mock('../../utils/lightweightChartsUtils', () => ({
-  asLineWidth: vi.fn((width) => width),
+  asLineWidth: vi.fn(width => width),
 }));
 
 describe('SignalSeries Plugin', () => {
@@ -107,11 +107,7 @@ describe('SignalSeries Plugin', () => {
       new SignalSeries(mockChart as any, config);
 
       // Should pass pane ID to addSeries
-      expect(mockChart.addSeries).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.anything(),
-        1
-      );
+      expect(mockChart.addSeries).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1);
     });
   });
 
@@ -152,7 +148,7 @@ describe('SignalSeries Plugin', () => {
           visible: true,
           signalColor: '#FF0000',
           neutralColor: '#00FF00',
-          alertColor: '#0000FF'
+          alertColor: '#0000FF',
         },
       };
 
@@ -178,7 +174,7 @@ describe('SignalSeries Plugin', () => {
           visible: true,
           signalColor: '#FF0000',
           neutralColor: '#00FF00',
-          alertColor: '#0000FF'
+          alertColor: '#0000FF',
         },
       };
 
@@ -252,7 +248,7 @@ describe('SignalSeries Plugin', () => {
           visible: true,
           signalColor: '#FF0000',
           neutralColor: '#00FF00',
-          alertColor: '#0000FF'
+          alertColor: '#0000FF',
         },
       };
 
@@ -301,7 +297,7 @@ describe('SignalSeries Plugin', () => {
           visible: true,
           signalColor: '#FF0000',
           neutralColor: '#00FF00',
-          alertColor: '#0000FF'
+          alertColor: '#0000FF',
         },
       };
 
@@ -326,7 +322,7 @@ describe('SignalSeries Plugin', () => {
           visible: true,
           signalColor: '#FF0000',
           neutralColor: '#00FF00',
-          alertColor: '#0000FF'
+          alertColor: '#0000FF',
         },
       };
 
@@ -351,7 +347,7 @@ describe('SignalSeries Plugin', () => {
           visible: true,
           signalColor: '#FF0000',
           neutralColor: '#00FF00',
-          alertColor: '#0000FF'
+          alertColor: '#0000FF',
         },
       };
 
@@ -409,9 +405,7 @@ describe('SignalSeries Plugin', () => {
     });
 
     it('should update options and reprocess data', () => {
-      const testData: SignalData[] = [
-        { time: '2023-01-01', value: 1 },
-      ];
+      const testData: SignalData[] = [{ time: '2023-01-01', value: 1 }];
 
       const config: SignalSeriesConfig = {
         type: 'signal',
@@ -566,7 +560,7 @@ describe('SignalSeries Plugin', () => {
           visible: true,
           signalColor: '#FF0000',
           neutralColor: '#00FF00',
-          alertColor: '#0000FF'
+          alertColor: '#0000FF',
         },
       };
 
@@ -609,9 +603,7 @@ describe('SignalSeries Plugin', () => {
       const signal = new SignalSeries(mockChart as any, config);
 
       expect(() => {
-        signal.setSignals([
-          { time: '2023-01-01', value: NaN } as any,
-        ]);
+        signal.setSignals([{ time: '2023-01-01', value: NaN } as any]);
       }).not.toThrow();
     });
 
@@ -682,7 +674,7 @@ describe('SignalSeries Plugin', () => {
           visible: true,
           signalColor: 'transparent', // Make series-level colors transparent too
           neutralColor: 'rgba(0, 0, 0, 0)',
-          alertColor: '#FF000000'
+          alertColor: '#FF000000',
         },
       };
 
@@ -707,7 +699,7 @@ describe('SignalSeries Plugin', () => {
           visible: true,
           signalColor: '#FF0000',
           neutralColor: '#00FF00',
-          alertColor: '#0000FF'
+          alertColor: '#0000FF',
         },
       };
 

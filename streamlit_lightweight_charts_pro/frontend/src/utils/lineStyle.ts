@@ -19,7 +19,11 @@ export const validateLineStyle = (lineStyle: any): LineStyle | undefined => {
   }
 
   if (Array.isArray(lineStyle)) {
-    if (lineStyle.length > 0 && lineStyle.every(val => typeof val === 'number' && val >= 0) && LineStyle) {
+    if (
+      lineStyle.length > 0 &&
+      lineStyle.every(val => typeof val === 'number' && val >= 0) &&
+      LineStyle
+    ) {
       return LineStyle.Solid;
     }
   }

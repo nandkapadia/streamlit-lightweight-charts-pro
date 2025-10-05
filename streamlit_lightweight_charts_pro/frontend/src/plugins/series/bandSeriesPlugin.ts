@@ -20,7 +20,6 @@
 
 import {
   CustomData,
-  ICustomSeriesPaneView,
   Time,
   customSeriesDefaultOptions,
   CustomSeriesOptions,
@@ -32,19 +31,11 @@ import {
   IChartApi,
   PriceToCoordinateConverter,
 } from 'lightweight-charts';
-import {
-  BitmapCoordinatesRenderingScope,
-} from 'fancy-canvas';
-import {
-  isWhitespaceDataMultiField,
-} from './base/BaseCustomSeriesView';
-import {
-  LineStyle,
-} from '../../utils/renderingUtils';
-import {
-  drawMultiLine,
-  drawFillArea,
-} from './base/commonRendering';
+import { IBaseCustomPaneView } from './base/IBaseCustomPaneView';
+import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { isWhitespaceDataMultiField } from './base/commonRendering';
+import { LineStyle } from '../../utils/renderingUtils';
+import { drawMultiLine, drawFillArea } from './base/commonRendering';
 
 // ============================================================================
 // Data Interface
@@ -140,8 +131,9 @@ const defaultBandOptions: BandSeriesOptions = {
  * Provides autoscaling and direct rendering
  */
 class BandSeries<TData extends BandData = BandData>
-  implements ICustomSeriesPaneView<Time, TData, BandSeriesOptions>
+  implements IBaseCustomPaneView<Time, TData, BandSeriesOptions>
 {
+  readonly type = 'Band';
   private _renderer: BandSeriesRenderer<TData>;
 
   constructor() {
@@ -153,7 +145,9 @@ class BandSeries<TData extends BandData = BandData>
     return [plotRow.lower, plotRow.middle, plotRow.upper];
   }
 
-  isWhitespace(data: TData | CustomSeriesWhitespaceData<Time>): data is CustomSeriesWhitespaceData<Time> {
+  isWhitespace(
+    data: TData | CustomSeriesWhitespaceData<Time>
+  ): data is CustomSeriesWhitespaceData<Time> {
     return isWhitespaceDataMultiField(data, ['upper', 'middle', 'lower']);
   }
 
@@ -174,9 +168,7 @@ class BandSeries<TData extends BandData = BandData>
  * Band Series Renderer - ICustomSeries
  * Only used when primitive is NOT attached
  */
-class BandSeriesRenderer<TData extends BandData = BandData>
-  implements ICustomSeriesPaneRenderer
-{
+class BandSeriesRenderer<TData extends BandData = BandData> implements ICustomSeriesPaneRenderer {
   private _data: PaneRendererCustomData<Time, TData> | null = null;
   private _options: BandSeriesOptions | null = null;
 
@@ -421,15 +413,15 @@ export function createBandSeries(
       const primitive = new BandPrimitive(chart, {
         upperLineColor: options.upperLineColor ?? '#4CAF50',
         upperLineWidth: options.upperLineWidth ?? 2,
-        upperLineStyle: Math.min((options.upperLineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2,
+        upperLineStyle: Math.min(options.upperLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
         upperLineVisible: options.upperLineVisible !== false,
         middleLineColor: options.middleLineColor ?? '#2196F3',
         middleLineWidth: options.middleLineWidth ?? 2,
-        middleLineStyle: Math.min((options.middleLineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2,
+        middleLineStyle: Math.min(options.middleLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
         middleLineVisible: options.middleLineVisible !== false,
         lowerLineColor: options.lowerLineColor ?? '#F44336',
         lowerLineWidth: options.lowerLineWidth ?? 2,
-        lowerLineStyle: Math.min((options.lowerLineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2,
+        lowerLineStyle: Math.min(options.lowerLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
         lowerLineVisible: options.lowerLineVisible !== false,
         upperFillColor: options.upperFillColor ?? 'rgba(76, 175, 80, 0.1)',
         upperFillVisible: options.upperFillVisible !== false,

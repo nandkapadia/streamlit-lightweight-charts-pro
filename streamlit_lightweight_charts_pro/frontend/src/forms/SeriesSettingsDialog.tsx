@@ -68,7 +68,17 @@ export interface SeriesConfig {
 export interface SeriesInfo {
   id: string;
   displayName: string;
-  type: 'line' | 'ribbon' | 'area' | 'candlestick' | 'bar' | 'histogram' | 'supertrend' | 'bollinger_bands' | 'sma' | 'ema';
+  type:
+    | 'line'
+    | 'ribbon'
+    | 'area'
+    | 'candlestick'
+    | 'bar'
+    | 'histogram'
+    | 'supertrend'
+    | 'bollinger_bands'
+    | 'sma'
+    | 'ema';
 }
 
 /**
@@ -127,7 +137,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   }>({ isOpen: false });
 
   // Optimistic configs for instant UI feedback
-  const [optimisticConfigs, setOptimisticConfigs] = useState<Record<string, Partial<SeriesConfig>>>(seriesConfigs);
+  const [optimisticConfigs, setOptimisticConfigs] =
+    useState<Record<string, Partial<SeriesConfig>>>(seriesConfigs);
 
   // React 19 hooks for form handling and optimistic updates
   const [isPending, startTransition] = useTransition();
@@ -156,12 +167,13 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
   // Debounced config update to avoid excessive API calls
   const debouncedConfigUpdate = useMemo(
-    () => debounce((seriesId: string, config: Partial<SeriesConfig>) => {
-      startTransition(() => {
-        void updateSeriesSettings(paneId, seriesId, config);
-        onConfigChange(seriesId, config);
-      });
-    }, 100),
+    () =>
+      debounce((seriesId: string, config: Partial<SeriesConfig>) => {
+        startTransition(() => {
+          void updateSeriesSettings(paneId, seriesId, config);
+          onConfigChange(seriesId, config);
+        });
+      }, 100),
     [paneId, updateSeriesSettings, onConfigChange]
   );
 
@@ -175,7 +187,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           '.series-config-overlay',
           '[class*="overlay"]',
           '[style*="position: fixed"]',
-          '[style*="z-index: 10000"]'
+          '[style*="z-index: 10000"]',
         ];
 
         overlaySelectors.forEach(selector => {
@@ -263,8 +275,13 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
               const centerY = rect.height / 2;
 
               const eventSequence = [
-                'mouseenter', 'mouseover', 'pointermove', 'mousemove',
-                'mousedown', 'mouseup', 'click'
+                'mouseenter',
+                'mouseover',
+                'pointermove',
+                'mousemove',
+                'mousedown',
+                'mouseup',
+                'click',
               ];
 
               eventSequence.forEach((eventType, index) => {
@@ -275,7 +292,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                     view: window,
                     clientX: centerX,
                     clientY: centerY,
-                    buttons: eventType === 'mousedown' || eventType === 'mouseup' ? 1 : 0
+                    buttons: eventType === 'mousedown' || eventType === 'mouseup' ? 1 : 0,
                   });
                   canvasElement?.dispatchEvent(event);
                 }, index * 15); // Stagger events
@@ -296,24 +313,30 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
             logger.debug('Chart interactions restored successfully', 'SeriesSettings', {
               chartElement,
               canvasElement,
-              unblockedElements: elementsToUnblock.length
+              unblockedElements: elementsToUnblock.length,
             });
           }
         } else {
-          logger.warn('Chart or canvas element not found during interaction restore', 'SeriesSettings');
+          logger.warn(
+            'Chart or canvas element not found during interaction restore',
+            'SeriesSettings'
+          );
         }
 
         // CRITICAL FIX 6: Force interaction reset with custom event
         setTimeout(() => {
           const restoreEvent = new CustomEvent('chart-interactions-restore', {
             bubbles: true,
-            detail: { paneId, timestamp: Date.now() }
+            detail: { paneId, timestamp: Date.now() },
           });
           document.dispatchEvent(restoreEvent);
         }, 200);
-
       } catch (error) {
-        logger.error('Failed to restore chart interactions after dialog close', 'SeriesSettings', error);
+        logger.error(
+          'Failed to restore chart interactions after dialog close',
+          'SeriesSettings',
+          error
+        );
       }
     }, 150); // Increased delay to ensure complete dialog cleanup
   }, [paneId]);
@@ -323,7 +346,6 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     return () => {
       // Cleanup function that runs when component unmounts
       try {
-
         // Remove any lingering overlay elements
         const overlays = document.querySelectorAll('.series-config-overlay');
         overlays.forEach(overlay => overlay.remove());
@@ -336,98 +358,101 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         // Dispatch cleanup event
         const cleanupEvent = new CustomEvent('modal-cleanup', {
           bubbles: true,
-          detail: { component: 'SeriesSettingsDialog', paneId }
+          detail: { component: 'SeriesSettingsDialog', paneId },
         });
         document.dispatchEvent(cleanupEvent);
-
       } catch (error) {
-        logger.error('Failed to dispatch cleanup event on component unmount', 'SeriesSettings', error);
+        logger.error(
+          'Failed to dispatch cleanup event on component unmount',
+          'SeriesSettings',
+          error
+        );
       }
     };
   }, [paneId]);
 
   // Handle configuration changes
-  const handleConfigChange = useCallback((seriesId: string, configPatch: Partial<SeriesConfig>) => {
+  const handleConfigChange = useCallback(
+    (seriesId: string, configPatch: Partial<SeriesConfig>) => {
+      // Immediately update optimistic state for instant UI feedback
+      setOptimisticConfigs(prev => ({
+        ...prev,
+        [seriesId]: { ...prev[seriesId], ...configPatch },
+      }));
 
-    // Immediately update optimistic state for instant UI feedback
-    setOptimisticConfigs(prev => ({
-      ...prev,
-      [seriesId]: { ...prev[seriesId], ...configPatch }
-    }));
+      // CRITICAL FIX: Update BOTH frontend and backend for immediate + persistent changes
 
-    // CRITICAL FIX: Update BOTH frontend and backend for immediate + persistent changes
-
-    // 1. IMMEDIATE FRONTEND UPDATE: Apply to chart series object for instant visual changes
-    if (onConfigChange) {
-      onConfigChange(seriesId, configPatch);
-    }
-
-    // 2. PERSISTENT BACKEND UPDATE: Send to Streamlit for persistence across reruns
-    try {
-      // Try multiple ways to access Streamlit object (same approach as other parts of codebase)
-      let streamlit = null;
-
-      // Method 1: Check global window object
-      if (typeof window !== 'undefined' && (window as any).Streamlit) {
-        streamlit = (window as any).Streamlit;
+      // 1. IMMEDIATE FRONTEND UPDATE: Apply to chart series object for instant visual changes
+      if (onConfigChange) {
+        onConfigChange(seriesId, configPatch);
       }
 
-      // Method 2: Check globalThis
-      if (!streamlit && typeof globalThis !== 'undefined' && (globalThis as any).Streamlit) {
-        streamlit = (globalThis as any).Streamlit;
+      // 2. PERSISTENT BACKEND UPDATE: Send to Streamlit for persistence across reruns
+      try {
+        // Try multiple ways to access Streamlit object (same approach as other parts of codebase)
+        let streamlit = null;
+
+        // Method 1: Check global window object
+        if (typeof window !== 'undefined' && (window as any).Streamlit) {
+          streamlit = (window as any).Streamlit;
+        }
+
+        // Method 2: Check globalThis
+        if (!streamlit && typeof globalThis !== 'undefined' && (globalThis as any).Streamlit) {
+          streamlit = (globalThis as any).Streamlit;
+        }
+
+        // Method 3: Check if Streamlit is directly accessible (as in index.tsx)
+        if (!streamlit) {
+          streamlit = Streamlit;
+        }
+
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug('Streamlit connection debug info', 'SeriesSettings', {
+            windowStreamlit: !!(typeof window !== 'undefined' && (window as any).Streamlit),
+            globalStreamlit: !!(typeof globalThis !== 'undefined' && (globalThis as any).Streamlit),
+            directStreamlit: !!Streamlit,
+            foundStreamlit: !!streamlit,
+            hasSetComponentValue: !!(streamlit && streamlit.setComponentValue),
+          });
+        }
+
+        if (streamlit && streamlit.setComponentValue) {
+          const updatePayload = {
+            type: 'config_change',
+            paneId: paneId,
+            seriesId: seriesId,
+            configPatch: configPatch,
+            timestamp: Date.now(),
+          };
+
+          // Send to Streamlit backend for persistence (triggers rerun)
+          streamlit.setComponentValue(updatePayload);
+        } else {
+          logger.warn('Streamlit not accessible for component value update', 'SeriesSettings', {
+            window: typeof window,
+            globalThis: typeof globalThis,
+            Streamlit: typeof Streamlit,
+          });
+        }
+      } catch (error) {
+        logger.error('Failed to send component value to Streamlit', 'SeriesSettings', error);
       }
 
-      // Method 3: Check if Streamlit is directly accessible (as in index.tsx)
-      if (!streamlit) {
-        streamlit = Streamlit;
+      // Optional: Still try the API update for persistence (but Streamlit component value is primary)
+      try {
+        debouncedConfigUpdate(seriesId, configPatch);
+      } catch (error) {
+        logger.error('Failed to update series config via API', 'SeriesSettings', error);
       }
-
-      if (process.env.NODE_ENV === 'development') {
-        logger.debug('Streamlit connection debug info', 'SeriesSettings', {
-          windowStreamlit: !!(typeof window !== 'undefined' && (window as any).Streamlit),
-          globalStreamlit: !!(typeof globalThis !== 'undefined' && (globalThis as any).Streamlit),
-          directStreamlit: !!Streamlit,
-          foundStreamlit: !!streamlit,
-          hasSetComponentValue: !!(streamlit && streamlit.setComponentValue)
-        });
-      }
-
-      if (streamlit && streamlit.setComponentValue) {
-        const updatePayload = {
-          type: 'config_change',
-          paneId: paneId,
-          seriesId: seriesId,
-          configPatch: configPatch,
-          timestamp: Date.now()
-        };
-
-
-        // Send to Streamlit backend for persistence (triggers rerun)
-        streamlit.setComponentValue(updatePayload);
-
-      } else {
-        logger.warn('Streamlit not accessible for component value update', 'SeriesSettings', {
-          window: typeof window,
-          globalThis: typeof globalThis,
-          Streamlit: typeof Streamlit
-        });
-      }
-    } catch (error) {
-      logger.error('Failed to send component value to Streamlit', 'SeriesSettings', error);
-    }
-
-    // Optional: Still try the API update for persistence (but Streamlit component value is primary)
-    try {
-      debouncedConfigUpdate(seriesId, configPatch);
-    } catch (error) {
-      logger.error('Failed to update series config via API', 'SeriesSettings', error);
-    }
-  }, [debouncedConfigUpdate, setOptimisticConfigs, onConfigChange, paneId]);
+    },
+    [debouncedConfigUpdate, setOptimisticConfigs, onConfigChange, paneId]
+  );
 
   // Get current series info and config
   const activeSeriesInfo = seriesList.find(s => s.id === activeSeriesId);
-  const activeSeriesConfig = useMemo(() =>
-    optimisticConfigs[activeSeriesId] || {},
+  const activeSeriesConfig = useMemo(
+    () => optimisticConfigs[activeSeriesId] || {},
     [optimisticConfigs, activeSeriesId]
   );
 
@@ -437,7 +462,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       activeSeriesId,
       activeSeriesInfo,
       type: activeSeriesInfo?.type,
-      allSeries: seriesList.map(s => ({ id: s.id, type: s.type, displayName: s.displayName }))
+      allSeries: seriesList.map(s => ({ id: s.id, type: s.type, displayName: s.displayName })),
     });
   }
 
@@ -448,113 +473,131 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   }, [onClose, restoreFocusToChart]);
 
   // Handle keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      if (lineEditorOpen.isOpen) {
-        setLineEditorOpen({ isOpen: false });
-      } else if (colorPickerOpen.isOpen) {
-        setColorPickerOpen({ isOpen: false });
-      } else {
-        handleCloseWithFocusRestore();
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (lineEditorOpen.isOpen) {
+          setLineEditorOpen({ isOpen: false });
+        } else if (colorPickerOpen.isOpen) {
+          setColorPickerOpen({ isOpen: false });
+        } else {
+          handleCloseWithFocusRestore();
+        }
       }
-    }
-  }, [lineEditorOpen.isOpen, colorPickerOpen.isOpen, handleCloseWithFocusRestore]);
+    },
+    [lineEditorOpen.isOpen, colorPickerOpen.isOpen, handleCloseWithFocusRestore]
+  );
 
   // Handle backdrop click
-  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && !lineEditorOpen.isOpen && !colorPickerOpen.isOpen) {
-      handleCloseWithFocusRestore();
-    }
-  }, [lineEditorOpen.isOpen, colorPickerOpen.isOpen, handleCloseWithFocusRestore]);
+  const handleBackdropClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget && !lineEditorOpen.isOpen && !colorPickerOpen.isOpen) {
+        handleCloseWithFocusRestore();
+      }
+    },
+    [lineEditorOpen.isOpen, colorPickerOpen.isOpen, handleCloseWithFocusRestore]
+  );
 
   // Line editor handlers
-  const openLineEditor = useCallback((lineType: 'upper_line' | 'lower_line' | 'main_line') => {
-    let lineConfig: any = {};
+  const openLineEditor = useCallback(
+    (lineType: 'upper_line' | 'lower_line' | 'main_line') => {
+      let lineConfig: any = {};
 
-    if (lineType === 'main_line') {
-      lineConfig = {
-        color: activeSeriesConfig.color,
-        line_style: activeSeriesConfig.line_style,
-        line_width: activeSeriesConfig.line_width,
-      };
-    } else {
-      lineConfig = (activeSeriesConfig as any)[lineType] || {};
-    }
-
-    setLineEditorOpen({
-      isOpen: true,
-      lineType,
-      config: {
-        color: lineConfig.color || '#2196F3',
-        style: lineConfig.line_style || 'solid',
-        width: lineConfig.line_width || 1,
-      }
-    });
-  }, [activeSeriesConfig]);
-
-  const handleLineEditorSave = useCallback((config: LineConfig) => {
-    if (lineEditorOpen.lineType) {
-      if (lineEditorOpen.lineType === 'main_line') {
-        // For main line, update direct properties
-        handleConfigChange(activeSeriesId, {
-          color: config.color,
-          line_style: config.style,
-          line_width: config.width,
-        });
+      if (lineType === 'main_line') {
+        lineConfig = {
+          color: activeSeriesConfig.color,
+          line_style: activeSeriesConfig.line_style,
+          line_width: activeSeriesConfig.line_width,
+        };
       } else {
-        // For upper/lower lines, update nested properties
-        handleConfigChange(activeSeriesId, {
-          [lineEditorOpen.lineType]: {
+        lineConfig = (activeSeriesConfig as any)[lineType] || {};
+      }
+
+      setLineEditorOpen({
+        isOpen: true,
+        lineType,
+        config: {
+          color: lineConfig.color || '#2196F3',
+          style: lineConfig.line_style || 'solid',
+          width: lineConfig.line_width || 1,
+        },
+      });
+    },
+    [activeSeriesConfig]
+  );
+
+  const handleLineEditorSave = useCallback(
+    (config: LineConfig) => {
+      if (lineEditorOpen.lineType) {
+        if (lineEditorOpen.lineType === 'main_line') {
+          // For main line, update direct properties
+          handleConfigChange(activeSeriesId, {
             color: config.color,
             line_style: config.style,
             line_width: config.width,
-          }
-        });
+          });
+        } else {
+          // For upper/lower lines, update nested properties
+          handleConfigChange(activeSeriesId, {
+            [lineEditorOpen.lineType]: {
+              color: config.color,
+              line_style: config.style,
+              line_width: config.width,
+            },
+          });
+        }
       }
-    }
-    setLineEditorOpen({ isOpen: false });
-  }, [activeSeriesId, lineEditorOpen.lineType, handleConfigChange]);
+      setLineEditorOpen({ isOpen: false });
+    },
+    [activeSeriesId, lineEditorOpen.lineType, handleConfigChange]
+  );
 
   // Color picker handlers
-  const openColorPicker = useCallback((colorType: 'fill_color' | 'line_color') => {
-    const currentColor = colorType === 'fill_color'
-      ? activeSeriesConfig.fill_color || '#2196F3'
-      : activeSeriesConfig.color || '#2196F3';
-    const currentOpacity = colorType === 'fill_color'
-      ? activeSeriesConfig.fill_opacity || 20
-      : 100;
+  const openColorPicker = useCallback(
+    (colorType: 'fill_color' | 'line_color') => {
+      const currentColor =
+        colorType === 'fill_color'
+          ? activeSeriesConfig.fill_color || '#2196F3'
+          : activeSeriesConfig.color || '#2196F3';
+      const currentOpacity =
+        colorType === 'fill_color' ? activeSeriesConfig.fill_opacity || 20 : 100;
 
-    setColorPickerOpen({
-      isOpen: true,
-      colorType,
-      currentColor,
-      currentOpacity,
-    });
-  }, [activeSeriesConfig]);
+      setColorPickerOpen({
+        isOpen: true,
+        colorType,
+        currentColor,
+        currentOpacity,
+      });
+    },
+    [activeSeriesConfig]
+  );
 
-  const handleColorPickerSave = useCallback((color: string, opacity: number) => {
-    if (colorPickerOpen.colorType === 'fill_color') {
-      handleConfigChange(activeSeriesId, {
-        fill_color: color,
-        fill_opacity: opacity,
-      });
-    } else if (colorPickerOpen.colorType === 'line_color') {
-      handleConfigChange(activeSeriesId, {
-        color: color,
-      });
-    }
-    setColorPickerOpen({ isOpen: false });
-  }, [activeSeriesId, colorPickerOpen.colorType, handleConfigChange]);
+  const handleColorPickerSave = useCallback(
+    (color: string, opacity: number) => {
+      if (colorPickerOpen.colorType === 'fill_color') {
+        handleConfigChange(activeSeriesId, {
+          fill_color: color,
+          fill_opacity: opacity,
+        });
+      } else if (colorPickerOpen.colorType === 'line_color') {
+        handleConfigChange(activeSeriesId, {
+          color: color,
+        });
+      }
+      setColorPickerOpen({ isOpen: false });
+    },
+    [activeSeriesId, colorPickerOpen.colorType, handleConfigChange]
+  );
 
   if (!isOpen) return null;
 
   return createPortal(
     <div
-      className="series-config-overlay"
+      className='series-config-overlay'
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
-      role="dialog"
-      aria-modal="true"
+      role='dialog'
+      aria-modal='true'
       aria-labelledby={`series-settings-${activeSeriesInfo?.displayName || ''}`}
       tabIndex={-1}
       style={{
@@ -571,7 +614,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       }}
     >
       <div
-        className="series-config-dialog"
+        className='series-config-dialog'
         style={{
           backgroundColor: '#ffffff',
           borderRadius: '6px',
@@ -586,7 +629,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       >
         {/* Header */}
         <div
-          className="series-config-header"
+          className='series-config-header'
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -612,12 +655,12 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
               flex: '1',
             }}
           >
-Settings
+            Settings
           </div>
           <button
-            className="close-button"
+            className='close-button'
             onClick={handleCloseWithFocusRestore}
-            aria-label="Close dialog"
+            aria-label='Close dialog'
             style={{
               width: '32px',
               height: '32px',
@@ -644,7 +687,7 @@ Settings
 
         {/* Series Tabs */}
         <div
-          className="series-config-tabs"
+          className='series-config-tabs'
           style={{
             display: 'flex',
             backgroundColor: '#f8f9fa',
@@ -659,7 +702,7 @@ Settings
               className={`tab ${activeSeriesId === series.id ? 'active' : ''}`}
               onClick={() => setActiveSeriesId(series.id)}
               aria-selected={activeSeriesId === series.id}
-              role="tab"
+              role='tab'
               style={{
                 padding: '8px 12px',
                 border: 'none',
@@ -668,7 +711,8 @@ Settings
                 fontSize: '12px',
                 fontWeight: '500',
                 cursor: 'pointer',
-                borderBottom: activeSeriesId === series.id ? '2px solid #2962ff' : '2px solid transparent',
+                borderBottom:
+                  activeSeriesId === series.id ? '2px solid #2962ff' : '2px solid transparent',
                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 whiteSpace: 'nowrap',
                 minHeight: '36px',
@@ -695,7 +739,7 @@ Settings
 
         {/* Settings Content */}
         <div
-          className="series-config-content"
+          className='series-config-content'
           style={{
             flex: 1,
             overflowY: 'auto',
@@ -709,159 +753,165 @@ Settings
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             }}
           >
-            <input type="hidden" name="seriesId" value={activeSeriesId} />
+            <input type='hidden' name='seriesId' value={activeSeriesId} />
 
             {/* Common Settings */}
-            <div className="settings-section">
-              <div className="checkbox-row">
+            <div className='settings-section'>
+              <div className='checkbox-row'>
                 <input
-                  type="checkbox"
-                  id="visible"
-                  name="visible"
+                  type='checkbox'
+                  id='visible'
+                  name='visible'
                   checked={activeSeriesConfig.visible !== false}
-                  onChange={(e) => handleConfigChange(activeSeriesId, { visible: e.target.checked })}
-                  aria-label="Series visible"
+                  onChange={e => handleConfigChange(activeSeriesId, { visible: e.target.checked })}
+                  aria-label='Series visible'
                 />
-                <label htmlFor="visible">Visible</label>
+                <label htmlFor='visible'>Visible</label>
               </div>
 
-              <div className="checkbox-row">
+              <div className='checkbox-row'>
                 <input
-                  type="checkbox"
-                  id="markers"
-                  name="markers"
+                  type='checkbox'
+                  id='markers'
+                  name='markers'
                   checked={activeSeriesConfig.markers === true}
-                  onChange={(e) => handleConfigChange(activeSeriesId, { markers: e.target.checked })}
-                  aria-label="Show markers"
+                  onChange={e => handleConfigChange(activeSeriesId, { markers: e.target.checked })}
+                  aria-label='Show markers'
                 />
-                <label htmlFor="markers">Markers</label>
+                <label htmlFor='markers'>Markers</label>
               </div>
 
-              <div className="checkbox-row">
+              <div className='checkbox-row'>
                 <input
-                  type="checkbox"
-                  id="last_value_visible"
-                  name="last_value_visible"
+                  type='checkbox'
+                  id='last_value_visible'
+                  name='last_value_visible'
                   checked={activeSeriesConfig.last_value_visible !== false}
-                  onChange={(e) => handleConfigChange(activeSeriesId, { last_value_visible: e.target.checked })}
-                  aria-label="Show last value"
+                  onChange={e =>
+                    handleConfigChange(activeSeriesId, { last_value_visible: e.target.checked })
+                  }
+                  aria-label='Show last value'
                 />
-                <label htmlFor="last_value_visible">Last Value Visible</label>
+                <label htmlFor='last_value_visible'>Last Value Visible</label>
               </div>
 
-              <div className="checkbox-row">
+              <div className='checkbox-row'>
                 <input
-                  type="checkbox"
-                  id="price_line"
-                  name="price_line"
+                  type='checkbox'
+                  id='price_line'
+                  name='price_line'
                   checked={activeSeriesConfig.price_line !== false}
-                  onChange={(e) => handleConfigChange(activeSeriesId, { price_line: e.target.checked })}
-                  aria-label="Show price line"
+                  onChange={e =>
+                    handleConfigChange(activeSeriesId, { price_line: e.target.checked })
+                  }
+                  aria-label='Show price line'
                 />
-                <label htmlFor="price_line">Price Line</label>
+                <label htmlFor='price_line'>Price Line</label>
               </div>
             </div>
 
             {/* Series-Specific Settings */}
             {activeSeriesInfo?.type === 'ribbon' && (
-              <div className="settings-section">
+              <div className='settings-section'>
                 <h4>Ribbon Settings</h4>
 
                 {/* Upper Line */}
                 <div
-                  className="line-row"
+                  className='line-row'
                   onClick={() => openLineEditor('upper_line')}
-                  role="button"
+                  role='button'
                   tabIndex={0}
-                  onKeyDown={(e) => {
+                  onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       openLineEditor('upper_line');
                     }
                   }}
-                  aria-label="Edit upper line settings"
+                  aria-label='Edit upper line settings'
                 >
                   <span>Upper Line</span>
-                  <div className="line-preview">
+                  <div className='line-preview'>
                     <div
-                      className="line-color-swatch"
+                      className='line-color-swatch'
                       style={{
                         backgroundColor: activeSeriesConfig.upper_line?.color || '#4CAF50',
                         width: '20px',
                         height: '12px',
                         border: '1px solid #ddd',
-                        borderRadius: '2px'
+                        borderRadius: '2px',
                       }}
                     />
-                    <span className="line-style-indicator">
-                      {activeSeriesConfig.upper_line?.line_style || 'solid'} • {activeSeriesConfig.upper_line?.line_width || 2}px
+                    <span className='line-style-indicator'>
+                      {activeSeriesConfig.upper_line?.line_style || 'solid'} •{' '}
+                      {activeSeriesConfig.upper_line?.line_width || 2}px
                     </span>
                   </div>
                 </div>
 
                 {/* Lower Line */}
                 <div
-                  className="line-row"
+                  className='line-row'
                   onClick={() => openLineEditor('lower_line')}
-                  role="button"
+                  role='button'
                   tabIndex={0}
-                  onKeyDown={(e) => {
+                  onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       openLineEditor('lower_line');
                     }
                   }}
-                  aria-label="Edit lower line settings"
+                  aria-label='Edit lower line settings'
                 >
                   <span>Lower Line</span>
-                  <div className="line-preview">
+                  <div className='line-preview'>
                     <div
-                      className="line-color-swatch"
+                      className='line-color-swatch'
                       style={{
                         backgroundColor: activeSeriesConfig.lower_line?.color || '#F44336',
                         width: '20px',
                         height: '12px',
                         border: '1px solid #ddd',
-                        borderRadius: '2px'
+                        borderRadius: '2px',
                       }}
                     />
-                    <span className="line-style-indicator">
-                      {activeSeriesConfig.lower_line?.line_style || 'solid'} • {activeSeriesConfig.lower_line?.line_width || 2}px
+                    <span className='line-style-indicator'>
+                      {activeSeriesConfig.lower_line?.line_style || 'solid'} •{' '}
+                      {activeSeriesConfig.lower_line?.line_width || 2}px
                     </span>
                   </div>
                 </div>
 
                 {/* Fill Settings */}
-                <div className="checkbox-row">
+                <div className='checkbox-row'>
                   <input
-                    type="checkbox"
-                    id="fill"
-                    name="fill"
+                    type='checkbox'
+                    id='fill'
+                    name='fill'
                     checked={activeSeriesConfig.fill !== false}
-                    onChange={(e) => handleConfigChange(activeSeriesId, { fill: e.target.checked })}
-                    aria-label="Show fill area"
+                    onChange={e => handleConfigChange(activeSeriesId, { fill: e.target.checked })}
+                    aria-label='Show fill area'
                   />
-                  <label htmlFor="fill">Fill</label>
+                  <label htmlFor='fill'>Fill</label>
                 </div>
 
                 {activeSeriesConfig.fill !== false && (
                   <div
-                    className="color-row"
+                    className='color-row'
                     onClick={() => openColorPicker('fill_color')}
-                    role="button"
+                    role='button'
                     tabIndex={0}
-                    onKeyDown={(e) => {
+                    onKeyDown={e => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         openColorPicker('fill_color');
                       }
                     }}
-                    aria-label="Edit fill color"
+                    aria-label='Edit fill color'
                   >
                     <span>Fill Color</span>
-                    <div className="color-preview">
+                    <div className='color-preview'>
                       <div
-                        className="color-swatch"
+                        className='color-swatch'
                         style={{
                           backgroundColor: toCss(
                             activeSeriesConfig.fill_color || '#2196F3',
@@ -870,10 +920,10 @@ Settings
                           width: '32px',
                           height: '12px',
                           border: '1px solid #ddd',
-                          borderRadius: '4px'
+                          borderRadius: '4px',
                         }}
                       />
-                      <span className="opacity-indicator">
+                      <span className='opacity-indicator'>
                         {activeSeriesConfig.fill_opacity || 20}%
                       </span>
                     </div>
@@ -884,36 +934,37 @@ Settings
 
             {/* Line Series Settings */}
             {activeSeriesInfo?.type === 'line' && (
-              <div className="settings-section">
+              <div className='settings-section'>
                 <h4>Line Settings</h4>
 
                 <div
-                  className="line-row"
+                  className='line-row'
                   onClick={() => openLineEditor('main_line')}
-                  role="button"
+                  role='button'
                   tabIndex={0}
-                  onKeyDown={(e) => {
+                  onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       openLineEditor('main_line');
                     }
                   }}
-                  aria-label="Edit line settings"
+                  aria-label='Edit line settings'
                 >
                   <span>Line</span>
-                  <div className="line-preview">
+                  <div className='line-preview'>
                     <div
-                      className="line-color-swatch"
+                      className='line-color-swatch'
                       style={{
                         backgroundColor: activeSeriesConfig.color || '#2196F3',
                         width: '20px',
                         height: '12px',
                         border: '1px solid #ddd',
-                        borderRadius: '2px'
+                        borderRadius: '2px',
                       }}
                     />
-                    <span className="line-style-indicator">
-                      {activeSeriesConfig.line_style || 'solid'} • {activeSeriesConfig.line_width || 1}px
+                    <span className='line-style-indicator'>
+                      {activeSeriesConfig.line_style || 'solid'} •{' '}
+                      {activeSeriesConfig.line_width || 1}px
                     </span>
                   </div>
                 </div>
@@ -921,22 +972,25 @@ Settings
             )}
 
             {/* Submit button for form action (hidden) */}
-            <button type="submit" style={{ display: 'none' }} disabled={isPending}>
+            <button type='submit' style={{ display: 'none' }} disabled={isPending}>
               Apply Settings
             </button>
           </form>
         </div>
 
         {/* Footer */}
-        <div className="series-config-footer" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '12px 12px',
-          borderTop: '1px solid #e0e3e7',
-          backgroundColor: '#ffffff',
-          minHeight: '28px'
-        }}>
+        <div
+          className='series-config-footer'
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 12px',
+            borderTop: '1px solid #e0e3e7',
+            backgroundColor: '#ffffff',
+            minHeight: '28px',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
               style={{
@@ -980,10 +1034,10 @@ Settings
 
                 handleConfigChange(activeSeriesId, defaultConfig);
               }}
-              onMouseEnter={(e) => {
+              onMouseEnter={e => {
                 e.currentTarget.style.backgroundColor = '#f8f9fa';
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={e => {
                 e.currentTarget.style.backgroundColor = '#ffffff';
               }}
             >
@@ -993,11 +1047,11 @@ Settings
                   marginLeft: '6px',
                   width: '12px',
                   height: '12px',
-                  fill: '#787b86'
+                  fill: '#787b86',
                 }}
-                viewBox="0 0 16 16"
+                viewBox='0 0 16 16'
               >
-                <path d="M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z"/>
+                <path d='M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z' />
               </svg>
             </button>
           </div>
@@ -1016,10 +1070,10 @@ Settings
                 minHeight: '28px',
               }}
               onClick={handleCloseWithFocusRestore}
-              onMouseEnter={(e) => {
+              onMouseEnter={e => {
                 e.currentTarget.style.backgroundColor = '#f8f9fa';
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={e => {
                 e.currentTarget.style.backgroundColor = '#ffffff';
               }}
             >
@@ -1039,10 +1093,10 @@ Settings
                 minHeight: '28px',
               }}
               onClick={handleCloseWithFocusRestore}
-              onMouseEnter={(e) => {
+              onMouseEnter={e => {
                 e.currentTarget.style.backgroundColor = '#1e53e5';
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={e => {
                 e.currentTarget.style.backgroundColor = '#2962ff';
               }}
             >

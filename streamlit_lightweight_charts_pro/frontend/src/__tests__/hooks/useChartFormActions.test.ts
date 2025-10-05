@@ -21,9 +21,7 @@ describe('useChartFormActions', () => {
   });
 
   it('should initialize with correct state', () => {
-    const { result } = renderHook(() =>
-      useChartFormActions()
-    );
+    const { result } = renderHook(() => useChartFormActions());
 
     expect(result.current.config).toBeDefined();
     expect(result.current.import).toBeDefined();
@@ -36,9 +34,7 @@ describe('useChartFormActions', () => {
   });
 
   it('should handle configuration form submission', async () => {
-    const { result } = renderHook(() =>
-      useChartFormActions()
-    );
+    const { result } = renderHook(() => useChartFormActions());
 
     const formData = new FormData();
     formData.append('title', 'Test Chart');
@@ -52,9 +48,12 @@ describe('useChartFormActions', () => {
     });
 
     // Wait for async processing to complete
-    await waitFor(() => {
-      expect(result.current.config.state.data).toBeDefined();
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(result.current.config.state.data).toBeDefined();
+      },
+      { timeout: 2000 }
+    );
 
     expect(result.current.config.state.data).toEqual(
       expect.objectContaining({
@@ -66,9 +65,7 @@ describe('useChartFormActions', () => {
   });
 
   it('should handle form validation errors', async () => {
-    const { result } = renderHook(() =>
-      useChartFormActions()
-    );
+    const { result } = renderHook(() => useChartFormActions());
 
     const formData = new FormData();
     formData.append('title', 'a'.repeat(150)); // Invalid: too long
@@ -81,18 +78,19 @@ describe('useChartFormActions', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.config.state.error).toBeDefined();
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(result.current.config.state.error).toBeDefined();
+      },
+      { timeout: 2000 }
+    );
 
     expect(result.current.config.hasError).toBe(true);
     expect(result.current.config.hasValidationErrors).toBe(true);
   });
 
   it('should handle data import form submission', async () => {
-    const { result } = renderHook(() =>
-      useChartFormActions()
-    );
+    const { result } = renderHook(() => useChartFormActions());
 
     // Create a mock file
     const mockFile = new File(['test data'], 'test.csv', { type: 'text/csv' });
@@ -106,18 +104,19 @@ describe('useChartFormActions', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.import.isCompleted).toBe(true);
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(result.current.import.isCompleted).toBe(true);
+      },
+      { timeout: 2000 }
+    );
 
     expect(result.current.import.progress.completed).toBe(true);
     expect(result.current.import.progress.recordCount).toBeGreaterThan(0);
   });
 
   it('should handle chart export form submission', async () => {
-    const { result } = renderHook(() =>
-      useChartFormActions()
-    );
+    const { result } = renderHook(() => useChartFormActions());
 
     const formData = new FormData();
     formData.append('format', 'png');
@@ -131,18 +130,19 @@ describe('useChartFormActions', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.export.isReady).toBe(true);
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(result.current.export.isReady).toBe(true);
+      },
+      { timeout: 2000 }
+    );
 
     expect(result.current.export.exportStatus.ready).toBe(true);
     expect(result.current.export.exportStatus.format).toBe('png');
   });
 
   it('should provide form field helpers', () => {
-    const { result } = renderHook(() =>
-      useChartFormActions()
-    );
+    const { result } = renderHook(() => useChartFormActions());
 
     expect(result.current.config.getFieldError).toBeInstanceOf(Function);
     expect(result.current.config.hasFieldError).toBeInstanceOf(Function);
@@ -155,9 +155,7 @@ describe('useChartFormActions', () => {
   });
 
   it('should handle download file functionality', async () => {
-    const { result } = renderHook(() =>
-      useChartFormActions()
-    );
+    const { result } = renderHook(() => useChartFormActions());
 
     const formData = new FormData();
     formData.append('format', 'png');
@@ -169,9 +167,12 @@ describe('useChartFormActions', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.export.isReady).toBe(true);
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(result.current.export.isReady).toBe(true);
+      },
+      { timeout: 2000 }
+    );
 
     // Mock window.open
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
@@ -187,9 +188,7 @@ describe('useChartFormActions', () => {
   });
 
   it('should show pending states appropriately', () => {
-    const { result } = renderHook(() =>
-      useChartFormActions()
-    );
+    const { result } = renderHook(() => useChartFormActions());
 
     // Initial state should not show pending
     expect(result.current.config.isSubmitting).toBe(false);
@@ -198,9 +197,7 @@ describe('useChartFormActions', () => {
   });
 
   it('should handle empty form submissions gracefully', async () => {
-    const { result } = renderHook(() =>
-      useChartFormActions()
-    );
+    const { result } = renderHook(() => useChartFormActions());
 
     const formData = new FormData();
 
@@ -210,9 +207,12 @@ describe('useChartFormActions', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.config.state.data).toBeDefined();
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(result.current.config.state.data).toBeDefined();
+      },
+      { timeout: 2000 }
+    );
 
     expect(result.current.config.state.data).toEqual(
       expect.objectContaining({

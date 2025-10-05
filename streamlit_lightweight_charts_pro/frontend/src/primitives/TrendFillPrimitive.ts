@@ -365,7 +365,8 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
       }
 
       // Check if next bar has different direction (this bar is end of trend)
-      const isDirectionChange = nextBar &&
+      const isDirectionChange =
+        nextBar &&
         this._isValidCoordinates(nextBar) &&
         nextBar.trendDirection !== 0 &&
         nextBar.trendDirection !== bar.trendDirection;
@@ -375,10 +376,12 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
         flushGroup();
 
         // If starting after transition, use transition data
-        const barToAdd = transitionData ? {
-          ...bar,
-          transitionData: { ...transitionData },
-        } as any : bar;
+        const barToAdd = transitionData
+          ? ({
+              ...bar,
+              transitionData: { ...transitionData },
+            } as any)
+          : bar;
 
         currentGroup = [barToAdd];
         currentColor = bar.fillColor;
@@ -400,12 +403,20 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
         // Extend current trend to next bar's X position
         currentGroup[currentGroup.length - 1] = {
           ...currentGroup[currentGroup.length - 1],
-          transitionData: { x: transitionX, trendLineY: transitionTrendY, baseLineY: transitionBaseY },
+          transitionData: {
+            x: transitionX,
+            trendLineY: transitionTrendY,
+            baseLineY: transitionBaseY,
+          },
         } as any;
 
         // Store transition data for starting next group
         // Next group starts at same X with its own trend values
-        transitionData = { x: transitionX, trendLineY: nextBar.trendLineY ?? 0, baseLineY: nextBar.baseLineY ?? 0 };
+        transitionData = {
+          x: transitionX,
+          trendLineY: nextBar.trendLineY ?? 0,
+          baseLineY: nextBar.baseLineY ?? 0,
+        };
       }
     }
 
@@ -464,7 +475,6 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
     }
   }
 
-
   /**
    * Apply line dash pattern
    */
@@ -515,7 +525,10 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
  * Trend Fill Primitive View
  * Handles data processing and coordinate conversion
  */
-class TrendFillPrimitiveView extends BaseSeriesPrimitivePaneView<TrendFillItem, TrendFillPrimitiveOptions> {
+class TrendFillPrimitiveView extends BaseSeriesPrimitivePaneView<
+  TrendFillItem,
+  TrendFillPrimitiveOptions
+> {
   private _data: TrendFillViewData;
 
   constructor(source: TrendFillPrimitive) {
@@ -565,11 +578,7 @@ class TrendFillPrimitiveView extends BaseSeriesPrimitivePaneView<TrendFillItem, 
 
     // Convert coordinates
     const items = this._source.getProcessedData();
-    const convertedItems = this._batchConvertCoordinates(
-      items,
-      timeScale,
-      attachedSeries
-    );
+    const convertedItems = this._batchConvertCoordinates(items, timeScale, attachedSeries);
 
     this._data.data.visibleRange = this._calculateVisibleRange(convertedItems);
     this._data.data.items = convertedItems;
@@ -809,7 +818,10 @@ class TrendFillPriceAxisView implements ISeriesPrimitiveAxisView {
  * Trend Fill Primitive
  * ISeriesPrimitive implementation with z-order control and price axis label
  */
-export class TrendFillPrimitive extends BaseSeriesPrimitive<TrendFillItem, TrendFillPrimitiveOptions> {
+export class TrendFillPrimitive extends BaseSeriesPrimitive<
+  TrendFillItem,
+  TrendFillPrimitiveOptions
+> {
   private trendFillItems: TrendFillItem[] = [];
 
   constructor(
@@ -895,10 +907,14 @@ export class TrendFillPrimitive extends BaseSeriesPrimitive<TrendFillItem, Trend
       }
 
       const isUptrend = trendDirection > 0;
-      const fillColor = isUptrend ? this._options.uptrendFillColor : this._options.downtrendFillColor;
+      const fillColor = isUptrend
+        ? this._options.uptrendFillColor
+        : this._options.downtrendFillColor;
 
       // Use fill color for line color (matches ICustomSeries logic at line 218)
-      const lineColor = isUptrend ? this._options.uptrendFillColor : this._options.downtrendFillColor;
+      const lineColor = isUptrend
+        ? this._options.uptrendFillColor
+        : this._options.downtrendFillColor;
 
       this.trendFillItems.push({
         time,

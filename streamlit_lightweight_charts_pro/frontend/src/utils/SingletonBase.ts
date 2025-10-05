@@ -82,17 +82,17 @@ export function Singleton(key?: string) {
     const instanceKey = key || constructor.name;
 
     // Add static getInstance method to the class
-    (constructor as any).getInstance = function() {
+    (constructor as any).getInstance = function () {
       return SingletonBase.getInstance(constructor, instanceKey);
     };
 
     // Add static clearInstance method to the class
-    (constructor as any).clearInstance = function() {
+    (constructor as any).clearInstance = function () {
       return SingletonBase.clearInstance(instanceKey);
     };
 
     // Add static hasInstance method to the class
-    (constructor as any).hasInstance = function() {
+    (constructor as any).hasInstance = function () {
       return SingletonBase.hasInstance(instanceKey);
     };
 
@@ -107,10 +107,7 @@ export function Singleton(key?: string) {
  * @param key - Optional key for the singleton
  * @returns Singleton instance
  */
-export function createSingleton<T>(
-  constructor: any,
-  key?: string
-): T {
+export function createSingleton<T>(constructor: any, key?: string): T {
   const instanceKey = key || constructor.name;
   return SingletonBase.getInstance(constructor as any, instanceKey) as any;
 }

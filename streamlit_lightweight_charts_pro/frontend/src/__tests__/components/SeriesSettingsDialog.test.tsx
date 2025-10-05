@@ -39,7 +39,7 @@ vi.mock('../../hooks/useOptimisticChartUpdates', () => ({
 vi.mock('../../components/LineEditorDialog', () => ({
   LineEditorDialog: ({ isOpen, config, onSave, onCancel }: any) =>
     isOpen ? (
-      <div data-testid="line-editor">
+      <div data-testid='line-editor'>
         <span>Line Editor</span>
         <button onClick={() => onSave({ color: '#FF0000', style: 'dashed', width: 3 })}>
           Save Line
@@ -52,7 +52,7 @@ vi.mock('../../components/LineEditorDialog', () => ({
 vi.mock('../../components/ColorPickerDialog', () => ({
   ColorPickerDialog: ({ isOpen, color, opacity, onSave, onCancel }: any) =>
     isOpen ? (
-      <div data-testid="color-picker">
+      <div data-testid='color-picker'>
         <span>Color Picker</span>
         <button onClick={() => onSave('#00FF00', 75)}>Save Color</button>
         <button onClick={onCancel}>Cancel Color</button>
@@ -327,15 +327,18 @@ describe('SeriesSettingsDialog', () => {
     const defaultsButton = screen.getByText('Defaults');
     await user.click(defaultsButton);
 
-    expect(defaultProps.onConfigChange).toHaveBeenCalledWith('series1', expect.objectContaining({
-      visible: true,
-      markers: false,
-      last_value_visible: true,
-      price_line: true,
-      color: '#2196F3',
-      line_style: 'solid',
-      line_width: 1,
-    }));
+    expect(defaultProps.onConfigChange).toHaveBeenCalledWith(
+      'series1',
+      expect.objectContaining({
+        visible: true,
+        markers: false,
+        last_value_visible: true,
+        price_line: true,
+        color: '#2196F3',
+        line_style: 'solid',
+        line_width: 1,
+      })
+    );
   });
 
   it('should handle backdrop click when no sub-dialogs are open', async () => {

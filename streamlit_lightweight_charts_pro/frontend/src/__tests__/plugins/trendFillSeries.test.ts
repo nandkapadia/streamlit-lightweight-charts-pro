@@ -22,7 +22,7 @@ const mockChart = {
   addCustomSeries: vi.fn(),
   timeScale: vi.fn(() => ({
     getVisibleRange: vi.fn(() => ({ from: 0, to: 100 })),
-    timeToCoordinate: vi.fn((time) => 100 + Math.random() * 300),
+    timeToCoordinate: vi.fn(time => 100 + Math.random() * 300),
   })),
   chartElement: vi.fn(() => ({
     clientWidth: 800,
@@ -34,7 +34,7 @@ const mockChart = {
 const mockSeries = {
   setData: vi.fn(),
   attachPrimitive: vi.fn(),
-  priceToCoordinate: vi.fn((price) => 100 + Math.random() * 300),
+  priceToCoordinate: vi.fn(price => 100 + Math.random() * 300),
   options: vi.fn(() => ({
     lastValueVisible: true,
   })),
@@ -268,13 +268,9 @@ describe('TrendFillSeries (ICustomSeries)', () => {
     it('should support all line styles for trend line', () => {
       // Note: Only Solid, Dotted, and Dashed are supported (0, 1, 2)
       // LargeDashed and SparseDotted are clamped to Dashed when passed to primitive
-      const lineStyles = [
-        LineStyle.Solid,
-        LineStyle.Dotted,
-        LineStyle.Dashed,
-      ];
+      const lineStyles = [LineStyle.Solid, LineStyle.Dotted, LineStyle.Dashed];
 
-      lineStyles.forEach((lineStyle) => {
+      lineStyles.forEach(lineStyle => {
         vi.clearAllMocks();
         createTrendFillSeries(mockChart as any, {
           trendLineStyle: lineStyle,
@@ -292,13 +288,9 @@ describe('TrendFillSeries (ICustomSeries)', () => {
     it('should support all line styles for base line', () => {
       // Note: Only Solid, Dotted, and Dashed are supported (0, 1, 2)
       // LargeDashed and SparseDotted are clamped to Dashed when passed to primitive
-      const lineStyles = [
-        LineStyle.Solid,
-        LineStyle.Dotted,
-        LineStyle.Dashed,
-      ];
+      const lineStyles = [LineStyle.Solid, LineStyle.Dotted, LineStyle.Dashed];
 
-      lineStyles.forEach((lineStyle) => {
+      lineStyles.forEach(lineStyle => {
         vi.clearAllMocks();
         createTrendFillSeries(mockChart as any, {
           baseLineStyle: lineStyle,

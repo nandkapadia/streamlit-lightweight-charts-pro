@@ -7,11 +7,7 @@
  */
 
 import React, { useState } from 'react';
-import {
-  ButtonColors,
-  ButtonDimensions,
-  ButtonEffects,
-} from '../primitives/PrimitiveDefaults';
+import { ButtonColors, ButtonDimensions, ButtonEffects } from '../primitives/PrimitiveDefaults';
 
 /**
  * Props for the ButtonPanelComponent.

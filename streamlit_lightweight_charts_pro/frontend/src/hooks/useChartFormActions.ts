@@ -94,7 +94,7 @@ async function chartConfigAction(
       },
       priceScale: {
         visible: rawData.priceScaleVisible === 'true',
-        position: rawData.priceScalePosition as 'left' | 'right' || 'right',
+        position: (rawData.priceScalePosition as 'left' | 'right') || 'right',
         autoScale: rawData.autoScale === 'true',
       },
     };
@@ -112,7 +112,6 @@ async function chartConfigAction(
       isLoading: false,
       lastAction: 'config_updated',
     };
-
   } catch (error) {
     react19Monitor.endTransition(transitionId);
 
@@ -142,7 +141,8 @@ async function chartDataImportAction(
     // Validate file
     if (!file || file.size === 0) {
       validationErrors.dataFile = 'Please select a valid file';
-    } else if (file.size > 10 * 1024 * 1024) { // 10MB limit
+    } else if (file.size > 10 * 1024 * 1024) {
+      // 10MB limit
       validationErrors.dataFile = 'File size must be less than 10MB';
     }
 
@@ -195,7 +195,6 @@ async function chartDataImportAction(
       isLoading: false,
       lastAction: 'data_imported',
     };
-
   } catch (error) {
     react19Monitor.endTransition(transitionId);
 
@@ -249,7 +248,6 @@ async function chartExportAction(
       isLoading: false,
       lastAction: 'export_completed',
     };
-
   } catch (error) {
     react19Monitor.endTransition(transitionId);
 
@@ -278,14 +276,17 @@ export function useChartConfigForm(initialData?: ChartConfigFormData) {
   const hasError = Boolean(state.error);
   const hasValidationErrors = Boolean(state.validationErrors);
 
-  const formHelpers = useMemo(() => ({
-    getFieldError: (fieldName: string) => state.validationErrors?.[fieldName],
-    hasFieldError: (fieldName: string) => Boolean(state.validationErrors?.[fieldName]),
-    isFieldValid: (fieldName: string) => !state.validationErrors?.[fieldName],
-    resetForm: () => {
-      // This would typically reset form state
-    },
-  }), [state.validationErrors]);
+  const formHelpers = useMemo(
+    () => ({
+      getFieldError: (fieldName: string) => state.validationErrors?.[fieldName],
+      hasFieldError: (fieldName: string) => Boolean(state.validationErrors?.[fieldName]),
+      isFieldValid: (fieldName: string) => !state.validationErrors?.[fieldName],
+      resetForm: () => {
+        // This would typically reset form state
+      },
+    }),
+    [state.validationErrors]
+  );
 
   return {
     state,

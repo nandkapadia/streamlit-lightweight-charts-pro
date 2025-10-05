@@ -113,10 +113,7 @@ export class ComponentTestUtilities {
   /**
    * Render component with common options
    */
-  static renderComponent(
-    component: ReactElement,
-    options?: RenderOptions
-  ) {
+  static renderComponent(component: ReactElement, options?: RenderOptions) {
     const defaultOptions: RenderOptions = {
       // Add common render options here
     };
@@ -212,13 +209,15 @@ export class MockUtilities {
     return {
       args: {
         config: {
-          charts: [{
-            chart: {
-              height: 400,
-              width: 800,
+          charts: [
+            {
+              chart: {
+                height: 400,
+                width: 800,
+              },
+              series: [],
             },
-            series: [],
-          }],
+          ],
         },
         height: 400,
         width: 800,
@@ -284,9 +283,7 @@ export class AssertionUtilities {
    */
   static expectErrorHandled(consoleSpy: any, expectedMessage?: string) {
     if (expectedMessage) {
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(expectedMessage)
-      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining(expectedMessage));
     } else {
       expect(consoleSpy).toHaveBeenCalled();
     }
@@ -306,9 +303,7 @@ export const TestDecorators = {
       descriptor.value = async function (...args: any[]) {
         return Promise.race([
           originalMethod.apply(this, args),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Test timeout')), timeout)
-          ),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Test timeout')), timeout)),
         ]);
       };
     };

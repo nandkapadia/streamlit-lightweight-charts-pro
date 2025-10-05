@@ -436,49 +436,49 @@ describe('PrimitiveStylingUtils - applyInteractionState', () => {
 
 describe('PrimitiveStylingUtils - normalizeColor', () => {
   it('should return color for valid hex', () => {
-    const _result = PrimitiveStylingUtils.normalizeColor('#FF0000', '#000000');
+    const result = PrimitiveStylingUtils.normalizeColor('#FF0000', '#000000');
     expect(result).toBe('#FF0000');
   });
 
   it('should return color for valid rgb', () => {
-    const _result = PrimitiveStylingUtils.normalizeColor('rgb(255, 0, 0)', '#000000');
+    const result = PrimitiveStylingUtils.normalizeColor('rgb(255, 0, 0)', '#000000');
     expect(result).toBe('rgb(255, 0, 0)');
   });
 
   it('should return color for named colors', () => {
-    const _result = PrimitiveStylingUtils.normalizeColor('red', '#000000');
+    const result = PrimitiveStylingUtils.normalizeColor('red', '#000000');
     expect(result).toBe('red');
   });
 
   it('should return fallback for invalid color', () => {
-    const _result = PrimitiveStylingUtils.normalizeColor('invalid123', '#000000');
+    const result = PrimitiveStylingUtils.normalizeColor('invalid123', '#000000');
     expect(result).toBe('#000000');
   });
 
   it('should return fallback for undefined', () => {
-    const _result = PrimitiveStylingUtils.normalizeColor(undefined, '#000000');
+    const result = PrimitiveStylingUtils.normalizeColor(undefined, '#000000');
     expect(result).toBe('#000000');
   });
 });
 
 describe('PrimitiveStylingUtils - normalizeNumericValue', () => {
   it('should convert number to px', () => {
-    const _result = PrimitiveStylingUtils.normalizeNumericValue(10, 'px', 0);
+    const result = PrimitiveStylingUtils.normalizeNumericValue(10, 'px', 0);
     expect(result).toBe('10px');
   });
 
   it('should keep string as is', () => {
-    const _result = PrimitiveStylingUtils.normalizeNumericValue('100%', 'px', 0);
+    const result = PrimitiveStylingUtils.normalizeNumericValue('100%', 'px', 0);
     expect(result).toBe('100%');
   });
 
   it('should use fallback for undefined', () => {
-    const _result = PrimitiveStylingUtils.normalizeNumericValue(undefined, 'px', 5);
+    const result = PrimitiveStylingUtils.normalizeNumericValue(undefined, 'px', 5);
     expect(result).toBe('5px');
   });
 
   it('should use custom unit', () => {
-    const _result = PrimitiveStylingUtils.normalizeNumericValue(1.5, 'em', 1);
+    const result = PrimitiveStylingUtils.normalizeNumericValue(1.5, 'em', 1);
     expect(result).toBe('1.5em');
   });
 });

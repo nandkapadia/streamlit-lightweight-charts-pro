@@ -601,7 +601,7 @@ describe('ChartCoordinateService', () => {
       const mockDiv = document.createElement('div');
       // Make the div have no dimensions to simulate unavailable element
       Object.defineProperty(mockDiv, 'getBoundingClientRect', {
-        value: () => ({ width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 })
+        value: () => ({ width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 }),
       });
       mockChart.chartElement = vi.fn(() => mockDiv);
 

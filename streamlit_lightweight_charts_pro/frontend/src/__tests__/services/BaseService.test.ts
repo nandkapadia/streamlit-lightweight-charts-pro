@@ -13,7 +13,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BaseService, BaseServiceConfig, ServiceRegistry, globalServiceRegistry } from '../../services/BaseService';
+import {
+  BaseService,
+  BaseServiceConfig,
+  ServiceRegistry,
+  globalServiceRegistry,
+} from '../../services/BaseService';
 
 // Concrete implementation for testing
 class TestService extends BaseService {
@@ -53,7 +58,11 @@ class TestService extends BaseService {
     this.validateState();
   }
 
-  public testLog(level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void {
+  public testLog(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string,
+    ...args: any[]
+  ): void {
     this.log(level, message, ...args);
   }
 
@@ -126,14 +135,17 @@ describe('BaseService', () => {
       (service as any).initialize();
 
       // Should warn and not re-initialize
-      expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('test-service'), 'Service already initialized');
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('test-service'),
+        'Service already initialized'
+      );
     });
 
     it('should handle initialization errors', () => {
       const error = new Error('Init failed');
 
       expect(() => {
-        const __failingService = new (class extends TestService {
+        const _failingService = new (class extends TestService {
           protected onInitialize(): void {
             throw error;
           }
@@ -161,7 +173,7 @@ describe('BaseService', () => {
 
   describe('Singleton Pattern', () => {
     it('should return same instance for same service name', () => {
-      const _config = { name: 'singleton-service', singleton: true };
+      const config = { name: 'singleton-service', singleton: true };
       const service1 = new TestService(config);
 
       // Second instance with same name should return first
@@ -181,8 +193,14 @@ describe('BaseService', () => {
     });
 
     it('should create new instance when singleton disabled', () => {
-      const service1 = BaseService.getInstance.call(TestService, { name: 'non-singleton', singleton: false });
-      const service2 = BaseService.getInstance.call(TestService, { name: 'non-singleton', singleton: false });
+      const service1 = BaseService.getInstance.call(TestService, {
+        name: 'non-singleton',
+        singleton: false,
+      });
+      const service2 = BaseService.getInstance.call(TestService, {
+        name: 'non-singleton',
+        singleton: false,
+      });
 
       expect(service1).not.toBe(service2);
     });
@@ -227,7 +245,10 @@ describe('BaseService', () => {
       service.destroy();
 
       expect(service.destroyCalled).toBe(false);
-      expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('test-service'), 'Service already destroyed');
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('test-service'),
+        'Service already destroyed'
+      );
     });
 
     it('should remove all event listeners on destroy', () => {
@@ -325,7 +346,11 @@ describe('BaseService', () => {
     });
 
     it('should respect debug level configuration', () => {
-      const service = new TestService({ name: 'test-service', debugLevel: 'info', singleton: false });
+      const service = new TestService({
+        name: 'test-service',
+        debugLevel: 'info',
+        singleton: false,
+      });
 
       vi.clearAllMocks();
 
@@ -353,7 +378,7 @@ describe('BaseService', () => {
       const listener = vi.fn();
 
       service.on('test-event', listener);
-      const _result = service.testEmitEvent('test-event', 'arg1', 'arg2');
+      const result = service.testEmitEvent('test-event', 'arg1', 'arg2');
 
       expect(result).toBe(true);
       expect(listener).toHaveBeenCalledWith('arg1', 'arg2');
@@ -364,7 +389,7 @@ describe('BaseService', () => {
       const listener = vi.fn();
 
       service.on('test-event', listener);
-      const _result = service.testEmitEvent('test-event', 'arg1');
+      const result = service.testEmitEvent('test-event', 'arg1');
 
       expect(result).toBe(false);
       expect(listener).not.toHaveBeenCalled();
@@ -377,7 +402,7 @@ describe('BaseService', () => {
       service.on('test-event', listener);
       service.destroy();
 
-      const _result = service.testEmitEvent('test-event', 'arg1');
+      const result = service.testEmitEvent('test-event', 'arg1');
 
       expect(result).toBe(false);
     });
@@ -458,7 +483,7 @@ describe('ServiceRegistry', () => {
       const service = new TestService({ name: 'test-service', singleton: false });
 
       registry.register(service);
-      const _result = registry.unregister('test-service');
+      const result = registry.unregister('test-service');
 
       expect(result).toBe(true);
       expect(registry.has('test-service')).toBe(false);
@@ -466,7 +491,7 @@ describe('ServiceRegistry', () => {
     });
 
     it('should return false when unregistering non-existent service', () => {
-      const _result = registry.unregister('non-existent');
+      const result = registry.unregister('non-existent');
 
       expect(result).toBe(false);
     });

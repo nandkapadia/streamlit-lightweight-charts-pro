@@ -24,7 +24,21 @@ describe('coordinateValidation', () => {
       const validCoordinates: ChartCoordinates = {
         container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
         timeScale: { x: 0, y: 370, width: 800, height: 30 },
-        panes: [{ width: 800, height: 370, x: 0, y: 0, paneId: 0, absoluteX: 0, absoluteY: 0, contentArea: { top: 0, left: 0, width: 800, height: 370 }, margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false }],
+        panes: [
+          {
+            width: 800,
+            height: 370,
+            x: 0,
+            y: 0,
+            paneId: 0,
+            absoluteX: 0,
+            absoluteY: 0,
+            contentArea: { top: 0, left: 0, width: 800, height: 370 },
+            margins: { top: 0, right: 0, bottom: 0, left: 0 },
+            isMainPane: true,
+            isLastPane: false,
+          },
+        ],
         priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
         priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
         contentArea: { x: 60, y: 0, width: 680, height: 370 },
@@ -32,7 +46,7 @@ describe('coordinateValidation', () => {
         isValid: true,
       };
 
-      const _result = validateChartCoordinates(validCoordinates);
+      const result = validateChartCoordinates(validCoordinates);
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -50,7 +64,7 @@ describe('coordinateValidation', () => {
         isValid: true,
       } as any;
 
-      const _result = validateChartCoordinates(invalidCoordinates);
+      const result = validateChartCoordinates(invalidCoordinates);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Missing container dimensions');
@@ -68,7 +82,7 @@ describe('coordinateValidation', () => {
         isValid: true,
       };
 
-      const _result = validateChartCoordinates(invalidCoordinates);
+      const result = validateChartCoordinates(invalidCoordinates);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Invalid container width: 0');
@@ -87,7 +101,7 @@ describe('coordinateValidation', () => {
         isValid: true,
       };
 
-      const _result = validateChartCoordinates(smallCoordinates);
+      const result = validateChartCoordinates(smallCoordinates);
 
       expect(result.warnings.length).toBeGreaterThan(0);
       expect(result.warnings.some(w => w.includes('below recommended minimum'))).toBe(true);
@@ -105,7 +119,7 @@ describe('coordinateValidation', () => {
         isValid: true,
       } as any;
 
-      const _result = validateChartCoordinates(invalidCoordinates);
+      const result = validateChartCoordinates(invalidCoordinates);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Missing time scale dimensions');
@@ -123,10 +137,12 @@ describe('coordinateValidation', () => {
         absoluteX: 0,
         absoluteY: 0,
         contentArea: { top: 0, left: 0, width: 800, height: 370 },
-                        margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false,
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
+        isMainPane: true,
+        isLastPane: false,
       };
 
-      const _result = validatePaneCoordinates(validPane, 0);
+      const result = validatePaneCoordinates(validPane, 0);
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -142,10 +158,12 @@ describe('coordinateValidation', () => {
         absoluteX: 0,
         absoluteY: 0,
         contentArea: { top: 0, left: 0, width: -100, height: 0 },
-                        margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false,
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
+        isMainPane: true,
+        isLastPane: false,
       };
 
-      const _result = validatePaneCoordinates(invalidPane, 0);
+      const result = validatePaneCoordinates(invalidPane, 0);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Pane 0: Invalid width (-100)');
@@ -162,10 +180,12 @@ describe('coordinateValidation', () => {
         absoluteX: -5,
         absoluteY: -10,
         contentArea: { top: -10, left: -5, width: 800, height: 370 },
-                        margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false,
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
+        isMainPane: true,
+        isLastPane: false,
       };
 
-      const _result = validatePaneCoordinates(invalidPane, 1);
+      const result = validatePaneCoordinates(invalidPane, 1);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Pane 1: Invalid top position (-10)');
@@ -182,7 +202,7 @@ describe('coordinateValidation', () => {
         height: 370,
       };
 
-      const _result = validateScaleDimensions(validScale, 'priceScale');
+      const result = validateScaleDimensions(validScale, 'priceScale');
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -196,7 +216,7 @@ describe('coordinateValidation', () => {
         height: -100,
       };
 
-      const _result = validateScaleDimensions(invalidScale, 'timeScale');
+      const result = validateScaleDimensions(invalidScale, 'timeScale');
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('timeScale: Invalid width (0)');
@@ -204,7 +224,7 @@ describe('coordinateValidation', () => {
     });
 
     it('should handle missing scale dimensions', () => {
-      const _result = validateScaleDimensions(null as any, 'priceScale');
+      const result = validateScaleDimensions(null as any, 'priceScale');
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('priceScale: Missing scale dimensions');
@@ -224,7 +244,7 @@ describe('coordinateValidation', () => {
         bottom: 70,
       };
 
-      const _result = validateBoundingBox(validBox);
+      const result = validateBoundingBox(validBox);
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -242,7 +262,7 @@ describe('coordinateValidation', () => {
         bottom: -30,
       };
 
-      const _result = validateBoundingBox(invalidBox);
+      const result = validateBoundingBox(invalidBox);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('BoundingBox: Invalid width (0)');
@@ -250,7 +270,7 @@ describe('coordinateValidation', () => {
     });
 
     it('should handle missing bounding box', () => {
-      const _result = validateBoundingBox(null as any);
+      const result = validateBoundingBox(null as any);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('BoundingBox: Missing bounding box data');
@@ -262,7 +282,21 @@ describe('coordinateValidation', () => {
       const invalidCoordinates: ChartCoordinates = {
         container: { width: -100, height: 0, offsetTop: 0, offsetLeft: 0 },
         timeScale: { x: 0, y: 0, width: -50, height: 0 },
-        panes: [{ width: 0, height: -100, x: -5, y: -10, paneId: 0, absoluteX: 0, absoluteY: 0, contentArea: { top: 0, left: 0, width: 0, height: 0 }, margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false }],
+        panes: [
+          {
+            width: 0,
+            height: -100,
+            x: -5,
+            y: -10,
+            paneId: 0,
+            absoluteX: 0,
+            absoluteY: 0,
+            contentArea: { top: 0, left: 0, width: 0, height: 0 },
+            margins: { top: 0, right: 0, bottom: 0, left: 0 },
+            isMainPane: true,
+            isLastPane: false,
+          },
+        ],
         priceScaleLeft: { x: 0, y: 0, width: 0, height: -100 },
         priceScaleRight: { x: 0, y: 0, width: 0, height: -100 },
         contentArea: { x: 0, y: 0, width: 0, height: 0 },
@@ -286,7 +320,21 @@ describe('coordinateValidation', () => {
       const validCoordinates: ChartCoordinates = {
         container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
         timeScale: { x: 0, y: 370, width: 800, height: 30 },
-        panes: [{ width: 800, height: 370, x: 0, y: 0, paneId: 0, absoluteX: 0, absoluteY: 0, contentArea: { top: 0, left: 0, width: 800, height: 370 }, margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false }],
+        panes: [
+          {
+            width: 800,
+            height: 370,
+            x: 0,
+            y: 0,
+            paneId: 0,
+            absoluteX: 0,
+            absoluteY: 0,
+            contentArea: { top: 0, left: 0, width: 800, height: 370 },
+            margins: { top: 0, right: 0, bottom: 0, left: 0 },
+            isMainPane: true,
+            isLastPane: false,
+          },
+        ],
         priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
         priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
         contentArea: { x: 60, y: 0, width: 680, height: 370 },
@@ -305,7 +353,21 @@ describe('coordinateValidation', () => {
       const coordinates: ChartCoordinates = {
         container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
         timeScale: { x: 0, y: 370, width: 800, height: 30 },
-        panes: [{ width: 800, height: 370, x: 0, y: 0, paneId: 0, absoluteX: 0, absoluteY: 0, contentArea: { top: 0, left: 0, width: 800, height: 370 }, margins: { top: 0, right: 0, bottom: 0, left: 0 }, isMainPane: true, isLastPane: false }],
+        panes: [
+          {
+            width: 800,
+            height: 370,
+            x: 0,
+            y: 0,
+            paneId: 0,
+            absoluteX: 0,
+            absoluteY: 0,
+            contentArea: { top: 0, left: 0, width: 800, height: 370 },
+            margins: { top: 0, right: 0, bottom: 0, left: 0 },
+            isMainPane: true,
+            isLastPane: false,
+          },
+        ],
         priceScaleLeft: { x: 0, y: 0, width: 60, height: 370 },
         priceScaleRight: { x: 740, y: 0, width: 60, height: 370 },
         contentArea: { x: 60, y: 0, width: 680, height: 370 },

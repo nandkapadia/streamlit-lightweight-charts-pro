@@ -137,7 +137,11 @@ vi.mock('../../plugins/series/base/commonRendering', () => ({
 }));
 
 // Import after mocks
-import { BandPrimitive, BandPrimitiveData, BandPrimitiveOptions } from '../../primitives/BandPrimitive';
+import {
+  BandPrimitive,
+  BandPrimitiveData,
+  BandPrimitiveOptions,
+} from '../../primitives/BandPrimitive';
 
 describe('BandPrimitive - Construction', () => {
   let mockChart: any;
@@ -553,9 +557,7 @@ describe('BandPrimitive - Edge Cases', () => {
 
   it('should handle all three lines equal (zero band width)', () => {
     const primitive = new BandPrimitive(mockChart, defaultOptions);
-    const data: BandPrimitiveData[] = [
-      { time: 1000, upper: 100, middle: 100, lower: 100 },
-    ];
+    const data: BandPrimitiveData[] = [{ time: 1000, upper: 100, middle: 100, lower: 100 }];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();

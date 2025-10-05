@@ -192,10 +192,7 @@ export const COVERAGE_PRESETS = {
    */
   utilities: (): CoverageConfig => ({
     ...DEFAULT_COVERAGE_CONFIG,
-    include: [
-      'src/utils/**/*.{ts,tsx}',
-      'src/services/**/*.{ts,tsx}',
-    ],
+    include: ['src/utils/**/*.{ts,tsx}', 'src/services/**/*.{ts,tsx}'],
     thresholds: {
       global: {
         statements: 95,

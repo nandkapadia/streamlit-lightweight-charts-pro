@@ -21,7 +21,6 @@
 
 import {
   CustomData,
-  ICustomSeriesPaneView,
   Time,
   customSeriesDefaultOptions,
   CustomSeriesOptions,
@@ -33,18 +32,11 @@ import {
   IChartApi,
   PriceToCoordinateConverter,
 } from 'lightweight-charts';
-import {
-  BitmapCoordinatesRenderingScope,
-} from 'fancy-canvas';
-import {
-  isWhitespaceDataMultiField,
-} from './base/BaseCustomSeriesView';
-import {
-  LineStyle,
-} from '../../utils/renderingUtils';
-import {
-  drawMultiLine,
-} from './base/commonRendering';
+import { IBaseCustomPaneView } from './base/IBaseCustomPaneView';
+import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { isWhitespaceDataMultiField } from './base/commonRendering';
+import { LineStyle } from '../../utils/renderingUtils';
+import { drawMultiLine } from './base/commonRendering';
 import { ChartCoordinateService } from '../../services/ChartCoordinateService';
 
 // ============================================================================
@@ -171,8 +163,9 @@ function interpolateColor(startColor: string, endColor: string, factor: number):
  * Provides autoscaling and direct rendering
  */
 class GradientRibbonSeries<TData extends GradientRibbonData = GradientRibbonData>
-  implements ICustomSeriesPaneView<Time, TData, GradientRibbonSeriesOptions>
+  implements IBaseCustomPaneView<Time, TData, GradientRibbonSeriesOptions>
 {
+  readonly type = 'GradientRibbon';
   private _renderer: GradientRibbonSeriesRenderer<TData>;
 
   constructor() {
@@ -184,7 +177,9 @@ class GradientRibbonSeries<TData extends GradientRibbonData = GradientRibbonData
     return [plotRow.lower, plotRow.upper];
   }
 
-  isWhitespace(data: TData | CustomSeriesWhitespaceData<Time>): data is CustomSeriesWhitespaceData<Time> {
+  isWhitespace(
+    data: TData | CustomSeriesWhitespaceData<Time>
+  ): data is CustomSeriesWhitespaceData<Time> {
     return isWhitespaceDataMultiField(data, ['upper', 'lower']);
   }
 
@@ -532,11 +527,11 @@ export function createGradientRibbonSeries(
       const primitive = new GradientRibbonPrimitive(chart, {
         upperLineColor: options.upperLineColor ?? '#4CAF50',
         upperLineWidth: options.upperLineWidth ?? 2,
-        upperLineStyle: Math.min((options.upperLineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2,
+        upperLineStyle: Math.min(options.upperLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
         upperLineVisible: options.upperLineVisible !== false,
         lowerLineColor: options.lowerLineColor ?? '#F44336',
         lowerLineWidth: options.lowerLineWidth ?? 2,
-        lowerLineStyle: Math.min((options.lowerLineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2,
+        lowerLineStyle: Math.min(options.lowerLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
         lowerLineVisible: options.lowerLineVisible !== false,
         fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
         fillVisible: options.fillVisible !== false,

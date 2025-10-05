@@ -18,7 +18,7 @@ vi.mock('react-dom', () => ({
 vi.mock('../../components/ColorPickerDialog', () => ({
   ColorPickerDialog: ({ isOpen, color, opacity, onSave, onCancel }: any) =>
     isOpen ? (
-      <div data-testid="color-picker">
+      <div data-testid='color-picker'>
         <span>Color: {color}</span>
         <span>Opacity: {opacity}</span>
         <button onClick={() => onSave('#FF0000', 100)}>Save Color</button>

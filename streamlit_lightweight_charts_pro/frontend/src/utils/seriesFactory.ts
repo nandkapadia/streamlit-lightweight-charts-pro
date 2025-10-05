@@ -13,25 +13,19 @@ import {
 import { SeriesConfig } from '../types';
 import { ExtendedSeriesApi, ExtendedChartApi } from '../types/ChartInterfaces';
 import { createBandSeries, BandData } from '../plugins/series/bandSeriesPlugin';
-import {
-  SignalSeries,
-  createSignalSeriesPlugin,
-  SignalData,
-} from '../plugins/series/signalSeriesPlugin';
+import { createSignalSeries, SignalData } from '../plugins/series/signalSeriesPlugin';
 import { createRibbonSeries, RibbonData } from '../plugins/series/ribbonSeriesPlugin';
 import {
   createGradientRibbonSeries,
   GradientRibbonData,
 } from '../plugins/series/gradientRibbonSeriesPlugin';
-import {
-  createTrendFillSeries,
-} from '../plugins/series/trendFillSeriesPlugin';
+import { createTrendFillSeries } from '../plugins/series/trendFillSeriesPlugin';
 import { cleanLineStyleOptions } from './lineStyle';
 import { createTradeVisualElements } from '../services/tradeVisualization';
 import { logger } from './logger';
 
 interface SeriesFactoryContext {
-  signalPluginRefs?: MutableRefObject<{ [key: string]: SignalSeries }>;
+  signalPluginRefs?: MutableRefObject<{ [key: string]: ISeriesApi<'Custom'> }>;
 }
 
 export function createSeries(
@@ -252,66 +246,27 @@ export function createSeries(
     }
     case 'signal': {
       try {
-        const signalSeries = createSignalSeriesPlugin(chart, {
-          type: 'signal',
+        // Create Signal series with primitive for background rendering
+        const signalSeries = createSignalSeries(chart, {
+          neutralColor: cleanedOptions.neutralColor || 'rgba(128, 128, 128, 0.1)',
+          signalColor: cleanedOptions.signalColor || 'rgba(76, 175, 80, 0.2)',
+          alertColor: cleanedOptions.alertColor || 'rgba(244, 67, 54, 0.2)',
+          lastValueVisible: cleanedOptions.lastValueVisible ?? false,
+          title: cleanedOptions.title || 'Signal',
+          visible: cleanedOptions.visible !== false,
+          priceLineVisible: cleanedOptions.priceLineVisible ?? false,
+          priceScaleId: priceScaleId || 'right',
+          usePrimitive: true, // Use primitive for background rendering
+          zIndex: -100, // Render behind all other series
           data: (data || []) as SignalData[],
-          options: {
-            neutralColor: cleanedOptions.neutralColor || '#f0f0f0',
-            signalColor: cleanedOptions.signalColor || '#ff0000',
-            alertColor: cleanedOptions.alertColor,
-            visible: cleanedOptions.visible !== false,
-          },
-          paneId: finalPaneId,
         });
+
+        // Store reference if needed
         if (signalPluginRefs && chartId !== undefined && seriesIndex !== undefined) {
           signalPluginRefs.current[`${chartId}-${seriesIndex}`] = signalSeries;
         }
-        return {
-          setData: (newData: any[]) => {
-            try {
-              signalSeries.updateData(newData);
-            } catch (error) {
-              logger.debug('Error updating signal series data', 'seriesFactory', error);
-            }
-          },
-          update: (newData: any) => {
-            try {
-              signalSeries.updateData([newData]);
-            } catch (error) {
-              logger.debug('Error updating signal series', 'seriesFactory', error);
-            }
-          },
-          applyOptions: (options: any) => {
-            try {
-              signalSeries.updateOptions({
-                neutralColor: options.neutralColor || '#f0f0f0',
-                signalColor: options.signalColor || '#ff0000',
-                alertColor: options.alertColor,
-                visible: options.visible !== false,
-              });
-            } catch (error) {
-              logger.debug('Error applying signal series options', 'seriesFactory', error);
-            }
-          },
-          priceScale: () => {
-            try {
-              return chart.priceScale(priceScaleId || 'right');
-            } catch (error) {
-              logger.debug('Error getting signal series price scale', 'seriesFactory', error);
-              return null;
-            }
-          },
-          remove: () => {
-            try {
-              signalSeries.destroy();
-              if (signalPluginRefs && chartId !== undefined && seriesIndex !== undefined) {
-                delete signalPluginRefs.current[`${chartId}-${seriesIndex}`];
-              }
-            } catch (error) {
-              logger.debug('Error removing signal series', 'seriesFactory', error);
-            }
-          },
-        } as unknown as ISeriesApi<any>;
+
+        return signalSeries;
       } catch (error) {
         logger.warn('Error creating signal series', 'seriesFactory', error);
         return null;
@@ -319,7 +274,6 @@ export function createSeries(
     }
     case 'trend_fill': {
       try {
-
         // Create TrendFill series with primitive (handles series + primitive creation internally)
         const trendFillSeries = createTrendFillSeries(chart, {
           ...cleanedOptions,
@@ -338,7 +292,8 @@ export function createSeries(
       const baselineOptions: any = {
         ...cleanedOptions,
         baseValue: cleanedOptions.baseValue || { type: 'price', price: 0 },
-        relativeGradient: cleanedOptions.relativeGradient !== undefined ? cleanedOptions.relativeGradient : false,
+        relativeGradient:
+          cleanedOptions.relativeGradient !== undefined ? cleanedOptions.relativeGradient : false,
         topLineColor: cleanedOptions.topLineColor || 'rgba(38, 166, 154, 1)',
         topFillColor1: cleanedOptions.topFillColor1 || 'rgba(38, 166, 154, 0.28)',
         topFillColor2: cleanedOptions.topFillColor2 || 'rgba(38, 166, 154, 0.05)',

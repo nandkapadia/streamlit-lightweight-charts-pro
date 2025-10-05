@@ -67,10 +67,20 @@ describe('ResizeObserverManager', () => {
       const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
       const mockEntry = {
         target: mockElement,
-        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        contentRect: {
+          width: 100,
+          height: 100,
+          top: 0,
+          left: 0,
+          right: 100,
+          bottom: 100,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        },
         borderBoxSize: [],
         contentBoxSize: [],
-        devicePixelContentBoxSize: []
+        devicePixelContentBoxSize: [],
       } as ResizeObserverEntry;
 
       // First call should work (lastCallTime starts at 0, now = 1000, diff = 1000 > 100)
@@ -102,10 +112,20 @@ describe('ResizeObserverManager', () => {
       const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
       const mockEntry = {
         target: mockElement,
-        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        contentRect: {
+          width: 100,
+          height: 100,
+          top: 0,
+          left: 0,
+          right: 100,
+          bottom: 100,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        },
         borderBoxSize: [],
         contentBoxSize: [],
-        devicePixelContentBoxSize: []
+        devicePixelContentBoxSize: [],
       } as ResizeObserverEntry;
 
       // Call multiple times rapidly
@@ -136,10 +156,20 @@ describe('ResizeObserverManager', () => {
       const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
       const mockEntry = {
         target: mockElement,
-        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        contentRect: {
+          width: 100,
+          height: 100,
+          top: 0,
+          left: 0,
+          right: 100,
+          bottom: 100,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        },
         borderBoxSize: [],
         contentBoxSize: [],
-        devicePixelContentBoxSize: []
+        devicePixelContentBoxSize: [],
       } as ResizeObserverEntry;
 
       // Multiple rapid calls
@@ -181,10 +211,20 @@ describe('ResizeObserverManager', () => {
       const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
       const mockEntry = {
         target: mockElement,
-        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        contentRect: {
+          width: 100,
+          height: 100,
+          top: 0,
+          left: 0,
+          right: 100,
+          bottom: 100,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        },
         borderBoxSize: [],
         contentBoxSize: [],
-        devicePixelContentBoxSize: []
+        devicePixelContentBoxSize: [],
       } as ResizeObserverEntry;
 
       // Trigger debounced callback
@@ -292,10 +332,20 @@ describe('ResizeObserverManager', () => {
       const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
       const mockEntry = {
         target: mockElement,
-        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        contentRect: {
+          width: 100,
+          height: 100,
+          top: 0,
+          left: 0,
+          right: 100,
+          bottom: 100,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        },
         borderBoxSize: [],
         contentBoxSize: [],
-        devicePixelContentBoxSize: []
+        devicePixelContentBoxSize: [],
       } as ResizeObserverEntry;
 
       // Trigger debounced callback
@@ -348,10 +398,20 @@ describe('ResizeObserverManager', () => {
       const observerCallback = (global.ResizeObserver as any).mock.calls[0][0];
       const mockEntry = {
         target: mockElement,
-        contentRect: { width: 100, height: 100, top: 0, left: 0, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) },
+        contentRect: {
+          width: 100,
+          height: 100,
+          top: 0,
+          left: 0,
+          right: 100,
+          bottom: 100,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        },
         borderBoxSize: [],
         contentBoxSize: [],
-        devicePixelContentBoxSize: []
+        devicePixelContentBoxSize: [],
       } as ResizeObserverEntry;
 
       // The current implementation doesn't catch callback errors, so it will throw

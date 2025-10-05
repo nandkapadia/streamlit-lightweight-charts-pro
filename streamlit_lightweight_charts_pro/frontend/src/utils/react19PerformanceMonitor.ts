@@ -43,7 +43,10 @@ class React19PerformanceMonitor {
   /**
    * Start tracking a transition
    */
-  startTransition(componentName: string, transitionType: TransitionMetrics['transitionType']): string {
+  startTransition(
+    componentName: string,
+    transitionType: TransitionMetrics['transitionType']
+  ): string {
     const transitionId = `${componentName}-${transitionType}-${performance.now()}`;
     const metrics: TransitionMetrics = {
       startTime: performance.now(),
@@ -54,7 +57,10 @@ class React19PerformanceMonitor {
     this.activeTransitions.set(transitionId, metrics);
 
     if (process.env.NODE_ENV === 'development') {
-      logger.debug(`Starting transition: ${componentName} (${transitionType})`, 'React19PerformanceMonitor');
+      logger.debug(
+        `Starting transition: ${componentName} (${transitionType})`,
+        'React19PerformanceMonitor'
+      );
     }
 
     return transitionId;
@@ -115,7 +121,10 @@ class React19PerformanceMonitor {
 
     if (process.env.NODE_ENV === 'development') {
       const status = loadTime > 1000 ? '⚠️ SLOW' : '✅ FAST';
-      logger.debug(`${status} Suspense load: ${componentName} - ${loadTime.toFixed(2)}ms`, 'React19PerformanceMonitor');
+      logger.debug(
+        `${status} Suspense load: ${componentName} - ${loadTime.toFixed(2)}ms`,
+        'React19PerformanceMonitor'
+      );
     }
 
     this.suspenseLoadTimes.delete(componentName);
@@ -129,7 +138,10 @@ class React19PerformanceMonitor {
     this.metrics.deferredValueDelay = Math.max(this.metrics.deferredValueDelay, processingTime);
 
     if (process.env.NODE_ENV === 'development' && processingTime > 50) {
-      logger.debug(`Deferred value processing: ${valueName} - ${processingTime.toFixed(2)}ms`, 'React19PerformanceMonitor');
+      logger.debug(
+        `Deferred value processing: ${valueName} - ${processingTime.toFixed(2)}ms`,
+        'React19PerformanceMonitor'
+      );
     }
   }
 
@@ -189,7 +201,9 @@ class React19PerformanceMonitor {
 
     // Check for active transitions (memory leaks)
     if (this.activeTransitions.size > 0) {
-      recommendations.push(`${this.activeTransitions.size} transitions are still active - potential memory leak`);
+      recommendations.push(
+        `${this.activeTransitions.size} transitions are still active - potential memory leak`
+      );
       score -= 25;
     }
 
@@ -230,9 +244,10 @@ class React19PerformanceMonitor {
 
     return {
       activeTransitions: this.activeTransitions.size,
-      avgTransitionTime: transitionTimes.length > 0
-        ? transitionTimes.reduce((a, b) => a + b, 0) / transitionTimes.length
-        : 0,
+      avgTransitionTime:
+        transitionTimes.length > 0
+          ? transitionTimes.reduce((a, b) => a + b, 0) / transitionTimes.length
+          : 0,
       pendingSuspenseLoads: this.suspenseLoadTimes.size,
     };
   }
@@ -246,18 +261,23 @@ export const react19Monitor = React19PerformanceMonitor.getInstance();
 import { useCallback } from 'react';
 
 export function useReact19Performance(componentName: string) {
-
-  const startTransition = useCallback((type: TransitionMetrics['transitionType']) => {
-    return react19Monitor.startTransition(componentName, type);
-  }, [componentName]);
+  const startTransition = useCallback(
+    (type: TransitionMetrics['transitionType']) => {
+      return react19Monitor.startTransition(componentName, type);
+    },
+    [componentName]
+  );
 
   const endTransition = useCallback((transitionId: string) => {
     react19Monitor.endTransition(transitionId);
   }, []);
 
-  const trackFlushSync = useCallback((reason: string) => {
-    react19Monitor.trackFlushSync(componentName, reason);
-  }, [componentName]);
+  const trackFlushSync = useCallback(
+    (reason: string) => {
+      react19Monitor.trackFlushSync(componentName, reason);
+    },
+    [componentName]
+  );
 
   const startSuspenseLoad = useCallback(() => {
     react19Monitor.startSuspenseLoad(componentName);
@@ -283,9 +303,10 @@ export function useReact19Performance(componentName: string) {
  */
 export function logReact19Performance(options?: { skipEnvCheck?: boolean }): void {
   // Use both Vite and Node.js environment variables for better compatibility
-  const isDevelopment = (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') ||
-                       // @ts-expect-error - Vite-specific env property
-                       (typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'development');
+  const isDevelopment =
+    (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') ||
+    // @ts-expect-error - Vite-specific env property
+    (typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'development');
 
   if (!options?.skipEnvCheck && !isDevelopment) {
     return;
@@ -296,7 +317,7 @@ export function logReact19Performance(options?: { skipEnvCheck?: boolean }): voi
   if (report.recommendations.length > 0) {
     logger.debug('React 19 Performance Recommendations:', 'React19PerformanceMonitor', {
       score: report.score,
-      recommendations: report.recommendations
+      recommendations: report.recommendations,
     });
   }
 }

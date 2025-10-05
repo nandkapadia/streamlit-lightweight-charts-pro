@@ -1,4 +1,11 @@
-import React, { useRef, useEffect, useCallback, useState, useTransition, useDeferredValue } from 'react';
+import React, {
+  useRef,
+  useEffect,
+  useCallback,
+  useState,
+  useTransition,
+  useDeferredValue,
+} from 'react';
 import { flushSync } from 'react-dom';
 import { createChart, IChartApi } from 'lightweight-charts';
 import { ChartConfig } from '../types';
@@ -29,7 +36,9 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
     // Create chart options with proper styling (using deferred config for better performance)
     const chartOptions = cleanLineStyleOptions({
       width:
-        typeof deferredChartConfig.chart?.width === 'number' ? deferredChartConfig.chart.width : width || undefined,
+        typeof deferredChartConfig.chart?.width === 'number'
+          ? deferredChartConfig.chart.width
+          : width || undefined,
       height:
         typeof deferredChartConfig.chart?.height === 'number'
           ? deferredChartConfig.chart.height
@@ -133,20 +142,22 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
       >
         <div style={containerStyle}>
           {isPendingChart && (
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              zIndex: 1000,
-              fontSize: '14px',
-              color: '#666'
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                zIndex: 1000,
+                fontSize: '14px',
+                color: '#666',
+              }}
+            >
               Loading chart...
             </div>
           )}

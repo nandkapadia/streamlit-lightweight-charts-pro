@@ -1,585 +1,371 @@
 /**
- * Signal Series Plugin for Lightweight Charts
+ * Signal Series - ICustomSeries Implementation
  *
- * This plugin renders background bands based on signal data, creating
- * vertical colored bands that span the entire chart height for specific
- * time periods.
+ * A custom series for TradingView Lightweight Charts that renders vertical
+ * background bands based on signal values, spanning the entire chart height.
+ *
+ * Common use cases:
+ * - Trading signal indicators
+ * - Market regime indicators
+ * - Alert/warning zones
+ * - Session highlighting
+ *
+ * Architecture:
+ * - Follows official Lightweight Charts ICustomSeries pattern
+ * - Signal values are stored as price data for compatibility
+ * - Background bands rendered using full-height vertical fills
+ * - Supports per-signal color overrides
+ *
+ * @see https://tradingview.github.io/lightweight-charts/docs/api/interfaces/ICustomSeriesPaneView
  */
 
 import {
-  IChartApi,
-  ISeriesApi,
-  ISeriesPrimitive,
-  SeriesAttachedParameter,
-  IPrimitivePaneView,
-  IPrimitivePaneRenderer,
-  Coordinate,
+  CustomData,
   Time,
-  UTCTimestamp,
-  LineSeries,
-  PrimitivePaneViewZOrder,
+  customSeriesDefaultOptions,
   CustomSeriesOptions,
+  PaneRendererCustomData,
+  CustomSeriesPricePlotValues,
+  CustomSeriesWhitespaceData,
+  ICustomSeriesPaneRenderer,
+  IChartApi,
 } from 'lightweight-charts';
-import { asLineWidth } from '../../utils/lightweightChartsUtils';
-import { fillVerticalBand, renderWithScaledCanvas } from '../../utils/renderingUtils';
+import { IBaseCustomPaneView } from './base/IBaseCustomPaneView';
+import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 import { isTransparent } from '../../utils/colorUtils';
 
-export interface SignalData {
-  time: string | number;
+// ============================================================================
+// Data Interface
+// ============================================================================
+
+/**
+ * Data point for Signal series
+ *
+ * @property time - Timestamp for the data point
+ * @property value - Signal value (0=neutral, >0=signal, <0=alert)
+ * @property color - Optional color override for this signal
+ */
+export interface SignalData extends CustomData<Time> {
+  time: Time;
   value: number;
   color?: string;
 }
 
-export interface SignalOptions extends Partial<CustomSeriesOptions> {
+// ============================================================================
+// Options Interface
+// ============================================================================
+
+/**
+ * Configuration options for Signal series
+ *
+ * Colors:
+ * @property neutralColor - Color for value 0 signals
+ * @property signalColor - Color for positive value signals
+ * @property alertColor - Color for negative value signals
+ *
+ * Series options:
+ * @property lastValueVisible - Toggle last value visibility
+ * @property title - Series title
+ * @property priceLineVisible - Toggle price line visibility
+ */
+export interface SignalSeriesOptions extends CustomSeriesOptions {
   neutralColor?: string;
   signalColor?: string;
   alertColor?: string;
-  visible?: boolean;
 
   // Series options
-  lastValueVisible?: boolean;
-  title?: string;
-  priceLineVisible?: boolean;
-}
-
-export interface SignalSeriesConfig {
-  type: 'signal';
-  data: SignalData[];
-  options: SignalOptions;
-  paneId?: number;
-}
-
-// Signal renderer data interface
-interface SignalRendererData {
-  x: Coordinate | number;
-  y1: Coordinate | number;
-  y2: Coordinate | number;
-  color: string;
-}
-
-// Signal view data interface
-interface SignalViewData {
-  data: SignalRendererData[];
-  options: SignalOptions;
-}
-
-// Signal primitive pane renderer
-class SignalPrimitivePaneRenderer implements IPrimitivePaneRenderer {
-  _viewData: SignalViewData;
-
-  constructor(data: SignalViewData) {
-    this._viewData = data;
-  }
-
-  draw(target: any) {
-    this.drawBackground(target);
-  }
-
-  drawBackground(target: any) {
-    // Don't draw anything if the series is not visible
-    if (!this._viewData.options.visible) {
-      return;
-    }
-
-    const points: SignalRendererData[] = this._viewData.data;
-
-    if (points.length === 0) {
-      return;
-    }
-
-    // Use DRY canvas setup helper
-    renderWithScaledCanvas(target, (ctx) => {
-      // Draw background bands - following TradingView's approach
-      for (let i = 0; i < points.length; i += 2) {
-        if (i + 1 < points.length) {
-          const startPoint = points[i];
-          const endPoint = points[i + 1];
-
-          // Skip rendering if color is transparent or effectively invisible
-          if (isTransparent(startPoint.color)) {
-            continue;
-          }
-
-          // Use utility function for vertical band rendering
-          fillVerticalBand(
-            ctx,
-            startPoint.x as number,
-            endPoint.x as number,
-            startPoint.y1 as number,
-            startPoint.y2 as number,
-            startPoint.color
-          );
-        }
-      }
-    });
-  }
-}
-
-// Signal primitive pane view
-class SignalPrimitivePaneView implements IPrimitivePaneView {
-  _source: SignalSeries;
-  _data: SignalViewData;
-
-  constructor(source: SignalSeries) {
-    this._source = source;
-    this._data = {
-      data: [],
-      options: this._source.getOptions(),
-    };
-  }
-
-  update() {
-    // Update options to reflect current state
-    this._data.options = this._source.getOptions();
-
-    const timeScale = this._source.getChart().timeScale();
-    const priceScale = this._source.getChart().priceScale('left');
-
-    if (!timeScale || !priceScale) {
-      return;
-    }
-
-    const bands = this._source.getBackgroundBands();
-
-    const renderData: SignalRendererData[] = [];
-
-    // Get bar spacing to properly align with bars
-    const barSpacing = timeScale.options().barSpacing || 6;
-    const halfBarSpacing = barSpacing / 2;
-
-    bands.forEach((band, _index) => {
-      const startX = timeScale.timeToCoordinate(band.startTime);
-      const endX = timeScale.timeToCoordinate(band.endTime);
-
-      // Handle cases where coordinates are null (outside visible range)
-      if (startX !== null && endX !== null) {
-        // Both coordinates are valid - adjust for bar alignment
-        const chartHeight = this._source.getChart().chartElement()?.clientHeight || 400;
-
-        // FIX: Use proper full bar width calculation following TradingView guidelines
-        // Start: x - halfBarSpacing (bar start boundary)
-        // End: x + halfBarSpacing (bar end boundary)
-        // This ensures each band fills its complete space without gaps
-        const adjustedStartX = Math.floor(startX - halfBarSpacing);
-        const adjustedEndX = Math.floor(endX + halfBarSpacing);
-
-        renderData.push({
-          x: adjustedStartX,
-          y1: 0,
-          y2: chartHeight,
-          color: band.color,
-        });
-
-        renderData.push({
-          x: adjustedEndX,
-          y1: 0,
-          y2: chartHeight,
-          color: band.color,
-        });
-      } else if (startX !== null && endX === null) {
-        // Start is visible but end is outside - extend to chart edge
-        const chartHeight = this._source.getChart().chartElement()?.clientHeight || 400;
-        const chartWidth = this._source.getChart().chartElement()?.clientWidth || 800;
-
-        // Use proper full bar width calculation for start boundary
-        const adjustedStartX = Math.floor(startX - halfBarSpacing);
-
-        renderData.push({
-          x: adjustedStartX,
-          y1: 0,
-          y2: chartHeight,
-          color: band.color,
-        });
-
-        renderData.push({
-          x: chartWidth,
-          y1: 0,
-          y2: chartHeight,
-          color: band.color,
-        });
-      } else if (startX === null && endX !== null) {
-        // End is visible but start is outside - extend from chart edge
-        const chartHeight = this._source.getChart().chartElement()?.clientHeight || 400;
-
-        // Use proper full bar width calculation for end boundary
-        const adjustedEndX = Math.floor(endX + halfBarSpacing);
-
-        renderData.push({
-          x: 0,
-          y1: 0,
-          y2: chartHeight,
-          color: band.color,
-        });
-
-        renderData.push({
-          x: adjustedEndX,
-          y1: 0,
-          y2: chartHeight,
-          color: band.color,
-        });
-      } else {
-        // Both coordinates are null - band is completely outside visible range
-        // No rendering needed for bands outside visible range
-      }
-    });
-
-    this._data.data = renderData;
-  }
-
-  renderer() {
-    return new SignalPrimitivePaneRenderer(this._data);
-  }
-
-  // Z-order support: Signal series renders at normal layer for visibility
-  zOrder(): PrimitivePaneViewZOrder {
-    return 'bottom' as PrimitivePaneViewZOrder;
-  }
-}
-
-// Background band interface
-interface BackgroundBand {
-  startTime: UTCTimestamp;
-  endTime: UTCTimestamp;
-  value: number | boolean;
-  color: string;
-}
-
-// Signal series class
-export class SignalSeries implements ISeriesPrimitive<Time> {
-  private chart: IChartApi;
-  private dummySeries: ISeriesApi<'Line'>;
-  private options: SignalOptions;
-  private signalData: SignalData[] = [];
-  private backgroundBands: BackgroundBand[] = [];
-  private _paneViews: SignalPrimitivePaneView[];
-  private paneId: number;
-
-  constructor(chart: IChartApi, config: SignalSeriesConfig) {
-    this.chart = chart;
-    this.options = config.options || { visible: true };
-    this.signalData = config.data || [];
-    this.paneId = config.paneId || 0;
-    this._paneViews = [new SignalPrimitivePaneView(this)];
-
-    // Create a dummy line series to attach the primitive to
-    this.dummySeries = chart.addSeries(
-      LineSeries,
-      {
-        color: 'transparent',
-        lineWidth: asLineWidth(3),
-        visible: false, // Hide the dummy series completely
-        priceScaleId: 'right',
-        lastValueVisible: false, // Hide last value
-        priceLineVisible: false, // Hide price line
-        crosshairMarkerVisible: false, // Disable crosshair for dummy series
-        lineVisible: false, // Hide the line itself
-      },
-      this.paneId
-    );
-
-    // Add some dummy data to ensure the time scale is properly initialized
-    if (this.signalData.length > 0) {
-      const dummyData = this.signalData.map(signal => ({
-        time: this.parseTime(signal.time),
-        value: 0,
-      }));
-      this.dummySeries.setData(dummyData);
-    }
-
-    // Process signal data to create background bands
-    this.processSignalData();
-
-    // Attach the primitive to the dummy series for rendering
-    this.dummySeries.attachPrimitive(this);
-  }
-
-  /**
-   * Public method for setting signal data
-   */
-  public setSignals(signals: SignalData[]): void {
-    this.signalData = signals;
-    this.processSignalData();
-  }
-
-  /**
-   * Public method for adding to chart (for testing compatibility)
-   */
-  public addToChart(_chart: IChartApi): void {
-    // Already initialized in constructor, this is just for test compatibility
-  }
-
-  /**
-   * Process signal data to create background bands
-   */
-  private processSignalData(): void {
-    this.backgroundBands = [];
-
-    if (this.signalData.length === 0) {
-      return;
-    }
-
-    // Sort signals by time to ensure proper ordering
-    const sortedSignals = [...this.signalData].sort((a, b) => {
-      const timeA = this.parseTime(a.time);
-      const timeB = this.parseTime(b.time);
-      return timeA - timeB;
-    });
-
-    // Process each signal separately - create one band per signal
-    for (let i = 0; i < sortedSignals.length; i++) {
-      const signal = sortedSignals[i];
-      const signalTime = this.parseTime(signal.time);
-
-      // Create a band for this signal
-      // Each signal gets its own band covering its individual time period
-      const band = {
-        value: signal.value,
-        startTime: signalTime,
-        endTime: signalTime, // Each band covers just its own signal time
-        individualColor: signal.color || this.getColorForValue(signal.value) || undefined,
-      };
-
-      this.addBackgroundBand(band);
-    }
-  }
-
-  /**
-   * Add a background band
-   */
-  private addBackgroundBand(band: {
-    value: number | boolean;
-    startTime: UTCTimestamp;
-    endTime: UTCTimestamp;
-    individualColor?: string;
-  }): void {
-    // Use individual color if available, otherwise fall back to series-level colors
-    let color = band.individualColor;
-    if (!color) {
-      const seriesColor = this.getColorForValue(band.value);
-      if (seriesColor) {
-        color = seriesColor;
-      }
-    }
-
-    // Skip adding bands with no color or transparent colors
-    if (!color || isTransparent(color)) {
-      return;
-    }
-
-    const backgroundBand = {
-      startTime: band.startTime,
-      endTime: band.endTime,
-      value: typeof band.value === 'boolean' ? (band.value ? 1 : 0) : band.value,
-      color: color,
-    };
-
-    this.backgroundBands.push(backgroundBand);
-  }
-
-  /**
-   * Get color for a signal value
-   */
-  private getColorForValue(value: number | boolean): string | null {
-    // Handle boolean values
-    if (typeof value === 'boolean') {
-      if (value === true) {
-        return this.options.signalColor || null;
-      } // else: boolean false values fall through to return neutral color below
-      // For false values, always return neutral color if available
-      return this.options.neutralColor || null;
-    }
-
-    // Handle numeric values with range-based comparisons
-    if (value === 0) {
-      // For value 0, always return neutral color if available
-      return this.options.neutralColor || null;
-    } else if (value > 0) {
-      // For positive values, use signal color
-      return this.options.signalColor || null;
-    } else if (value < 0) {
-      // For negative values, try alertColor first, then fall back to signalColor if alertColor is not set
-      return this.options.alertColor || this.options.signalColor || null;
-    } // else: all other cases fall through to return null
-    return null;
-  }
-
-  /**
-   * Parse time value to timestamp
-   * Handles both string dates and numeric timestamps
-   */
-  private parseTime(time: string | number): UTCTimestamp {
-    try {
-      // If it's already a number (Unix timestamp), convert to seconds if needed
-      if (typeof time === 'number') {
-        // If timestamp is in milliseconds, convert to seconds
-        if (time > 1000000000000) {
-          return Math.floor(time / 1000) as UTCTimestamp;
-        }
-        return Math.floor(time) as UTCTimestamp;
-      }
-
-      // If it's a string, try to parse as date
-      if (typeof time === 'string') {
-        // First try to parse as Unix timestamp string
-        const timestamp = parseInt(time, 10);
-        if (!isNaN(timestamp)) {
-          // It's a numeric string (Unix timestamp)
-          if (timestamp > 1000000000000) {
-            return Math.floor(timestamp / 1000) as UTCTimestamp;
-          }
-          return Math.floor(timestamp) as UTCTimestamp;
-        }
-
-        // Try to parse as date string
-        const date = new Date(time);
-        if (isNaN(date.getTime())) {
-          return 0 as UTCTimestamp;
-        }
-        return Math.floor(date.getTime() / 1000) as UTCTimestamp;
-      }
-
-      return 0 as UTCTimestamp;
-    } catch {
-      return 0 as UTCTimestamp;
-    }
-  }
-
-  // Getter methods
-  getOptions(): SignalOptions {
-    return this.options;
-  }
-
-  getChart(): IChartApi {
-    return this.chart;
-  }
-
-  getBackgroundBands(): BackgroundBand[] {
-    return this.backgroundBands;
-  }
-
-  // ISeriesPrimitive implementation
-  attached(_param: SeriesAttachedParameter<Time>): void {
-    // Primitive is attached to the series
-  }
-
-  detached(): void {
-    // Primitive is detached from the series
-  }
-
-  updateAllViews(): void {
-    this._paneViews.forEach(pv => pv.update());
-  }
-
-  paneViews(): IPrimitivePaneView[] {
-    return this._paneViews;
-  }
-
-  /**
-   * Update signal data and re-render
-   */
-  updateData(newData: SignalData[]): void {
-    this.signalData = newData;
-    this.processSignalData();
-    this.updateAllViews();
-  }
-
-  /**
-   * Update options and re-render
-   */
-  updateOptions(newOptions: SignalOptions): void {
-    this.options = newOptions;
-    this.processSignalData();
-    this.updateAllViews();
-  }
-
-  /**
-   * Set data (for compatibility with ISeriesApi interface)
-   */
-  setData(data: SignalData[]): void {
-    this.updateData(data);
-  }
-
-  /**
-   * Update single data point (for compatibility with ISeriesApi interface)
-   */
-  update(data: SignalData): void {
-    // For signal series, we need to update the entire dataset
-    const newData = [...this.signalData];
-    const existingIndex = newData.findIndex(item => item.time === data.time);
-
-    if (existingIndex >= 0) {
-      newData[existingIndex] = data;
-    } else {
-      newData.push(data);
-    }
-
-    this.updateData(newData);
-  }
-
-  /**
-   * Set visibility
-   */
-  setVisible(visible: boolean): void {
-    this.options.visible = visible;
-    // Update visibility of the dummy series
-    if (this.dummySeries) {
-      this.dummySeries.applyOptions({ visible: false }); // Dummy series always stays hidden
-    }
-    // Update the primitive views to reflect visibility change
-    this.updateAllViews();
-  }
-
-  /**
-   * Apply options (for compatibility with ISeriesApi interface)
-   */
-  applyOptions(options: Partial<SignalOptions>): void {
-    this.options = { ...this.options, ...options };
-
-    // Handle overall visibility
-    if (options.visible !== undefined) {
-      if (this.dummySeries) {
-        this.dummySeries.applyOptions({ visible: false }); // Dummy series always stays hidden
-      }
-    }
-
-    // Re-process signal data since visibility affects rendering
-    this.processSignalData();
-    // Update the primitive views
-    this.updateAllViews();
-  }
-
-  /**
-   * Get price scale (for compatibility with ISeriesApi interface)
-   */
-  priceScale(): any {
-    return this.chart.priceScale('left');
-  }
-
-  /**
-   * Remove the series (for compatibility with ISeriesApi interface)
-   */
-  remove(): void {
-    this.destroy();
-  }
-
-  /**
-   * Destroy the plugin and clean up resources
-   */
-  destroy(): void {
-    try {
-      this.chart.removeSeries(this.dummySeries);
-    } catch {
-      // Series already removed
-    }
-  }
+  lastValueVisible: boolean;
+  title: string;
+  visible: boolean;
+  priceLineVisible: boolean;
+
+  // Internal flag (set automatically by factory)
+  _usePrimitive?: boolean;
 }
 
 /**
- * Factory function to create signal series plugin
+ * Default options for Signal series
+ * Note: lastValueVisible and priceLineVisible are false by default
+ * since signals are background indicators
  */
-export function createSignalSeriesPlugin(
-  chart: IChartApi,
-  config: SignalSeriesConfig
-): SignalSeries {
-  return new SignalSeries(chart, config);
+const defaultSignalOptions: SignalSeriesOptions = {
+  ...customSeriesDefaultOptions,
+  neutralColor: 'rgba(128, 128, 128, 0.1)',
+  signalColor: 'rgba(76, 175, 80, 0.2)',
+  alertColor: 'rgba(244, 67, 54, 0.2)',
+  lastValueVisible: false,
+  title: 'Signal',
+  visible: true,
+  priceLineVisible: false,
+};
+
+// ============================================================================
+// Renderer Implementation
+// ============================================================================
+
+/**
+ * Bar item with coordinates for rendering
+ */
+interface SignalBarItem {
+  x: number;
+  value: number;
+  color: string;
 }
+
+/**
+ * Renderer for Signal series
+ *
+ * Renders vertical background bands for each signal that span the full chart height.
+ * Uses bar spacing to properly align bands with candlesticks/bars.
+ *
+ * @template TData - The data type extending SignalData
+ * @internal
+ */
+class SignalSeriesRenderer<TData extends SignalData> implements ICustomSeriesPaneRenderer {
+  private _data: PaneRendererCustomData<Time, TData> | null = null;
+  private _options: SignalSeriesOptions | null = null;
+
+  update(data: PaneRendererCustomData<Time, TData>, options: SignalSeriesOptions): void {
+    this._data = data;
+    this._options = options;
+  }
+
+  draw(target: any): void {
+    target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
+      this._drawImpl(scope);
+    });
+  }
+
+  private _drawImpl(renderingScope: BitmapCoordinatesRenderingScope): void {
+    if (!this._data || !this._options || !this._options.visible) {
+      return;
+    }
+
+    // Early exit if primitive handles rendering
+    if (this._options._usePrimitive) {
+      return;
+    }
+
+    if (this._data.bars.length === 0) {
+      return;
+    }
+
+    const ctx = renderingScope.context;
+    const barSpacing = this._data.barSpacing;
+    const halfBarSpacing = barSpacing / 2;
+    const chartHeight = renderingScope.bitmapSize.height;
+
+    ctx.save();
+
+    // Draw each signal as a vertical band
+    for (const bar of this._data.bars) {
+      const signalData = bar.originalData as TData;
+
+      // Determine color for this signal
+      let color = signalData.color;
+      if (!color) {
+        color = this.getColorForValue(signalData.value, this._options);
+      }
+
+      // Skip transparent colors
+      if (isTransparent(color)) {
+        continue;
+      }
+
+      // Calculate band boundaries in bitmap coordinates
+      // Center on bar X coordinate and extend by half bar spacing on each side
+      const x = bar.x * renderingScope.horizontalPixelRatio;
+      const startX = Math.floor(x - halfBarSpacing * renderingScope.horizontalPixelRatio);
+      const endX = Math.floor(x + halfBarSpacing * renderingScope.horizontalPixelRatio);
+
+      // Draw vertical band spanning full chart height
+      ctx.fillStyle = color;
+      ctx.fillRect(startX, 0, endX - startX, chartHeight);
+    }
+
+    ctx.restore();
+  }
+
+  private getColorForValue(value: number, options: SignalSeriesOptions): string {
+    if (value === 0) {
+      return options.neutralColor || 'transparent';
+    } else if (value > 0) {
+      return options.signalColor || 'transparent';
+    } else {
+      return options.alertColor || options.signalColor || 'transparent';
+    }
+  }
+}
+
+// ============================================================================
+// ICustomSeries Implementation
+// ============================================================================
+
+/**
+ * Signal Series - ICustomSeries implementation
+ * Renders vertical background bands based on signal values
+ */
+export class SignalSeries<TData extends SignalData = SignalData>
+  implements IBaseCustomPaneView<Time, TData, SignalSeriesOptions>
+{
+  readonly type = 'Signal';
+  private _renderer: SignalSeriesRenderer<TData>;
+
+  constructor() {
+    this._renderer = new SignalSeriesRenderer();
+  }
+
+  /**
+   * Build price values for autoscaling
+   *
+   * Signals don't have meaningful price values.
+   * When using primitive mode, we return empty array to not affect autoscaling.
+   * When not using primitive, we return the signal value to prevent errors.
+   *
+   * @param plotRow - Data point
+   * @returns Price value (empty when primitive is used)
+   */
+  priceValueBuilder(plotRow: TData): CustomSeriesPricePlotValues {
+    // Don't contribute to autoscaling when primitive handles rendering
+    return [];
+  }
+
+  /**
+   * Check if data point is whitespace
+   *
+   * @param data - Data point to check
+   * @returns True if value is null/undefined
+   */
+  isWhitespace(
+    data: TData | CustomSeriesWhitespaceData<Time>
+  ): data is CustomSeriesWhitespaceData<Time> {
+    return (data as TData).value === undefined || (data as TData).value === null;
+  }
+
+  /**
+   * Update renderer with new data
+   *
+   * @param data - Renderer data from chart
+   * @param options - Series options
+   */
+  update(data: PaneRendererCustomData<Time, TData>, options: SignalSeriesOptions): void {
+    this._renderer.update(data, options);
+  }
+
+  /**
+   * Get default options
+   *
+   * @returns Default options object
+   */
+  defaultOptions(): SignalSeriesOptions {
+    return defaultSignalOptions;
+  }
+
+  /**
+   * Get renderer
+   *
+   * @returns Renderer instance
+   */
+  renderer(): ICustomSeriesPaneRenderer {
+    return this._renderer;
+  }
+}
+
+// ============================================================================
+// Plugin Factory
+// ============================================================================
+
+/**
+ * Create Signal series plugin
+ *
+ * @returns Signal series instance
+ */
+export function SignalSeriesPlugin(): IBaseCustomPaneView<Time, SignalData, SignalSeriesOptions> {
+  return new SignalSeries();
+}
+
+/**
+ * Create Signal series with optional primitive for background rendering
+ *
+ * Hybrid pattern:
+ * - ICustomSeries: Always created for autoscaling
+ * - Primitive: Optionally created for background rendering (usePrimitive: true)
+ *
+ * @param chart - Chart instance
+ * @param options - Configuration options
+ * @returns Object with series and optional primitive
+ */
+export function createSignalSeries(
+  chart: IChartApi,
+  options: {
+    // Visual options
+    neutralColor?: string;
+    signalColor?: string;
+    alertColor?: string;
+    priceScaleId?: string;
+
+    // Series options
+    lastValueVisible?: boolean;
+    title?: string;
+    visible?: boolean;
+    priceLineVisible?: boolean;
+
+    // Rendering control
+    usePrimitive?: boolean;
+
+    // Primitive-specific options
+    zIndex?: number;
+    data?: SignalData[];
+  } = {}
+): any {
+  const usePrimitive = options.usePrimitive ?? false;
+
+  // Create ICustomSeries (always created for autoscaling)
+  const series = (chart as any).addCustomSeries(SignalSeriesPlugin(), {
+    neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
+    signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
+    alertColor: options.alertColor ?? 'rgba(244, 67, 54, 0.2)',
+    priceScaleId: options.priceScaleId ?? 'right',
+    lastValueVisible: !usePrimitive,
+    title: options.title ?? 'Signal',
+    visible: options.visible !== false,
+    priceLineVisible: options.priceLineVisible ?? false,
+    _usePrimitive: usePrimitive, // Internal flag to disable rendering
+  });
+
+  // Set data on series
+  if (options.data && options.data.length > 0) {
+    series.setData(options.data);
+  }
+
+  // Conditionally create primitive for background rendering
+  if (usePrimitive) {
+    void import('../../primitives/SignalPrimitive').then(({ SignalPrimitive }) => {
+      const primitive = new SignalPrimitive(chart, {
+        neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
+        signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
+        alertColor: options.alertColor ?? 'rgba(244, 67, 54, 0.2)',
+        visible: options.visible !== false,
+        zIndex: options.zIndex ?? -100,
+      });
+      series.attachPrimitive(primitive);
+    });
+  }
+
+  return series;
+}
+
+/**
+ * Legacy factory function for backward compatibility
+ * @deprecated Use createSignalSeries instead
+ */
+export function createSignalSeriesPlugin(): IBaseCustomPaneView<
+  Time,
+  SignalData,
+  SignalSeriesOptions
+> {
+  return SignalSeriesPlugin();
+}
+
+// Export default options for Python compatibility
+export { defaultSignalOptions };

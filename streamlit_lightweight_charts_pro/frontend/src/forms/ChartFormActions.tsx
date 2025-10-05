@@ -16,251 +16,245 @@ interface ChartConfigFormProps {
 /**
  * Chart Configuration Form with React 19 Form Actions
  */
-export const ChartConfigForm: React.FC<ChartConfigFormProps> = React.memo(({
-  chartId,
-  initialConfig,
-  onConfigUpdate,
-}) => {
-  const [isPending, startTransition] = useTransition();
-  const { config } = useChartFormActions();
+export const ChartConfigForm: React.FC<ChartConfigFormProps> = React.memo(
+  ({ chartId, initialConfig, onConfigUpdate }) => {
+    const [isPending, startTransition] = useTransition();
+    const { config } = useChartFormActions();
 
-  const handleFormSubmit = React.useCallback((formData: FormData) => {
-    startTransition(() => {
-      const transitionId = react19Monitor.startTransition('ChartConfigSubmit', 'sync');
+    const handleFormSubmit = React.useCallback(
+      (formData: FormData) => {
+        startTransition(() => {
+          const transitionId = react19Monitor.startTransition('ChartConfigSubmit', 'sync');
 
-      // Add chartId to form data
-      formData.append('chartId', chartId);
+          // Add chartId to form data
+          formData.append('chartId', chartId);
 
-      config.submitAction(formData);
+          config.submitAction(formData);
 
-      react19Monitor.endTransition(transitionId);
-    });
-  }, [chartId, config, startTransition]);
+          react19Monitor.endTransition(transitionId);
+        });
+      },
+      [chartId, config, startTransition]
+    );
 
-  React.useEffect(() => {
-    if (config.state.data && config.state.lastAction === 'config_updated') {
-      onConfigUpdate?.(config.state.data);
-    }
-  }, [config.state.data, config.state.lastAction, onConfigUpdate]);
+    React.useEffect(() => {
+      if (config.state.data && config.state.lastAction === 'config_updated') {
+        onConfigUpdate?.(config.state.data);
+      }
+    }, [config.state.data, config.state.lastAction, onConfigUpdate]);
 
-  const isSubmitting = config.isSubmitting || isPending;
+    const isSubmitting = config.isSubmitting || isPending;
 
-  return (
-    <form action={handleFormSubmit} className="chart-config-form">
-      <div className="form-header">
-        <h3>Chart Configuration</h3>
-        {isSubmitting && <div className="loading-spinner">⏳</div>}
-      </div>
+    return (
+      <form action={handleFormSubmit} className='chart-config-form'>
+        <div className='form-header'>
+          <h3>Chart Configuration</h3>
+          {isSubmitting && <div className='loading-spinner'>⏳</div>}
+        </div>
 
-      {/* Title */}
-      <div className="form-group">
-        <label htmlFor="title">Chart Title</label>
-        <input
-          type="text"
-          id="title"
-          name="title"
-          defaultValue={initialConfig?.title || ''}
-          disabled={isSubmitting}
-          className={config.hasFieldError('title') ? 'error' : ''}
-        />
-        {config.getFieldError('title') && (
-          <span className="field-error">{config.getFieldError('title')}</span>
-        )}
-      </div>
-
-      {/* Dimensions */}
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="width">Width (px)</label>
+        {/* Title */}
+        <div className='form-group'>
+          <label htmlFor='title'>Chart Title</label>
           <input
-            type="number"
-            id="width"
-            name="width"
-            min="100"
-            defaultValue={initialConfig?.width || 800}
+            type='text'
+            id='title'
+            name='title'
+            defaultValue={initialConfig?.title || ''}
             disabled={isSubmitting}
-            className={config.hasFieldError('width') ? 'error' : ''}
+            className={config.hasFieldError('title') ? 'error' : ''}
           />
-          {config.getFieldError('width') && (
-            <span className="field-error">{config.getFieldError('width')}</span>
+          {config.getFieldError('title') && (
+            <span className='field-error'>{config.getFieldError('title')}</span>
           )}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="height">Height (px)</label>
-          <input
-            type="number"
-            id="height"
-            name="height"
-            min="100"
-            defaultValue={initialConfig?.height || 400}
-            disabled={isSubmitting}
-            className={config.hasFieldError('height') ? 'error' : ''}
-          />
-          {config.getFieldError('height') && (
-            <span className="field-error">{config.getFieldError('height')}</span>
-          )}
-        </div>
-      </div>
-
-      {/* Background Color */}
-      <div className="form-group">
-        <label htmlFor="backgroundColor">Background Color</label>
-        <input
-          type="color"
-          id="backgroundColor"
-          name="backgroundColor"
-          defaultValue={initialConfig?.backgroundColor || '#ffffff'}
-          disabled={isSubmitting}
-        />
-      </div>
-
-      {/* Chart Features */}
-      <div className="form-group">
-        <fieldset>
-          <legend>Chart Features</legend>
-
-          <label className="checkbox-label">
+        {/* Dimensions */}
+        <div className='form-row'>
+          <div className='form-group'>
+            <label htmlFor='width'>Width (px)</label>
             <input
-              type="checkbox"
-              name="gridVisible"
-              value="true"
-              defaultChecked={initialConfig?.gridVisible ?? true}
+              type='number'
+              id='width'
+              name='width'
+              min='100'
+              defaultValue={initialConfig?.width || 800}
               disabled={isSubmitting}
+              className={config.hasFieldError('width') ? 'error' : ''}
             />
-            Show Grid
-          </label>
-
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              name="crosshairEnabled"
-              value="true"
-              defaultChecked={initialConfig?.crosshairEnabled ?? true}
-              disabled={isSubmitting}
-            />
-            Enable Crosshair
-          </label>
-        </fieldset>
-      </div>
-
-      {/* Time Scale */}
-      <div className="form-group">
-        <fieldset>
-          <legend>Time Scale</legend>
-
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              name="timeScaleVisible"
-              value="true"
-              defaultChecked={initialConfig?.timeScale?.visible ?? true}
-              disabled={isSubmitting}
-            />
-            Show Time Scale
-          </label>
-
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              name="timeVisible"
-              value="true"
-              defaultChecked={initialConfig?.timeScale?.timeVisible ?? true}
-              disabled={isSubmitting}
-            />
-            Show Time
-          </label>
-
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              name="secondsVisible"
-              value="true"
-              defaultChecked={initialConfig?.timeScale?.secondsVisible ?? false}
-              disabled={isSubmitting}
-            />
-            Show Seconds
-          </label>
-        </fieldset>
-      </div>
-
-      {/* Price Scale */}
-      <div className="form-group">
-        <fieldset>
-          <legend>Price Scale</legend>
-
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              name="priceScaleVisible"
-              value="true"
-              defaultChecked={initialConfig?.priceScale?.visible ?? true}
-              disabled={isSubmitting}
-            />
-            Show Price Scale
-          </label>
-
-          <div className="form-group">
-            <label htmlFor="priceScalePosition">Position</label>
-            <select
-              id="priceScalePosition"
-              name="priceScalePosition"
-              defaultValue={initialConfig?.priceScale?.position || 'right'}
-              disabled={isSubmitting}
-            >
-              <option value="left">Left</option>
-              <option value="right">Right</option>
-            </select>
+            {config.getFieldError('width') && (
+              <span className='field-error'>{config.getFieldError('width')}</span>
+            )}
           </div>
 
-          <label className="checkbox-label">
+          <div className='form-group'>
+            <label htmlFor='height'>Height (px)</label>
             <input
-              type="checkbox"
-              name="autoScale"
-              value="true"
-              defaultChecked={initialConfig?.priceScale?.autoScale ?? true}
+              type='number'
+              id='height'
+              name='height'
+              min='100'
+              defaultValue={initialConfig?.height || 400}
               disabled={isSubmitting}
+              className={config.hasFieldError('height') ? 'error' : ''}
             />
-            Auto Scale
-          </label>
-        </fieldset>
-      </div>
-
-      {/* Error Display */}
-      {config.hasError && (
-        <div className="form-error">
-          <strong>Error:</strong> {config.state.error}
+            {config.getFieldError('height') && (
+              <span className='field-error'>{config.getFieldError('height')}</span>
+            )}
+          </div>
         </div>
-      )}
 
-      {/* Success Message */}
-      {config.state.lastAction === 'config_updated' && (
-        <div className="form-success">
-          ✅ Configuration updated successfully!
+        {/* Background Color */}
+        <div className='form-group'>
+          <label htmlFor='backgroundColor'>Background Color</label>
+          <input
+            type='color'
+            id='backgroundColor'
+            name='backgroundColor'
+            defaultValue={initialConfig?.backgroundColor || '#ffffff'}
+            disabled={isSubmitting}
+          />
         </div>
-      )}
 
-      {/* Submit Button */}
-      <div className="form-actions">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="primary-button"
-        >
-          {isSubmitting ? 'Updating...' : 'Update Configuration'}
-        </button>
+        {/* Chart Features */}
+        <div className='form-group'>
+          <fieldset>
+            <legend>Chart Features</legend>
 
-        <button
-          type="button"
-          onClick={config.resetForm}
-          disabled={isSubmitting}
-          className="secondary-button"
-        >
-          Reset
-        </button>
-      </div>
+            <label className='checkbox-label'>
+              <input
+                type='checkbox'
+                name='gridVisible'
+                value='true'
+                defaultChecked={initialConfig?.gridVisible ?? true}
+                disabled={isSubmitting}
+              />
+              Show Grid
+            </label>
 
-      <style>{`
+            <label className='checkbox-label'>
+              <input
+                type='checkbox'
+                name='crosshairEnabled'
+                value='true'
+                defaultChecked={initialConfig?.crosshairEnabled ?? true}
+                disabled={isSubmitting}
+              />
+              Enable Crosshair
+            </label>
+          </fieldset>
+        </div>
+
+        {/* Time Scale */}
+        <div className='form-group'>
+          <fieldset>
+            <legend>Time Scale</legend>
+
+            <label className='checkbox-label'>
+              <input
+                type='checkbox'
+                name='timeScaleVisible'
+                value='true'
+                defaultChecked={initialConfig?.timeScale?.visible ?? true}
+                disabled={isSubmitting}
+              />
+              Show Time Scale
+            </label>
+
+            <label className='checkbox-label'>
+              <input
+                type='checkbox'
+                name='timeVisible'
+                value='true'
+                defaultChecked={initialConfig?.timeScale?.timeVisible ?? true}
+                disabled={isSubmitting}
+              />
+              Show Time
+            </label>
+
+            <label className='checkbox-label'>
+              <input
+                type='checkbox'
+                name='secondsVisible'
+                value='true'
+                defaultChecked={initialConfig?.timeScale?.secondsVisible ?? false}
+                disabled={isSubmitting}
+              />
+              Show Seconds
+            </label>
+          </fieldset>
+        </div>
+
+        {/* Price Scale */}
+        <div className='form-group'>
+          <fieldset>
+            <legend>Price Scale</legend>
+
+            <label className='checkbox-label'>
+              <input
+                type='checkbox'
+                name='priceScaleVisible'
+                value='true'
+                defaultChecked={initialConfig?.priceScale?.visible ?? true}
+                disabled={isSubmitting}
+              />
+              Show Price Scale
+            </label>
+
+            <div className='form-group'>
+              <label htmlFor='priceScalePosition'>Position</label>
+              <select
+                id='priceScalePosition'
+                name='priceScalePosition'
+                defaultValue={initialConfig?.priceScale?.position || 'right'}
+                disabled={isSubmitting}
+              >
+                <option value='left'>Left</option>
+                <option value='right'>Right</option>
+              </select>
+            </div>
+
+            <label className='checkbox-label'>
+              <input
+                type='checkbox'
+                name='autoScale'
+                value='true'
+                defaultChecked={initialConfig?.priceScale?.autoScale ?? true}
+                disabled={isSubmitting}
+              />
+              Auto Scale
+            </label>
+          </fieldset>
+        </div>
+
+        {/* Error Display */}
+        {config.hasError && (
+          <div className='form-error'>
+            <strong>Error:</strong> {config.state.error}
+          </div>
+        )}
+
+        {/* Success Message */}
+        {config.state.lastAction === 'config_updated' && (
+          <div className='form-success'>✅ Configuration updated successfully!</div>
+        )}
+
+        {/* Submit Button */}
+        <div className='form-actions'>
+          <button type='submit' disabled={isSubmitting} className='primary-button'>
+            {isSubmitting ? 'Updating...' : 'Update Configuration'}
+          </button>
+
+          <button
+            type='button'
+            onClick={config.resetForm}
+            disabled={isSubmitting}
+            className='secondary-button'
+          >
+            Reset
+          </button>
+        </div>
+
+        <style>{`
         .chart-config-form {
           max-width: 500px;
           padding: 20px;
@@ -415,9 +409,10 @@ export const ChartConfigForm: React.FC<ChartConfigFormProps> = React.memo(({
           cursor: not-allowed;
         }
       `}</style>
-    </form>
-  );
-});
+      </form>
+    );
+  }
+);
 
 ChartConfigForm.displayName = 'ChartConfigForm';
 
@@ -437,69 +432,64 @@ export const ChartDataImportForm: React.FC<{
   }, [importForm.isCompleted, importForm.progress, onImportComplete]);
 
   return (
-    <form action={importForm.submitAction} className="data-import-form">
-      <div className="form-header">
+    <form action={importForm.submitAction} className='data-import-form'>
+      <div className='form-header'>
         <h3>Import Chart Data</h3>
-        {importForm.isPending && <div className="loading-spinner">⏳</div>}
+        {importForm.isPending && <div className='loading-spinner'>⏳</div>}
       </div>
 
-      <input type="hidden" name="chartId" value={chartId} />
+      <input type='hidden' name='chartId' value={chartId} />
 
-      <div className="form-group">
-        <label htmlFor="dataFile">Select Data File</label>
+      <div className='form-group'>
+        <label htmlFor='dataFile'>Select Data File</label>
         <input
-          type="file"
-          id="dataFile"
-          name="dataFile"
-          accept=".csv,.json,.xlsx,.xls"
+          type='file'
+          id='dataFile'
+          name='dataFile'
+          accept='.csv,.json,.xlsx,.xls'
           disabled={importForm.isPending}
           required
         />
         {importForm.state.validationErrors?.dataFile && (
-          <span className="field-error">
-            {importForm.state.validationErrors.dataFile}
-          </span>
+          <span className='field-error'>{importForm.state.validationErrors.dataFile}</span>
         )}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="dataType">Data Format</label>
-        <select
-          id="dataType"
-          name="dataType"
-          disabled={importForm.isPending}
-          required
-        >
-          <option value="">Select format...</option>
-          <option value="csv">CSV</option>
-          <option value="json">JSON</option>
-          <option value="excel">Excel</option>
+      <div className='form-group'>
+        <label htmlFor='dataType'>Data Format</label>
+        <select id='dataType' name='dataType' disabled={importForm.isPending} required>
+          <option value=''>Select format...</option>
+          <option value='csv'>CSV</option>
+          <option value='json'>JSON</option>
+          <option value='excel'>Excel</option>
         </select>
         {importForm.state.validationErrors?.dataType && (
-          <span className="field-error">
-            {importForm.state.validationErrors.dataType}
-          </span>
+          <span className='field-error'>{importForm.state.validationErrors.dataType}</span>
         )}
       </div>
 
       {importForm.state.error && (
-        <div className="form-error">
+        <div className='form-error'>
           <strong>Error:</strong> {importForm.state.error}
         </div>
       )}
 
       {importForm.isCompleted && (
-        <div className="import-success">
+        <div className='import-success'>
           <h4>✅ Import Successful!</h4>
-          <p><strong>File:</strong> {importForm.progress.fileName}</p>
-          <p><strong>Records:</strong> {importForm.progress.recordCount}</p>
+          <p>
+            <strong>File:</strong> {importForm.progress.fileName}
+          </p>
+          <p>
+            <strong>Records:</strong> {importForm.progress.recordCount}
+          </p>
 
           {importForm.progress.preview && (
-            <div className="data-preview">
+            <div className='data-preview'>
               <h5>Data Preview:</h5>
-              <div className="preview-table">
+              <div className='preview-table'>
                 {importForm.progress.preview.slice(0, 3).map((row: any, i: number) => (
-                  <div key={i} className="preview-row">
+                  <div key={i} className='preview-row'>
                     <strong>Row {i + 1}:</strong> {JSON.stringify(row)}
                   </div>
                 ))}
@@ -509,12 +499,8 @@ export const ChartDataImportForm: React.FC<{
         </div>
       )}
 
-      <div className="form-actions">
-        <button
-          type="submit"
-          disabled={importForm.isPending}
-          className="primary-button"
-        >
+      <div className='form-actions'>
+        <button type='submit' disabled={importForm.isPending} className='primary-button'>
           {importForm.isPending ? 'Importing...' : 'Import Data'}
         </button>
       </div>

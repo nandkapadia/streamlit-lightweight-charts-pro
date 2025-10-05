@@ -360,44 +360,56 @@ export function sanitizeCoordinates(coordinates: Partial<ChartCoordinates>): Cha
       width: DIMENSIONS.priceScale.rightScaleDefaultWidth,
       height: container.height - timeScale.height,
     },
-    panes: Array.isArray(coordinates.panes) && coordinates.panes.length > 0 ? coordinates.panes.map(pane => ({
-      ...pane,
-      x: pane.x < 0 ? 0 : pane.x,
-      y: pane.y < 0 ? 0 : pane.y,
-      width: pane.width <= 0 ? FALLBACKS.paneWidth : pane.width,
-      height: pane.height <= 0 ? FALLBACKS.paneHeight : pane.height,
-      contentArea: pane.contentArea ? {
-        ...pane.contentArea,
-        top: pane.contentArea.top < 0 ? 0 : pane.contentArea.top,
-        left: pane.contentArea.left < 0 ? FALLBACKS.priceScaleWidth : pane.contentArea.left,
-        width: pane.contentArea.width <= 0 ? FALLBACKS.paneWidth - FALLBACKS.priceScaleWidth : pane.contentArea.width,
-        height: pane.contentArea.height <= 0 ? FALLBACKS.paneHeight - FALLBACKS.timeScaleHeight : pane.contentArea.height,
-      } : {
-        top: 0,
-        left: FALLBACKS.priceScaleWidth,
-        width: FALLBACKS.paneWidth - FALLBACKS.priceScaleWidth,
-        height: FALLBACKS.paneHeight - FALLBACKS.timeScaleHeight,
-      }
-    })) : [
-      {
-        paneId: 0,
-        x: 0,
-        y: 0,
-        width: FALLBACKS.paneWidth,
-        height: FALLBACKS.paneHeight,
-        absoluteX: 0,
-        absoluteY: 0,
-        isMainPane: true,
-        isLastPane: true,
-        contentArea: {
-          top: 0,
-          left: FALLBACKS.priceScaleWidth,
-          width: FALLBACKS.paneWidth - FALLBACKS.priceScaleWidth,
-          height: FALLBACKS.paneHeight - FALLBACKS.timeScaleHeight,
-        },
-        margins: { top: 10, right: 10, bottom: 10, left: 10 },
-      },
-    ],
+    panes:
+      Array.isArray(coordinates.panes) && coordinates.panes.length > 0
+        ? coordinates.panes.map(pane => ({
+            ...pane,
+            x: pane.x < 0 ? 0 : pane.x,
+            y: pane.y < 0 ? 0 : pane.y,
+            width: pane.width <= 0 ? FALLBACKS.paneWidth : pane.width,
+            height: pane.height <= 0 ? FALLBACKS.paneHeight : pane.height,
+            contentArea: pane.contentArea
+              ? {
+                  ...pane.contentArea,
+                  top: pane.contentArea.top < 0 ? 0 : pane.contentArea.top,
+                  left:
+                    pane.contentArea.left < 0 ? FALLBACKS.priceScaleWidth : pane.contentArea.left,
+                  width:
+                    pane.contentArea.width <= 0
+                      ? FALLBACKS.paneWidth - FALLBACKS.priceScaleWidth
+                      : pane.contentArea.width,
+                  height:
+                    pane.contentArea.height <= 0
+                      ? FALLBACKS.paneHeight - FALLBACKS.timeScaleHeight
+                      : pane.contentArea.height,
+                }
+              : {
+                  top: 0,
+                  left: FALLBACKS.priceScaleWidth,
+                  width: FALLBACKS.paneWidth - FALLBACKS.priceScaleWidth,
+                  height: FALLBACKS.paneHeight - FALLBACKS.timeScaleHeight,
+                },
+          }))
+        : [
+            {
+              paneId: 0,
+              x: 0,
+              y: 0,
+              width: FALLBACKS.paneWidth,
+              height: FALLBACKS.paneHeight,
+              absoluteX: 0,
+              absoluteY: 0,
+              isMainPane: true,
+              isLastPane: true,
+              contentArea: {
+                top: 0,
+                left: FALLBACKS.priceScaleWidth,
+                width: FALLBACKS.paneWidth - FALLBACKS.priceScaleWidth,
+                height: FALLBACKS.paneHeight - FALLBACKS.timeScaleHeight,
+              },
+              margins: { top: 10, right: 10, bottom: 10, left: 10 },
+            },
+          ],
     contentArea: coordinates.contentArea || {
       x: FALLBACKS.priceScaleWidth,
       y: 0,

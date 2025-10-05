@@ -47,7 +47,7 @@ function createChartDataPromise(options: ChartDataOptions): Promise<ChartDataRes
       try {
         // Generate mock data based on time range
         const now = Date.now();
-        const start = timeRange?.start || (now - 24 * 60 * 60 * 1000); // 24 hours ago
+        const start = timeRange?.start || now - 24 * 60 * 60 * 1000; // 24 hours ago
         const end = timeRange?.end || now;
         const points = Math.min(1000, Math.max(1, Math.floor((end - start) / 60000))); // 1 point per minute, min 1, max 1000
 
@@ -107,9 +107,12 @@ export function useChartData(options: ChartDataOptions) {
       chartDataCache.set(cacheKey, promise);
 
       // Clean up cache after 5 minutes to prevent memory leaks
-      setTimeout(() => {
-        chartDataCache.delete(cacheKey);
-      }, 5 * 60 * 1000);
+      setTimeout(
+        () => {
+          chartDataCache.delete(cacheKey);
+        },
+        5 * 60 * 1000
+      );
     }
 
     return chartDataCache.get(cacheKey) as Promise<any>;
@@ -189,36 +192,39 @@ export function useMultiChartData(chartConfigs: ChartDataOptions[]) {
  * Hook for prefetching chart data
  */
 export function usePrefetchChartData() {
-  return useMemo(() => ({
-    prefetch: (options: ChartDataOptions) => {
-      const cacheKey = `${options.chartId}-${options.timeRange?.start || 'auto'}-${options.timeRange?.end || 'auto'}-${options.priority || 'medium'}`;
+  return useMemo(
+    () => ({
+      prefetch: (options: ChartDataOptions) => {
+        const cacheKey = `${options.chartId}-${options.timeRange?.start || 'auto'}-${options.timeRange?.end || 'auto'}-${options.priority || 'medium'}`;
 
-      if (!chartDataCache.has(cacheKey)) {
-        const promise = createChartDataPromise(options);
-        chartDataCache.set(cacheKey, promise);
+        if (!chartDataCache.has(cacheKey)) {
+          const promise = createChartDataPromise(options);
+          chartDataCache.set(cacheKey, promise);
 
-        // Don't await - just start the fetch
-        promise.catch(error => {
-          chartDataCache.delete(cacheKey);
-        });
-      }
-    },
+          // Don't await - just start the fetch
+          promise.catch(error => {
+            chartDataCache.delete(cacheKey);
+          });
+        }
+      },
 
-    clearCache: (chartId?: string) => {
-      if (chartId) {
-        // Clear cache for specific chart
-        Array.from(chartDataCache.keys())
-          .filter(key => key.startsWith(chartId))
-          .forEach(key => chartDataCache.delete(key));
-      } else {
-        // Clear all cache
-        chartDataCache.clear();
-      }
-    },
+      clearCache: (chartId?: string) => {
+        if (chartId) {
+          // Clear cache for specific chart
+          Array.from(chartDataCache.keys())
+            .filter(key => key.startsWith(chartId))
+            .forEach(key => chartDataCache.delete(key));
+        } else {
+          // Clear all cache
+          chartDataCache.clear();
+        }
+      },
 
-    getCacheStatus: () => ({
-      size: chartDataCache.size,
-      keys: Array.from(chartDataCache.keys()),
+      getCacheStatus: () => ({
+        size: chartDataCache.size,
+        keys: Array.from(chartDataCache.keys()),
+      }),
     }),
-  }), []);
+    []
+  );
 }

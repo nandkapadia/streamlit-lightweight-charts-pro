@@ -203,7 +203,6 @@ describe('Chart Data Hooks', () => {
         })
       );
 
-
       const data = await result.current.dataPromise;
 
       expect(data.data.length).toBeLessThanOrEqual(1000);
@@ -275,11 +274,7 @@ describe('Chart Data Hooks', () => {
 
   describe('useMultiChartData', () => {
     it('should return promises for multiple charts', () => {
-      const configs = [
-        { chartId: 'chart-1' },
-        { chartId: 'chart-2' },
-        { chartId: 'chart-3' },
-      ];
+      const configs = [{ chartId: 'chart-1' }, { chartId: 'chart-2' }, { chartId: 'chart-3' }];
 
       const { result } = renderHook(() => useMultiChartData(configs));
 
@@ -296,10 +291,7 @@ describe('Chart Data Hooks', () => {
     });
 
     it('should create separate promises for each chart', () => {
-      const configs = [
-        { chartId: 'chart-1' },
-        { chartId: 'chart-2' },
-      ];
+      const configs = [{ chartId: 'chart-1' }, { chartId: 'chart-2' }];
 
       const { result } = renderHook(() => useMultiChartData(configs));
 
@@ -325,7 +317,6 @@ describe('Chart Data Hooks', () => {
       ];
 
       const { result } = renderHook(() => useMultiChartData(configs));
-
 
       const data1 = await result.current['chart-1'];
       const data2 = await result.current['chart-2'];
@@ -363,7 +354,6 @@ describe('Chart Data Hooks', () => {
       ];
 
       const { result } = renderHook(() => useMultiChartData(configs));
-
 
       const data1 = await result.current['chart-1'];
       const data2 = await result.current['chart-2'];
@@ -512,9 +502,7 @@ describe('Chart Data Hooks', () => {
 
       prefetchResult.current.prefetch({ chartId: 'shared-chart' });
 
-      const { result: dataResult } = renderHook(() =>
-        useChartData({ chartId: 'shared-chart' })
-      );
+      const { result: dataResult } = renderHook(() => useChartData({ chartId: 'shared-chart' }));
 
       // Should use cached promise
       expect(dataResult.current.dataPromise).toBeInstanceOf(Promise);
@@ -612,14 +600,9 @@ describe('Chart Data Hooks', () => {
     });
 
     it('should handle concurrent requests for same chart', async () => {
-      const hook1 = renderHook(() =>
-        useChartData({ chartId: 'concurrent-chart' })
-      );
+      const hook1 = renderHook(() => useChartData({ chartId: 'concurrent-chart' }));
 
-      const hook2 = renderHook(() =>
-        useChartData({ chartId: 'concurrent-chart' })
-      );
-
+      const hook2 = renderHook(() => useChartData({ chartId: 'concurrent-chart' }));
 
       const data1 = await hook1.result.current.dataPromise;
       const data2 = await hook2.result.current.dataPromise;

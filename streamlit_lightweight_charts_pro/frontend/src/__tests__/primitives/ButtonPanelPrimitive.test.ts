@@ -17,7 +17,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ButtonPanelPrimitive, createButtonPanelPrimitive, createButtonPanelPrimitives } from '../../primitives/ButtonPanelPrimitive';
+import {
+  ButtonPanelPrimitive,
+  createButtonPanelPrimitive,
+  createButtonPanelPrimitives,
+} from '../../primitives/ButtonPanelPrimitive';
 import { PrimitivePriority } from '../../primitives/BasePanePrimitive';
 
 // Mock dependencies
@@ -33,11 +37,17 @@ vi.mock('../../primitives/BasePanePrimitive', () => ({
     }
 
     protected renderContent(): void {}
-    protected getContainerClassName(): string { return ''; }
-    protected getTemplate(): string { return ''; }
+    protected getContainerClassName(): string {
+      return '';
+    }
+    protected getTemplate(): string {
+      return '';
+    }
     protected onAttached(_params: any): void {}
     protected onDetached(): void {}
-    protected getPaneId(): number { return 0; }
+    protected getPaneId(): number {
+      return 0;
+    }
   },
   PrimitivePriority: {
     LEGEND: 1,
@@ -579,10 +589,13 @@ describe('ButtonPanelPrimitive', () => {
 
       // Mock chart with panes
       (primitive as any).chart = {
-        panes: () => [{}, {
-          getStretchFactor: () => 1,
-          setStretchFactor: vi.fn(),
-        }],
+        panes: () => [
+          {},
+          {
+            getStretchFactor: () => 1,
+            setStretchFactor: vi.fn(),
+          },
+        ],
         paneSize: () => ({ height: 200 }),
         chartElement: () => ({ clientWidth: 800, clientHeight: 600 }),
         resize: vi.fn(),
@@ -602,10 +615,13 @@ describe('ButtonPanelPrimitive', () => {
 
       // Mock chart with panes
       (primitive as any).chart = {
-        panes: () => [{}, {
-          getStretchFactor: () => 0.05,
-          setStretchFactor: vi.fn(),
-        }],
+        panes: () => [
+          {},
+          {
+            getStretchFactor: () => 0.05,
+            setStretchFactor: vi.fn(),
+          },
+        ],
         chartElement: () => ({ clientWidth: 800, clientHeight: 600 }),
         resize: vi.fn(),
       };
@@ -624,10 +640,13 @@ describe('ButtonPanelPrimitive', () => {
 
       // Mock chart with panes
       (primitive as any).chart = {
-        panes: () => [{}, {
-          getStretchFactor: () => 0.3,
-          setStretchFactor: vi.fn(),
-        }],
+        panes: () => [
+          {},
+          {
+            getStretchFactor: () => 0.3,
+            setStretchFactor: vi.fn(),
+          },
+        ],
         paneSize: () => ({ height: 200 }),
         chartElement: () => ({ clientWidth: 800, clientHeight: 600 }),
         resize: vi.fn(),
@@ -645,10 +664,13 @@ describe('ButtonPanelPrimitive', () => {
 
       const setStretchFactor = vi.fn();
       (primitive as any).chart = {
-        panes: () => [{}, {
-          getStretchFactor: () => 0.3,
-          setStretchFactor,
-        }],
+        panes: () => [
+          {},
+          {
+            getStretchFactor: () => 0.3,
+            setStretchFactor,
+          },
+        ],
         paneSize: () => ({ height: 200 }),
         chartElement: () => ({ clientWidth: 800, clientHeight: 600 }),
         resize: vi.fn(),
@@ -666,10 +688,13 @@ describe('ButtonPanelPrimitive', () => {
 
       const setStretchFactor = vi.fn();
       (primitive as any).chart = {
-        panes: () => [{}, {
-          getStretchFactor: () => 0.05,
-          setStretchFactor,
-        }],
+        panes: () => [
+          {},
+          {
+            getStretchFactor: () => 0.05,
+            setStretchFactor,
+          },
+        ],
         chartElement: () => ({ clientWidth: 800, clientHeight: 600 }),
         resize: vi.fn(),
       };
@@ -688,10 +713,13 @@ describe('ButtonPanelPrimitive', () => {
 
       const resize = vi.fn();
       (primitive as any).chart = {
-        panes: () => [{}, {
-          getStretchFactor: () => 0.3,
-          setStretchFactor: vi.fn(),
-        }],
+        panes: () => [
+          {},
+          {
+            getStretchFactor: () => 0.3,
+            setStretchFactor: vi.fn(),
+          },
+        ],
         paneSize: () => ({ height: 200 }),
         chartElement: () => ({ clientWidth: 800, clientHeight: 600 }),
         resize,
@@ -709,10 +737,13 @@ describe('ButtonPanelPrimitive', () => {
 
       const resize = vi.fn();
       (primitive as any).chart = {
-        panes: () => [{}, {
-          getStretchFactor: () => 0.05,
-          setStretchFactor: vi.fn(),
-        }],
+        panes: () => [
+          {},
+          {
+            getStretchFactor: () => 0.05,
+            setStretchFactor: vi.fn(),
+          },
+        ],
         chartElement: () => ({ clientWidth: 800, clientHeight: 600 }),
         resize,
       };
@@ -854,7 +885,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = (primitive as any).getDefaultSeriesConfig('line');
+      const config = (primitive as any).getDefaultSeriesConfig('line');
 
       expect(config.color).toBe('#2196F3');
       expect(config.lineWidth).toBe(2);
@@ -866,7 +897,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = (primitive as any).getDefaultSeriesConfig('supertrend');
+      const config = (primitive as any).getDefaultSeriesConfig('supertrend');
 
       expect(config.period).toBe(10);
       expect(config.multiplier).toBe(3.0);
@@ -879,7 +910,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = (primitive as any).getDefaultSeriesConfig('bollinger_bands');
+      const config = (primitive as any).getDefaultSeriesConfig('bollinger_bands');
 
       expect(config.length).toBe(20);
       expect(config.stdDev).toBe(2);
@@ -892,7 +923,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = (primitive as any).getDefaultSeriesConfig('sma');
+      const config = (primitive as any).getDefaultSeriesConfig('sma');
 
       expect(config.length).toBe(20);
       expect(config.source).toBe('close');
@@ -904,7 +935,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = (primitive as any).getDefaultSeriesConfig('ema');
+      const config = (primitive as any).getDefaultSeriesConfig('ema');
 
       expect(config.length).toBe(20);
       expect(config.source).toBe('close');
@@ -915,7 +946,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = (primitive as any).getDefaultSeriesConfig('ribbon');
+      const config = (primitive as any).getDefaultSeriesConfig('ribbon');
 
       expect(config.upperLine).toBeDefined();
       expect(config.lowerLine).toBeDefined();
@@ -930,7 +961,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = (primitive as any).getDefaultSeriesConfig('band');
+      const config = (primitive as any).getDefaultSeriesConfig('band');
 
       expect(config.upperLine).toBeDefined();
       expect(config.middleLine).toBeDefined();
@@ -944,7 +975,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = (primitive as any).getDefaultSeriesConfig('gradient_ribbon');
+      const config = (primitive as any).getDefaultSeriesConfig('gradient_ribbon');
 
       expect(config.gradientStartColor).toBe('#4CAF50');
       expect(config.gradientEndColor).toBe('#F44336');
@@ -956,7 +987,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = (primitive as any).getDefaultSeriesConfig('trend_fill');
+      const config = (primitive as any).getDefaultSeriesConfig('trend_fill');
 
       expect(config.trendLineColor).toBe('#2196F3');
       expect(config.trendFillColor).toBe('rgba(33, 150, 243, 0.1)');
@@ -970,7 +1001,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = { color: '#FF0000' };
+      const config = { color: '#FF0000' };
       (primitive as any).saveSeriesConfig('series-1', config);
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
@@ -985,7 +1016,7 @@ describe('ButtonPanelPrimitive', () => {
         chartId: 'chart-1',
       });
 
-      const _config = { color: '#FF0000' };
+      const config = { color: '#FF0000' };
       const service = (primitive as any).streamlitService;
 
       (primitive as any).applySeriesConfig('series-1', config);
@@ -1000,7 +1031,7 @@ describe('ButtonPanelPrimitive', () => {
         onSeriesConfigChange,
       });
 
-      const _config = { color: '#FF0000' };
+      const config = { color: '#FF0000' };
       (primitive as any).applySeriesConfig('series-1', config);
 
       expect(onSeriesConfigChange).toHaveBeenCalledWith(0, 'series-1', config);
@@ -1011,7 +1042,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = { color: '#FF0000' };
+      const config = { color: '#FF0000' };
       (primitive as any).applySeriesConfig('series-1', config);
 
       expect((primitive as any).paneState.seriesConfigs.get('series-1')).toEqual(config);
@@ -1051,7 +1082,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = primitive.getSeriesConfig('non-existent');
+      const config = primitive.getSeriesConfig('non-existent');
 
       expect(config).toBe(null);
     });
@@ -1064,7 +1095,7 @@ describe('ButtonPanelPrimitive', () => {
       const testConfig = { color: '#FF0000' };
       (primitive as any).paneState.seriesConfigs.set('series-1', testConfig);
 
-      const _config = primitive.getSeriesConfig('series-1');
+      const config = primitive.getSeriesConfig('series-1');
 
       expect(config).toEqual(testConfig);
     });
@@ -1074,7 +1105,7 @@ describe('ButtonPanelPrimitive', () => {
         paneId: 0,
       });
 
-      const _config = { color: '#FF0000' };
+      const config = { color: '#FF0000' };
       primitive.setSeriesConfig('series-1', config);
 
       expect((primitive as any).paneState.seriesConfigs.get('series-1')).toEqual(config);
@@ -1277,10 +1308,13 @@ describe('ButtonPanelPrimitive', () => {
 
       const setStretchFactor = vi.fn();
       (primitive as any).chart = {
-        panes: () => [{}, {
-          getStretchFactor: () => 0.05,
-          setStretchFactor,
-        }],
+        panes: () => [
+          {},
+          {
+            getStretchFactor: () => 0.05,
+            setStretchFactor,
+          },
+        ],
         chartElement: () => ({ clientWidth: 800, clientHeight: 600 }),
         resize: vi.fn(),
       };

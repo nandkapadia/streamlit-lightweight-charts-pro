@@ -13,7 +13,10 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { ProgressiveChartLoader, useProgressiveLoading } from '../../components/ProgressiveChartLoader';
+import {
+  ProgressiveChartLoader,
+  useProgressiveLoading,
+} from '../../components/ProgressiveChartLoader';
 
 describe('ProgressiveChartLoader', () => {
   describe('Component Structure', () => {
@@ -164,41 +167,41 @@ describe('ProgressiveChartLoader', () => {
 
   describe('Priority Configuration', () => {
     it('should accept high priority config', () => {
-      const _config = {
+      const config = {
         priority: 'high' as const,
         delayMs: 0,
         preload: true,
       };
 
-      expect(_config.priority).toBe('high');
-      expect(_config.preload).toBe(true);
+      expect(config.priority).toBe('high');
+      expect(config.preload).toBe(true);
     });
 
     it('should accept medium priority config', () => {
-      const _config = {
+      const config = {
         priority: 'medium' as const,
         delayMs: 200,
       };
 
-      expect(_config.priority).toBe('medium');
+      expect(config.priority).toBe('medium');
     });
 
     it('should accept low priority config', () => {
-      const _config = {
+      const config = {
         priority: 'low' as const,
         delayMs: 500,
       };
 
-      expect(_config.priority).toBe('low');
+      expect(config.priority).toBe('low');
     });
 
     it('should accept stagger index', () => {
-      const _config = {
+      const config = {
         priority: 'high' as const,
         staggerIndex: 3,
       };
 
-      expect(_config.staggerIndex).toBe(3);
+      expect(config.staggerIndex).toBe(3);
     });
   });
 
@@ -229,51 +232,51 @@ describe('ProgressiveChartLoader', () => {
 
     it('should combine all delays', () => {
       // Total: (2 * 100) + 200 + 150 = 550ms
-      const totalDelay = (2 * 100) + 200 + 150;
+      const totalDelay = 2 * 100 + 200 + 150;
       expect(totalDelay).toBe(550);
     });
   });
 
   describe('Preload Strategy', () => {
     it('should preload for high priority', () => {
-      const _config = {
+      const config = {
         priority: 'high' as const,
         preload: true,
       };
 
-      const shouldPreload = _config.preload && _config.priority === 'high';
+      const shouldPreload = config.preload && config.priority === 'high';
       expect(shouldPreload).toBe(true);
     });
 
     it('should not preload for medium priority even if enabled', () => {
-      const _config = {
+      const config = {
         priority: 'medium' as const,
         preload: true,
       };
 
       // @ts-expect-error - Testing type comparison between different priority literals
-      const shouldPreload = _config.preload && _config.priority === 'high';
+      const shouldPreload = config.preload && config.priority === 'high';
       expect(shouldPreload).toBe(false);
     });
 
     it('should not preload for low priority', () => {
-      const _config = {
+      const config = {
         priority: 'low' as const,
         preload: true,
       };
 
       // @ts-expect-error - Testing type comparison between different priority literals
-      const shouldPreload = _config.preload && _config.priority === 'high';
+      const shouldPreload = config.preload && config.priority === 'high';
       expect(shouldPreload).toBe(false);
     });
 
     it('should not preload if preload is disabled', () => {
-      const _config = {
+      const config = {
         priority: 'high' as const,
         preload: false,
       };
 
-      const shouldPreload = _config.preload && _config.priority === 'high';
+      const shouldPreload = config.preload && config.priority === 'high';
       expect(shouldPreload).toBe(false);
     });
   });
@@ -304,44 +307,44 @@ describe('ProgressiveChartLoader', () => {
     });
 
     it('should handle missing callbacks gracefully', () => {
-      const _config = {
+      const config = {
         priority: 'high' as const,
       };
 
       // Should not throw when callbacks are not provided
       // Component handles this internally
-      expect(_config.priority).toBe('high');
+      expect(config.priority).toBe('high');
     });
   });
 
   describe('Edge Cases', () => {
     it('should handle zero delay', () => {
-      const _config = {
+      const config = {
         priority: 'high' as const,
         delayMs: 0,
         staggerIndex: 0,
       };
 
-      expect(_config.delayMs).toBe(0);
+      expect(config.delayMs).toBe(0);
     });
 
     it('should handle very large delay', () => {
-      const _config = {
+      const config = {
         priority: 'low' as const,
         delayMs: 10000,
       };
 
-      expect(_config.delayMs).toBe(10000);
+      expect(config.delayMs).toBe(10000);
     });
 
     it('should handle negative stagger index as zero', () => {
-      const _config = {
+      const config = {
         priority: 'high' as const,
         staggerIndex: -1,
       };
 
       // Implementation should treat negative as 0
-      const staggerDelay = Math.max(0, _config.staggerIndex || 0) * 100;
+      const staggerDelay = Math.max(0, config.staggerIndex || 0) * 100;
       expect(staggerDelay).toBe(0);
     });
 

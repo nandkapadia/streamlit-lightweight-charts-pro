@@ -92,8 +92,12 @@ describe('positioningConfig', () => {
       });
 
       it('should have timeAxis min < default < max', () => {
-        expect(DIMENSIONS.timeAxis.minHeight).toBeLessThanOrEqual(DIMENSIONS.timeAxis.defaultHeight);
-        expect(DIMENSIONS.timeAxis.defaultHeight).toBeLessThanOrEqual(DIMENSIONS.timeAxis.maxHeight);
+        expect(DIMENSIONS.timeAxis.minHeight).toBeLessThanOrEqual(
+          DIMENSIONS.timeAxis.defaultHeight
+        );
+        expect(DIMENSIONS.timeAxis.defaultHeight).toBeLessThanOrEqual(
+          DIMENSIONS.timeAxis.maxHeight
+        );
       });
     });
 
@@ -114,8 +118,12 @@ describe('positioningConfig', () => {
       });
 
       it('should have priceScale min < default < max', () => {
-        expect(DIMENSIONS.priceScale.minWidth).toBeLessThanOrEqual(DIMENSIONS.priceScale.defaultWidth);
-        expect(DIMENSIONS.priceScale.defaultWidth).toBeLessThanOrEqual(DIMENSIONS.priceScale.maxWidth);
+        expect(DIMENSIONS.priceScale.minWidth).toBeLessThanOrEqual(
+          DIMENSIONS.priceScale.defaultWidth
+        );
+        expect(DIMENSIONS.priceScale.defaultWidth).toBeLessThanOrEqual(
+          DIMENSIONS.priceScale.maxWidth
+        );
       });
     });
 

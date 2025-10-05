@@ -95,7 +95,7 @@ vi.mock('../../LightweightCharts', () => {
           )}
         </div>
       );
-    }
+    },
   };
 });
 
@@ -108,7 +108,6 @@ const customRender = (ui: React.ReactElement, options = {}) => {
   document.body.appendChild(container);
   return render(ui, { container, ...options });
 };
-
 
 // Mock ReactDOM.render
 vi.mock('react-dom', async () => {

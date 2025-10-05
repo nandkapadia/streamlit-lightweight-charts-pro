@@ -49,19 +49,21 @@ describe('useSeriesSettingsAPI', () => {
         data: {
           paneId: '0',
           series: {
-            'series1': { config: { visible: true }, series_type: 'line' }
-          }
-        }
+            series1: { config: { visible: true }, series_type: 'line' },
+          },
+        },
       };
 
       let responseHandler: ((event: CustomEvent) => void) | undefined;
 
       // Capture the event listener
-      mockEventListener.mockImplementation((event: string, handler: (event: CustomEvent) => void) => {
-        if (event === 'streamlit:apiResponse') {
-          responseHandler = handler;
+      mockEventListener.mockImplementation(
+        (event: string, handler: (event: CustomEvent) => void) => {
+          if (event === 'streamlit:apiResponse') {
+            responseHandler = handler;
+          }
         }
-      });
+      );
 
       // Start the API call
       const paneStatePromise = result.current.getPaneState('0');
@@ -71,7 +73,7 @@ describe('useSeriesSettingsAPI', () => {
         expect.objectContaining({
           type: 'get_pane_state',
           paneId: '0',
-          messageId: expect.stringMatching(/get_pane_state_\d+/)
+          messageId: expect.stringMatching(/get_pane_state_\d+/),
         })
       );
 
@@ -80,12 +82,14 @@ describe('useSeriesSettingsAPI', () => {
 
       act(() => {
         if (responseHandler) {
-          responseHandler(new CustomEvent('streamlit:apiResponse', {
-            detail: {
-              messageId,
-              response: mockResponse
-            }
-          }));
+          responseHandler(
+            new CustomEvent('streamlit:apiResponse', {
+              detail: {
+                messageId,
+                response: mockResponse,
+              },
+            })
+          );
         }
       });
 
@@ -112,16 +116,18 @@ describe('useSeriesSettingsAPI', () => {
 
       const mockResponse = {
         success: false,
-        error: 'Test error'
+        error: 'Test error',
       };
 
       let responseHandler: ((event: CustomEvent) => void) | undefined;
 
-      mockEventListener.mockImplementation((event: string, handler: (event: CustomEvent) => void) => {
-        if (event === 'streamlit:apiResponse') {
-          responseHandler = handler;
+      mockEventListener.mockImplementation(
+        (event: string, handler: (event: CustomEvent) => void) => {
+          if (event === 'streamlit:apiResponse') {
+            responseHandler = handler;
+          }
         }
-      });
+      );
 
       const paneStatePromise = result.current.getPaneState('0');
 
@@ -129,12 +135,14 @@ describe('useSeriesSettingsAPI', () => {
 
       act(() => {
         if (responseHandler) {
-          responseHandler(new CustomEvent('streamlit:apiResponse', {
-            detail: {
-              messageId,
-              response: mockResponse
-            }
-          }));
+          responseHandler(
+            new CustomEvent('streamlit:apiResponse', {
+              detail: {
+                messageId,
+                response: mockResponse,
+              },
+            })
+          );
         }
       });
 
@@ -152,11 +160,13 @@ describe('useSeriesSettingsAPI', () => {
 
       let responseHandler: ((event: CustomEvent) => void) | undefined;
 
-      mockEventListener.mockImplementation((event: string, handler: (event: CustomEvent) => void) => {
-        if (event === 'streamlit:apiResponse') {
-          responseHandler = handler;
+      mockEventListener.mockImplementation(
+        (event: string, handler: (event: CustomEvent) => void) => {
+          if (event === 'streamlit:apiResponse') {
+            responseHandler = handler;
+          }
         }
-      });
+      );
 
       const updatePromise = result.current.updateSeriesSettings('0', 'series1', config);
 
@@ -166,7 +176,7 @@ describe('useSeriesSettingsAPI', () => {
           paneId: '0',
           seriesId: 'series1',
           config,
-          messageId: expect.stringMatching(/update_series_settings_\d+/)
+          messageId: expect.stringMatching(/update_series_settings_\d+/),
         })
       );
 
@@ -174,12 +184,14 @@ describe('useSeriesSettingsAPI', () => {
 
       act(() => {
         if (responseHandler) {
-          responseHandler(new CustomEvent('streamlit:apiResponse', {
-            detail: {
-              messageId,
-              response: mockResponse
-            }
-          }));
+          responseHandler(
+            new CustomEvent('streamlit:apiResponse', {
+              detail: {
+                messageId,
+                response: mockResponse,
+              },
+            })
+          );
         }
       });
 
@@ -195,11 +207,13 @@ describe('useSeriesSettingsAPI', () => {
 
       let responseHandler: ((event: CustomEvent) => void) | undefined;
 
-      mockEventListener.mockImplementation((event: string, handler: (event: CustomEvent) => void) => {
-        if (event === 'streamlit:apiResponse') {
-          responseHandler = handler;
+      mockEventListener.mockImplementation(
+        (event: string, handler: (event: CustomEvent) => void) => {
+          if (event === 'streamlit:apiResponse') {
+            responseHandler = handler;
+          }
         }
-      });
+      );
 
       const updatePromise = result.current.updateSeriesSettings('0', 'series1', config);
 
@@ -207,12 +221,14 @@ describe('useSeriesSettingsAPI', () => {
 
       act(() => {
         if (responseHandler) {
-          responseHandler(new CustomEvent('streamlit:apiResponse', {
-            detail: {
-              messageId,
-              response: mockResponse
-            }
-          }));
+          responseHandler(
+            new CustomEvent('streamlit:apiResponse', {
+              detail: {
+                messageId,
+                response: mockResponse,
+              },
+            })
+          );
         }
       });
 
@@ -227,17 +243,19 @@ describe('useSeriesSettingsAPI', () => {
 
       const patches = [
         { paneId: '0', seriesId: 'series1', config: { visible: false } },
-        { paneId: '0', seriesId: 'series2', config: { color: '#FF0000' } }
+        { paneId: '0', seriesId: 'series2', config: { color: '#FF0000' } },
       ];
       const mockResponse = { success: true };
 
       let responseHandler: ((event: CustomEvent) => void) | undefined;
 
-      mockEventListener.mockImplementation((event: string, handler: (event: CustomEvent) => void) => {
-        if (event === 'streamlit:apiResponse') {
-          responseHandler = handler;
+      mockEventListener.mockImplementation(
+        (event: string, handler: (event: CustomEvent) => void) => {
+          if (event === 'streamlit:apiResponse') {
+            responseHandler = handler;
+          }
         }
-      });
+      );
 
       const updatePromise = result.current.updateMultipleSettings(patches);
 
@@ -245,7 +263,7 @@ describe('useSeriesSettingsAPI', () => {
         expect.objectContaining({
           type: 'update_multiple_settings',
           patches,
-          messageId: expect.stringMatching(/update_multiple_settings_\d+/)
+          messageId: expect.stringMatching(/update_multiple_settings_\d+/),
         })
       );
 
@@ -253,12 +271,14 @@ describe('useSeriesSettingsAPI', () => {
 
       act(() => {
         if (responseHandler) {
-          responseHandler(new CustomEvent('streamlit:apiResponse', {
-            detail: {
-              messageId,
-              response: mockResponse
-            }
-          }));
+          responseHandler(
+            new CustomEvent('streamlit:apiResponse', {
+              detail: {
+                messageId,
+                response: mockResponse,
+              },
+            })
+          );
         }
       });
 
@@ -276,11 +296,13 @@ describe('useSeriesSettingsAPI', () => {
 
       let responseHandler: ((event: CustomEvent) => void) | undefined;
 
-      mockEventListener.mockImplementation((event: string, handler: (event: CustomEvent) => void) => {
-        if (event === 'streamlit:apiResponse') {
-          responseHandler = handler;
+      mockEventListener.mockImplementation(
+        (event: string, handler: (event: CustomEvent) => void) => {
+          if (event === 'streamlit:apiResponse') {
+            responseHandler = handler;
+          }
         }
-      });
+      );
 
       const resetPromise = result.current.resetSeriesToDefaults('0', 'series1');
 
@@ -289,7 +311,7 @@ describe('useSeriesSettingsAPI', () => {
           type: 'reset_series_defaults',
           paneId: '0',
           seriesId: 'series1',
-          messageId: expect.stringMatching(/reset_series_defaults_\d+/)
+          messageId: expect.stringMatching(/reset_series_defaults_\d+/),
         })
       );
 
@@ -297,12 +319,14 @@ describe('useSeriesSettingsAPI', () => {
 
       act(() => {
         if (responseHandler) {
-          responseHandler(new CustomEvent('streamlit:apiResponse', {
-            detail: {
-              messageId,
-              response: mockResponse
-            }
-          }));
+          responseHandler(
+            new CustomEvent('streamlit:apiResponse', {
+              detail: {
+                messageId,
+                response: mockResponse,
+              },
+            })
+          );
         }
       });
 
@@ -317,11 +341,13 @@ describe('useSeriesSettingsAPI', () => {
 
       let responseHandler: ((event: CustomEvent) => void) | undefined;
 
-      mockEventListener.mockImplementation((event: string, handler: (event: CustomEvent) => void) => {
-        if (event === 'streamlit:apiResponse') {
-          responseHandler = handler;
+      mockEventListener.mockImplementation(
+        (event: string, handler: (event: CustomEvent) => void) => {
+          if (event === 'streamlit:apiResponse') {
+            responseHandler = handler;
+          }
         }
-      });
+      );
 
       const resetPromise = result.current.resetSeriesToDefaults('0', 'series1');
 
@@ -329,12 +355,14 @@ describe('useSeriesSettingsAPI', () => {
 
       act(() => {
         if (responseHandler) {
-          responseHandler(new CustomEvent('streamlit:apiResponse', {
-            detail: {
-              messageId,
-              response: mockResponse
-            }
-          }));
+          responseHandler(
+            new CustomEvent('streamlit:apiResponse', {
+              detail: {
+                messageId,
+                response: mockResponse,
+              },
+            })
+          );
         }
       });
 

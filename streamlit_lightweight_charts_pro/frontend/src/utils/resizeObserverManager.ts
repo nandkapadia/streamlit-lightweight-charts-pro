@@ -73,7 +73,7 @@ export class ResizeObserverManager {
       this.callbacks.set(id, callback);
       this.targets.set(id, target);
     } catch (error) {
-      logger.error("ResizeObserver operation failed", "ResizeObserverManager", error);
+      logger.error('ResizeObserver operation failed', 'ResizeObserverManager', error);
     }
   }
 
@@ -96,7 +96,7 @@ export class ResizeObserverManager {
           this.timeouts.delete(id);
         }
       } catch (error) {
-        logger.error("ResizeObserver operation failed", "ResizeObserverManager", error);
+        logger.error('ResizeObserver operation failed', 'ResizeObserverManager', error);
       }
     }
   }

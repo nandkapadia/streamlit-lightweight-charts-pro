@@ -12,7 +12,11 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { ChartProfiler, useChartProfilerMetrics, ChartPerformanceDashboard } from '../../components/ChartProfiler';
+import {
+  ChartProfiler,
+  useChartProfilerMetrics,
+  ChartPerformanceDashboard,
+} from '../../components/ChartProfiler';
 
 describe('ChartProfiler', () => {
   beforeEach(() => {

@@ -361,7 +361,7 @@ describe('PrimitiveEventManager', () => {
     it('should emit config change event', () => {
       const manager = PrimitiveEventManager.getInstance('chart-1');
       const listener = vi.fn();
-      const _config = { color: '#FF0000', lineWidth: 2 };
+      const config = { color: '#FF0000', lineWidth: 2 };
 
       manager.subscribe('configChange', listener);
       manager.emitConfigChange('primitive-1', config);
@@ -395,7 +395,7 @@ describe('PrimitiveEventManager', () => {
       manager.initialize(mockChart);
 
       // Simulate chart crosshair move
-      const crosshairHandler = mockChart.subscribeCrosshairMove.mock.calls[0][0];
+      const crosshairHandler = (mockChart.subscribeCrosshairMove as any).mock.calls[0][0];
       crosshairHandler({
         time: 100,
         point: { x: 10, y: 20 },
@@ -412,7 +412,7 @@ describe('PrimitiveEventManager', () => {
       manager.subscribe('hover', hoverListener);
       manager.initialize(mockChart);
 
-      const crosshairHandler = mockChart.subscribeCrosshairMove.mock.calls[0][0];
+      const crosshairHandler = (mockChart.subscribeCrosshairMove as any).mock.calls[0][0];
       crosshairHandler({
         time: 100,
         point: { x: 10, y: 20 },
@@ -433,7 +433,7 @@ describe('PrimitiveEventManager', () => {
       manager.subscribe('hover', hoverListener);
       manager.initialize(mockChart);
 
-      const crosshairHandler = mockChart.subscribeCrosshairMove.mock.calls[0][0];
+      const crosshairHandler = (mockChart.subscribeCrosshairMove as any).mock.calls[0][0];
       crosshairHandler({
         time: 100,
         point: null,
@@ -511,7 +511,7 @@ describe('PrimitiveEventManager', () => {
       const manager = PrimitiveEventManager.getInstance('chart-1');
       manager.initialize(mockChart);
 
-      const crosshairHandler = mockChart.subscribeCrosshairMove.mock.calls[0][0];
+      const crosshairHandler = (mockChart.subscribeCrosshairMove as any).mock.calls[0][0];
       crosshairHandler({
         time: 100,
         point: { x: 10, y: 20 },

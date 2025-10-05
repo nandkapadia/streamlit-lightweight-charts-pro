@@ -382,7 +382,11 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
         this._chart.timeScale().unsubscribeVisibleTimeRangeChange(this._timeScaleCallback);
         this._timeScaleCallback = null;
       } catch (error) {
-        logger.error('Failed to unsubscribe from time scale events', 'TradeRectanglePrimitive', error);
+        logger.error(
+          'Failed to unsubscribe from time scale events',
+          'TradeRectanglePrimitive',
+          error
+        );
       }
     }
 
@@ -391,7 +395,11 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
         this._chart.unsubscribeCrosshairMove(this._crosshairCallback);
         this._crosshairCallback = null;
       } catch (error) {
-        logger.error('Failed to unsubscribe from crosshair events', 'TradeRectanglePrimitive', error);
+        logger.error(
+          'Failed to unsubscribe from crosshair events',
+          'TradeRectanglePrimitive',
+          error
+        );
       }
     }
 

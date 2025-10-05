@@ -24,10 +24,8 @@ export class ChartPrimitiveManager {
   private chart: IChartApi;
   private chartId: string;
   private eventManager: PrimitiveEventManager;
-  private primitives: Map<
-    string,
-    LegendPrimitive | RangeSwitcherPrimitive | ButtonPanelPrimitive
-  > = new Map();
+  private primitives: Map<string, LegendPrimitive | RangeSwitcherPrimitive | ButtonPanelPrimitive> =
+    new Map();
   private legendCounter: number = 0;
 
   private constructor(chart: IChartApi, chartId: string) {
@@ -152,28 +150,34 @@ export class ChartPrimitiveManager {
     const primitiveId = `button-panel-${this.chartId}-${paneId}`;
 
     try {
-      const buttonPanel = createButtonPanelPrimitive(paneId, {
-        corner: config.corner || 'top-right',
-        priority: PrimitivePriority.MINIMIZE_BUTTON,
+      const buttonPanel = createButtonPanelPrimitive(
         paneId,
-        chartId: this.chartId,
-        buttonSize: config.buttonSize,
-        buttonColor: config.buttonColor,
-        buttonHoverColor: config.buttonHoverColor,
-        buttonBackground: config.buttonBackground,
-        buttonHoverBackground: config.buttonHoverBackground,
-        buttonBorderRadius: config.buttonBorderRadius,
-        showTooltip: config.showTooltip,
-        tooltipText: config.tooltipText,
-        showCollapseButton: config.showCollapseButton,
-        showGearButton: config.showGearButton,
-        onPaneCollapse: config.onPaneCollapse,
-        onPaneExpand: config.onPaneExpand,
-        onSeriesConfigChange: config.onSeriesConfigChange,
-      }, this.chartId);
+        {
+          corner: config.corner || 'top-right',
+          priority: PrimitivePriority.MINIMIZE_BUTTON,
+          paneId,
+          chartId: this.chartId,
+          buttonSize: config.buttonSize,
+          buttonColor: config.buttonColor,
+          buttonHoverColor: config.buttonHoverColor,
+          buttonBackground: config.buttonBackground,
+          buttonHoverBackground: config.buttonHoverBackground,
+          buttonBorderRadius: config.buttonBorderRadius,
+          showTooltip: config.showTooltip,
+          tooltipText: config.tooltipText,
+          showCollapseButton: config.showCollapseButton,
+          showGearButton: config.showGearButton,
+          onPaneCollapse: config.onPaneCollapse,
+          onPaneExpand: config.onPaneExpand,
+          onSeriesConfigChange: config.onSeriesConfigChange,
+        },
+        this.chartId
+      );
 
       // Use the same attachment pattern as legends for consistent behavior
-      const targetPaneId = (buttonPanel as any).getPaneId ? (buttonPanel as any).getPaneId() : paneId;
+      const targetPaneId = (buttonPanel as any).getPaneId
+        ? (buttonPanel as any).getPaneId()
+        : paneId;
       const isPanePrimitive = targetPaneId > 0; // Follow legend pattern: paneId > 0
       this.attachToPaneAsFallback(buttonPanel, isPanePrimitive, targetPaneId);
 
@@ -186,12 +190,16 @@ export class ChartPrimitiveManager {
     } catch {
       return {
         destroy: () => {},
-        plugin: createButtonPanelPrimitive(paneId, {
-          corner: 'top-right',
-          priority: PrimitivePriority.MINIMIZE_BUTTON,
+        plugin: createButtonPanelPrimitive(
           paneId,
-          chartId: this.chartId,
-        }, this.chartId),
+          {
+            corner: 'top-right',
+            priority: PrimitivePriority.MINIMIZE_BUTTON,
+            paneId,
+            chartId: this.chartId,
+          },
+          this.chartId
+        ),
       };
     }
   }

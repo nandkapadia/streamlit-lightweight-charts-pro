@@ -10,7 +10,7 @@
  * - Shape drawing utilities
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   convertToRendererCoordinates,
   convertTwoLineCoordinates,
@@ -54,34 +54,35 @@ import {
 } from '../../utils/renderingUtils';
 
 // Mock canvas context
-const createMockContext = (): jest.Mocked<CanvasRenderingContext2D> => ({
-  beginPath: vi.fn(),
-  moveTo: vi.fn(),
-  lineTo: vi.fn(),
-  closePath: vi.fn(),
-  fill: vi.fn(),
-  stroke: vi.fn(),
-  save: vi.fn(),
-  restore: vi.fn(),
-  setLineDash: vi.fn(),
-  createLinearGradient: vi.fn(() => ({
-    addColorStop: vi.fn(),
-  })) as any,
-  fillRect: vi.fn(),
-  strokeRect: vi.fn(),
-  scale: vi.fn(),
-  fillStyle: '',
-  strokeStyle: '',
-  lineWidth: 1,
-  globalAlpha: 1,
-  globalCompositeOperation: 'source-over' as GlobalCompositeOperation,
-  lineCap: 'butt' as CanvasLineCap,
-  lineJoin: 'miter' as CanvasLineJoin,
-} as any);
+const createMockContext = (): jest.Mocked<CanvasRenderingContext2D> =>
+  ({
+    beginPath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    closePath: vi.fn(),
+    fill: vi.fn(),
+    stroke: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    setLineDash: vi.fn(),
+    createLinearGradient: vi.fn(() => ({
+      addColorStop: vi.fn(),
+    })) as any,
+    fillRect: vi.fn(),
+    strokeRect: vi.fn(),
+    scale: vi.fn(),
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 1,
+    globalAlpha: 1,
+    globalCompositeOperation: 'source-over' as GlobalCompositeOperation,
+    lineCap: 'butt' as CanvasLineCap,
+    lineJoin: 'miter' as CanvasLineJoin,
+  }) as any;
 
 // Mock time scale
 const createMockTimeScale = () => ({
-  timeToCoordinate: vi.fn((time) => {
+  timeToCoordinate: vi.fn(time => {
     if (typeof time === 'number') return time * 10;
     return 100;
   }),
@@ -90,7 +91,7 @@ const createMockTimeScale = () => ({
 
 // Mock series API
 const createMockSeries = () => ({
-  priceToCoordinate: vi.fn((price) => {
+  priceToCoordinate: vi.fn(price => {
     if (typeof price === 'number') return 100 - price;
     return null;
   }),
@@ -111,7 +112,12 @@ describe('Coordinate Conversion Functions', () => {
         coordinateFields: ['value'],
       };
 
-      const _result = convertToRendererCoordinates(data, timeScale, { value: series as any }, config);
+      const result = convertToRendererCoordinates(
+        data,
+        timeScale,
+        { value: series as any },
+        config
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('x');
@@ -126,7 +132,7 @@ describe('Coordinate Conversion Functions', () => {
         coordinateFields: ['value'],
       };
 
-      const _result = convertToRendererCoordinates(data, timeScale, {}, config);
+      const result = convertToRendererCoordinates(data, timeScale, {}, config);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty('x');
@@ -144,7 +150,12 @@ describe('Coordinate Conversion Functions', () => {
         coordinateFields: ['value'],
       };
 
-      const _result = convertToRendererCoordinates(data, timeScale, { value: series as any }, config);
+      const result = convertToRendererCoordinates(
+        data,
+        timeScale,
+        { value: series as any },
+        config
+      );
 
       expect(result[0].x).toBe(-100);
     });
@@ -160,7 +171,12 @@ describe('Coordinate Conversion Functions', () => {
       const upperSeries = createMockSeries();
       const lowerSeries = createMockSeries();
 
-      const _result = convertTwoLineCoordinates(data, timeScale, upperSeries as any, lowerSeries as any);
+      const result = convertTwoLineCoordinates(
+        data,
+        timeScale,
+        upperSeries as any,
+        lowerSeries as any
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('x');
@@ -172,20 +188,23 @@ describe('Coordinate Conversion Functions', () => {
       const data = [{ time: '2023-01-01' as any, upper: 10, lower: 5 }];
       const timeScale = createMockTimeScale();
 
-      const _result = convertTwoLineCoordinates(data, timeScale, null as any, null as any);
+      const result = convertTwoLineCoordinates(data, timeScale, null as any, null as any);
 
       expect(result).toEqual([]);
     });
 
     it('should preserve original data properties', () => {
-      const data = [
-        { time: '2023-01-01' as any, upper: 10, lower: 5, fillColor: '#FF0000' },
-      ];
+      const data = [{ time: '2023-01-01' as any, upper: 10, lower: 5, fillColor: '#FF0000' }];
       const timeScale = createMockTimeScale();
       const upperSeries = createMockSeries();
       const lowerSeries = createMockSeries();
 
-      const _result = convertTwoLineCoordinates(data, timeScale, upperSeries as any, lowerSeries as any);
+      const result = convertTwoLineCoordinates(
+        data,
+        timeScale,
+        upperSeries as any,
+        lowerSeries as any
+      );
 
       expect(result[0]).toHaveProperty('fillColor', '#FF0000');
     });
@@ -193,15 +212,13 @@ describe('Coordinate Conversion Functions', () => {
 
   describe('convertThreeLineCoordinates', () => {
     it('should convert three-line data correctly', () => {
-      const data = [
-        { time: '2023-01-01' as any, upper: 15, middle: 10, lower: 5 },
-      ];
+      const data = [{ time: '2023-01-01' as any, upper: 15, middle: 10, lower: 5 }];
       const timeScale = createMockTimeScale();
       const upperSeries = createMockSeries();
       const middleSeries = createMockSeries();
       const lowerSeries = createMockSeries();
 
-      const _result = convertThreeLineCoordinates(
+      const result = convertThreeLineCoordinates(
         data,
         timeScale,
         upperSeries as any,
@@ -219,7 +236,7 @@ describe('Coordinate Conversion Functions', () => {
     it('should return empty array if series are missing', () => {
       const data = [{ time: '2023-01-01' as any, upper: 15, middle: 10, lower: 5 }];
 
-      const _result = convertThreeLineCoordinates(data, null, null as any, null as any, null as any);
+      const result = convertThreeLineCoordinates(data, null, null as any, null as any, null as any);
 
       expect(result).toEqual([]);
     });
@@ -234,7 +251,7 @@ describe('Coordinate Conversion Functions', () => {
       const timeScale = createMockTimeScale();
       const series = createMockSeries();
 
-      const _result = batchConvertCoordinates(items, timeScale, { value: series as any }, ['value']);
+      const result = batchConvertCoordinates(items, timeScale, { value: series as any }, ['value']);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toBeTruthy();
@@ -248,7 +265,7 @@ describe('Coordinate Conversion Functions', () => {
       };
       const series = createMockSeries();
 
-      const _result = batchConvertCoordinates(items, timeScale, { value: series as any }, ['value']);
+      const result = batchConvertCoordinates(items, timeScale, { value: series as any }, ['value']);
 
       expect(result[0]).toBeNull();
     });
@@ -261,7 +278,7 @@ describe('Coordinate Conversion Functions', () => {
         }),
       };
 
-      const _result = batchConvertCoordinates(items, timeScale, {}, ['value']);
+      const result = batchConvertCoordinates(items, timeScale, {}, ['value']);
 
       expect(result[0]).toBeNull();
     });
@@ -320,7 +337,7 @@ describe('Coordinate Validation Functions', () => {
         { x: 50, y: 60 },
       ];
 
-      const _result = filterValidRenderPoints(points);
+      const result = filterValidRenderPoints(points);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({ x: 10, y: 20 });
@@ -338,7 +355,7 @@ describe('Coordinate Validation Functions', () => {
         { x: 30, y: 40 },
       ];
 
-      const _result = filterValidRenderPoints(points);
+      const result = filterValidRenderPoints(points);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({ x: 30, y: 40 });
@@ -354,7 +371,7 @@ describe('Coordinate Validation Functions', () => {
         { x: 50, upperY: 60 },
       ];
 
-      const _result = filterValidCoordinates(points);
+      const result = filterValidCoordinates(points);
 
       expect(result).toHaveLength(2);
     });
@@ -365,7 +382,7 @@ describe('Coordinate Validation Functions', () => {
         { x: 20, upperY: 30 },
       ];
 
-      const _result = filterValidCoordinates(points);
+      const result = filterValidCoordinates(points);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({ x: 20, upperY: 30 });
@@ -376,15 +393,9 @@ describe('Coordinate Validation Functions', () => {
 describe('Visible Range Calculation', () => {
   describe('calculateVisibleRange', () => {
     it('should calculate visible range from valid points', () => {
-      const points = [
-        { x: null },
-        { x: 10 },
-        { x: 20 },
-        { x: 30 },
-        { x: null },
-      ];
+      const points = [{ x: null }, { x: 10 }, { x: 20 }, { x: 30 }, { x: null }];
 
-      const _result = calculateVisibleRange(points);
+      const result = calculateVisibleRange(points);
 
       expect(result).toEqual({ from: 1, to: 4 });
     });
@@ -394,26 +405,18 @@ describe('Visible Range Calculation', () => {
     });
 
     it('should handle all invalid points', () => {
-      const points = [
-        { x: null },
-        { x: -200 },
-        { x: null },
-      ];
+      const points = [{ x: null }, { x: -200 }, { x: null }];
 
-      const _result = calculateVisibleRange(points);
+      const result = calculateVisibleRange(points);
 
       // Should find no valid range
       expect(result).toEqual({ from: 0, to: 3 });
     });
 
     it('should handle single valid point', () => {
-      const points = [
-        { x: null },
-        { x: 100 },
-        { x: null },
-      ];
+      const points = [{ x: null }, { x: 100 }, { x: null }];
 
-      const _result = calculateVisibleRange(points);
+      const result = calculateVisibleRange(points);
 
       expect(result).toEqual({ from: 1, to: 2 });
     });
@@ -435,7 +438,7 @@ describe('Canvas Setup and Context Management', () => {
     it('should execute callback with scaled context', () => {
       const mockCtx = createMockContext();
       const mockTarget = {
-        useBitmapCoordinateSpace: vi.fn((callback) => {
+        useBitmapCoordinateSpace: vi.fn(callback => {
           callback({
             context: mockCtx,
             horizontalPixelRatio: 2,
@@ -458,7 +461,7 @@ describe('Canvas Setup and Context Management', () => {
     it('should execute callback with scaled context', () => {
       const mockCtx = createMockContext();
       const mockTarget = {
-        useBitmapCoordinateSpace: vi.fn((callback) => {
+        useBitmapCoordinateSpace: vi.fn(callback => {
           callback({
             context: mockCtx,
             horizontalPixelRatio: 2,
@@ -477,7 +480,7 @@ describe('Canvas Setup and Context Management', () => {
 
     it('should handle missing context gracefully', () => {
       const mockTarget = {
-        useBitmapCoordinateSpace: vi.fn((callback) => {
+        useBitmapCoordinateSpace: vi.fn(callback => {
           callback({
             context: null,
             horizontalPixelRatio: 2,
@@ -1080,7 +1083,7 @@ describe('Enhanced Coordinate Validation', () => {
         { x: 50, y: 60 },
       ];
 
-      const _result = filterPointsByBounds(points, { minX: 0, maxX: 100, minY: 0, maxY: 100 });
+      const result = filterPointsByBounds(points, { minX: 0, maxX: 100, minY: 0, maxY: 100 });
 
       expect(result).toHaveLength(2);
     });
@@ -1101,7 +1104,7 @@ describe('Edge Extension Utilities', () => {
         extensionPixels: 50,
       };
 
-      const _result = calculateExtendedRange(firstPoint, lastPoint, config);
+      const result = calculateExtendedRange(firstPoint, lastPoint, config);
 
       expect(result.startX).toBe(45); // 100 - 5 - 50
       expect(result.endX).toBe(255); // 200 + 5 + 50
@@ -1114,7 +1117,7 @@ describe('Edge Extension Utilities', () => {
         barWidth: 10,
       };
 
-      const _result = calculateExtendedRange(firstPoint, lastPoint, config);
+      const result = calculateExtendedRange(firstPoint, lastPoint, config);
 
       expect(result.startX).toBe(45); // 100 - 5 - 50 (default extension)
       expect(result.endX).toBe(255); // 200 + 5 + 50 (default extension)

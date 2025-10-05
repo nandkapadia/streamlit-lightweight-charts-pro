@@ -82,7 +82,7 @@ vi.mock('../../primitives/PrimitiveDefaults', () => ({
   ButtonEffects: {
     DEFAULT_BORDER: '1px solid rgba(255, 255, 255, 0.2)',
     DEFAULT_TRANSITION: 'all 0.2s ease',
-    HOVER_BOX_SHADOW: '0 2px 4px rgba(0, 0, 0, 0.1)'
+    HOVER_BOX_SHADOW: '0 2px 4px rgba(0, 0, 0, 0.1)',
   },
   LegendDimensions: { MIN_WIDTH: 100, DEFAULT_HEIGHT: 20 },
   LayoutSpacing: { EDGE_PADDING: 6, WIDGET_GAP: 6, BASE_Z_INDEX: 1000 },

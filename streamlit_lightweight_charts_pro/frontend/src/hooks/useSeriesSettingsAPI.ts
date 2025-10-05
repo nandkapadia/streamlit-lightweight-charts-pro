@@ -52,7 +52,7 @@ export function useSeriesSettingsAPI() {
   const getPaneState = useCallback(async (paneId: string): Promise<PaneState | null> => {
     try {
       // Send request to Streamlit backend
-      const response = await new Promise<APIResponse<PaneState>>((resolve) => {
+      const response = await new Promise<APIResponse<PaneState>>(resolve => {
         const messageId = `get_pane_state_${Date.now()}`;
 
         // Set up response listener
@@ -99,68 +99,68 @@ export function useSeriesSettingsAPI() {
   /**
    * Update series settings in the backend
    */
-  const updateSeriesSettings = useCallback(async (
-    paneId: string,
-    seriesId: string,
-    config: Partial<SeriesConfig>
-  ): Promise<boolean> => {
-    try {
-      // Send patch to Streamlit backend
-      const response = await new Promise<APIResponse>((resolve) => {
-        const messageId = `update_series_settings_${Date.now()}`;
+  const updateSeriesSettings = useCallback(
+    async (paneId: string, seriesId: string, config: Partial<SeriesConfig>): Promise<boolean> => {
+      try {
+        // Send patch to Streamlit backend
+        const response = await new Promise<APIResponse>(resolve => {
+          const messageId = `update_series_settings_${Date.now()}`;
 
-        // Set up response listener
-        const handleResponse = (event: CustomEvent) => {
-          if (event.detail.messageId === messageId) {
-            document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-            resolve(event.detail.response);
+          // Set up response listener
+          const handleResponse = (event: CustomEvent) => {
+            if (event.detail.messageId === messageId) {
+              document.removeEventListener(
+                'streamlit:apiResponse',
+                handleResponse as EventListener
+              );
+              resolve(event.detail.response);
+            }
+          };
+
+          document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
+
+          // Send patch
+          const streamlit = getStreamlit();
+          if (streamlit && streamlit.setComponentValue) {
+            streamlit.setComponentValue({
+              type: 'update_series_settings',
+              messageId,
+              paneId,
+              seriesId,
+              config,
+            });
+          } else {
+            resolve({ success: false, error: 'Streamlit not available' });
+            return;
           }
-        };
 
-        document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
+          // Timeout after 5 seconds
+          setTimeout(() => {
+            document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
+            resolve({ success: false, error: 'Request timeout' });
+          }, 5000);
+        });
 
-        // Send patch
-        const streamlit = getStreamlit();
-        if (streamlit && streamlit.setComponentValue) {
-          streamlit.setComponentValue({
-            type: 'update_series_settings',
-            messageId,
-            paneId,
-            seriesId,
-            config,
-          });
+        if (response.success) {
+          return true;
         } else {
-          resolve({ success: false, error: 'Streamlit not available' });
-          return;
+          return false;
         }
-
-        // Timeout after 5 seconds
-        setTimeout(() => {
-          document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-          resolve({ success: false, error: 'Request timeout' });
-        }, 5000);
-      });
-
-      if (response.success) {
-        return true;
-      } else {
+      } catch (error) {
+        logger.error('Failed to update series settings in backend', 'useSeriesSettingsAPI', error);
         return false;
       }
-    } catch (error) {
-      logger.error('Failed to update series settings in backend', 'useSeriesSettingsAPI', error);
-      return false;
-    }
-  }, []);
+    },
+    []
+  );
 
   /**
    * Batch update multiple series settings
    */
-  const updateMultipleSettings = useCallback(async (
-    patches: SettingsPatch[]
-  ): Promise<boolean> => {
+  const updateMultipleSettings = useCallback(async (patches: SettingsPatch[]): Promise<boolean> => {
     try {
       // Send batch patch to Streamlit backend
-      const response = await new Promise<APIResponse>((resolve) => {
+      const response = await new Promise<APIResponse>(resolve => {
         const messageId = `update_multiple_settings_${Date.now()}`;
 
         // Set up response listener
@@ -207,56 +207,59 @@ export function useSeriesSettingsAPI() {
   /**
    * Reset series to defaults
    */
-  const resetSeriesToDefaults = useCallback(async (
-    paneId: string,
-    seriesId: string
-  ): Promise<SeriesConfig | null> => {
-    try {
-      // Send reset request to Streamlit backend
-      const response = await new Promise<APIResponse<SeriesConfig>>((resolve) => {
-        const messageId = `reset_series_defaults_${Date.now()}`;
+  const resetSeriesToDefaults = useCallback(
+    async (paneId: string, seriesId: string): Promise<SeriesConfig | null> => {
+      try {
+        // Send reset request to Streamlit backend
+        const response = await new Promise<APIResponse<SeriesConfig>>(resolve => {
+          const messageId = `reset_series_defaults_${Date.now()}`;
 
-        // Set up response listener
-        const handleResponse = (event: CustomEvent) => {
-          if (event.detail.messageId === messageId) {
-            document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-            resolve(event.detail.response);
+          // Set up response listener
+          const handleResponse = (event: CustomEvent) => {
+            if (event.detail.messageId === messageId) {
+              document.removeEventListener(
+                'streamlit:apiResponse',
+                handleResponse as EventListener
+              );
+              resolve(event.detail.response);
+            }
+          };
+
+          document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
+
+          // Send reset request
+          const streamlit = getStreamlit();
+          if (streamlit && streamlit.setComponentValue) {
+            streamlit.setComponentValue({
+              type: 'reset_series_defaults',
+              messageId,
+              paneId,
+              seriesId,
+            });
+          } else {
+            resolve({ success: false, error: 'Streamlit not available' });
+            return;
           }
-        };
 
-        document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
+          // Timeout after 5 seconds
+          setTimeout(() => {
+            document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
+            resolve({ success: false, error: 'Request timeout' });
+          }, 5000);
+        });
 
-        // Send reset request
-        const streamlit = getStreamlit();
-        if (streamlit && streamlit.setComponentValue) {
-          streamlit.setComponentValue({
-            type: 'reset_series_defaults',
-            messageId,
-            paneId,
-            seriesId,
-          });
+        if (response.success && response.data) {
+          return response.data;
         } else {
-          resolve({ success: false, error: 'Streamlit not available' });
-          return;
+          return null;
         }
-
-        // Timeout after 5 seconds
-        setTimeout(() => {
-          document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-          resolve({ success: false, error: 'Request timeout' });
-        }, 5000);
-      });
-
-      if (response.success && response.data) {
-        return response.data;
-      } else {
+      } catch (error) {
+        logger.error('Failed to get series settings from backend', 'useSeriesSettingsAPI', error);
         return null;
       }
-    } catch (error) {
-      logger.error('Failed to get series settings from backend', 'useSeriesSettingsAPI', error);
-      return null;
-    }
-  }, []);
+    },
+    []
+  );
 
   /**
    * Register settings change callback with backend

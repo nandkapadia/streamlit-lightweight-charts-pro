@@ -3,7 +3,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { TrendFillPrimitive, TrendFillPrimitiveData, TrendFillPrimitiveOptions } from '../../primitives/TrendFillPrimitive';
+import {
+  TrendFillPrimitive,
+  TrendFillPrimitiveData,
+  TrendFillPrimitiveOptions,
+} from '../../primitives/TrendFillPrimitive';
 
 // Mock lightweight-charts
 const mockTimeScale = {
@@ -475,7 +479,7 @@ describe('TrendFillPrimitive', () => {
     it('should skip items with null coordinates', () => {
       // Mock to return null for time coordinate
       const originalTimeToCoordinate = mockTimeScale.timeToCoordinate;
-      mockTimeScale.timeToCoordinate = vi.fn(() => null);
+      mockTimeScale.timeToCoordinate = vi.fn(() => null) as any;
 
       const data: TrendFillPrimitiveData[] = [
         { time: 100, baseLine: 10, trendLine: 20, trendDirection: 1 },

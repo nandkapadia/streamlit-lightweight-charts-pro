@@ -182,7 +182,7 @@ export const ValidationConfigs = {
     custom: [
       {
         field: 'fillColor',
-        validator: (value) => value === undefined || typeof value === 'string',
+        validator: value => value === undefined || typeof value === 'string',
         message: 'fillColor must be a string or undefined',
       },
     ],
@@ -229,7 +229,8 @@ export const QuickValidators = {
   isNumberOrNull: (value: any): boolean => value === null || QuickValidators.isNumber(value),
 
   /** Check if value is undefined or valid number */
-  isNumberOrUndefined: (value: any): boolean => value === undefined || QuickValidators.isNumber(value),
+  isNumberOrUndefined: (value: any): boolean =>
+    value === undefined || QuickValidators.isNumber(value),
 
   /** Check if all values in object are valid numbers */
   areAllNumbers: (data: Record<string, any>, keys: string[]): boolean => {

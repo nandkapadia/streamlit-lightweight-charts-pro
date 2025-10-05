@@ -153,26 +153,26 @@ const ChartLoadingSkeleton: React.FC<{ showProgress?: boolean }> = React.memo(
 /**
  * Enhanced Suspense wrapper with React 19 optimizations
  */
-export const ChartSuspenseWrapper: React.FC<ChartSuspenseWrapperProps> = React.memo(({
-  children,
-  fallback,
-  minLoadingTime = 200,
-  showProgressIndicator = false,
-  onLoadingStart,
-  onLoadingComplete,
-  onError,
-}) => {
-  const [isPendingTransition, startTransition] = useTransition();
+export const ChartSuspenseWrapper: React.FC<ChartSuspenseWrapperProps> = React.memo(
+  ({
+    children,
+    fallback,
+    minLoadingTime = 200,
+    showProgressIndicator = false,
+    onLoadingStart,
+    onLoadingComplete,
+    onError,
+  }) => {
+    const [isPendingTransition, startTransition] = useTransition();
 
-  // Memoize the fallback component to prevent unnecessary re-renders
-  const memoizedFallback = useMemo(() => {
-    if (fallback) return fallback;
-    return <ChartLoadingSkeleton showProgress={showProgressIndicator} />;
-  }, [fallback, showProgressIndicator]);
+    // Memoize the fallback component to prevent unnecessary re-renders
+    const memoizedFallback = useMemo(() => {
+      if (fallback) return fallback;
+      return <ChartLoadingSkeleton showProgress={showProgressIndicator} />;
+    }, [fallback, showProgressIndicator]);
 
-  // Enhanced loading state management with minimum loading time
-  const LoadingBoundary: React.FC<{ children: React.ReactNode }> = React.memo(
-    ({ children }) => {
+    // Enhanced loading state management with minimum loading time
+    const LoadingBoundary: React.FC<{ children: React.ReactNode }> = React.memo(({ children }) => {
       React.useEffect(() => {
         onLoadingStart?.();
 
@@ -187,41 +187,39 @@ export const ChartSuspenseWrapper: React.FC<ChartSuspenseWrapperProps> = React.m
       }, []);
 
       return <>{children}</>;
-    }
-  );
+    });
 
-  return (
-    <ErrorBoundary
-      onError={(error) => {
-        onError?.(error);
-      }}
-      fallback={
-        <div
-          style={{
-            width: '100%',
-            height: '400px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#fff5f5',
-            border: '1px solid #ff6b6b',
-            borderRadius: '8px',
-            color: '#d63031',
-            fontSize: '14px',
-          }}
-        >
-          Failed to load chart component. Please try refreshing the page.
-        </div>
-      }
-    >
-      <Suspense fallback={memoizedFallback}>
-        <LoadingBoundary>
-          {isPendingTransition ? memoizedFallback : children}
-        </LoadingBoundary>
-      </Suspense>
-    </ErrorBoundary>
-  );
-});
+    return (
+      <ErrorBoundary
+        onError={error => {
+          onError?.(error);
+        }}
+        fallback={
+          <div
+            style={{
+              width: '100%',
+              height: '400px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#fff5f5',
+              border: '1px solid #ff6b6b',
+              borderRadius: '8px',
+              color: '#d63031',
+              fontSize: '14px',
+            }}
+          >
+            Failed to load chart component. Please try refreshing the page.
+          </div>
+        }
+      >
+        <Suspense fallback={memoizedFallback}>
+          <LoadingBoundary>{isPendingTransition ? memoizedFallback : children}</LoadingBoundary>
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+);
 
 ChartSuspenseWrapper.displayName = 'ChartSuspenseWrapper';
 
@@ -232,21 +230,24 @@ export const useChartSuspense = () => {
   const [isPending, startTransition] = useTransition();
   const [loadingComponents, setLoadingComponents] = React.useState<Set<string>>(new Set());
 
-  const loadComponent = React.useCallback((componentName: string, loadFn: () => Promise<any>) => {
-    startTransition(async () => {
-      setLoadingComponents(prev => new Set(prev).add(componentName));
+  const loadComponent = React.useCallback(
+    (componentName: string, loadFn: () => Promise<any>) => {
+      startTransition(async () => {
+        setLoadingComponents(prev => new Set(prev).add(componentName));
 
-      try {
-        await loadFn();
-      } finally {
-        setLoadingComponents(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(componentName);
-          return newSet;
-        });
-      }
-    });
-  }, [startTransition]);
+        try {
+          await loadFn();
+        } finally {
+          setLoadingComponents(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(componentName);
+            return newSet;
+          });
+        }
+      });
+    },
+    [startTransition]
+  );
 
   return {
     isPending,
@@ -263,7 +264,7 @@ export function withChartSuspense<P extends object>(
   Component: React.ComponentType<P>,
   options?: Omit<ChartSuspenseWrapperProps, 'children'>
 ) {
-  const WrappedComponent: React.FC<P> = (props) => (
+  const WrappedComponent: React.FC<P> = props => (
     <ChartSuspenseWrapper {...options}>
       <Component {...props} />
     </ChartSuspenseWrapper>

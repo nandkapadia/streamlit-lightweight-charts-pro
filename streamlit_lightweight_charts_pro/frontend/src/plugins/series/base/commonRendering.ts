@@ -10,7 +10,17 @@
  * across all custom series implementations and primitives.
  */
 
-import { Time, ISeriesApi, IChartApi } from 'lightweight-charts';
+import {
+  Time,
+  ISeriesApi,
+  IChartApi,
+  CustomData,
+  CustomSeriesWhitespaceData,
+} from 'lightweight-charts';
+
+// ============================================================================
+// Coordinate Types
+// ============================================================================
 
 /**
  * Coordinate point with optional null values
@@ -242,9 +252,7 @@ export function drawFillArea(
 
   // Check if range has any nulls (Primitive mode) or all valid (Custom Series mode)
   const rangeCoords = coordinates.slice(start, end);
-  const hasNulls = rangeCoords.some(c =>
-    c.x == null || c[upperKey] == null || c[lowerKey] == null
-  );
+  const hasNulls = rangeCoords.some(c => c.x == null || c[upperKey] == null || c[lowerKey] == null);
 
   if (hasNulls) {
     // Primitive mode: Detect and draw valid segments
@@ -350,4 +358,22 @@ export function getBarSpacing(chart: IChartApi): number {
   const timeScale = chart.timeScale();
   const options = timeScale.options();
   return options.barSpacing ?? 6;
+}
+
+// ============================================================================
+// Whitespace Detection Utilities
+// ============================================================================
+
+/**
+ * Whitespace checker for data with multiple value fields
+ * Checks if all specified fields are null/undefined
+ */
+export function isWhitespaceDataMultiField<HorzScaleItem>(
+  data: CustomData<HorzScaleItem> | CustomSeriesWhitespaceData<HorzScaleItem>,
+  fields: string[]
+): data is CustomSeriesWhitespaceData<HorzScaleItem> {
+  return fields.every(field => {
+    const value = (data as any)[field];
+    return value === null || value === undefined;
+  });
 }

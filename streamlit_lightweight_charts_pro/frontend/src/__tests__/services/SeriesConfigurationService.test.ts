@@ -101,7 +101,7 @@ describe('SeriesConfigurationService', () => {
 
     it('should register custom schema', () => {
       const customSchema: SeriesConfigSchema = {
-        seriesType: 'rsi',
+        seriesType: 'rsi' as any,
         displayName: 'RSI',
         fields: [
           {
@@ -118,7 +118,7 @@ describe('SeriesConfigurationService', () => {
 
       service.registerSeriesSchema(customSchema);
 
-      const retrieved = service.getSeriesSchema('rsi');
+      const retrieved = service.getSeriesSchema('rsi' as any);
       expect(retrieved).toEqual(customSchema);
     });
 
@@ -139,13 +139,13 @@ describe('SeriesConfigurationService', () => {
 
     it('should overwrite schema when registering same type', () => {
       const schema1: SeriesConfigSchema = {
-        seriesType: 'custom',
+        seriesType: 'custom' as any,
         displayName: 'Custom 1',
         fields: [],
       };
 
       const schema2: SeriesConfigSchema = {
-        seriesType: 'custom',
+        seriesType: 'custom' as any,
         displayName: 'Custom 2',
         fields: [],
       };
@@ -153,7 +153,7 @@ describe('SeriesConfigurationService', () => {
       service.registerSeriesSchema(schema1);
       service.registerSeriesSchema(schema2);
 
-      const retrieved = service.getSeriesSchema('custom');
+      const retrieved = service.getSeriesSchema('custom' as any);
       expect(retrieved?.displayName).toBe('Custom 2');
     });
   });
@@ -164,7 +164,7 @@ describe('SeriesConfigurationService', () => {
     });
 
     it('should get default configuration for new series', () => {
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
 
       expect(config).toBeDefined();
       expect(config.period).toBe(10);
@@ -182,7 +182,7 @@ describe('SeriesConfigurationService', () => {
     it('should update configuration', () => {
       service.updateSeriesConfig('series-1', 'supertrend', { period: 20 });
 
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(config.period).toBe(20);
     });
 
@@ -196,7 +196,7 @@ describe('SeriesConfigurationService', () => {
       service.updateSeriesConfig('series-1', 'supertrend', { period: 50 });
       service.resetSeriesConfig('series-1', 'supertrend');
 
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(config.period).toBe(10); // Default value
     });
 
@@ -207,7 +207,7 @@ describe('SeriesConfigurationService', () => {
       expect(mockStorage.remove).toHaveBeenCalled();
 
       // Getting config after removal should return defaults
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(config.period).toBe(10);
     });
 
@@ -216,7 +216,7 @@ describe('SeriesConfigurationService', () => {
         upTrend: { color: '#00FF00' },
       } as any);
 
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(config.upTrend?.color).toBe('#00FF00');
     });
 
@@ -252,32 +252,32 @@ describe('SeriesConfigurationService', () => {
       // Supertrend period has min: 1, max: 100
       service.updateSeriesConfig('series-1', 'supertrend', { period: 200 });
 
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(config.period).toBe(100); // Clamped to max
     });
 
     it('should clamp number below minimum', () => {
       service.updateSeriesConfig('series-1', 'supertrend', { period: -5 });
 
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(config.period).toBe(1); // Clamped to min
     });
 
     it('should validate boolean fields', () => {
       service.updateSeriesConfig('series-1', 'supertrend', {
-        'upTrend.visible': 'not a boolean' as any,
-      });
+        'upTrend.visible': 'not a boolean',
+      } as any);
 
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(typeof config.upTrend?.visible).toBe('boolean');
     });
 
     it('should validate color format', () => {
       service.updateSeriesConfig('series-1', 'supertrend', {
         'upTrend.color': 'invalid-color',
-      });
+      } as any);
 
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       // Should fall back to default color
       expect(config.upTrend?.color).toBe('#4CAF50');
     });
@@ -287,7 +287,7 @@ describe('SeriesConfigurationService', () => {
         upTrend: { color: '#FF0000' },
       } as any);
 
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(config.upTrend?.color).toBe('#FF0000');
     });
 
@@ -296,7 +296,7 @@ describe('SeriesConfigurationService', () => {
         fill: { opacity: 150 },
       } as any);
 
-      const _config = service.getSeriesConfig('series-1', 'bollinger_bands');
+      const config = service.getSeriesConfig('series-1', 'bollinger_bands');
       expect(config.fill?.opacity).toBe(100); // Clamped to max
     });
 
@@ -305,7 +305,7 @@ describe('SeriesConfigurationService', () => {
         fill: { opacity: -10 },
       } as any);
 
-      const _config = service.getSeriesConfig('series-1', 'bollinger_bands');
+      const config = service.getSeriesConfig('series-1', 'bollinger_bands');
       expect(config.fill?.opacity).toBe(0); // Clamped to min
     });
   });
@@ -443,7 +443,7 @@ describe('SeriesConfigurationService', () => {
       }
 
       // Original should not be affected
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(config.period).toBe(20);
     });
 
@@ -538,7 +538,7 @@ describe('SeriesConfigurationService', () => {
     });
 
     it('should create valid default configuration from schema', () => {
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
 
       expect(config.period).toBe(10);
       expect(config.multiplier).toBe(3);
@@ -557,12 +557,12 @@ describe('SeriesConfigurationService', () => {
     it('should handle empty configuration updates', () => {
       service.updateSeriesConfig('series-1', 'supertrend', {});
 
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(config).toBeDefined();
     });
 
     it('should handle configuration for series without schema', () => {
-      const _config = service.getSeriesConfig('series-1', 'unknown' as SeriesType);
+      const config = service.getSeriesConfig('series-1', 'unknown' as SeriesType);
 
       expect(config).toBeDefined();
       expect(config.color).toBeDefined(); // Base default config
@@ -573,7 +573,7 @@ describe('SeriesConfigurationService', () => {
       service.updateSeriesConfig('series-1', 'supertrend', { period: 20 });
       service.updateSeriesConfig('series-1', 'supertrend', { period: 30 });
 
-      const _config = service.getSeriesConfig('series-1', 'supertrend');
+      const config = service.getSeriesConfig('series-1', 'supertrend');
       expect(config.period).toBe(30);
     });
 
@@ -582,7 +582,7 @@ describe('SeriesConfigurationService', () => {
 
       service.updateSeriesConfig(longId, 'supertrend', { period: 15 });
 
-      const _config = service.getSeriesConfig(longId, 'supertrend');
+      const config = service.getSeriesConfig(longId, 'supertrend');
       expect(config.period).toBe(15);
     });
 
@@ -591,7 +591,7 @@ describe('SeriesConfigurationService', () => {
 
       service.updateSeriesConfig(specialId, 'supertrend', { period: 15 });
 
-      const _config = service.getSeriesConfig(specialId, 'supertrend');
+      const config = service.getSeriesConfig(specialId, 'supertrend');
       expect(config.period).toBe(15);
     });
   });

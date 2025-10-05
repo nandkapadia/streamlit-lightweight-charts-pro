@@ -96,7 +96,7 @@ describe('lineStyle utils', () => {
         color: 'red',
       };
 
-      const _result = cleanLineStyleOptions(input);
+      const result = cleanLineStyleOptions(input);
 
       expect(result).toEqual({
         lineStyle: MockLineStyle.Solid,
@@ -111,7 +111,7 @@ describe('lineStyle utils', () => {
         color: 'blue',
       };
 
-      const _result = cleanLineStyleOptions(input);
+      const result = cleanLineStyleOptions(input);
 
       expect(result).toEqual({
         lineStyle: MockLineStyle.Dashed,
@@ -125,7 +125,7 @@ describe('lineStyle utils', () => {
         color: 'green',
       };
 
-      const _result = cleanLineStyleOptions(input);
+      const result = cleanLineStyleOptions(input);
 
       expect(result).toEqual({
         color: 'green',
@@ -154,7 +154,7 @@ describe('lineStyle utils', () => {
         },
       };
 
-      const _result = cleanLineStyleOptions(input);
+      const result = cleanLineStyleOptions(input);
 
       expect(result).toEqual({
         style: {
@@ -185,7 +185,7 @@ describe('lineStyle utils', () => {
         },
       };
 
-      const _result = cleanLineStyleOptions(input);
+      const result = cleanLineStyleOptions(input);
 
       expect(result).toEqual({
         nested: {
@@ -204,7 +204,7 @@ describe('lineStyle utils', () => {
         lineStyle: 'solid',
       };
 
-      const _result = cleanLineStyleOptions(input);
+      const result = cleanLineStyleOptions(input);
 
       expect(result).toEqual({
         data: [1, 2, 3],
@@ -221,7 +221,7 @@ describe('lineStyle utils', () => {
       };
 
       const original = { ...input };
-      const _result = cleanLineStyleOptions(input);
+      const result = cleanLineStyleOptions(input);
 
       expect(input).toEqual(original);
       expect(result).not.toBe(input);
@@ -254,7 +254,7 @@ describe('lineStyle utils', () => {
         },
       };
 
-      const _result = cleanLineStyleOptions(input);
+      const result = cleanLineStyleOptions(input);
 
       expect(result).toEqual({
         series: {

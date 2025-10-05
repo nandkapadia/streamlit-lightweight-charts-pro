@@ -59,7 +59,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 123.45 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('Price: 123.45');
       expect(result.processedPlaceholders).toEqual(['$$value$$']);
@@ -77,7 +77,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('O: 100.00 H: 110.00 L: 95.00 C: 105.00');
       expect(result.processedPlaceholders).toHaveLength(4);
@@ -94,7 +94,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('50.50/52.75/49.25/51.00');
     });
@@ -109,7 +109,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('U: 120.00 M: 100.00 L: 80.00');
     });
@@ -122,7 +122,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('Vol: 1500000.00');
     });
@@ -135,7 +135,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       // Time will be formatted in local time zone
       expect(result.content).toMatch(/Time: .+/);
@@ -151,7 +151,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('Symbol: AAPL Type: STOCK');
     });
@@ -160,7 +160,7 @@ describe('TemplateEngine', () => {
       const template = 'No placeholders here';
       const context: TemplateContext = {};
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('No placeholders here');
       expect(result.processedPlaceholders).toHaveLength(0);
@@ -170,7 +170,7 @@ describe('TemplateEngine', () => {
       const template = '';
       const context: TemplateContext = {};
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('');
     });
@@ -181,7 +181,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 100 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('Price: 100.00 (€)');
     });
@@ -200,7 +200,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('105.00'); // close has priority
     });
@@ -213,7 +213,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('123.45');
     });
@@ -228,7 +228,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('100.00'); // middle used as value
     });
@@ -242,7 +242,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('100.00'); // (120 + 80) / 2
     });
@@ -255,7 +255,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('150.00');
     });
@@ -266,7 +266,7 @@ describe('TemplateEngine', () => {
         seriesData: {},
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe(''); // Default to empty
       expect(result.missingPlaceholders).toContain('$$value$$');
@@ -279,7 +279,7 @@ describe('TemplateEngine', () => {
         customData: { value: 200 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('200.00');
     });
@@ -290,7 +290,7 @@ describe('TemplateEngine', () => {
         seriesData: { customField: 999 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('999.00');
     });
@@ -303,7 +303,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 123.456789 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('123.46');
     });
@@ -317,7 +317,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('123.4568');
     });
@@ -331,7 +331,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('123'); // toFixed(0) rounds down
     });
@@ -345,7 +345,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toMatch(/1[,\s]?234/); // Locale-specific
     });
@@ -359,7 +359,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('123.46'); // Fallback to default
     });
@@ -370,7 +370,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 0 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('0.00');
     });
@@ -381,7 +381,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: -123.45 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('-123.45');
     });
@@ -392,7 +392,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 1234567890.12 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('1234567890.12');
     });
@@ -403,7 +403,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 0.000123 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('0.00');
     });
@@ -417,7 +417,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('0.000123');
     });
@@ -432,7 +432,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       // Check that time is formatted (local time zone dependent)
       expect(result.content.length).toBeGreaterThan(0);
@@ -447,7 +447,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       // Check that time is formatted (local time zone dependent)
       expect(result.content.length).toBeGreaterThan(0);
@@ -462,7 +462,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       // Check that time is formatted (local time zone dependent)
       expect(result.content.length).toBeGreaterThan(0);
@@ -478,7 +478,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       // Check that time is formatted (local time zone dependent)
       expect(result.content.length).toBeGreaterThan(0);
@@ -496,7 +496,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       // Format is YYYY-MM-DD (local time zone)
       expect(result.content).toMatch(/\d{4}-\d{2}-\d{2}/);
@@ -513,7 +513,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toMatch(/\d{2}:\d{2}:\d{2}/);
     });
@@ -529,7 +529,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       // Format is YYYY-MM-DD HH:mm (local time zone)
       expect(result.content).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/);
@@ -543,7 +543,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('Invalid Date');
     });
@@ -556,7 +556,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('');
     });
@@ -569,7 +569,7 @@ describe('TemplateEngine', () => {
         },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content.length).toBeGreaterThan(0);
     });
@@ -587,7 +587,7 @@ describe('TemplateEngine', () => {
         escapeHtml: true,
       };
 
-      const _result = engine.processTemplate(template, context, options);
+      const result = engine.processTemplate(template, context, options);
 
       expect(result.content).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
     });
@@ -603,7 +603,7 @@ describe('TemplateEngine', () => {
         escapeHtml: false,
       };
 
-      const _result = engine.processTemplate(template, context, options);
+      const result = engine.processTemplate(template, context, options);
 
       expect(result.content).toBe('<b>Bold</b>');
     });
@@ -615,7 +615,7 @@ describe('TemplateEngine', () => {
       };
       const options: TemplateOptions = { escapeHtml: true };
 
-      const _result = engine.processTemplate(template, context, options);
+      const result = engine.processTemplate(template, context, options);
 
       expect(result.content).toBe('A &amp; B');
     });
@@ -627,7 +627,7 @@ describe('TemplateEngine', () => {
       };
       const options: TemplateOptions = { escapeHtml: true };
 
-      const _result = engine.processTemplate(template, context, options);
+      const result = engine.processTemplate(template, context, options);
 
       expect(result.content).toBe('It&#39;s here');
     });
@@ -639,7 +639,7 @@ describe('TemplateEngine', () => {
       };
       const options: TemplateOptions = { escapeHtml: true };
 
-      const _result = engine.processTemplate(template, context, options);
+      const result = engine.processTemplate(template, context, options);
 
       expect(result.content).toBe('');
     });
@@ -653,7 +653,7 @@ describe('TemplateEngine', () => {
         defaultValue: 'N/A',
       };
 
-      const _result = engine.processTemplate(template, context, options);
+      const result = engine.processTemplate(template, context, options);
 
       expect(result.content).toBe('N/A');
       expect(result.missingPlaceholders).toContain('$$missing$$');
@@ -663,7 +663,7 @@ describe('TemplateEngine', () => {
       const template = '$$missing$$';
       const context: TemplateContext = {};
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('');
       expect(result.missingPlaceholders).toContain('$$missing$$');
@@ -690,7 +690,7 @@ describe('TemplateEngine', () => {
         strict: false,
       };
 
-      const _result = engine.processTemplate(template, context, options);
+      const result = engine.processTemplate(template, context, options);
 
       expect(result.content).toBe('100.00 and ');
       expect(result.hasErrors).toBe(false);
@@ -700,7 +700,7 @@ describe('TemplateEngine', () => {
       const template = '$$missing$$';
       const context: TemplateContext = {};
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.processedPlaceholders).not.toContain('$$missing$$');
     });
@@ -709,7 +709,7 @@ describe('TemplateEngine', () => {
       const template = '$$missing1$$ $$missing2$$';
       const context: TemplateContext = {};
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.missingPlaceholders).toEqual(['$$missing1$$', '$$missing2$$']);
     });
@@ -824,7 +824,7 @@ describe('TemplateEngine', () => {
         processPlaceholders: false,
       };
 
-      const _result = engine.processTemplate(template, context, options);
+      const result = engine.processTemplate(template, context, options);
 
       expect(result.content).toBe('$$value$$'); // Unchanged
       expect(result.processedPlaceholders).toHaveLength(0);
@@ -842,7 +842,7 @@ describe('TemplateEngine', () => {
         strict: false,
       };
 
-      const _result = engine.processTemplate(template, context, options);
+      const result = engine.processTemplate(template, context, options);
 
       expect(result.content).toBe('&lt;b&gt;Bold&lt;/b&gt; N/A');
       expect(result.missingPlaceholders).toContain('$$missing$$');
@@ -855,7 +855,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 100 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('100.00');
       expect(result.hasErrors).toBe(false);
@@ -869,7 +869,7 @@ describe('TemplateEngine', () => {
         seriesData: null as any, // Invalid data
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('');
       expect(result.missingPlaceholders).toContain('$$value$$');
@@ -881,7 +881,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 'not-a-number' as any },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       // Should handle gracefully
       expect(result.hasErrors).toBe(false);
@@ -890,13 +890,13 @@ describe('TemplateEngine', () => {
     it('should handle null context', () => {
       const template = '$$value$$';
 
-      const _result = engine.processTemplate(template, undefined as any);
+      const result = engine.processTemplate(template, undefined as any);
 
       expect(result.content).toBe('');
     });
 
     it('should handle null template', () => {
-      const _result = engine.processTemplate(null as any);
+      const result = engine.processTemplate(null as any);
 
       // Implementation returns TemplateResult with content = null
       expect(result.content).toBe(null);
@@ -910,7 +910,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 100 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('100.00 is the price');
     });
@@ -921,7 +921,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 100 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('Price is 100.00');
     });
@@ -932,7 +932,7 @@ describe('TemplateEngine', () => {
         seriesData: { close: 105 }, // Only close ($$value$$ will use close due to smart extraction)
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('105.00105.00');
     });
@@ -943,7 +943,7 @@ describe('TemplateEngine', () => {
         customData: { custom_field_123: 'value' },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('value');
     });
@@ -954,7 +954,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 100 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('100.00 '.repeat(100));
     });
@@ -965,7 +965,7 @@ describe('TemplateEngine', () => {
         seriesData: { value: 100 },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('Price: 100.00 (.*+?)');
     });
@@ -977,7 +977,7 @@ describe('TemplateEngine', () => {
         formatting: undefined,
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('100.00');
     });
@@ -988,7 +988,7 @@ describe('TemplateEngine', () => {
         customData: { flag: true },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('true');
     });
@@ -999,7 +999,7 @@ describe('TemplateEngine', () => {
         customData: { array: [1, 2, 3] },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('1,2,3');
     });
@@ -1010,7 +1010,7 @@ describe('TemplateEngine', () => {
         customData: { obj: { key: 'value' } },
       };
 
-      const _result = engine.processTemplate(template, context);
+      const result = engine.processTemplate(template, context);
 
       expect(result.content).toBe('[object Object]');
     });

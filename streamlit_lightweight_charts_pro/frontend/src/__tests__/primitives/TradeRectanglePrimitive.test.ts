@@ -264,7 +264,9 @@ describe('TradeRectanglePrimitive - Event Handling', () => {
     primitive = new TradeRectanglePrimitive(data);
 
     mockTimeScale = {
-      subscribeVisibleTimeRangeChange: vi.fn((cb) => { timeScaleCallback = cb; }),
+      subscribeVisibleTimeRangeChange: vi.fn(cb => {
+        timeScaleCallback = cb;
+      }),
       unsubscribeVisibleTimeRangeChange: vi.fn(),
       timeToCoordinate: vi.fn(() => 50),
     };
@@ -272,7 +274,9 @@ describe('TradeRectanglePrimitive - Event Handling', () => {
     mockChart = {
       chartElement: vi.fn(() => ({ id: 'test-chart' })),
       timeScale: vi.fn(() => mockTimeScale),
-      subscribeCrosshairMove: vi.fn((cb) => { crosshairCallback = cb; }),
+      subscribeCrosshairMove: vi.fn(cb => {
+        crosshairCallback = cb;
+      }),
       unsubscribeCrosshairMove: vi.fn(),
     };
 
@@ -506,9 +510,7 @@ describe('Factory Function - createTradeRectanglePrimitives', () => {
       },
     ];
 
-    const chartData = [
-      { time: '2024-01-05T00:00:00Z', value: 100 },
-    ];
+    const chartData = [{ time: '2024-01-05T00:00:00Z', value: 100 }];
 
     const primitives = createTradeRectanglePrimitives(trades, chartData);
 
@@ -620,9 +622,7 @@ describe('Factory Function - createTradeRectanglePrimitives', () => {
       },
     ];
 
-    const chartData = [
-      { time: 1704153600 as any, value: 100 },
-    ];
+    const chartData = [{ time: 1704153600 as any, value: 100 }];
 
     const primitives = createTradeRectanglePrimitives(trades, chartData);
 
@@ -676,7 +676,7 @@ describe('TradeRectangleView - Coordinate Conversion', () => {
     mockTimeScale = {
       subscribeVisibleTimeRangeChange: vi.fn(),
       unsubscribeVisibleTimeRangeChange: vi.fn(),
-      timeToCoordinate: vi.fn((time) => {
+      timeToCoordinate: vi.fn(time => {
         if (time === 1000) return 50;
         if (time === 2000) return 150;
         return null;
@@ -691,7 +691,7 @@ describe('TradeRectangleView - Coordinate Conversion', () => {
     };
 
     mockSeries = {
-      priceToCoordinate: vi.fn((price) => {
+      priceToCoordinate: vi.fn(price => {
         if (price === 100) return 200;
         if (price === 110) return 150;
         return null;

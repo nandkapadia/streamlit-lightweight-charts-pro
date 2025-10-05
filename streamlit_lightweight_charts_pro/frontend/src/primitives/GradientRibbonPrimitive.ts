@@ -29,10 +29,7 @@ import {
 } from 'lightweight-charts';
 import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
 import { getSolidColorFromFill } from '../utils/colorUtils';
-import {
-  convertToCoordinates,
-  drawMultiLine,
-} from '../plugins/series/base/commonRendering';
+import { convertToCoordinates, drawMultiLine } from '../plugins/series/base/commonRendering';
 import {
   BaseSeriesPrimitive,
   BaseSeriesPrimitiveOptions,
@@ -122,7 +119,10 @@ function interpolateColor(startColor: string, endColor: string, factor: number):
 // Primitive Pane View
 // ============================================================================
 
-class GradientRibbonPrimitivePaneView extends BaseSeriesPrimitivePaneView<GradientRibbonProcessedData, GradientRibbonPrimitiveOptions> {
+class GradientRibbonPrimitivePaneView extends BaseSeriesPrimitivePaneView<
+  GradientRibbonProcessedData,
+  GradientRibbonPrimitiveOptions
+> {
   renderer(): IPrimitivePaneRenderer {
     return new GradientRibbonPrimitiveRenderer(this._source as GradientRibbonPrimitive);
   }
@@ -274,7 +274,12 @@ class GradientRibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
 
   private _drawGradientFill(
     ctx: CanvasRenderingContext2D,
-    coordinates: Array<{ x: number | null; upper: number | null; lower: number | null; fillColor?: string }>,
+    coordinates: Array<{
+      x: number | null;
+      upper: number | null;
+      lower: number | null;
+      fillColor?: string;
+    }>,
     options: GradientRibbonPrimitiveOptions
   ): void {
     const validCoords = coordinates.filter(
@@ -333,7 +338,10 @@ class GradientRibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
 /**
  * Price axis view for upper line
  */
-class GradientRibbonUpperAxisView extends BaseSeriesPrimitiveAxisView<GradientRibbonProcessedData, GradientRibbonPrimitiveOptions> {
+class GradientRibbonUpperAxisView extends BaseSeriesPrimitiveAxisView<
+  GradientRibbonProcessedData,
+  GradientRibbonPrimitiveOptions
+> {
   coordinate(): number {
     const lastItem = this._getLastVisibleItem();
     if (!lastItem) return 0;
@@ -364,7 +372,10 @@ class GradientRibbonUpperAxisView extends BaseSeriesPrimitiveAxisView<GradientRi
 /**
  * Price axis view for lower line
  */
-class GradientRibbonLowerAxisView extends BaseSeriesPrimitiveAxisView<GradientRibbonProcessedData, GradientRibbonPrimitiveOptions> {
+class GradientRibbonLowerAxisView extends BaseSeriesPrimitiveAxisView<
+  GradientRibbonProcessedData,
+  GradientRibbonPrimitiveOptions
+> {
   coordinate(): number {
     const lastItem = this._getLastVisibleItem();
     if (!lastItem) return 0;
@@ -402,7 +413,10 @@ class GradientRibbonLowerAxisView extends BaseSeriesPrimitiveAxisView<GradientRi
  * Implements ISeriesPrimitive for z-order control and independent rendering.
  * Syncs data from attached ICustomSeries for autoscaling.
  */
-export class GradientRibbonPrimitive extends BaseSeriesPrimitive<GradientRibbonProcessedData, GradientRibbonPrimitiveOptions> {
+export class GradientRibbonPrimitive extends BaseSeriesPrimitive<
+  GradientRibbonProcessedData,
+  GradientRibbonPrimitiveOptions
+> {
   constructor(chart: IChartApi, options: GradientRibbonPrimitiveOptions) {
     super(chart, options);
   }

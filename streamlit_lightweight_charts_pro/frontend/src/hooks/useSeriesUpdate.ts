@@ -95,47 +95,50 @@ export function useSeriesUpdate(options: UseSeriesUpdateOptions): UseSeriesUpdat
    * Map dialog configuration format to LightweightCharts API format
    * Converts snake_case to camelCase and handles special cases
    */
-  const mapDialogConfigToAPI = useCallback((configPatch: SeriesConfigPatch): Record<string, any> => {
-    const apiConfig: Record<string, any> = {};
+  const mapDialogConfigToAPI = useCallback(
+    (configPatch: SeriesConfigPatch): Record<string, any> => {
+      const apiConfig: Record<string, any> = {};
 
-    // Basic visibility options
-    if ('visible' in configPatch) {
-      apiConfig.visible = configPatch.visible;
-    }
+      // Basic visibility options
+      if ('visible' in configPatch) {
+        apiConfig.visible = configPatch.visible;
+      }
 
-    if ('last_value_visible' in configPatch) {
-      apiConfig.lastValueVisible = configPatch.last_value_visible;
-    }
+      if ('last_value_visible' in configPatch) {
+        apiConfig.lastValueVisible = configPatch.last_value_visible;
+      }
 
-    if ('price_line' in configPatch) {
-      apiConfig.priceLineVisible = configPatch.price_line;
-    }
+      if ('price_line' in configPatch) {
+        apiConfig.priceLineVisible = configPatch.price_line;
+      }
 
-    // Color and styling options
-    if ('color' in configPatch) {
-      apiConfig.color = configPatch.color;
-    }
+      // Color and styling options
+      if ('color' in configPatch) {
+        apiConfig.color = configPatch.color;
+      }
 
-    if ('line_width' in configPatch) {
-      apiConfig.lineWidth = configPatch.line_width;
-    }
+      if ('line_width' in configPatch) {
+        apiConfig.lineWidth = configPatch.line_width;
+      }
 
-    if ('line_style' in configPatch) {
-      apiConfig.lineStyle = configPatch.line_style;
-    }
+      if ('line_style' in configPatch) {
+        apiConfig.lineStyle = configPatch.line_style;
+      }
 
-    // Marker options
-    if ('markers' in configPatch) {
-      apiConfig.pointMarkersVisible = configPatch.markers;
-    }
+      // Marker options
+      if ('markers' in configPatch) {
+        apiConfig.pointMarkersVisible = configPatch.markers;
+      }
 
-    // Title updates
-    if ('title' in configPatch) {
-      apiConfig.title = configPatch.title;
-    }
+      // Title updates
+      if ('title' in configPatch) {
+        apiConfig.title = configPatch.title;
+      }
 
-    return apiConfig;
-  }, []);
+      return apiConfig;
+    },
+    []
+  );
 
   /**
    * Apply configuration changes to a specific series

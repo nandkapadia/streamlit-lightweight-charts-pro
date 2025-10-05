@@ -224,7 +224,7 @@ def main():
     # Display gradient information
     st.caption("Gradient: Green (0.0) → Red (1.0) based on data position")
 
-    # Signal Series
+    # Signal Series (with line series for price axis)
     st.write("**Signal Series**")
     signal_data = [
         SignalData(
@@ -233,7 +233,13 @@ def main():
         )
         for i in range(len(data["times"]))
     ]
-    signal_chart = Chart(series=SignalSeries(data=signal_data))
+    # Add a line series to ensure price axis is correctly set
+    signal_chart = Chart(
+        series=[
+            LineSeries(data=data["line_data"]),
+            SignalSeries(data=signal_data),
+        ],
+    )
     signal_chart.render(key="signal_test")
 
     # Multi-pane chart

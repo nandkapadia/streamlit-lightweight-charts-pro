@@ -51,44 +51,34 @@ describe('ChartMetadata', () => {
         description: 'Test Description',
       };
 
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', initialMetadata)
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', initialMetadata));
 
       expect(result.current.metadata.title).toBe('Test Chart');
       expect(result.current.metadata.description).toBe('Test Description');
     });
 
     it('should initialize with empty metadata', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       expect(result.current.metadata).toEqual({});
     });
 
     it('should provide updateMetadata function', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       expect(result.current.updateMetadata).toBeDefined();
       expect(typeof result.current.updateMetadata).toBe('function');
     });
 
     it('should provide updateTitle function', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       expect(result.current.updateTitle).toBeDefined();
       expect(typeof result.current.updateTitle).toBe('function');
     });
 
     it('should update title when updateTitle is called', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateTitle('New Title');
@@ -98,18 +88,14 @@ describe('ChartMetadata', () => {
     });
 
     it('should provide updateDescription function', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       expect(result.current.updateDescription).toBeDefined();
       expect(typeof result.current.updateDescription).toBe('function');
     });
 
     it('should update description when updateDescription is called', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateDescription('New Description');
@@ -119,18 +105,14 @@ describe('ChartMetadata', () => {
     });
 
     it('should provide updateDataInfo function', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       expect(result.current.updateDataInfo).toBeDefined();
       expect(typeof result.current.updateDataInfo).toBe('function');
     });
 
     it('should update data points when updateDataInfo is called', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateDataInfo(100);
@@ -140,9 +122,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should update data points and date range when updateDataInfo is called', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       const dateRange = { start: '2024-01-01', end: '2024-12-31' };
       act(() => {
@@ -154,18 +134,14 @@ describe('ChartMetadata', () => {
     });
 
     it('should provide updateTheme function', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       expect(result.current.updateTheme).toBeDefined();
       expect(typeof result.current.updateTheme).toBe('function');
     });
 
     it('should update theme when updateTheme is called', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateTheme('dark');
@@ -175,9 +151,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should handle multiple updates', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateTitle('Title 1');
@@ -191,9 +165,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should merge updates with existing metadata', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', { title: 'Initial' })
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', { title: 'Initial' }));
 
       act(() => {
         result.current.updateDescription('New Description');
@@ -204,9 +176,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should allow overwriting metadata with updateMetadata', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', { title: 'Initial' })
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', { title: 'Initial' }));
 
       act(() => {
         result.current.updateMetadata({ description: 'New Desc', keywords: ['test'] });
@@ -317,9 +287,7 @@ describe('ChartMetadata', () => {
 
   describe('Metadata Updates', () => {
     it('should allow incremental metadata updates', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', { title: 'Initial' })
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', { title: 'Initial' }));
 
       act(() => {
         result.current.updateDescription('Description');
@@ -330,9 +298,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should allow overwriting metadata', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', { title: 'Initial' })
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', { title: 'Initial' }));
 
       act(() => {
         result.current.updateTitle('Updated');
@@ -342,9 +308,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should handle rapid successive updates', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateTitle('Title 1');
@@ -356,9 +320,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should update multiple fields at once with updateMetadata', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateMetadata({
@@ -379,9 +341,7 @@ describe('ChartMetadata', () => {
   describe('Preset Integration', () => {
     it('should initialize with candlestick preset', () => {
       const preset = ChartMetadataPresets.candlestick('chart-1');
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', preset)
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', preset));
 
       expect(result.current.metadata.keywords).toContain('candlestick');
       expect(result.current.metadata.chartType).toBe('candlestick');
@@ -389,9 +349,7 @@ describe('ChartMetadata', () => {
 
     it('should allow updating preset metadata', () => {
       const preset = ChartMetadataPresets.line('chart-1');
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', preset)
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', preset));
 
       act(() => {
         result.current.updateTitle('Custom Line Chart');
@@ -403,9 +361,7 @@ describe('ChartMetadata', () => {
 
     it('should preserve preset keywords when updating title', () => {
       const preset = ChartMetadataPresets.histogram('chart-1');
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', preset)
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', preset));
 
       act(() => {
         result.current.updateTitle('My Histogram');
@@ -418,18 +374,14 @@ describe('ChartMetadata', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty metadata object', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       expect(result.current.metadata).toEqual({});
     });
 
     it('should handle very long titles', () => {
       const longTitle = 'A'.repeat(500);
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateTitle(longTitle);
@@ -440,9 +392,7 @@ describe('ChartMetadata', () => {
 
     it('should handle very long descriptions', () => {
       const longDescription = 'B'.repeat(1000);
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateDescription(longDescription);
@@ -453,9 +403,7 @@ describe('ChartMetadata', () => {
 
     it('should handle special characters in title', () => {
       const specialTitle = 'Chart <script>alert("xss")</script>';
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateTitle(specialTitle);
@@ -466,9 +414,7 @@ describe('ChartMetadata', () => {
 
     it('should handle many keywords', () => {
       const manyKeywords = Array.from({ length: 100 }, (_, i) => `keyword${i}`);
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateMetadata({ keywords: manyKeywords });
@@ -478,17 +424,13 @@ describe('ChartMetadata', () => {
     });
 
     it('should handle empty chartId', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('', {}));
 
       expect(result.current.metadata).toBeDefined();
     });
 
     it('should handle both light and dark themes', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateTheme('light');
@@ -502,9 +444,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should handle timestamp date ranges', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       const dateRange = { start: 1704067200, end: 1735689600 };
       act(() => {
@@ -515,9 +455,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should handle string date ranges', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       const dateRange = { start: '2024-01-01', end: '2024-12-31' };
       act(() => {
@@ -528,9 +466,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should handle data points without date range', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateDataInfo(500);
@@ -541,9 +477,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should handle zero data points', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateDataInfo(0);
@@ -553,9 +487,7 @@ describe('ChartMetadata', () => {
     });
 
     it('should handle large number of data points', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', {})
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', {}));
 
       act(() => {
         result.current.updateDataInfo(1000000);
@@ -579,9 +511,7 @@ describe('ChartMetadata', () => {
         language: 'en',
       };
 
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', fullMetadata)
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', fullMetadata));
 
       expect(result.current.metadata).toEqual(fullMetadata);
     });
@@ -605,25 +535,19 @@ describe('ChartMetadata', () => {
     });
 
     it('should support custom author', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', { author: 'Custom Author' })
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', { author: 'Custom Author' }));
 
       expect(result.current.metadata.author).toBe('Custom Author');
     });
 
     it('should support custom language', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', { language: 'fr' })
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', { language: 'fr' }));
 
       expect(result.current.metadata.language).toBe('fr');
     });
 
     it('should support custom chart type', () => {
-      const { result } = renderHook(() =>
-        useChartMetadata('chart-1', { chartType: 'custom' })
-      );
+      const { result } = renderHook(() => useChartMetadata('chart-1', { chartType: 'custom' }));
 
       expect(result.current.metadata.chartType).toBe('custom');
     });

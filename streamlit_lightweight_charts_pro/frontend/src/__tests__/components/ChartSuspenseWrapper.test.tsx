@@ -15,7 +15,7 @@ vi.mock('../../utils/react19PerformanceMonitor', () => ({
 }));
 
 // Mock lazy loading component
-const MockLazyComponent = vi.fn(() => <div data-testid="lazy-component">Loaded Component</div>);
+const MockLazyComponent = vi.fn(() => <div data-testid='lazy-component'>Loaded Component</div>);
 
 describe('ChartSuspenseWrapper', () => {
   beforeEach(() => {
@@ -28,9 +28,7 @@ describe('ChartSuspenseWrapper', () => {
     });
 
     render(
-      <ChartSuspenseWrapper
-        showProgressIndicator={true}
-      >
+      <ChartSuspenseWrapper showProgressIndicator={true}>
         <LazyComponent />
       </ChartSuspenseWrapper>
     );
@@ -57,9 +55,7 @@ describe('ChartSuspenseWrapper', () => {
     });
 
     render(
-      <ChartSuspenseWrapper
-        showProgressIndicator={true}
-      >
+      <ChartSuspenseWrapper showProgressIndicator={true}>
         <LazyComponent />
       </ChartSuspenseWrapper>
     );
@@ -70,9 +66,7 @@ describe('ChartSuspenseWrapper', () => {
 
   it('should render with correct structure', () => {
     render(
-      <ChartSuspenseWrapper
-        showProgressIndicator={true}
-      >
+      <ChartSuspenseWrapper showProgressIndicator={true}>
         <div>Content</div>
       </ChartSuspenseWrapper>
     );
@@ -82,12 +76,10 @@ describe('ChartSuspenseWrapper', () => {
   });
 
   it('should support custom fallback', () => {
-    const customFallback = <div data-testid="custom-fallback">Custom Loading...</div>;
+    const customFallback = <div data-testid='custom-fallback'>Custom Loading...</div>;
 
     render(
-      <ChartSuspenseWrapper
-        fallback={customFallback}
-      >
+      <ChartSuspenseWrapper fallback={customFallback}>
         <div>Content</div>
       </ChartSuspenseWrapper>
     );
@@ -100,9 +92,7 @@ describe('ChartSuspenseWrapper', () => {
     const onLoadingStart = vi.fn();
 
     render(
-      <ChartSuspenseWrapper
-        onLoadingStart={onLoadingStart}
-      >
+      <ChartSuspenseWrapper onLoadingStart={onLoadingStart}>
         <div>Content</div>
       </ChartSuspenseWrapper>
     );
@@ -118,9 +108,7 @@ describe('ChartSuspenseWrapper', () => {
     };
 
     render(
-      <ChartSuspenseWrapper
-        onError={onErrorCallback}
-      >
+      <ChartSuspenseWrapper onError={onErrorCallback}>
         <ErrorComponent />
       </ChartSuspenseWrapper>
     );
@@ -131,9 +119,7 @@ describe('ChartSuspenseWrapper', () => {
   it('should render without performance issues', () => {
     // Simple render test to ensure component renders without errors
     render(
-      <ChartSuspenseWrapper
-        showProgressIndicator={true}
-      >
+      <ChartSuspenseWrapper showProgressIndicator={true}>
         <div>Content</div>
       </ChartSuspenseWrapper>
     );
@@ -150,27 +136,30 @@ describe('ChartSuspenseWrapper', () => {
       </ChartSuspenseWrapper>
     );
 
-    await waitFor(() => {
-      expect(screen.getByTestId('lazy-component')).toBeInTheDocument();
-    }, { timeout: 1000 });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('lazy-component')).toBeInTheDocument();
+      },
+      { timeout: 1000 }
+    );
   });
 
   it('should support loading complete callback', async () => {
     const onLoadingComplete = vi.fn();
 
     render(
-      <ChartSuspenseWrapper
-        onLoadingComplete={onLoadingComplete}
-        minLoadingTime={10}
-      >
+      <ChartSuspenseWrapper onLoadingComplete={onLoadingComplete} minLoadingTime={10}>
         <div>Content</div>
       </ChartSuspenseWrapper>
     );
 
     // Wait for the minimum loading time to complete
-    await waitFor(() => {
-      expect(onLoadingComplete).toHaveBeenCalled();
-    }, { timeout: 1000 });
+    await waitFor(
+      () => {
+        expect(onLoadingComplete).toHaveBeenCalled();
+      },
+      { timeout: 1000 }
+    );
   });
 
   it('should render accessible loading content', () => {
@@ -179,9 +168,7 @@ describe('ChartSuspenseWrapper', () => {
     });
 
     render(
-      <ChartSuspenseWrapper
-        showProgressIndicator={true}
-      >
+      <ChartSuspenseWrapper showProgressIndicator={true}>
         <LazyComponent />
       </ChartSuspenseWrapper>
     );

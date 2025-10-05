@@ -480,15 +480,16 @@ export class CoverageRunner {
    * Log run summary
    */
   private logRunSummary(runResult: CoverageRunResult): void {
-
     if (runResult.issues.length > 0) {
       logger.info(`Found ${runResult.issues.length} coverage issues`, 'CoverageRunner');
     }
 
     if (runResult.recommendations.length > 0) {
-      logger.info(`Generated ${runResult.recommendations.length} recommendations`, 'CoverageRunner');
+      logger.info(
+        `Generated ${runResult.recommendations.length} recommendations`,
+        'CoverageRunner'
+      );
     }
-
   }
 
   /**

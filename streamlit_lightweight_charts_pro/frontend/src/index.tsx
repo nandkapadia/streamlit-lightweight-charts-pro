@@ -53,7 +53,7 @@ const App: React.FC = () => {
             paneId: eventData.paneId,
             seriesId: eventData.seriesId,
             configPatch: eventData.configPatch,
-            timestamp: eventData.timestamp
+            timestamp: eventData.timestamp,
           });
         }
       }
@@ -215,8 +215,7 @@ const App: React.FC = () => {
       // Check again if component is still mounted before reporting
       if (isMountedRef.current && !isReportingHeight.current) {
         lastReportTime.current = Date.now();
-        reportHeightWithFallback().catch(error => {
-        });
+        reportHeightWithFallback().catch(error => {});
       }
     }, 1000); // Increased to 1000ms to reduce frequency
   }, [reportHeightWithFallback]);
@@ -226,8 +225,7 @@ const App: React.FC = () => {
     if (!containerRef.current) return undefined;
 
     // Report height immediately
-    reportHeightWithFallback().catch(error => {
-    });
+    reportHeightWithFallback().catch(error => {});
 
     // Set up ResizeObserver for height changes
     resizeObserverManager.current.addObserver(

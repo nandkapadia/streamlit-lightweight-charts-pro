@@ -62,7 +62,10 @@ export interface BaseSeriesPrimitiveSource<TData extends BaseProcessedData> {
  * - Unified z-order handling
  * - Common view management patterns
  */
-export abstract class BaseSeriesPrimitive<TData extends BaseProcessedData, TOptions extends BaseSeriesPrimitiveOptions>
+export abstract class BaseSeriesPrimitive<
+    TData extends BaseProcessedData,
+    TOptions extends BaseSeriesPrimitiveOptions,
+  >
   implements ISeriesPrimitive<Time>, BaseSeriesPrimitiveSource<TData>
 {
   protected _chart: IChartApi;
@@ -267,8 +270,10 @@ export abstract class BaseSeriesPrimitive<TData extends BaseProcessedData, TOpti
  * Base class for series primitive pane views
  * Eliminates DRY violations in view implementations
  */
-export abstract class BaseSeriesPrimitivePaneView<TData extends BaseProcessedData, TOptions extends BaseSeriesPrimitiveOptions>
-  implements IPrimitivePaneView
+export abstract class BaseSeriesPrimitivePaneView<
+  TData extends BaseProcessedData,
+  TOptions extends BaseSeriesPrimitiveOptions,
+> implements IPrimitivePaneView
 {
   protected _source: BaseSeriesPrimitive<TData, TOptions>;
 
@@ -304,8 +309,10 @@ export abstract class BaseSeriesPrimitivePaneView<TData extends BaseProcessedDat
  * Base class for series primitive axis views
  * Eliminates DRY violations in axis view implementations
  */
-export abstract class BaseSeriesPrimitiveAxisView<TData extends BaseProcessedData, TOptions extends BaseSeriesPrimitiveOptions>
-  implements ISeriesPrimitiveAxisView
+export abstract class BaseSeriesPrimitiveAxisView<
+  TData extends BaseProcessedData,
+  TOptions extends BaseSeriesPrimitiveOptions,
+> implements ISeriesPrimitiveAxisView
 {
   protected _source: BaseSeriesPrimitive<TData, TOptions>;
 
@@ -344,7 +351,7 @@ export abstract class BaseSeriesPrimitiveAxisView<TData extends BaseProcessedDat
    * Standardized implementation - subclasses can override
    */
   visible(): boolean {
-    return this._source.getOptions().visible;
+    return this._source.getOptions().visible ?? true;
   }
 
   /**

@@ -196,7 +196,10 @@ export class StreamlitSeriesConfigService {
       if (typeof Streamlit !== 'undefined' && Streamlit.setComponentValue) {
         Streamlit.setComponentValue(payload);
       } else {
-        logger.debug('Streamlit not available or setComponentValue not found', 'StreamlitSeriesConfigService');
+        logger.debug(
+          'Streamlit not available or setComponentValue not found',
+          'StreamlitSeriesConfigService'
+        );
       }
 
       // Clear pending changes after successful sync

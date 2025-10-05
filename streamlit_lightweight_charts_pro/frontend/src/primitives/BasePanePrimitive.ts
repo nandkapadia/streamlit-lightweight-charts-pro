@@ -122,8 +122,8 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   constructor(id: string, config: TConfig) {
     this.id = id;
     this.config = { ...config };
-    this.corner = config.corner;
-    this.priority = config.priority;
+    this.corner = config.corner ?? 'top-left';
+    this.priority = config.priority ?? 50;
     this.visible = config.visible !== false;
     // Services are now lazy-loaded via getters to avoid module loading order issues
   }
@@ -304,7 +304,6 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
     // or pane-specific layout manager (for pane-level widgets like legends)
     const paneId = this.getPaneId();
     const chartId = this.getChartId();
-
 
     this.layoutManager = CornerLayoutManager.getInstance(chartId, paneId);
     this.layoutManager.setChartApi(this.chart);

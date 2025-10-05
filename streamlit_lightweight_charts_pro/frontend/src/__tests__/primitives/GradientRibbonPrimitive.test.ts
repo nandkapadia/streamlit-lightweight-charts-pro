@@ -135,7 +135,11 @@ vi.mock('../../plugins/series/base/commonRendering', () => ({
 }));
 
 // Import after mocks
-import { GradientRibbonPrimitive, GradientRibbonPrimitiveData, GradientRibbonPrimitiveOptions } from '../../primitives/GradientRibbonPrimitive';
+import {
+  GradientRibbonPrimitive,
+  GradientRibbonPrimitiveData,
+  GradientRibbonPrimitiveOptions,
+} from '../../primitives/GradientRibbonPrimitive';
 
 describe('GradientRibbonPrimitive - Construction', () => {
   let mockChart: any;
@@ -286,9 +290,7 @@ describe('GradientRibbonPrimitive - Data Processing', () => {
   });
 
   it('should use default fill color when not provided', () => {
-    const data: GradientRibbonPrimitiveData[] = [
-      { time: 1000, upper: 100, lower: 90 },
-    ];
+    const data: GradientRibbonPrimitiveData[] = [{ time: 1000, upper: 100, lower: 90 }];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();

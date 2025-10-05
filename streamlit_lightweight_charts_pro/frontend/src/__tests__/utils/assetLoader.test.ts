@@ -82,15 +82,17 @@ describe('AssetLoader', () => {
       };
     });
 
-    mockAssetLoader.loadChartAssets.mockImplementation(async (chartId: string, assets: AssetDescriptor[]) => {
-      await new Promise(resolve => setTimeout(resolve, 10));
-      return assets.map(asset => ({
-        asset,
-        loadTime: 10,
-        fromCache: false,
-        success: true,
-      }));
-    });
+    mockAssetLoader.loadChartAssets.mockImplementation(
+      async (chartId: string, assets: AssetDescriptor[]) => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+        return assets.map(asset => ({
+          asset,
+          loadTime: 10,
+          fromCache: false,
+          success: true,
+        }));
+      }
+    );
 
     mockAssetLoader.preloadCriticalAssets.mockImplementation(async (assets: AssetDescriptor[]) => {
       const criticalAssets = assets.filter(a => a.priority === 'critical' || a.preload);
@@ -133,7 +135,7 @@ describe('AssetLoader', () => {
         priority: 'high',
       };
 
-      const _result = await assetLoader.loadAsset(asset);
+      const result = await assetLoader.loadAsset(asset);
 
       expect(result.asset).toBe(asset);
       expect(result.success).toBe(true);
@@ -150,7 +152,7 @@ describe('AssetLoader', () => {
         priority: 'medium',
       };
 
-      const _result = await assetLoader.loadAsset(asset);
+      const result = await assetLoader.loadAsset(asset);
 
       expect(result.success).toBe(true);
       expect(result.asset.type).toBe('style');
@@ -165,7 +167,7 @@ describe('AssetLoader', () => {
         priority: 'low',
       };
 
-      const _result = await assetLoader.loadAsset(asset);
+      const result = await assetLoader.loadAsset(asset);
 
       expect(result.success).toBe(true);
       expect(result.asset.type).toBe('image');
@@ -180,7 +182,7 @@ describe('AssetLoader', () => {
         priority: 'high',
       };
 
-      const _result = await assetLoader.loadAsset(asset);
+      const result = await assetLoader.loadAsset(asset);
 
       expect(result.success).toBe(true);
       expect(mockAssetLoader.loadAsset).toHaveBeenCalledWith(asset);

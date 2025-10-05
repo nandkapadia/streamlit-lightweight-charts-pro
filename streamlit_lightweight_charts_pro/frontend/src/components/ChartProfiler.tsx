@@ -30,79 +30,84 @@ const profilerMetrics = new Map<string, ProfilerMetrics>();
 /**
  * Enhanced Chart Profiler with React 19 optimizations
  */
-export const ChartProfiler: React.FC<ChartProfilerProps> = React.memo(({
-  children,
-  chartId,
-  enabled = process.env.NODE_ENV === 'development',
-}) => {
-  // Memoized profiler callback with performance tracking
-  const handleRender = useCallback((
-    id: string,
-    phase: 'mount' | 'update' | 'nested-update',
-    actualDuration: number,
-    baseDuration: number,
-    _startTime: number,
-    _commitTime: number
-  ) => {
-    if (!enabled) return;
+export const ChartProfiler: React.FC<ChartProfilerProps> = React.memo(
+  ({ children, chartId, enabled = process.env.NODE_ENV === 'development' }) => {
+    // Memoized profiler callback with performance tracking
+    const handleRender = useCallback(
+      (
+        id: string,
+        phase: 'mount' | 'update' | 'nested-update',
+        actualDuration: number,
+        baseDuration: number,
+        _startTime: number,
+        _commitTime: number
+      ) => {
+        if (!enabled) return;
 
-    // Update metrics
-    const currentMetrics = profilerMetrics.get(chartId) || {
-      renderCount: 0,
-      totalDuration: 0,
-      averageDuration: 0,
-      slowestRender: 0,
-      fastestRender: Number.MAX_VALUE,
-      lastRender: 0,
-    };
+        // Update metrics
+        const currentMetrics = profilerMetrics.get(chartId) || {
+          renderCount: 0,
+          totalDuration: 0,
+          averageDuration: 0,
+          slowestRender: 0,
+          fastestRender: Number.MAX_VALUE,
+          lastRender: 0,
+        };
 
-    const newMetrics: ProfilerMetrics = {
-      renderCount: currentMetrics.renderCount + 1,
-      totalDuration: currentMetrics.totalDuration + actualDuration,
-      averageDuration: 0, // Will be calculated below
-      slowestRender: Math.max(currentMetrics.slowestRender, actualDuration),
-      fastestRender: Math.min(currentMetrics.fastestRender, actualDuration),
-      lastRender: actualDuration,
-    };
+        const newMetrics: ProfilerMetrics = {
+          renderCount: currentMetrics.renderCount + 1,
+          totalDuration: currentMetrics.totalDuration + actualDuration,
+          averageDuration: 0, // Will be calculated below
+          slowestRender: Math.max(currentMetrics.slowestRender, actualDuration),
+          fastestRender: Math.min(currentMetrics.fastestRender, actualDuration),
+          lastRender: actualDuration,
+        };
 
-    newMetrics.averageDuration = newMetrics.totalDuration / newMetrics.renderCount;
-    profilerMetrics.set(chartId, newMetrics);
+        newMetrics.averageDuration = newMetrics.totalDuration / newMetrics.renderCount;
+        profilerMetrics.set(chartId, newMetrics);
 
-    // Track performance issues
-    if (actualDuration > 16) { // Longer than 1 frame
+        // Track performance issues
+        if (actualDuration > 16) {
+          // Longer than 1 frame
 
-      // Track with React 19 monitor
-      react19Monitor.trackFlushSync(chartId, `Slow ${phase} render: ${actualDuration.toFixed(2)}ms`);
+          // Track with React 19 monitor
+          react19Monitor.trackFlushSync(
+            chartId,
+            `Slow ${phase} render: ${actualDuration.toFixed(2)}ms`
+          );
+        }
+
+        // Log detailed profiler info in development
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug(`Profiler: ${phase}`, 'ChartProfiler', {
+            phase,
+            actualDuration: `${actualDuration.toFixed(2)}ms`,
+            baseDuration: `${baseDuration.toFixed(2)}ms`,
+            renderCount: newMetrics.renderCount,
+            averageDuration: `${newMetrics.averageDuration.toFixed(2)}ms`,
+          });
+        }
+
+        // Performance reporting every 10 renders
+        if (newMetrics.renderCount % 10 === 0) {
+          reportPerformanceMetrics(chartId, newMetrics);
+        }
+      },
+      [chartId, enabled]
+    );
+
+    // Don't wrap with Profiler if disabled
+    if (!enabled) {
+      return <>{children}</>;
     }
 
-    // Log detailed profiler info in development
-    if (process.env.NODE_ENV === 'development') {
-      logger.debug(`Profiler: ${phase}`, 'ChartProfiler', {
-        phase,
-        actualDuration: `${actualDuration.toFixed(2)}ms`,
-        baseDuration: `${baseDuration.toFixed(2)}ms`,
-        renderCount: newMetrics.renderCount,
-        averageDuration: `${newMetrics.averageDuration.toFixed(2)}ms`,
-      });
-    }
-
-    // Performance reporting every 10 renders
-    if (newMetrics.renderCount % 10 === 0) {
-      reportPerformanceMetrics(chartId, newMetrics);
-    }
-  }, [chartId, enabled]);
-
-  // Don't wrap with Profiler if disabled
-  if (!enabled) {
-    return <>{children}</>;
+    return (
+      <Profiler id={`chart-${chartId}`} onRender={handleRender}>
+        {children}
+      </Profiler>
+    );
   }
-
-  return (
-    <Profiler id={`chart-${chartId}`} onRender={handleRender}>
-      {children}
-    </Profiler>
-  );
-});
+);
 
 ChartProfiler.displayName = 'ChartProfiler';
 
@@ -111,7 +116,6 @@ ChartProfiler.displayName = 'ChartProfiler';
  */
 function reportPerformanceMetrics(chartId: string, metrics: ProfilerMetrics) {
   if (process.env.NODE_ENV !== 'development') return;
-
 
   // Performance recommendations
   const recommendations = [];
@@ -168,14 +172,14 @@ export const ChartPerformanceDashboard: React.FC<{
   const allMetrics = useMemo(() => {
     return chartIds.map(chartId => ({
       chartId,
-      ...profilerMetrics.get(chartId) || {
+      ...(profilerMetrics.get(chartId) || {
         renderCount: 0,
         totalDuration: 0,
         averageDuration: 0,
         slowestRender: 0,
         fastestRender: 0,
         lastRender: 0,
-      },
+      }),
     }));
   }, [chartIds]);
 
@@ -191,18 +195,20 @@ export const ChartPerformanceDashboard: React.FC<{
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      ...positionStyles[position],
-      zIndex: 9999,
-      backgroundColor: 'rgba(0, 0, 0, 0.9)',
-      color: 'white',
-      borderRadius: '8px',
-      padding: '10px',
-      minWidth: '250px',
-      fontSize: '12px',
-      fontFamily: 'monospace',
-    }}>
+    <div
+      style={{
+        position: 'fixed',
+        ...positionStyles[position],
+        zIndex: 9999,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        color: 'white',
+        borderRadius: '8px',
+        padding: '10px',
+        minWidth: '250px',
+        fontSize: '12px',
+        fontFamily: 'monospace',
+      }}
+    >
       <div
         style={{
           cursor: 'pointer',
@@ -219,15 +225,15 @@ export const ChartPerformanceDashboard: React.FC<{
         <div>
           {allMetrics.map(metric => (
             <div key={metric.chartId} style={{ marginBottom: '15px' }}>
-              <div style={{ fontWeight: 'bold', color: '#4CAF50' }}>
-                Chart: {metric.chartId}
-              </div>
+              <div style={{ fontWeight: 'bold', color: '#4CAF50' }}>Chart: {metric.chartId}</div>
               <div>Renders: {metric.renderCount}</div>
               <div>Avg: {metric.averageDuration.toFixed(2)}ms</div>
               <div>Last: {metric.lastRender.toFixed(2)}ms</div>
-              <div style={{
-                color: metric.slowestRender > 16 ? '#f56565' : '#68d391'
-              }}>
+              <div
+                style={{
+                  color: metric.slowestRender > 16 ? '#f56565' : '#68d391',
+                }}
+              >
                 Peak: {metric.slowestRender.toFixed(2)}ms
               </div>
             </div>

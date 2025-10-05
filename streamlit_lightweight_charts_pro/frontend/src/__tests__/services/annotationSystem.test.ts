@@ -48,7 +48,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers).toHaveLength(1);
         expect(result.markers[0].position).toBe('aboveBar');
@@ -70,7 +70,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers[0].position).toBe('belowBar');
       });
@@ -86,7 +86,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers[0].color).toBe('#2196F3');
       });
@@ -103,7 +103,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers[0].size).toBe(2);
       });
@@ -119,7 +119,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers[0].size).toBe(1);
       });
@@ -138,7 +138,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers).toHaveLength(1);
         expect(result.markers[0].shape).toBe('circle');
@@ -156,7 +156,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers).toHaveLength(1);
         expect(result.markers[0].shape).toBe('circle');
@@ -178,7 +178,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.shapes).toHaveLength(1);
         expect(result.shapes[0].type).toBe('rectangle');
@@ -201,7 +201,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.shapes[0].color).toBe('#2196F3');
         expect(result.shapes[0].fillColor).toBe('#2196F3');
@@ -224,7 +224,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.shapes).toHaveLength(1);
         expect(result.shapes[0].type).toBe('line');
@@ -248,7 +248,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.texts).toHaveLength(1);
         expect(result.texts[0].text).toBe('Important Note');
@@ -272,7 +272,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.texts[0].color).toBe('#131722');
         expect(result.texts[0].backgroundColor).toBe('rgba(255, 255, 255, 0.9)');
@@ -291,7 +291,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.texts[0].time).toBeDefined();
         expect(typeof result.texts[0].time).toBe('number');
@@ -324,7 +324,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers).toHaveLength(1);
         expect(result.shapes).toHaveLength(1);
@@ -356,7 +356,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers).toHaveLength(3);
         expect(result.markers[0].text).toBe('Signal 1');
@@ -367,7 +367,7 @@ describe('Annotation System', () => {
 
     describe('Error handling', () => {
       it('should return empty arrays for null input', () => {
-        const _result = createAnnotationVisualElements(null as any);
+        const result = createAnnotationVisualElements(null as any);
 
         expect(result.markers).toEqual([]);
         expect(result.shapes).toEqual([]);
@@ -375,7 +375,7 @@ describe('Annotation System', () => {
       });
 
       it('should return empty arrays for undefined input', () => {
-        const _result = createAnnotationVisualElements(undefined as any);
+        const result = createAnnotationVisualElements(undefined as any);
 
         expect(result.markers).toEqual([]);
         expect(result.shapes).toEqual([]);
@@ -383,7 +383,7 @@ describe('Annotation System', () => {
       });
 
       it('should return empty arrays for non-array input', () => {
-        const _result = createAnnotationVisualElements('not an array' as any);
+        const result = createAnnotationVisualElements('not an array' as any);
 
         expect(result.markers).toEqual([]);
         expect(result.shapes).toEqual([]);
@@ -391,7 +391,7 @@ describe('Annotation System', () => {
       });
 
       it('should return empty arrays for non-object input', () => {
-        const _result = createAnnotationVisualElements(123 as any);
+        const result = createAnnotationVisualElements(123 as any);
 
         expect(result.markers).toEqual([]);
         expect(result.shapes).toEqual([]);
@@ -417,7 +417,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers).toHaveLength(2);
       });
@@ -434,7 +434,7 @@ describe('Annotation System', () => {
           undefined,
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers).toHaveLength(1);
       });
@@ -453,7 +453,7 @@ describe('Annotation System', () => {
           {},
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.markers).toHaveLength(1);
       });
@@ -484,7 +484,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.texts[0].time).toBeDefined();
         expect(typeof result.texts[0].time).toBe('number');
@@ -501,7 +501,7 @@ describe('Annotation System', () => {
           },
         ];
 
-        const _result = createAnnotationVisualElements(annotations);
+        const result = createAnnotationVisualElements(annotations);
 
         expect(result.texts[0].time).toBeDefined();
       });
@@ -534,7 +534,7 @@ describe('Annotation System', () => {
     ];
 
     it('should filter annotations within time range', () => {
-      const _result = filterAnnotationsByTimeRange(
+      const result = filterAnnotationsByTimeRange(
         annotations,
         '2024-01-02T00:00:00Z',
         '2024-01-09T00:00:00Z'
@@ -545,7 +545,7 @@ describe('Annotation System', () => {
     });
 
     it('should include annotations at range boundaries', () => {
-      const _result = filterAnnotationsByTimeRange(
+      const result = filterAnnotationsByTimeRange(
         annotations,
         '2024-01-01T00:00:00Z',
         '2024-01-10T00:00:00Z'
@@ -555,7 +555,7 @@ describe('Annotation System', () => {
     });
 
     it('should return empty array when no annotations in range', () => {
-      const _result = filterAnnotationsByTimeRange(
+      const result = filterAnnotationsByTimeRange(
         annotations,
         '2024-02-01T00:00:00Z',
         '2024-02-10T00:00:00Z'
@@ -565,7 +565,7 @@ describe('Annotation System', () => {
     });
 
     it('should handle single-point time range', () => {
-      const _result = filterAnnotationsByTimeRange(
+      const result = filterAnnotationsByTimeRange(
         annotations,
         '2024-01-05T00:00:00Z',
         '2024-01-05T00:00:00Z'
@@ -576,7 +576,7 @@ describe('Annotation System', () => {
     });
 
     it('should return all annotations for very wide range', () => {
-      const _result = filterAnnotationsByTimeRange(
+      const result = filterAnnotationsByTimeRange(
         annotations,
         '2000-01-01T00:00:00Z',
         '2030-01-01T00:00:00Z'
@@ -612,26 +612,26 @@ describe('Annotation System', () => {
     ];
 
     it('should filter annotations within price range', () => {
-      const _result = filterAnnotationsByPriceRange(annotations, 75, 125);
+      const result = filterAnnotationsByPriceRange(annotations, 75, 125);
 
       expect(result).toHaveLength(1);
       expect(result[0].text).toBe('Medium');
     });
 
     it('should include annotations at price boundaries', () => {
-      const _result = filterAnnotationsByPriceRange(annotations, 50, 150);
+      const result = filterAnnotationsByPriceRange(annotations, 50, 150);
 
       expect(result).toHaveLength(3);
     });
 
     it('should return empty array when no annotations in range', () => {
-      const _result = filterAnnotationsByPriceRange(annotations, 200, 300);
+      const result = filterAnnotationsByPriceRange(annotations, 200, 300);
 
       expect(result).toHaveLength(0);
     });
 
     it('should handle single-point price range', () => {
-      const _result = filterAnnotationsByPriceRange(annotations, 100, 100);
+      const result = filterAnnotationsByPriceRange(annotations, 100, 100);
 
       expect(result).toHaveLength(1);
       expect(result[0].text).toBe('Medium');
@@ -662,7 +662,7 @@ describe('Annotation System', () => {
         },
       ];
 
-      const _result = filterAnnotationsByPriceRange(annotationsWithNegative, -100, 0);
+      const result = filterAnnotationsByPriceRange(annotationsWithNegative, -100, 0);
 
       expect(result).toHaveLength(2);
       expect(result[0].text).toBe('Negative');
@@ -670,7 +670,7 @@ describe('Annotation System', () => {
     });
 
     it('should return all annotations for very wide price range', () => {
-      const _result = filterAnnotationsByPriceRange(annotations, 0, 1000);
+      const result = filterAnnotationsByPriceRange(annotations, 0, 1000);
 
       expect(result).toHaveLength(3);
     });

@@ -162,9 +162,7 @@ describe('Band Series - Hybrid Implementation', () => {
 
     it('should validate that upper >= middle >= lower (coordinate conversion)', () => {
       // This is validated during coordinate conversion, not during data setting
-      const testData: BandData[] = [
-        { time: 1000 as Time, upper: 120, middle: 100, lower: 80 },
-      ];
+      const testData: BandData[] = [{ time: 1000 as Time, upper: 120, middle: 100, lower: 80 }];
 
       expect(() => {
         createBandSeries(mockChart as any, { data: testData });
@@ -256,9 +254,7 @@ describe('Band Series - Hybrid Implementation', () => {
   describe('Autoscaling', () => {
     it('should include all three values in autoscaling', () => {
       // priceValueBuilder should return [lower, middle, upper] for autoscaling
-      const testData: BandData[] = [
-        { time: 1000 as Time, upper: 120, middle: 100, lower: 80 },
-      ];
+      const testData: BandData[] = [{ time: 1000 as Time, upper: 120, middle: 100, lower: 80 }];
 
       createBandSeries(mockChart as any, { data: testData });
 

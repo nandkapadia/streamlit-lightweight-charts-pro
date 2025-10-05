@@ -19,7 +19,10 @@ import { ButtonDimensions } from './PrimitiveDefaults';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
 import { SeriesType, SeriesConfiguration } from '../types/SeriesTypes';
 import { StreamlitSeriesConfigService } from '../services/StreamlitSeriesConfigService';
-import { SeriesSettingsDialog, SeriesInfo as DialogSeriesInfo } from '../forms/SeriesSettingsDialog';
+import {
+  SeriesSettingsDialog,
+  SeriesInfo as DialogSeriesInfo,
+} from '../forms/SeriesSettingsDialog';
 import { logger } from '../utils/logger';
 import { createSingleton } from '../utils/SingletonBase';
 
@@ -125,7 +128,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
   protected renderContent(): void {
     if (!this.containerElement) return;
 
-
     // Clear existing content
     this.containerElement.innerHTML = '';
 
@@ -182,7 +184,10 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     button.addEventListener('click', () => {
       this.togglePaneCollapse();
       button.innerHTML = this.getCollapseSVG();
-      button.setAttribute('aria-label', this.paneState.isCollapsed ? 'Expand pane' : 'Collapse pane');
+      button.setAttribute(
+        'aria-label',
+        this.paneState.isCollapsed ? 'Expand pane' : 'Collapse pane'
+      );
     });
 
     return button;
@@ -249,7 +254,10 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     const collapseButton = this.containerElement.querySelector('.collapse-button') as HTMLElement;
     if (collapseButton) {
       collapseButton.innerHTML = this.getCollapseSVG();
-      collapseButton.setAttribute('aria-label', this.paneState.isCollapsed ? 'Expand pane' : 'Collapse pane');
+      collapseButton.setAttribute(
+        'aria-label',
+        this.paneState.isCollapsed ? 'Expand pane' : 'Collapse pane'
+      );
     }
   }
 
@@ -287,13 +295,11 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
    */
   protected getPaneId(): number {
     // Follow legend pattern: paneId > 0 determines if it's a pane primitive
-    const result = this.config.paneId !== undefined && this.config.paneId > 0
-      ? this.config.paneId
-      : 0;
+    const result =
+      this.config.paneId !== undefined && this.config.paneId > 0 ? this.config.paneId : 0;
 
     return result;
   }
-
 
   protected onDetached(): void {
     // Cleanup dialog (still used for series configuration)
@@ -304,7 +310,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
       this.paneState.dialogRoot.unmount();
     }
   }
-
 
   // ===== Pane Collapse Functionality =====
 
@@ -426,11 +431,14 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
             isOpen: true,
             onClose: () => this.closeSeriesConfigDialog(),
             paneId: this.config.paneId.toString(),
-            seriesList: allSeries.map(series => ({
-              id: series.id,
-              displayName: series.displayName,
-              type: series.type
-            } as DialogSeriesInfo)),
+            seriesList: allSeries.map(
+              series =>
+                ({
+                  id: series.id,
+                  displayName: series.displayName,
+                  type: series.type,
+                }) as DialogSeriesInfo
+            ),
             seriesConfigs: seriesConfigs,
             onConfigChange: (seriesId: string, newConfig: any) => {
               this.applySeriesConfig(seriesId, newConfig);
@@ -516,7 +524,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                 const options = series.options();
                 const title = options?.title || '';
 
-
                 if (title.startsWith('__RIBBON_UPPER__') || title.startsWith('__RIBBON_LOWER__')) {
                   // Extract the ribbon name after the prefix
                   const ribbonName = title.startsWith('__RIBBON_UPPER__')
@@ -526,8 +533,13 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                   if (!ribbonGroups.has(ribbonName)) {
                     ribbonGroups.set(ribbonName, []);
                   }
-                  ribbonGroups.get(ribbonName)?.push({ series, index, type: title.startsWith('__RIBBON_UPPER__') ? 'upper' : 'lower' });
-
+                  ribbonGroups
+                    .get(ribbonName)
+                    ?.push({
+                      series,
+                      index,
+                      type: title.startsWith('__RIBBON_UPPER__') ? 'upper' : 'lower',
+                    });
                 } else {
                   regularSeries.push({ series, index });
                 }
@@ -555,7 +567,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                 type: 'ribbon' as SeriesType,
                 config: seriesConfig,
               });
-
             });
 
             // Add regular series
@@ -597,7 +608,9 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
             });
           } else {
             // No series found in this pane - this is expected for empty panes
-            logger.debug('No series found in pane', 'ButtonPanelPrimitive', { paneId: this.config.paneId });
+            logger.debug('No series found in pane', 'ButtonPanelPrimitive', {
+              paneId: this.config.paneId,
+            });
           }
         } catch (error) {
           // If we can't get actual series, log the error and return empty list
@@ -610,7 +623,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
 
     return seriesList;
   }
-
 
   private applySeriesConfig(seriesId: string, config: SeriesConfiguration): void {
     try {
@@ -652,7 +664,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     }
 
     try {
-
       // For demo purposes, we'll implement a basic mapping
       // In a production system, this would use a proper series registry
       const seriesOptions: any = {};
@@ -681,11 +692,13 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
         seriesOptions.priceLineVisible = config.priceLineVisible;
       }
 
-
       // Try to find and update the series
       const panes = this.chart.panes();
-      if (this.config.paneId >= 0 && this.config.paneId < panes.length && Object.keys(seriesOptions).length > 0) {
-
+      if (
+        this.config.paneId >= 0 &&
+        this.config.paneId < panes.length &&
+        Object.keys(seriesOptions).length > 0
+      ) {
         // CRITICAL FIX: Try to find the actual series objects and apply options
         try {
           const targetPane = panes[this.config.paneId];
@@ -704,12 +717,19 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                   const options = series.options();
                   const title = options?.title || '';
 
-                  if (title === `__RIBBON_UPPER__${ribbonName}` || title === `__RIBBON_LOWER__${ribbonName}`) {
+                  if (
+                    title === `__RIBBON_UPPER__${ribbonName}` ||
+                    title === `__RIBBON_LOWER__${ribbonName}`
+                  ) {
                     if (series && typeof series.applyOptions === 'function') {
                       try {
                         series.applyOptions(seriesOptions);
                       } catch (error) {
-                        logger.warn('Error applying ribbon series options', 'ButtonPanelPrimitive', error);
+                        logger.warn(
+                          'Error applying ribbon series options',
+                          'ButtonPanelPrimitive',
+                          error
+                        );
                       }
                     }
                   }
@@ -896,7 +916,5 @@ export function createButtonPanelPrimitives(
   config: Partial<ButtonPanelPrimitiveConfig> = {},
   chartId?: string
 ): ButtonPanelPrimitive[] {
-  return paneIds.map(paneId =>
-    createButtonPanelPrimitive(paneId, config, chartId)
-  );
+  return paneIds.map(paneId => createButtonPanelPrimitive(paneId, config, chartId));
 }

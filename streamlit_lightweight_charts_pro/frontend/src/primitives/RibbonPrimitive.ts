@@ -84,7 +84,10 @@ interface RibbonProcessedData extends BaseProcessedData {
 // Primitive Pane View
 // ============================================================================
 
-class RibbonPrimitivePaneView extends BaseSeriesPrimitivePaneView<RibbonProcessedData, RibbonPrimitiveOptions> {
+class RibbonPrimitivePaneView extends BaseSeriesPrimitivePaneView<
+  RibbonProcessedData,
+  RibbonPrimitiveOptions
+> {
   renderer(): IPrimitivePaneRenderer {
     return new RibbonPrimitiveRenderer(this._source as RibbonPrimitive);
   }
@@ -196,13 +199,7 @@ class RibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
 
       // Draw fill area (background)
       if (options.fillVisible && scaledCoords.length > 1) {
-        drawFillArea(
-          ctx,
-          scaledCoords,
-          'upper',
-          'lower',
-          options.fillColor
-        );
+        drawFillArea(ctx, scaledCoords, 'upper', 'lower', options.fillColor);
       }
 
       ctx.restore();
@@ -217,7 +214,10 @@ class RibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
 /**
  * Price axis view for upper line
  */
-class RibbonUpperAxisView extends BaseSeriesPrimitiveAxisView<RibbonProcessedData, RibbonPrimitiveOptions> {
+class RibbonUpperAxisView extends BaseSeriesPrimitiveAxisView<
+  RibbonProcessedData,
+  RibbonPrimitiveOptions
+> {
   coordinate(): number {
     const lastItem = this._getLastVisibleItem();
     if (!lastItem) return 0;
@@ -244,7 +244,10 @@ class RibbonUpperAxisView extends BaseSeriesPrimitiveAxisView<RibbonProcessedDat
 /**
  * Price axis view for lower line
  */
-class RibbonLowerAxisView extends BaseSeriesPrimitiveAxisView<RibbonProcessedData, RibbonPrimitiveOptions> {
+class RibbonLowerAxisView extends BaseSeriesPrimitiveAxisView<
+  RibbonProcessedData,
+  RibbonPrimitiveOptions
+> {
   coordinate(): number {
     const lastItem = this._getLastVisibleItem();
     if (!lastItem) return 0;
@@ -280,7 +283,10 @@ class RibbonLowerAxisView extends BaseSeriesPrimitiveAxisView<RibbonProcessedDat
  *
  * Refactored to extend BaseSeriesPrimitive following DRY principles.
  */
-export class RibbonPrimitive extends BaseSeriesPrimitive<RibbonProcessedData, RibbonPrimitiveOptions> {
+export class RibbonPrimitive extends BaseSeriesPrimitive<
+  RibbonProcessedData,
+  RibbonPrimitiveOptions
+> {
   constructor(chart: IChartApi, options: RibbonPrimitiveOptions) {
     super(chart, options);
   }

@@ -25,9 +25,9 @@ export interface BaseServiceConfig {
  * Service lifecycle events
  */
 export interface ServiceLifecycleEvents {
-  'initialized': () => void;
-  'destroyed': () => void;
-  'error': (error: Error) => void;
+  initialized: () => void;
+  destroyed: () => void;
+  error: (error: Error) => void;
 }
 
 /**

@@ -92,7 +92,10 @@ interface BandProcessedData extends BaseProcessedData {
 // Primitive Pane View
 // ============================================================================
 
-class BandPrimitivePaneView extends BaseSeriesPrimitivePaneView<BandProcessedData, BandPrimitiveOptions> {
+class BandPrimitivePaneView extends BaseSeriesPrimitivePaneView<
+  BandProcessedData,
+  BandPrimitiveOptions
+> {
   renderer(): IPrimitivePaneRenderer {
     return new BandPrimitiveRenderer(this._source as BandPrimitive);
   }
@@ -217,23 +220,11 @@ class BandPrimitiveRenderer implements IPrimitivePaneRenderer {
 
       // Draw fill areas (background)
       if (options.upperFillVisible && scaledCoords.length > 1) {
-        drawFillArea(
-          ctx,
-          scaledCoords,
-          'upper',
-          'middle',
-          options.upperFillColor
-        );
+        drawFillArea(ctx, scaledCoords, 'upper', 'middle', options.upperFillColor);
       }
 
       if (options.lowerFillVisible && scaledCoords.length > 1) {
-        drawFillArea(
-          ctx,
-          scaledCoords,
-          'middle',
-          'lower',
-          options.lowerFillColor
-        );
+        drawFillArea(ctx, scaledCoords, 'middle', 'lower', options.lowerFillColor);
       }
 
       ctx.restore();
@@ -248,7 +239,10 @@ class BandPrimitiveRenderer implements IPrimitivePaneRenderer {
 /**
  * Price axis view for upper line
  */
-class BandUpperAxisView extends BaseSeriesPrimitiveAxisView<BandProcessedData, BandPrimitiveOptions> {
+class BandUpperAxisView extends BaseSeriesPrimitiveAxisView<
+  BandProcessedData,
+  BandPrimitiveOptions
+> {
   coordinate(): number {
     const lastItem = this._getLastVisibleItem();
     if (!lastItem) return 0;
@@ -275,7 +269,10 @@ class BandUpperAxisView extends BaseSeriesPrimitiveAxisView<BandProcessedData, B
 /**
  * Price axis view for middle line
  */
-class BandMiddleAxisView extends BaseSeriesPrimitiveAxisView<BandProcessedData, BandPrimitiveOptions> {
+class BandMiddleAxisView extends BaseSeriesPrimitiveAxisView<
+  BandProcessedData,
+  BandPrimitiveOptions
+> {
   coordinate(): number {
     const lastItem = this._getLastVisibleItem();
     if (!lastItem) return 0;
@@ -302,7 +299,10 @@ class BandMiddleAxisView extends BaseSeriesPrimitiveAxisView<BandProcessedData, 
 /**
  * Price axis view for lower line
  */
-class BandLowerAxisView extends BaseSeriesPrimitiveAxisView<BandProcessedData, BandPrimitiveOptions> {
+class BandLowerAxisView extends BaseSeriesPrimitiveAxisView<
+  BandProcessedData,
+  BandPrimitiveOptions
+> {
   coordinate(): number {
     const lastItem = this._getLastVisibleItem();
     if (!lastItem) return 0;

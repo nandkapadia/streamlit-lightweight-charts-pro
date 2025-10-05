@@ -478,13 +478,8 @@ export class CoverageTestCases {
  */
 export const COVERAGE_TEST_SUITES = {
   full: () =>
-    CoverageTestCases.createTestSuite('Full Coverage', [
-      'components',
-      'utilities',
-      'plugins',
-    ]),
-  core: () =>
-    CoverageTestCases.createTestSuite('Core Coverage', ['components', 'utilities']),
+    CoverageTestCases.createTestSuite('Full Coverage', ['components', 'utilities', 'plugins']),
+  core: () => CoverageTestCases.createTestSuite('Core Coverage', ['components', 'utilities']),
   utilities: () => CoverageTestCases.createTestSuite('Utilities Coverage', ['utilities']),
   components: () => CoverageTestCases.createTestSuite('Components Coverage', ['components']),
   plugins: () => CoverageTestCases.createTestSuite('Plugins Coverage', ['plugins']),

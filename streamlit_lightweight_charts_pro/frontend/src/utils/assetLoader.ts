@@ -122,14 +122,10 @@ class ChartAssetLoader {
       const lowPriorityAssets = sortedAssets.filter(a => a.priority === 'low');
 
       // Load critical assets immediately
-      const criticalResults = await Promise.all(
-        criticalAssets.map(asset => this.loadAsset(asset))
-      );
+      const criticalResults = await Promise.all(criticalAssets.map(asset => this.loadAsset(asset)));
 
       // Load high-priority assets
-      const highResults = await Promise.all(
-        highPriorityAssets.map(asset => this.loadAsset(asset))
-      );
+      const highResults = await Promise.all(highPriorityAssets.map(asset => this.loadAsset(asset)));
 
       // Schedule medium and low priority assets
       const mediumResults = await this.scheduleAssetBatch(mediumPriorityAssets, 'normal');
@@ -150,7 +146,6 @@ class ChartAssetLoader {
       }
 
       return allResults;
-
     } catch (error) {
       react19Monitor.endTransition(transitionId);
       throw error;
@@ -235,7 +230,6 @@ class ChartAssetLoader {
       this.loadingPromises.delete(asset.id);
 
       return result;
-
     } catch (error) {
       const loadTime = performance.now() - startTime;
       const result: AssetLoadResult = {
@@ -423,11 +417,16 @@ class ChartAssetLoader {
    */
   private getPriorityWeight(priority: AssetPriority): number {
     switch (priority) {
-      case 'critical': return 1;
-      case 'high': return 2;
-      case 'medium': return 3;
-      case 'low': return 4;
-      default: return 3;
+      case 'critical':
+        return 1;
+      case 'high':
+        return 2;
+      case 'medium':
+        return 3;
+      case 'low':
+        return 4;
+      default:
+        return 3;
     }
   }
 }
@@ -446,19 +445,13 @@ export function useAssetLoader(chartId: string) {
     [chartId]
   );
 
-  const preloadAssets = useCallback(
-    (assets: AssetDescriptor[]) => {
-      return assetLoader.preloadCriticalAssets(assets);
-    },
-    []
-  );
+  const preloadAssets = useCallback((assets: AssetDescriptor[]) => {
+    return assetLoader.preloadCriticalAssets(assets);
+  }, []);
 
-  const prefetchAssets = useCallback(
-    (assets: AssetDescriptor[]) => {
-      assetLoader.prefetchAssets(assets);
-    },
-    []
-  );
+  const prefetchAssets = useCallback((assets: AssetDescriptor[]) => {
+    assetLoader.prefetchAssets(assets);
+  }, []);
 
   return {
     loadAssets,
