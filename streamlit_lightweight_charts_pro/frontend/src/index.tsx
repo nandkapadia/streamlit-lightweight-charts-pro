@@ -22,12 +22,12 @@ import { logger } from './utils/logger';
 // Third Party Imports
 import { createRoot } from 'react-dom/client';
 import { Streamlit } from 'streamlit-component-lib';
-import { StreamlitProvider, useRenderData } from 'streamlit-component-lib-react-hooks';
 
 // Local Imports
 import LightweightCharts from './LightweightCharts';
 import { ComponentConfig } from './types';
 import { ResizeObserverManager } from './utils/resizeObserverManager';
+import { useStreamlitRenderData, useStreamlitFrameHeight } from './hooks/useStreamlit';
 
 /**
  * Main App component that renders the LightweightCharts component.
@@ -39,7 +39,10 @@ import { ResizeObserverManager } from './utils/resizeObserverManager';
  */
 const App: React.FC = () => {
   // Get Streamlit render data (props passed from Python)
-  const renderData = useRenderData();
+  const renderData = useStreamlitRenderData();
+
+  // Auto-report frame height on every render
+  useStreamlitFrameHeight();
 
   // Handle config changes from Streamlit
   useEffect(() => {
@@ -85,19 +88,14 @@ const App: React.FC = () => {
    *
    * This function is triggered by the LightweightCharts component when all
    * chart instances have been initialized and are ready for user interaction.
-   * It notifies Streamlit that the component is ready.
+   *
+   * Note: setComponentReady() is now called by useStreamlitRenderData hook
+   * after receiving the first render event, preventing race conditions.
    */
   const handleChartsReady = () => {
     isReadyRef.current = true;
-
-    // Notify Streamlit that the component is ready for interaction
-    if (typeof Streamlit !== 'undefined' && Streamlit.setComponentReady) {
-      try {
-        Streamlit.setComponentReady();
-      } catch (error) {
-        logger.error('Failed to set Streamlit component ready', 'StreamlitComponent', error);
-      }
-    }
+    // Charts are ready - trigger initial height report
+    reportHeightWithFallback().catch(error => {});
   };
 
   // Enhanced height reporting with multiple detection methods and loop prevention
@@ -371,9 +369,7 @@ function renderApp() {
     const root = createRoot(rootElement);
     root.render(
       <React.StrictMode>
-        <StreamlitProvider>
-          <App />
-        </StreamlitProvider>
+        <App />
       </React.StrictMode>
     );
   } else {
