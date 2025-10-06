@@ -1,14 +1,62 @@
-"""Chart Manager Module
+"""Chart Manager Module for managing multiple synchronized charts.
 
-This module provides the ChartManager class for managing multiple synchronized charts.
+This module provides the ChartManager class for managing multiple Chart instances
+with synchronization capabilities. It enables coordinated display of multiple
+charts with shared time ranges, crosshair synchronization, and group-based
+configuration management.
+
+The module includes:
+    - ChartManager: Main class for managing multiple charts
+    - Chart synchronization and group management
+    - Batch rendering and configuration capabilities
+    - Cross-chart communication and state management
+
+Key Features:
+    - Multiple chart management with unique identifiers
+    - Synchronization groups for coordinated chart behavior
+    - Crosshair and time range synchronization
+    - Batch rendering with consistent configuration
+    - Chart lifecycle management (add, remove, update)
+    - Automatic sync group assignment and management
+
+Example Usage:
+    ```python
+    from streamlit_lightweight_charts_pro import ChartManager, Chart, LineSeries
+    from streamlit_lightweight_charts_pro.data import SingleValueData
+
+    # Create manager and add charts
+    manager = ChartManager()
+
+    # Create data for multiple charts
+    data1 = [SingleValueData("2024-01-01", 100), SingleValueData("2024-01-02", 105)]
+    data2 = [SingleValueData("2024-01-01", 200), SingleValueData("2024-01-02", 195)]
+
+    # Add charts to manager
+    manager.add_chart(Chart(series=LineSeries(data1)), "price_chart")
+    manager.add_chart(Chart(series=LineSeries(data2)), "volume_chart")
+
+    # Configure synchronization
+    manager.set_sync_group("price_chart", "main_group")
+    manager.set_sync_group("volume_chart", "main_group")
+
+    # Render synchronized charts
+    manager.render_all_charts()
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
+# Standard Imports
 import time
 import uuid
 from typing import Any, Dict, List, Optional, Sequence, Union
 
+# Third Party Imports
 import pandas as pd
 
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.options.sync_options import SyncOptions
 from streamlit_lightweight_charts_pro.component import (  # pylint: disable=import-outside-toplevel
@@ -27,35 +75,111 @@ from streamlit_lightweight_charts_pro.exceptions import (
 class ChartManager:
     """Manager for multiple synchronized charts.
 
-    This class provides functionality to manage multiple Chart instances
-    with synchronization capabilities including crosshair and time range sync.
+    This class provides comprehensive functionality to manage multiple Chart instances
+    with advanced synchronization capabilities. It enables coordinated display of
+    multiple charts with shared time ranges, crosshair synchronization, and group-based
+    configuration management.
+
+    The ChartManager maintains a registry of charts with unique identifiers and
+    manages synchronization groups that allow charts to share crosshair position,
+    time ranges, and other interactive states. This is particularly useful for
+    creating multi-pane financial dashboards with coordinated chart behavior.
+
+    Attributes:
+        charts (Dict[str, Chart]): Dictionary mapping chart IDs to Chart instances.
+        sync_groups (Dict[str, SyncOptions]): Dictionary mapping chart IDs to their
+            synchronization group options.
+        default_sync (SyncOptions): Default synchronization options applied to
+            new charts when no specific group is assigned.
+
+    Example:
+        ```python
+        from streamlit_lightweight_charts_pro import ChartManager, Chart, LineSeries
+        from streamlit_lightweight_charts_pro.data import SingleValueData
+
+        # Create manager
+        manager = ChartManager()
+
+        # Add charts with unique IDs
+        manager.add_chart(Chart(series=LineSeries(data1)), "price_chart")
+        manager.add_chart(Chart(series=LineSeries(data2)), "volume_chart")
+
+        # Configure synchronization groups
+        manager.set_sync_group("price_chart", "main_group")
+        manager.set_sync_group("volume_chart", "main_group")
+
+        # Render all charts with synchronization
+        manager.render_all_charts()
+        ```
+
+    Note:
+        - Charts must have unique IDs within the manager
+        - Synchronization groups allow coordinated behavior between charts
+        - Individual charts can be rendered or all charts can be rendered together
+        - The manager handles component lifecycle and state management
     """
 
     def __init__(self):
-        """Initialize the ChartManager."""
+        """Initialize the ChartManager.
+
+        Creates a new ChartManager with empty chart registry and default
+        synchronization settings. The manager starts with no charts and uses
+        default sync options for new charts.
+        """
+        # Initialize chart registry - maps chart IDs to Chart instances
         self.charts: Dict[str, Chart] = {}
+
+        # Initialize sync groups - maps chart IDs to their sync configuration
         self.sync_groups: Dict[str, SyncOptions] = {}
+
+        # Set default sync options for new charts without specific group assignment
         self.default_sync: SyncOptions = SyncOptions()
 
     def add_chart(self, chart: Chart, chart_id: Optional[str] = None) -> "ChartManager":
         """Add a chart to the manager.
 
+        Adds a Chart instance to the manager with a unique identifier. The chart
+        is registered in the manager's chart registry and can participate in
+        synchronization groups. If no chart ID is provided, one is automatically
+        generated.
+
         Args:
-            chart: The Chart instance to add
-            chart_id: Optional ID for the chart. If not provided, auto-generated
+            chart (Chart): The Chart instance to add to the manager.
+            chart_id (Optional[str]): Optional unique identifier for the chart.
+                If not provided, an auto-generated ID in the format "chart_N"
+                will be assigned.
 
         Returns:
-            Self for method chaining
+            ChartManager: Self for method chaining.
+
+        Raises:
+            DuplicateError: If a chart with the specified ID already exists.
+
+        Example:
+            ```python
+            manager = ChartManager()
+            chart = Chart(series=LineSeries(data))
+
+            # Add chart with auto-generated ID
+            manager.add_chart(chart)
+
+            # Add chart with custom ID
+            manager.add_chart(chart, "price_chart")
+            ```
         """
+        # Generate unique chart ID if not provided
         if chart_id is None:
             chart_id = f"chart_{len(self.charts) + 1}"
 
+        # Validate that chart ID is unique within the manager
         if chart_id in self.charts:
             raise DuplicateError("Chart", chart_id)
 
-        # Set the ChartManager reference on the chart
+        # Set the ChartManager reference on the chart for bidirectional communication
+        # This allows the chart to access manager configuration and sync settings
         chart._chart_manager = self
 
+        # Add chart to the registry with its unique identifier
         self.charts[chart_id] = chart
         return self
 

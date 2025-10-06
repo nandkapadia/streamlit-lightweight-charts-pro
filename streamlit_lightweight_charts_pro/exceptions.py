@@ -289,3 +289,13 @@ class NotFoundError(ValidationError):
 
     def __init__(self, resource_type: str, identifier: str):
         super().__init__(f"{resource_type} with identifier '{identifier}' not found")
+
+
+class NpmNotFoundError(ConfigurationError):
+    """Raised when NPM is not found in the system PATH."""
+
+    def __init__(self):
+        message = (
+            "NPM not found in system PATH. Please install Node.js and NPM to build frontend assets."
+        )
+        super().__init__(message)
