@@ -13,6 +13,12 @@ import {
   CandlestickSeriesOptions,
   BaselineSeriesOptions,
   LineStyle,
+  LineSeries,
+  AreaSeries,
+  HistogramSeries,
+  BarSeries,
+  CandlestickSeries,
+  BaselineSeries,
 } from 'lightweight-charts';
 import { UnifiedSeriesDescriptor, PropertyDescriptors } from '../core/UnifiedSeriesDescriptor';
 
@@ -48,8 +54,8 @@ export const LINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<LineSeriesOptions> 
     priceLineVisible: true,
   },
 
-  create: (chart, data, options) => {
-    const series = chart.addLineSeries(options);
+  create: (chart, data, options, paneId = 0) => {
+    const series = chart.addSeries(LineSeries, options, paneId);
     if (data && data.length > 0) {
       series.setData(data);
     }
@@ -99,8 +105,8 @@ export const AREA_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<AreaSeriesOptions> 
     priceLineVisible: true,
   },
 
-  create: (chart, data, options) => {
-    const series = chart.addAreaSeries(options);
+  create: (chart, data, options, paneId = 0) => {
+    const series = chart.addSeries(AreaSeries, options, paneId);
     if (data && data.length > 0) {
       series.setData(data);
     }
@@ -120,7 +126,7 @@ export const HISTOGRAM_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<HistogramSerie
 
   properties: {
     color: PropertyDescriptors.color('Color', '#26a69a'),
-    base: PropertyDescriptors.number('Base Value', 0),
+    base: PropertyDescriptors.number('Base Value', 0, undefined, true), // hidden from dialog
   },
 
   defaultOptions: {
@@ -130,8 +136,8 @@ export const HISTOGRAM_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<HistogramSerie
     priceLineVisible: true,
   },
 
-  create: (chart, data, options) => {
-    const series = chart.addHistogramSeries(options);
+  create: (chart, data, options, paneId = 0) => {
+    const series = chart.addSeries(HistogramSeries, options, paneId);
     if (data && data.length > 0) {
       series.setData(data);
     }
@@ -165,8 +171,8 @@ export const BAR_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BarSeriesOptions> = 
     priceLineVisible: true,
   },
 
-  create: (chart, data, options) => {
-    const series = chart.addBarSeries(options);
+  create: (chart, data, options, paneId = 0) => {
+    const series = chart.addSeries(BarSeries, options, paneId);
     if (data && data.length > 0) {
       series.setData(data);
     }
@@ -193,6 +199,8 @@ export const CANDLESTICK_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<CandlestickS
     borderDownColor: PropertyDescriptors.color('Border Down Color', '#ef5350', 'Border'),
     wickVisible: PropertyDescriptors.boolean('Wick Visible', true, 'Wick'),
     wickColor: PropertyDescriptors.color('Wick Color', '#737375', 'Wick'),
+    wickUpColor: PropertyDescriptors.color('Wick Up Color', '#26a69a', 'Wick'),
+    wickDownColor: PropertyDescriptors.color('Wick Down Color', '#ef5350', 'Wick'),
   },
 
   defaultOptions: {
@@ -204,12 +212,14 @@ export const CANDLESTICK_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<CandlestickS
     borderDownColor: '#ef5350',
     wickVisible: true,
     wickColor: '#737375',
+    wickUpColor: '#26a69a',
+    wickDownColor: '#ef5350',
     lastValueVisible: true,
     priceLineVisible: true,
   },
 
-  create: (chart, data, options) => {
-    const series = chart.addCandlestickSeries(options);
+  create: (chart, data, options, paneId = 0) => {
+    const series = chart.addSeries(CandlestickSeries, options, paneId);
     if (data && data.length > 0) {
       series.setData(data);
     }
@@ -228,7 +238,7 @@ export const BASELINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BaselineSeriesO
   description: 'Baseline chart series with above/below coloring',
 
   properties: {
-    baseValue: PropertyDescriptors.number('Base Value', 0, 'Base'),
+    baseValue: PropertyDescriptors.number('Base Value', 0, 'Base', true), // hidden from dialog
     topLineColor: PropertyDescriptors.color('Top Line Color', '#26a69a', 'Top'),
     topFillColor1: PropertyDescriptors.color('Top Fill Color 1', 'rgba(38, 166, 154, 0.28)', 'Top'),
     topFillColor2: PropertyDescriptors.color('Top Fill Color 2', 'rgba(38, 166, 154, 0.05)', 'Top'),
@@ -261,8 +271,8 @@ export const BASELINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BaselineSeriesO
     priceLineVisible: true,
   },
 
-  create: (chart, data, options) => {
-    const series = chart.addBaselineSeries(options);
+  create: (chart, data, options, paneId = 0) => {
+    const series = chart.addSeries(BaselineSeries, options, paneId);
     if (data && data.length > 0) {
       series.setData(data);
     }

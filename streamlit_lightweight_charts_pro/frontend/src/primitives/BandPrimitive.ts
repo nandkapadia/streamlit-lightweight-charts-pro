@@ -130,10 +130,13 @@ class BandPrimitiveRenderer implements IPrimitivePaneRenderer {
       const vRatio = scope.verticalPixelRatio;
 
       const data = this._source.getProcessedData();
-      const options = this._source.getOptions();
       const series = this._source.getAttachedSeries();
 
       if (!series || data.length === 0) return;
+
+      // Read options from attached series (single source of truth)
+      const options = (series as any).options();
+      if (!options || options.visible === false) return;
 
       ctx.save();
 
@@ -199,10 +202,13 @@ class BandPrimitiveRenderer implements IPrimitivePaneRenderer {
       const vRatio = scope.verticalPixelRatio;
 
       const data = this._source.getProcessedData();
-      const options = this._source.getOptions();
       const series = this._source.getAttachedSeries();
 
       if (!series || data.length === 0) return;
+
+      // Read options from attached series (single source of truth)
+      const options = (series as any).options();
+      if (!options || options.visible === false) return;
 
       ctx.save();
 
@@ -341,6 +347,22 @@ class BandLowerAxisView extends BaseSeriesPrimitiveAxisView<
 export class BandPrimitive extends BaseSeriesPrimitive<BandProcessedData, BandPrimitiveOptions> {
   constructor(chart: IChartApi, options: BandPrimitiveOptions) {
     super(chart, options);
+  }
+
+  /**
+   * Returns settings schema for series dialog
+   * Maps property names to their types for automatic UI generation
+   */
+  static getSettings() {
+    return {
+      upperLine: 'line' as const,
+      middleLine: 'line' as const,
+      lowerLine: 'line' as const,
+      upperFillColor: 'color' as const,
+      upperFillVisible: 'boolean' as const,
+      lowerFillColor: 'color' as const,
+      lowerFillVisible: 'boolean' as const,
+    };
   }
 
   // Required: Initialize views

@@ -317,7 +317,7 @@ export function createSignalSeries(
     signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
     alertColor: options.alertColor ?? 'rgba(244, 67, 54, 0.2)',
     priceScaleId: options.priceScaleId ?? 'right',
-    lastValueVisible: !usePrimitive,
+    lastValueVisible: options.lastValueVisible ?? false,
     title: options.title ?? 'Signal',
     visible: options.visible !== false,
     priceLineVisible: options.priceLineVisible ?? false,

@@ -74,11 +74,11 @@ vi.mock('../../primitives/BaseSeriesPrimitive', () => ({
       this._attachedSeries = series;
     }
 
-    getPaneViews(): any[] {
+    paneViews(): any[] {
       return this._paneViews;
     }
 
-    getPriceAxisViews(): any[] {
+    priceAxisViews(): any[] {
       return this._priceAxisViews;
     }
   },
@@ -161,7 +161,6 @@ describe('GradientRibbonPrimitive - Construction', () => {
       lowerLineWidth: 2,
       lowerLineStyle: 0,
       lowerLineVisible: true,
-      fillColor: 'rgba(100, 100, 200, 0.3)',
       fillVisible: true,
       gradientStartColor: '#FF0000',
       gradientEndColor: '#0000FF',
@@ -211,7 +210,6 @@ describe('GradientRibbonPrimitive - Data Processing', () => {
       lowerLineWidth: 2,
       lowerLineStyle: 0,
       lowerLineVisible: true,
-      fillColor: 'rgba(100, 100, 200, 0.3)',
       fillVisible: true,
       gradientStartColor: '#FF0000',
       gradientEndColor: '#0000FF',
@@ -289,24 +287,26 @@ describe('GradientRibbonPrimitive - Data Processing', () => {
     expect(processed[0].time).toBe(3000);
   });
 
-  it('should use default fill color when not provided', () => {
+  it('should calculate gradient factor when not provided', () => {
     const data: GradientRibbonPrimitiveData[] = [{ time: 1000, upper: 100, lower: 90 }];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();
 
-    expect(processed[0].fillColor).toBe(defaultOptions.fillColor);
+    expect(processed[0].gradientFactor).toBeDefined();
+    expect(processed[0].gradientFactor).toBeGreaterThanOrEqual(0);
+    expect(processed[0].gradientFactor).toBeLessThanOrEqual(1);
   });
 
-  it('should use per-point fill color when provided', () => {
+  it('should use per-point fill override when provided', () => {
     const data: GradientRibbonPrimitiveData[] = [
-      { time: 1000, upper: 100, lower: 90, fillColor: 'rgba(255, 0, 0, 0.5)' },
+      { time: 1000, upper: 100, lower: 90, fill: 'rgba(255, 0, 0, 0.5)' },
     ];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();
 
-    expect(processed[0].fillColor).toBe('rgba(255, 0, 0, 0.5)');
+    expect(processed[0].fillOverride).toBe('rgba(255, 0, 0, 0.5)');
   });
 
   it('should calculate gradient colors when normalizeGradients is true', () => {
@@ -326,14 +326,18 @@ describe('GradientRibbonPrimitive - Data Processing', () => {
     primitiveWithNormalize.setData(data);
     const processed = primitiveWithNormalize.getProcessedData();
 
-    // All items should have fillColor (either interpolated or default)
-    expect(processed[0].fillColor).toBeDefined();
-    expect(processed[1].fillColor).toBeDefined();
-    expect(processed[2].fillColor).toBeDefined();
+    // All items should have gradient factors calculated
+    expect(processed[0].gradientFactor).toBeDefined();
+    expect(processed[1].gradientFactor).toBeDefined();
+    expect(processed[2].gradientFactor).toBeDefined();
 
-    // The fillColors should be different based on spread
-    // (exact values depend on interpolateColor implementation)
-    expect(processed[0].fillColor).toMatch(/^#[0-9a-f]{6}$/i);
+    // Gradient factors should be between 0 and 1
+    expect(processed[0].gradientFactor).toBeGreaterThanOrEqual(0);
+    expect(processed[0].gradientFactor).toBeLessThanOrEqual(1);
+
+    // Item with max spread should have highest gradient factor
+    expect(processed[1].gradientFactor).toBeGreaterThan(processed[0].gradientFactor);
+    expect(processed[1].gradientFactor).toBeGreaterThan(processed[2].gradientFactor);
   });
 });
 
@@ -358,7 +362,6 @@ describe('GradientRibbonPrimitive - Options Management', () => {
       lowerLineWidth: 2,
       lowerLineStyle: 0,
       lowerLineVisible: true,
-      fillColor: 'rgba(100, 100, 200, 0.3)',
       fillVisible: true,
       gradientStartColor: '#FF0000',
       gradientEndColor: '#0000FF',
@@ -419,7 +422,6 @@ describe('GradientRibbonPrimitive - Axis Views', () => {
       lowerLineWidth: 2,
       lowerLineStyle: 0,
       lowerLineVisible: true,
-      fillColor: 'rgba(100, 100, 200, 0.3)',
       fillVisible: true,
       gradientStartColor: '#FF0000',
       gradientEndColor: '#0000FF',
@@ -493,7 +495,6 @@ describe('GradientRibbonPrimitive - Edge Cases', () => {
       lowerLineWidth: 2,
       lowerLineStyle: 0,
       lowerLineVisible: true,
-      fillColor: 'rgba(100, 100, 200, 0.3)',
       fillVisible: true,
       gradientStartColor: '#FF0000',
       gradientEndColor: '#0000FF',
@@ -548,6 +549,7 @@ describe('GradientRibbonPrimitive - Edge Cases', () => {
     const processed = primitive.getProcessedData();
 
     expect(processed).toHaveLength(1);
-    expect(processed[0].fillColor).toBeDefined();
+    expect(processed[0].gradientFactor).toBeDefined();
+    expect(processed[0].gradientFactor).toBeGreaterThanOrEqual(0);
   });
 });

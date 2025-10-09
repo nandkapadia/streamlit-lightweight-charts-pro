@@ -509,6 +509,56 @@ export class TestDataFactory {
           crosshairMarkerRadius: 3,
         },
       },
+      signal: {
+        type: 'line' as AppSeriesType, // Signal is a custom series type
+        name: 'Test Signal Series',
+        options: {
+          color: '#3F51B5',
+          lineWidth: 1,
+          lineType: 0,
+          lineStyle: 0,
+          crosshairMarkerVisible: false,
+          crosshairMarkerRadius: 0,
+        },
+      },
+      trend_fill: {
+        type: 'area' as AppSeriesType, // Trend fill is typically rendered as area
+        name: 'Test Trend Fill Series',
+        options: {
+          topColor: 'rgba(76, 175, 80, 0.4)',
+          bottomColor: 'rgba(244, 67, 54, 0.4)',
+          lineColor: '#4CAF50',
+          lineWidth: 1,
+          lineType: 0,
+          lineStyle: 0,
+          crosshairMarkerVisible: false,
+          crosshairMarkerRadius: 0,
+        },
+      },
+      gradient_ribbon: {
+        type: 'line' as AppSeriesType, // Gradient ribbon is a custom series type
+        name: 'Test Gradient Ribbon Series',
+        options: {
+          color: '#00BCD4',
+          lineWidth: 2,
+          lineType: 0,
+          lineStyle: 0,
+          crosshairMarkerVisible: true,
+          crosshairMarkerRadius: 3,
+        },
+      },
+      band: {
+        type: 'line' as AppSeriesType, // Band is a custom series type
+        name: 'Test Band Series',
+        options: {
+          color: '#9C27B0',
+          lineWidth: 1,
+          lineType: 0,
+          lineStyle: 0,
+          crosshairMarkerVisible: true,
+          crosshairMarkerRadius: 2,
+        },
+      },
     };
 
     const baseConfig = baseConfigs[seriesType] || baseConfigs.line;

@@ -27,7 +27,7 @@ import { Streamlit } from 'streamlit-component-lib';
 import LightweightCharts from './LightweightCharts';
 import { ComponentConfig } from './types';
 import { ResizeObserverManager } from './utils/resizeObserverManager';
-import { useStreamlitRenderData, useStreamlitFrameHeight } from './hooks/useStreamlit';
+import { useStreamlitRenderData, useStreamlitFrameHeight, isStreamlitComponentReady } from './hooks/useStreamlit';
 
 /**
  * Main App component that renders the LightweightCharts component.
@@ -169,8 +169,8 @@ const App: React.FC = () => {
         pendingHeightReport.current = finalHeight;
         lastReportedHeight.current = finalHeight;
 
-        // Report height to Streamlit only if component is still mounted
-        if (isMountedRef.current && typeof Streamlit !== 'undefined' && Streamlit.setFrameHeight) {
+        // Report height to Streamlit only if component is ready and mounted
+        if (isMountedRef.current && isStreamlitComponentReady() && typeof Streamlit !== 'undefined' && Streamlit.setFrameHeight) {
           try {
             Streamlit.setFrameHeight(finalHeight);
           } catch (error) {

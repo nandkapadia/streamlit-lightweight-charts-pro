@@ -1,11 +1,13 @@
 {
   "name": "streamlit_lightweight_charts_pro",
   "version": "0.1.2",
+  "type": "module",
   "private": false,
   "license": "MIT",
   "dependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "focus-trap-react": "^11.0.4",
     "jsdom": "^27.0.0",
     "lightweight-charts": "^5.0.8",
     "react": "^19.1.1",
@@ -51,7 +53,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "vite build && node fix-html.js",
+    "build": "vite build && node fix-html.cjs",
     "build:analyze": "vite build --mode analyze",
     "build:size": "vite build --mode analyze",
     "analyze:size": "npx vite-bundle-analyzer",

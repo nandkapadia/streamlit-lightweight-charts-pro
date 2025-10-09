@@ -74,11 +74,11 @@ vi.mock('../../primitives/BaseSeriesPrimitive', () => ({
       this._attachedSeries = series;
     }
 
-    getPaneViews(): any[] {
+    paneViews(): any[] {
       return this._paneViews;
     }
 
-    getPriceAxisViews(): any[] {
+    priceAxisViews(): any[] {
       return this._priceAxisViews;
     }
   },

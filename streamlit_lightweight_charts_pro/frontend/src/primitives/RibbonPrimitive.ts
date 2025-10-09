@@ -122,10 +122,13 @@ class RibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
       const vRatio = scope.verticalPixelRatio;
 
       const data = this._source.getProcessedData();
-      const options = this._source.getOptions();
       const series = this._source.getAttachedSeries();
 
       if (!series || data.length === 0) return;
+
+      // Read options from attached series (single source of truth)
+      const options = (series as any).options();
+      if (!options || options.visible === false) return;
 
       ctx.save();
 
@@ -179,10 +182,13 @@ class RibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
       const vRatio = scope.verticalPixelRatio;
 
       const data = this._source.getProcessedData();
-      const options = this._source.getOptions();
       const series = this._source.getAttachedSeries();
 
       if (!series || data.length === 0) return;
+
+      // Read options from attached series (single source of truth)
+      const options = (series as any).options();
+      if (!options || options.visible === false) return;
 
       ctx.save();
 
@@ -289,6 +295,19 @@ export class RibbonPrimitive extends BaseSeriesPrimitive<
 > {
   constructor(chart: IChartApi, options: RibbonPrimitiveOptions) {
     super(chart, options);
+  }
+
+  /**
+   * Returns settings schema for series dialog
+   * Maps property names to their types for automatic UI generation
+   */
+  static getSettings() {
+    return {
+      upperLine: 'line' as const,
+      lowerLine: 'line' as const,
+      fillVisible: 'boolean' as const,
+      fillColor: 'color' as const,
+    };
   }
 
   // Required: Initialize views

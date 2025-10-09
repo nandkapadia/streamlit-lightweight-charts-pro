@@ -64,6 +64,9 @@ export interface PropertyDescriptor {
 
   /** Group name for organizing properties in UI */
   group?: string;
+
+  /** Hide this property from the dialog UI (but still include in API) */
+  hidden?: boolean;
 }
 
 /**
@@ -72,7 +75,8 @@ export interface PropertyDescriptor {
 export type SeriesCreator<T = any> = (
   chart: any,
   data: any[],
-  options: Partial<T>
+  options: Partial<T>,
+  paneId?: number
 ) => ISeriesApi<any>;
 
 /**
@@ -163,12 +167,13 @@ export const PropertyDescriptors = {
   /**
    * Create a number property descriptor
    */
-  number(label: string, defaultValue: number, group?: string): PropertyDescriptor {
+  number(label: string, defaultValue: number, group?: string, hidden?: boolean): PropertyDescriptor {
     return {
       type: 'number',
       label,
       default: defaultValue,
       group,
+      hidden,
     };
   },
 

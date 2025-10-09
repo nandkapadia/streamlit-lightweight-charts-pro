@@ -349,9 +349,17 @@ export abstract class BaseSeriesPrimitiveAxisView<
   /**
    * Check if this axis view is visible
    * Standardized implementation - subclasses can override
+   * Checks lastValueVisible since axis view shows the last value label
    */
   visible(): boolean {
-    return this._source.getOptions().visible ?? true;
+    const series = this._source.getAttachedSeries();
+    if (series) {
+      const seriesOptions = (series as any).options();
+      if (seriesOptions) {
+        return seriesOptions.lastValueVisible ?? false;
+      }
+    }
+    return false;
   }
 
   /**

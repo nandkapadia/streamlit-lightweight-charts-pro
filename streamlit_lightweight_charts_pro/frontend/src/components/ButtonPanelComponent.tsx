@@ -79,6 +79,12 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
   config = {}, // Default to empty object
 }) => {
   const [hoveredButton, setHoveredButton] = useState<'collapse' | 'gear' | null>(null);
+  const [pressedButton, setPressedButton] = useState<'collapse' | 'gear' | null>(null);
+  const [lastClickTime, setLastClickTime] = useState<{ collapse: number; gear: number }>({
+    collapse: 0,
+    gear: 0,
+  });
+  const DEBOUNCE_DELAY = 300; // ms
 
   // Use PrimitiveDefaults with fallbacks to config overrides
   const buttonSize = config.buttonSize ?? ButtonDimensions.PANE_ACTION_WIDTH;
@@ -96,6 +102,7 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
 
   const getButtonStyle = (buttonType: 'collapse' | 'gear'): React.CSSProperties => {
     const isHovered = hoveredButton === buttonType;
+    const isPressed = pressedButton === buttonType;
     return {
       width: `${buttonSize}px`,
       height: `${buttonSize}px`,
@@ -107,10 +114,38 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
       alignItems: 'center',
       justifyContent: 'center',
       color: isHovered ? buttonHoverColor : buttonColor,
-      transition: ButtonEffects.DEFAULT_TRANSITION,
+      transition: 'all 0.1s ease',
       userSelect: 'none',
       boxShadow: isHovered ? ButtonEffects.HOVER_BOX_SHADOW : 'none',
+      transform: isPressed ? 'scale(0.9)' : 'scale(1)',
     };
+  };
+
+  // Debounced click handlers
+  const handleGearClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const now = Date.now();
+    if (now - lastClickTime.gear < DEBOUNCE_DELAY) {
+      return; // Ignore click if too soon
+    }
+
+    setLastClickTime(prev => ({ ...prev, gear: now }));
+    onGearClick();
+  };
+
+  const handleCollapseClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const now = Date.now();
+    if (now - lastClickTime.collapse < DEBOUNCE_DELAY) {
+      return; // Ignore click if too soon
+    }
+
+    setLastClickTime(prev => ({ ...prev, collapse: now }));
+    onCollapseClick();
   };
 
   return (
@@ -121,12 +156,13 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
           className='gear-button'
           style={getButtonStyle('gear')}
           onMouseEnter={() => setHoveredButton('gear')}
-          onMouseLeave={() => setHoveredButton(null)}
-          onClick={e => {
-            e.preventDefault();
-            e.stopPropagation();
-            onGearClick();
+          onMouseLeave={() => {
+            setHoveredButton(null);
+            setPressedButton(null);
           }}
+          onMouseDown={() => setPressedButton('gear')}
+          onMouseUp={() => setPressedButton(null)}
+          onClick={handleGearClick}
           title='Series Settings'
         >
           <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' width='14' height='14'>
@@ -145,12 +181,13 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
           className='collapse-button'
           style={getButtonStyle('collapse')}
           onMouseEnter={() => setHoveredButton('collapse')}
-          onMouseLeave={() => setHoveredButton(null)}
-          onClick={e => {
-            e.preventDefault();
-            e.stopPropagation();
-            onCollapseClick();
+          onMouseLeave={() => {
+            setHoveredButton(null);
+            setPressedButton(null);
           }}
+          onMouseDown={() => setPressedButton('collapse')}
+          onMouseUp={() => setPressedButton(null)}
+          onClick={handleCollapseClick}
           title={isCollapsed ? 'Expand pane' : 'Collapse pane'}
         >
           {isCollapsed ? (

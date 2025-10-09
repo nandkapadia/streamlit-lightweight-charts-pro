@@ -1177,6 +1177,498 @@ class MyAxisView extends BaseSeriesPrimitiveAxisView<MyData, MyOptions> {
 - [ ] **Share time-based visible range detection**
 - [ ] **Consolidate z-order management**
 
+## ⚙️ Series Settings Schema
+
+### Overview
+
+Every custom series **MUST** publish a settings schema that declares what settings are configurable in the settings dialog. This enables a **data-driven, plugin-ready architecture** where the dialog automatically renders appropriate controls for each series type.
+
+**Key Benefits**:
+- ✅ **Single Source of Truth** - Series owns its settings
+- ✅ **Open/Closed Principle** - Add new series without modifying dialog
+- ✅ **Plugin-Ready** - Third-party series work automatically
+- ✅ **Type-Safe** - Schema validates property names
+- ✅ **Zero Dialog Changes** - Settings render dynamically
+
+### Schema Architecture
+
+The settings system consists of three layers:
+
+1. **Schema Interface** (`src/types/seriesSettingsSchema.ts`) - Defines schema types
+2. **Series Schemas** (`src/config/seriesSettingsRegistry.ts`) - Registry of all series schemas
+3. **Schema Renderer** (`src/components/SeriesSettingsRenderer.tsx`) - Renders schemas to UI
+
+### Schema Structure
+
+```typescript
+interface SeriesSettingsSchema {
+  sections: SettingsSection[];        // Groups of related settings
+  defaults?: Record<string, any>;     // Default values for reset
+  validation?: Record<string, ValidationRule>; // Validation rules
+}
+
+interface SettingsSection {
+  label: string;                      // Section heading
+  description?: string;               // Optional description
+  controls: SettingControl[];         // Settings controls in this section
+  condition?: (config: any) => boolean; // Show section conditionally
+}
+```
+
+### Supported Control Types
+
+#### 1. Line Editor Control
+Opens a dialog to configure line color, style, and width.
+
+```typescript
+{
+  type: 'line-editor',
+  property: 'upperLine',
+  label: 'Upper Line',
+  description: 'Configure upper boundary line'
+}
+```
+
+**Renders:** Clickable row showing line preview with color swatch + style/width
+
+#### 2. Color Picker Control
+Opens a color picker with optional opacity slider.
+
+```typescript
+{
+  type: 'color-picker',
+  property: 'fillColor',
+  label: 'Fill Color',
+  description: 'Color of the filled area',
+  withOpacity: true,              // Enable opacity slider
+  opacityProperty: 'fillOpacity'  // Property name for opacity value
+}
+```
+
+**Renders:** Clickable row showing color swatch + opacity percentage
+
+#### 3. Checkbox Control
+Boolean toggle for on/off settings.
+
+```typescript
+{
+  type: 'checkbox',
+  property: 'fill',
+  label: 'Fill',
+  description: 'Show filled area between lines'
+}
+```
+
+**Renders:** Checkbox with label
+
+#### 4. Number Input Control
+Numeric input with optional min/max/step.
+
+```typescript
+{
+  type: 'number',
+  property: 'baseValue',
+  label: 'Base Value',
+  description: 'Baseline reference price',
+  min: 0,
+  max: 100,
+  step: 0.01
+}
+```
+
+**Renders:** Number input field
+
+#### 5. Select Control
+Dropdown for predefined options.
+
+```typescript
+{
+  type: 'select',
+  property: 'mode',
+  label: 'Display Mode',
+  description: 'Visualization mode',
+  options: [
+    { value: 'line', label: 'Line' },
+    { value: 'area', label: 'Area' },
+    { value: 'histogram', label: 'Histogram' }
+  ]
+}
+```
+
+**Renders:** Select dropdown
+
+### Example: Complete Schema
+
+```typescript
+// File: src/config/seriesSettingsRegistry.ts
+
+export const RibbonSeriesSchema: SeriesSettingsSchema = {
+  sections: [
+    {
+      label: 'Ribbon Settings',
+      controls: [
+        {
+          type: 'line-editor',
+          property: 'upperLine',
+          label: 'Upper Line',
+          description: 'Configure upper boundary line',
+        },
+        {
+          type: 'line-editor',
+          property: 'lowerLine',
+          label: 'Lower Line',
+          description: 'Configure lower boundary line',
+        },
+        {
+          type: 'checkbox',
+          property: 'fill',
+          label: 'Fill',
+          description: 'Show filled area between lines',
+        },
+      ],
+    },
+    {
+      label: 'Fill Settings',
+      controls: [
+        {
+          type: 'color-picker',
+          property: 'fillColor',
+          label: 'Fill Color',
+          description: 'Color of the filled area',
+          withOpacity: true,
+          opacityProperty: 'fillOpacity',
+        },
+      ],
+      // Only show this section when fill is enabled
+      condition: (config) => config.fill !== false,
+    },
+  ],
+  defaults: {
+    upperLine: { color: '#4CAF50', lineStyle: 'solid', lineWidth: 2 },
+    lowerLine: { color: '#F44336', lineStyle: 'solid', lineWidth: 2 },
+    fill: true,
+    fillColor: '#2196F3',
+    fillOpacity: 20,
+  },
+};
+```
+
+### Registering Your Schema
+
+Add your schema to the central registry:
+
+```typescript
+// File: src/config/seriesSettingsRegistry.ts
+
+import { MySeriesSchema } from '../plugins/series/mySeriesPlugin';
+
+export const SERIES_SETTINGS_REGISTRY: SeriesSettingsRegistry = {
+  // ... existing series
+
+  // Add your series
+  my_series: MySeriesSchema,
+
+  // Case-insensitive alias (optional)
+  MySeries: MySeriesSchema,
+};
+```
+
+### Schema Best Practices
+
+#### 1. Match Series Options Interface
+
+Your schema properties **MUST** match your series options interface:
+
+```typescript
+// Series options interface
+export interface MySeriesOptions extends CustomSeriesOptions {
+  upperLine: { color: string; lineStyle: LineStyle; lineWidth: number };
+  lowerLine: { color: string; lineStyle: LineStyle; lineWidth: number };
+  fill: boolean;
+  fillColor: string;
+  fillOpacity: number;
+}
+
+// Schema MUST use same property names
+const schema = {
+  sections: [{
+    controls: [
+      { type: 'line-editor', property: 'upperLine' }, // ✅ Matches
+      { type: 'line-editor', property: 'lowerLine' }, // ✅ Matches
+      { type: 'checkbox', property: 'fill' },         // ✅ Matches
+      { type: 'color-picker', property: 'fillColor' } // ✅ Matches
+    ]
+  }]
+};
+```
+
+#### 2. Provide Sensible Defaults
+
+Defaults are used by the "Reset to Defaults" button:
+
+```typescript
+defaults: {
+  // Match your series plugin defaults exactly
+  upperLine: { color: '#4CAF50', lineStyle: 'solid', lineWidth: 2 },
+  lowerLine: { color: '#F44336', lineStyle: 'solid', lineWidth: 2 },
+  fill: true,
+  fillColor: '#2196F3',
+  fillOpacity: 20,
+}
+```
+
+#### 3. Use Conditional Sections
+
+Show/hide sections based on other settings:
+
+```typescript
+{
+  label: 'Fill Settings',
+  controls: [/* fill color, opacity */],
+  condition: (config) => config.fill !== false  // Only show when fill enabled
+}
+
+{
+  label: 'Border Settings',
+  controls: [/* border colors */],
+  condition: (config) => config.borderVisible !== false
+}
+```
+
+#### 4. Group Related Controls
+
+Organize controls into logical sections:
+
+```typescript
+sections: [
+  {
+    label: 'Line Settings',
+    controls: [/* line color, style, width */]
+  },
+  {
+    label: 'Fill Settings',
+    controls: [/* fill color, opacity */]
+  },
+  {
+    label: 'Advanced',
+    controls: [/* advanced options */]
+  }
+]
+```
+
+#### 5. Add Descriptions
+
+Help users understand each control:
+
+```typescript
+{
+  type: 'number',
+  property: 'period',
+  label: 'Period',
+  description: 'Number of bars used for calculation (higher = smoother)'
+}
+```
+
+### Common Patterns
+
+#### Pattern A: Line Series
+
+```typescript
+export const LineSeriesSchema: SeriesSettingsSchema = {
+  sections: [
+    {
+      label: 'Line Settings',
+      controls: [
+        { type: 'line-editor', property: 'mainLine', label: 'Line' }
+      ]
+    }
+  ],
+  defaults: {
+    color: '#2196F3',
+    lineStyle: 'solid',
+    lineWidth: 1,
+  }
+};
+```
+
+#### Pattern B: Band/Channel Series
+
+```typescript
+export const BandSeriesSchema: SeriesSettingsSchema = {
+  sections: [
+    {
+      label: 'Band Settings',
+      controls: [
+        { type: 'line-editor', property: 'upperLine', label: 'Upper Band' },
+        { type: 'line-editor', property: 'middleLine', label: 'Middle Line' },
+        { type: 'line-editor', property: 'lowerLine', label: 'Lower Band' },
+        { type: 'checkbox', property: 'fill', label: 'Fill' }
+      ]
+    },
+    {
+      label: 'Fill Settings',
+      controls: [
+        {
+          type: 'color-picker',
+          property: 'fillColor',
+          label: 'Fill Color',
+          withOpacity: true,
+          opacityProperty: 'fillOpacity'
+        }
+      ],
+      condition: (config) => config.fill !== false
+    }
+  ],
+  defaults: {
+    upperLine: { color: '#2196F3', lineStyle: 'solid', lineWidth: 1 },
+    middleLine: { color: '#FF9800', lineStyle: 'solid', lineWidth: 1 },
+    lowerLine: { color: '#2196F3', lineStyle: 'solid', lineWidth: 1 },
+    fill: true,
+    fillColor: '#2196F3',
+    fillOpacity: 10,
+  }
+};
+```
+
+#### Pattern C: Candlestick/Bar Series
+
+```typescript
+export const CandlestickSeriesSchema: SeriesSettingsSchema = {
+  sections: [
+    {
+      label: 'Candle Colors',
+      controls: [
+        { type: 'color-picker', property: 'upColor', label: 'Up Color' },
+        { type: 'color-picker', property: 'downColor', label: 'Down Color' }
+      ]
+    },
+    {
+      label: 'Wick Settings',
+      controls: [
+        { type: 'color-picker', property: 'wickUpColor', label: 'Wick Up Color' },
+        { type: 'color-picker', property: 'wickDownColor', label: 'Wick Down Color' }
+      ]
+    },
+    {
+      label: 'Border Settings',
+      controls: [
+        { type: 'checkbox', property: 'borderVisible', label: 'Show Borders' },
+        { type: 'color-picker', property: 'borderUpColor', label: 'Border Up Color' },
+        { type: 'color-picker', property: 'borderDownColor', label: 'Border Down Color' }
+      ],
+      condition: (config) => config.borderVisible !== false
+    }
+  ],
+  defaults: {
+    upColor: '#26a69a',
+    downColor: '#ef5350',
+    wickUpColor: '#26a69a',
+    wickDownColor: '#ef5350',
+    borderVisible: true,
+    borderUpColor: '#26a69a',
+    borderDownColor: '#ef5350',
+  }
+};
+```
+
+### Testing Your Schema
+
+#### 1. Verify Schema is Registered
+
+```typescript
+import { getSeriesSettingsSchema } from '../config/seriesSettingsRegistry';
+
+const schema = getSeriesSettingsSchema('my_series');
+console.log(schema); // Should return your schema
+```
+
+#### 2. Test in Settings Dialog
+
+1. Create a series of your type
+2. Right-click the series → Settings
+3. Verify all controls appear
+4. Verify conditional sections show/hide correctly
+5. Verify defaults button works
+
+#### 3. Type Safety Check
+
+TypeScript will error if property names don't match:
+
+```typescript
+// ❌ TypeScript error - 'invalidProp' doesn't exist on SeriesOptions
+{ type: 'checkbox', property: 'invalidProp', label: 'Invalid' }
+
+// ✅ Valid - 'fill' exists on SeriesOptions
+{ type: 'checkbox', property: 'fill', label: 'Fill' }
+```
+
+### Schema Checklist
+
+When creating a new series schema:
+
+- [ ] Define schema in series plugin file or separate schema file
+- [ ] Export schema constant
+- [ ] Register in `SERIES_SETTINGS_REGISTRY`
+- [ ] Add case-insensitive alias (optional)
+- [ ] Match property names to series options interface
+- [ ] Provide complete defaults
+- [ ] Use conditional sections where appropriate
+- [ ] Group related controls into sections
+- [ ] Add descriptions for clarity
+- [ ] Test schema renders correctly
+- [ ] Verify defaults button works
+- [ ] Verify conditional logic works
+
+### Migration from Hardcoded Dialog
+
+**Before** (Hardcoded in SeriesSettingsDialog.tsx):
+```typescript
+{activeSeriesInfo?.type === 'my_series' && (
+  <div>
+    {/* 80+ lines of hardcoded UI */}
+  </div>
+)}
+```
+
+**After** (Schema-based):
+```typescript
+// Just add schema to registry - dialog renders automatically!
+export const SERIES_SETTINGS_REGISTRY = {
+  my_series: MySeriesSchema  // That's it!
+};
+```
+
+### Reference Implementations
+
+**Simple Series**:
+- Line: `seriesSettingsRegistry.ts:LineSeriesSchema`
+- Histogram: `seriesSettingsRegistry.ts:HistogramSeriesSchema`
+
+**Band/Channel Series**:
+- Ribbon: `seriesSettingsRegistry.ts:RibbonSeriesSchema`
+- Band: `seriesSettingsRegistry.ts:BandSeriesSchema`
+
+**Complex Series**:
+- Candlestick: `seriesSettingsRegistry.ts:CandlestickSeriesSchema`
+- Baseline: `seriesSettingsRegistry.ts:BaselineSeriesSchema`
+
+### Summary
+
+**Every custom series MUST provide a settings schema** that:
+
+1. ✅ Declares what properties are configurable
+2. ✅ Specifies appropriate UI controls for each property
+3. ✅ Provides default values
+4. ✅ Matches the series options interface exactly
+5. ✅ Is registered in the central registry
+
+This architecture enables:
+- ✅ **Zero dialog changes** when adding new series
+- ✅ **Plugin-ready** third-party series support
+- ✅ **Type-safe** property editing
+- ✅ **Consistent UX** across all series types
+- ✅ **Automatic UI** generation from schema
+
 ## 📋 Implementation Checklist
 
 ### Design Phase

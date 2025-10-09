@@ -144,22 +144,21 @@ describe('Gradient Ribbon Series - Hybrid Implementation', () => {
       expect(options.normalizeGradients).toBe(false);
     });
 
-    it('should use base fill color when gradients disabled', () => {
+    it('should disable gradient normalization when requested', () => {
       createGradientRibbonSeries(mockChart as any, {
-        fillColor: 'rgba(100, 100, 100, 0.5)',
         normalizeGradients: false,
       });
 
       const options = mockChart.addCustomSeries.mock.calls[0][1];
-      expect(options.fillColor).toBe('rgba(100, 100, 100, 0.5)');
+      expect(options.normalizeGradients).toBe(false);
     });
   });
 
   describe('Per-Point Fill Colors', () => {
     it('should support per-point fill color overrides', () => {
       const testData: GradientRibbonData[] = [
-        { time: 1000 as Time, upper: 110, lower: 90, fillColor: '#FF0000' },
-        { time: 2000 as Time, upper: 120, lower: 80, fillColor: '#00FF00' },
+        { time: 1000 as Time, upper: 110, lower: 90, fill: '#FF0000' },
+        { time: 2000 as Time, upper: 120, lower: 80, fill: '#00FF00' },
       ];
 
       createGradientRibbonSeries(mockChart as any, { data: testData });
@@ -167,7 +166,7 @@ describe('Gradient Ribbon Series - Hybrid Implementation', () => {
       expect(mockCustomSeries.setData).toHaveBeenCalledWith(testData);
     });
 
-    it('should use gradient colors when fillColor not provided', () => {
+    it('should use gradient colors when fill not provided', () => {
       const testData: GradientRibbonData[] = [
         { time: 1000 as Time, upper: 110, lower: 90 },
         { time: 2000 as Time, upper: 120, lower: 80 },
@@ -355,7 +354,6 @@ describe('Gradient Ribbon Series - Hybrid Implementation', () => {
         lowerLineWidth: 2,
         lowerLineStyle: 0,
         lowerLineVisible: true,
-        fillColor: 'rgba(76, 175, 80, 0.1)',
         fillVisible: true,
         gradientStartColor: '#90EE90',
         gradientEndColor: '#DC143C',
@@ -366,7 +364,7 @@ describe('Gradient Ribbon Series - Hybrid Implementation', () => {
         data: [
           { time: 1000 as Time, upper: 110, lower: 90 },
           { time: 2000 as Time, upper: 130, lower: 70 },
-          { time: 3000 as Time, upper: 105, lower: 95, fillColor: '#FFA500' },
+          { time: 3000 as Time, upper: 105, lower: 95, fill: '#FFA500' },
         ],
       });
 

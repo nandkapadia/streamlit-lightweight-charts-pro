@@ -57,17 +57,19 @@ describe('TrendFillSeries (ICustomSeries)', () => {
           uptrendFillColor: 'rgba(76, 175, 80, 0.3)',
           downtrendFillColor: 'rgba(244, 67, 54, 0.3)',
           fillVisible: true,
-          trendLineColor: '#2196F3',
-          trendLineWidth: 2,
-          trendLineStyle: LineStyle.Solid,
-          trendLineVisible: true,
+          uptrendLineColor: '#4CAF50',
+          uptrendLineWidth: 2,
+          uptrendLineStyle: LineStyle.Solid,
+          uptrendLineVisible: true,
+          downtrendLineColor: '#F44336',
+          downtrendLineWidth: 2,
+          downtrendLineStyle: LineStyle.Solid,
+          downtrendLineVisible: true,
           baseLineColor: '#666666',
           baseLineWidth: 1,
           baseLineStyle: LineStyle.Dotted,
           baseLineVisible: false,
           priceScaleId: 'right',
-          disableSeriesRendering: false,
-          lastValueVisible: true,
         })
       );
       expect(series).toBeDefined();
@@ -77,9 +79,12 @@ describe('TrendFillSeries (ICustomSeries)', () => {
       const customOptions: Partial<TrendFillSeriesOptions> = {
         uptrendFillColor: 'rgba(0, 255, 0, 0.5)',
         downtrendFillColor: 'rgba(255, 0, 0, 0.5)',
-        trendLineColor: '#FF0000',
-        trendLineWidth: 3,
-        trendLineStyle: LineStyle.Dashed,
+        uptrendLineColor: '#00FF00',
+        uptrendLineWidth: 3,
+        uptrendLineStyle: LineStyle.Dashed,
+        downtrendLineColor: '#FF0000',
+        downtrendLineWidth: 3,
+        downtrendLineStyle: LineStyle.Dashed,
         baseLineVisible: true,
       };
 
@@ -104,20 +109,20 @@ describe('TrendFillSeries (ICustomSeries)', () => {
   });
 
   describe('Primitive Attachment Mode', () => {
-    it('should attach primitive when disableSeriesRendering is true', () => {
+    it('should attach primitive when usePrimitive is explicitly set', () => {
       const testData: TrendFillData[] = [
         { time: '2023-01-01', baseLine: 100, trendLine: 105, trendDirection: 1 },
       ];
 
       createTrendFillSeries(mockChart as any, {
-        // disableSeriesRendering removed - not in type
+        usePrimitive: true,
         data: testData,
       });
 
       expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
         expect.any(Object),
         expect.objectContaining({
-          // disableSeriesRendering removed - not in type
+          _usePrimitive: true,
           lastValueVisible: false, // Hide series label when primitive handles it
         })
       );
@@ -140,24 +145,34 @@ describe('TrendFillSeries (ICustomSeries)', () => {
       ];
 
       createTrendFillSeries(mockChart as any, {
-        // disableSeriesRendering removed - not in type
         uptrendFillColor: 'rgba(0, 255, 0, 0.3)',
         downtrendFillColor: 'rgba(255, 0, 0, 0.3)',
-        trendLineColor: '#00FF00',
-        trendLineWidth: 3,
-        trendLineStyle: LineStyle.Dashed,
+        uptrendLineColor: '#00FF00',
+        uptrendLineWidth: 3,
+        uptrendLineStyle: LineStyle.Dashed,
+        uptrendLineVisible: true,
+        downtrendLineColor: '#FF0000',
+        downtrendLineWidth: 3,
+        downtrendLineStyle: LineStyle.Dashed,
+        downtrendLineVisible: true,
         baseLineVisible: true,
+        usePrimitive: true,
         zIndex: -50,
         data: testData,
       });
 
       expect(mockSeries.attachPrimitive).toHaveBeenCalledWith(
         expect.objectContaining({
-          options: expect.objectContaining({
+          _options: expect.objectContaining({
             uptrendFillColor: 'rgba(0, 255, 0, 0.3)',
             downtrendFillColor: 'rgba(255, 0, 0, 0.3)',
-            trendLine: expect.objectContaining({
+            uptrendLine: expect.objectContaining({
               color: '#00FF00',
+              lineWidth: 3,
+              visible: true,
+            }),
+            downtrendLine: expect.objectContaining({
+              color: '#FF0000',
               lineWidth: 3,
               visible: true,
             }),
@@ -217,7 +232,8 @@ describe('TrendFillSeries (ICustomSeries)', () => {
       expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
         expect.any(Object),
         expect.objectContaining({
-          lastValueVisible: true,
+          lastValueVisible: false,
+          _usePrimitive: false,
         })
       );
     });
@@ -265,7 +281,7 @@ describe('TrendFillSeries (ICustomSeries)', () => {
   });
 
   describe('Line Styles', () => {
-    it('should support all line styles for trend line', () => {
+    it('should support all line styles for uptrend line', () => {
       // Note: Only Solid, Dotted, and Dashed are supported (0, 1, 2)
       // LargeDashed and SparseDotted are clamped to Dashed when passed to primitive
       const lineStyles = [LineStyle.Solid, LineStyle.Dotted, LineStyle.Dashed];
@@ -273,13 +289,31 @@ describe('TrendFillSeries (ICustomSeries)', () => {
       lineStyles.forEach(lineStyle => {
         vi.clearAllMocks();
         createTrendFillSeries(mockChart as any, {
-          trendLineStyle: lineStyle,
+          uptrendLineStyle: lineStyle,
         });
 
         expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
           expect.any(Object),
           expect.objectContaining({
-            trendLineStyle: lineStyle,
+            uptrendLineStyle: lineStyle,
+          })
+        );
+      });
+    });
+
+    it('should support all line styles for downtrend line', () => {
+      const lineStyles = [LineStyle.Solid, LineStyle.Dotted, LineStyle.Dashed];
+
+      lineStyles.forEach(lineStyle => {
+        vi.clearAllMocks();
+        createTrendFillSeries(mockChart as any, {
+          downtrendLineStyle: lineStyle,
+        });
+
+        expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            downtrendLineStyle: lineStyle,
           })
         );
       });
@@ -361,14 +395,14 @@ describe('TrendFillSeries (ICustomSeries)', () => {
   describe('Z-Index (Primitive Mode)', () => {
     it('should use default z-index when not specified', () => {
       createTrendFillSeries(mockChart as any, {
-        // disableSeriesRendering removed - not in type
+        usePrimitive: true,
         data: [],
       });
 
       expect(mockSeries.attachPrimitive).toHaveBeenCalledWith(
         expect.objectContaining({
-          options: expect.objectContaining({
-            zIndex: -100,
+          _options: expect.objectContaining({
+            zIndex: 0,
           }),
         })
       );
@@ -376,14 +410,14 @@ describe('TrendFillSeries (ICustomSeries)', () => {
 
     it('should use custom z-index when specified', () => {
       createTrendFillSeries(mockChart as any, {
-        // disableSeriesRendering removed - not in type
+        usePrimitive: true,
         zIndex: -50,
         data: [],
       });
 
       expect(mockSeries.attachPrimitive).toHaveBeenCalledWith(
         expect.objectContaining({
-          options: expect.objectContaining({
+          _options: expect.objectContaining({
             zIndex: -50,
           }),
         })

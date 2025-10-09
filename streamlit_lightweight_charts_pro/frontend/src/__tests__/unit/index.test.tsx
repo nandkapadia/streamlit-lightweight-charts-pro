@@ -1,166 +1,122 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+/**
+ * @vitest-environment jsdom
+ *
+ * Tests for the main index component that renders the Streamlit component.
+ *
+ * This tests the integration between Streamlit and the LightweightCharts component
+ * using the new custom hook architecture (useStreamlitRenderData, useStreamlitFrameHeight).
+ */
 
-// Mock the components and hooks BEFORE importing them
-vi.mock('streamlit-component-lib', () => ({
-  Streamlit: {
-    setComponentValue: vi.fn(),
-    setFrameHeight: vi.fn(),
-    setComponentReady: vi.fn(),
-    RENDER_EVENT: 'streamlit:render',
-    SET_FRAME_HEIGHT_EVENT: 'streamlit:setFrameHeight',
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+
+// Mock LightweightCharts component
+vi.mock('../../LightweightCharts', () => ({
+  default: function MockLightweightCharts({ config, onChartsReady }: any) {
+    React.useEffect(() => {
+      // Simulate charts ready callback
+      if (onChartsReady) {
+        setTimeout(() => onChartsReady(), 10);
+      }
+    }, [onChartsReady]);
+
+    return (
+      <div data-testid='lightweight-charts'>
+        <div>Mock LightweightCharts Component</div>
+        <div data-testid='chart-config'>{JSON.stringify(config).substring(0, 100)}</div>
+      </div>
+    );
   },
 }));
 
-vi.mock('streamlit-component-lib-react-hooks', () => ({
-  useRenderData: vi.fn(() => ({
-    args: {
-      config: {
-        charts: [
-          {
-            chartId: 'test-chart',
-            chart: {
-              height: 400,
-              autoSize: true,
-              layout: {
-                color: '#ffffff',
-                textColor: '#000000',
-              },
-            },
-            series: [],
-            annotations: {
-              layers: {},
-            },
-          },
-        ],
-        sync: {
-          enabled: false,
-          crosshair: false,
-          timeRange: false,
-        },
-      },
-      height: 400,
-      width: null,
-    },
-    disabled: false,
-    height: 400,
-    width: 800,
-    theme: {
-      base: 'light',
-      primaryColor: '#ff4b4b',
-      backgroundColor: '#ffffff',
-      secondaryBackgroundColor: '#f0f2f6',
-      textColor: '#262730',
-    },
-  })),
-  StreamlitProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
-const mockOnChartsReady = vi.fn();
-
-vi.mock('../../LightweightCharts', () => {
-  return {
-    default: function MockLightweightCharts({ config, height, width, onChartsReady }: any) {
-      // Store the callback for later use
-      if (onChartsReady) {
-        mockOnChartsReady.mockImplementation(onChartsReady);
-      }
-
-      // Call onChartsReady immediately when component mounts
-      React.useEffect(() => {
-        if (onChartsReady) {
-          // Use setTimeout to ensure it runs after the component is fully mounted
-          setTimeout(() => {
-            try {
-              onChartsReady();
-            } catch (error) {
-              console.error('MockLightweightCharts onChartsReady error:', error);
-            }
-          }, 0);
-        }
-      }, [onChartsReady]);
-
-      return (
-        <div className='chart-container' data-testid='lightweight-charts'>
-          <div>Mock Chart Component</div>
-          <div>Config: {JSON.stringify(config).substring(0, 50)}...</div>
-          <div>Height: {height}</div>
-          <div>Width: {width === null ? 'null' : width === undefined ? 'undefined' : width}</div>
-          {onChartsReady && (
-            <button onClick={onChartsReady} data-testid='charts-ready-btn'>
-              Charts Ready
-            </button>
-          )}
-        </div>
-      );
-    },
-  };
-});
-
-import { Streamlit } from 'streamlit-component-lib';
-// @ts-expect-error - streamlit-component-lib-react-hooks package was removed
-import { useRenderData } from 'streamlit-component-lib-react-hooks';
-
-// Custom render function that ensures container is available
-const customRender = (ui: React.ReactElement, options = {}) => {
-  const container = document.createElement('div');
-  document.body.appendChild(container);
-  return render(ui, { container, ...options });
+// Mock Streamlit library
+const mockStreamlit = {
+  setComponentValue: vi.fn(),
+  setFrameHeight: vi.fn(),
+  setComponentReady: vi.fn(),
+  RENDER_EVENT: 'streamlit:render',
+  events: {
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  },
 };
 
-// Mock ReactDOM.render
-vi.mock('react-dom', async () => {
-  const actual = await vi.importActual('react-dom');
+vi.mock('streamlit-component-lib', () => ({
+  Streamlit: mockStreamlit,
+}));
+
+// Mock custom Streamlit hooks
+const mockRenderData = {
+  args: {
+    config: {
+      charts: [
+        {
+          chartId: 'test-chart-1',
+          chart: {
+            height: 400,
+            layout: {
+              background: { color: '#FFFFFF' },
+              textColor: '#191919',
+            },
+          },
+          series: [
+            {
+              type: 'Line',
+              data: [
+                { time: '2023-01-01', value: 100 },
+                { time: '2023-01-02', value: 105 },
+              ],
+              options: {
+                color: '#2196F3',
+                lineWidth: 2,
+              },
+            },
+          ],
+        },
+      ],
+    },
+  },
+  theme: {
+    base: 'light',
+    primaryColor: '#FF4B4B',
+    backgroundColor: '#FFFFFF',
+    secondaryBackgroundColor: '#F0F2F6',
+    textColor: '#262730',
+  },
+};
+
+vi.mock('../../hooks/useStreamlit', () => ({
+  useStreamlitRenderData: vi.fn(() => mockRenderData),
+  useStreamlitFrameHeight: vi.fn(),
+}));
+
+// Mock ResizeObserverManager
+vi.mock('../../utils/resizeObserverManager', () => {
+  class MockResizeObserverManager {
+    static getInstance() {
+      return new MockResizeObserverManager();
+    }
+
+    observe = vi.fn();
+    unobserve = vi.fn();
+    disconnect = vi.fn();
+    addObserver = vi.fn();
+    removeObserver = vi.fn();
+    cleanup = vi.fn();
+  }
+
   return {
-    ...actual,
-    render: vi.fn(),
+    ResizeObserverManager: MockResizeObserverManager,
   };
 });
-
-// Mock DOM methods
-Object.defineProperty(window, 'getComputedStyle', {
-  value: () => ({
-    getPropertyValue: () => '',
-  }),
-});
-
-Element.prototype.getBoundingClientRect = vi.fn(
-  (): DOMRect => ({
-    width: 800,
-    height: 600,
-    top: 0,
-    left: 0,
-    right: 800,
-    bottom: 600,
-    x: 0,
-    y: 0,
-    toJSON: () => ({}),
-  })
-);
-
-Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
-  configurable: true,
-  value: 600,
-});
-
-Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-  configurable: true,
-  value: 600,
-});
-
-Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
-  configurable: true,
-  value: 800,
-});
-
-// Mock setTimeout and clearTimeout
-vi.useFakeTimers();
 
 describe('Index Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset DOM
+    document.body.innerHTML = '';
   });
 
   afterEach(() => {
@@ -168,764 +124,312 @@ describe('Index Component', () => {
   });
 
   describe('Component Rendering', () => {
-    it('should render the main app component', async () => {
+    it('should render the LightweightCharts component', async () => {
       const { default: App } = await import('../../index');
+      render(<App />);
 
-      // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 400,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
+      await waitFor(() => {
+        expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
       });
 
-      customRender(<App />);
-
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-      expect(screen.getByText('Mock Chart Component')).toBeInTheDocument();
+      expect(screen.getByText('Mock LightweightCharts Component')).toBeInTheDocument();
     });
 
-    it('should render with default configuration', async () => {
+    it('should pass config from Streamlit to LightweightCharts', async () => {
       const { default: App } = await import('../../index');
+      render(<App />);
 
-      // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 400,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
+      await waitFor(() => {
+        const configElement = screen.getByTestId('chart-config');
+        expect(configElement.textContent).toContain('test-chart-1');
       });
-
-      customRender(<App />);
-
-      expect(screen.getByText(/Config:/)).toBeInTheDocument();
-      expect(screen.getByText(/Height: 400/)).toBeInTheDocument();
-      expect(screen.getByText(/Width: null/)).toBeInTheDocument();
     });
 
-    it('should render with custom height and width', async () => {
+    it('should render when renderData is undefined', async () => {
+      const { useStreamlitRenderData } = await import('../../hooks/useStreamlit');
+      vi.mocked(useStreamlitRenderData).mockReturnValue(undefined);
+
       const { default: App } = await import('../../index');
+      const { container } = render(<App />);
 
-      // Mock useRenderData to return custom dimensions
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 600,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 600,
-          width: 1000,
-        },
-        disabled: false,
-        height: 600,
-        width: 1000,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
-      });
+      // Should render loading state or empty state
+      expect(container).toBeInTheDocument();
+    });
 
-      customRender(<App />);
+    it('should handle empty config gracefully', async () => {
+      const { useStreamlitRenderData } = await import('../../hooks/useStreamlit');
+      vi.mocked(useStreamlitRenderData).mockReturnValue({
+        args: { config: null },
+        theme: mockRenderData.theme,
+      } as any);
 
-      expect(screen.getByText(/Height: 600/)).toBeInTheDocument();
-      expect(screen.getByText(/Width: 1000/)).toBeInTheDocument();
+      const { default: App } = await import('../../index');
+      const { container } = render(<App />);
+
+      expect(container).toBeInTheDocument();
     });
   });
 
-  describe('Component Initialization', () => {
-    it('should set component ready state', async () => {
+  describe('Streamlit Integration', () => {
+    it('should call setComponentReady on mount', async () => {
       const { default: App } = await import('../../index');
-      // Streamlit already imported at top
+      render(<App />);
 
-      // Clear any previous calls
-      vi.clearAllMocks();
-
-      // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 400,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
+      // useStreamlitRenderData hook calls setComponentReady internally
+      await waitFor(() => {
+        expect(mockStreamlit.events.addEventListener).toHaveBeenCalled();
       });
-
-      customRender(<App />);
-
-      // Check if the mock component is actually being used
-      const mockComponent = screen.getByText('Mock Chart Component');
-      expect(mockComponent).toBeInTheDocument();
-
-      // Check if the component renders
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-
-      // For now, let's just check if the component renders without waiting for setComponentReady
-      // TODO: Fix the mock setup so that onChartsReady callback reaches the actual component
-    }, 10000);
-
-    it('should handle component ready errors gracefully', async () => {
-      const { default: App } = await import('../../index');
-      // Streamlit already imported at top
-
-      // Mock setComponentReady to throw error
-      (Streamlit.setComponentReady as ReturnType<typeof vi.fn>).mockImplementation(() => {
-        throw new Error('Component ready error');
-      });
-
-      // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 400,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
-      });
-
-      customRender(<App />);
-
-      // Should not crash
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-    });
-  });
-
-  describe('Frame Height Management', () => {
-    it('should set frame height when charts are ready', async () => {
-      const { default: App } = await import('../../index');
-      // Streamlit already imported at top
-
-      // Clear any previous calls
-      vi.clearAllMocks();
-
-      // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 400,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
-      });
-
-      customRender(<App />);
-
-      // Check if the mock component is rendered
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-      expect(screen.getByText('Mock Chart Component')).toBeInTheDocument();
-
-      // For now, let's just verify the component renders
-      // The height reporting logic is complex and depends on DOM measurements
-      // that are difficult to mock properly in the test environment
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
     });
 
-    it('should handle frame height errors gracefully', async () => {
+    it('should call setFrameHeight after charts are ready', async () => {
       const { default: App } = await import('../../index');
-      // Streamlit already imported at top
+      render(<App />);
 
-      // Mock setFrameHeight to throw error
-      (Streamlit.setFrameHeight as ReturnType<typeof vi.fn>).mockImplementation(() => {
-        throw new Error('Frame height error');
-      });
-
-      // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 400,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
-      });
-
-      customRender(<App />);
-
-      const chartsReadyBtn = screen.getByTestId('charts-ready-btn');
-      chartsReadyBtn.click();
-
-      // Should not crash
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
+      // Wait for onChartsReady callback
+      await waitFor(() => {
+        expect(mockStreamlit.setFrameHeight).toHaveBeenCalled();
+      }, { timeout: 100 });
     });
 
-    it('should calculate correct frame height', async () => {
-      const { default: App } = await import('../../index');
-      // Streamlit already imported at top
-
-      // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 400,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
-      });
-
-      customRender(<App />);
-
-      // Check if the mock component is rendered
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-      expect(screen.getByText('Mock Chart Component')).toBeInTheDocument();
-    });
-  });
-
-  describe('Resize Handling', () => {
-    it('should handle window resize events', async () => {
-      const { default: App } = await import('../../index');
-      // Streamlit already imported at top
-
-      // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 400,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
-      });
-
-      customRender(<App />);
-
-      // Check if the mock component is rendered
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-      expect(screen.getByText('Mock Chart Component')).toBeInTheDocument();
-    });
-
-    it('should debounce resize events', async () => {
-      const { default: App } = await import('../../index');
-      // Streamlit already imported at top
-
-      // Ensure the mock is properly applied
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 400,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
-      });
-
-      customRender(<App />);
-
-      // Check if the mock component is rendered
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-      expect(screen.getByText('Mock Chart Component')).toBeInTheDocument();
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should handle missing config gracefully', async () => {
-      const { default: App } = await import('../../index');
-
-      // Mock useRenderData to return missing config
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: null,
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
-      });
-
-      customRender(<App />);
-
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-    });
-
-    it('should handle disabled state', async () => {
-      const { default: App } = await import('../../index');
-
-      // Mock useRenderData to return disabled state
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: true,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
-      });
-
-      customRender(<App />);
-
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-    });
-  });
-
-  describe('Theme Integration', () => {
-    it('should pass theme to chart component', async () => {
-      const { default: App } = await import('../../index');
-
-      const customTheme = {
-        base: 'dark',
-        primaryColor: '#00ff00',
-        backgroundColor: '#000000',
-        secondaryBackgroundColor: '#111111',
-        textColor: '#ffffff',
-      };
-
-      // Mock useRenderData to return custom theme
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: {
-            charts: [
-              {
-                chartId: 'test-chart',
-                chart: {
-                  height: 400,
-                  autoSize: true,
-                  layout: {
-                    color: '#ffffff',
-                    textColor: '#000000',
-                  },
-                },
-                series: [],
-                annotations: {
-                  layers: {},
-                },
-              },
-            ],
-            sync: {
-              enabled: false,
-              crosshair: false,
-              timeRange: false,
-            },
-          },
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: customTheme,
-      });
-
-      customRender(<App />);
-
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-    });
-  });
-
-  describe('Performance', () => {
-    it('should handle large configurations efficiently', async () => {
-      const { default: App } = await import('../../index');
-
-      const largeConfig = {
-        charts: Array.from({ length: 10 }, (_, i) => ({
-          chartId: `chart-${i}`,
-          chart: {
-            height: 400,
-            autoSize: true,
-            layout: {
-              color: '#ffffff',
-              textColor: '#000000',
-            },
-          },
-          series: Array.from({ length: 5 }, (_, j) => ({
-            type: 'line',
-            data: Array.from({ length: 1000 }, (_, k) => ({
-              time: Date.now() + k * 60000,
-              value: Math.random() * 100,
-            })),
-          })),
-          annotations: {
-            layers: {},
-          },
-        })),
-        sync: {
-          enabled: true,
-          crosshair: true,
-          timeRange: true,
-        },
-      };
-
-      // Mock useRenderData to return large config
-      const mockUseRenderData = useRenderData as ReturnType<typeof vi.fn>;
-      mockUseRenderData.mockReturnValue({
-        args: {
-          config: largeConfig,
-          height: 400,
-          width: null,
-        },
-        disabled: false,
-        height: 400,
-        width: 800,
-        theme: {
-          base: 'light',
-          primaryColor: '#ff4b4b',
-          backgroundColor: '#ffffff',
-          secondaryBackgroundColor: '#f0f2f6',
-          textColor: '#262730',
-        },
-      });
-
-      customRender(<App />);
-
-      expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-    });
-  });
-
-  describe('Cleanup', () => {
     it('should cleanup on unmount', async () => {
       const { default: App } = await import('../../index');
       const { unmount } = render(<App />);
 
       unmount();
 
-      // Should not throw any errors during cleanup
-      expect(true).toBe(true);
+      // Event listeners should be cleaned up
+      await waitFor(() => {
+        expect(mockStreamlit.events.removeEventListener).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Chart Configuration', () => {
+    it('should handle single chart configuration', async () => {
+      const { default: App } = await import('../../index');
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
+      });
+    });
+
+    it('should handle multiple charts configuration', async () => {
+      const { useStreamlitRenderData } = await import('../../hooks/useStreamlit');
+      vi.mocked(useStreamlitRenderData).mockReturnValue({
+        args: {
+          config: {
+            charts: [
+              { chartId: 'chart-1', chart: { height: 300 }, series: [] },
+              { chartId: 'chart-2', chart: { height: 300 }, series: [] },
+            ],
+          },
+        },
+        theme: mockRenderData.theme,
+      } as any);
+
+      const { default: App } = await import('../../index');
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
+      });
+    });
+
+    it('should handle chart with series data', async () => {
+      const { useStreamlitRenderData } = await import('../../hooks/useStreamlit');
+      vi.mocked(useStreamlitRenderData).mockReturnValue({
+        args: {
+          config: {
+            charts: [
+              {
+                chartId: 'chart-with-series',
+                chart: { height: 400 },
+                series: [
+                  {
+                    type: 'Line',
+                    data: [
+                      { time: '2023-01-01', value: 100 },
+                      { time: '2023-01-02', value: 110 },
+                      { time: '2023-01-03', value: 105 },
+                    ],
+                    options: { color: '#2196F3' },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        theme: mockRenderData.theme,
+      } as any);
+
+      const { default: App } = await import('../../index');
+      render(<App />);
+
+      await waitFor(() => {
+        const configElement = screen.getByTestId('chart-config');
+        expect(configElement.textContent).toContain('chart-with-series');
+      });
+    });
+  });
+
+  describe('Theme Integration', () => {
+    it('should pass theme from Streamlit to component', async () => {
+      const customTheme = {
+        base: 'dark',
+        primaryColor: '#00FF00',
+        backgroundColor: '#000000',
+        secondaryBackgroundColor: '#1A1A1A',
+        textColor: '#FFFFFF',
+      };
+
+      const { useStreamlitRenderData } = await import('../../hooks/useStreamlit');
+      vi.mocked(useStreamlitRenderData).mockReturnValue({
+        args: mockRenderData.args,
+        theme: customTheme,
+      } as any);
+
+      const { default: App } = await import('../../index');
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
+      });
+    });
+
+    it('should handle missing theme gracefully', async () => {
+      const { useStreamlitRenderData } = await import('../../hooks/useStreamlit');
+      vi.mocked(useStreamlitRenderData).mockReturnValue({
+        args: mockRenderData.args,
+        theme: undefined,
+      } as any);
+
+      const { default: App } = await import('../../index');
+      const { container } = render(<App />);
+
+      expect(container).toBeInTheDocument();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle errors in onChartsReady gracefully', async () => {
+      // Mock console.error to avoid test noise
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { default: App } = await import('../../index');
+
+      // Mock setFrameHeight to throw error
+      mockStreamlit.setFrameHeight.mockImplementation(() => {
+        throw new Error('setFrameHeight error');
+      });
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
+      });
+
+      // Should not crash the application
+      expect(screen.getByText('Mock LightweightCharts Component')).toBeInTheDocument();
+
+      consoleError.mockRestore();
+      mockStreamlit.setFrameHeight.mockRestore();
+    });
+
+    it('should render without crashing when hooks return null', async () => {
+      const { useStreamlitRenderData } = await import('../../hooks/useStreamlit');
+      vi.mocked(useStreamlitRenderData).mockReturnValue(null as any);
+
+      const { default: App } = await import('../../index');
+      const { container } = render(<App />);
+
+      expect(container).toBeInTheDocument();
+    });
+  });
+
+  describe('Frame Height Management', () => {
+    it('should report frame height after rendering', async () => {
+      const { default: App } = await import('../../index');
+      render(<App />);
+
+      // useStreamlitFrameHeight is called on every render
+      await waitFor(() => {
+        expect(mockStreamlit.setFrameHeight).toHaveBeenCalled();
+      });
+    });
+
+    it('should update frame height when content changes', async () => {
+      const { default: App } = await import('../../index');
+      const { rerender } = render(<App />);
+
+      const initialCallCount = mockStreamlit.setFrameHeight.mock.calls.length;
+
+      // Re-render component
+      rerender(<App />);
+
+      await waitFor(() => {
+        // Should call setFrameHeight again
+        expect(mockStreamlit.setFrameHeight.mock.calls.length).toBeGreaterThan(initialCallCount);
+      });
+    });
+  });
+
+  // Commented out due to API mismatch - ResizeObserverManager doesn't have getInstance()
+  // describe('ResizeObserver Integration', () => {
+  //   it('should observe chart container for resize events', async () => {
+  //     const { ResizeObserverManager } = await import('../../utils/resizeObserverManager');
+  //     const mockObserve = vi.fn();
+  //     vi.mocked(ResizeObserverManager.getInstance).mockReturnValue({
+  //       observe: mockObserve,
+  //       unobserve: vi.fn(),
+  //       disconnect: vi.fn(),
+  //     } as any);
+
+  //     const { default: App } = await import('../../index');
+  //     render(<App />);
+
+  //     await waitFor(() => {
+  //       expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
+  //     });
+
+  //     // ResizeObserver should be set up (this may be handled by LightweightCharts component)
+  //   });
+  // });
+
+  describe('Configuration Updates', () => {
+    it('should re-render when config changes', async () => {
+      const { useStreamlitRenderData } = await import('../../hooks/useStreamlit');
+
+      // Initial config
+      const { default: App } = await import('../../index');
+      const { rerender } = render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
+      });
+
+      // Update config
+      vi.mocked(useStreamlitRenderData).mockReturnValue({
+        args: {
+          config: {
+            charts: [
+              {
+                chartId: 'updated-chart',
+                chart: { height: 500 },
+                series: [],
+              },
+            ],
+          },
+        },
+        theme: mockRenderData.theme,
+      } as any);
+
+      rerender(<App />);
+
+      await waitFor(() => {
+        const configElement = screen.getByTestId('chart-config');
+        expect(configElement.textContent).toContain('updated-chart');
+      });
     });
   });
 });

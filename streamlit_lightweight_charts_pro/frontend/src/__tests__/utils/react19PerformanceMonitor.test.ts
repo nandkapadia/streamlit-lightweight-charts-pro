@@ -159,6 +159,7 @@ describe('React19PerformanceMonitor', () => {
       process.env.NODE_ENV = 'development';
 
       // Restore console.log for this specific test
+      vi.restoreAllMocks();
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       react19Monitor.trackDeferredValue('SlowChartData', 80);

@@ -397,7 +397,10 @@ export function createBandSeries(
     lowerFillColor: options.lowerFillColor ?? 'rgba(244, 67, 54, 0.1)',
     lowerFillVisible: options.lowerFillVisible !== false,
     priceScaleId: options.priceScaleId ?? 'right',
-    lastValueVisible: !options.usePrimitive,
+    lastValueVisible: options.lastValueVisible ?? false,
+    priceLineVisible: options.priceLineVisible ?? false,
+    visible: options.visible ?? true,
+    title: options.title,
     _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
   } as any);
 

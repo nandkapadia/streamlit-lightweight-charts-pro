@@ -36,9 +36,11 @@ import { ChartPrimitiveManager } from './services/ChartPrimitiveManager';
 import { CornerLayoutManager } from './services/CornerLayoutManager';
 
 import { cleanLineStyleOptions } from './utils/lineStyle';
-import { createSeries } from './utils/seriesFactory';
+import { createSeriesWithConfig } from './series/UnifiedSeriesFactory';
 import { getCachedDOMElement, createOptimizedStylesAdvanced } from './utils/performance';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { react19Monitor } from './utils/react19PerformanceMonitor';
+import { dialogConfigToApiOptions } from './series/UnifiedPropertyMapper';
 
 // Helper function to find nearest available time in chart data
 const findNearestTime = (targetTime: number, chartData: any[]): number | null => {
@@ -110,6 +112,10 @@ interface LightweightChartsProps {
   height?: number | null;
   width?: number | null;
   onChartsReady?: () => void;
+
+  /** Enable React 19 performance monitoring (logs transition times, etc.) */
+  enableReact19Monitoring?: boolean;
+
   configChange?: {
     paneId: string;
     seriesId: string;
@@ -120,10 +126,32 @@ interface LightweightChartsProps {
 
 // Performance optimization: Memoize the component to prevent unnecessary re-renders
 const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
-  ({ config, height = 400, width = null, onChartsReady, configChange }) => {
-    // React 18 concurrent features
+  ({
+    config,
+    height = 400,
+    width = null,
+    onChartsReady,
+    configChange,
+    enableReact19Monitoring = false,
+  }) => {
+    // React 19 concurrent features with optional performance monitoring
     const [isPending, startTransition] = useTransition();
     const deferredConfig = useDeferredValue(config);
+
+    // React 19 Performance Monitoring
+    const transitionIdRef = useRef<string | null>(null);
+
+    useEffect(() => {
+      if (enableReact19Monitoring && !transitionIdRef.current) {
+        transitionIdRef.current = react19Monitor.startTransition('LightweightCharts', 'chart');
+      }
+      return () => {
+        if (enableReact19Monitoring && transitionIdRef.current) {
+          react19Monitor.endTransition(transitionIdRef.current);
+          transitionIdRef.current = null;
+        }
+      };
+    }, [enableReact19Monitoring]);
 
     // Component initialization
     const chartRefs = useRef<{ [key: string]: IChartApi }>({});
@@ -299,8 +327,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       }
                     }
                   }
-                } catch {
-                  // Silent error handling
+                } catch (error) {
+                  logger.error('Error handling storage change for crosshair sync', 'ChartSync', error);
                 }
               }
             };
@@ -335,8 +363,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       syncCrosshair(otherChart as IChartApi, otherSeries[0], dataPoint);
                     }
                   }
-                } catch {
-                  // Silent error handling
+                } catch (error) {
+                  logger.warn('Error syncing crosshair to other chart', 'ChartSync', error);
                 }
               }
             });
@@ -356,8 +384,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               // Store in localStorage for cross-component communication
               try {
                 localStorage.setItem('chart_sync_data', JSON.stringify(syncData));
-              } catch {
-                // Silent error handling
+              } catch (error) {
+                logger.warn('Failed to store crosshair sync data in localStorage', 'ChartSync', error);
               }
             }
           });
@@ -403,8 +431,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                         }
                       }
                     }
-                  } catch {
-                    // Silent error handling
+                  } catch (error) {
+                    logger.error('Error handling storage change for time range sync', 'ChartSync', error);
                   }
                 }
               };
@@ -443,8 +471,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                         otherTimeScale.setVisibleLogicalRange(timeRange);
                       }
                     }
-                  } catch {
-                    // Silent error handling
+                  } catch (error) {
+                    logger.warn('Error syncing time range to other chart', 'ChartSync', error);
                   }
                 }
               });
@@ -462,8 +490,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 // Store in localStorage for cross-component communication
                 try {
                   localStorage.setItem('chart_time_range_sync', JSON.stringify(syncData));
-                } catch {
-                  // Silent error handling
+                } catch (error) {
+                  logger.warn('Failed to store time range sync data in localStorage', 'ChartSync', error);
                 }
               }
             });
@@ -559,8 +587,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           if (currentTime - lastClickTime < doubleClickThreshold) {
             try {
               timeScale.fitContent();
-            } catch {
-              // fitContent on double-click failed
+            } catch (error) {
+              logger.warn('fitContent on double-click failed', 'FitContent', error);
             }
             lastClickTime = 0; // Reset to prevent triple-click
           } else {
@@ -601,8 +629,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       if (resizeObserverRef.current) {
         try {
           resizeObserverRef.current.disconnect();
-        } catch {
-          // ResizeObserver already disconnected
+        } catch (error) {
+          logger.debug('ResizeObserver already disconnected', 'Cleanup', error);
         }
         resizeObserverRef.current = null;
       }
@@ -616,8 +644,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       Object.values(legendResizeObserverRefs.current).forEach(resizeObserver => {
         try {
           resizeObserver.disconnect();
-        } catch {
-          // ResizeObserver already disconnected
+        } catch (error) {
+          logger.debug('Legend ResizeObserver already disconnected', 'Cleanup', error);
         }
       });
 
@@ -632,8 +660,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 if (widget && typeof widget.destroy === 'function') {
                   widget.destroy();
                 }
-              } catch {
-                // Ignore cleanup errors
+              } catch (error) {
+                logger.debug('Error destroying button panel widget', 'Cleanup', error);
               }
             });
           }
@@ -651,13 +679,13 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   if (plugin && typeof plugin.destroy === 'function') {
                     plugin.destroy();
                   }
-                } catch {
-                  // Plugin already destroyed
+                } catch (error) {
+                  logger.debug('Plugin already destroyed', 'Cleanup', error);
                 }
               });
             }
-          } catch {
-            // Plugins already cleaned up
+          } catch (error) {
+            logger.debug('Plugins already cleaned up', 'Cleanup', error);
           }
         });
         window.chartPlugins.clear();
@@ -668,8 +696,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         Object.keys(window.chartApiMap).forEach(chartId => {
           try {
             ChartPrimitiveManager.cleanup(chartId);
-          } catch {
-            // Widget manager already cleaned up
+          } catch (error) {
+            logger.debug('Widget manager already cleaned up', 'Cleanup', error);
           }
         });
       }
@@ -684,8 +712,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       Object.keys(chartRefs.current).forEach(chartId => {
         try {
           CornerLayoutManager.cleanup(chartId);
-        } catch {
-          // CornerLayoutManager already cleaned up
+        } catch (error) {
+          logger.debug('CornerLayoutManager already cleaned up', 'Cleanup', error);
         }
       });
 
@@ -696,8 +724,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           if (chart && typeof chart.remove === 'function') {
             chart.remove();
           }
-        } catch {
-          // Chart already removed or disposed
+        } catch (error) {
+          logger.debug('Chart already removed or disposed', 'Cleanup', error);
         }
       });
 
@@ -833,8 +861,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             primitives.forEach(primitive => {
               try {
                 series.attachPrimitive(primitive);
-              } catch {
-                // Error attaching primitive
+              } catch (error) {
+                logger.error('Error attaching trade visualization primitive', 'TradeViz', error);
               }
             });
           }
@@ -963,8 +991,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   }
                 });
               }
-            } catch {
-              // Error processing annotation layers
+            } catch (error) {
+              logger.warn('Error processing annotation layers', 'Annotations', error);
             }
           } else if (Array.isArray(annotations)) {
             // Direct array of annotations
@@ -980,9 +1008,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         // Additional safety check - ensure annotations is actually an array
         try {
           if (typeof annotationsArray.forEach !== 'function') {
+            logger.debug('Annotations array does not have forEach method', 'Annotations');
             return;
           }
-        } catch {
+        } catch (error) {
+          logger.debug('Error checking annotations array', 'Annotations', error);
           return;
         }
 
@@ -1022,8 +1052,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 } else if (firstSeries.setShapes) {
                   firstSeries.setShapes([shape]);
                 }
-              } catch {
-                // Error adding shape
+              } catch (error) {
+                logger.error('Error adding annotation shape', 'Annotations', error);
               }
             });
           }
@@ -1046,8 +1076,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               if (Array.isArray(layersValues)) {
                 layersArray = layersValues as AnnotationLayer[];
               }
-            } catch {
-              // Error processing layers object
+            } catch (error) {
+              logger.warn('Error processing annotation layers object', 'Annotations', error);
             }
           } else if (Array.isArray(layers)) {
             // Direct array of layers
@@ -1069,8 +1099,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             if (layer.visible !== false && layer.annotations) {
               functionRefs.current.addAnnotations(chart, layer.annotations);
             }
-          } catch {
-            // Error processing layer
+          } catch (error) {
+            logger.warn('Error processing annotation layer', 'Annotations', error);
           }
         });
       },
@@ -1522,8 +1552,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           processedChartConfigs.forEach(chartConfig => {
             try {
               CornerLayoutManager.cleanup(chartConfig.chartId);
-            } catch {
-              // Layout manager already cleaned up
+            } catch (error) {
+              logger.debug('Layout manager already cleaned up', 'Cleanup', error);
             }
           });
         }
@@ -1729,8 +1759,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             if (chart && typeof chart.panes === 'function') {
               try {
                 existingPanes = chart.panes();
-              } catch {
-                // chart.panes() failed, use empty array
+              } catch (error) {
+                logger.warn('chart.panes() failed, using empty array', 'ChartInit', error);
                 existingPanes = [];
               }
             }
@@ -1747,8 +1777,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   if (chart && typeof chart.addPane === 'function') {
                     try {
                       newPane = chart.addPane();
-                    } catch {
-                      // chart.addPane() failed, use null
+                    } catch (error) {
+                      logger.error('chart.addPane() failed', 'ChartInit', error);
                       newPane = null;
                     }
                   }
@@ -1784,8 +1814,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     } else {
                       // Price scale not found, will be created when series uses it
                     }
-                  } catch {
-                    // Failed to configure price scale
+                  } catch (error) {
+                    logger.error('Failed to configure overlay price scale', 'ChartInit', error);
                   }
                 }
               );
@@ -1812,13 +1842,12 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     seriesConfig.tradeVisualizationOptions = chartConfig.tradeVisualizationOptions;
                   }
 
-                  const series = createSeries(
-                    chart,
-                    seriesConfig,
-                    { signalPluginRefs: signalPluginRefs as any },
+                  // Create series using new UnifiedSeriesFactory
+                  const series = createSeriesWithConfig(chart, {
+                    ...seriesConfig,
                     chartId,
-                    seriesIndex
-                  );
+                    seriesId: `${chartId || 'default'}-series-${seriesIndex}`,
+                  });
                   if (series) {
                     seriesList.push(series);
 
@@ -1840,8 +1869,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                             cleanLineStyleOptions(scaleConfig as Record<string, unknown>)
                           );
                         }
-                      } catch {
-                        // Failed to apply price scale configuration for series
+                      } catch (error) {
+                        logger.error('Failed to apply price scale configuration for series', 'LightweightCharts', error);
                       }
                     }
 
@@ -1901,15 +1930,15 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                                   logger.error('Plugin attachment failed', 'Plugin', attachError);
                                 }
                               }
-                            } catch {
-                              // Error in chart readiness or trade visualization
+                            } catch (error) {
+                              logger.error('Error in chart readiness or trade visualization', 'LightweightCharts', error);
                             }
                           })().catch((error: Error) =>
                             logger.error('Async operation failed', 'LightweightCharts', error)
                           );
                         }, 50); // Small delay to let chart initialization complete
-                      } catch {
-                        // Error setting up trade visualization
+                      } catch (error) {
+                        logger.error('Error setting up trade visualization', 'LightweightCharts', error);
                       }
                     } else {
                       // No trade visualization options provided
@@ -1920,10 +1949,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       functionRefs.current.addAnnotations(chart, seriesConfig.annotations);
                     }
                   } else {
-                    // Failed to create series
+                    logger.error('Failed to create series - createSeriesWithConfig returned null', 'LightweightCharts');
                   }
-                } catch {
-                  // Error creating series
+                } catch (error) {
+                  logger.error('Error creating series', 'LightweightCharts', error);
                 }
               });
             } else {
@@ -1957,11 +1986,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   if (paneId < allPanes.length && options.factor) {
                     try {
                       allPanes[paneId].setStretchFactor(options.factor);
-                    } catch {
-                      // Failed to set stretch factor for pane
+                    } catch (error) {
+                      logger.error('Failed to set stretch factor for pane', 'ChartInit', error);
                     }
                   } else {
-                    // Skipping pane
+                    logger.debug(`Skipping pane ${paneId} - out of range or no factor`, 'ChartInit');
                   }
                 }
               );
@@ -2337,51 +2366,24 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             if (seriesId === expectedSeriesId) {
               // Apply the configuration changes to the series
-              // Get current options for reference if needed
-              // const currentOptions = series.options();
+              // Get series type from configPatch (added by plugin)
+              const seriesType = (configPatch as any)._seriesType || 'line';
 
-              // Map dialog config to LightweightCharts API
-              const apiConfig: any = {};
+              // Remove _seriesType from patch before conversion (internal metadata)
+              const { _seriesType, ...cleanConfigPatch } = configPatch as any;
 
-              // Basic visibility options
-              if ('visible' in configPatch) {
-                apiConfig.visible = configPatch.visible;
-              }
-
-              if ('last_value_visible' in configPatch) {
-                apiConfig.lastValueVisible = configPatch.last_value_visible;
-              }
-
-              if ('price_line' in configPatch) {
-                apiConfig.priceLineVisible = configPatch.price_line;
-              }
-
-              // Color and styling options
-              if ('color' in configPatch) {
-                apiConfig.color = configPatch.color;
-              }
-
-              if ('line_width' in configPatch) {
-                apiConfig.lineWidth = configPatch.line_width;
-              }
-
-              if ('line_style' in configPatch) {
-                apiConfig.lineStyle = configPatch.line_style;
-              }
-
-              // Marker options
-              if ('markers' in configPatch) {
-                apiConfig.pointMarkersVisible = configPatch.markers;
-              }
-
-              // Title updates
-              if ('title' in configPatch) {
-                apiConfig.title = configPatch.title;
-              }
+              // Use property mapper to convert dialog config to API options
+              const apiConfig = dialogConfigToApiOptions(seriesType, cleanConfigPatch);
 
               // Apply the options to the series
               if (Object.keys(apiConfig).length > 0) {
                 series.applyOptions(apiConfig);
+                logger.debug('Applied series config change', 'SeriesConfig', {
+                  seriesId,
+                  seriesType,
+                  configPatch: cleanConfigPatch,
+                  apiConfig,
+                });
               }
             }
           });
@@ -2395,7 +2397,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       return <div>No charts configured</div>;
     }
 
-    return (
+    // Core chart content
+    const chartContent = (
       <ErrorBoundary
         resetKeys={[config?.charts?.length, JSON.stringify(config)]}
         resetOnPropsChange={false}
@@ -2416,6 +2419,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         </div>
       </ErrorBoundary>
     );
+
+    return chartContent;
   }
 );
 

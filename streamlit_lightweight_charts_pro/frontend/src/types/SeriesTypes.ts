@@ -23,7 +23,11 @@ export type SeriesType =
   | 'bollinger_bands'
   | 'sma'
   | 'ema'
-  | 'ribbon';
+  | 'ribbon'
+  | 'gradient_ribbon'
+  | 'band'
+  | 'signal'
+  | 'trend_fill';
 
 /**
  * Base styling configuration for series appearance.

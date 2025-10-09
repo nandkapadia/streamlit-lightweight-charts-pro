@@ -6,3 +6,4 @@ Always look at the original code for how they implement. The source code is at h
 - Always only have one source of truth
 - Always follow google style for documentation of code
 - When you feel its needed update the rules in .cursor/rules/
+- I always save the browser console logs to file console.log unless I specify otherewise

@@ -344,7 +344,10 @@ export function createRibbonSeries(
     fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
     fillVisible: options.fillVisible !== false,
     priceScaleId: options.priceScaleId ?? 'right',
-    lastValueVisible: !options.usePrimitive,
+    lastValueVisible: options.lastValueVisible ?? false,
+    priceLineVisible: options.priceLineVisible ?? false,
+    visible: options.visible ?? true,
+    title: options.title,
     _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
   } as any);
 

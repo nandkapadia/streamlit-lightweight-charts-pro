@@ -49,13 +49,13 @@ import { ChartCoordinateService } from '../../services/ChartCoordinateService';
  * @property time - Timestamp for the data point
  * @property upper - Y value of the upper line
  * @property lower - Y value of the lower line
- * @property fillColor - Optional override color for this point's fill
+ * @property fill - Optional override color for this point's fill (matches Python property name)
  */
 export interface GradientRibbonData extends CustomData<Time> {
   time: Time;
   upper: number;
   lower: number;
-  fillColor?: string; // Optional per-point fill color override
+  fill?: string; // Optional per-point fill color override (matches Python property name)
   gradient?: number; // Optional gradient value for color interpolation (0-1 or raw value)
 }
 
@@ -80,7 +80,6 @@ export interface GradientRibbonSeriesOptions extends CustomSeriesOptions {
   lowerLineVisible: boolean;
 
   // Fill styling
-  fillColor: string; // Base fill color (used when no gradient)
   fillVisible: boolean;
 
   // Gradient settings
@@ -112,7 +111,6 @@ const defaultGradientRibbonOptions: GradientRibbonSeriesOptions = {
   lowerLineWidth: 2,
   lowerLineStyle: LineStyle.Solid,
   lowerLineVisible: true,
-  fillColor: 'rgba(76, 175, 80, 0.1)',
   fillVisible: true,
   gradientStartColor: '#4CAF50',
   gradientEndColor: '#F44336',
@@ -312,47 +310,39 @@ class GradientRibbonSeriesRenderer<TData extends GradientRibbonData = GradientRi
       }
     }
 
-    // Add gradient-specific fill color calculation
+    // Calculate gradient factor for each data point, then apply colors at render time
     const coordinates: Array<{
       x: number;
       upper: number;
       lower: number;
-      fillColor: string;
+      gradientFactor: number;
+      fillOverride?: string;
     }> = [];
 
     for (let i = 0; i < baseCoordinates.length; i++) {
       const coord = baseCoordinates[i];
       const originalData = this._data.bars[i].originalData;
 
-      // Calculate fill color
-      let fillColor = originalData.fillColor || this._options.fillColor;
+      // Calculate gradient factor (0-1)
+      let gradientFactor = 0;
+      const fillOverride = originalData.fill || undefined;
 
-      // Use gradient property if available, otherwise fall back to spread-based calculation
-      if (!originalData.fillColor) {
-        let factor = 0;
-
+      // Calculate gradient factor if no explicit fill override
+      if (!fillOverride) {
         if (originalData.gradient !== undefined) {
           // Use explicit gradient value from data
           if (this._options.normalizeGradients && gradientRange > 0) {
             // Use pre-calculated gradient bounds for normalization
-            factor = (originalData.gradient - minGradient) / gradientRange;
-            factor = Math.max(0, Math.min(1, factor)); // Clamp to 0-1 range
+            gradientFactor = (originalData.gradient - minGradient) / gradientRange;
+            gradientFactor = Math.max(0, Math.min(1, gradientFactor)); // Clamp to 0-1 range
           } else {
             // Use gradient value directly (assuming 0-1 range)
-            factor = Math.max(0, Math.min(1, originalData.gradient));
+            gradientFactor = Math.max(0, Math.min(1, originalData.gradient));
           }
-        } else if (this._options.normalizeGradients && maxSpread > 0) {
+        } else if (this._options && this._options.normalizeGradients && maxSpread > 0) {
           // Fall back to spread-based calculation
           const spread = Math.abs(originalData.upper - originalData.lower);
-          factor = spread / maxSpread;
-        }
-
-        if (factor > 0) {
-          fillColor = interpolateColor(
-            this._options.gradientStartColor,
-            this._options.gradientEndColor,
-            factor
-          );
+          gradientFactor = spread / maxSpread;
         }
       }
 
@@ -362,12 +352,36 @@ class GradientRibbonSeriesRenderer<TData extends GradientRibbonData = GradientRi
           x: coord.x,
           upper: coord.upper,
           lower: coord.lower,
-          fillColor,
+          gradientFactor,
+          fillOverride,
         });
       }
     }
 
-    return coordinates;
+    // Convert gradient factors to fill colors using current options
+    const coordinatesWithColors = coordinates.map(coord => {
+      let fillColor = this._options?.gradientStartColor ?? '#4CAF50'; // Use gradient start as fallback
+
+      if (coord.fillOverride) {
+        fillColor = coord.fillOverride;
+      } else if (this._options) {
+        // Always calculate from gradient factor (factor=0 gives gradientStartColor)
+        fillColor = interpolateColor(
+          this._options.gradientStartColor,
+          this._options.gradientEndColor,
+          coord.gradientFactor
+        );
+      }
+
+      return {
+        x: coord.x,
+        upper: coord.upper,
+        lower: coord.lower,
+        fillColor,
+      };
+    });
+
+    return coordinatesWithColors;
   }
 
   private _drawGradientFill(
@@ -473,7 +487,6 @@ export function createGradientRibbonSeries(
     lowerLineWidth?: LineWidth;
     lowerLineStyle?: LineStyle;
     lowerLineVisible?: boolean;
-    fillColor?: string;
     fillVisible?: boolean;
     gradientStartColor?: string;
     gradientEndColor?: string;
@@ -505,13 +518,15 @@ export function createGradientRibbonSeries(
     lowerLineWidth: options.lowerLineWidth ?? 2,
     lowerLineStyle: options.lowerLineStyle ?? LineStyle.Solid,
     lowerLineVisible: options.lowerLineVisible !== false,
-    fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
     fillVisible: options.fillVisible !== false,
     gradientStartColor: options.gradientStartColor ?? '#4CAF50',
     gradientEndColor: options.gradientEndColor ?? '#F44336',
     normalizeGradients: options.normalizeGradients !== false,
     priceScaleId: options.priceScaleId ?? 'right',
-    lastValueVisible: !options.usePrimitive,
+    lastValueVisible: options.lastValueVisible ?? false,
+    priceLineVisible: options.priceLineVisible ?? false,
+    visible: options.visible ?? true,
+    title: options.title,
     _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
   } as any);
 
@@ -533,7 +548,6 @@ export function createGradientRibbonSeries(
         lowerLineWidth: options.lowerLineWidth ?? 2,
         lowerLineStyle: Math.min(options.lowerLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
         lowerLineVisible: options.lowerLineVisible !== false,
-        fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
         fillVisible: options.fillVisible !== false,
         gradientStartColor: options.gradientStartColor ?? '#4CAF50',
         gradientEndColor: options.gradientEndColor ?? '#F44336',

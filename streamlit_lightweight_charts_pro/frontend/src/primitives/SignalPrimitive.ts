@@ -110,10 +110,13 @@ class SignalPrimitiveRenderer implements IPrimitivePaneRenderer {
   drawBackground(target: any): void {
     target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
       const data = this._source.getProcessedData();
-      const options = this._source.getOptions();
       const series = this._source.getAttachedSeries();
 
       if (!series || data.length === 0) return;
+
+      // Read options from attached series (single source of truth)
+      const options = (series as any).options();
+      if (!options || options.visible === false) return;
 
       const chart = this._source.getChart();
       const barSpacing = getBarSpacing(chart);
@@ -183,6 +186,18 @@ export class SignalPrimitive extends BaseSeriesPrimitive<
 > {
   constructor(chart: IChartApi, options: SignalPrimitiveOptions) {
     super(chart, options);
+  }
+
+  /**
+   * Returns settings schema for series dialog
+   * Maps property names to their types for automatic UI generation
+   */
+  static getSettings() {
+    return {
+      neutralColor: 'color' as const,
+      signalColor: 'color' as const,
+      alertColor: 'color' as const,
+    };
   }
 
   // Required: Initialize views

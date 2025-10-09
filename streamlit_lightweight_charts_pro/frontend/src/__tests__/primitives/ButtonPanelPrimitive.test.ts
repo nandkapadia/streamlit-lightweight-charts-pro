@@ -57,16 +57,18 @@ vi.mock('../../primitives/BasePanePrimitive', () => ({
   },
 }));
 
-vi.mock('../../services/StreamlitSeriesConfigService', () => ({
-  StreamlitSeriesConfigService: {
-    getInstance: vi.fn(() => ({
-      recordConfigChange: vi.fn(),
-      getChartConfig: vi.fn(() => ({})),
-      getSeriesConfig: vi.fn(() => null),
-      forceSyncToBackend: vi.fn(),
-    })),
-  },
-}));
+vi.mock('../../services/StreamlitSeriesConfigService', () => {
+  class MockStreamlitSeriesConfigService {
+    recordConfigChange = vi.fn();
+    getChartConfig = vi.fn(() => ({}));
+    getSeriesConfig = vi.fn(() => null);
+    forceSyncToBackend = vi.fn();
+  }
+
+  return {
+    StreamlitSeriesConfigService: MockStreamlitSeriesConfigService,
+  };
+});
 
 vi.mock('react-dom/client', () => ({
   createRoot: vi.fn(() => ({

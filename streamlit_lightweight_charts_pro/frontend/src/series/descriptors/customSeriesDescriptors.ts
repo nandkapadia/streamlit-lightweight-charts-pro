@@ -5,19 +5,18 @@
  * Each descriptor is the single source of truth for that series type.
  */
 
-import { SeriesOptionsCommon, LineStyle } from 'lightweight-charts';
+import { LineStyle } from 'lightweight-charts';
 import { UnifiedSeriesDescriptor, PropertyDescriptors } from '../core/UnifiedSeriesDescriptor';
-import { BandPrimitiveOptions } from '../../primitives/BandPrimitive';
-import { RibbonPrimitiveOptions } from '../../primitives/RibbonPrimitive';
-import { GradientRibbonPrimitiveOptions } from '../../primitives/GradientRibbonPrimitive';
-import { SignalPrimitiveOptions } from '../../primitives/SignalPrimitive';
+import { createBandSeries } from '../../plugins/series/bandSeriesPlugin';
+import { createRibbonSeries } from '../../plugins/series/ribbonSeriesPlugin';
+import { createGradientRibbonSeries } from '../../plugins/series/gradientRibbonSeriesPlugin';
+import { createSignalSeries } from '../../plugins/series/signalSeriesPlugin';
+import { createTrendFillSeries } from '../../plugins/series/trendFillSeriesPlugin';
 
 /**
  * Band Series Descriptor
  */
-export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
-  BandPrimitiveOptions & SeriesOptionsCommon
-> = {
+export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   type: 'Band',
   displayName: 'Band Series',
   isCustom: true,
@@ -36,6 +35,7 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
         styleKey: 'upperLineStyle',
       }
     ),
+    upperLineVisible: PropertyDescriptors.boolean('Upper Line Visible', true, 'Upper Line'),
     middleLine: PropertyDescriptors.line(
       'Middle Line',
       '#F7931A',
@@ -47,6 +47,7 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
         styleKey: 'middleLineStyle',
       }
     ),
+    middleLineVisible: PropertyDescriptors.boolean('Middle Line Visible', true, 'Middle Line'),
     lowerLine: PropertyDescriptors.line(
       'Lower Line',
       '#2962FF',
@@ -58,17 +59,10 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
         styleKey: 'lowerLineStyle',
       }
     ),
-    upperFillColor: PropertyDescriptors.color(
-      'Upper Fill Color',
-      'rgba(41, 98, 255, 0.1)',
-      'Fill'
-    ),
+    lowerLineVisible: PropertyDescriptors.boolean('Lower Line Visible', true, 'Lower Line'),
+    upperFillColor: PropertyDescriptors.color('Upper Fill Color', 'rgba(41, 98, 255, 0.1)', 'Fill'),
     upperFillVisible: PropertyDescriptors.boolean('Upper Fill Visible', true, 'Fill'),
-    lowerFillColor: PropertyDescriptors.color(
-      'Lower Fill Color',
-      'rgba(41, 98, 255, 0.1)',
-      'Fill'
-    ),
+    lowerFillColor: PropertyDescriptors.color('Lower Fill Color', 'rgba(41, 98, 255, 0.1)', 'Fill'),
     lowerFillVisible: PropertyDescriptors.boolean('Lower Fill Visible', true, 'Fill'),
   },
 
@@ -91,21 +85,18 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
     lowerFillVisible: true,
     lastValueVisible: false,
     priceLineVisible: false,
-  },
+    usePrimitive: true, // Enable primitive rendering (factory-specific option)
+  } as any, // Factory accepts additional options beyond primitive options
 
-  create: (chart, data, options) => {
-    // Import dynamically to avoid circular dependencies
-    const { createBandSeries } = require('../../plugins/series/bandSeriesPlugin');
-    return createBandSeries(chart, data, options);
+  create: (chart, data, options, _paneId = 0) => {
+    return createBandSeries(chart, { ...options, data });
   },
 };
 
 /**
  * Ribbon Series Descriptor
  */
-export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
-  RibbonPrimitiveOptions & SeriesOptionsCommon
-> = {
+export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   type: 'Ribbon',
   displayName: 'Ribbon Series',
   isCustom: true,
@@ -124,6 +115,7 @@ export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
         styleKey: 'upperLineStyle',
       }
     ),
+    upperLineVisible: PropertyDescriptors.boolean('Upper Line Visible', true, 'Upper Line'),
     lowerLine: PropertyDescriptors.line(
       'Lower Line',
       '#2962FF',
@@ -135,6 +127,7 @@ export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
         styleKey: 'lowerLineStyle',
       }
     ),
+    lowerLineVisible: PropertyDescriptors.boolean('Lower Line Visible', true, 'Lower Line'),
     fillColor: PropertyDescriptors.color('Fill Color', 'rgba(41, 98, 255, 0.1)', 'Fill'),
     fillVisible: PropertyDescriptors.boolean('Fill Visible', true, 'Fill'),
   },
@@ -152,20 +145,18 @@ export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
     fillVisible: true,
     lastValueVisible: false,
     priceLineVisible: false,
-  },
+    usePrimitive: true, // Enable primitive rendering (factory-specific option)
+  } as any, // Factory accepts additional options beyond primitive options
 
-  create: (chart, data, options) => {
-    const { createRibbonSeries } = require('../../plugins/series/ribbonSeriesPlugin');
-    return createRibbonSeries(chart, data, options);
+  create: (chart, data, options, _paneId = 0) => {
+    return createRibbonSeries(chart, { ...options, data });
   },
 };
 
 /**
  * Gradient Ribbon Series Descriptor
  */
-export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
-  GradientRibbonPrimitiveOptions & SeriesOptionsCommon
-> = {
+export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   type: 'GradientRibbon',
   displayName: 'Gradient Ribbon Series',
   isCustom: true,
@@ -184,6 +175,7 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
         styleKey: 'upperLineStyle',
       }
     ),
+    upperLineVisible: PropertyDescriptors.boolean('Upper Line Visible', true, 'Upper Line'),
     lowerLine: PropertyDescriptors.line(
       'Lower Line',
       '#2962FF',
@@ -195,6 +187,7 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
         styleKey: 'lowerLineStyle',
       }
     ),
+    lowerLineVisible: PropertyDescriptors.boolean('Lower Line Visible', true, 'Lower Line'),
     fillVisible: PropertyDescriptors.boolean('Fill Visible', true, 'Fill'),
     gradientStartColor: PropertyDescriptors.color(
       'Gradient Start Color',
@@ -206,7 +199,10 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
       'rgba(239, 83, 80, 0.5)',
       'Gradient'
     ),
-    normalizeGradients: PropertyDescriptors.boolean('Normalize Gradients', false, 'Gradient'),
+    normalizeGradients: {
+      ...PropertyDescriptors.boolean('Normalize Gradients', false, 'Gradient'),
+      hidden: true,
+    },
   },
 
   defaultOptions: {
@@ -218,27 +214,24 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
     lowerLineWidth: 2,
     lowerLineStyle: LineStyle.Solid,
     lowerLineVisible: true,
-    fillColor: 'rgba(41, 98, 255, 0.1)',
     fillVisible: true,
     gradientStartColor: 'rgba(41, 98, 255, 0.5)',
     gradientEndColor: 'rgba(239, 83, 80, 0.5)',
     normalizeGradients: false,
     lastValueVisible: false,
     priceLineVisible: false,
-  },
+    usePrimitive: true, // Enable primitive rendering (factory-specific option)
+  } as any, // Factory accepts additional options beyond primitive options
 
-  create: (chart, data, options) => {
-    const { createGradientRibbonSeries } = require('../../plugins/series/gradientRibbonSeriesPlugin');
-    return createGradientRibbonSeries(chart, data, options);
+  create: (chart, data, options, _paneId = 0) => {
+    return createGradientRibbonSeries(chart, { ...options, data });
   },
 };
 
 /**
  * Signal Series Descriptor
  */
-export const SIGNAL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
-  SignalPrimitiveOptions & SeriesOptionsCommon
-> = {
+export const SIGNAL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   type: 'Signal',
   displayName: 'Signal Series',
   isCustom: true,
@@ -257,11 +250,97 @@ export const SIGNAL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<
     alertColor: 'rgba(239, 83, 80, 0.3)',
     lastValueVisible: false,
     priceLineVisible: false,
+    usePrimitive: true, // Enable primitive rendering (factory-specific option)
+  } as any, // Factory accepts additional options beyond primitive options
+
+  create: (chart, data, options, _paneId = 0) => {
+    return createSignalSeries(chart, { ...options, data });
+  },
+};
+
+/**
+ * TrendFill Series Descriptor
+ */
+export const TREND_FILL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
+  type: 'TrendFill',
+  displayName: 'Trend Fill Series',
+  isCustom: true,
+  category: 'Custom',
+  description: 'Filled area between trend and base lines with direction-based coloring',
+
+  properties: {
+    uptrendFillColor: PropertyDescriptors.color(
+      'Uptrend Fill Color',
+      'rgba(76, 175, 80, 0.3)',
+      'Fill'
+    ),
+    downtrendFillColor: PropertyDescriptors.color(
+      'Downtrend Fill Color',
+      'rgba(244, 67, 54, 0.3)',
+      'Fill'
+    ),
+    fillVisible: PropertyDescriptors.boolean('Fill Visible', true, 'Fill'),
+    uptrendLine: PropertyDescriptors.line(
+      'Uptrend Line',
+      '#4CAF50',
+      2,
+      LineStyle.Solid,
+      {
+        colorKey: 'uptrendLineColor',
+        widthKey: 'uptrendLineWidth',
+        styleKey: 'uptrendLineStyle',
+      }
+    ),
+    uptrendLineVisible: PropertyDescriptors.boolean('Uptrend Line Visible', true, 'Uptrend Line'),
+    downtrendLine: PropertyDescriptors.line(
+      'Downtrend Line',
+      '#F44336',
+      2,
+      LineStyle.Solid,
+      {
+        colorKey: 'downtrendLineColor',
+        widthKey: 'downtrendLineWidth',
+        styleKey: 'downtrendLineStyle',
+      }
+    ),
+    downtrendLineVisible: PropertyDescriptors.boolean('Downtrend Line Visible', true, 'Downtrend Line'),
+    baseLine: PropertyDescriptors.line(
+      'Base Line',
+      '#666666',
+      1,
+      LineStyle.Dotted,
+      {
+        colorKey: 'baseLineColor',
+        widthKey: 'baseLineWidth',
+        styleKey: 'baseLineStyle',
+      }
+    ),
+    baseLineVisible: PropertyDescriptors.boolean('Base Line Visible', false, 'Base Line'),
   },
 
-  create: (chart, data, options) => {
-    const { createSignalSeries } = require('../../plugins/series/signalSeriesPlugin');
-    return createSignalSeries(chart, data, options);
+  defaultOptions: {
+    uptrendFillColor: 'rgba(76, 175, 80, 0.3)',
+    downtrendFillColor: 'rgba(244, 67, 54, 0.3)',
+    fillVisible: true,
+    uptrendLineColor: '#4CAF50',
+    uptrendLineWidth: 2,
+    uptrendLineStyle: LineStyle.Solid,
+    uptrendLineVisible: true,
+    downtrendLineColor: '#F44336',
+    downtrendLineWidth: 2,
+    downtrendLineStyle: LineStyle.Solid,
+    downtrendLineVisible: true,
+    baseLineColor: '#666666',
+    baseLineWidth: 1,
+    baseLineStyle: LineStyle.Dotted,
+    baseLineVisible: false,
+    lastValueVisible: false,
+    priceLineVisible: false,
+    usePrimitive: true, // Enable primitive rendering (factory-specific option)
+  } as any, // Factory accepts additional options beyond primitive options
+
+  create: (chart, data, options, _paneId = 0) => {
+    return createTrendFillSeries(chart, { ...options, data });
   },
 };
 
@@ -273,4 +352,5 @@ export const CUSTOM_SERIES_DESCRIPTORS = {
   Ribbon: RIBBON_SERIES_DESCRIPTOR,
   GradientRibbon: GRADIENT_RIBBON_SERIES_DESCRIPTOR,
   Signal: SIGNAL_SERIES_DESCRIPTOR,
+  TrendFill: TREND_FILL_SERIES_DESCRIPTOR,
 } as const;

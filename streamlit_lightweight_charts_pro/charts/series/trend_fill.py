@@ -4,9 +4,9 @@ This module provides the TrendFillSeries class for creating trend-based fill cha
 that display fills between trend lines and base lines, similar to
 Supertrend indicators with dynamic trend-colored backgrounds.
 
-The series now properly handles trend lines based on trend direction:
-- Uptrend (+1): Shows trend line above price, base line for reference
-- Downtrend (-1): Shows trend line below price, base line for reference
+The series now properly handles separate trend lines based on trend direction:
+- Uptrend (+1): Uses uptrend_line options for trend line above price
+- Downtrend (-1): Uses downtrend_line options for trend line below price
 """
 
 import logging
@@ -23,7 +23,8 @@ from streamlit_lightweight_charts_pro.utils import chainable_property
 logger = logging.getLogger(__name__)
 
 
-@chainable_property("trend_line", LineOptions, allow_none=True)
+@chainable_property("uptrend_line", LineOptions, allow_none=True)
+@chainable_property("downtrend_line", LineOptions, allow_none=True)
 @chainable_property("base_line", LineOptions, allow_none=True)
 @chainable_property("uptrend_fill_color", str, validator="color")
 @chainable_property("downtrend_fill_color", str, validator="color")
@@ -38,12 +39,13 @@ class TrendFillSeries(Series):
     indicators like Supertrend, where the fill area changes color based on
     trend direction.
 
-    The series now properly handles trend lines:
-    - Uptrend (+1): Shows trend line above price, base line for reference
-    - Downtrend (-1): Shows trend line below price, base line for reference
+    The series now properly handles separate trend lines:
+    - Uptrend (+1): Uses uptrend_line options for trend line above price
+    - Downtrend (-1): Uses downtrend_line options for trend line below price
 
     Attributes:
-        trend_line: Line options for the trend line
+        uptrend_line: Line options for the uptrend line
+        downtrend_line: Line options for the downtrend line
         base_line: Line options for the base line
         uptrend_fill_color: Color for uptrend fills (green)
         downtrend_fill_color: Color for downtrend fills (red)
@@ -91,12 +93,17 @@ class TrendFillSeries(Series):
         self._uptrend_fill_color = _add_opacity(uptrend_fill_color)
         self._downtrend_fill_color = _add_opacity(downtrend_fill_color)
 
-        # Initialize line options for trend line and base line
-        self._trend_line = LineOptions(
-            color="#2196F3",
+        # Initialize line options for uptrend line, downtrend line, and base line
+        self._uptrend_line = LineOptions(
+            color="#4CAF50",  # Green for uptrend
             line_width=2,
             line_style=LineStyle.SOLID,
-        )  # Blue for trend line
+        )
+        self._downtrend_line = LineOptions(
+            color="#F44336",  # Red for downtrend
+            line_width=2,
+            line_style=LineStyle.SOLID,
+        )
         self._base_line = LineOptions(
             color="#666666",
             line_width=1,

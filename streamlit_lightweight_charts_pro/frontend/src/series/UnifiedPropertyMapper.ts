@@ -10,6 +10,7 @@ import {
   apiOptionsToDialogConfig as descriptorApiToDialog,
 } from './core/UnifiedSeriesDescriptor';
 import { getSeriesDescriptor } from './UnifiedSeriesFactory';
+import { normalizeSeriesType } from './utils/seriesTypeNormalizer';
 
 /**
  * Line style conversion maps (backward compatibility)
@@ -33,14 +34,16 @@ export const STRING_TO_LINE_STYLE: Record<string, number> = {
 /**
  * Convert LightweightCharts API options (flat) to Dialog config (nested)
  *
- * @param seriesType - The series type (e.g., 'Line', 'Band')
+ * @param seriesType - The series type (e.g., 'Line', 'Band', 'line', 'band')
  * @param apiOptions - Flat options from series.options()
  * @returns Nested config for dialog
  */
 export function apiOptionsToDialogConfig(seriesType: string, apiOptions: any): any {
-  const descriptor = getSeriesDescriptor(seriesType);
+  // Normalize series type (e.g., 'line' -> 'Line', 'band' -> 'Band')
+  const normalizedType = normalizeSeriesType(seriesType);
+  const descriptor = getSeriesDescriptor(normalizedType);
   if (!descriptor) {
-    console.warn(`Unknown series type: ${seriesType}`);
+    console.warn(`Unknown series type: ${seriesType} (normalized to ${normalizedType})`);
     return apiOptions; // Fallback: return as-is
   }
 
@@ -50,18 +53,22 @@ export function apiOptionsToDialogConfig(seriesType: string, apiOptions: any): a
 /**
  * Convert Dialog config (nested) to LightweightCharts API options (flat)
  *
- * @param seriesType - The series type (e.g., 'Line', 'Band')
+ * @param seriesType - The series type (e.g., 'Line', 'Band', 'line', 'band')
  * @param dialogConfig - Nested config from dialog
  * @returns Flat options for series.applyOptions()
  */
 export function dialogConfigToApiOptions(seriesType: string, dialogConfig: any): any {
-  const descriptor = getSeriesDescriptor(seriesType);
+  // Normalize series type (e.g., 'line' -> 'Line', 'band' -> 'Band')
+  const normalizedType = normalizeSeriesType(seriesType);
+
+  const descriptor = getSeriesDescriptor(normalizedType);
   if (!descriptor) {
-    console.warn(`Unknown series type: ${seriesType}`);
+    console.warn(`Unknown series type: ${seriesType} (normalized to ${normalizedType})`);
     return dialogConfig; // Fallback: return as-is
   }
 
-  return descriptorDialogToApi(descriptor, dialogConfig);
+  const apiOptions = descriptorDialogToApi(descriptor, dialogConfig);
+  return apiOptions;
 }
 
 /**

@@ -17,6 +17,24 @@ const mockTimeScale = {
 
 const mockAttachedSeries = {
   priceToCoordinate: vi.fn((price: number) => 500 - price * 10),
+  options: vi.fn(() => ({
+    uptrendLineColor: '#4CAF50',
+    uptrendLineWidth: 2,
+    uptrendLineStyle: 0,
+    uptrendLineVisible: true,
+    downtrendLineColor: '#F44336',
+    downtrendLineWidth: 2,
+    downtrendLineStyle: 0,
+    downtrendLineVisible: true,
+    baseLineColor: '#666666',
+    baseLineWidth: 1,
+    baseLineStyle: 1,
+    baseLineVisible: false,
+    fillVisible: true,
+    uptrendFillColor: 'rgba(76, 175, 80, 0.3)',
+    downtrendFillColor: 'rgba(244, 67, 54, 0.3)',
+    useHalfBarWidth: true,
+  })),
 };
 
 const mockChartElement = {
@@ -45,18 +63,19 @@ describe('TrendFillPrimitive', () => {
     defaultOptions = {
       uptrendFillColor: 'rgba(76, 175, 80, 0.3)',
       downtrendFillColor: 'rgba(244, 67, 54, 0.3)',
-      trendLine: {
-        color: '#4CAF50',
-        lineWidth: 2,
-        lineStyle: 0,
-        visible: true,
-      },
-      baseLine: {
-        color: '#666666',
-        lineWidth: 1,
-        lineStyle: 1,
-        visible: false,
-      },
+      uptrendLineColor: '#4CAF50',
+      uptrendLineWidth: 2,
+      uptrendLineStyle: 0,
+      uptrendLineVisible: true,
+      downtrendLineColor: '#F44336',
+      downtrendLineWidth: 2,
+      downtrendLineStyle: 0,
+      downtrendLineVisible: true,
+      baseLineColor: '#666666',
+      baseLineWidth: 1,
+      baseLineStyle: 1,
+      baseLineVisible: false,
+      fillVisible: true,
       visible: true,
       priceScaleId: 'right',
       useHalfBarWidth: true,
@@ -86,7 +105,8 @@ describe('TrendFillPrimitive', () => {
 
       expect(options.uptrendFillColor).toBe('rgba(76, 175, 80, 0.3)');
       expect(options.downtrendFillColor).toBe('rgba(244, 67, 54, 0.3)');
-      expect(options.trendLine.visible).toBe(true);
+      expect(options.uptrendLineVisible).toBe(true);
+      expect(options.downtrendLineVisible).toBe(true);
       expect(options.useHalfBarWidth).toBe(true);
       expect(options.zIndex).toBe(0);
 
@@ -303,7 +323,7 @@ describe('TrendFillPrimitive', () => {
       const processed = primitive.getProcessedData();
 
       expect(processed[0].fillColor).toBe('rgba(76, 175, 80, 0.3)');
-      expect(processed[0].lineColor).toBe('rgba(76, 175, 80, 0.3)');
+      expect(processed[0].lineColor).toBe('#4CAF50'); // Uses uptrend line color
     });
 
     it('should assign downtrend fill color for negative direction', () => {
@@ -315,7 +335,7 @@ describe('TrendFillPrimitive', () => {
       const processed = primitive.getProcessedData();
 
       expect(processed[0].fillColor).toBe('rgba(244, 67, 54, 0.3)');
-      expect(processed[0].lineColor).toBe('rgba(244, 67, 54, 0.3)');
+      expect(processed[0].lineColor).toBe('#F44336'); // Uses downtrend line color
     });
 
     it('should handle direction value > 1', () => {
@@ -371,38 +391,49 @@ describe('TrendFillPrimitive', () => {
       expect(processed[0].fillColor).toBe('rgba(0, 255, 0, 0.5)');
     });
 
-    it('should update trend line options', () => {
+    it('should update uptrend line options', () => {
       primitive.applyOptions({
-        trendLine: {
-          color: '#FF0000',
-          lineWidth: 3,
-          lineStyle: 1,
-          visible: false,
-        },
+        uptrendLineColor: '#FF0000',
+        uptrendLineWidth: 3,
+        uptrendLineStyle: 1,
+        uptrendLineVisible: false,
       });
 
       const options = primitive.getOptions();
-      expect(options.trendLine.color).toBe('#FF0000');
-      expect(options.trendLine.lineWidth).toBe(3);
-      expect(options.trendLine.lineStyle).toBe(1);
-      expect(options.trendLine.visible).toBe(false);
+      expect(options.uptrendLineColor).toBe('#FF0000');
+      expect(options.uptrendLineWidth).toBe(3);
+      expect(options.uptrendLineStyle).toBe(1);
+      expect(options.uptrendLineVisible).toBe(false);
+    });
+
+    it('should update downtrend line options', () => {
+      primitive.applyOptions({
+        downtrendLineColor: '#0000FF',
+        downtrendLineWidth: 4,
+        downtrendLineStyle: 2,
+        downtrendLineVisible: false,
+      });
+
+      const options = primitive.getOptions();
+      expect(options.downtrendLineColor).toBe('#0000FF');
+      expect(options.downtrendLineWidth).toBe(4);
+      expect(options.downtrendLineStyle).toBe(2);
+      expect(options.downtrendLineVisible).toBe(false);
     });
 
     it('should update base line options', () => {
       primitive.applyOptions({
-        baseLine: {
-          color: '#0000FF',
-          lineWidth: 2,
-          lineStyle: 2,
-          visible: true,
-        },
+        baseLineColor: '#0000FF',
+        baseLineWidth: 2,
+        baseLineStyle: 2,
+        baseLineVisible: true,
       });
 
       const options = primitive.getOptions();
-      expect(options.baseLine.color).toBe('#0000FF');
-      expect(options.baseLine.lineWidth).toBe(2);
-      expect(options.baseLine.lineStyle).toBe(2);
-      expect(options.baseLine.visible).toBe(true);
+      expect(options.baseLineColor).toBe('#0000FF');
+      expect(options.baseLineWidth).toBe(2);
+      expect(options.baseLineStyle).toBe(2);
+      expect(options.baseLineVisible).toBe(true);
     });
 
     it('should update useHalfBarWidth option', () => {
@@ -958,7 +989,7 @@ describe('TrendFillPrimitive', () => {
       primitive.setData(data);
 
       primitive.applyOptions({
-        trendLine: { ...defaultOptions.trendLine, lineWidth: 4 },
+        uptrendLineWidth: 4,
       });
 
       const processed = primitive.getProcessedData();
@@ -973,7 +1004,7 @@ describe('TrendFillPrimitive', () => {
       primitive.setData(data);
 
       primitive.applyOptions({
-        trendLine: { ...defaultOptions.trendLine, lineStyle: 2 },
+        uptrendLineStyle: 2,
       });
 
       const processed = primitive.getProcessedData();

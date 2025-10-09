@@ -10,6 +10,7 @@ import { Streamlit } from 'streamlit-component-lib';
 import { SeriesConfiguration, SeriesType } from '../types/SeriesTypes';
 import { logger } from '../utils/logger';
 import { Singleton } from '../utils/SingletonBase';
+import { isStreamlitComponentReady } from '../hooks/useStreamlit';
 
 /**
  * Event data for series configuration changes.
@@ -192,7 +193,15 @@ export class StreamlitSeriesConfigService {
         timestamp: Date.now(),
       };
 
-      // Send to Streamlit backend
+      // Send to Streamlit backend only if component is ready
+      if (!isStreamlitComponentReady()) {
+        logger.debug(
+          'Streamlit component not ready, skipping sync',
+          'StreamlitSeriesConfigService'
+        );
+        return;
+      }
+
       if (typeof Streamlit !== 'undefined' && Streamlit.setComponentValue) {
         Streamlit.setComponentValue(payload);
       } else {

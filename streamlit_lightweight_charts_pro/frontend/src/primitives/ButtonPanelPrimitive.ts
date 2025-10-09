@@ -23,8 +23,11 @@ import {
   SeriesSettingsDialog,
   SeriesInfo as DialogSeriesInfo,
 } from '../forms/SeriesSettingsDialog';
+import { apiOptionsToDialogConfig } from '../series/UnifiedPropertyMapper';
 import { logger } from '../utils/logger';
 import { Streamlit } from 'streamlit-component-lib';
+import { isStreamlitComponentReady } from '../hooks/useStreamlit';
+import { cleanLineStyleOptions } from '../utils/lineStyle';
 
 // Get Streamlit object from imported module
 const getStreamlit = () => {
@@ -98,6 +101,9 @@ interface SeriesInfo {
 export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitiveConfig> {
   private paneState: PaneState;
   private _streamlitService: StreamlitSeriesConfigService | null = null;
+  private lastGearClickTime: number = 0;
+  private lastCollapseClickTime: number = 0;
+  private readonly DEBOUNCE_DELAY = 300; // ms
 
   constructor(id: string, config: ButtonPanelPrimitiveConfig) {
     super(id, {
@@ -187,7 +193,20 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     // Add hover effects
     this.addButtonHoverEffects(button);
 
-    button.addEventListener('click', () => {
+    // Add active/pressed visual feedback
+    this.addButtonPressedEffects(button);
+
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // DEBOUNCE FIX: Prevent multiple rapid clicks
+      const now = Date.now();
+      if (now - this.lastCollapseClickTime < this.DEBOUNCE_DELAY) {
+        return; // Ignore click if too soon after last click
+      }
+      this.lastCollapseClickTime = now;
+
       this.togglePaneCollapse();
       button.innerHTML = this.getCollapseSVG();
       button.setAttribute(
@@ -209,8 +228,31 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     // Add hover effects
     this.addButtonHoverEffects(button);
 
-    button.addEventListener('click', () => {
-      void this.openSeriesConfigDialog();
+    // Add active/pressed visual feedback
+    this.addButtonPressedEffects(button);
+
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // DEBOUNCE FIX: Prevent multiple rapid clicks
+      const now = Date.now();
+      if (now - this.lastGearClickTime < this.DEBOUNCE_DELAY) {
+        return; // Ignore click if too soon after last click
+      }
+      this.lastGearClickTime = now;
+
+      // VISUAL FEEDBACK: Temporarily disable button to show it was clicked
+      button.style.opacity = '0.6';
+      button.style.pointerEvents = 'none';
+
+      void this.openSeriesConfigDialog().finally(() => {
+        // Re-enable button after dialog opens
+        setTimeout(() => {
+          button.style.opacity = '1';
+          button.style.pointerEvents = 'auto';
+        }, 100);
+      });
     });
 
     return button;
@@ -234,6 +276,9 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
       margin: 0;
       font-weight: bold;
       transition: background-color 0.2s ease, color 0.2s ease;
+      position: relative;
+      z-index: 1000;
+      pointer-events: auto;
     `;
   }
 
@@ -251,6 +296,22 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     button.addEventListener('mouseleave', () => {
       button.style.backgroundColor = originalBackground;
       button.style.color = originalColor;
+    });
+  }
+
+  private addButtonPressedEffects(button: HTMLElement): void {
+    button.addEventListener('mousedown', () => {
+      button.style.transform = 'scale(0.9)';
+      button.style.transition = 'transform 0.05s ease';
+    });
+
+    button.addEventListener('mouseup', () => {
+      button.style.transform = 'scale(1)';
+    });
+
+    // Also handle case where mouse leaves while pressed
+    button.addEventListener('mouseleave', () => {
+      button.style.transform = 'scale(1)';
     });
   }
 
@@ -456,15 +517,20 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
               this.applySeriesConfig(seriesId, newConfig);
 
               // 2. Send to backend for persistence (no rerun needed)
-              const streamlit = getStreamlit();
-              if (streamlit && streamlit.setComponentValue) {
-                streamlit.setComponentValue({
-                  type: 'update_series_settings',
-                  paneId: this.config.paneId.toString(),
-                  seriesId: seriesId,
-                  config: newConfig,
-                  timestamp: Date.now(),
-                });
+              // Only send if Streamlit component is ready
+              if (isStreamlitComponentReady()) {
+                const streamlit = getStreamlit();
+                if (streamlit && streamlit.setComponentValue) {
+                  streamlit.setComponentValue({
+                    type: 'update_series_settings',
+                    paneId: this.config.paneId.toString(),
+                    seriesId: seriesId,
+                    config: newConfig,
+                    timestamp: Date.now(),
+                  });
+                }
+              } else {
+                logger.debug('Streamlit component not ready, skipping backend sync', 'ButtonPanelPrimitive');
               }
             },
           })
@@ -538,62 +604,8 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
           const actualSeries = targetPane.getSeries();
 
           if (actualSeries && actualSeries.length > 0) {
-            // Group ribbon series together and process individual series
-            const ribbonGroups = new Map<string, any[]>();
-            const regularSeries: any[] = [];
-
-            // First pass: identify and group ribbon series
+            // Process all series uniformly (no special Ribbon handling)
             actualSeries.forEach((series: any, index: number) => {
-              try {
-                const options = series.options();
-                const title = options?.title || '';
-
-                if (title.startsWith('__RIBBON_UPPER__') || title.startsWith('__RIBBON_LOWER__')) {
-                  // Extract the ribbon name after the prefix
-                  const ribbonName = title.startsWith('__RIBBON_UPPER__')
-                    ? title.replace('__RIBBON_UPPER__', '')
-                    : title.replace('__RIBBON_LOWER__', '');
-
-                  if (!ribbonGroups.has(ribbonName)) {
-                    ribbonGroups.set(ribbonName, []);
-                  }
-                  ribbonGroups.get(ribbonName)?.push({
-                    series,
-                    index,
-                    type: title.startsWith('__RIBBON_UPPER__') ? 'upper' : 'lower',
-                  });
-                } else {
-                  regularSeries.push({ series, index });
-                }
-              } catch (error) {
-                logger.warn('Error checking ribbon series name', 'ButtonPanelPrimitive', error);
-                regularSeries.push({ series, index });
-              }
-            });
-
-            // Add grouped ribbon series
-            ribbonGroups.forEach((ribbonSeries, ribbonName) => {
-              const seriesId = `pane-${this.config.paneId}-ribbon-${ribbonName}`;
-              const displayName = ribbonName || 'Ribbon';
-
-              // Always get fresh config from the chart, fall back to cached/default if needed
-              const currentOptions = this.getCurrentSeriesOptions(seriesId);
-              const seriesConfig =
-                Object.keys(currentOptions).length > 0
-                  ? currentOptions
-                  : this.paneState.seriesConfigs.get(seriesId) ||
-                    this.getDefaultSeriesConfig('ribbon');
-
-              seriesList.push({
-                id: seriesId,
-                displayName,
-                type: 'ribbon' as SeriesType,
-                config: seriesConfig,
-              });
-            });
-
-            // Add regular series
-            regularSeries.forEach(({ series, index }) => {
               const seriesId = `pane-${this.config.paneId}-series-${index}`;
 
               // Try to determine series type from the series object
@@ -641,13 +653,15 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
                 logger.warn('Error getting series title', 'ButtonPanelPrimitive', error);
               }
 
-              // Always get fresh config from the chart, fall back to cached/default if needed
+              // Get current options, fall back to cached config
               const currentOptions = this.getCurrentSeriesOptions(seriesId);
-              const seriesConfig =
-                Object.keys(currentOptions).length > 0
-                  ? currentOptions
-                  : this.paneState.seriesConfigs.get(seriesId) ||
-                    this.getDefaultSeriesConfig(seriesType);
+              const cachedConfig = this.paneState.seriesConfigs.get(seriesId);
+
+              // Merge: cached config < current options
+              const seriesConfig = {
+                ...cachedConfig,
+                ...currentOptions,
+              };
 
               seriesList.push({
                 id: seriesId,
@@ -709,7 +723,9 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
   }
 
   private getCurrentSeriesOptions(seriesId: string): any {
-    if (!this.chart) return {};
+    if (!this.chart) {
+      return {};
+    }
 
     try {
       const panes = this.chart.panes();
@@ -717,104 +733,32 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
         const targetPane = panes[this.config.paneId];
         const paneseries = targetPane.getSeries();
 
-        // Handle ribbon series
-        const ribbonMatch = seriesId.match(/ribbon-(.+)$/);
-        if (ribbonMatch) {
-          // For ribbon series, we need to get options from both upper and lower series
-          const ribbonName = ribbonMatch[1];
-          const config: any = {};
+        // Parse the series index from seriesId
+        const paneSeriesMatch = seriesId.match(/pane-\d+-series-(\d+)$/);
+        const seriesMatch = seriesId.match(/series-(\d+)$/);
+        let targetSeriesIndex = -1;
 
-          paneseries.forEach((series: any) => {
+        if (paneSeriesMatch) {
+          targetSeriesIndex = parseInt(paneSeriesMatch[1], 10);
+        } else if (seriesMatch) {
+          targetSeriesIndex = parseInt(seriesMatch[1], 10);
+        }
+
+        if (targetSeriesIndex >= 0 && targetSeriesIndex < paneseries.length) {
+          const series = paneseries[targetSeriesIndex];
+          if (series) {
             try {
               const options = series.options();
-              const title = options?.title || '';
 
-              if (
-                title === `__RIBBON_UPPER__${ribbonName}` ||
-                title === `__RIBBON_LOWER__${ribbonName}`
-              ) {
-                // Get the current options from the series (now using camelCase)
-                if (options.lastValueVisible !== undefined) {
-                  config.lastValueVisible = options.lastValueVisible;
-                }
-                if (options.priceLineVisible !== undefined) {
-                  config.priceLineVisible = options.priceLineVisible;
-                }
-                if ('lineWidth' in options && options.lineWidth !== undefined) {
-                  config.lineWidth = options.lineWidth;
-                }
-                if ('lineStyle' in options && options.lineStyle !== undefined) {
-                  // Convert number to string for dialog
-                  const styleMap: Record<number, string> = {
-                    0: 'solid',
-                    1: 'dotted',
-                    2: 'dashed',
-                    3: 'large_dashed',
-                    4: 'sparse_dotted',
-                  };
-                  config.lineStyle = styleMap[options.lineStyle] || 'solid';
-                }
-                if ('color' in options && options.color !== undefined) {
-                  config.color = options.color;
-                }
-              }
+              // Detect series type
+              const seriesType = ((options as any)._seriesType || '').toLowerCase();
+
+              // ✅ SCHEMA-DRIVEN APPROACH: Use property mapper to handle ALL series types automatically
+              const config = apiOptionsToDialogConfig(seriesType, options);
+
+              return config;
             } catch (error) {
-              logger.debug('Error getting ribbon series options', 'ButtonPanelPrimitive', error);
-            }
-          });
-
-          return config;
-        } else {
-          // Regular series - parse the series index
-          const paneSeriesMatch = seriesId.match(/pane-\d+-series-(\d+)$/);
-          const seriesMatch = seriesId.match(/series-(\d+)$/);
-          let targetSeriesIndex = -1;
-
-          if (paneSeriesMatch) {
-            targetSeriesIndex = parseInt(paneSeriesMatch[1], 10);
-          } else if (seriesMatch) {
-            targetSeriesIndex = parseInt(seriesMatch[1], 10);
-          }
-
-          if (targetSeriesIndex >= 0 && targetSeriesIndex < paneseries.length) {
-            const series = paneseries[targetSeriesIndex];
-            if (series) {
-              try {
-                const options = series.options();
-                const config: any = {};
-
-                // Get options in camelCase (no conversion needed)
-                if (options.lastValueVisible !== undefined) {
-                  config.lastValueVisible = options.lastValueVisible;
-                }
-                if (options.priceLineVisible !== undefined) {
-                  config.priceLineVisible = options.priceLineVisible;
-                }
-                if ('lineWidth' in options && options.lineWidth !== undefined) {
-                  config.lineWidth = options.lineWidth;
-                }
-                if ('lineStyle' in options && options.lineStyle !== undefined) {
-                  // Convert number to string for dialog
-                  const styleMap: Record<number, string> = {
-                    0: 'solid',
-                    1: 'dotted',
-                    2: 'dashed',
-                    3: 'large_dashed',
-                    4: 'sparse_dotted',
-                  };
-                  config.lineStyle = styleMap[options.lineStyle] || 'solid';
-                }
-                if ('color' in options && options.color !== undefined) {
-                  config.color = options.color;
-                }
-                if (options.visible !== undefined) {
-                  config.visible = options.visible;
-                }
-
-                return config;
-              } catch (error) {
-                logger.debug('Error getting series options', 'ButtonPanelPrimitive', error);
-              }
+              logger.debug('Error getting series options', 'ButtonPanelPrimitive', error);
             }
           }
         }
@@ -832,127 +776,62 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     }
 
     try {
-      // For demo purposes, we'll implement a basic mapping
-      // In a production system, this would use a proper series registry
-      const seriesOptions: any = {};
+      const panes = this.chart.panes();
 
-      // Map configuration options to LightweightCharts API options
-      // All properties are now in camelCase
+      if (
+        this.config.paneId < 0 ||
+        this.config.paneId >= panes.length
+      ) {
+        return; // Invalid pane
+      }
 
-      if (config.visible !== undefined) {
-        seriesOptions.visible = config.visible;
+      const targetPane = panes[this.config.paneId];
+      const paneseries = targetPane.getSeries();
+
+      // Get series type from existing series
+      let seriesType = 'line'; // default
+      const paneSeriesMatch = seriesId.match(/pane-\d+-series-(\d+)$/);
+      const seriesMatch = seriesId.match(/series-(\d+)$/);
+      let targetSeriesIndex = -1;
+
+      if (paneSeriesMatch) {
+        targetSeriesIndex = parseInt(paneSeriesMatch[1], 10);
+      } else if (seriesMatch) {
+        targetSeriesIndex = parseInt(seriesMatch[1], 10);
       }
-      if (config.color !== undefined) {
-        seriesOptions.color = config.color;
-      }
-      if (config.title !== undefined) {
-        seriesOptions.title = config.title;
-      }
-      if (config.lineWidth !== undefined) {
-        seriesOptions.lineWidth = config.lineWidth;
-      }
-      if (config.lineStyle !== undefined) {
-        // Convert string style to number for LightweightCharts if needed
-        if (typeof config.lineStyle === 'string') {
-          const styleMap: Record<string, number> = {
-            solid: 0,
-            dotted: 1,
-            dashed: 2,
-            large_dashed: 3,
-            sparse_dotted: 4,
-          };
-          seriesOptions.lineStyle = styleMap[config.lineStyle] ?? 0;
-        } else {
-          seriesOptions.lineStyle = config.lineStyle;
+
+      if (targetSeriesIndex >= 0 && targetSeriesIndex < paneseries.length) {
+        const series = paneseries[targetSeriesIndex];
+        if (series) {
+          const options = series.options();
+          seriesType = ((options as any)._seriesType || 'line').toLowerCase();
         }
       }
-      if (config.lastValueVisible !== undefined) {
-        seriesOptions.lastValueVisible = config.lastValueVisible;
+
+      // Config is already flat API options (converted by dialog)
+      // But we need to clean lineStyle strings to numeric enums
+      const seriesOptions = cleanLineStyleOptions(config);
+
+      // Apply options to series
+      if (Object.keys(seriesOptions).length === 0) {
+        return; // Nothing to apply
       }
-      if (config.priceLineVisible !== undefined) {
-        seriesOptions.priceLineVisible = config.priceLineVisible;
-      }
 
-      // Try to find and update the series
-      const panes = this.chart.panes();
-      if (
-        this.config.paneId >= 0 &&
-        this.config.paneId < panes.length &&
-        Object.keys(seriesOptions).length > 0
-      ) {
-        // CRITICAL FIX: Try to find the actual series objects and apply options
-        try {
-          const targetPane = panes[this.config.paneId];
-          const paneseries = targetPane.getSeries();
-
-          if (paneseries.length > 0) {
-            // Check if this is a ribbon series
-            const ribbonMatch = seriesId.match(/ribbon-(.+)$/);
-
-            if (ribbonMatch) {
-              // This is a ribbon series - apply options to both upper and lower series
-              const ribbonName = ribbonMatch[1];
-
-              paneseries.forEach((series: any, _idx: number) => {
-                try {
-                  const options = series.options();
-                  const title = options?.title || '';
-
-                  if (
-                    title === `__RIBBON_UPPER__${ribbonName}` ||
-                    title === `__RIBBON_LOWER__${ribbonName}`
-                  ) {
-                    if (series && typeof series.applyOptions === 'function') {
-                      try {
-                        series.applyOptions(seriesOptions);
-                      } catch (error) {
-                        logger.warn(
-                          'Error applying ribbon series options',
-                          'ButtonPanelPrimitive',
-                          error
-                        );
-                      }
-                    }
-                  }
-                } catch (error) {
-                  logger.debug('Error getting ribbon series title', 'ButtonPanelPrimitive', error);
-                }
-              });
-            } else {
-              // Regular series - parse the series index from the seriesId
-              // Handle both formats: "pane-0-series-0" and "series-0"
-              const paneSeriesMatch = seriesId.match(/pane-\d+-series-(\d+)$/);
-              const seriesMatch = seriesId.match(/series-(\d+)$/);
-              let targetSeriesIndex = -1;
-
-              if (paneSeriesMatch) {
-                targetSeriesIndex = parseInt(paneSeriesMatch[1], 10);
-              } else if (seriesMatch) {
-                targetSeriesIndex = parseInt(seriesMatch[1], 10);
-              }
-
-              // Apply options to the specific series or all series if index not found
-              paneseries.forEach((series: any, idx: number) => {
-                if (targetSeriesIndex === -1 || idx === targetSeriesIndex) {
-                  if (series && typeof series.applyOptions === 'function') {
-                    try {
-                      series.applyOptions(seriesOptions);
-                      logger.debug('Applied series options', 'ButtonPanelPrimitive', {
-                        seriesId,
-                        targetSeriesIndex,
-                        actualIndex: idx,
-                        options: seriesOptions,
-                      });
-                    } catch (error) {
-                      logger.warn('Error applying series options', 'ButtonPanelPrimitive', error);
-                    }
-                  }
-                }
-              });
-            }
+      // Apply to the specific series by index
+      if (targetSeriesIndex >= 0 && targetSeriesIndex < paneseries.length) {
+        const series = paneseries[targetSeriesIndex];
+        if (series && typeof series.applyOptions === 'function') {
+          try {
+            series.applyOptions(seriesOptions);
+            logger.debug('Applied series options', 'ButtonPanelPrimitive', {
+              seriesId,
+              targetSeriesIndex,
+              seriesType,
+              options: seriesOptions,
+            });
+          } catch (error) {
+            logger.warn('Error applying series options', 'ButtonPanelPrimitive', error);
           }
-        } catch (error) {
-          logger.debug('Error finding series objects', 'ButtonPanelPrimitive', error);
         }
       }
     } catch (error) {
@@ -972,60 +851,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
   private inferSeriesType(): SeriesType {
     // This is a simplified implementation
     return 'line'; // Default to line series
-  }
-
-  private getDefaultSeriesConfig(seriesType: SeriesType): SeriesConfiguration {
-    const baseConfig: SeriesConfiguration = {
-      color: '#2196F3',
-      opacity: 1,
-      lineWidth: 2,
-      lineStyle: 0, // solid
-      lastPriceVisible: true,
-      priceLineVisible: true,
-      labelsOnPriceScale: true,
-      valuesInStatusLine: true,
-      precision: false,
-      precisionValue: 'auto',
-    };
-
-    switch (seriesType) {
-      case 'supertrend':
-        return {
-          ...baseConfig,
-          period: 10,
-          multiplier: 3.0,
-          upTrend: { color: '#00C851', opacity: 1 },
-          downTrend: { color: '#FF4444', opacity: 1 },
-        };
-      case 'bollinger_bands':
-        return {
-          ...baseConfig,
-          length: 20,
-          stdDev: 2,
-          upperLine: { color: '#2196F3', opacity: 1 },
-          lowerLine: { color: '#2196F3', opacity: 1 },
-          fill: { color: '#2196F3', opacity: 0.1 },
-        };
-      case 'sma':
-      case 'ema':
-        return {
-          ...baseConfig,
-          length: 20,
-          source: 'close',
-          offset: 0,
-        };
-      case 'ribbon':
-        return {
-          ...baseConfig,
-          color: '#4CAF50', // Upper line color
-          upperLine: { color: '#4CAF50', opacity: 1 },
-          lowerLine: { color: '#F44336', opacity: 1 },
-          fill: { color: '#4CAF50', opacity: 0.1 },
-          fillVisible: true,
-        };
-      default:
-        return baseConfig;
-    }
   }
 
   private restoreConfigurationsFromBackend(): void {

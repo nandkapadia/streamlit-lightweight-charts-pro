@@ -31,15 +31,15 @@ class GradientRibbonSeries(RibbonSeries):
     based on data values.
 
     The GradientRibbonSeries supports various styling options including separate
-    line styling for each band via LineOptions, fill colors, and gradient effects.
+    line styling for each band via LineOptions, and gradient color effects based
+    on data values.
 
     Attributes:
         upper_line: LineOptions instance for upper band styling.
         lower_line: LineOptions instance for lower band styling.
-        fill: Default fill color for the area between upper and lower bands.
         fill_visible: Whether to display the fill area.
-        gradient_start_color: Starting color for gradient fills.
-        gradient_end_color: Ending color for gradient fills.
+        gradient_start_color: Starting color for gradient fills (minimum value).
+        gradient_end_color: Ending color for gradient fills (maximum value).
         normalize_gradients: Whether to normalize gradient values to 0-1 range.
         price_lines: List of PriceLineOptions for price lines (set after construction)
         price_format: PriceFormatOptions for price formatting (set after construction)
@@ -124,8 +124,11 @@ class GradientRibbonSeries(RibbonSeries):
             self._gradient_bounds = None
 
     def asdict(self):
-        """Override to include normalized gradients if requested."""
+        """Override to include normalized gradients and exclude inherited fill property."""
         data_dict = super().asdict()
+
+        # Remove inherited fill property - gradient ribbon uses gradientStartColor/gradientEndColor instead
+        data_dict.get("options", {}).pop("fill", None)
 
         if self._normalize_gradients:
             # Calculate bounds if not already calculated

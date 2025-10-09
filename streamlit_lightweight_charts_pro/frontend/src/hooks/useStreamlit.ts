@@ -9,10 +9,24 @@ import { useState, useEffect } from 'react';
 import { Streamlit, RenderData } from 'streamlit-component-lib';
 
 /**
+ * Global flag to track if Streamlit component is ready
+ * This prevents "Received component message for unregistered ComponentInstance" errors
+ */
+let isComponentReady = false;
+
+/**
+ * Check if the Streamlit component is ready to receive messages
+ * @returns true if setComponentReady() has been called
+ */
+export function isStreamlitComponentReady(): boolean {
+  return isComponentReady;
+}
+
+/**
  * Hook for accessing Streamlit render data with proper initialization timing.
  *
- * This hook calls setComponentReady() with a small delay to ensure Streamlit's
- * ComponentRegistry has had time to create the ComponentInstance.
+ * Waits for RENDER_EVENT before setting component ready flag to ensure
+ * Streamlit's ComponentRegistry has registered the component.
  *
  * @returns RenderData | undefined - The current render data from Streamlit
  */
@@ -23,20 +37,32 @@ export function useStreamlitRenderData(): RenderData | undefined {
     const onRenderEvent = (event: Event) => {
       const renderEvent = event as CustomEvent<RenderData>;
       setRenderData(renderEvent.detail);
+
+      // Set component as ready after first render event
+      if (!isComponentReady) {
+        isComponentReady = true;
+      }
     };
 
-    // Set up event listener for render events
     Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRenderEvent);
 
-    // Call setComponentReady with a small delay to allow ComponentInstance registration
-    // This prevents "Received component message for unregistered ComponentInstance" warnings
-    const readyTimer = setTimeout(() => {
-      Streamlit.setComponentReady();
-    }, 100);
+    // Delay setComponentReady() to allow parent's ComponentInstance to register listener
+    // This prevents race condition with ComponentRegistry
+    const callSetComponentReady = () => {
+      setTimeout(() => {
+        Streamlit.setComponentReady();
+      }, 100);
+    };
 
-    // Cleanup
+    if (document.readyState === 'complete') {
+      callSetComponentReady();
+    } else {
+      window.addEventListener('load', callSetComponentReady);
+    }
+
     return () => {
-      clearTimeout(readyTimer);
+      window.removeEventListener('load', callSetComponentReady);
+      isComponentReady = false;
       Streamlit.events.removeEventListener(Streamlit.RENDER_EVENT, onRenderEvent);
     };
   }, []);
@@ -47,16 +73,13 @@ export function useStreamlitRenderData(): RenderData | undefined {
 /**
  * Hook for automatic frame height reporting.
  *
- * Calls Streamlit.setFrameHeight() on every render to keep the iframe
- * height in sync with the component's content.
+ * Updates iframe height on every render. Only calls setFrameHeight()
+ * after component is ready to prevent ComponentRegistry errors.
  */
 export function useStreamlitFrameHeight(): void {
   useEffect(() => {
-    // Only call setFrameHeight after component is ready to prevent warnings
-    const timer = setTimeout(() => {
+    if (isComponentReady) {
       Streamlit.setFrameHeight();
-    }, 150); // Slightly longer delay to ensure component is registered
-
-    return () => clearTimeout(timer);
+    }
   });
 }

@@ -12,13 +12,15 @@
 
 import React, { useState, useCallback, useTransition, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { FocusTrap } from 'focus-trap-react';
 import { logger } from '../utils/logger';
 import { LineEditorDialog } from './LineEditorDialog';
 import { ColorPickerDialog } from './ColorPickerDialog';
 import { useSeriesSettingsAPI } from '../hooks/useSeriesSettingsAPI';
 import { SeriesSettingsRenderer } from '../components/SeriesSettingsRenderer';
 import { getSeriesSettings } from '../config/seriesSettingsRegistry';
-// import { debounce } from '../utils/performance'; // Reserved for future use
+import { apiOptionsToDialogConfig, dialogConfigToApiOptions } from '../series/UnifiedPropertyMapper';
+import { toCss, extractColorAndOpacity } from '../utils/colorUtils';
 import '../styles/seriesConfigDialog.css';
 
 /**
@@ -71,7 +73,8 @@ export interface SeriesInfo {
     | 'supertrend'
     | 'bollinger_bands'
     | 'sma'
-    | 'ema';
+    | 'ema'
+    | 'signal';
 }
 
 /**
@@ -137,42 +140,23 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   const [isPending, startTransition] = useTransition();
 
   // API hooks for backend communication
-  const { updateMultipleSettings, getPaneState } = useSeriesSettingsAPI();
+  const { updateMultipleSettings } = useSeriesSettingsAPI();
 
-  // Sync optimistic configs when props change and load from Streamlit session state
+  // Initialize configs from props (chart state is source of truth)
   useEffect(() => {
-    const loadConfigsFromBackend = async () => {
-      const configsWithBackend = { ...seriesConfigs };
+    const flatConfigsFromProps: Record<string, Partial<SeriesConfig>> = {};
 
-      // PERFORMANCE FIX: Load configurations in parallel instead of sequentially
-      try {
-        // Only fetch once, not for each series
-        const backendConfig = await getPaneState(paneId);
-
-        if (backendConfig && backendConfig.series) {
-          // Apply backend configs to all series
-          seriesList.forEach(series => {
-            if (backendConfig.series[series.id]) {
-              configsWithBackend[series.id] = {
-                ...configsWithBackend[series.id],
-                ...backendConfig.series[series.id]
-              };
-            }
-          });
-        }
-      } catch (error) {
-        logger.error(
-          'Failed to load series configuration from Streamlit session state',
-          'SeriesSettings',
-          error
+    seriesList.forEach(series => {
+      if (seriesConfigs[series.id]) {
+        flatConfigsFromProps[series.id] = dialogConfigToApiOptions(
+          series.type,
+          seriesConfigs[series.id]
         );
       }
+    });
 
-      setOptimisticConfigs(configsWithBackend);
-    };
-
-    void loadConfigsFromBackend();
-  }, [seriesConfigs, seriesList, paneId, getPaneState]);
+    setOptimisticConfigs(flatConfigsFromProps);
+  }, [seriesConfigs, seriesList]);
 
   // Helper function to generate tab titles with fallback logic
   const getTabTitle = useCallback((series: SeriesInfo, index: number): string => {
@@ -189,51 +173,27 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   }, []);
 
   // Store previously focused element for restoration
-  const previousFocusRef = React.useRef<HTMLElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  // Handle dialog open/close lifecycle
+  // Handle dialog open/close lifecycle with proper cleanup
   useEffect(() => {
     if (isOpen) {
       // Store current focus when dialog opens
       previousFocusRef.current = document.activeElement as HTMLElement;
-
-      // Add modal class to body
-      document.body.classList.add('modal-open', 'series-dialog-open');
-
-      // Prevent body scroll
+      // Add modal class and prevent body scroll
+      document.body.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
-    } else if (previousFocusRef.current) {
-      // Restore focus and body state when dialog closes
-      document.body.classList.remove('modal-open', 'series-dialog-open');
-      document.body.style.overflow = '';
-      document.body.style.pointerEvents = '';
-
-      // Restore focus after a brief delay to ensure dialog is fully unmounted
-      setTimeout(() => {
-        if (previousFocusRef.current) {
-          try {
-            previousFocusRef.current.focus();
-          } catch (error) {
-            logger.debug('Could not restore focus to previous element', 'SeriesSettings', error);
-          }
-        }
-      }, 50);
     }
   }, [isOpen]);
 
-  // Simple focus restoration callback for explicit calls
-  const restoreFocusToChart = useCallback(() => {
-    document.body.classList.remove('modal-open', 'series-dialog-open');
-    document.body.style.overflow = '';
-    document.body.style.pointerEvents = '';
-  }, []);
-
-  // Cleanup effect to ensure body state is always reset on unmount
+  // Cleanup effect - restore focus and body state on unmount
   useEffect(() => {
     return () => {
-      document.body.classList.remove('modal-open', 'series-dialog-open');
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+      document.body.classList.remove('modal-open');
       document.body.style.overflow = '';
-      document.body.style.pointerEvents = '';
     };
   }, []);
 
@@ -253,15 +213,24 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   // Handle configuration changes with immediate UI updates and debounced backend sync
   const handleConfigChange = useCallback(
     async (seriesId: string, configPatch: Partial<SeriesConfig>) => {
+      // Get series type for conversion
+      const series = seriesList.find(s => s.id === seriesId);
+      const seriesType = series?.type;
+
+      // Convert dialog config (nested) to API options (flat) if series type is known
+      const flatConfigPatch = seriesType
+        ? dialogConfigToApiOptions(seriesType, configPatch)
+        : configPatch;
+
       // RESPONSIVENESS FIX: Direct state update for immediate visual feedback
       setOptimisticConfigs(prev => ({
         ...prev,
-        [seriesId]: { ...prev[seriesId], ...configPatch },
+        [seriesId]: { ...prev[seriesId], ...flatConfigPatch },
       }));
 
-      // Apply changes to chart immediately
+      // Apply changes to chart immediately (using flat config for series API)
       if (onConfigChange) {
-        onConfigChange(seriesId, configPatch);
+        onConfigChange(seriesId, flatConfigPatch);
       }
 
       // PERFORMANCE FIX: Accumulate changes for debounced backend sync
@@ -292,15 +261,20 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         }
       }, 500); // 500ms debounce - adjustable based on UX needs
     },
-    [onConfigChange, startTransition, updateMultipleSettings, paneId]
+    [onConfigChange, startTransition, updateMultipleSettings, paneId, seriesList]
   );
 
   // Get current series info and config
   const activeSeriesInfo = seriesList.find(s => s.id === activeSeriesId);
-  const activeSeriesConfig = useMemo(
-    () => optimisticConfigs[activeSeriesId] || {},
-    [optimisticConfigs, activeSeriesId]
-  );
+
+  // Convert API options (flat) to dialog config (nested) for UI display
+  const activeSeriesConfig = useMemo(() => {
+    const flatConfig = optimisticConfigs[activeSeriesId] || {};
+    if (!activeSeriesInfo?.type) return flatConfig;
+
+    // Convert flat API options to nested dialog config using property mapper
+    return apiOptionsToDialogConfig(activeSeriesInfo.type, flatConfig);
+  }, [optimisticConfigs, activeSeriesId, activeSeriesInfo?.type]);
 
   // Get settings for active series type
   const seriesSettings = useMemo(
@@ -318,11 +292,10 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     });
   }
 
-  // Enhanced close handler that includes focus restoration
+  // Close handler - focus restoration handled automatically by cleanup effect
   const handleCloseWithFocusRestore = useCallback(() => {
     onClose();
-    restoreFocusToChart();
-  }, [onClose, restoreFocusToChart]);
+  }, [onClose]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
@@ -356,12 +329,25 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       // Read line config from nested property (schema-aware)
       const lineConfig = (activeSeriesConfig as any)[lineType] || {};
 
+      // Convert number style to string (TradingView LineStyle enum to dialog format)
+      const numberToStyle: Record<number, 'solid' | 'dotted' | 'dashed'> = {
+        0: 'solid',
+        1: 'dotted',
+        2: 'dashed',
+      };
+
+      // If lineStyle is a number, convert it; otherwise use it as-is (or default to 'solid')
+      const styleValue =
+        typeof lineConfig.lineStyle === 'number'
+          ? numberToStyle[lineConfig.lineStyle] ?? 'solid'
+          : lineConfig.lineStyle || 'solid';
+
       setLineEditorOpen({
         isOpen: true,
         lineType,
         config: {
           color: lineConfig.color || '#2196F3',
-          style: lineConfig.lineStyle || 'solid',
+          style: styleValue,
           width: lineConfig.lineWidth || 1,
         },
       });
@@ -372,11 +358,18 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   const handleLineEditorSave = useCallback(
     async (config: LineConfig) => {
       if (lineEditorOpen.lineType) {
+        // Convert string style to number (TradingView LineStyle enum)
+        const styleToNumber: Record<string, number> = {
+          solid: 0,
+          dotted: 1,
+          dashed: 2,
+        };
+
         // Always save to nested property (schema-aware)
         await handleConfigChange(activeSeriesId, {
           [lineEditorOpen.lineType]: {
             color: config.color,
-            lineStyle: config.style,
+            lineStyle: styleToNumber[config.style] ?? 0,
             lineWidth: config.width,
           },
         });
@@ -390,12 +383,10 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   const openColorPicker = useCallback(
     (colorType: string) => {
       // Schema-aware: read color from the property specified in the schema
-      const currentColor = (activeSeriesConfig as any)[colorType] || '#2196F3';
+      const colorValue = (activeSeriesConfig as any)[colorType] || '#2196F3';
 
-      // Determine opacity property based on color property naming convention
-      // fillColor -> fillOpacity, topColor -> topOpacity, etc.
-      const opacityProperty = colorType.replace('Color', 'Opacity');
-      const currentOpacity = (activeSeriesConfig as any)[opacityProperty] || 100;
+      // Extract hex color and opacity from the color value (supports both hex and rgba)
+      const { color: currentColor, opacity: currentOpacity } = extractColorAndOpacity(colorValue);
 
       setColorPickerOpen({
         isOpen: true,
@@ -410,16 +401,13 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   const handleColorPickerSave = useCallback(
     async (color: string, opacity: number) => {
       if (colorPickerOpen.colorType) {
+        // Convert color and opacity to rgba format
+        const finalColor = toCss(color, opacity);
+
         // Schema-aware: save to the property specified in the schema
         const configPatch: any = {
-          [colorPickerOpen.colorType]: color,
+          [colorPickerOpen.colorType]: finalColor,
         };
-
-        // If opacity is not 100%, also save the opacity property
-        if (opacity < 100) {
-          const opacityProperty = colorPickerOpen.colorType.replace('Color', 'Opacity');
-          configPatch[opacityProperty] = opacity;
-        }
 
         await handleConfigChange(activeSeriesId, configPatch);
       }
@@ -431,14 +419,23 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <div
-      className='series-config-overlay'
-      onClick={handleBackdropClick}
-      onKeyDown={handleKeyDown}
-      role='dialog'
-      aria-modal='true'
-      aria-labelledby={`series-settings-${activeSeriesInfo?.displayName || ''}`}
-      tabIndex={-1}
+    <FocusTrap
+      active={isOpen}
+      focusTrapOptions={{
+        allowOutsideClick: true,
+        returnFocusOnDeactivate: true,
+        fallbackFocus: () => document.body,
+      }}
+    >
+      <div
+        className='series-config-overlay'
+        onClick={handleBackdropClick}
+        onKeyDown={handleKeyDown}
+        role='dialog'
+        aria-modal='true'
+        aria-labelledby='series-settings-title'
+        aria-describedby='series-settings-description'
+        tabIndex={-1}
       style={{
         position: 'fixed',
         top: 0,
@@ -466,6 +463,11 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           color: '#333333',
         }}
       >
+        {/* Accessibility description */}
+        <p id='series-settings-description' className='visually-hidden'>
+          Configure series options for this pane. Use Tab to navigate between controls, Escape to close.
+        </p>
+
         {/* Header */}
         <div
           className='series-config-header'
@@ -480,7 +482,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           }}
         >
           <div
-            id={`series-settings-${activeSeriesInfo?.displayName || ''}`}
+            id='series-settings-title'
             style={{
               fontSize: '20px',
               fontWeight: '600',
@@ -629,33 +631,38 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                 <label htmlFor='visible'>Visible</label>
               </div>
 
-              <div className='checkbox-row'>
-                <input
-                  type='checkbox'
-                  id='lastValueVisible'
-                  name='lastValueVisible'
-                  checked={activeSeriesConfig.lastValueVisible !== false}
-                  onChange={e =>
-                    handleConfigChange(activeSeriesId, { lastValueVisible: e.target.checked })
-                  }
-                  aria-label='Show last value'
-                />
-                <label htmlFor='lastValueVisible'>Last Value Visible</label>
-              </div>
+              {/* Hide last value and price line options for Signal series (not applicable) */}
+              {activeSeriesInfo?.type !== 'signal' && (
+                <>
+                  <div className='checkbox-row'>
+                    <input
+                      type='checkbox'
+                      id='lastValueVisible'
+                      name='lastValueVisible'
+                      checked={activeSeriesConfig.lastValueVisible !== false}
+                      onChange={e =>
+                        handleConfigChange(activeSeriesId, { lastValueVisible: e.target.checked })
+                      }
+                      aria-label='Show last value'
+                    />
+                    <label htmlFor='lastValueVisible'>Last Value Visible</label>
+                  </div>
 
-              <div className='checkbox-row'>
-                <input
-                  type='checkbox'
-                  id='priceLineVisible'
-                  name='priceLineVisible'
-                  checked={activeSeriesConfig.priceLineVisible !== false}
-                  onChange={e =>
-                    handleConfigChange(activeSeriesId, { priceLineVisible: e.target.checked })
-                  }
-                  aria-label='Show price line'
-                />
-                <label htmlFor='priceLineVisible'>Price Line</label>
-              </div>
+                  <div className='checkbox-row'>
+                    <input
+                      type='checkbox'
+                      id='priceLineVisible'
+                      name='priceLineVisible'
+                      checked={activeSeriesConfig.priceLineVisible !== false}
+                      onChange={e =>
+                        handleConfigChange(activeSeriesId, { priceLineVisible: e.target.checked })
+                      }
+                      aria-label='Show price line'
+                    />
+                    <label htmlFor='priceLineVisible'>Price Line</label>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Series-Specific Settings - Simple Property-Based Rendering */}
@@ -823,7 +830,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           onCancel={() => setColorPickerOpen({ isOpen: false })}
         />
       )}
-    </div>,
+    </div>
+    </FocusTrap>,
     document.body
   );
 };

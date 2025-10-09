@@ -974,3 +974,23 @@
   background: #1976D2;
   border-color: #1976D2;
 }
+
+/* ============================================================================
+ * Accessibility - Visually Hidden
+ * ============================================================================ */
+
+/*
+ * Visually hidden class for screen reader only content
+ * Follows WCAG 2.1 best practices for accessible hiding
+ */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

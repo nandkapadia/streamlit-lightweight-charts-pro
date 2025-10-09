@@ -29,6 +29,7 @@ import { PrimitivePriority } from '../../primitives/BasePanePrimitive';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ButtonPanelComponent } from '../../components/ButtonPanelComponent';
+import { apiOptionsToDialogConfig } from '../../series/UnifiedPropertyMapper';
 import {
   SeriesSettingsDialog,
   SeriesInfo as DialogSeriesInfo,
@@ -431,9 +432,21 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
       }
 
       // Create series configurations from allSeries
+      // Read ACTUAL options from chart series instead of using defaults
       const seriesConfigs: Record<string, any> = {};
-      allSeries.forEach(series => {
-        seriesConfigs[series.id] = series.config || {};
+      const chartSeries = (window as any).seriesRefsMap?.[(this.chartApi as any)._id] || [];
+
+      allSeries.forEach((series, index) => {
+        // Try to get the actual series from the chart
+        const actualSeries = chartSeries[index];
+        if (actualSeries && actualSeries.options) {
+          // Convert API options to dialog config using property mapper
+          const apiOptions = actualSeries.options();
+          seriesConfigs[series.id] = apiOptionsToDialogConfig(series.type, apiOptions);
+        } else {
+          // Fallback to stored config or empty object
+          seriesConfigs[series.id] = series.config || {};
+        }
       });
 
       // Render the dialog with all series
@@ -453,7 +466,13 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
             ),
             seriesConfigs: seriesConfigs,
             onConfigChange: (seriesId: string, newConfig: any) => {
-              this.applySeriesConfig(paneId, seriesId, newConfig);
+              // Find the series type from allSeries
+              const series = allSeries.find(s => s.id === seriesId);
+              const seriesType = series?.type || 'line';
+
+              // Include series type in the config for proper property mapping
+              const configWithType = { ...newConfig, _seriesType: seriesType };
+              this.applySeriesConfig(paneId, seriesId, configWithType);
             },
           })
         );
@@ -603,70 +622,14 @@ export class PaneButtonPanelPlugin implements IPanePrimitive<Time>, IPositionabl
     }
 
     try {
-      // For demo purposes, we'll implement a basic mapping
-      // In a production system, this would use a proper series registry
-      const seriesOptions: any = {};
+      // Pass all config properties to series.applyOptions()
+      // The dialog has already converted from nested dialog config to flat API options
+      // via dialogConfigToApiOptions(), so we can pass the config directly
+      const seriesOptions: any = { ...config };
 
-      // Map configuration options to LightweightCharts API options
-
-      // Core series properties (direct mapping)
-      if (config.visible !== undefined) {
-        seriesOptions.visible = config.visible;
-      }
-      if (config.color !== undefined) {
-        seriesOptions.color = config.color;
-      }
-      if (config.title !== undefined) {
-        seriesOptions.title = config.title;
-      }
-
-      // Line styling properties (direct mapping for new API)
-      if (config.lineWidth !== undefined) {
-        seriesOptions.lineWidth = config.lineWidth;
-      }
-      if (config.lineStyle !== undefined) {
-        seriesOptions.lineStyle = config.lineStyle;
-      }
-
-      // Price line properties (direct mapping for new API)
-      if (config.lastValueVisible !== undefined) {
-        seriesOptions.lastValueVisible = config.lastValueVisible;
-      }
-      if (config.priceLineVisible !== undefined) {
-        seriesOptions.priceLineVisible = config.priceLineVisible;
-      }
-      if (config.priceLineColor !== undefined) {
-        seriesOptions.priceLineColor = config.priceLineColor;
-      }
-      if (config.priceLineWidth !== undefined) {
-        seriesOptions.priceLineWidth = config.priceLineWidth;
-      }
-      if (config.priceLineStyle !== undefined) {
-        seriesOptions.priceLineStyle = config.priceLineStyle;
-      }
-
-      // Legacy naming support (for backward compatibility with existing dialog)
-      if ((config as any).last_value_visible !== undefined) {
-        seriesOptions.lastValueVisible = (config as any).last_value_visible;
-      }
-      if ((config as any).price_line !== undefined) {
-        seriesOptions.priceLineVisible = (config as any).price_line;
-      }
-      if ((config as any).line_width !== undefined) {
-        seriesOptions.lineWidth = (config as any).line_width;
-      }
-      if ((config as any).line_style !== undefined) {
-        // Convert string style to LineStyle enum value
-        const styleMap: Record<string, number> = { solid: 0, dashed: 1, dotted: 2 };
-        const lineStyle = (config as any).line_style as string;
-        const styleValue = styleMap[lineStyle] ?? 0;
-        seriesOptions.lineStyle = styleValue;
-      }
-
-      // Handle markers (note: LightweightCharts markers are set via setMarkers, not applyOptions)
-      if ((config as any).markers !== undefined) {
-        // Markers would be handled separately via setMarkers API
-      }
+      // Remove internal/non-API properties
+      delete seriesOptions._seriesType;
+      delete seriesOptions.markers; // Markers are set via setMarkers(), not applyOptions()
 
       // Try to find and update the series
       // This is a simplified approach - in production you'd have a proper series registry

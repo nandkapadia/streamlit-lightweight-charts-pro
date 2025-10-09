@@ -13,6 +13,7 @@ import { useCallback } from 'react';
 import { Streamlit } from 'streamlit-component-lib';
 import type { SeriesConfig } from '../forms/SeriesSettingsDialog';
 import { logger } from '../utils/logger';
+import { isStreamlitComponentReady } from './useStreamlit';
 
 // Get Streamlit object from imported module
 const getStreamlit = () => {
@@ -65,18 +66,21 @@ export function useSeriesSettingsAPI() {
 
         document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
 
-        // Send request
-        const streamlit = getStreamlit();
-        if (streamlit && streamlit.setComponentValue) {
-          streamlit.setComponentValue({
-            type: 'get_pane_state',
-            messageId,
-            paneId,
-          });
-        } else {
-          resolve({ success: false, error: 'Streamlit not available' });
+        // Check if Streamlit component is ready before sending request
+        if (!isStreamlitComponentReady()) {
+          logger.debug('Streamlit component not ready, skipping getPaneState request', 'useSeriesSettingsAPI');
+          document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
+          resolve({ success: false, error: 'Streamlit not ready' });
           return;
         }
+
+        // Send request
+        const streamlit = getStreamlit();
+        streamlit.setComponentValue({
+          type: 'get_pane_state',
+          messageId,
+          paneId,
+        });
 
         // Timeout after 5 seconds
         setTimeout(() => {
@@ -119,20 +123,22 @@ export function useSeriesSettingsAPI() {
 
           document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
 
-          // Send patch
-          const streamlit = getStreamlit();
-          if (streamlit && streamlit.setComponentValue) {
-            streamlit.setComponentValue({
-              type: 'update_series_settings',
-              messageId,
-              paneId,
-              seriesId,
-              config,
-            });
-          } else {
-            resolve({ success: false, error: 'Streamlit not available' });
+          // Check if Streamlit component is ready before sending update
+          if (!isStreamlitComponentReady()) {
+            logger.debug('Streamlit component not ready, skipping updateSeriesSettings request', 'useSeriesSettingsAPI');
+            resolve({ success: false, error: 'Streamlit not ready' });
             return;
           }
+
+          // Send patch
+          const streamlit = getStreamlit();
+          streamlit.setComponentValue({
+            type: 'update_series_settings',
+            messageId,
+            paneId,
+            seriesId,
+            config,
+          });
 
           // Timeout after 5 seconds
           setTimeout(() => {
@@ -173,18 +179,20 @@ export function useSeriesSettingsAPI() {
 
         document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
 
-        // Send batch
-        const streamlit = getStreamlit();
-        if (streamlit && streamlit.setComponentValue) {
-          streamlit.setComponentValue({
-            type: 'update_multiple_settings',
-            messageId,
-            patches,
-          });
-        } else {
-          resolve({ success: false, error: 'Streamlit not available' });
+        // Check if Streamlit component is ready before sending batch update
+        if (!isStreamlitComponentReady()) {
+          logger.debug('Streamlit component not ready, skipping updateMultipleSettings request', 'useSeriesSettingsAPI');
+          resolve({ success: false, error: 'Streamlit not ready' });
           return;
         }
+
+        // Send batch
+        const streamlit = getStreamlit();
+        streamlit.setComponentValue({
+          type: 'update_multiple_settings',
+          messageId,
+          patches,
+        });
 
         // Timeout after 10 seconds for batch operations
         setTimeout(() => {
@@ -227,19 +235,21 @@ export function useSeriesSettingsAPI() {
 
           document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
 
-          // Send reset request
-          const streamlit = getStreamlit();
-          if (streamlit && streamlit.setComponentValue) {
-            streamlit.setComponentValue({
-              type: 'reset_series_defaults',
-              messageId,
-              paneId,
-              seriesId,
-            });
-          } else {
-            resolve({ success: false, error: 'Streamlit not available' });
+          // Check if Streamlit component is ready before sending reset request
+          if (!isStreamlitComponentReady()) {
+            logger.debug('Streamlit component not ready, skipping resetSeriesToDefaults request', 'useSeriesSettingsAPI');
+            resolve({ success: false, error: 'Streamlit not ready' });
             return;
           }
+
+          // Send reset request
+          const streamlit = getStreamlit();
+          streamlit.setComponentValue({
+            type: 'reset_series_defaults',
+            messageId,
+            paneId,
+            seriesId,
+          });
 
           // Timeout after 5 seconds
           setTimeout(() => {
