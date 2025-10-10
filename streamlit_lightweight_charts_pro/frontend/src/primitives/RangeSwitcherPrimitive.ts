@@ -284,14 +284,6 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
     });
 
     this.containerElement.appendChild(buttonContainer);
-
-    // Trigger layout recalculation after content is rendered to ensure proper positioning
-    // Use setTimeout to allow DOM to update dimensions first
-    setTimeout(() => {
-      if (this.layoutManager) {
-        this.layoutManager.recalculateAllLayouts();
-      }
-    }, 0);
   }
 
   /**
@@ -610,11 +602,7 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
   protected setupCustomEventSubscriptions(): void {
     if (!this.eventManager) return;
 
-    // REMOVED: timeScale subscription that was hiding buttons on every zoom
-    // const timeScaleSub = this.eventManager.subscribe('timeScaleChange', (event) => {
-    //   this.handleTimeScaleChange(event)
-    // })
-    // this.eventSubscriptions.push(timeScaleSub)
+    // Note: timeScale subscription intentionally removed - it was hiding buttons on every zoom
 
     // Subscribe to data updates to refresh range visibility (but not timeScale changes)
     const dataUpdateSub = this.eventManager.subscribe('dataUpdate', () => {

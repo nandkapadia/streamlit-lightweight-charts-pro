@@ -159,14 +159,6 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
 
     // Apply styling
     this.applyLegendStyling(legendElement);
-
-    // Trigger layout recalculation after content is rendered to ensure proper stacking
-    // Use setTimeout to allow DOM to update dimensions first
-    setTimeout(() => {
-      if (this.layoutManager) {
-        this.layoutManager.recalculateAllLayouts();
-      }
-    }, 0);
   }
 
   /**

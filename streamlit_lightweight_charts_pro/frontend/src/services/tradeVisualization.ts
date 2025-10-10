@@ -435,17 +435,6 @@ export function convertTradeRectanglesToPluginFormat(
 }
 
 /**
- * @deprecated - This function is no longer used. Use createTradeRectanglePrimitives from TradeRectanglePrimitive instead.
- */
-export function createTradeRectanglePrimitives(
-  _tradeRectangles: TradeRectangleData[],
-  _chart?: any,
-  _series?: any
-): any[] {
-  return [];
-}
-
-/**
  * Convert trade rectangles to plugin format after ensuring chart is ready
  */
 export async function convertTradeRectanglesToPluginFormatWhenReady(

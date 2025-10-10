@@ -2090,13 +2090,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     if (resizeObserver) {
                       legendResizeObserverRefs.current[chartId] = resizeObserver;
                     }
-
-                    // Legacy legend refresh callbacks disabled
-                    // if (window.legendRefreshCallbacks && window.legendRefreshCallbacks[chartId]) {
-                    //   window.legendRefreshCallbacks[chartId].forEach((callback: () => void) => {
-                    //     callback()
-                    //   })
-                    // }
                   } catch {
                     // Error during chart initialization
                   }

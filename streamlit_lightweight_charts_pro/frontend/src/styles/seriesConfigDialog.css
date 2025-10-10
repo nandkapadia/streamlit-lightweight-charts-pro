@@ -77,7 +77,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: #787b86;
   border-bottom: 2px solid transparent;
@@ -608,12 +608,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
+  padding: 0px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .color-row:hover {
@@ -629,6 +629,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 2px;
 }
 
 .opacity-indicator {
@@ -819,6 +820,7 @@
   outline: none;
   opacity: 0.8;
   cursor: pointer;
+  appearance: none;
   -webkit-appearance: none;
   position: relative;
   z-index: 2;

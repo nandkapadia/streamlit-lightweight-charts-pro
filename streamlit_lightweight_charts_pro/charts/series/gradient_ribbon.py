@@ -14,10 +14,6 @@ from streamlit_lightweight_charts_pro.data.gradient_ribbon import GradientRibbon
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.utils import chainable_property
 
-# TODO: Currently it usees ribbon series in the frontend which does not suport colors per bar.
-# We should explore if we can use gradient ribbon series in the frontend which supports
-# both color and alpha gradients. See the background shaded series example
-
 
 @chainable_property("gradient_start_color", str, validator="color")
 @chainable_property("gradient_end_color", str, validator="color")

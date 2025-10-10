@@ -11,6 +11,7 @@ import {
 } from './core/UnifiedSeriesDescriptor';
 import { getSeriesDescriptor } from './UnifiedSeriesFactory';
 import { normalizeSeriesType } from './utils/seriesTypeNormalizer';
+import { logger } from '../utils/logger';
 
 /**
  * Line style conversion maps (backward compatibility)
@@ -43,7 +44,7 @@ export function apiOptionsToDialogConfig(seriesType: string, apiOptions: any): a
   const normalizedType = normalizeSeriesType(seriesType);
   const descriptor = getSeriesDescriptor(normalizedType);
   if (!descriptor) {
-    console.warn(`Unknown series type: ${seriesType} (normalized to ${normalizedType})`);
+    logger.warn(`Unknown series type: ${seriesType} (normalized to ${normalizedType})`, 'UnifiedPropertyMapper');
     return apiOptions; // Fallback: return as-is
   }
 
@@ -63,7 +64,7 @@ export function dialogConfigToApiOptions(seriesType: string, dialogConfig: any):
 
   const descriptor = getSeriesDescriptor(normalizedType);
   if (!descriptor) {
-    console.warn(`Unknown series type: ${seriesType} (normalized to ${normalizedType})`);
+    logger.warn(`Unknown series type: ${seriesType} (normalized to ${normalizedType})`, 'UnifiedPropertyMapper');
     return dialogConfig; // Fallback: return as-is
   }
 

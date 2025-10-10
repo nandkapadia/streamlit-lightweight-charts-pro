@@ -60,8 +60,8 @@ describe('PrimitiveDefaults - ButtonDimensions', () => {
   it('should have button dimension constants', () => {
     expect(ButtonDimensions.DEFAULT_WIDTH).toBe(24);
     expect(ButtonDimensions.DEFAULT_HEIGHT).toBe(24);
-    expect(ButtonDimensions.PANE_ACTION_WIDTH).toBe(16);
-    expect(ButtonDimensions.PANE_ACTION_HEIGHT).toBe(16);
+    expect(ButtonDimensions.PANE_ACTION_WIDTH).toBe(18);
+    expect(ButtonDimensions.PANE_ACTION_HEIGHT).toBe(18);
     expect(ButtonDimensions.MIN_WIDTH_RANGE).toBe(40);
     expect(ButtonDimensions.BORDER_RADIUS).toBe(4);
     expect(ButtonDimensions.PANE_ACTION_BORDER_RADIUS).toBe(3);

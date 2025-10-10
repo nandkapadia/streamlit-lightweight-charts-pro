@@ -4,8 +4,6 @@ import '@testing-library/jest-dom';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 
-// Mock console methods
-// const originalConsole = { ...console };
 beforeEach(() => {});
 
 afterEach(() => {});

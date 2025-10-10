@@ -8,6 +8,7 @@
 import { getSeriesDescriptor } from '../series/UnifiedSeriesFactory';
 import { normalizeSeriesType } from '../series/utils/seriesTypeNormalizer';
 import type { PropertyType } from '../series/core/UnifiedSeriesDescriptor';
+import { logger } from '../utils/logger';
 
 export type SettingType = 'boolean' | 'number' | 'color' | 'line' | 'lineStyle' | 'lineWidth';
 
@@ -43,14 +44,14 @@ export function getSeriesSettings(
     try {
       return primitive.constructor.getSettings();
     } catch (error) {
-      console.warn(`Error calling getSettings on ${seriesType}:`, error);
+      logger.warn(`Error calling getSettings on ${seriesType}`, 'seriesSettingsRegistry', error);
     }
   }
 
   // Get descriptor and derive settings from it
   const descriptor = getSeriesDescriptor(mappedType);
   if (!descriptor) {
-    console.warn(`Unknown series type: ${seriesType} (normalized to ${mappedType})`);
+    logger.warn(`Unknown series type: ${seriesType} (normalized to ${mappedType})`, 'seriesSettingsRegistry');
     return {};
   }
 

@@ -75,21 +75,29 @@ export default defineConfig({
     poolOptions: {
       forks: {
         singleFork: true,
-        isolate: false
+        isolate: true,  // Changed to true for better cleanup
+        maxForks: 1,
+        minForks: 1
       }
     },
-    // Reduce memory usage
+    // Reduce memory usage - run tests sequentially
     maxConcurrency: 1,
-    minThreads: 1,
-    maxThreads: 1,
     // Disable file watching for better memory management
     watch: false,
-    // Force garbage collection between tests
-    isolate: false,
-    // Optimize for memory
+    // Run tests in sequence with isolation for cleanup
+    sequence: {
+      shuffle: false,
+      concurrent: false,
+      hooks: 'stack'
+    },
+    // Optimize for memory - run files one at a time
     fileParallelism: false,
     // Set shorter timeouts to fail fast
-    hookTimeout: 30000
+    hookTimeout: 30000,
+    // Force garbage collection more aggressively
+    logHeapUsage: true,
+    // Bail on first failure to save memory (optional)
+    bail: 0
   },
   // Resolve configuration for better module resolution
   resolve: {

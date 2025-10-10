@@ -40,11 +40,22 @@ if (typeof global.document === 'undefined') {
   global.document = document;
 }
 
-// Document cleanup after each test
+// Document cleanup after each test with aggressive memory cleanup
 afterEach(() => {
   if (document.body) {
     document.body.innerHTML = '';
   }
+
+  // Force garbage collection if available
+  if (global.gc) {
+    global.gc();
+  }
+
+  // Clear any lingering timers
+  vi.clearAllTimers();
+
+  // Clear all mocks to free memory
+  vi.clearAllMocks();
 });
 
 // Mock performance API globally

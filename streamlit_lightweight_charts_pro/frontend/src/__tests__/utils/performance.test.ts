@@ -15,8 +15,6 @@ Object.defineProperty(window, 'performance', {
   writable: true,
 });
 
-// Mock console methods
-// const originalConsole = { ...console };
 beforeEach(() => {});
 
 afterEach(() => {});

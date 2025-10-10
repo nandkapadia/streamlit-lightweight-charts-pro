@@ -157,7 +157,7 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
     // Mark as mounted
     this.mounted = true;
 
-    // Register with layout manager
+    // Register with layout manager for positioning
     if (this.layoutManager) {
       this.layoutManager.registerWidget(this);
     }
@@ -192,21 +192,56 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
     this.mounted = false;
   }
 
+  private lastPaneCoords: { x: number; y: number; width: number; height: number } | null = null;
+
   /**
-   * Required IPanePrimitive method - provides pane views for rendering
-   * This enables immediate response to pane resize/redraw events
+   * IPanePrimitive interface - integrates with chart's rendering pipeline
+   *
+   * The draw() method is called automatically by the chart on every render cycle,
+   * allowing smooth position updates without manual DOM manipulation.
    */
   public paneViews(): any[] {
     return [
       {
         renderer: () => ({
           draw: () => {
-            // Empty draw method - layout updates should only happen on actual resize events
-            // not on every frame to avoid performance issues during pan/zoom operations
+            if (!this.chart || !this.mounted) return;
+
+            const paneId = this.getPaneId();
+            const newCoords = this.coordinateService.getPaneCoordinates(this.chart, paneId);
+
+            if (!newCoords) return;
+
+            if (this.hasCoordinatesChanged(newCoords)) {
+              this.lastPaneCoords = {
+                x: newCoords.x,
+                y: newCoords.y,
+                width: newCoords.width,
+                height: newCoords.height
+              };
+
+              if (this.layoutManager) {
+                this.layoutManager.updateChartDimensionsFromElement();
+              }
+            }
           },
         }),
       },
     ];
+  }
+
+  /**
+   * Check if pane coordinates changed (ignoring sub-pixel jitter)
+   */
+  private hasCoordinatesChanged(newCoords: { x: number; y: number; width: number; height: number }): boolean {
+    if (!this.lastPaneCoords) return true;
+
+    return (
+      Math.abs(this.lastPaneCoords.x - newCoords.x) > 1 ||
+      Math.abs(this.lastPaneCoords.y - newCoords.y) > 1 ||
+      Math.abs(this.lastPaneCoords.width - newCoords.width) > 1 ||
+      Math.abs(this.lastPaneCoords.height - newCoords.height) > 1
+    );
   }
 
   /**
@@ -367,31 +402,23 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   }
 
   /**
-   * Apply position to container element using lightweight-charts coordinate system
+   * Apply position to container using CSS (no chart re-render)
    */
   private applyPositionToContainer(position: Position): void {
     if (!this.containerElement) return;
 
     const style = this.containerElement.style;
-
-    // Use lightweight-charts coordinate system for positioning
     style.position = 'absolute';
     style.top = '';
     style.right = '';
     style.bottom = '';
     style.left = '';
 
-    // Apply coordinates that will be managed by lightweight-charts coordinate transforms
     if (position.top !== undefined) style.top = `${position.top}px`;
     if (position.right !== undefined) style.right = `${position.right}px`;
     if (position.bottom !== undefined) style.bottom = `${position.bottom}px`;
     if (position.left !== undefined) style.left = `${position.left}px`;
     if (position.zIndex !== undefined) style.zIndex = position.zIndex.toString();
-
-    // Request chart update to synchronize with lightweight-charts coordinate system
-    if (this.requestUpdate) {
-      this.requestUpdate();
-    }
   }
 
   /**
@@ -524,19 +551,11 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   private setupDefaultEventSubscriptions(): void {
     if (!this.eventManager) return;
 
-    // Subscribe to crosshair moves for template data updates
     const crosshairSub = this.eventManager.subscribe('crosshairMove', event => {
       this.handleCrosshairMove(event);
     });
     this.eventSubscriptions.push(crosshairSub);
 
-    // Subscribe to chart resize for layout updates
-    const resizeSub = this.eventManager.subscribe('resize', event => {
-      this.handleChartResize(event);
-    });
-    this.eventSubscriptions.push(resizeSub);
-
-    // Call subclass hook for additional subscriptions
     this.setupCustomEventSubscriptions();
   }
 
@@ -580,12 +599,6 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
    * Handle chart resize events
    */
   protected handleChartResize(event: { width: number; height: number }): void {
-    // Trigger layout recalculation
-    if (this.layoutManager) {
-      this.layoutManager.updateChartDimensions(event);
-    }
-
-    // Call subclass hook
     this.onChartResize(event);
   }
 

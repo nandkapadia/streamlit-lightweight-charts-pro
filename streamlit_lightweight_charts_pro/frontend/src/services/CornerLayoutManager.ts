@@ -11,6 +11,7 @@ import {
 import { IChartApi } from 'lightweight-charts';
 import { ChartCoordinateService } from './ChartCoordinateService';
 import { LayoutSpacing } from '../primitives/PrimitiveDefaults';
+import { KeyedSingletonManager, createInstanceKey } from '../utils/KeyedSingletonManager';
 
 /**
  * CornerLayoutManager - Centralized widget positioning system
@@ -18,9 +19,7 @@ import { LayoutSpacing } from '../primitives/PrimitiveDefaults';
  * Manages placement of UI widgets (Legend, RangeSwitcher, CollapseButton, etc.)
  * in chart corners with automatic stacking, spacing, and overflow handling.
  */
-export class CornerLayoutManager {
-  private static instances: Map<string, CornerLayoutManager> = new Map();
-
+export class CornerLayoutManager extends KeyedSingletonManager<CornerLayoutManager> {
   private config: LayoutConfig = {
     edgePadding: LayoutSpacing.EDGE_PADDING,
     widgetGap: LayoutSpacing.WIDGET_GAP,
@@ -52,41 +51,33 @@ export class CornerLayoutManager {
   private chartApi: IChartApi | null = null;
 
   private constructor(chartId: string, paneId: number) {
+    super();
     this.chartId = chartId;
     this.coordinateService = ChartCoordinateService.getInstance();
     this.paneId = paneId;
   }
 
   public static getInstance(chartId?: string, paneId?: number): CornerLayoutManager {
-    const id = `${chartId || 'default'}-pane-${paneId || 0}`;
-
-    if (!CornerLayoutManager.instances.has(id)) {
-      CornerLayoutManager.instances.set(
-        id,
-        new CornerLayoutManager(chartId || 'default', paneId || 0)
-      );
-    }
-    const instance = CornerLayoutManager.instances.get(id);
-    if (!instance) {
-      throw new Error(`CornerLayoutManager instance not found for id: ${id}`);
-    }
-    return instance;
+    const key = createInstanceKey(chartId, 'pane', paneId);
+    return KeyedSingletonManager.getOrCreateInstance(
+      'CornerLayoutManager',
+      key,
+      () => new CornerLayoutManager(chartId || 'default', paneId || 0)
+    );
   }
 
   public static cleanup(chartId: string, paneId?: number): void {
     if (paneId !== undefined) {
       // Clean up specific pane
-      const id = `${chartId}-pane-${paneId}`;
-      CornerLayoutManager.instances.delete(id);
+      const key = createInstanceKey(chartId, 'pane', paneId);
+      KeyedSingletonManager.destroyInstanceByKey('CornerLayoutManager', key);
     } else {
       // Clean up all panes for this chart
-      const keysToDelete = [];
-      for (const key of CornerLayoutManager.instances.keys()) {
-        if (key.startsWith(`${chartId}-pane-`)) {
-          keysToDelete.push(key);
-        }
-      }
-      keysToDelete.forEach(key => CornerLayoutManager.instances.delete(key));
+      const allKeys = KeyedSingletonManager.getInstanceKeys('CornerLayoutManager');
+      const keysToDelete = allKeys.filter(key => key.startsWith(`${chartId}-pane-`));
+      keysToDelete.forEach(key => {
+        KeyedSingletonManager.destroyInstanceByKey('CornerLayoutManager', key);
+      });
     }
   }
 
@@ -441,5 +432,25 @@ export class CornerLayoutManager {
    */
   public getChartId(): string {
     return this.chartId;
+  }
+
+  /**
+   * Cleanup instance resources
+   */
+  public destroy(): void {
+    // Clear all corner states
+    Object.keys(this.cornerStates).forEach(corner => {
+      this.cornerStates[corner as Corner].widgets = [];
+      this.cornerStates[corner as Corner].totalHeight = 0;
+      this.cornerStates[corner as Corner].totalWidth = 0;
+    });
+
+    // Clear events
+    this.events = {};
+
+    // Clear all references to allow garbage collection
+    (this as any).chartApi = null;
+    (this as any).coordinateService = null;
+    (this as any).config = null;
   }
 }

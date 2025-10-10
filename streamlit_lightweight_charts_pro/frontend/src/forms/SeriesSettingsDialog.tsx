@@ -12,7 +12,6 @@
 
 import React, { useState, useCallback, useTransition, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { FocusTrap } from 'focus-trap-react';
 import { logger } from '../utils/logger';
 import { LineEditorDialog } from './LineEditorDialog';
 import { ColorPickerDialog } from './ColorPickerDialog';
@@ -160,8 +159,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
   // Helper function to generate tab titles with fallback logic
   const getTabTitle = useCallback((series: SeriesInfo, index: number): string => {
-    // If the series has a title (from series.title), use it
-    const seriesTitle = (series as any).title;
+    // If the series has a title (from seriesConfigs), use it
+    const seriesTitle = seriesConfigs[series.id]?.title;
     if (seriesTitle && seriesTitle.trim()) {
       return seriesTitle.trim();
     }
@@ -170,30 +169,56 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     const typeDisplayName = series.type.charAt(0).toUpperCase() + series.type.slice(1);
     const seriesNumber = index + 1;
     return `${typeDisplayName} Series ${seriesNumber}`;
-  }, []);
+  }, [seriesConfigs]);
 
   // Store previously focused element for restoration
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  // Handle dialog open/close lifecycle with proper cleanup
+  // Handle dialog open/close lifecycle
   useEffect(() => {
     if (isOpen) {
       // Store current focus when dialog opens
       previousFocusRef.current = document.activeElement as HTMLElement;
-      // Add modal class and prevent body scroll
-      document.body.classList.add('modal-open');
+
+      // Add modal class to body
+      document.body.classList.add('modal-open', 'series-dialog-open');
+
+      // Prevent body scroll
       document.body.style.overflow = 'hidden';
+    } else {
+      // Restore body state when dialog closes
+      document.body.classList.remove('modal-open', 'series-dialog-open');
+      document.body.style.overflow = '';
+      document.body.style.pointerEvents = '';
+
+      // Blur the previously focused element (button) to allow chart interaction
+      setTimeout(() => {
+        // Unconditionally blur the previously focused button
+        if (previousFocusRef.current) {
+          try {
+            (previousFocusRef.current as HTMLElement).blur();
+          } catch (error) {
+            logger.debug('Could not blur previous element', 'SeriesSettings', error);
+          }
+        }
+
+        // Also blur any currently active element
+        if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) {
+          document.activeElement.blur();
+        }
+
+        // Final check: ensure body doesn't block pointer events
+        document.body.style.pointerEvents = '';
+      }, 50);
     }
   }, [isOpen]);
 
-  // Cleanup effect - restore focus and body state on unmount
+  // Cleanup effect to ensure body state is always reset on unmount
   useEffect(() => {
     return () => {
-      if (previousFocusRef.current) {
-        previousFocusRef.current.focus();
-      }
-      document.body.classList.remove('modal-open');
+      document.body.classList.remove('modal-open', 'series-dialog-open');
       document.body.style.overflow = '';
+      document.body.style.pointerEvents = '';
     };
   }, []);
 
@@ -292,7 +317,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     });
   }
 
-  // Close handler - focus restoration handled automatically by cleanup effect
+  // Close handler - just close the dialog, focus restoration handled by useEffect
   const handleCloseWithFocusRestore = useCallback(() => {
     onClose();
   }, [onClose]);
@@ -419,23 +444,15 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <FocusTrap
-      active={isOpen}
-      focusTrapOptions={{
-        allowOutsideClick: true,
-        returnFocusOnDeactivate: true,
-        fallbackFocus: () => document.body,
-      }}
-    >
-      <div
-        className='series-config-overlay'
-        onClick={handleBackdropClick}
-        onKeyDown={handleKeyDown}
-        role='dialog'
-        aria-modal='true'
-        aria-labelledby='series-settings-title'
-        aria-describedby='series-settings-description'
-        tabIndex={-1}
+    <div
+      className='series-config-overlay'
+      onClick={handleBackdropClick}
+      onKeyDown={handleKeyDown}
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='series-settings-title'
+      aria-describedby='series-settings-description'
+      tabIndex={-1}
       style={{
         position: 'fixed',
         top: 0,
@@ -830,8 +847,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           onCancel={() => setColorPickerOpen({ isOpen: false })}
         />
       )}
-    </div>
-    </FocusTrap>,
+    </div>,
     document.body
   );
 };

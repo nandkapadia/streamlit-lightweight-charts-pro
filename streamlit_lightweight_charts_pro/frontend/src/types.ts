@@ -182,8 +182,8 @@ export interface PaneHeightOptions {
   factor: number;
 }
 
-// Pane Collapse Configuration
-export interface PaneCollapseConfig {
+// Button Panel Configuration
+export interface ButtonPanelConfig {
   enabled?: boolean; // Defaults to true - set to false to disable
   buttonSize?: number;
   buttonColor?: string;
@@ -191,7 +191,7 @@ export interface PaneCollapseConfig {
   buttonBackground?: string;
   buttonHoverBackground?: string;
   buttonBorderRadius?: number;
-  corner?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'; // Corner position for the collapse button
+  corner?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'; // Corner position for the button panel
   zIndex?: number; // Z-index for button positioning
   showTooltip?: boolean;
   tooltipText?: {
@@ -209,6 +209,10 @@ export interface PaneCollapseConfig {
     _config: Record<string, unknown>
   ) => void;
 }
+
+// Deprecated: Use ButtonPanelConfig instead
+/** @deprecated Use ButtonPanelConfig instead */
+export type PaneCollapseConfig = ButtonPanelConfig;
 
 // Signal Series Configuration
 export interface SignalData {

@@ -456,8 +456,6 @@ export function areCoordinatesStale(coordinates: ChartCoordinates, maxAge: numbe
 export function logValidationResult(result: ValidationResult, _context: string = ''): void {
   if (process.env.NODE_ENV !== 'development') return;
 
-  // const prefix = context ? `[${context}] ` : ''
-
   if (!result.isValid) {
     logger.error('Coordinate validation failed', 'CoordinateValidation', result.errors);
   }

@@ -64,6 +64,7 @@ export const DIMENSIONS = {
     maxHeight: 1000,
     minWidth: 200,
     maxWidth: 2000,
+    collapsedHeight: 30, // Height when pane is collapsed (30px is minimum per lightweight-charts API)
   },
   chart: {
     defaultWidth: 800,
@@ -110,6 +111,8 @@ export const TIMING = {
   debounceDelay: 100, // 100ms
   throttleDelay: 50, // 50ms
   animationDuration: 200, // 200ms
+  chartReadyDelay: 300, // 300ms - Delay for chart initialization
+  backendSyncDebounce: 300, // 300ms - Debounce for backend sync operations
 } as const;
 
 /**
@@ -159,6 +162,22 @@ export function validateConfiguration(): boolean {
 
   return true;
 }
+
+/**
+ * CSS class name generators
+ * Centralizes all dynamic class name generation
+ */
+export const CSS_CLASSES = {
+  /**
+   * Generate series configuration dialog container class name
+   */
+  seriesDialogContainer: (paneId: number): string => `series-config-dialog-container-${paneId}`,
+
+  /**
+   * Generate pane button panel container class name
+   */
+  paneButtonPanelContainer: (paneId: number): string => `pane-button-panel-container-${paneId}`,
+} as const;
 
 // Validate configuration on load
 if (process.env.NODE_ENV === 'development') {

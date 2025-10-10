@@ -16,7 +16,6 @@ import {
   createTradeVisualElements,
   convertTradeRectanglesToPluginFormat,
   convertTradeRectanglesToPluginFormatWhenReady,
-  createTradeRectanglePrimitives,
   type TradeRectangleData,
 } from '../../services/tradeVisualization';
 import type { TradeConfig, TradeVisualizationOptions } from '../../types';
@@ -1084,12 +1083,4 @@ describe('Trade Visualization Service', () => {
     });
   });
 
-  describe('createTradeRectanglePrimitives (deprecated)', () => {
-    it('should return empty array', () => {
-      const rectangles: TradeRectangleData[] = [];
-      const result = createTradeRectanglePrimitives(rectangles);
-
-      expect(result).toEqual([]);
-    });
-  });
 });

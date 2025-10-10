@@ -19,6 +19,7 @@ import {
   BarSeries,
   CandlestickSeries,
   BaselineSeries,
+  IChartApi,
 } from 'lightweight-charts';
 import { UnifiedSeriesDescriptor, PropertyDescriptors } from '../core/UnifiedSeriesDescriptor';
 
@@ -55,9 +56,9 @@ export const LINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<LineSeriesOptions> 
   },
 
   create: (chart, data, options, paneId = 0) => {
-    const series = chart.addSeries(LineSeries, options, paneId);
+    const series = (chart as IChartApi).addSeries(LineSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data);
+      series.setData(data as never[]);
     }
     return series;
   },
@@ -106,9 +107,9 @@ export const AREA_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<AreaSeriesOptions> 
   },
 
   create: (chart, data, options, paneId = 0) => {
-    const series = chart.addSeries(AreaSeries, options, paneId);
+    const series = (chart as IChartApi).addSeries(AreaSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data);
+      series.setData(data as never[]);
     }
     return series;
   },
@@ -137,9 +138,9 @@ export const HISTOGRAM_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<HistogramSerie
   },
 
   create: (chart, data, options, paneId = 0) => {
-    const series = chart.addSeries(HistogramSeries, options, paneId);
+    const series = (chart as IChartApi).addSeries(HistogramSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data);
+      series.setData(data as never[]);
     }
     return series;
   },
@@ -172,9 +173,9 @@ export const BAR_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BarSeriesOptions> = 
   },
 
   create: (chart, data, options, paneId = 0) => {
-    const series = chart.addSeries(BarSeries, options, paneId);
+    const series = (chart as IChartApi).addSeries(BarSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data);
+      series.setData(data as never[]);
     }
     return series;
   },
@@ -219,9 +220,9 @@ export const CANDLESTICK_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<CandlestickS
   },
 
   create: (chart, data, options, paneId = 0) => {
-    const series = chart.addSeries(CandlestickSeries, options, paneId);
+    const series = (chart as IChartApi).addSeries(CandlestickSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data);
+      series.setData(data as never[]);
     }
     return series;
   },
@@ -272,9 +273,9 @@ export const BASELINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BaselineSeriesO
   },
 
   create: (chart, data, options, paneId = 0) => {
-    const series = chart.addSeries(BaselineSeries, options, paneId);
+    const series = (chart as IChartApi).addSeries(BaselineSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data);
+      series.setData(data as never[]);
     }
     return series;
   },

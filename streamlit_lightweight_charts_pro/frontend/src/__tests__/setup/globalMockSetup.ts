@@ -17,7 +17,6 @@ import {
   mockPrimitivePriority,
   createMockLegendPrimitive,
   createMockRangeSwitcherPrimitive,
-  createMockButtonPanelPlugin,
   setupGlobalMocks,
 } from '../mocks/GlobalMockFactory';
 
@@ -110,15 +109,8 @@ vi.mock('../../primitives/RangeSwitcherPrimitive', () => ({
   DefaultRangeConfigs: mockDefaultRangeConfigs,
 }));
 
-// Mock button panel plugin
-vi.mock('../../plugins/chart/paneButtonPanelPlugin', () => ({
-  createPaneButtonPanelPlugin: vi
-    .fn()
-    .mockImplementation((paneId, config, chartId) =>
-      createMockButtonPanelPlugin(paneId, config, chartId)
-    ),
-  PaneButtonPanelPlugin: vi.fn(),
-}));
+// Note: ButtonPanelPrimitive is not mocked globally since it's tested directly
+// and used by production code. Tests that need it mocked should mock it locally.
 
 // Mock primitive priority constants
 vi.mock('../../primitives/BasePanePrimitive', () => ({

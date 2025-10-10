@@ -32,8 +32,6 @@ describe('ChartCoordinateService', () => {
   let service: ChartCoordinateService;
   let mockChart: IChartApi;
   let mockContainer: HTMLElement;
-  // let mockTimeScale: ITimeScaleApi<any>;
-  // let mockPriceScale: IPriceScaleApi;
   let mockSeries: ISeriesApi<any>;
 
   beforeEach(() => {

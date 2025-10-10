@@ -11,6 +11,7 @@ import {
   ISeriesApi,
   LineStyle,
   LineWidth,
+  SeriesOptionsMap,
 } from 'lightweight-charts';
 
 /**
@@ -44,7 +45,7 @@ export interface PropertyDescriptor {
   label: string;
 
   /** Default value */
-  default: any;
+  default: unknown;
 
   /** API property names when flattened (for 'line' type) */
   apiMapping?: {
@@ -57,7 +58,7 @@ export interface PropertyDescriptor {
   };
 
   /** Optional validation function */
-  validate?: (value: any) => boolean;
+  validate?: (value: unknown) => boolean;
 
   /** Optional property description for tooltips */
   description?: string;
@@ -72,18 +73,18 @@ export interface PropertyDescriptor {
 /**
  * Series creator function type
  */
-export type SeriesCreator<T = any> = (
-  chart: any,
-  data: any[],
+export type SeriesCreator<T = unknown> = (
+  chart: unknown,
+  data: unknown[],
   options: Partial<T>,
   paneId?: number
-) => ISeriesApi<any>;
+) => ISeriesApi<keyof SeriesOptionsMap>;
 
 /**
  * Unified Series Descriptor - Single source of truth for a series type
  * T represents the full series options (style + common options)
  */
-export interface UnifiedSeriesDescriptor<T = any> {
+export interface UnifiedSeriesDescriptor<T = unknown> {
   /** Series type identifier (e.g., 'Line', 'Area', 'Band') */
   type: string;
 
@@ -205,10 +206,10 @@ export const PropertyDescriptors = {
 /**
  * Helper to extract default options from property descriptors
  */
-export function extractDefaultOptions<T = any>(
+export function extractDefaultOptions<T = unknown>(
   descriptor: UnifiedSeriesDescriptor<T>
 ): Partial<T> {
-  const options: any = { ...descriptor.defaultOptions };
+  const options: Record<string, unknown> = { ...descriptor.defaultOptions };
 
   for (const [propName, propDesc] of Object.entries(descriptor.properties)) {
     if (propDesc.type === 'line' && propDesc.apiMapping) {
@@ -228,17 +229,17 @@ export function extractDefaultOptions<T = any>(
     }
   }
 
-  return options;
+  return options as Partial<T>;
 }
 
 /**
  * Helper to convert dialog config to API options using descriptor
  */
-export function dialogConfigToApiOptions<T = any>(
+export function dialogConfigToApiOptions<T = unknown>(
   descriptor: UnifiedSeriesDescriptor<T>,
-  dialogConfig: any
+  dialogConfig: Record<string, unknown>
 ): Partial<T> {
-  const apiOptions: any = {};
+  const apiOptions: Record<string, unknown> = {};
 
   // Common properties (always flat)
   if (dialogConfig.visible !== undefined) apiOptions.visible = dialogConfig.visible;
@@ -254,7 +255,7 @@ export function dialogConfigToApiOptions<T = any>(
 
     if (propDesc.type === 'line' && propDesc.apiMapping) {
       // Flatten line config
-      const lineConfig = dialogConfig[propName];
+      const lineConfig = dialogConfig[propName] as Record<string, unknown>;
       if (lineConfig && typeof lineConfig === 'object') {
         if (lineConfig.color !== undefined && propDesc.apiMapping.colorKey) {
           apiOptions[propDesc.apiMapping.colorKey] = lineConfig.color;
@@ -272,17 +273,17 @@ export function dialogConfigToApiOptions<T = any>(
     }
   }
 
-  return apiOptions;
+  return apiOptions as Partial<T>;
 }
 
 /**
  * Helper to convert API options to dialog config using descriptor
  */
-export function apiOptionsToDialogConfig<T = any>(
+export function apiOptionsToDialogConfig<T = unknown>(
   descriptor: UnifiedSeriesDescriptor<T>,
-  apiOptions: any
-): any {
-  const dialogConfig: any = {};
+  apiOptions: Record<string, unknown>
+): Record<string, unknown> {
+  const dialogConfig: Record<string, unknown> = {};
 
   // Common properties (always flat)
   if (apiOptions.visible !== undefined) dialogConfig.visible = apiOptions.visible;
@@ -296,7 +297,7 @@ export function apiOptionsToDialogConfig<T = any>(
   for (const [propName, propDesc] of Object.entries(descriptor.properties)) {
     if (propDesc.type === 'line' && propDesc.apiMapping) {
       // Unflatten line properties
-      const lineConfig: any = {};
+      const lineConfig: Record<string, unknown> = {};
       let hasValue = false;
 
       if (propDesc.apiMapping.colorKey && apiOptions[propDesc.apiMapping.colorKey] !== undefined) {

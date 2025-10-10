@@ -5,12 +5,12 @@
  * Each descriptor is the single source of truth for that series type.
  */
 
-import { LineStyle } from 'lightweight-charts';
+import { LineStyle, IChartApi } from 'lightweight-charts';
 import { UnifiedSeriesDescriptor, PropertyDescriptors } from '../core/UnifiedSeriesDescriptor';
-import { createBandSeries } from '../../plugins/series/bandSeriesPlugin';
-import { createRibbonSeries } from '../../plugins/series/ribbonSeriesPlugin';
-import { createGradientRibbonSeries } from '../../plugins/series/gradientRibbonSeriesPlugin';
-import { createSignalSeries } from '../../plugins/series/signalSeriesPlugin';
+import { createBandSeries, type BandData } from '../../plugins/series/bandSeriesPlugin';
+import { createRibbonSeries, type RibbonData } from '../../plugins/series/ribbonSeriesPlugin';
+import { createGradientRibbonSeries, type GradientRibbonData } from '../../plugins/series/gradientRibbonSeriesPlugin';
+import { createSignalSeries, type SignalData } from '../../plugins/series/signalSeriesPlugin';
 import { createTrendFillSeries } from '../../plugins/series/trendFillSeriesPlugin';
 
 /**
@@ -89,7 +89,7 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   } as any, // Factory accepts additional options beyond primitive options
 
   create: (chart, data, options, _paneId = 0) => {
-    return createBandSeries(chart, { ...options, data });
+    return createBandSeries(chart as IChartApi, { ...options, data: data as BandData[] });
   },
 };
 
@@ -149,7 +149,7 @@ export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   } as any, // Factory accepts additional options beyond primitive options
 
   create: (chart, data, options, _paneId = 0) => {
-    return createRibbonSeries(chart, { ...options, data });
+    return createRibbonSeries(chart as IChartApi, { ...options, data: data as RibbonData[] });
   },
 };
 
@@ -224,7 +224,7 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   } as any, // Factory accepts additional options beyond primitive options
 
   create: (chart, data, options, _paneId = 0) => {
-    return createGradientRibbonSeries(chart, { ...options, data });
+    return createGradientRibbonSeries(chart as IChartApi, { ...options, data: data as GradientRibbonData[] });
   },
 };
 
@@ -254,7 +254,7 @@ export const SIGNAL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   } as any, // Factory accepts additional options beyond primitive options
 
   create: (chart, data, options, _paneId = 0) => {
-    return createSignalSeries(chart, { ...options, data });
+    return createSignalSeries(chart as IChartApi, { ...options, data: data as SignalData[] });
   },
 };
 
@@ -340,7 +340,7 @@ export const TREND_FILL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   } as any, // Factory accepts additional options beyond primitive options
 
   create: (chart, data, options, _paneId = 0) => {
-    return createTrendFillSeries(chart, { ...options, data });
+    return createTrendFillSeries(chart as IChartApi, { ...options, data: data as never });
   },
 };
 

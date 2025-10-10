@@ -4,10 +4,16 @@
  * This component provides the gear and collapse buttons for chart panes,
  * combining series configuration and pane management functionality in a
  * unified interface positioned in the top-right corner of each pane.
+ *
+ * Uses the extensible button architecture allowing custom buttons to be
+ * added via the customButtons prop.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { ButtonColors, ButtonDimensions, ButtonEffects } from '../primitives/PrimitiveDefaults';
+import { GearButton } from './buttons/types/GearButton';
+import { CollapseButton } from './buttons/types/CollapseButton';
+import { createButtonRegistry } from './buttons/base/ButtonRegistry';
 
 /**
  * Props for the ButtonPanelComponent.
@@ -42,6 +48,8 @@ interface ButtonPanelComponentProps {
     /** Whether to show tooltips */
     showTooltip?: boolean;
   };
+  /** Custom buttons to add to the panel (in addition to gear and collapse) */
+  customButtons?: import('./buttons/base/BaseButton').BaseButton[];
 }
 
 /**
@@ -49,17 +57,22 @@ interface ButtonPanelComponentProps {
  *
  * Renders a panel with gear (series configuration) and collapse buttons
  * positioned in the top-right corner of a chart pane. The gear button
- * always shows and opens the series configuration dialog, while the
- * collapse button can be conditionally hidden.
+ * opens the series configuration dialog, while the collapse button
+ * can be conditionally hidden.
+ *
+ * Uses the extensible button architecture (BaseButton, GearButton, CollapseButton)
+ * allowing additional custom buttons to be added via the customButtons prop.
  *
  * @param props - Button panel configuration and event handlers
  * @returns The rendered button panel component
  *
- * @example
+ * @example Basic usage
  * ```tsx
  * <ButtonPanelComponent
  *   paneId={0}
  *   isCollapsed={false}
+ *   onGearClick={() => openSettings()}
+ *   onCollapseClick={() => toggleCollapse()}
  *   showCollapseButton={true}
  *   config={{
  *     buttonSize: 16,
@@ -68,31 +81,103 @@ interface ButtonPanelComponentProps {
  *   }}
  * />
  * ```
+ *
+ * @example With custom buttons
+ * ```tsx
+ * const deleteButton = new DeleteButton({
+ *   id: 'delete',
+ *   tooltip: 'Delete series',
+ *   onDeleteClick: () => removeSeries(),
+ * });
+ *
+ * <ButtonPanelComponent
+ *   paneId={0}
+ *   isCollapsed={false}
+ *   onGearClick={() => openSettings()}
+ *   onCollapseClick={() => toggleCollapse()}
+ *   customButtons={[deleteButton]}
+ * />
+ * ```
  */
 export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
-  paneId: _paneId,
+  paneId,
   isCollapsed,
   onCollapseClick,
   onGearClick,
-  showCollapseButton = true, // Default to true for backward compatibility
-  showGearButton = true, // Default to true for backward compatibility
-  config = {}, // Default to empty object
+  showCollapseButton = true,
+  showGearButton = true,
+  config = {},
+  customButtons = [],
 }) => {
-  const [hoveredButton, setHoveredButton] = useState<'collapse' | 'gear' | null>(null);
-  const [pressedButton, setPressedButton] = useState<'collapse' | 'gear' | null>(null);
-  const [lastClickTime, setLastClickTime] = useState<{ collapse: number; gear: number }>({
-    collapse: 0,
-    gear: 0,
-  });
-  const DEBOUNCE_DELAY = 300; // ms
+  // Create button registry for managing buttons
+  const registry = useMemo(() => createButtonRegistry(), []);
 
-  // Use PrimitiveDefaults with fallbacks to config overrides
-  const buttonSize = config.buttonSize ?? ButtonDimensions.PANE_ACTION_WIDTH;
-  const buttonColor = config.buttonColor ?? ButtonColors.DEFAULT_COLOR;
-  const buttonBackground = config.buttonBackground ?? ButtonColors.DEFAULT_BACKGROUND;
-  const buttonBorderRadius = config.buttonBorderRadius ?? 3;
-  const buttonHoverColor = config.buttonHoverColor ?? ButtonColors.HOVER_COLOR;
-  const buttonHoverBackground = config.buttonHoverBackground ?? ButtonColors.HOVER_BACKGROUND;
+  // Build button styling config from props (with PrimitiveDefaults fallbacks)
+  const buttonStyling = useMemo(() => ({
+    size: config.buttonSize ?? ButtonDimensions.PANE_ACTION_WIDTH,
+    color: config.buttonColor ?? ButtonColors.DEFAULT_COLOR,
+    background: config.buttonBackground ?? ButtonColors.DEFAULT_BACKGROUND,
+    borderRadius: config.buttonBorderRadius ?? 3,
+    hoverColor: config.buttonHoverColor ?? ButtonColors.HOVER_COLOR,
+    hoverBackground: config.buttonHoverBackground ?? ButtonColors.HOVER_BACKGROUND,
+    border: ButtonEffects.DEFAULT_BORDER,
+    hoverBoxShadow: ButtonEffects.HOVER_BOX_SHADOW,
+  }), [config]);
+
+  // Initialize buttons when dependencies change
+  useEffect(() => {
+    // Clear existing buttons
+    registry.clear();
+
+    // Add gear button if enabled
+    if (showGearButton) {
+      const gearButton = new GearButton({
+        id: `gear-button-pane-${paneId}`,
+        tooltip: 'Series Settings',
+        onGearClick: onGearClick,
+        styling: buttonStyling,
+      });
+      registry.register(gearButton, 10); // Priority 10 (appears first)
+    }
+
+    // Add collapse button if enabled
+    if (showCollapseButton) {
+      const collapseButton = new CollapseButton({
+        id: `collapse-button-pane-${paneId}`,
+        tooltip: isCollapsed ? 'Expand pane' : 'Collapse pane',
+        isCollapsed: isCollapsed,
+        onCollapseClick: onCollapseClick,
+        styling: buttonStyling,
+      });
+      registry.register(collapseButton, 20); // Priority 20 (appears after gear)
+    }
+
+    // Add custom buttons (lower priority, appear after built-in buttons)
+    customButtons.forEach((button, index) => {
+      registry.register(button, 100 + index);
+    });
+  }, [
+    paneId,
+    isCollapsed,
+    onCollapseClick,
+    onGearClick,
+    showCollapseButton,
+    showGearButton,
+    buttonStyling,
+    customButtons,
+    registry,
+  ]);
+
+  // Update collapse button state when isCollapsed changes
+  useEffect(() => {
+    const collapseButton = registry.getButton(`collapse-button-pane-${paneId}`);
+    if (collapseButton && collapseButton instanceof CollapseButton) {
+      collapseButton.setCollapsedState(isCollapsed);
+    }
+  }, [isCollapsed, paneId, registry]);
+
+  // Get all visible buttons from registry
+  const buttons = registry.getVisibleButtons();
 
   const panelStyle: React.CSSProperties = {
     display: 'flex',
@@ -100,123 +185,13 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
     zIndex: 1000,
   };
 
-  const getButtonStyle = (buttonType: 'collapse' | 'gear'): React.CSSProperties => {
-    const isHovered = hoveredButton === buttonType;
-    const isPressed = pressedButton === buttonType;
-    return {
-      width: `${buttonSize}px`,
-      height: `${buttonSize}px`,
-      background: isHovered ? buttonHoverBackground : buttonBackground,
-      border: ButtonEffects.DEFAULT_BORDER,
-      borderRadius: `${buttonBorderRadius}px`,
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: isHovered ? buttonHoverColor : buttonColor,
-      transition: 'all 0.1s ease',
-      userSelect: 'none',
-      boxShadow: isHovered ? ButtonEffects.HOVER_BOX_SHADOW : 'none',
-      transform: isPressed ? 'scale(0.9)' : 'scale(1)',
-    };
-  };
-
-  // Debounced click handlers
-  const handleGearClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const now = Date.now();
-    if (now - lastClickTime.gear < DEBOUNCE_DELAY) {
-      return; // Ignore click if too soon
-    }
-
-    setLastClickTime(prev => ({ ...prev, gear: now }));
-    onGearClick();
-  };
-
-  const handleCollapseClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const now = Date.now();
-    if (now - lastClickTime.collapse < DEBOUNCE_DELAY) {
-      return; // Ignore click if too soon
-    }
-
-    setLastClickTime(prev => ({ ...prev, collapse: now }));
-    onCollapseClick();
-  };
-
   return (
     <div className='button-panel' style={panelStyle}>
-      {/* Gear Button - Only show when enabled */}
-      {showGearButton && (
-        <div
-          className='gear-button'
-          style={getButtonStyle('gear')}
-          onMouseEnter={() => setHoveredButton('gear')}
-          onMouseLeave={() => {
-            setHoveredButton(null);
-            setPressedButton(null);
-          }}
-          onMouseDown={() => setPressedButton('gear')}
-          onMouseUp={() => setPressedButton(null)}
-          onClick={handleGearClick}
-          title='Series Settings'
-        >
-          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' width='14' height='14'>
-            <path
-              fill='currentColor'
-              fillRule='evenodd'
-              d='m3.1 9 2.28-5h7.24l2.28 5-2.28 5H5.38L3.1 9Zm1.63-6h8.54L16 9l-2.73 6H4.73L2 9l2.73-6Zm5.77 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm1 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z'
-            ></path>
-          </svg>
-        </div>
-      )}
-
-      {/* Collapse Button - Only show when multiple panes exist */}
-      {showCollapseButton && (
-        <div
-          className='collapse-button'
-          style={getButtonStyle('collapse')}
-          onMouseEnter={() => setHoveredButton('collapse')}
-          onMouseLeave={() => {
-            setHoveredButton(null);
-            setPressedButton(null);
-          }}
-          onMouseDown={() => setPressedButton('collapse')}
-          onMouseUp={() => setPressedButton(null)}
-          onClick={handleCollapseClick}
-          title={isCollapsed ? 'Expand pane' : 'Collapse pane'}
-        >
-          {isCollapsed ? (
-            // Expand icon (reversed double chevron)
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              viewBox='0 0 15 15'
-              width='12'
-              height='12'
-              fill='none'
-            >
-              <path stroke='currentColor' d='M4 13l3.5-3 3.5 3' className='bracket-down'></path>
-              <path stroke='currentColor' d='M11 2 7.5 5 4 2' className='bracket-up'></path>
-            </svg>
-          ) : (
-            // Collapse icon (double chevron)
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              viewBox='0 0 15 15'
-              width='12'
-              height='12'
-              fill='none'
-            >
-              <path stroke='currentColor' d='M11 2 7.5 5 4 2' className='bracket-up'></path>
-              <path stroke='currentColor' d='M4 13l3.5-3 3.5 3' className='bracket-down'></path>
-            </svg>
-          )}
-        </div>
-      )}
+      {buttons.map(button => (
+        <React.Fragment key={button.getId()}>
+          {button.render()}
+        </React.Fragment>
+      ))}
     </div>
   );
 };

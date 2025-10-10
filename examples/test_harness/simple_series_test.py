@@ -660,32 +660,88 @@ def main():
     )
     signal_chart.render(key="signal_test")
 
-    # Multi-pane chart with proper pane configuration
-    st.subheader("Multi-Pane Chart")
+    # Multi-pane chart with legends and range switcher
+    st.subheader("Multi-Pane Chart with Legends & Range Switcher")
 
-    # Create chart with multiple panes
-    multi_pane_chart = Chart()
-
-    # Add candlestick series to pane 0 (main price pane)
-    candlestick_series = multi_pane_chart.add_series(
-        CandlestickSeries(data=data["ohlcv_data"], pane_id=0),
+    # Import legend and range switcher options
+    from streamlit_lightweight_charts_pro.charts.options import ChartOptions
+    from streamlit_lightweight_charts_pro.charts.options.ui_options import (
+        LegendOptions,
+        RangeConfig,
+        RangeSwitcherOptions,
+        TimeRange,
     )
-    candlestick_series.title = "Price"
 
-    # Add line series to same pane for better visibility
-    line_series = multi_pane_chart.add_series(LineSeries(data=data["line_data"], pane_id=2))
-    line_series.color = "#2196F3"  # Set color after creation
+    # Create range switcher configuration
+    range_switcher = RangeSwitcherOptions(
+        visible=True,
+        position="top-right",
+        ranges=[
+            RangeConfig(text="1D", tooltip="1 Day", range=TimeRange.ONE_DAY),
+            RangeConfig(text="1W", tooltip="1 Week", range=TimeRange.ONE_WEEK),
+            RangeConfig(text="1M", tooltip="1 Month", range=TimeRange.ONE_MONTH),
+            RangeConfig(text="3M", tooltip="3 Months", range=TimeRange.THREE_MONTHS),
+            RangeConfig(text="6M", tooltip="6 Months", range=TimeRange.SIX_MONTHS),
+            RangeConfig(text="1Y", tooltip="1 Year", range=TimeRange.ONE_YEAR),
+            RangeConfig(text="All", tooltip="All Data", range=TimeRange.ALL),
+        ],
+    )
+
+    # Create series with titles
+    candlestick_series = CandlestickSeries(data=data["ohlcv_data"], pane_id=0)
+    candlestick_series.title = f"{symbol} Price"
+
+    volume_series = HistogramSeries(data=data["volume_data"], pane_id=1)
+    volume_series.title = "Volume"
+    volume_series.color = "#26A69A"
+
+    line_series = LineSeries(data=data["line_data"], pane_id=2)
+    line_series.color = "#2196F3"
     line_series.title = "RSI"
 
-    # Add volume histogram to pane 1 (volume pane)
-    volume_series = multi_pane_chart.add_series(
-        HistogramSeries(data=data["volume_data"], pane_id=1),
+    # Create chart with range switcher
+    multi_pane_chart = Chart(
+        options=ChartOptions(range_switcher=range_switcher),
+        series=[candlestick_series, volume_series, line_series],
     )
-    volume_series.title = "Volume"
+
+    # Add legends to series (must be done after series are added to chart)
+    multi_pane_chart.series[0].legend = LegendOptions(
+        visible=True,
+        position="top-left",
+        text=f"<span style='font-weight: bold;'>{symbol}</span>",
+        background_color="rgba(255, 255, 255, 0.9)",
+        border_color="#e1e3e6",
+        border_width=1,
+        padding=6,
+    )
+
+    multi_pane_chart.series[1].legend = LegendOptions(
+        visible=True,
+        position="top-left",
+        text="<span style='font-weight: bold; color: #26A69A;'>Volume</span>",
+        background_color="rgba(255, 255, 255, 0.9)",
+        border_color="#26A69A",
+        border_width=1,
+        padding=6,
+    )
+
+    multi_pane_chart.series[2].legend = LegendOptions(
+        visible=True,
+        position="top-left",
+        text="<span style='font-weight: bold; color: #2196F3;'>RSI</span>",
+        background_color="rgba(255, 255, 255, 0.9)",
+        border_color="#2196F3",
+        border_width=1,
+        padding=6,
+    )
 
     multi_pane_chart.render(key="multi_pane_test")
 
-    st.caption("Price candlesticks + line in top pane, volume histogram in bottom pane")
+    st.caption(
+        f"{symbol} price with candlesticks (Pane 0), Volume histogram (Pane 1), "
+        "RSI indicator (Pane 2) - Interactive legends and time range selector included",
+    )
 
     # Chart with annotations
     st.subheader("Chart with Annotations")

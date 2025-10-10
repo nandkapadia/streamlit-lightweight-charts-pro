@@ -11,6 +11,8 @@ import { SeriesConfiguration, SeriesType } from '../types/SeriesTypes';
 import { logger } from '../utils/logger';
 import { Singleton } from '../utils/SingletonBase';
 import { isStreamlitComponentReady } from '../hooks/useStreamlit';
+import { handleError, ErrorSeverity } from '../utils/errorHandler';
+import { TIMING } from '../config/positioningConfig';
 
 /**
  * Event data for series configuration changes.
@@ -47,10 +49,20 @@ export class StreamlitSeriesConfigService {
   private configState: SeriesConfigState = {};
   private pendingChanges: SeriesConfigChangeEvent[] = [];
   private debounceTimer: NodeJS.Timeout | null = null;
-  private readonly debounceDelay = 300; // 300ms debounce
+  private readonly debounceDelay = TIMING.backendSyncDebounce;
 
   private constructor() {
     // Private constructor for singleton
+  }
+
+  /**
+   * Initialize the service with backend data (called from main component)
+   */
+  public static initializeFromBackend(backendData?: any): void {
+    const service = StreamlitSeriesConfigService.getInstance();
+    if (backendData) {
+      service.restoreFromBackend(backendData);
+    }
   }
 
   /**
@@ -213,9 +225,10 @@ export class StreamlitSeriesConfigService {
 
       // Clear pending changes after successful sync
       this.pendingChanges = [];
-    } catch {
+    } catch (error) {
+      // Backend sync errors are non-critical - log as warning
       // Don't clear pending changes on error - they can be retried
-      // this.pendingChanges = []
+      handleError(error, 'StreamlitSeriesConfigService.syncToBackend', ErrorSeverity.WARNING);
     }
   }
 
@@ -238,12 +251,13 @@ export class StreamlitSeriesConfigService {
         }
       }
     } catch (error) {
-      logger.error('Streamlit series configuration failed', 'StreamlitSeriesConfigService', error);
+      // Config send failures should propagate
+      handleError(error, 'StreamlitSeriesConfigService.sendSeriesConfiguration', ErrorSeverity.ERROR);
     }
   }
 
   /**
-   * Create a callback function for use with PaneButtonPanelPlugin
+   * Create a callback function for use with ButtonPanelPlugin
    */
   public createConfigChangeCallback(chartId?: string) {
     return (paneId: number, seriesId: string, config: SeriesConfiguration) => {

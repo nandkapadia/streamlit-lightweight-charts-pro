@@ -13,7 +13,16 @@
  * - Metadata management (paneId, seriesId, legendConfig)
  */
 
-import { ISeriesApi, IChartApi, SeriesOptionsCommon, SeriesMarker, createSeriesMarkers } from 'lightweight-charts';
+import {
+  ISeriesApi,
+  IChartApi,
+  SeriesOptionsCommon,
+  SeriesMarker,
+  createSeriesMarkers,
+  Time,
+  SeriesOptionsMap,
+} from 'lightweight-charts';
+
 import { UnifiedSeriesDescriptor, extractDefaultOptions } from './core/UnifiedSeriesDescriptor';
 import { BUILTIN_SERIES_DESCRIPTORS } from './descriptors/builtinSeriesDescriptors';
 import { CUSTOM_SERIES_DESCRIPTORS } from './descriptors/customSeriesDescriptors';
@@ -23,6 +32,8 @@ import { createTradeVisualElements } from '../services/tradeVisualization';
 import { normalizeSeriesType } from './utils/seriesTypeNormalizer';
 import type { TradeConfig, TradeVisualizationOptions } from '../types';
 import type { ExtendedChartApi } from '../types/ChartInterfaces';
+import type { SeriesDataPoint } from '../types/seriesFactory';
+import type { LegendManager } from '../types/global';
 
 /**
  * Custom error class for series creation failures
@@ -89,8 +100,11 @@ export function isCustomSeries(seriesType: string): boolean {
  * @param descriptor - Series descriptor with property definitions
  * @returns Flattened options
  */
-function flattenLineOptions(options: any, descriptor: UnifiedSeriesDescriptor<any>): any {
-  const flattened: any = { ...options };
+function flattenLineOptions(
+  options: Record<string, unknown>,
+  descriptor: UnifiedSeriesDescriptor<unknown>
+): Record<string, unknown> {
+  const flattened: Record<string, unknown> = { ...options };
 
   // Process each property in the descriptor
   for (const [propName, propDesc] of Object.entries(descriptor.properties)) {
@@ -99,19 +113,20 @@ function flattenLineOptions(options: any, descriptor: UnifiedSeriesDescriptor<an
       const lineObj = options[propName];
 
       // Only flatten if it's an object (nested format from Python)
-      if (typeof lineObj === 'object' && lineObj !== null) {
+      if (typeof lineObj === 'object' && lineObj !== null && !Array.isArray(lineObj)) {
         // Remove the nested object
         delete flattened[propName];
 
         // Flatten to individual properties
-        if (lineObj.color !== undefined && propDesc.apiMapping.colorKey) {
-          flattened[propDesc.apiMapping.colorKey] = lineObj.color;
+        const lineObjTyped = lineObj as Record<string, unknown>;
+        if (lineObjTyped.color !== undefined && propDesc.apiMapping.colorKey) {
+          flattened[propDesc.apiMapping.colorKey] = lineObjTyped.color;
         }
-        if (lineObj.lineWidth !== undefined && propDesc.apiMapping.widthKey) {
-          flattened[propDesc.apiMapping.widthKey] = lineObj.lineWidth;
+        if (lineObjTyped.lineWidth !== undefined && propDesc.apiMapping.widthKey) {
+          flattened[propDesc.apiMapping.widthKey] = lineObjTyped.lineWidth;
         }
-        if (lineObj.lineStyle !== undefined && propDesc.apiMapping.styleKey) {
-          flattened[propDesc.apiMapping.styleKey] = lineObj.lineStyle;
+        if (lineObjTyped.lineStyle !== undefined && propDesc.apiMapping.styleKey) {
+          flattened[propDesc.apiMapping.styleKey] = lineObjTyped.lineStyle;
         }
       }
     }
@@ -248,20 +263,20 @@ export function getSeriesDescriptorsByCategory(category: string): UnifiedSeriesD
 export interface ExtendedSeriesConfig {
   /** Series type (e.g., 'Line', 'Area', 'Band') */
   type: string;
-  /** Series data */
-  data?: any[];
+  /** Series data (flexible type for all series data formats) */
+  data?: unknown[];
   /** Series options (flexible to accept any options structure) */
-  options?: any;
+  options?: Record<string, unknown> | SeriesOptionsCommon;
   /** Pane ID for multi-pane charts */
   paneId?: number;
   /** Price scale configuration */
-  priceScale?: any;
+  priceScale?: Record<string, unknown>;
   /** Price lines to add */
-  priceLines?: any[];
+  priceLines?: Array<Record<string, unknown>>;
   /** Markers to add */
-  markers?: any[];
+  markers?: SeriesMarker<Time>[];
   /** Legend configuration */
-  legend?: any;
+  legend?: Record<string, unknown> | null;
   /** Series ID for identification */
   seriesId?: string;
   /** Chart ID for global identification */
@@ -270,17 +285,17 @@ export interface ExtendedSeriesConfig {
   trades?: TradeConfig[];
   /** Trade visualization options */
   tradeVisualizationOptions?: TradeVisualizationOptions;
-  /** Allow any additional properties from SeriesConfig */
-  [key: string]: any;
+  /** Allow additional properties from SeriesConfig */
+  [key: string]: unknown;
 }
 
 /**
  * Extended series API with metadata
  */
-export interface ExtendedSeriesApi extends ISeriesApi<any> {
+export interface ExtendedSeriesApi extends ISeriesApi<keyof SeriesOptionsMap> {
   paneId?: number;
   seriesId?: string;
-  legendConfig?: any;
+  legendConfig?: Record<string, unknown>;
 }
 
 /**
@@ -316,7 +331,7 @@ export function createSeriesWithConfig(
     // Step 2: Set data if provided
     if (data && data.length > 0) {
       try {
-        series.setData(data);
+        series.setData(data as never[]);
       } catch (error) {
         logger.warn('Failed to set data on series', 'UnifiedSeriesFactory', error);
       }
@@ -334,9 +349,9 @@ export function createSeriesWithConfig(
 
     // Step 4: Add price lines if provided
     if (priceLines && Array.isArray(priceLines)) {
-      priceLines.forEach((priceLine: any) => {
+      priceLines.forEach((priceLine: Record<string, unknown>) => {
         try {
-          series.createPriceLine(priceLine);
+          series.createPriceLine(priceLine as any); // Type assertion needed for dynamic price line creation
         } catch (error) {
           logger.warn('Failed to create price line', 'UnifiedSeriesFactory', error);
         }
@@ -346,7 +361,7 @@ export function createSeriesWithConfig(
     // Step 5: Add markers if provided
     if (markers && Array.isArray(markers) && markers.length > 0) {
       try {
-        const snappedMarkers = applyTimestampSnapping(markers, data);
+        const snappedMarkers = applyTimestampSnapping(markers, data as SeriesDataPoint[]);
         createSeriesMarkers(series, snappedMarkers);
       } catch (error) {
         logger.warn('Failed to set markers', 'UnifiedSeriesFactory', error);
@@ -365,7 +380,7 @@ export function createSeriesWithConfig(
     // Step 7: Handle legend registration
     if (legend && legend.visible && chartId) {
       try {
-        const legendManager = (window as any).paneLegendManagers?.[chartId]?.[paneId];
+        const legendManager = window.paneLegendManagers?.[chartId]?.[paneId] as LegendManager | undefined;
         if (legendManager && typeof legendManager.addSeriesLegend === 'function') {
           legendManager.addSeriesLegend(seriesId || `series-${Date.now()}`, config);
         }
@@ -417,7 +432,10 @@ export function createSeriesWithConfig(
  * @param chartData - Chart data for timestamp reference
  * @returns Array of markers with snapped timestamps
  */
-function applyTimestampSnapping(markers: SeriesMarker<any>[], chartData?: any[]): SeriesMarker<any>[] {
+function applyTimestampSnapping(
+  markers: SeriesMarker<Time>[],
+  chartData?: SeriesDataPoint[]
+): SeriesMarker<Time>[] {
   if (!chartData || chartData.length === 0) {
     return markers;
   }
@@ -450,11 +468,11 @@ function applyTimestampSnapping(markers: SeriesMarker<any>[], chartData?: any[])
 
       return {
         ...marker,
-        time: nearestTime,
+        time: nearestTime as Time,
       };
     }
     return marker;
-  });
+  }) as SeriesMarker<Time>[];
 }
 
 /**
@@ -463,9 +481,9 @@ function applyTimestampSnapping(markers: SeriesMarker<any>[], chartData?: any[])
  * @param series - Series instance
  * @param data - New data to set
  */
-export function updateSeriesData(series: ISeriesApi<any>, data: any[]): void {
+export function updateSeriesData(series: ISeriesApi<keyof SeriesOptionsMap>, data: SeriesDataPoint[]): void {
   try {
-    series.setData(data);
+    series.setData(data as never[]);
   } catch (error) {
     logger.error('Failed to update series data', 'UnifiedSeriesFactory', error);
     throw error;
@@ -482,7 +500,7 @@ export function updateSeriesData(series: ISeriesApi<any>, data: any[]): void {
 export function updateSeriesMarkers(
   series: ISeriesApi<any>,
   markers: SeriesMarker<any>[],
-  data?: any[]
+  data?: SeriesDataPoint[]
 ): void {
   try {
     const snappedMarkers = data ? applyTimestampSnapping(markers, data) : markers;

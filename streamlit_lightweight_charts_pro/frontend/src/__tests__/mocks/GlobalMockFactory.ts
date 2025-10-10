@@ -281,18 +281,6 @@ export const createMockRangeSwitcherPrimitive = (id: string, config: any) => ({
   updateAllViews: vi.fn(),
 });
 
-export const createMockButtonPanelPlugin = (paneId: number, config: any, chartId: string) => ({
-  paneId,
-  config,
-  chartId,
-  destroy: vi.fn(),
-  update: vi.fn(),
-  attached: vi.fn(() => true),
-  detached: vi.fn(() => false),
-  requestUpdate: vi.fn(),
-  updateAllViews: vi.fn(),
-});
-
 // ============================================================================
 // SERVICE MOCKS
 // ============================================================================
@@ -415,9 +403,18 @@ export const mockPositioningConfig = {
       defaultWidth: 800,
       defaultHeight: 600,
     },
+    pane: {
+      collapsedHeight: 40,
+    },
   },
   TIMING: {
     cacheExpiration: 5000,
+    chartReadyDelay: 300,
+    backendSyncDebounce: 300,
+  },
+  CSS_CLASSES: {
+    seriesDialogContainer: (paneId: number) => `series-config-dialog-container-${paneId}`,
+    paneButtonPanelContainer: (paneId: number) => `pane-button-panel-container-${paneId}`,
   },
   Z_INDEX: {
     legend: 1000,

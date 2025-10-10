@@ -374,28 +374,6 @@ describe('Index Component', () => {
     });
   });
 
-  // Commented out due to API mismatch - ResizeObserverManager doesn't have getInstance()
-  // describe('ResizeObserver Integration', () => {
-  //   it('should observe chart container for resize events', async () => {
-  //     const { ResizeObserverManager } = await import('../../utils/resizeObserverManager');
-  //     const mockObserve = vi.fn();
-  //     vi.mocked(ResizeObserverManager.getInstance).mockReturnValue({
-  //       observe: mockObserve,
-  //       unobserve: vi.fn(),
-  //       disconnect: vi.fn(),
-  //     } as any);
-
-  //     const { default: App } = await import('../../index');
-  //     render(<App />);
-
-  //     await waitFor(() => {
-  //       expect(screen.getByTestId('lightweight-charts')).toBeInTheDocument();
-  //     });
-
-  //     // ResizeObserver should be set up (this may be handled by LightweightCharts component)
-  //   });
-  // });
-
   describe('Configuration Updates', () => {
     it('should re-render when config changes', async () => {
       const { useStreamlitRenderData } = await import('../../hooks/useStreamlit');

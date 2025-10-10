@@ -251,6 +251,8 @@ export interface LegendData {
   valueFormat?: string;
   updateOnCrosshair?: boolean;
   priceFormat?: string;
+  // Allow additional properties for flexibility
+  [key: string]: unknown;
 }
 
 /**
@@ -416,6 +418,8 @@ export interface SeriesOptionsConfig {
   lineType?: number;
   lineVisible?: boolean;
   pointMarkersVisible?: boolean;
+  // Allow additional properties for flexibility
+  [key: string]: unknown;
   pointMarkersRadius?: number;
   crosshairMarkerVisible?: boolean;
   crosshairMarkerRadius?: number;
@@ -466,6 +470,8 @@ export interface PriceScaleConfig {
     top?: number;
     bottom?: number;
   };
+  // Allow additional properties for flexibility
+  [key: string]: unknown;
 }
 
 /**
