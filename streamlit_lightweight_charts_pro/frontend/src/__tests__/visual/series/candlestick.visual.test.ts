@@ -1,4 +1,7 @@
 /**
+ * @vitest-environment jsdom
+ */
+/**
  * Visual Regression Tests for Candlestick Series
  *
  * Tests verify actual canvas rendering of candlestick charts including:
@@ -34,7 +37,7 @@ describe('Candlestick Series Visual Rendering', () => {
   });
 
   it('renders basic candlestick series with default colors', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(CandlestickSeries, {
         upColor: TestColors.UP_COLOR,
         downColor: TestColors.DOWN_COLOR,
@@ -56,7 +59,7 @@ describe('Candlestick Series Visual Rendering', () => {
   });
 
   it('renders candlestick series with borders', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(CandlestickSeries, {
         upColor: TestColors.UP_COLOR,
         downColor: TestColors.DOWN_COLOR,
@@ -80,7 +83,7 @@ describe('Candlestick Series Visual Rendering', () => {
   });
 
   it('renders candlestick series with custom colors', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(CandlestickSeries, {
         upColor: '#4CAF50',
         downColor: '#F44336',
@@ -102,7 +105,7 @@ describe('Candlestick Series Visual Rendering', () => {
   });
 
   it('renders candlestick series with visible wicks', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(CandlestickSeries, {
         upColor: TestColors.UP_COLOR,
         downColor: TestColors.DOWN_COLOR,
@@ -126,7 +129,7 @@ describe('Candlestick Series Visual Rendering', () => {
 
   it('renders candlestick series with price axis labels', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(CandlestickSeries, {
           upColor: TestColors.UP_COLOR,
           downColor: TestColors.DOWN_COLOR,
@@ -159,7 +162,7 @@ describe('Candlestick Series Visual Rendering', () => {
 
   it('renders candlestick series with crosshair', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(CandlestickSeries, {
           upColor: TestColors.UP_COLOR,
           downColor: TestColors.DOWN_COLOR,
@@ -201,7 +204,7 @@ describe('Candlestick Series Visual Rendering', () => {
 
   it('renders candlestick series with grid lines', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(CandlestickSeries, {
           upColor: TestColors.UP_COLOR,
           downColor: TestColors.DOWN_COLOR,
@@ -232,7 +235,7 @@ describe('Candlestick Series Visual Rendering', () => {
 
   it('renders candlestick series on dark background', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(CandlestickSeries, {
           upColor: '#26A69A',
           downColor: '#EF5350',
@@ -267,7 +270,7 @@ describe('Candlestick Series Visual Rendering', () => {
   });
 
   it('renders candlestick series with general border color', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(CandlestickSeries, {
         upColor: TestColors.UP_COLOR,
         downColor: TestColors.DOWN_COLOR,
@@ -290,7 +293,7 @@ describe('Candlestick Series Visual Rendering', () => {
   });
 
   it('renders candlestick series with general wick color', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(CandlestickSeries, {
         upColor: TestColors.UP_COLOR,
         downColor: TestColors.DOWN_COLOR,
@@ -312,7 +315,7 @@ describe('Candlestick Series Visual Rendering', () => {
 
   it('renders candlestick series with custom price line styling', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(CandlestickSeries, {
           upColor: TestColors.UP_COLOR,
           downColor: TestColors.DOWN_COLOR,
@@ -345,7 +348,7 @@ describe('Candlestick Series Visual Rendering', () => {
 
   it('renders candlestick series with title label', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(CandlestickSeries, {
           upColor: TestColors.UP_COLOR,
           downColor: TestColors.DOWN_COLOR,
@@ -374,7 +377,7 @@ describe('Candlestick Series Visual Rendering', () => {
   });
 
   it('renders chart with hidden candlestick series', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const visibleSeries = chart.addSeries(CandlestickSeries, {
         upColor: TestColors.UP_COLOR,
         downColor: TestColors.DOWN_COLOR,
@@ -394,7 +397,7 @@ describe('Candlestick Series Visual Rendering', () => {
       const baseData = generateCandlestickData(30, 100, '2024-01-01');
       visibleSeries.setData(baseData);
       hiddenSeries.setData(
-        baseData.map((d) => ({
+        baseData.map(d => ({
           ...d,
           open: d.open + 5,
           high: d.high + 5,

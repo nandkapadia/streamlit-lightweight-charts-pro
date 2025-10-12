@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * Tests for RibbonPrimitive
  *
  * This primitive renders filled areas between upper and lower lines

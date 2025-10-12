@@ -9,11 +9,14 @@ The series now properly handles separate trend lines based on trend direction:
 - Downtrend (-1): Uses downtrend_line options for trend line below price
 """
 
+# Standard Imports
 import logging
 from typing import List, Optional, Union
 
+# Third Party Imports
 import pandas as pd
 
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData
@@ -30,27 +33,42 @@ logger = logging.getLogger(__name__)
 @chainable_property("downtrend_fill_color", str, validator="color")
 @chainable_property("fill_visible", bool)
 class TrendFillSeries(Series):
-    DATA_CLASS = TrendFillData
-    """
-    Trend fill series for lightweight charts.
+    """Trend fill series for lightweight charts.
 
     This class represents a trend fill series that displays fills between
     trend lines and base lines. It's commonly used for technical
     indicators like Supertrend, where the fill area changes color based on
     trend direction.
 
-    The series now properly handles separate trend lines:
+    The series properly handles separate trend lines based on trend direction:
     - Uptrend (+1): Uses uptrend_line options for trend line above price
     - Downtrend (-1): Uses downtrend_line options for trend line below price
 
     Attributes:
-        uptrend_line: Line options for the uptrend line
-        downtrend_line: Line options for the downtrend line
-        base_line: Line options for the base line
-        uptrend_fill_color: Color for uptrend fills (green)
-        downtrend_fill_color: Color for downtrend fills (red)
-        fill_visible: Whether fills are visible
+        uptrend_line (LineOptions): Line options for the uptrend line.
+        downtrend_line (LineOptions): Line options for the downtrend line.
+        base_line (LineOptions): Line options for the base line.
+        uptrend_fill_color (str): Color for uptrend fills (default: green).
+        downtrend_fill_color (str): Color for downtrend fills (default: red).
+        fill_visible (bool): Whether fills are visible.
+
+    Example:
+        ```python
+        from streamlit_lightweight_charts_pro import TrendFillSeries
+        from streamlit_lightweight_charts_pro.data import TrendFillData
+
+        # Create trend fill data
+        data = [
+            TrendFillData(time="2024-01-01", trend=1.0, base=100.0, trend_value=105.0),
+            TrendFillData(time="2024-01-02", trend=-1.0, base=102.0, trend_value=98.0),
+        ]
+
+        # Create series with custom colors
+        series = TrendFillSeries(data).set_uptrend_fill_color("#00FF00").set_downtrend_fill_color("#FF0000")
+        ```
     """
+
+    DATA_CLASS = TrendFillData
 
     def __init__(
         self,

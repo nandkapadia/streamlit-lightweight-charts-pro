@@ -15,75 +15,78 @@
     <div id="bar-container" class="container"></div>
     <div id="histogram-container" class="container"></div>
     <script>
-        const { createChart, BarSeries, HistogramSeries } = LightweightCharts;
-
-        // Bar Series
-        const barChart = createChart(document.getElementById('bar-container'), {
-            width: 800,
-            height: 400,
-            layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
-            grid: { vertLines: { visible: false }, horzLines: { visible: false } },
-        });
-
-        const barSeries = barChart.addSeries(BarSeries, {
-            upColor: '#26A69A',
-            downColor: '#EF5350',
-        });
-
-        const barData = [];
-        const startDate = new Date('2024-01-01');
-        let currentValue = 100;
-
-        for (let i = 0; i < 30; i++) {
-            const date = new Date(startDate);
-            date.setDate(date.getDate() + i);
-            const change = Math.sin(i / 5) * 5 + (i % 3 === 0 ? 2 : -1);
-            const open = currentValue;
-            const close = currentValue + change;
-            const high = Math.max(open, close) + Math.abs(change) * 0.3;
-            const low = Math.min(open, close) - Math.abs(change) * 0.2;
-
-            barData.push({
-                time: date.toISOString().split('T')[0],
-                open: parseFloat(open.toFixed(2)),
-                high: parseFloat(high.toFixed(2)),
-                low: parseFloat(low.toFixed(2)),
-                close: parseFloat(close.toFixed(2)),
+        function runTestCase(container) {
+            // Bar Series
+            const barChart = LightweightCharts.createChart(document.getElementById('bar-container'), {
+                width: 800,
+                height: 400,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { visible: false } },
             });
 
-            currentValue = close;
-        }
-
-        barSeries.setData(barData);
-        barChart.timeScale().fitContent();
-
-        // Histogram Series
-        const histogramChart = createChart(document.getElementById('histogram-container'), {
-            width: 800,
-            height: 400,
-            layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
-            grid: { vertLines: { visible: false }, horzLines: { visible: false } },
-        });
-
-        const histogramSeries = histogramChart.addSeries(HistogramSeries);
-
-        const histogramData = [];
-        for (let i = 0; i < 30; i++) {
-            const date = new Date(startDate);
-            date.setDate(date.getDate() + i);
-            const value = Math.sin(i / 3) * 20;
-            const color = value >= 0 ? '#26A69A' : '#EF5350';
-
-            histogramData.push({
-                time: date.toISOString().split('T')[0],
-                value: parseFloat(value.toFixed(2)),
-                color: color,
+            const barSeries = barChart.addSeries(LightweightCharts.BarSeries);
+            barSeries.applyOptions({
+                upColor: '#26A69A',
+                downColor: '#EF5350',
             });
+
+            const barData = [];
+            const startDate = new Date('2024-01-01');
+            let currentValue = 100;
+
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const change = Math.sin(i / 5) * 5 + (i % 3 === 0 ? 2 : -1);
+                const open = currentValue;
+                const close = currentValue + change;
+                const high = Math.max(open, close) + Math.abs(change) * 0.3;
+                const low = Math.min(open, close) - Math.abs(change) * 0.2;
+
+                barData.push({
+                    time: date.toISOString().split('T')[0],
+                    open: parseFloat(open.toFixed(2)),
+                    high: parseFloat(high.toFixed(2)),
+                    low: parseFloat(low.toFixed(2)),
+                    close: parseFloat(close.toFixed(2)),
+                });
+
+                currentValue = close;
+            }
+
+            barSeries.setData(barData);
+            barChart.timeScale().fitContent();
+
+            // Histogram Series
+            const histogramChart = LightweightCharts.createChart(document.getElementById('histogram-container'), {
+                width: 800,
+                height: 400,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+            });
+
+            const histogramSeries = histogramChart.addSeries(LightweightCharts.HistogramSeries);
+
+            const histogramData = [];
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const value = Math.sin(i / 3) * 20;
+                const color = value >= 0 ? '#26A69A' : '#EF5350';
+
+                histogramData.push({
+                    time: date.toISOString().split('T')[0],
+                    value: parseFloat(value.toFixed(2)),
+                    color: color,
+                });
+            }
+
+            histogramSeries.setData(histogramData);
+            histogramChart.timeScale().fitContent();
         }
 
-        histogramSeries.setData(histogramData);
-        histogramChart.timeScale().fitContent();
-
+        runTestCase();
+        window.testCaseReady = Promise.resolve();
         window.chartReady = true;
     </script>
 </body>

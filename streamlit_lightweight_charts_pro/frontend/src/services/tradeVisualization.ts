@@ -1,11 +1,71 @@
+/**
+ * @fileoverview Trade Visualization Service
+ *
+ * Handles creation and rendering of trade visualization elements including
+ * rectangles, markers, lines, arrows, and zones. Provides timezone-agnostic
+ * time parsing and template-based marker generation.
+ *
+ * This service is responsible for:
+ * - Converting trade data to visual primitives (rectangles, markers)
+ * - Timezone-agnostic time parsing (critical for consistency)
+ * - Template-based marker text generation
+ * - Color determination based on profitability
+ * - Multiple visualization styles (rectangles, markers, lines, etc.)
+ *
+ * Architecture:
+ * - Pure functions (no state)
+ * - Backend-driven display values (no frontend calculations)
+ * - Template engine integration for flexible text
+ * - Support for additional_data pattern
+ *
+ * Trade Visualization Modes:
+ * - RECTANGLES: Visual boxes showing trade duration and P&L
+ * - MARKERS: Entry/exit markers with optional text
+ * - BOTH: Rectangles + markers combined
+ * - LINES: Horizontal lines at entry/exit prices
+ * - ARROWS: Arrow markers for entry/exit
+ * - ZONES: Shaded zones between entry and exit
+ *
+ * @example
+ * ```typescript
+ * // Create trade rectangles
+ * const rectangles = createTradeRectangles(trades, options, chartData);
+ *
+ * // Create trade markers
+ * const markers = createTradeMarkers(trades, options);
+ *
+ * // Create all visual elements
+ * const elements = createTradeVisualElements(trades, options, chartData);
+ * ```
+ */
+
 import { UTCTimestamp, SeriesMarker, Time } from 'lightweight-charts';
 import { TradeConfig, TradeVisualizationOptions } from '../types';
+import { TradeTemplateProcessor } from './TradeTemplateProcessor';
 import { UniversalSpacing } from '../primitives/PrimitiveDefaults';
 
+// ============================================================================
 // CRITICAL: Timezone-agnostic parsing functions
+// ============================================================================
 /**
  * Parse time value to UTC timestamp without timezone conversion
- * Handles both string dates and numeric timestamps
+ *
+ * Handles multiple time formats consistently without timezone conversion issues.
+ * This is CRITICAL for chart accuracy - all times must be treated as UTC.
+ *
+ * Supported formats:
+ * - Unix timestamp (seconds): 1704067200
+ * - Unix timestamp (milliseconds): 1704067200000 (auto-converted to seconds)
+ * - ISO string: '2024-01-01T00:00:00Z'
+ * - Date string: '2024-01-01'
+ *
+ * @param {string | number} time - Time value to parse
+ * @returns {UTCTimestamp | null} UTC timestamp in seconds, or null if invalid
+ *
+ * @remarks
+ * - Milliseconds are automatically converted to seconds
+ * - No timezone conversion applied (preserves UTC)
+ * - Returns null for invalid inputs
  */
 function parseTime(time: string | number): UTCTimestamp | null {
   try {
@@ -104,6 +164,12 @@ export interface TradeRectangleData {
   borderStyle: 'solid' | 'dashed' | 'dotted';
   opacity: number;
   priceScaleId?: string;
+  quantity?: number;
+  notes?: string;
+  tradeId?: string;
+  isProfitable?: boolean; // Add profitability flag
+  // Allow any additional custom data for template access
+  [key: string]: any;
 }
 
 // Create trade rectangles from trade data
@@ -171,22 +237,33 @@ function createTradeRectangles(
       return;
     }
 
-    const color = trade.isProfitable
-      ? options.rectangleColorProfit || '#4CAF50'
-      : options.rectangleColorLoss || '#F44336';
+    // Use isProfitable from trade data - no calculations in frontend
+    const isProfitable = trade.isProfitable ?? false; // Default to false if not specified
 
-    const opacity = options.rectangleFillOpacity || 1.0;
+    const color = isProfitable
+      ? options.rectangleColorProfit || '#4CAF50' // Green for profitable
+      : options.rectangleColorLoss || '#F44336'; // Red for unprofitable
+
+    const opacity = options.rectangleFillOpacity || 0.25;
+
+    // Normalize coordinates: time1/price1 should be minimum, time2/price2 should be maximum
+    const minTime = Math.min(adjustedTime1, adjustedTime2);
+    const maxTime = Math.max(adjustedTime1, adjustedTime2);
+    const minPrice = Math.min(trade.entryPrice, trade.exitPrice);
+    const maxPrice = Math.max(trade.entryPrice, trade.exitPrice);
 
     const rectangle: TradeRectangleData = {
-      time1: Math.min(adjustedTime1, adjustedTime2) as UTCTimestamp,
-      price1: Math.min(trade.entryPrice, trade.exitPrice),
-      time2: Math.max(adjustedTime1, adjustedTime2) as UTCTimestamp,
-      price2: Math.max(trade.entryPrice, trade.exitPrice),
+      time1: minTime as UTCTimestamp, // Always the earlier time
+      price1: minPrice, // Always the lower price
+      time2: maxTime as UTCTimestamp, // Always the later time
+      price2: maxPrice, // Always the higher price
       fillColor: color,
       borderColor: color,
       borderWidth: options.rectangleBorderWidth || 3,
       borderStyle: 'solid' as const,
       opacity: opacity,
+      // Pass all additional trade data for template access
+      ...trade, // Spread all trade properties for flexible template access
     };
 
     rectangles.push(rectangle);
@@ -244,39 +321,86 @@ function createTradeMarkers(
       }
     }
 
-    // Entry marker
-    const entryColor =
-      trade.tradeType === 'long'
-        ? options.entryMarkerColorLong || '#2196F3'
-        : options.entryMarkerColorShort || '#FF9800';
+    // Entry marker - use tradeType for color selection
+    const tradeType = trade.trade_type || trade.tradeType || 'long';
+    const entryColor = tradeType === 'long'
+      ? options.entryMarkerColorLong || '#2196F3'
+      : options.entryMarkerColorShort || '#FF9800';
+
+    // Generate entry marker text using template or default
+    let entryMarkerText = '';
+    if (options.showMarkerText !== false) {
+      // Default to true if not specified
+      if (options.entryMarkerTemplate) {
+        // Use entry-specific template
+        const result = TradeTemplateProcessor.processTemplate(
+          options.entryMarkerTemplate,
+          trade // Pass entire trade object for flexible template access
+        );
+        entryMarkerText = result.content;
+      } else if (options.showPnlInMarkers && trade.text) {
+        // Use custom text from trade if showPnlInMarkers is true
+        entryMarkerText = trade.text;
+      } else if (options.showPnlInMarkers && trade.pnl !== undefined) {
+        // Calculate and show P&L
+        entryMarkerText = `$${trade.pnl.toFixed(2)}`;
+      } else {
+        // Default entry marker text
+        entryMarkerText = `$${trade.entryPrice.toFixed(2)}`;
+      }
+    }
 
     const entryMarker: SeriesMarker<Time> = {
       time: adjustedEntryTime,
-      position: trade.tradeType === 'long' ? 'belowBar' : 'aboveBar',
+      position:
+        (options.entryMarkerPosition as 'belowBar' | 'aboveBar') ||
+        (tradeType === 'long' ? 'belowBar' : 'aboveBar'),
       color: entryColor,
-      shape: trade.tradeType === 'long' ? 'arrowUp' : 'arrowDown',
-      text:
-        options.showPnlInMarkers && trade.text
-          ? trade.text
-          : `Entry: $${trade.entryPrice.toFixed(2)}`,
+      shape:
+        (options.entryMarkerShape as 'arrowUp' | 'arrowDown' | 'circle' | 'square') ||
+        (tradeType === 'long' ? 'arrowUp' : 'arrowDown'),
+      text: entryMarkerText,
+      size: options.markerSize || 1,
     };
     markers.push(entryMarker);
 
     // Exit marker - only create if trade has been closed
     if (adjustedExitTime) {
-      const exitColor = trade.isProfitable
-        ? options.exitMarkerColorProfit || '#4CAF50'
-        : options.exitMarkerColorLoss || '#F44336';
+      // Use isProfitable from trade data - no calculations in frontend
+      const isProfit = trade.isProfitable ?? false; // Default to false if not specified
+
+      const exitColor = isProfit
+        ? options.exitMarkerColorProfit || '#4CAF50' // Green for profitable
+        : options.exitMarkerColorLoss || '#F44336'; // Red for unprofitable
+
+      // Generate exit marker text using template or default
+      let exitMarkerText = '';
+      if (options.showMarkerText !== false) {
+        // Default to true if not specified
+        if (options.exitMarkerTemplate) {
+          // Use exit-specific template
+          const result = TradeTemplateProcessor.processTemplate(
+            options.exitMarkerTemplate,
+            trade // Pass entire trade object for flexible template access
+          );
+          exitMarkerText = result.content;
+        } else {
+          // Default exit marker text
+          exitMarkerText = `$${trade.exitPrice.toFixed(2)}`;
+        }
+      }
 
       const exitMarker: SeriesMarker<Time> = {
         time: adjustedExitTime,
-        position: trade.tradeType === 'long' ? 'aboveBar' : 'belowBar',
+        position:
+          (options.exitMarkerPosition as 'belowBar' | 'aboveBar') ||
+          (tradeType === 'long' ? 'aboveBar' : 'belowBar'),
         color: exitColor,
-        shape: trade.tradeType === 'long' ? 'arrowDown' : 'arrowUp',
-        text:
-          options.showPnlInMarkers && trade.text
-            ? trade.text
-            : `Exit: $${trade.exitPrice.toFixed(2)}`,
+        shape:
+          (options.exitMarkerShape as 'arrowUp' | 'arrowDown' | 'circle' | 'square') ||
+          (tradeType === 'long' ? 'arrowDown' : 'arrowUp'),
+        text: exitMarkerText,
+        size: options.markerSize || 1,
       };
       markers.push(exitMarker);
     }

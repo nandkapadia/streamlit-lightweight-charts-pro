@@ -8,8 +8,9 @@ This directory contains GitHub Actions workflows, templates, and configuration f
 - **`workflows/ci.yml`** - Comprehensive CI/CD pipeline with testing, linting, security, and deployment
 - **`workflows/ci-simple.yml`** - Simplified CI pipeline for basic checks
 
-### Templates
+### Templates & Guides
 - **`pull_request_template.md`** - Template for pull requests with checklists and guidelines
+- **`BRANCH_PROTECTION_GUIDE.md`** - Comprehensive guide for setting up branch protection and CI/CD
 
 ## 🚀 CI/CD Pipeline Features
 
@@ -29,32 +30,48 @@ This directory contains GitHub Actions workflows, templates, and configuration f
 
 ## 🔧 Setup Instructions
 
-### 1. Enable Branch Protection
-1. Go to repository **Settings** → **Branches**
-2. Add rule for `main` branch:
-   - ✅ Require a pull request before merging
-   - ✅ Require status checks to pass before merging
-   - ✅ Require branches to be up to date before merging
-   - ✅ Require conversation resolution before merging
-   - ✅ Include administrators
+### Quick Start
 
-### 2. Configure Required Status Checks
-In branch protection settings, require these status checks:
-- `Test Suite (3.11)` - Main test job
-- `Documentation Build` - Docs build verification
-- `Frontend Build` - Frontend build (if applicable)
+For complete setup instructions, see **[BRANCH_PROTECTION_GUIDE.md](BRANCH_PROTECTION_GUIDE.md)**.
 
-### 3. Enable GitHub Pages
-1. Go to repository **Settings** → **Pages**
-2. Set source to **"GitHub Actions"**
-3. The workflow will automatically deploy docs on main branch pushes
+**TL;DR:**
 
-### 4. Install Pre-commit Hooks (Optional)
-```bash
-# Install pre-commit hooks for local development
-pip install pre-commit
-pre-commit install
-```
+1. **Enable Branch Protection** (5 minutes)
+   ```bash
+   # Automated setup (recommended)
+   make setup-branch-protection
+
+   # Or configure manually via GitHub Settings → Branches
+   ```
+
+2. **Verify Setup**
+   ```bash
+   make verify-ci
+   ```
+
+3. **Install Pre-commit Hooks**
+   ```bash
+   make pre-commit-setup
+   ```
+
+4. **Test with a PR**
+   ```bash
+   git checkout -b test/branch-protection
+   echo "# Test" >> README.md
+   git add README.md && git commit -m "test: verify protection"
+   git push origin test/branch-protection
+   # Create PR on GitHub and verify checks run
+   ```
+
+### Key Features
+
+- ✅ **All tests must pass** before merging (Python 3.8-3.12)
+- ✅ **Code review required** (minimum 1 approval)
+- ✅ **Documentation must build** successfully
+- ✅ **Frontend must build** and pass tests
+- ✅ **Security scan** must pass
+- ✅ **No force pushes** to main
+- ✅ **Branch must be up-to-date** with main
 
 ## 📊 Workflow Status
 

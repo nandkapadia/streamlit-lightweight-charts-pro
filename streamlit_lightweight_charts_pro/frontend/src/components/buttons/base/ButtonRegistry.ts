@@ -40,7 +40,7 @@ export class ButtonRegistry {
     // Insert button in order based on priority
     const insertIndex = this.buttonOrder.findIndex(existingId => {
       const existingButton = this.buttons.get(existingId);
-      return existingButton && priority < (existingButton as any).priority || 100;
+      return (existingButton && priority < (existingButton as any).priority) || 100;
     });
 
     if (insertIndex === -1) {

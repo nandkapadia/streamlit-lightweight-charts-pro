@@ -1,5 +1,6 @@
 /**
  * @fileoverview E2E tests for chart lifecycle
+ * @vitest-environment jsdom
  *
  * Tests complete user flows for:
  * - Chart initialization and rendering
@@ -9,8 +10,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, cleanup } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { render, cleanup, act } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import LightweightCharts from '../../LightweightCharts';
 import { ComponentConfig } from '../../types';
 
@@ -26,6 +27,21 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
+
+// Mock matchMedia for fancy-canvas (used by lightweight-charts)
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
 
 Element.prototype.getBoundingClientRect = vi.fn(
   () =>
@@ -48,7 +64,10 @@ describe('E2E: Chart Lifecycle', () => {
   });
 
   afterEach(() => {
-    cleanup();
+    // Wrap cleanup in act() to prevent React 19 concurrent rendering warnings
+    act(() => {
+      cleanup();
+    });
   });
 
   describe('Chart Initialization', () => {
@@ -304,8 +323,8 @@ describe('E2E: Chart Lifecycle', () => {
 
       const { unmount } = render(<LightweightCharts config={config} />);
 
-      // Unmount should not throw
-      expect(() => unmount()).not.toThrow();
+      // Unmount should not throw - wrap in act() for React 19
+      expect(() => act(() => unmount())).not.toThrow();
     });
 
     it('should cleanup multiple charts on unmount', () => {
@@ -318,7 +337,7 @@ describe('E2E: Chart Lifecycle', () => {
       };
 
       const { unmount } = render(<LightweightCharts config={config} />);
-      expect(() => unmount()).not.toThrow();
+      expect(() => act(() => unmount())).not.toThrow();
     });
   });
 

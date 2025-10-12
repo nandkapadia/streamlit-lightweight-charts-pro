@@ -226,11 +226,7 @@ export function createErrorHandler(context: string) {
  * @param context - Context string
  * @param data - Validation data
  */
-export function throwValidationError(
-  message: string,
-  context: string,
-  data?: any
-): never {
+export function throwValidationError(message: string, context: string, data?: any): never {
   const error = new Error(message);
   error.name = 'ValidationError';
   handleErrorWithOptions(error, context, {
@@ -247,11 +243,7 @@ export function throwValidationError(
  * @param message - Error message if assertion fails
  * @param context - Context string
  */
-export function assert(
-  condition: boolean,
-  message: string,
-  context: string
-): asserts condition {
+export function assert(condition: boolean, message: string, context: string): asserts condition {
   if (!condition) {
     throwValidationError(message, context);
   }

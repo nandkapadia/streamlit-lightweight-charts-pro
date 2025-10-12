@@ -148,12 +148,7 @@ export function compareImages(
   baseline: { width: number; height: number; data: Buffer },
   options: ComparisonOptions = {}
 ): ComparisonResult {
-  const {
-    threshold = 0.1,
-    tolerance = 0.5,
-    includeAA = true,
-    createDiffImage = true,
-  } = options;
+  const { threshold = 0.1, tolerance = 0.5, includeAA = true, createDiffImage = true } = options;
 
   // Check dimensions match
   if (actual.width !== baseline.width || actual.height !== baseline.height) {
@@ -173,19 +168,12 @@ export function compareImages(
   }
 
   // Compare using pixelmatch
-  const diffPixels = pixelmatch(
-    actual.data,
-    baseline.data,
-    diffData,
-    actual.width,
-    actual.height,
-    {
-      threshold,
-      includeAA,
-      alpha: 0.1,
-      diffColor: [255, 0, 0], // Red for differences
-    }
-  );
+  const diffPixels = pixelmatch(actual.data, baseline.data, diffData, actual.width, actual.height, {
+    threshold,
+    includeAA,
+    alpha: 0.1,
+    diffColor: [255, 0, 0], // Red for differences
+  });
 
   const totalPixels = actual.width * actual.height;
   const diffPercentage = (diffPixels / totalPixels) * 100;
@@ -231,7 +219,7 @@ export function assertMatchesSnapshot(
     if (process.env.CI) {
       throw new Error(
         `Baseline snapshot not found: ${baselinePath}\n` +
-        'Run tests locally with UPDATE_SNAPSHOTS=true to create baselines.'
+          'Run tests locally with UPDATE_SNAPSHOTS=true to create baselines.'
       );
     }
 

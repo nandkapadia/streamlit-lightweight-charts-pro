@@ -1,5 +1,32 @@
 /**
- * Layout and positioning types for the chart widget management system
+ * @fileoverview Layout and Positioning Types
+ *
+ * Type definitions for the chart widget management system.
+ * Provides interfaces for positioning, dimensions, and layout management.
+ *
+ * This module provides:
+ * - Corner positioning types
+ * - Dimension interfaces
+ * - Widget positioning interfaces
+ * - Layout configuration types
+ *
+ * Features:
+ * - Flexible corner-based positioning
+ * - Axis-aware dimension tracking
+ * - Widget stacking and priority
+ * - Layout event handling
+ *
+ * @example
+ * ```typescript
+ * import { Corner, Position, IPositionableWidget } from './layout';
+ *
+ * const corner: Corner = 'top-right';
+ * const position: Position = {
+ *   top: 10,
+ *   right: 10,
+ *   zIndex: 100
+ * };
+ * ```
  */
 
 export type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';

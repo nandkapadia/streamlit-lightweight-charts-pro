@@ -1,5 +1,6 @@
 /**
  * @fileoverview Enhanced Testing Demo - Showcasing TradingView-inspired Testing Patterns
+ * @vitest-environment jsdom
  *
  * This test suite demonstrates the enhanced testing capabilities following
  * TradingView's patterns with comprehensive utilities for memory leak detection,

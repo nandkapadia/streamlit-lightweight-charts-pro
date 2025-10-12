@@ -35,7 +35,6 @@ import {
 } from '../forms/SeriesSettingsDialog';
 import { KeyedSingletonManager } from '../utils/KeyedSingletonManager';
 import { handleError, ErrorSeverity } from '../utils/errorHandler';
-import { ChartApiWithId } from '../types/global';
 import { CSS_CLASSES } from '../config/positioningConfig';
 
 /**
@@ -63,18 +62,79 @@ export interface DialogState {
  */
 export interface SeriesDialogConfig {
   chartId?: string;
-  onSeriesConfigChange?: (paneId: number, seriesId: string, config: Record<string, unknown>) => void;
+  onSeriesConfigChange?: (
+    paneId: number,
+    seriesId: string,
+    config: Record<string, unknown>
+  ) => void;
 }
 
 /**
  * Manager for series configuration dialog
+ *
+ * Manages the lifecycle of series settings dialogs using React Portals.
+ * This class bridges the gap between imperative chart management and
+ * declarative React rendering.
+ *
+ * Architecture:
+ * - Keyed singleton pattern (one instance per chart)
+ * - React portal for dialog rendering
+ * - Streamlit integration for configuration persistence
+ * - Per-pane dialog state management
+ *
+ * Responsibilities:
+ * - Create and manage dialog portal containers
+ * - Open/close dialogs with current series settings
+ * - Apply configuration changes to chart APIs
+ * - Coordinate with backend for persistence
+ * - Clean up React roots and DOM elements
+ *
+ * @export
+ * @class SeriesDialogManager
+ * @extends {KeyedSingletonManager<SeriesDialogManager>}
+ *
+ * @example
+ * ```typescript
+ * const manager = SeriesDialogManager.getInstance(
+ *   chartApi,
+ *   streamlitService,
+ *   'chart-1'
+ * );
+ *
+ * // Initialize pane
+ * manager.initializePane(0);
+ *
+ * // Open dialog with current series settings
+ * manager.open(0);
+ *
+ * // Close dialog
+ * manager.close(0);
+ *
+ * // Cleanup on unmount
+ * SeriesDialogManager.destroyInstance('chart-1');
+ * ```
  */
 export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManager> {
+  /** Chart API reference for accessing panes and series */
   private chartApi: IChartApi;
+  /** Streamlit service for configuration persistence */
   private streamlitService: StreamlitSeriesConfigService;
+  /** Dialog state per pane (containers, roots, configs) */
   private dialogStates = new Map<number, DialogState>();
+  /** Manager configuration (chartId, callbacks) */
   private config: SeriesDialogConfig;
 
+  /**
+   * Private constructor (Singleton pattern)
+   *
+   * Creates a new SeriesDialogManager instance. Use getInstance() instead
+   * of calling this directly.
+   *
+   * @private
+   * @param {IChartApi} chartApi - Lightweight Charts API instance
+   * @param {StreamlitSeriesConfigService} streamlitService - Streamlit config service
+   * @param {SeriesDialogConfig} [config={}] - Optional manager configuration
+   */
   private constructor(
     chartApi: IChartApi,
     streamlitService: StreamlitSeriesConfigService,
@@ -196,22 +256,34 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
       // Create series configurations from allSeries
       // Read ACTUAL options from chart series instead of using defaults
       const seriesConfigs: Record<string, SeriesConfiguration> = {};
-      const chartApiWithId = this.chartApi as ChartApiWithId;
-      const chartId = chartApiWithId._id || 'default';
-      const chartSeries = window.seriesRefsMap?.[chartId] || [];
 
-      allSeries.forEach((series, index) => {
-        // Try to get the actual series from the chart
-        const actualSeries = chartSeries[index];
-        if (actualSeries && actualSeries.options) {
-          // Convert API options to dialog config using property mapper
-          const apiOptions = actualSeries.options();
-          seriesConfigs[series.id] = apiOptionsToDialogConfig(series.type, apiOptions);
-        } else {
-          // Fallback to stored config or empty object
-          seriesConfigs[series.id] = series.config || {};
+      // Get actual series from the pane directly
+      try {
+        const panes = this.chartApi.panes();
+        if (paneId >= 0 && paneId < panes.length) {
+          const pane = panes[paneId];
+          const paneSeries = pane.getSeries();
+
+          allSeries.forEach((series, index) => {
+            // Get the actual series API object from the pane
+            const actualSeries = paneSeries[index];
+            if (actualSeries && typeof actualSeries.options === 'function') {
+              // Convert API options to dialog config using property mapper
+              const apiOptions = actualSeries.options();
+              seriesConfigs[series.id] = apiOptionsToDialogConfig(series.type, apiOptions);
+            } else {
+              // Fallback to stored config or empty object
+              seriesConfigs[series.id] = series.config || {};
+            }
+          });
         }
-      });
+      } catch (error) {
+        logger.error('Failed to load series options', 'SeriesDialogManager', error);
+        // Use empty configs as fallback
+        allSeries.forEach(series => {
+          seriesConfigs[series.id] = series.config || {};
+        });
+      }
 
       // Render the dialog with all series
       if (state.dialogRoot) {
@@ -235,7 +307,10 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
               const seriesType = series?.type || 'line';
 
               // Include series type in the config for proper property mapping
-              const configWithType = { ...newConfig, _seriesType: seriesType } as SeriesConfiguration;
+              const configWithType = {
+                ...newConfig,
+                _seriesType: seriesType,
+              } as SeriesConfiguration;
               this.applySeriesConfig(paneId, seriesId, configWithType);
             },
           })
@@ -473,7 +548,11 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
                     seriesApplied = true;
                   } catch (applyError) {
                     // Options application errors - log as warning, continue with other series
-                    handleError(applyError, 'SeriesDialogManager.applyConfigToChartSeries.applyOptions', ErrorSeverity.WARNING);
+                    handleError(
+                      applyError,
+                      'SeriesDialogManager.applyConfigToChartSeries.applyOptions',
+                      ErrorSeverity.WARNING
+                    );
                   }
                 } else {
                   logger.error('Series does not have applyOptions method', 'SeriesDialogManager');
@@ -489,7 +568,11 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
           }
         } catch (findError) {
           // Series lookup errors - log as warning, continue with other series
-          handleError(findError, 'SeriesDialogManager.applyConfigToChartSeries.findSeries', ErrorSeverity.WARNING);
+          handleError(
+            findError,
+            'SeriesDialogManager.applyConfigToChartSeries.findSeries',
+            ErrorSeverity.WARNING
+          );
         }
       } else if (Object.keys(seriesOptions).length === 0) {
         logger.error('No series options to apply', 'SeriesDialogManager');
@@ -509,7 +592,11 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
       localStorage.setItem(storageKey, JSON.stringify(config));
     } catch (error) {
       // localStorage save failures are non-critical - log as warning
-      handleError(error, 'SeriesDialogManager.saveSeriesConfigToLocalStorage', ErrorSeverity.WARNING);
+      handleError(
+        error,
+        'SeriesDialogManager.saveSeriesConfigToLocalStorage',
+        ErrorSeverity.WARNING
+      );
     }
   }
 

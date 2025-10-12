@@ -1,8 +1,13 @@
 /**
- * Signal Primitive - ISeriesPrimitive Implementation
+ * @fileoverview Signal Primitive Implementation
  *
- * This primitive renders vertical background bands based on signal values,
- * spanning the entire chart height with z-order control for background rendering.
+ * ISeriesPrimitive for rendering vertical background bands based on signal values.
+ * Spans the entire chart height with z-order control for background rendering.
+ *
+ * Architecture:
+ * - Extends BaseSeriesPrimitive for common lifecycle management
+ * - Implements ISeriesPrimitive interface for TradingView integration
+ * - Uses common rendering utilities for consistent behavior
  *
  * Features:
  * - Vertical bands spanning full chart height
@@ -11,10 +16,21 @@
  * - Bar spacing alignment
  *
  * Use cases:
- * - When you need Signal to render BEHIND other series
  * - Background market regime indicators
  * - Trading signal zones
  * - When using with createSignalSeries factory with usePrimitive: true
+ * - Technical analysis overlays that should render behind price series
+ *
+ * @example
+ * ```typescript
+ * import { SignalPrimitive } from './SignalPrimitive';
+ *
+ * const signalPrimitive = new SignalPrimitive(chart, {
+ *   neutralColor: '#808080',
+ *   signalColor: '#00ff00',
+ *   alertColor: '#ff0000'
+ * });
+ * ```
  *
  * @see createSignalSeries for the factory function
  * @see SignalSeries for the ICustomSeries implementation

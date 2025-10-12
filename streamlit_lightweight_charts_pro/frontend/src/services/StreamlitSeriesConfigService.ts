@@ -246,13 +246,26 @@ export class StreamlitSeriesConfigService {
         // Apply any missed changes
         if (backendState.changes && Array.isArray(backendState.changes)) {
           backendState.changes.forEach((change: SeriesConfigChangeEvent) => {
-            this.updateLocalState(change);
+            // Validate change object has required properties before processing
+            if (
+              change &&
+              typeof change === 'object' &&
+              typeof change.paneId === 'number' &&
+              typeof change.seriesId === 'string' &&
+              change.config
+            ) {
+              this.updateLocalState(change);
+            }
           });
         }
       }
     } catch (error) {
       // Config send failures should propagate
-      handleError(error, 'StreamlitSeriesConfigService.sendSeriesConfiguration', ErrorSeverity.ERROR);
+      handleError(
+        error,
+        'StreamlitSeriesConfigService.sendSeriesConfiguration',
+        ErrorSeverity.ERROR
+      );
     }
   }
 

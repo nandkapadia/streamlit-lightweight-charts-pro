@@ -25,43 +25,45 @@
 <body>
     <div id="container"></div>
     <script>
-        const { createChart, LineSeries } = LightweightCharts;
+        function runTestCase(container) {
+            // Create chart
+            const chart = LightweightCharts.createChart(container, {
+                width: 800,
+                height: 400,
+                layout: {
+                    background: { color: '#FFFFFF' },
+                    textColor: '#000000',
+                },
+                grid: {
+                    vertLines: { visible: false },
+                    horzLines: { visible: false },
+                },
+            });
 
-        // Create chart
-        const chart = createChart(document.getElementById('container'), {
-            width: 800,
-            height: 400,
-            layout: {
-                background: { color: '#FFFFFF' },
-                textColor: '#000000',
-            },
-            grid: {
-                vertLines: { visible: false },
-                horzLines: { visible: false },
-            },
-        });
+            // Add line series
+            const lineSeries = chart.addSeries(LightweightCharts.LineSeries);
+            lineSeries.applyOptions({
+                color: '#2196F3',
+                lineWidth: 2,
+            });
 
-        // Add line series
-        const lineSeries = chart.addSeries(LineSeries, {
-            color: '#2196F3',
-            lineWidth: 2,
-        });
+            // Generate data
+            const data = [];
+            const startDate = new Date('2024-01-01');
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                const value = 100 + i * 0.5 + Math.sin(i / 5) * 10;
+                data.push({ time: dateStr, value: parseFloat(value.toFixed(2)) });
+            }
 
-        // Generate data
-        const data = [];
-        const startDate = new Date('2024-01-01');
-        for (let i = 0; i < 30; i++) {
-            const date = new Date(startDate);
-            date.setDate(date.getDate() + i);
-            const dateStr = date.toISOString().split('T')[0];
-            const value = 100 + i * 0.5 + Math.sin(i / 5) * 10;
-            data.push({ time: dateStr, value: parseFloat(value.toFixed(2)) });
+            lineSeries.setData(data);
+            chart.timeScale().fitContent();
         }
 
-        lineSeries.setData(data);
-        chart.timeScale().fitContent();
-
-        // Signal ready for screenshot
+        runTestCase(document.getElementById('container'));
+        window.testCaseReady = Promise.resolve();
         window.chartReady = true;
     </script>
 </body>

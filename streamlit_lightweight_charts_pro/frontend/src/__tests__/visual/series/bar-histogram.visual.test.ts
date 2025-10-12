@@ -1,4 +1,7 @@
 /**
+ * @vitest-environment jsdom
+ */
+/**
  * Visual Regression Tests for Bar and Histogram Series
  *
  * Tests verify actual canvas rendering of bar and histogram charts including:
@@ -36,7 +39,7 @@ describe('Bar Series Visual Rendering', () => {
   });
 
   it('renders basic bar series', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BarSeries, {
         upColor: TestColors.UP_COLOR,
         downColor: TestColors.DOWN_COLOR,
@@ -55,7 +58,7 @@ describe('Bar Series Visual Rendering', () => {
   });
 
   it('renders bar series with open tick visible', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BarSeries, {
         upColor: TestColors.UP_COLOR,
         downColor: TestColors.DOWN_COLOR,
@@ -76,7 +79,7 @@ describe('Bar Series Visual Rendering', () => {
   });
 
   it('renders bar series with thin bars', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BarSeries, {
         upColor: TestColors.UP_COLOR,
         downColor: TestColors.DOWN_COLOR,
@@ -96,7 +99,7 @@ describe('Bar Series Visual Rendering', () => {
   });
 
   it('renders bar series with custom colors', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BarSeries, {
         upColor: '#4CAF50',
         downColor: '#F44336',
@@ -116,7 +119,7 @@ describe('Bar Series Visual Rendering', () => {
 
   it('renders bar series with custom price line styling', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(BarSeries, {
           upColor: TestColors.UP_COLOR,
           downColor: TestColors.DOWN_COLOR,
@@ -147,7 +150,7 @@ describe('Bar Series Visual Rendering', () => {
 
   it('renders bar series with title label', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(BarSeries, {
           upColor: TestColors.UP_COLOR,
           downColor: TestColors.DOWN_COLOR,
@@ -174,7 +177,7 @@ describe('Bar Series Visual Rendering', () => {
   });
 
   it('renders chart with hidden bar series', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const visibleSeries = chart.addSeries(BarSeries, {
         upColor: TestColors.UP_COLOR,
         downColor: TestColors.DOWN_COLOR,
@@ -190,7 +193,7 @@ describe('Bar Series Visual Rendering', () => {
       const baseData = generateBarData(30, 100, '2024-01-01');
       visibleSeries.setData(baseData);
       hiddenSeries.setData(
-        baseData.map((d) => ({
+        baseData.map(d => ({
           ...d,
           open: d.open + 5,
           high: d.high + 5,
@@ -221,7 +224,7 @@ describe('Histogram Series Visual Rendering', () => {
   });
 
   it('renders basic histogram series', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(HistogramSeries, {
         color: TestColors.BLUE,
       });
@@ -239,7 +242,7 @@ describe('Histogram Series Visual Rendering', () => {
   });
 
   it('renders histogram with base value', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(HistogramSeries, {
         color: TestColors.GREEN,
         base: 0,
@@ -258,7 +261,7 @@ describe('Histogram Series Visual Rendering', () => {
   });
 
   it('renders histogram with color variation', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(HistogramSeries);
 
       // Data with varying colors (generated with colors)
@@ -276,7 +279,7 @@ describe('Histogram Series Visual Rendering', () => {
 
   it('renders histogram with price axis visible', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(HistogramSeries, {
           color: TestColors.ORANGE,
           priceLineVisible: true,
@@ -306,7 +309,7 @@ describe('Histogram Series Visual Rendering', () => {
 
   it('renders histogram on dark background', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(HistogramSeries);
 
         series.setData(generateHistogramData(30, 0));
@@ -332,7 +335,7 @@ describe('Histogram Series Visual Rendering', () => {
 
   it('renders histogram with custom price line styling', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(HistogramSeries, {
           color: TestColors.BLUE,
           priceLineVisible: true,
@@ -362,7 +365,7 @@ describe('Histogram Series Visual Rendering', () => {
 
   it('renders histogram with title label', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(HistogramSeries, {
           color: TestColors.GREEN,
           title: 'Volume',
@@ -388,7 +391,7 @@ describe('Histogram Series Visual Rendering', () => {
   });
 
   it('renders chart with hidden histogram series', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const visibleSeries = chart.addSeries(HistogramSeries, {
         color: TestColors.BLUE,
         visible: true,
@@ -401,7 +404,7 @@ describe('Histogram Series Visual Rendering', () => {
 
       visibleSeries.setData(generateHistogramData(30, 0, '2024-01-01'));
       hiddenSeries.setData(
-        generateHistogramData(30, 0, '2024-01-01').map((d) => ({
+        generateHistogramData(30, 0, '2024-01-01').map(d => ({
           ...d,
           value: d.value + 10,
         }))

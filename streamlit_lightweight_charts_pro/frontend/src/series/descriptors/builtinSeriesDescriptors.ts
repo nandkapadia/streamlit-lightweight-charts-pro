@@ -24,6 +24,107 @@ import {
 import { UnifiedSeriesDescriptor, PropertyDescriptors } from '../core/UnifiedSeriesDescriptor';
 
 /**
+ * Sort and deduplicate data by time (required by lightweight-charts)
+ *
+ * Lightweight-charts requires:
+ * 1. Data sorted chronologically in ascending order
+ * 2. No duplicate timestamps
+ * 3. Valid date formats (yyyy-mm-dd or unix timestamp)
+ * 4. Valid numeric values (no NaN, within range)
+ *
+ * This helper ensures data meets all requirements. Filters out invalid data,
+ * sorts chronologically, and deduplicates (keeping last occurrence per timestamp).
+ *
+ * @param data - Array of data points with time property
+ * @returns Sorted, deduplicated, and validated array of data points
+ */
+function sortDataByTime(data: any[]): any[] {
+  // Helper to validate and parse time
+  const parseTime = (item: any): number | null => {
+    if (typeof item.time === 'number') {
+      return item.time;
+    }
+    if (typeof item.time === 'string') {
+      // Check for valid date format (yyyy-mm-dd)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(item.time)) {
+        return null; // Invalid format
+      }
+      const timestamp = new Date(item.time).getTime();
+      if (isNaN(timestamp)) {
+        return null; // Invalid date
+      }
+      return timestamp / 1000;
+    }
+    return null;
+  };
+
+  // Helper to validate numeric values
+  // Lightweight-charts has a max value of approximately ±90 trillion
+  const MAX_SAFE_VALUE = 90071992547409.91;
+  const isValidValue = (value: any): boolean => {
+    return (
+      typeof value === 'number' &&
+      !isNaN(value) &&
+      isFinite(value) &&
+      value >= -MAX_SAFE_VALUE &&
+      value <= MAX_SAFE_VALUE
+    );
+  };
+
+  // Helper to validate data item based on its structure
+  const isValidItem = (item: any): boolean => {
+    // Check if time is valid
+    if (parseTime(item) === null) {
+      return false;
+    }
+
+    // For line/area/baseline series (has 'value' property)
+    if ('value' in item) {
+      return isValidValue(item.value);
+    }
+
+    // For OHLC series (candlestick, bar)
+    if ('open' in item || 'high' in item || 'low' in item || 'close' in item) {
+      return (
+        isValidValue(item.open) &&
+        isValidValue(item.high) &&
+        isValidValue(item.low) &&
+        isValidValue(item.close)
+      );
+    }
+
+    // For histogram (has 'value' or 'color')
+    if ('color' in item) {
+      return !('value' in item) || isValidValue(item.value);
+    }
+
+    return true; // Unknown format, let it through
+  };
+
+  // Filter out invalid items and add parsed time
+  const validItems = data
+    .filter(isValidItem)
+    .map(item => ({
+      ...item,
+      _parsedTime: parseTime(item),
+    }))
+    .filter((item): item is typeof item & { _parsedTime: number } => item._parsedTime !== null);
+
+  // Sort by parsed time (safe since we filtered out nulls with type guard above)
+  const sorted = validItems.sort((a, b) => a._parsedTime - b._parsedTime);
+
+  // Deduplicate by time (keep last occurrence)
+  const timeMap = new Map();
+  sorted.forEach(item => {
+    timeMap.set(item._parsedTime, item);
+  });
+
+  // Remove temporary _parsedTime property
+  return Array.from(timeMap.values()).map(({ _parsedTime, ...item }) => item);
+}
+
+/**
  * Line Series Descriptor
  */
 export const LINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<LineSeriesOptions> = {
@@ -58,7 +159,7 @@ export const LINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<LineSeriesOptions> 
   create: (chart, data, options, paneId = 0) => {
     const series = (chart as IChartApi).addSeries(LineSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data as never[]);
+      series.setData(sortDataByTime(data) as never[]);
     }
     return series;
   },
@@ -109,7 +210,7 @@ export const AREA_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<AreaSeriesOptions> 
   create: (chart, data, options, paneId = 0) => {
     const series = (chart as IChartApi).addSeries(AreaSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data as never[]);
+      series.setData(sortDataByTime(data) as never[]);
     }
     return series;
   },
@@ -140,7 +241,7 @@ export const HISTOGRAM_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<HistogramSerie
   create: (chart, data, options, paneId = 0) => {
     const series = (chart as IChartApi).addSeries(HistogramSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data as never[]);
+      series.setData(sortDataByTime(data) as never[]);
     }
     return series;
   },
@@ -175,7 +276,7 @@ export const BAR_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BarSeriesOptions> = 
   create: (chart, data, options, paneId = 0) => {
     const series = (chart as IChartApi).addSeries(BarSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data as never[]);
+      series.setData(sortDataByTime(data) as never[]);
     }
     return series;
   },
@@ -222,7 +323,7 @@ export const CANDLESTICK_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<CandlestickS
   create: (chart, data, options, paneId = 0) => {
     const series = (chart as IChartApi).addSeries(CandlestickSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data as never[]);
+      series.setData(sortDataByTime(data) as never[]);
     }
     return series;
   },
@@ -275,7 +376,7 @@ export const BASELINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BaselineSeriesO
   create: (chart, data, options, paneId = 0) => {
     const series = (chart as IChartApi).addSeries(BaselineSeries, options, paneId);
     if (data && data.length > 0) {
-      series.setData(data as never[]);
+      series.setData(sortDataByTime(data) as never[]);
     }
     return series;
   },

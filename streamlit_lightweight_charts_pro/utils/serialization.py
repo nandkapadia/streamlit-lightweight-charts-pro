@@ -34,6 +34,7 @@ Refactoring Info:
     - And other classes with custom asdict() implementations
 """
 
+# Standard Imports
 from __future__ import annotations
 
 import math
@@ -41,6 +42,7 @@ from dataclasses import fields
 from enum import Enum
 from typing import Any
 
+# Local Imports
 from streamlit_lightweight_charts_pro.utils.data_utils import snake_to_camel
 
 
@@ -151,24 +153,30 @@ class SerializableMixin:
             # Returns: {"title": "Test", "value": "custom_value", "notes": ""}
             ```
         """
+        # Step 1: Initialize result dictionary and process overrides
         result = {}
         override_fields = override_fields or {}
 
+        # Step 2: Iterate through all dataclass fields
         for field in fields(self):
             field_name = field.name
 
-            # Use override value if provided, otherwise get actual value
+            # Step 3: Get field value (use override if provided, otherwise get from instance)
+            # Overrides allow callers to customize specific field values during serialization
             value = override_fields.get(field_name, getattr(self, field_name))
 
-            # Apply config-based filtering
+            # Step 4: Apply config-based filtering (skip None, empty strings, etc.)
+            # This removes unwanted values before serialization
             if not self._should_include_value(value, config):
                 continue
 
-            # Convert field and value
+            # Step 5: Convert field name and value for frontend compatibility
+            # Processes both the key (field name) and the value
             processed_value = self._process_value_for_serialization(value, config)
             processed_field = self._process_field_name_for_serialization(field_name, config)
 
-            # Handle special flattening rules
+            # Step 6: Handle special flattening rules
+            # Some fields (like background_options) should be merged into parent dict
             if (
                 config.flatten_options_fields
                 and field_name.endswith("_options")
@@ -178,9 +186,10 @@ class SerializableMixin:
                 # Merge flattened fields into result instead of nesting
                 result.update(processed_value)
             else:
-                # Add normal or nested field
+                # Add normal or nested field to result
                 result[processed_field] = processed_value
 
+        # Step 7: Return the fully processed dictionary
         return result
 
     def _should_include_value(self, value: Any, config: SerializationConfig) -> bool:
@@ -193,12 +202,18 @@ class SerializableMixin:
         Returns:
             bool: True if the value should be included, False otherwise.
         """
+        # Check 1: Skip None values if configured
+        # Helps reduce payload size by omitting unset optional fields
         if value is None and config.skip_none:
             return False
 
+        # Check 2: Skip empty strings if configured
+        # Prevents sending empty string values to frontend
         if value == "" and config.skip_empty_strings:
             return False
 
+        # Check 3: Skip empty dictionaries if configured
+        # Returns True if value is not an empty dict, or if we should keep empty dicts
         return not (value == {} and config.skip_empty_dicts)
 
     def _process_value_for_serialization(
@@ -215,30 +230,37 @@ class SerializableMixin:
         Returns:
             Any: The processed value ready for serialization.
         """
-        # Handle NaN floats
+        # Step 1: Handle NaN floats - convert to zero for JSON compatibility
+        # JavaScript doesn't support NaN in JSON, so we convert to 0.0
         if isinstance(value, float) and math.isnan(value) and config.convert_nan_to_zero:
             return 0.0
 
-        # Convert NumPy scalar types to Python native types
-        if hasattr(value, "item"):  # NumPy scalar types
+        # Step 2: Convert NumPy scalar types to Python native types
+        # NumPy types like np.int64 need conversion for JSON serialization
+        if hasattr(value, "item"):  # NumPy scalar types have .item() method
             value = value.item()
 
-        # Convert enums to their values
+        # Step 3: Convert enums to their values
+        # Enums are serialized as their underlying value (int, string, etc.)
         if config.convert_enums and isinstance(value, Enum):
             value = value.value
 
-        # Handle nested serializable objects
+        # Step 4: Handle nested serializable objects
+        # Objects with asdict() method are serialized recursively
         if hasattr(value, "asdict") and callable(value.asdict):
             value = value.asdict()
 
-        # Handle serializable lists recursively
+        # Step 5: Handle serializable lists recursively
+        # Lists may contain nested objects that also need serialization
         elif isinstance(value, list):
             return self._serialize_list_recursively(value, config)
 
-        # Handle nested dictionaries recursively
+        # Step 6: Handle nested dictionaries recursively
+        # Dictionaries need key conversion (snake_case to camelCase)
         elif isinstance(value, dict):
             return self._serialize_dict_recursively(value, config)
 
+        # Step 7: Return the processed value
         return value
 
     def _serialize_list_recursively(
@@ -255,10 +277,15 @@ class SerializableMixin:
         Returns:
             List[Any]: Recursively serialized list.
         """
+        # Initialize result list
         processed_items = []
+
+        # Process each item in the list recursively
+        # This ensures nested objects are also properly serialized
         for item in items:
             processed_item = self._process_value_for_serialization(item, config)
             processed_items.append(processed_item)
+
         return processed_items
 
     def _serialize_dict_recursively(
@@ -275,12 +302,22 @@ class SerializableMixin:
         Returns:
             Dict[str, Any]: Recursively processed dictionary with camelCase keys.
         """
+        # Initialize result dictionary
         result = {}
+
+        # Process each key-value pair in the dictionary
         for key, value in data.items():
-            # Convert key to camelCase if it's a string, or convert to string if it's not
+            # Step 1: Convert key to camelCase for JavaScript compatibility
+            # If key is not a string, convert it to string first
             processed_key = snake_to_camel(key) if isinstance(key, str) else str(key)
+
+            # Step 2: Process value recursively
+            # Handles nested objects, enums, lists, etc.
             processed_value = self._process_value_for_serialization(value, config)
+
+            # Step 3: Add processed key-value pair to result
             result[processed_key] = processed_value
+
         return result
 
     def _process_field_name_for_serialization(
@@ -297,22 +334,30 @@ class SerializableMixin:
         Returns:
             str: Processed field name.
         """
-        # Special handling for known column names (avoid import at module level)
+        # Special handling for known column names to match frontend expectations
+        # Import inside function to avoid circular import issues
         if field_name == "time":
+            # Case 1: "time" field - use ColumnNames enum for consistency
             try:
+                # pylint: disable=import-outside-toplevel
                 from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames
             except ImportError:
+                # Fallback to standard camelCase if import fails
                 return snake_to_camel(field_name)
             else:
                 return ColumnNames.TIME.value
         elif field_name == "value":
+            # Case 2: "value" field - use ColumnNames enum for consistency
             try:
+                # pylint: disable=import-outside-toplevel
                 from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames
             except ImportError:
+                # Fallback to standard camelCase if import fails
                 return snake_to_camel(field_name)
             else:
                 return ColumnNames.VALUE.value
         else:
+            # Case 3: Regular field - convert snake_case to camelCase
             return snake_to_camel(field_name)
 
 
@@ -342,13 +387,34 @@ def create_serializable_mixin(config_override: SerializationConfig = None) -> ty
     Returns:
         type: A custom SerializableMixin class with the specified configuration.
     """
+    # Use provided config or fall back to default configuration
     config = config_override or DEFAULT_CONFIG
 
     class ConfigurableSerializableMixin(SerializableMixin):
+        """Configurable serialization mixin with custom config.
+
+        This class provides a SerializableMixin variant with custom serialization
+        configuration. It's useful when different classes need different
+        serialization behaviors (e.g., some skip None, others don't).
+
+        Attributes:
+            config: The SerializationConfig instance to use for this mixin.
+        """
+
         def _get_serialization_config(self) -> SerializationConfig:
+            """Get the serialization configuration for this mixin.
+
+            Returns:
+                SerializationConfig: The configuration instance.
+            """
             return config
 
         def asdict(self) -> dict[str, Any]:
+            """Serialize to dictionary using the custom configuration.
+
+            Returns:
+                Dict[str, Any]: Serialized representation with custom config applied.
+            """
             return self._serialize_to_dict(self._get_serialization_config())
 
     return ConfigurableSerializableMixin

@@ -7,6 +7,25 @@
 
 import { vi } from 'vitest';
 import React from 'react';
+
+// ============================================================================
+// CRITICAL: Mock window.matchMedia FIRST - Required by fancy-canvas
+// ============================================================================
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
 import {
   mockPrimitiveEventManager,
   mockCornerLayoutManager,
@@ -23,6 +42,77 @@ import {
 // ============================================================================
 // GLOBAL VI MOCKS - Applied to all tests automatically
 // ============================================================================
+
+// Mock the lightweight-charts library to prevent real chart initialization
+vi.mock('lightweight-charts', () => ({
+  createChart: vi.fn(() => ({
+    remove: vi.fn(),
+    resize: vi.fn(),
+    timeScale: vi.fn(() => ({
+      fitContent: vi.fn(),
+      scrollToPosition: vi.fn(),
+    })),
+    priceScale: vi.fn(() => ({
+      applyOptions: vi.fn(),
+    })),
+    applyOptions: vi.fn(),
+    addAreaSeries: vi.fn(() => ({
+      setData: vi.fn(),
+      update: vi.fn(),
+      applyOptions: vi.fn(),
+      options: vi.fn(() => ({})),
+    })),
+    addLineSeries: vi.fn(() => ({
+      setData: vi.fn(),
+      update: vi.fn(),
+      applyOptions: vi.fn(),
+      options: vi.fn(() => ({})),
+    })),
+    addCandlestickSeries: vi.fn(() => ({
+      setData: vi.fn(),
+      update: vi.fn(),
+      applyOptions: vi.fn(),
+      options: vi.fn(() => ({})),
+    })),
+    addBarSeries: vi.fn(() => ({
+      setData: vi.fn(),
+      update: vi.fn(),
+      applyOptions: vi.fn(),
+      options: vi.fn(() => ({})),
+    })),
+    addHistogramSeries: vi.fn(() => ({
+      setData: vi.fn(),
+      update: vi.fn(),
+      applyOptions: vi.fn(),
+      options: vi.fn(() => ({})),
+    })),
+    addBaselineSeries: vi.fn(() => ({
+      setData: vi.fn(),
+      update: vi.fn(),
+      applyOptions: vi.fn(),
+      options: vi.fn(() => ({})),
+    })),
+    panes: vi.fn(() => []),
+    chartElement: vi.fn(() => document.createElement('div')),
+  })),
+  LineStyle: {
+    Solid: 0,
+    Dotted: 1,
+    Dashed: 2,
+    LargeDashed: 3,
+    SparseDotted: 4,
+  },
+  CrosshairMode: {
+    Normal: 0,
+    Magnet: 1,
+  },
+  PriceScaleMode: {
+    Normal: 0,
+    Logarithmic: 1,
+    Percentage: 2,
+    IndexedTo100: 3,
+  },
+}));
 
 // Mock LightweightCharts component - return proper React component
 vi.mock('../../LightweightCharts', () => ({

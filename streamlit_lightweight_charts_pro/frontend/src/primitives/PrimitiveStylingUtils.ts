@@ -1,8 +1,46 @@
 /**
- * Standardized styling utilities for primitive components
+ * @fileoverview Primitive Styling Utilities
  *
- * This module provides consistent patterns for applying styles across all primitives,
- * ensuring uniform behavior and maintainable code.
+ * Standardized styling utilities for applying consistent styles across all
+ * primitive components. Provides type-safe style application, CSS generation,
+ * and common styling patterns.
+ *
+ * This module provides:
+ * - Type-safe style interfaces (Base, Typography, Layout, Border, Shadow)
+ * - CSS string generation from configuration objects
+ * - Style merging and composition utilities
+ * - Consistent styling patterns across primitives
+ * - Responsive design helpers
+ *
+ * Architecture:
+ * - Static utility class (no instantiation)
+ * - Pure functions (no side effects)
+ * - Type-safe with TypeScript interfaces
+ * - Composable style configurations
+ * - DRY principle for styling
+ *
+ * Features:
+ * - Automatic unit handling (px, %, etc.)
+ * - Style merging with precedence
+ * - CSS variable support
+ * - Hover and active state styles
+ * - Transition and animation helpers
+ *
+ * @example
+ * ```typescript
+ * import { PrimitiveStylingUtils, BaseStyleConfig } from './PrimitiveStylingUtils';
+ *
+ * const baseStyle: BaseStyleConfig = {
+ *   backgroundColor: '#1E222D',
+ *   color: '#D1D4DC',
+ *   fontSize: 12,
+ *   borderRadius: 4,
+ *   padding: 8
+ * };
+ *
+ * const cssString = PrimitiveStylingUtils.toCssString(baseStyle);
+ * element.style.cssText = cssString;
+ * ```
  */
 
 /**

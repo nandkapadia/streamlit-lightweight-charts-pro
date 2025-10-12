@@ -1,12 +1,42 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+/**
+ * @fileoverview Logger Test Suite
+ *
+ * Tests for the logger utility with console output verification.
+ */
 
-// Import mocked versions
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+
+// Import logger
 import { logger, LogLevel, chartLog, primitiveLog, perfLog } from '../../utils/logger';
 
 describe('Logger', () => {
+  let consoleDebugSpy: any;
+  let consoleInfoSpy: any;
+  let consoleWarnSpy: any;
+  let consoleErrorSpy: any;
+
   beforeEach(() => {
-    // Clear all mock calls before each test
+    // Set logger to DEBUG level to allow all log messages
+    (logger as any).logLevel = LogLevel.DEBUG;
+
+    // Ensure console.debug and console.info exist (Node.js doesn't have them by default)
+    if (!console.debug) console.debug = console.log;
+    if (!console.info) console.info = console.log;
+
+    // Spy on console methods (logger uses debug/info/warn/error)
+    consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+    consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    // Restore console methods
+    consoleDebugSpy.mockRestore();
+    consoleInfoSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
   });
 
   describe('LogLevel enum', () => {
@@ -22,29 +52,33 @@ describe('Logger', () => {
     it('should log debug messages', () => {
       logger.debug('Debug message', 'TestContext', { data: 'test' });
 
-      expect(logger.debug).toHaveBeenCalledTimes(1);
-      expect(logger.debug).toHaveBeenCalledWith('Debug message', 'TestContext', { data: 'test' });
+      expect(consoleDebugSpy).toHaveBeenCalled();
+      expect(consoleDebugSpy.mock.calls[0][0]).toContain('DEBUG');
+      expect(consoleDebugSpy.mock.calls[0][0]).toContain('Debug message');
     });
 
     it('should log info messages', () => {
       logger.info('Info message', 'TestContext', { data: 'test' });
 
-      expect(logger.info).toHaveBeenCalledTimes(1);
-      expect(logger.info).toHaveBeenCalledWith('Info message', 'TestContext', { data: 'test' });
+      expect(consoleInfoSpy).toHaveBeenCalled();
+      expect(consoleInfoSpy.mock.calls[0][0]).toContain('INFO');
+      expect(consoleInfoSpy.mock.calls[0][0]).toContain('Info message');
     });
 
     it('should log warn messages', () => {
       logger.warn('Warning message', 'TestContext', { data: 'test' });
 
-      expect(logger.warn).toHaveBeenCalledTimes(1);
-      expect(logger.warn).toHaveBeenCalledWith('Warning message', 'TestContext', { data: 'test' });
+      expect(consoleWarnSpy).toHaveBeenCalled();
+      expect(consoleWarnSpy.mock.calls[0][0]).toContain('WARN');
+      expect(consoleWarnSpy.mock.calls[0][0]).toContain('Warning message');
     });
 
     it('should log error messages', () => {
       logger.error('Error message', 'TestContext', { error: 'test' });
 
-      expect(logger.error).toHaveBeenCalledTimes(1);
-      expect(logger.error).toHaveBeenCalledWith('Error message', 'TestContext', { error: 'test' });
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain('ERROR');
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain('Error message');
     });
   });
 
@@ -53,36 +87,35 @@ describe('Logger', () => {
       const error = new Error('Chart failed');
       logger.chartError('Chart failed', error);
 
-      expect(logger.chartError).toHaveBeenCalledTimes(1);
-      expect(logger.chartError).toHaveBeenCalledWith('Chart failed', error);
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain('ERROR');
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain('Chart failed');
     });
 
     it('should log primitive errors', () => {
       const error = new Error('Primitive failed');
       logger.primitiveError('Primitive failed', 'test-primitive', error);
 
-      expect(logger.primitiveError).toHaveBeenCalledTimes(1);
-      expect(logger.primitiveError).toHaveBeenCalledWith(
-        'Primitive failed',
-        'test-primitive',
-        error
-      );
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain('ERROR');
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain('Primitive failed');
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain('test-primitive');
     });
 
     it('should log performance warnings', () => {
       logger.performanceWarn('Performance issue detected', { duration: 1000 });
 
-      expect(logger.performanceWarn).toHaveBeenCalledTimes(1);
-      expect(logger.performanceWarn).toHaveBeenCalledWith('Performance issue detected', {
-        duration: 1000,
-      });
+      expect(consoleWarnSpy).toHaveBeenCalled();
+      expect(consoleWarnSpy.mock.calls[0][0]).toContain('WARN');
+      expect(consoleWarnSpy.mock.calls[0][0]).toContain('Performance issue detected');
     });
 
     it('should log render debug messages', () => {
       logger.renderDebug('Render debug', 'Chart');
 
-      expect(logger.renderDebug).toHaveBeenCalledTimes(1);
-      expect(logger.renderDebug).toHaveBeenCalledWith('Render debug', 'Chart');
+      expect(consoleDebugSpy).toHaveBeenCalled();
+      expect(consoleDebugSpy.mock.calls[0][0]).toContain('DEBUG');
+      expect(consoleDebugSpy.mock.calls[0][0]).toContain('Render debug');
     });
   });
 
@@ -91,29 +124,29 @@ describe('Logger', () => {
       it('should log chart debug messages', () => {
         chartLog.debug('Chart debug message');
 
-        expect(chartLog.debug).toHaveBeenCalledTimes(1);
-        expect(chartLog.debug).toHaveBeenCalledWith('Chart debug message');
+        expect(consoleDebugSpy).toHaveBeenCalled();
+        expect(consoleDebugSpy.mock.calls[0][0]).toContain('Chart debug message');
       });
 
       it('should log chart info messages', () => {
         chartLog.info('Chart info message');
 
-        expect(chartLog.info).toHaveBeenCalledTimes(1);
-        expect(chartLog.info).toHaveBeenCalledWith('Chart info message');
+        expect(consoleInfoSpy).toHaveBeenCalled();
+        expect(consoleInfoSpy.mock.calls[0][0]).toContain('Chart info message');
       });
 
       it('should log chart warnings', () => {
         chartLog.warn('Chart warning message');
 
-        expect(chartLog.warn).toHaveBeenCalledTimes(1);
-        expect(chartLog.warn).toHaveBeenCalledWith('Chart warning message');
+        expect(consoleWarnSpy).toHaveBeenCalled();
+        expect(consoleWarnSpy.mock.calls[0][0]).toContain('Chart warning message');
       });
 
       it('should log chart errors', () => {
         chartLog.error('Chart error message');
 
-        expect(chartLog.error).toHaveBeenCalledTimes(1);
-        expect(chartLog.error).toHaveBeenCalledWith('Chart error message');
+        expect(consoleErrorSpy).toHaveBeenCalled();
+        expect(consoleErrorSpy.mock.calls[0][0]).toContain('Chart error message');
       });
     });
 
@@ -121,21 +154,17 @@ describe('Logger', () => {
       it('should log primitive debug messages', () => {
         primitiveLog.debug('Primitive debug message', 'test-primitive');
 
-        expect(primitiveLog.debug).toHaveBeenCalledTimes(1);
-        expect(primitiveLog.debug).toHaveBeenCalledWith(
-          'Primitive debug message',
-          'test-primitive'
-        );
+        expect(consoleDebugSpy).toHaveBeenCalled();
+        expect(consoleDebugSpy.mock.calls[0][0]).toContain('Primitive debug message');
+        expect(consoleDebugSpy.mock.calls[0][0]).toContain('test-primitive');
       });
 
       it('should log primitive errors', () => {
         primitiveLog.error('Primitive error message', 'test-primitive');
 
-        expect(primitiveLog.error).toHaveBeenCalledTimes(1);
-        expect(primitiveLog.error).toHaveBeenCalledWith(
-          'Primitive error message',
-          'test-primitive'
-        );
+        expect(consoleErrorSpy).toHaveBeenCalled();
+        expect(consoleErrorSpy.mock.calls[0][0]).toContain('Primitive error message');
+        expect(consoleErrorSpy.mock.calls[0][0]).toContain('test-primitive');
       });
     });
 
@@ -143,15 +172,15 @@ describe('Logger', () => {
       it('should log performance warnings', () => {
         perfLog.warn('Performance warning message');
 
-        expect(perfLog.warn).toHaveBeenCalledTimes(1);
-        expect(perfLog.warn).toHaveBeenCalledWith('Performance warning message');
+        expect(consoleWarnSpy).toHaveBeenCalled();
+        expect(consoleWarnSpy.mock.calls[0][0]).toContain('Performance warning message');
       });
 
       it('should log performance debug messages', () => {
         perfLog.debug('Performance debug message');
 
-        expect(perfLog.debug).toHaveBeenCalledTimes(1);
-        expect(perfLog.debug).toHaveBeenCalledWith('Performance debug message');
+        expect(consoleDebugSpy).toHaveBeenCalled();
+        expect(consoleDebugSpy.mock.calls[0][0]).toContain('Performance debug message');
       });
     });
   });
@@ -160,8 +189,8 @@ describe('Logger', () => {
     it('should handle undefined data gracefully', () => {
       logger.warn('Warning without data');
 
-      expect(logger.warn).toHaveBeenCalledTimes(1);
-      expect(logger.warn).toHaveBeenCalledWith('Warning without data');
+      expect(consoleWarnSpy).toHaveBeenCalled();
+      expect(consoleWarnSpy.mock.calls[0][0]).toContain('Warning without data');
     });
 
     it('should handle complex data objects', () => {
@@ -173,12 +202,8 @@ describe('Logger', () => {
 
       logger.error('Error with complex data', 'TestContext', complexData);
 
-      expect(logger.error).toHaveBeenCalledTimes(1);
-      expect(logger.error).toHaveBeenCalledWith(
-        'Error with complex data',
-        'TestContext',
-        complexData
-      );
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain('Error with complex data');
     });
   });
 });

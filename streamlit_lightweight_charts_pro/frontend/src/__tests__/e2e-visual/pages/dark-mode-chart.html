@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Dark Mode Chart</title>
+<script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+<style>* { margin: 0; padding: 0; } body { background: #1e1e1e; padding: 20px; } #container { width: 800px; height: 400px; }</style>
+</head><body>
+<div id="container"></div>
+<script>
+function runTestCase(container) {
+    const chart = LightweightCharts.createChart(container, {
+        width: 800, height: 400,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d1d4dc' },
+        grid: { vertLines: { color: '#2b2b2b' }, horzLines: { color: '#2b2b2b' } },
+    });
+    const series = chart.addSeries(LightweightCharts.LineSeries);
+    series.applyOptions({ color: '#42a5f5', lineWidth: 2 });
+    const data = []; for (let i = 0; i < 40; i++) data.push({ time: '2024-01-'+String(i+1).padStart(2,'0'), value: 100+i*0.6+Math.sin(i/5)*12 });
+    series.setData(data); chart.timeScale().fitContent();
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+</script></body></html>

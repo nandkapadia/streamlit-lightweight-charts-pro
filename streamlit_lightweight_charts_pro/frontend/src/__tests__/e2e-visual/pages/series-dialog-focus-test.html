@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Series Dialog Focus Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #container {
+            width: 800px;
+            height: 400px;
+            position: relative;
+            background: white;
+        }
+        #chart { width: 100%; height: 100%; }
+
+        .series-config-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            border: 1px solid #666;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            z-index: 10;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .series-config-button:focus {
+            outline: 2px solid #2196F3;
+            outline-offset: 2px;
+        }
+
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+        .dialog-overlay.open { display: block; }
+
+        .series-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            min-width: 320px;
+            z-index: 101;
+        }
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .dialog-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .dialog-close {
+            border: none;
+            background: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        .dialog-close:focus {
+            outline: 2px solid #2196F3;
+            outline-offset: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input, select, button.save-button {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid #2196F3;
+            outline-offset: 1px;
+        }
+
+        button.save-button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        button.save-button:hover {
+            background: #1976D2;
+        }
+        button.save-button:focus {
+            outline: 2px solid #1565C0;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="chart"></div>
+        <button class="series-config-button" data-testid="series-config-button">⚙️</button>
+    </div>
+
+    <div class="dialog-overlay" id="overlay">
+        <div class="series-dialog" data-testid="series-config-dialog" onclick="event.stopPropagation()">
+            <div class="dialog-header">
+                <span class="dialog-title">Series Settings</span>
+                <button class="dialog-close" data-testid="dialog-close">×</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Series Name</label>
+                <input type="text" value="Price Series" id="name-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Line Width</label>
+                <input type="number" min="1" max="5" value="2" id="width-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Visible</label>
+                <select id="visible-select">
+                    <option selected>Yes</option>
+                    <option>No</option>
+                </select>
+            </div>
+
+            <button class="save-button" id="save-button">Save Changes</button>
+        </div>
+    </div>
+
+    <script>
+let chart, series;
+let lastFocusedElement = null;
+const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+function runTestCase() {
+    const data = [];
+    const startDate = new Date('2024-01-01');
+
+    for (let i = 0; i < 60; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const price = 100 + i * 0.5 + Math.sin(i / 8) * 15;
+
+        data.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+    }
+
+    chart = LightweightCharts.createChart(document.getElementById('chart'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    series = chart.addSeries(LightweightCharts.LineSeries);
+    series.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    series.setData(data);
+
+    // Dialog control
+    const configButton = document.querySelector('[data-testid="series-config-button"]');
+    const overlay = document.getElementById('overlay');
+    const closeButton = document.querySelector('[data-testid="dialog-close"]');
+    const dialog = document.querySelector('.series-dialog');
+
+    // Get all focusable elements in dialog
+    function getFocusableElements() {
+        return Array.from(dialog.querySelectorAll(focusableSelectors))
+            .filter(el => !el.disabled && el.offsetParent !== null);
+    }
+
+    // Trap focus within dialog
+    function trapFocus(e) {
+        if (!overlay.classList.contains('open')) return;
+
+        const focusableElements = getFocusableElements();
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.key === 'Tab') {
+            if (e.shiftKey) {
+                if (document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                }
+            } else {
+                if (document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        }
+    }
+
+    configButton.onclick = () => {
+        lastFocusedElement = document.activeElement;
+        overlay.classList.add('open');
+
+        // Focus first input after dialog opens
+        setTimeout(() => {
+            const firstInput = document.getElementById('name-input');
+            if (firstInput) firstInput.focus();
+        }, 50);
+    };
+
+    function closeDialog() {
+        overlay.classList.remove('open');
+
+        // Restore focus to the button that opened the dialog
+        setTimeout(() => {
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+            } else {
+                configButton.focus();
+            }
+        }, 50);
+    }
+
+    closeButton.onclick = closeDialog;
+
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            closeDialog();
+        }
+    };
+
+    document.getElementById('save-button').onclick = closeDialog;
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.classList.contains('open')) {
+            closeDialog();
+        } else {
+            trapFocus(e);
+        }
+    });
+
+    chart.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>

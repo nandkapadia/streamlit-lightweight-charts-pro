@@ -27,7 +27,11 @@ import { Streamlit } from 'streamlit-component-lib';
 import LightweightCharts from './LightweightCharts';
 import { ComponentConfig } from './types';
 import { ResizeObserverManager } from './utils/resizeObserverManager';
-import { useStreamlitRenderData, useStreamlitFrameHeight, isStreamlitComponentReady } from './hooks/useStreamlit';
+import {
+  useStreamlitRenderData,
+  useStreamlitFrameHeight,
+  isStreamlitComponentReady,
+} from './hooks/useStreamlit';
 
 /**
  * Main App component that renders the LightweightCharts component.
@@ -125,7 +129,7 @@ const App: React.FC = () => {
       }
 
       // Method 2: Try computed styles
-      if (!containerHeight) {
+      if (!containerHeight && typeof window !== 'undefined') {
         try {
           const computedStyle = window.getComputedStyle(containerRef.current);
           containerHeight = parseInt(computedStyle.height) || 0;
@@ -170,7 +174,12 @@ const App: React.FC = () => {
         lastReportedHeight.current = finalHeight;
 
         // Report height to Streamlit only if component is ready and mounted
-        if (isMountedRef.current && isStreamlitComponentReady() && typeof Streamlit !== 'undefined' && Streamlit.setFrameHeight) {
+        if (
+          isMountedRef.current &&
+          isStreamlitComponentReady() &&
+          typeof Streamlit !== 'undefined' &&
+          Streamlit.setFrameHeight
+        ) {
           try {
             Streamlit.setFrameHeight(finalHeight);
           } catch (error) {
@@ -272,6 +281,11 @@ const App: React.FC = () => {
 
   // Enhanced height reporting with window resize
   useEffect(() => {
+    // Only add resize listener in browser environment
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const handleWindowResize = () => {
       debouncedReportHeight();
     };

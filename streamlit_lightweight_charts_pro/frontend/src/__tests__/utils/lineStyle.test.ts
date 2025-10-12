@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Line Style Test Suite
+ *
+ * Tests for line style validation and cleaning utilities.
+ */
+
+import { vi, describe, it, expect } from 'vitest';
 import { validateLineStyle, cleanLineStyleOptions } from '../../utils/lineStyle';
 
 // Mock the lightweight-charts module

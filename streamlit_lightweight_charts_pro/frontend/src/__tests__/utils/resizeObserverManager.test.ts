@@ -1,3 +1,11 @@
+/**
+ * @fileoverview ResizeObserverManager Test Suite
+ *
+ * Tests for ResizeObserverManager utility with throttling and debouncing.
+ *
+ * @vitest-environment jsdom
+ */
+
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 // MockedFunction not needed with proper type annotations
 import { ResizeObserverManager } from '../../utils/resizeObserverManager';

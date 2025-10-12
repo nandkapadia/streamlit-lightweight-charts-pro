@@ -1,5 +1,6 @@
 /**
  * @fileoverview Tests for SeriesDialogManager
+ * @vitest-environment jsdom
  *
  * Tests the singleton pattern, dialog open/close functionality,
  * series configuration management, and React integration.
@@ -27,10 +28,6 @@ describe('SeriesDialogManager', () => {
   let mockStreamlitService: StreamlitSeriesConfigService;
 
   beforeEach(() => {
-    // Clear singleton instances
-    (SeriesDialogManager as any).instances = new Map();
-    (StreamlitSeriesConfigService as any).instance = null;
-
     // Mock chart API with series that have _seriesType metadata
     mockChartApi = {
       panes: vi.fn(() => [
@@ -66,6 +63,11 @@ describe('SeriesDialogManager', () => {
     vi.clearAllMocks();
     // Clean up any DOM elements created during tests
     document.body.innerHTML = '';
+    // Destroy all singleton instances to prevent test pollution
+    SeriesDialogManager.destroyInstance('chart-1');
+    SeriesDialogManager.destroyInstance('chart-2');
+    SeriesDialogManager.destroyInstance('my-chart-id');
+    SeriesDialogManager.destroyInstance('default');
   });
 
   describe('Singleton Pattern', () => {
@@ -216,8 +218,11 @@ describe('SeriesDialogManager', () => {
 
       manager.open(0);
 
-      const dialogContainers = document.querySelectorAll('[class*="series-config-dialog"]');
-      expect(dialogContainers.length).toBeGreaterThan(0);
+      const state = manager.getState(0);
+      const dialogElement = state?.dialogElement;
+
+      expect(dialogElement).toBeDefined();
+      expect(dialogElement?.parentNode).toBe(document.body);
     });
 
     it('should set correct dialog container styles', () => {
@@ -230,8 +235,8 @@ describe('SeriesDialogManager', () => {
       const dialogElement = state?.dialogElement;
 
       expect(dialogElement?.style.position).toBe('fixed');
-      expect(dialogElement?.style.top).toBe('0');
-      expect(dialogElement?.style.left).toBe('0');
+      expect(dialogElement?.style.top).toBe('0px');
+      expect(dialogElement?.style.left).toBe('0px');
       expect(dialogElement?.style.zIndex).toBe('10000');
     });
   });
@@ -308,9 +313,9 @@ describe('SeriesDialogManager', () => {
       );
       manager.initializePane(0);
 
-      manager.setSeriesConfig(0, 'series-1', { color: '#00FF00' });
+      manager.setSeriesConfig(0, 'pane-0-series-0', { color: '#00FF00' });
 
-      const config = manager.getSeriesConfig(0, 'series-1');
+      const config = manager.getSeriesConfig(0, 'pane-0-series-0');
       expect(config).toEqual({ color: '#00FF00' });
     });
   });
@@ -351,7 +356,7 @@ describe('SeriesDialogManager', () => {
       );
       manager.initializePane(0);
 
-      manager.setSeriesConfig(0, 'series-1', { color: '#00FFFF' });
+      manager.setSeriesConfig(0, 'pane-0-series-0', { color: '#00FFFF' });
 
       expect(mockStreamlitService.recordConfigChange).toHaveBeenCalled();
     });
@@ -369,9 +374,9 @@ describe('SeriesDialogManager', () => {
       );
       manager.initializePane(0);
 
-      manager.setSeriesConfig(0, 'series-1', { color: '#FFFF00' });
+      manager.setSeriesConfig(0, 'pane-0-series-0', { color: '#FFFF00' });
 
-      expect(onSeriesConfigChange).toHaveBeenCalledWith(0, 'series-1', expect.any(Object));
+      expect(onSeriesConfigChange).toHaveBeenCalledWith(0, 'pane-0-series-0', expect.any(Object));
     });
 
     it('should apply config to chart series', () => {
@@ -380,9 +385,7 @@ describe('SeriesDialogManager', () => {
         options: () => ({ _seriesType: 'line', color: '#000000' }),
       };
 
-      mockChartApi.panes = vi.fn(() => [
-        { getSeries: () => [mockSeries] },
-      ]) as any;
+      mockChartApi.panes = vi.fn(() => [{ getSeries: () => [mockSeries] }]) as any;
 
       const manager = SeriesDialogManager.getInstance(mockChartApi, mockStreamlitService);
       manager.initializePane(0);
@@ -411,9 +414,7 @@ describe('SeriesDialogManager', () => {
         options: () => ({ _seriesType: 'line' }),
       };
 
-      mockChartApi.panes = vi.fn(() => [
-        { getSeries: () => [mockSeries] },
-      ]) as any;
+      mockChartApi.panes = vi.fn(() => [{ getSeries: () => [mockSeries] }]) as any;
 
       const manager = SeriesDialogManager.getInstance(mockChartApi, mockStreamlitService);
       manager.initializePane(0);
@@ -434,13 +435,13 @@ describe('SeriesDialogManager', () => {
       manager.initializePane(0);
       manager.initializePane(1);
 
-      manager.setSeriesConfig(0, 'series-0', { color: '#111111' });
-      manager.setSeriesConfig(1, 'series-1', { color: '#222222' });
+      manager.setSeriesConfig(0, 'pane-0-series-0', { color: '#111111' });
+      manager.setSeriesConfig(1, 'pane-1-series-0', { color: '#222222' });
 
-      expect(manager.getSeriesConfig(0, 'series-0')).toEqual({ color: '#111111' });
-      expect(manager.getSeriesConfig(1, 'series-1')).toEqual({ color: '#222222' });
-      expect(manager.getSeriesConfig(0, 'series-1')).toBeNull();
-      expect(manager.getSeriesConfig(1, 'series-0')).toBeNull();
+      expect(manager.getSeriesConfig(0, 'pane-0-series-0')).toEqual({ color: '#111111' });
+      expect(manager.getSeriesConfig(1, 'pane-1-series-0')).toEqual({ color: '#222222' });
+      expect(manager.getSeriesConfig(0, 'pane-1-series-0')).toBeNull();
+      expect(manager.getSeriesConfig(1, 'pane-0-series-0')).toBeNull();
     });
 
     it('should share manager instance across multiple panes', () => {
@@ -460,9 +461,9 @@ describe('SeriesDialogManager', () => {
 
       expect(manager1).toBe(manager2);
 
-      manager1.setSeriesConfig(0, 'series-0', { color: '#333333' });
+      manager1.setSeriesConfig(0, 'pane-0-series-0', { color: '#333333' });
 
-      expect(manager2.getSeriesConfig(0, 'series-0')).toEqual({ color: '#333333' });
+      expect(manager2.getSeriesConfig(0, 'pane-0-series-0')).toEqual({ color: '#333333' });
       expect(manager2.getState(1)).toBeDefined();
     });
   });
@@ -511,7 +512,7 @@ describe('SeriesDialogManager', () => {
         'chart-1'
       );
       manager.initializePane(0);
-      manager.setSeriesConfig(0, 'series-0', { color: '#444444' });
+      manager.setSeriesConfig(0, 'pane-0-series-0', { color: '#444444' });
 
       SeriesDialogManager.destroyInstance('chart-1');
 
@@ -543,7 +544,7 @@ describe('SeriesDialogManager', () => {
       manager.initializePane(0);
 
       expect(() => {
-        manager.setSeriesConfig(0, 'series-1', { color: '#555555' });
+        manager.setSeriesConfig(0, 'pane-0-series-0', { color: '#555555' });
       }).not.toThrow();
 
       setItemSpy.mockRestore();
@@ -557,9 +558,7 @@ describe('SeriesDialogManager', () => {
         options: () => ({ _seriesType: 'line' }),
       };
 
-      mockChartApi.panes = vi.fn(() => [
-        { getSeries: () => [mockSeries] },
-      ]) as any;
+      mockChartApi.panes = vi.fn(() => [{ getSeries: () => [mockSeries] }]) as any;
 
       const manager = SeriesDialogManager.getInstance(mockChartApi, mockStreamlitService);
       manager.initializePane(0);
@@ -578,7 +577,7 @@ describe('SeriesDialogManager', () => {
       manager.initializePane(0);
 
       expect(() => {
-        manager.setSeriesConfig(0, 'series-1', { color: '#777777' });
+        manager.setSeriesConfig(0, 'pane-0-series-0', { color: '#777777' });
       }).not.toThrow();
     });
   });
@@ -595,11 +594,11 @@ describe('SeriesDialogManager', () => {
       );
       manager.initializePane(0);
 
-      manager.setSeriesConfig(0, 'series-1', { color: '#888888' });
+      manager.setSeriesConfig(0, 'pane-0-series-0', { color: '#888888' });
 
       expect(mockStreamlitService.recordConfigChange).toHaveBeenCalledWith(
         0,
-        'series-1',
+        'pane-0-series-0',
         expect.anything(),
         expect.anything(),
         'my-chart-id'
@@ -610,11 +609,11 @@ describe('SeriesDialogManager', () => {
       const manager = SeriesDialogManager.getInstance(mockChartApi, mockStreamlitService);
       manager.initializePane(0);
 
-      manager.setSeriesConfig(0, 'series-1', { color: '#999999' });
+      manager.setSeriesConfig(0, 'pane-0-series-0', { color: '#999999' });
 
       expect(mockStreamlitService.recordConfigChange).toHaveBeenCalledWith(
         0,
-        'series-1',
+        'pane-0-series-0',
         expect.anything(),
         expect.anything(),
         undefined

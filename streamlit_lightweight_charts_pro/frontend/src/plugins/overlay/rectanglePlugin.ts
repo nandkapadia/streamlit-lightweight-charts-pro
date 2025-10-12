@@ -1,3 +1,41 @@
+/**
+ * @fileoverview Rectangle Overlay Plugin
+ *
+ * Canvas overlay plugin for rendering rectangles on top of chart data.
+ * Provides high-performance rectangle rendering with automatic resize handling.
+ *
+ * This module provides:
+ * - Rectangle overlay rendering
+ * - Automatic canvas sizing and positioning
+ * - Resize observer integration
+ * - Chart readiness detection
+ *
+ * Features:
+ * - Multiple rectangle support with z-ordering
+ * - Fill and border styling
+ * - Label support with background
+ * - Automatic cleanup and memory management
+ * - Performance optimized with debounced rendering
+ *
+ * @example
+ * ```typescript
+ * import { RectangleOverlayPlugin } from './rectanglePlugin';
+ *
+ * const plugin = new RectangleOverlayPlugin();
+ * plugin.addToChart(chart);
+ *
+ * plugin.setRectangles([
+ *   {
+ *     id: 'rect-1',
+ *     x1: 100, y1: 100,
+ *     x2: 200, y2: 200,
+ *     color: 'rgba(255,0,0,0.3)',
+ *     label: 'Zone A'
+ *   }
+ * ]);
+ * ```
+ */
+
 import { IChartApi } from 'lightweight-charts';
 import { ChartReadyDetector } from '../../utils/chartReadyDetection';
 import { ResizeObserverManager } from '../../utils/resizeObserverManager';
@@ -5,6 +43,9 @@ import { ChartCoordinateService } from '../../services/ChartCoordinateService';
 import { UniversalSpacing } from '../../primitives/PrimitiveDefaults';
 import { logger } from '../../utils/logger';
 
+/**
+ * Configuration for a rectangle overlay.
+ */
 export interface RectangleConfig {
   id: string;
   x1: number;

@@ -1,6 +1,32 @@
 /**
- * Enhanced performance monitoring specifically for React 19 features
- * Tracks concurrent features, transitions, and Suspense performance
+ * @fileoverview React 19 Performance Monitor
+ *
+ * Enhanced performance monitoring specifically for React 19 features.
+ * Tracks concurrent features, transitions, and Suspense performance.
+ *
+ * This module provides:
+ * - React 19 transition tracking
+ * - Suspense loading time monitoring
+ * - Concurrent rendering metrics
+ * - Deferred value performance
+ * - FlushSync operation counting
+ *
+ * Features:
+ * - Singleton pattern for global performance tracking
+ * - Development-only logging for performance insights
+ * - Transition timing with component identification
+ * - Suspense boundary performance monitoring
+ * - Deferred value delay tracking
+ *
+ * @example
+ * ```typescript
+ * import { React19PerformanceMonitor } from './react19PerformanceMonitor';
+ *
+ * const monitor = React19PerformanceMonitor.getInstance();
+ * const transitionId = monitor.startTransition('ChartComponent', 'series');
+ * // ... perform transition
+ * monitor.endTransition(transitionId);
+ * ```
  */
 
 import { logger } from './logger';

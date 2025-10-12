@@ -1,6 +1,43 @@
 /**
- * Utility class for managing ResizeObservers with automatic cleanup
+ * @fileoverview Resize Observer Manager
+ *
+ * Utility class for managing ResizeObservers with automatic cleanup, throttling, and debouncing.
+ * Provides centralized management of resize observations with memory leak prevention.
+ *
+ * This module provides:
+ * - ResizeObserver lifecycle management
+ * - Throttling and debouncing support
+ * - Automatic cleanup on component unmount
+ * - Multi-target observation
+ *
+ * Features:
+ * - Centralized observer management
+ * - Throttle (100ms default) to limit callback frequency
+ * - Debounce support for delayed callbacks
+ * - Memory leak prevention with automatic cleanup
+ * - Error handling with logging
+ *
+ * @example
+ * ```typescript
+ * import { ResizeObserverManager } from './resizeObserverManager';
+ *
+ * const manager = new ResizeObserverManager();
+ *
+ * // Add observer with throttling
+ * manager.addObserver(
+ *   'chart-1',
+ *   containerElement,
+ *   (entry) => {
+ *     chart.resize(entry.contentRect.width, entry.contentRect.height);
+ *   },
+ *   { throttleMs: 100, debounceMs: 50 }
+ * );
+ *
+ * // Cleanup on unmount
+ * manager.cleanup();
+ * ```
  */
+
 import { logger } from './logger';
 export class ResizeObserverManager {
   private observers = new Map<string, ResizeObserver>();

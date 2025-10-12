@@ -1,5 +1,6 @@
 /**
  * Tests for PrimitiveStylingUtils
+ * @vitest-environment jsdom
  *
  * Utilities for applying consistent styles across primitive components
  */

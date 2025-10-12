@@ -98,7 +98,7 @@ export const BaseButtonRenderer: React.FC<BaseButtonRendererProps> = ({ button }
       onClick={handleClickDebounced}
       title={button.getTooltip(state)}
       aria-label={button.getTooltip(state)}
-      role="button"
+      role='button'
       tabIndex={button.isEnabled() ? 0 : -1}
     >
       {button.getIcon(state)}

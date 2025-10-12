@@ -456,8 +456,12 @@ class TestChartTradeVisualizationEdgeCases:
             entry_price=100.0,
             exit_time="2024-01-01 15:00:00",
             exit_price=105.0,
-            quantity=100,
-            trade_type=TradeType.LONG,
+            is_profitable=True,
+            id="trade1",
+            additional_data={
+                "quantity": 100,
+                "trade_type": "long",
+            },
         )
 
         with pytest.raises(ValueValidationError):
@@ -471,8 +475,12 @@ class TestChartTradeVisualizationEdgeCases:
             entry_price=100.0,
             exit_time="2024-01-01 15:00:00",
             exit_price=105.0,
-            quantity=100,
-            trade_type=TradeType.LONG,
+            is_profitable=True,
+            id="trade1",
+            additional_data={
+                "quantity": 100,
+                "trade_type": "long",
+            },
         )
 
         # Should handle chart without series gracefully
@@ -492,8 +500,12 @@ class TestChartTradeVisualizationEdgeCases:
             entry_price=100.0,
             exit_time="2024-01-01 15:00:00",
             exit_price=105.0,
-            quantity=100,
-            trade_type=TradeType.LONG,
+            is_profitable=True,
+            id="trade1",
+            additional_data={
+                "quantity": 100,
+                "trade_type": "long",
+            },
         )
 
         # Should handle series without markers gracefully

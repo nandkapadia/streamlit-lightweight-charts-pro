@@ -103,13 +103,14 @@ from streamlit_lightweight_charts_pro.data.tooltip import (
 )
 
 # Import trade classes
-from streamlit_lightweight_charts_pro.data.trade import TradeData, TradeType
+from streamlit_lightweight_charts_pro.data.trade import TradeData
 from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData
 
 # Import tooltip enums from type_definitions
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     TooltipPosition,
     TooltipType,
+    TradeType,
     TradeVisualization,
 )
 

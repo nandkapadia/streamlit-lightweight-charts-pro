@@ -60,11 +60,7 @@ export abstract class KeyedSingletonManager<_T extends Destroyable> implements D
    * @param factory - Factory function to create new instance if needed
    * @returns The singleton instance
    */
-  protected static getOrCreateInstance<T>(
-    className: string,
-    key: string,
-    factory: () => T
-  ): T {
+  protected static getOrCreateInstance<T>(className: string, key: string, factory: () => T): T {
     // Get or create the instance map for this class
     if (!KeyedSingletonManager.instanceMaps.has(className)) {
       KeyedSingletonManager.instanceMaps.set(className, new Map<string, T>());
@@ -89,10 +85,7 @@ export abstract class KeyedSingletonManager<_T extends Destroyable> implements D
    * @param className - Class name for instance mapping
    * @param key - Unique identifier for the instance
    */
-  protected static destroyInstanceByKey(
-    className: string,
-    key: string
-  ): void {
+  protected static destroyInstanceByKey(className: string, key: string): void {
     const instanceMap = KeyedSingletonManager.instanceMaps.get(className);
 
     if (instanceMap && instanceMap.has(key)) {
@@ -111,10 +104,7 @@ export abstract class KeyedSingletonManager<_T extends Destroyable> implements D
    * @param key - Unique identifier to check
    * @returns True if instance exists
    */
-  protected static hasInstanceWithKey(
-    className: string,
-    key: string
-  ): boolean {
+  protected static hasInstanceWithKey(className: string, key: string): boolean {
     const instanceMap = KeyedSingletonManager.instanceMaps.get(className);
     return instanceMap ? instanceMap.has(key) : false;
   }
@@ -161,7 +151,5 @@ export abstract class KeyedSingletonManager<_T extends Destroyable> implements D
  * @returns Composite key string
  */
 export function createInstanceKey(...parts: (string | number | undefined)[]): string {
-  return parts
-    .map(part => (part === undefined ? 'default' : String(part)))
-    .join('-');
+  return parts.map(part => (part === undefined ? 'default' : String(part))).join('-');
 }

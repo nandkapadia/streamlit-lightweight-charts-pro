@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * @fileoverview Tests for Primitive Event Manager
  *
  * Tests cover:

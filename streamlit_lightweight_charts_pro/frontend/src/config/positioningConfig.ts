@@ -1,6 +1,30 @@
 /**
- * Configuration constants for chart positioning system
- * Centralizes all positioning-related magic numbers and defaults
+ * @fileoverview Positioning Configuration Constants
+ *
+ * Centralized configuration for all chart positioning and layout calculations.
+ * Eliminates magic numbers and provides single source of truth for dimensions.
+ *
+ * This module provides:
+ * - Standard margins for all components
+ * - Default dimensions for chart elements
+ * - Fallback values for error cases
+ * - Z-index layering constants
+ * - Timing and animation configurations
+ *
+ * Features:
+ * - Unified spacing constants from PrimitiveDefaults
+ * - Type-safe constant exports
+ * - Configuration validation
+ * - CSS class name generators
+ *
+ * @example
+ * ```typescript
+ * import { MARGINS, DIMENSIONS, Z_INDEX } from './positioningConfig';
+ *
+ * const legendMargin = MARGINS.legend.top;
+ * const paneHeight = DIMENSIONS.pane.defaultHeight;
+ * const zIndex = Z_INDEX.tooltip;
+ * ```
  */
 
 import { UniversalSpacing } from '../primitives/PrimitiveDefaults';

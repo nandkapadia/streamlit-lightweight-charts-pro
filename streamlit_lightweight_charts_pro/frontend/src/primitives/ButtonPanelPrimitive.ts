@@ -23,7 +23,7 @@ import { logger } from '../utils/logger';
 import { createSingleton } from '../utils/SingletonBase';
 import { ButtonRegistry } from '../components/buttons/base/ButtonRegistry';
 import { CollapseButton } from '../components/buttons/types/CollapseButton';
-import { GearButton } from '../components/buttons/types/GearButton';
+import { SeriesSettingsButton } from '../components/buttons/types/SeriesSettingsButton';
 import { ButtonStyling } from '../components/buttons/base/ButtonConfig';
 import { createRoot, Root } from 'react-dom/client';
 import React from 'react';
@@ -51,7 +51,7 @@ export interface ButtonPanelPrimitiveConfig extends BasePrimitiveConfig {
     expand?: string;
   };
   showCollapseButton?: boolean;
-  showGearButton?: boolean;
+  showSeriesSettingsButton?: boolean;
   /** Callback fired when pane is collapsed */
   onPaneCollapse?: (paneId: number, isCollapsed: boolean) => void;
   /** Callback fired when pane is expanded */
@@ -199,19 +199,19 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
       this.buttonRegistry.register(collapseButton, 10);
     }
 
-    // Create gear button if enabled
-    if (this.config.showGearButton !== false) {
-      const gearButton = new GearButton({
-        id: `gear-${this.config.paneId}`,
+    // Create series settings button if enabled
+    if (this.config.showSeriesSettingsButton !== false) {
+      const settingsButton = new SeriesSettingsButton({
+        id: `series-settings-${this.config.paneId}`,
         tooltip: 'Series Settings',
-        onGearClick: () => void this.openSeriesConfigDialog(),
+        onSeriesSettingsClick: () => void this.openSeriesConfigDialog(),
         styling,
         visible: true,
         enabled: true,
         debounceDelay: 300,
       });
 
-      this.buttonRegistry.register(gearButton, 20);
+      this.buttonRegistry.register(settingsButton, 20);
     }
 
     // Render buttons using React
@@ -263,9 +263,9 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
   private updateCollapseButton(): void {
     if (!this.buttonRegistry || !this.collapseManager) return;
 
-    const collapseButton = this.buttonRegistry.getButton(
-      `collapse-${this.config.paneId}`
-    ) as CollapseButton | undefined;
+    const collapseButton = this.buttonRegistry.getButton(`collapse-${this.config.paneId}`) as
+      | CollapseButton
+      | undefined;
 
     if (collapseButton) {
       const isCollapsed = this.collapseManager.isCollapsed(this.config.paneId);
@@ -360,7 +360,7 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
 
     let visibleButtonCount = 0;
     if (this.config.showCollapseButton !== false) visibleButtonCount++;
-    if (this.config.showGearButton !== false) visibleButtonCount++;
+    if (this.config.showSeriesSettingsButton !== false) visibleButtonCount++;
 
     const width = visibleButtonCount * buttonWidth + (visibleButtonCount - 1) * gap;
     const height = ButtonDimensions.PANE_ACTION_HEIGHT;
@@ -405,8 +405,10 @@ export function createButtonPanelPrimitive(
     buttonHoverBackground: 'rgba(255, 255, 255, 1)',
     buttonBorderRadius: 3,
     showTooltip: true,
-    showCollapseButton: true,
-    showGearButton: true,
+    // TODO: Fix collapse functionality - currently not working properly
+    // The pane collapse/expand feature needs to be debugged and fixed before re-enabling
+    showCollapseButton: false,
+    showSeriesSettingsButton: true,
     tooltipText: {
       collapse: 'Collapse pane',
       expand: 'Expand pane',

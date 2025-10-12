@@ -1,3 +1,37 @@
+/**
+ * @fileoverview Error Boundary Component
+ *
+ * React error boundary component that catches JavaScript errors anywhere in the
+ * component tree, logs those errors, and displays a fallback UI.
+ *
+ * This component provides:
+ * - Error catching and logging
+ * - Fallback UI rendering
+ * - Automatic error recovery
+ * - Development debugging support
+ * - Configurable reset behavior
+ *
+ * Features:
+ * - Catches errors in child components
+ * - Logs errors for debugging (development only)
+ * - Displays fallback UI when errors occur
+ * - Supports automatic reset on prop changes
+ * - Configurable reset keys for selective recovery
+ *
+ * @example
+ * ```tsx
+ * import { ErrorBoundary } from './ErrorBoundary';
+ *
+ * <ErrorBoundary
+ *   fallback={<div>Something went wrong</div>}
+ *   onError={(error, errorInfo) => console.error(error)}
+ *   resetKeys={[chartId]}
+ * >
+ *   <ChartComponent />
+ * </ErrorBoundary>
+ * ```
+ */
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '../utils/logger';
 

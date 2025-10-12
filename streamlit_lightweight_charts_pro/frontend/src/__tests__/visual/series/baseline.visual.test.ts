@@ -1,4 +1,7 @@
 /**
+ * @vitest-environment jsdom
+ */
+/**
  * Visual Regression Tests for Baseline Series
  *
  * Tests verify actual canvas rendering of baseline charts including:
@@ -35,7 +38,7 @@ describe('Baseline Series Visual Rendering', () => {
   });
 
   it('renders basic baseline series', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BaselineSeries, {
         baseValue: { type: 'price', price: 100 },
         topLineColor: TestColors.GREEN,
@@ -59,7 +62,7 @@ describe('Baseline Series Visual Rendering', () => {
   });
 
   it('renders baseline series with custom colors', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BaselineSeries, {
         baseValue: { type: 'price', price: 100 },
         topLineColor: '#2196F3',
@@ -84,7 +87,7 @@ describe('Baseline Series Visual Rendering', () => {
   });
 
   it('renders baseline series with different baseline value', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BaselineSeries, {
         baseValue: { type: 'price', price: 110 },
         topLineColor: TestColors.GREEN,
@@ -109,7 +112,7 @@ describe('Baseline Series Visual Rendering', () => {
 
   it('renders baseline series with price axis visible', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(BaselineSeries, {
           baseValue: { type: 'price', price: 100 },
           topLineColor: TestColors.GREEN,
@@ -145,7 +148,7 @@ describe('Baseline Series Visual Rendering', () => {
 
   it('renders baseline series on dark background', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(BaselineSeries, {
           baseValue: { type: 'price', price: 100 },
           topLineColor: '#26A69A',
@@ -179,7 +182,7 @@ describe('Baseline Series Visual Rendering', () => {
 
   it('renders baseline series with crosshair', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(BaselineSeries, {
           baseValue: { type: 'price', price: 100 },
           topLineColor: TestColors.GREEN,
@@ -214,7 +217,7 @@ describe('Baseline Series Visual Rendering', () => {
   });
 
   it('renders baseline series with thin line width', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BaselineSeries, {
         baseValue: { type: 'price', price: 100 },
         topLineColor: TestColors.GREEN,
@@ -239,7 +242,7 @@ describe('Baseline Series Visual Rendering', () => {
   });
 
   it('renders baseline series with thick line width', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BaselineSeries, {
         baseValue: { type: 'price', price: 100 },
         topLineColor: TestColors.GREEN,
@@ -264,7 +267,7 @@ describe('Baseline Series Visual Rendering', () => {
   });
 
   it('renders baseline series with dashed line style', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BaselineSeries, {
         baseValue: { type: 'price', price: 100 },
         topLineColor: TestColors.GREEN,
@@ -290,7 +293,7 @@ describe('Baseline Series Visual Rendering', () => {
   });
 
   it('renders baseline series with dotted line style', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BaselineSeries, {
         baseValue: { type: 'price', price: 100 },
         topLineColor: TestColors.GREEN,
@@ -316,7 +319,7 @@ describe('Baseline Series Visual Rendering', () => {
   });
 
   it('renders baseline series with stepped line type', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(BaselineSeries, {
         baseValue: { type: 'price', price: 100 },
         topLineColor: TestColors.GREEN,
@@ -343,7 +346,7 @@ describe('Baseline Series Visual Rendering', () => {
 
   it('renders baseline series with custom price line styling', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(BaselineSeries, {
           baseValue: { type: 'price', price: 100 },
           topLineColor: TestColors.GREEN,
@@ -379,7 +382,7 @@ describe('Baseline Series Visual Rendering', () => {
 
   it('renders baseline series with title label', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(BaselineSeries, {
           baseValue: { type: 'price', price: 100 },
           topLineColor: TestColors.GREEN,
@@ -411,7 +414,7 @@ describe('Baseline Series Visual Rendering', () => {
   });
 
   it('renders chart with hidden baseline series', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const visibleSeries = chart.addSeries(BaselineSeries, {
         baseValue: { type: 'price', price: 100 },
         topLineColor: TestColors.GREEN,

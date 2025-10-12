@@ -1,7 +1,37 @@
 /**
- * Unified mock system for lightweight-charts
- * Following TESTING_INFRASTRUCTURE_STRATEGY.md recommendations
+ * @fileoverview Lightweight Charts Mocks
+ *
+ * Unified mock system for TradingView Lightweight Charts library.
+ * Provides comprehensive mocks for all chart APIs used in testing.
+ *
+ * This module provides:
+ * - Mock chart API (IChartApi)
+ * - Mock series API (ISeriesApi)
+ * - Mock time scale and price scale
+ * - Mock pane API
+ * - Mock enums and constants
+ *
+ * Features:
+ * - Complete API coverage for testing
+ * - Reset functionality for test isolation
+ * - Configurable mock behaviors
+ * - Type-safe mock implementations
+ *
+ * @example
+ * ```typescript
+ * import { mockChart, mockSeries, resetMocks } from './lightweightChartsMocks';
+ *
+ * beforeEach(() => {
+ *   resetMocks();
+ * });
+ *
+ * test('chart creation', () => {
+ *   const chart = createChart(container);
+ *   expect(chart.addSeries).toBeDefined();
+ * });
+ * ```
  */
+
 import { vi } from 'vitest';
 
 // Mock series object with all required methods

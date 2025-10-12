@@ -1,5 +1,6 @@
 /**
  * @fileoverview E2E tests for data updates
+ * @vitest-environment jsdom
  *
  * Tests complete user flows for:
  * - Real-time data updates
@@ -12,7 +13,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 import LightweightCharts from '../../LightweightCharts';
 import { ComponentConfig } from '../../types';
 

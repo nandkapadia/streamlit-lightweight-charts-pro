@@ -44,7 +44,10 @@ export function apiOptionsToDialogConfig(seriesType: string, apiOptions: any): a
   const normalizedType = normalizeSeriesType(seriesType);
   const descriptor = getSeriesDescriptor(normalizedType);
   if (!descriptor) {
-    logger.warn(`Unknown series type: ${seriesType} (normalized to ${normalizedType})`, 'UnifiedPropertyMapper');
+    logger.warn(
+      `Unknown series type: ${seriesType} (normalized to ${normalizedType})`,
+      'UnifiedPropertyMapper'
+    );
     return apiOptions; // Fallback: return as-is
   }
 
@@ -64,7 +67,10 @@ export function dialogConfigToApiOptions(seriesType: string, dialogConfig: any):
 
   const descriptor = getSeriesDescriptor(normalizedType);
   if (!descriptor) {
-    logger.warn(`Unknown series type: ${seriesType} (normalized to ${normalizedType})`, 'UnifiedPropertyMapper');
+    logger.warn(
+      `Unknown series type: ${seriesType} (normalized to ${normalizedType})`,
+      'UnifiedPropertyMapper'
+    );
     return dialogConfig; // Fallback: return as-is
   }
 

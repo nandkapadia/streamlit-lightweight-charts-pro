@@ -1,3 +1,42 @@
+/**
+ * @fileoverview Legend Primitive
+ *
+ * Dynamic legend primitive for displaying series values with crosshair tracking.
+ * Provides template-based legends with automatic value updates and rich styling.
+ *
+ * This primitive is responsible for:
+ * - Rendering legends with template placeholders
+ * - Tracking crosshair position for value updates
+ * - Supporting both chart-level and pane-specific legends
+ * - Automatic value formatting with precision
+ * - Corner positioning with automatic stacking
+ * - React portal rendering for DOM management
+ *
+ * Architecture:
+ * - Extends BasePanePrimitive for core functionality
+ * - Uses TemplateEngine for placeholder replacement
+ * - Integrates with CornerLayoutManager for positioning
+ * - React portal for efficient DOM updates
+ * - Event-driven crosshair tracking
+ *
+ * Template Placeholders:
+ * - $$title$$, $$value$$, $$open$$, $$high$$, $$low$$, $$close$$
+ * - $$volume$$, $$time$$
+ * - $$upper$$, $$middle$$, $$lower$$ (for bands)
+ * - Custom placeholders from customData
+ *
+ * @example
+ * ```typescript
+ * const legend = new LegendPrimitive('legend-1', {
+ *   corner: 'top-left',
+ *   text: '<div>$$title$$: $$close$$ ($$time$$)</div>',
+ *   isPanePrimitive: false
+ * });
+ *
+ * pane.attachPrimitive(legend);
+ * ```
+ */
+
 import { BasePanePrimitive, BasePrimitiveConfig, PrimitivePriority } from './BasePanePrimitive';
 import {
   LegendColors,

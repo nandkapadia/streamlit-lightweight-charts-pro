@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Legend Value Update Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #container {
+            width: 800px;
+            height: 400px;
+            position: relative;
+            background: white;
+        }
+        #chart { width: 100%; height: 100%; }
+        #legend {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            pointer-events: none;
+            z-index: 10;
+            min-width: 150px;
+        }
+        .legend-item {
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .legend-label {
+            font-weight: bold;
+        }
+        .legend-value {
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="chart"></div>
+        <div id="legend" data-testid="legend">
+            <div class="legend-item">
+                <span class="legend-label" style="color: #2196F3;">Price:</span>
+                <span class="legend-value" id="price-value">100.00</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-label" style="color: #FF9800;">SMA(10):</span>
+                <span class="legend-value" id="sma-value">100.00</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-label">Time:</span>
+                <span class="legend-value" id="time-value">2024-01-01</span>
+            </div>
+        </div>
+    </div>
+    <script>
+function runTestCase() {
+    const priceData = [];
+    const smaData = [];
+    const startDate = new Date('2024-01-01');
+
+    // Create data with varying values across time
+    for (let i = 0; i < 100; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        // Gradually increasing price with oscillation
+        const price = 100 + i * 0.5 + Math.sin(i / 8) * 20;
+        const sma = price - 5 + Math.cos(i / 12) * 10;
+
+        priceData.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+        smaData.push({ time: dateStr, value: parseFloat(sma.toFixed(2)) });
+    }
+
+    const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+        timeScale: { rightOffset: 10, barSpacing: 8 },
+    });
+
+    // Expose chart for testing
+    window.chart = chart;
+
+    const priceSeries = chart.addSeries(LightweightCharts.LineSeries);
+    priceSeries.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    priceSeries.setData(priceData);
+
+    const smaSeries = chart.addSeries(LightweightCharts.LineSeries);
+    smaSeries.applyOptions({ color: '#FF9800', lineWidth: 2 });
+    smaSeries.setData(smaData);
+
+    // Update legend values on crosshair move
+    chart.subscribeCrosshairMove((param) => {
+        if (param.time) {
+            const priceValue = param.seriesData.get(priceSeries);
+            const smaValue = param.seriesData.get(smaSeries);
+
+            if (priceValue) {
+                document.getElementById('price-value').textContent = priceValue.value.toFixed(2);
+            }
+            if (smaValue) {
+                document.getElementById('sma-value').textContent = smaValue.value.toFixed(2);
+            }
+            document.getElementById('time-value').textContent = param.time;
+        }
+    });
+
+    // Update legend on visible range change (with debounce)
+    let updateTimeout;
+    function updateLegendFromVisibleRange() {
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(() => {
+            const logicalRange = chart.timeScale().getVisibleLogicalRange();
+            if (logicalRange) {
+                // Get the data at the center of the visible range
+                const centerIndex = Math.floor((logicalRange.from + logicalRange.to) / 2);
+                const clampedIndex = Math.max(0, Math.min(priceData.length - 1, centerIndex));
+
+                const pricePoint = priceData[clampedIndex];
+                const smaPoint = smaData[clampedIndex];
+
+                if (pricePoint) {
+                    document.getElementById('price-value').textContent = pricePoint.value.toFixed(2);
+                    document.getElementById('time-value').textContent = pricePoint.time;
+                }
+                if (smaPoint) {
+                    document.getElementById('sma-value').textContent = smaPoint.value.toFixed(2);
+                }
+            }
+        }, 50);
+    }
+
+    chart.timeScale().subscribeVisibleLogicalRangeChange(updateLegendFromVisibleRange);
+
+    // Start with a specific range (first 40 days) instead of fitContent
+    // This ensures panning will show significantly different data
+    chart.timeScale().setVisibleLogicalRange({ from: 0, to: 40 });
+
+    // Initialize legend immediately
+    updateLegendFromVisibleRange();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>

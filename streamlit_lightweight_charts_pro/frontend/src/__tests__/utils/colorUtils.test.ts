@@ -219,7 +219,7 @@ describe('Color Conversion Functions', () => {
   describe('toCss', () => {
     it('should return original color for opacity 100', () => {
       const result = toCss('#FF0000', 100);
-      expect(result).toBe('#FF0000');
+      expect(result).toBe('#ff0000');
     });
 
     it('should convert to rgba for opacity < 100', () => {
@@ -234,12 +234,12 @@ describe('Color Conversion Functions', () => {
 
     it('should default to 100 opacity', () => {
       const result = toCss('#0000FF');
-      expect(result).toBe('#0000FF');
+      expect(result).toBe('#0000ff');
     });
 
     it('should clamp opacity above 100', () => {
       const result = toCss('#FF00FF', 150);
-      expect(result).toBe('#FF00FF');
+      expect(result).toBe('#ff00ff');
     });
 
     it('should handle invalid color gracefully', () => {

@@ -3,17 +3,42 @@
  *
  * Manages pane collapse/expand functionality for Lightweight Charts using the official API.
  *
- * ✅ API-BASED APPROACH:
- * This manager uses the Lightweight Charts official Pane API to collapse/expand panes:
- * - chart.panes()[paneId].setHeight(height) - Set pane height
+ * ✅ MANUAL REDISTRIBUTION APPROACH (Simple and Explicit):
+ *
+ * This manager uses the lightweight-charts Pane API:
+ * - pane.setHeight(height) - Set pane height explicitly
  * - chart.paneSize(paneId) - Get current pane dimensions
  *
- * Minimum collapsed height is 30px per the lightweight-charts API specification.
+ * MANUAL REDISTRIBUTION STRATEGY:
+ * Instead of relying on stretch factors or automatic redistribution, we explicitly
+ * control where freed/reclaimed space goes:
+ *
+ * When collapsing a pane:
+ * 1. Get current heights of ALL panes
+ * 2. Save original height of collapsing pane
+ * 3. Calculate freed space: originalHeight - 30px
+ * 4. Add freed space to Pane 0 (first pane)
+ * 5. Set Pane 0 to new height, then set collapsing pane to 30px
+ *
+ * When expanding a pane:
+ * 1. Get current heights of ALL panes
+ * 2. Calculate space to reclaim: originalHeight - 30px
+ * 3. Subtract that space from Pane 0 (reverse operation)
+ * 4. Set Pane 0 to new height, then set expanding pane to originalHeight
+ *
+ * Why Pane 0?
+ * - Simple and predictable (always the same target)
+ * - Avoids complex multi-pane redistribution logic
+ * - Works for any number of panes
+ * - Easy to debug and understand
+ *
+ * This approach is explicit, deterministic, and works perfectly for all scenarios!
  *
  * Responsibilities:
- * - Collapse/expand panes via official Pane API
+ * - Collapse/expand panes via explicit height setting
  * - Track collapse state per pane
  * - Store/restore original heights
+ * - Manually redistribute space to/from Pane 0
  * - Trigger callbacks on state changes
  */
 
@@ -65,7 +90,11 @@ export class PaneCollapseManager extends KeyedSingletonManager<PaneCollapseManag
   /**
    * Get or create singleton instance for a chart
    */
-  public static getInstance(chartApi: IChartApi, chartId?: string, config: PaneCollapseConfig = {}): PaneCollapseManager {
+  public static getInstance(
+    chartApi: IChartApi,
+    chartId?: string,
+    config: PaneCollapseConfig = {}
+  ): PaneCollapseManager {
     const key = chartId || 'default';
     return KeyedSingletonManager.getOrCreateInstance(
       'PaneCollapseManager',
@@ -100,8 +129,9 @@ export class PaneCollapseManager extends KeyedSingletonManager<PaneCollapseManag
         isCollapsed: false,
         originalHeight: 0,
         collapsedHeight: this.config?.collapsedHeight || DIMENSIONS.pane.collapsedHeight,
-        onPaneCollapse: callbacks?.onPaneCollapse,
-        onPaneExpand: callbacks?.onPaneExpand,
+        // Use per-pane callbacks if provided, otherwise fallback to config callbacks
+        onPaneCollapse: callbacks?.onPaneCollapse || this.config?.onPaneCollapse,
+        onPaneExpand: callbacks?.onPaneExpand || this.config?.onPaneExpand,
       });
     }
   }
@@ -142,33 +172,102 @@ export class PaneCollapseManager extends KeyedSingletonManager<PaneCollapseManag
   }
 
   /**
-   * Collapse a pane
+   * Collapse a pane using manual redistribution to non-collapsed panes
    *
-   * Strategy:
-   * 1. Store original pane height from chart API
-   * 2. Use chart.panes()[paneId].setHeight(30) to collapse pane (using official API)
+   * MANUAL REDISTRIBUTION STRATEGY:
+   * 1. Save original height of collapsing pane
+   * 2. Calculate freed space: originalHeight - collapsedHeight
+   * 3. Find all EXPANDED (non-collapsed) panes
+   * 4. Distribute freed space ONLY among expanded panes
+   * 5. Set ALL pane heights (collapsed + expanded) to prevent chart's auto-redistribution
+   *
+   * This ensures collapsed panes stay collapsed when collapsing additional panes!
    */
   public collapse(paneId: number): void {
     const state = this.states.get(paneId);
     if (!state || state.isCollapsed) return;
 
     try {
-      // Store original height before collapsing
-      const paneSize = this.chartApi.paneSize(paneId);
-      if (paneSize) {
-        state.originalHeight = paneSize.height;
-      }
-
-      // Use official chart API to set pane height
       const panes = this.chartApi.panes();
-      if (panes && panes[paneId]) {
-        panes[paneId].setHeight(state.collapsedHeight);
-      } else {
+      if (!panes || !panes[paneId]) {
         logger.error('Pane not found in chart.panes()', 'PaneCollapseManager', { paneId });
         return;
       }
 
+      // 1. Get current sizes of ALL panes
+      const currentSizes = new Map<number, number>();
+      let paneIndex = 0;
+      while (paneIndex < 10) {
+        try {
+          const size = this.chartApi.paneSize(paneIndex);
+          if (!size) break;
+          currentSizes.set(paneIndex, size.height);
+          paneIndex++;
+        } catch {
+          break;
+        }
+      }
+
+      // 2. Save original height for this pane (if first collapse)
+      if (state.originalHeight === 0) {
+        state.originalHeight = currentSizes.get(paneId) || 0;
+      }
+
+      // 3. Find all EXPANDED panes (not collapsed, not the one we're collapsing)
+      const expandedPanes: number[] = [];
+      for (const [id, paneState] of this.states.entries()) {
+        if (id !== paneId && !paneState.isCollapsed) {
+          expandedPanes.push(id);
+        }
+      }
+
+      // If no expanded panes found, check all panes (for safety)
+      if (expandedPanes.length === 0) {
+        for (let i = 0; i < currentSizes.size; i++) {
+          if (i !== paneId) {
+            expandedPanes.push(i);
+          }
+        }
+      }
+
+      // 4. Calculate freed space
+      const freedSpace = state.originalHeight - state.collapsedHeight;
+
+      // 5. Distribute freed space EQUALLY among expanded panes
+      const spacePerExpandedPane = freedSpace / expandedPanes.length;
+
+      // 6. Set heights for ALL panes (to prevent chart's auto-redistribution)
+      // CRITICAL: Set in order - collapsed panes first, then expanded panes
+
+      // First: Set the collapsing pane
+      panes[paneId].setHeight(state.collapsedHeight);
+
+      // Then: Set expanded panes to their new heights
+      for (const expandedPaneId of expandedPanes) {
+        const currentHeight = currentSizes.get(expandedPaneId) || 0;
+        const newHeight = currentHeight + spacePerExpandedPane;
+        if (panes[expandedPaneId]) {
+          panes[expandedPaneId].setHeight(newHeight);
+        }
+      }
+
+      // Finally: Re-set any other collapsed panes to ensure they stay at 30px
+      for (const [id, paneState] of this.states.entries()) {
+        if (id !== paneId && paneState.isCollapsed && panes[id]) {
+          panes[id].setHeight(paneState.collapsedHeight);
+        }
+      }
+
       state.isCollapsed = true;
+
+      logger.debug('Collapsed pane with redistribution to expanded panes', 'PaneCollapseManager', {
+        paneId,
+        originalHeight: state.originalHeight,
+        collapsedHeight: state.collapsedHeight,
+        freedSpace,
+        expandedPanes,
+        spacePerExpandedPane,
+      });
 
       // Trigger per-pane callback
       if (state.onPaneCollapse) {
@@ -180,26 +279,101 @@ export class PaneCollapseManager extends KeyedSingletonManager<PaneCollapseManag
   }
 
   /**
-   * Expand a pane
+   * Expand a pane using manual redistribution from non-collapsed panes
    *
-   * Strategy:
-   * 1. Use chart.panes()[paneId].setHeight(originalHeight) to restore pane height (using official API)
+   * MANUAL REDISTRIBUTION STRATEGY:
+   * 1. Calculate space to reclaim: originalHeight - collapsedHeight
+   * 2. Find all EXPANDED (non-collapsed) panes
+   * 3. Take space EQUALLY from expanded panes only
+   * 4. Set ALL pane heights (collapsed + expanded) to prevent chart's auto-redistribution
+   *
+   * This ensures collapsed panes stay collapsed when expanding other panes!
    */
   public expand(paneId: number): void {
     const state = this.states.get(paneId);
     if (!state || !state.isCollapsed) return;
 
     try {
-      // Use official chart API to restore pane height
       const panes = this.chartApi.panes();
-      if (panes && panes[paneId] && state.originalHeight > 0) {
-        panes[paneId].setHeight(state.originalHeight);
-      } else {
-        logger.error('Pane not found in chart.panes() or no original height stored', 'PaneCollapseManager', { paneId });
+      if (!panes || !panes[paneId]) {
+        logger.error('Pane not found in chart.panes()', 'PaneCollapseManager', { paneId });
         return;
       }
 
+      // 1. Get current sizes of ALL panes
+      const currentSizes = new Map<number, number>();
+      let paneIndex = 0;
+      while (paneIndex < 10) {
+        try {
+          const size = this.chartApi.paneSize(paneIndex);
+          if (!size) break;
+          currentSizes.set(paneIndex, size.height);
+          paneIndex++;
+        } catch {
+          break;
+        }
+      }
+
+      // 2. Find all EXPANDED panes (not the one we're expanding, not collapsed)
+      const expandedPanes: number[] = [];
+      for (const [id, paneState] of this.states.entries()) {
+        if (id !== paneId && !paneState.isCollapsed) {
+          expandedPanes.push(id);
+        }
+      }
+
+      // If no expanded panes found, check all panes (for safety)
+      if (expandedPanes.length === 0) {
+        for (let i = 0; i < currentSizes.size; i++) {
+          if (i !== paneId && currentSizes.has(i)) {
+            expandedPanes.push(i);
+          }
+        }
+      }
+
+      // 3. Calculate space to reclaim
+      const spaceToReclaim = state.originalHeight - state.collapsedHeight;
+
+      // 4. Take space EQUALLY from all expanded panes
+      const spacePerExpandedPane = spaceToReclaim / expandedPanes.length;
+
+      // 5. Set heights for ALL panes in order
+      // CRITICAL: Set expanded panes first (to shrink them), then expanding pane
+
+      // First: Shrink expanded panes
+      for (const expandedPaneId of expandedPanes) {
+        const currentHeight = currentSizes.get(expandedPaneId) || 0;
+        const newHeight = currentHeight - spacePerExpandedPane;
+        if (panes[expandedPaneId] && newHeight > 30) {
+          panes[expandedPaneId].setHeight(newHeight);
+        }
+      }
+
+      // Then: Expand the target pane
+      if (state.originalHeight > 0) {
+        panes[paneId].setHeight(state.originalHeight);
+      }
+
+      // Finally: Re-set any other collapsed panes to ensure they stay at 30px
+      for (const [id, paneState] of this.states.entries()) {
+        if (id !== paneId && paneState.isCollapsed && panes[id]) {
+          panes[id].setHeight(paneState.collapsedHeight);
+        }
+      }
+
       state.isCollapsed = false;
+
+      // Reset saved values so next collapse captures current state
+      state.originalHeight = 0;
+
+      logger.debug('Expanded pane with redistribution from expanded panes', 'PaneCollapseManager', {
+        paneId,
+        originalHeight: state.originalHeight,
+        collapsedHeight: state.collapsedHeight,
+        spaceToReclaim,
+        expandedPanes,
+        spacePerExpandedPane,
+      });
 
       // Trigger per-pane callback
       if (state.onPaneExpand) {

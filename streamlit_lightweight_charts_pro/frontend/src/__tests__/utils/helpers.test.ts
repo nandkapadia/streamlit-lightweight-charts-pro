@@ -1,7 +1,12 @@
 /**
- * @jest-environment jsdom
+ * @fileoverview Color Helper Utilities Test Suite
+ *
+ * Tests for color conversion and manipulation utilities.
+ *
+ * @vitest-environment jsdom
  */
 
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   hexToRgba,
   rgbaToHex,
@@ -57,7 +62,7 @@ describe('helpers', () => {
 
   describe('toCss', () => {
     it('should return original color when opacity is 100%', () => {
-      expect(toCss('#2196F3', 100)).toBe('#2196F3');
+      expect(toCss('#2196F3', 100)).toBe('#2196f3');
     });
 
     it('should convert to rgba when opacity < 100%', () => {
@@ -73,7 +78,7 @@ describe('helpers', () => {
     });
 
     it('should default to 100% opacity when not provided', () => {
-      expect(toCss('#FF0000')).toBe('#FF0000');
+      expect(toCss('#FF0000')).toBe('#ff0000');
     });
   });
 

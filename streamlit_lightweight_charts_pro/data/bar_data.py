@@ -1,6 +1,34 @@
+"""Bar chart data model for streamlit-lightweight-charts.
+
+This module provides the BarData class for representing individual bar chart
+data points with OHLC (Open, High, Low, Close) values and optional color
+customization.
+
+The BarData class extends OhlcData to provide bar-specific functionality
+while maintaining compatibility with the OHLC data structure used throughout
+the charting library.
+
+Example:
+    ```python
+    from streamlit_lightweight_charts_pro.data import BarData
+
+    # Create a bar data point
+    bar = BarData(
+        time="2024-01-01",
+        open=100.0,
+        high=105.0,
+        low=98.0,
+        close=103.0,
+        color="#4CAF50",  # Optional: Green bar
+    )
+    ```
+"""
+
+# Standard Imports
 from dataclasses import dataclass
 from typing import ClassVar, Optional
 
+# Local Imports
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
 from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
@@ -30,6 +58,18 @@ class BarData(OhlcData):
     color: Optional[str] = None
 
     def __post_init__(self):
+        """Post-initialization processing to validate bar data.
+
+        This method is automatically called after the dataclass is initialized.
+        It validates the color field if provided.
+
+        Raises:
+            ValueValidationError: If the color format is invalid.
+        """
+        # Call parent class post_init to validate OHLC data
         super().__post_init__()
+
+        # Validate color if provided
+        # Empty strings are allowed (meaning use default color)
         if self.color is not None and self.color != "" and not is_valid_color(self.color):
             raise ValueValidationError("color", "Invalid color format")

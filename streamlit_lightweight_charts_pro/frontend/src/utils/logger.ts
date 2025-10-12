@@ -1,6 +1,42 @@
 /**
- * Centralized logging utility for the frontend application
- * Replaces direct console statements with structured logging
+ * @fileoverview Centralized Logging Utility
+ *
+ * Structured logging system for the frontend with configurable log levels
+ * and context-based organization. Replaces direct console statements with
+ * consistent, filterable logging.
+ *
+ * This module provides:
+ * - Structured logging with log levels (DEBUG, INFO, WARN, ERROR)
+ * - Context-based logging (Chart, Primitive, Performance, etc.)
+ * - Timestamp formatting with ISO format
+ * - Specialized logging methods for common use cases
+ * - Singleton logger instance
+ *
+ * Architecture:
+ * - Singleton pattern for global logger
+ * - Log level filtering (configurable threshold)
+ * - Structured log entries with metadata
+ * - Convenience exports for common contexts
+ *
+ * Features:
+ * - Automatic timestamp formatting
+ * - Context tagging for easy filtering
+ * - Data payload support for debugging
+ * - Specialized methods (chartError, primitiveError, etc.)
+ * - Production-friendly (default: WARN level)
+ *
+ * @example
+ * ```typescript
+ * import { logger, chartLog } from './logger';
+ *
+ * // General logging
+ * logger.info('Chart initialized', 'MyComponent');
+ * logger.error('Rendering failed', 'MyComponent', error);
+ *
+ * // Context-specific logging
+ * chartLog.info('Series added');
+ * primitiveLog.error('Update failed', 'legend-1', error);
+ * ```
  */
 
 export enum LogLevel {

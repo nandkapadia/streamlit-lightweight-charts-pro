@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * Tests for TradeRectanglePrimitive
  *
  * Coverage:
@@ -315,10 +316,17 @@ describe('TradeRectanglePrimitive - Event Handling', () => {
 
     requestUpdateSpy.mockClear();
 
+    // Create mock crosshair parameter with point data
+    const mockCrosshairParam = {
+      point: { x: 100, y: 200 },
+      time: 1000 as any,
+      seriesData: new Map(),
+    };
+
     // Trigger multiple crosshair events rapidly
-    crosshairCallback();
-    crosshairCallback();
-    crosshairCallback();
+    crosshairCallback(mockCrosshairParam);
+    crosshairCallback(mockCrosshairParam);
+    crosshairCallback(mockCrosshairParam);
 
     // Should only be called once immediately
     expect(requestUpdateSpy).toHaveBeenCalledTimes(0);

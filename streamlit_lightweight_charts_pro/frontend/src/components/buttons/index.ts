@@ -17,8 +17,8 @@ export { DEFAULT_BUTTON_STYLING } from './base/ButtonConfig';
 export { ButtonRegistry, createButtonRegistry } from './base/ButtonRegistry';
 
 // Concrete button implementations
-export { GearButton, createGearButton } from './types/GearButton';
-export type { GearButtonConfig } from './types/GearButton';
+export { SeriesSettingsButton, createSeriesSettingsButton } from './types/SeriesSettingsButton';
+export type { SeriesSettingsButtonConfig } from './types/SeriesSettingsButton';
 
 export { CollapseButton, createCollapseButton } from './types/CollapseButton';
 export type { CollapseButtonConfig } from './types/CollapseButton';

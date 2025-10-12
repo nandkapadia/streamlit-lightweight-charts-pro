@@ -7,7 +7,7 @@ py-modules = ["setup"]
 
 [project]
 name = "streamlit_lightweight_charts_pro"
-version = "0.1.2"
+version = "0.1.4"
 description = "Enhanced Streamlit wrapper for TradingView's lightweight-charts with ultra-simplified API and performance optimizations"
 authors = [{ name = "Nand Kapadia", email = "nand.kapadia@gmail.com" }]
 license = "MIT"
@@ -141,6 +141,8 @@ markers = [
     "integration: Integration tests",
     "performance: Performance tests",
     "e2e: End-to-end tests",
+    "visual: Visual regression tests",
+    "e2e_visual: End-to-end visual regression tests",
     "slow: Slow running tests",
     "fast: Fast running tests",
     "data: Data class tests",

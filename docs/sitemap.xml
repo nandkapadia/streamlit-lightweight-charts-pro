@@ -2,282 +2,254 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/index.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
          <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/SUMMARY.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/cli.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/cli.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/component.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/component.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/exceptions.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/exceptions.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/logging_config.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/logging_config.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/index.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/chart.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/chart.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/chart_manager.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/chart_manager.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series_settings_api.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series_settings_api.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/base_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/index.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/chart_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/base_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/interaction_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/chart_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/layout_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/interaction_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/line_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/layout_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/localization_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/line_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/price_format_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/localization_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/price_line_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/price_format_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/price_scale_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/price_line_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/sync_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/price_scale_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/time_scale_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/sync_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/trade_visualization_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/time_scale_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/options/ui_options.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/trade_visualization_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/area.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/options/ui_options.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/band.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/index.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/bar_series.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/area.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/base.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/band.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/baseline.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/bar_series.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/candlestick.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/base.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/gradient_ribbon.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/baseline.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/histogram.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/candlestick.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/line.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/gradient_ribbon.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/ribbon.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/histogram.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/signal_series.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/line.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/charts/series/trend_fill.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/ribbon.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/annotation.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/signal_series.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/area_data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/charts/series/trend_fill.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/band.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/constants/index.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/bar_data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/index.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/baseline_data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/annotation.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/candlestick_data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/area_data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/band.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/gradient_ribbon.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/bar_data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/histogram_data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/baseline_data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/line_data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/candlestick_data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/marker.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/ohlc_data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/gradient_ribbon.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/ohlcv_data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/histogram_data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/ribbon.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/line_data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/signal_data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/marker.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/single_value_data.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/ohlc_data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/tooltip.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/ohlcv_data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/trade.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/ribbon.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/data/trend_fill.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/signal_data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/type_definitions/colors.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/single_value_data.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/type_definitions/enums.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/tooltip.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/types/series_config_types.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/trade.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/utils/chainable.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/data/trend_fill.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/utils/data_utils.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/type_definitions/index.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/utils/profiler.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/type_definitions/colors.html</loc>
-         <lastmod>2025-09-25</lastmod>
-    </url>
-    <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/type_definitions/enums.html</loc>
-         <lastmod>2025-09-25</lastmod>
-    </url>
-    <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/types/index.html</loc>
-         <lastmod>2025-09-25</lastmod>
-    </url>
-    <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/types/series_config_types.html</loc>
-         <lastmod>2025-09-25</lastmod>
-    </url>
-    <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/utils/index.html</loc>
-         <lastmod>2025-09-25</lastmod>
-    </url>
-    <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/utils/chainable.html</loc>
-         <lastmod>2025-09-25</lastmod>
-    </url>
-    <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/utils/data_utils.html</loc>
-         <lastmod>2025-09-25</lastmod>
-    </url>
-    <url>
-         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/utils/profiler.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/api/streamlit_lightweight_charts_pro/utils/serialization.html</loc>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
          <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/examples/overview.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
          <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/getting-started/basic-usage.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <lastmod>2025-10-11</lastmod>
     </url>
     <url>
          <loc>https://nandkapadia.github.io/streamlit-lightweight-charts-pro/getting-started/installation.html</loc>
-         <lastmod>2025-09-25</lastmod>
+         <lastmod>2025-10-11</lastmod>
     </url>
 </urlset>

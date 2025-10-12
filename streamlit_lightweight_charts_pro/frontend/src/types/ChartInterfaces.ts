@@ -1,6 +1,30 @@
 /**
- * Comprehensive TypeScript interfaces to replace any types
- * Provides proper typing for chart APIs, series data, and template contexts
+ * @fileoverview Comprehensive Chart Interfaces
+ *
+ * TypeScript interfaces for chart APIs, series data, and template contexts.
+ * Replaces 'any' types with proper typed interfaces throughout the codebase.
+ *
+ * This module provides:
+ * - Extended chart and series API interfaces
+ * - Data point interfaces for all series types
+ * - Trade data and visualization types
+ * - Template context interfaces
+ *
+ * Features:
+ * - Full type safety for chart operations
+ * - Extended properties for custom features
+ * - Comprehensive data point definitions
+ * - Template engine context types
+ *
+ * @example
+ * ```typescript
+ * import { ExtendedChartApi, LineDataPoint } from './ChartInterfaces';
+ *
+ * const chart: ExtendedChartApi = createChart(container);
+ * const data: LineDataPoint[] = [
+ *   { time: '2024-01-01', value: 100 }
+ * ];
+ * ```
  */
 
 import { IChartApi, ISeriesApi, UTCTimestamp, SeriesOptionsMap } from 'lightweight-charts';
@@ -191,6 +215,7 @@ export interface TemplateFormatting {
   // Convenience properties for direct format assignment
   valueFormat?: string;
   timeFormat?: string;
+  percentageFormat?: string;
   locale?: string;
   percentage?: {
     precision?: number;

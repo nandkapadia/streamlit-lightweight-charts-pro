@@ -348,8 +348,9 @@ class TestChartSeriesIntegration:
                 entry_price=100.0,
                 exit_time="2024-01-01 11:00:00",
                 exit_price=102.0,
-                quantity=100,
-                trade_type=TradeType.LONG,
+                is_profitable=True,
+                id="trade_001",
+                additional_data={"quantity": 100, "trade_type": TradeType.LONG},
             ),
         ]
 
@@ -357,11 +358,15 @@ class TestChartSeriesIntegration:
 
         # Verify trade visualization is added
         config = chart.to_frontend_config()
-        series_config = config["charts"][0]["series"][0]
+        chart_config = config["charts"][0]
 
-        # Should have markers for trade visualization
-        assert "markers" in series_config
-        assert len(series_config["markers"]) == 2  # Entry and exit markers
+        # Should have trades in chart config (markers are created in frontend)
+        assert "trades" in chart_config
+        assert len(chart_config["trades"]) == 1  # One trade added
+        assert chart_config["trades"][0]["id"] == "trade_001"
+
+        # Should have trade visualization options
+        assert "tradeVisualizationOptions" in chart_config
 
     def test_chart_with_overlay_price_scales(self):
         """Test chart with overlay price scales."""

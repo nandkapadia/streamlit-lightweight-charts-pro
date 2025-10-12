@@ -1,8 +1,9 @@
 /**
+ * @vitest-environment jsdom
  * @fileoverview Tests for ChartPrimitiveManager
  */
 
-import { vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ChartPrimitiveManager } from '../../services/ChartPrimitiveManager';
 import { IChartApi, IPaneApi, UTCTimestamp, SeriesOptionsMap, Time } from 'lightweight-charts';
 import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../../types';
@@ -333,7 +334,7 @@ describe('ChartPrimitiveManager', () => {
 
     it('should add button panel with custom config', () => {
       const config: PaneCollapseConfig = {
-        showGearButton: true,
+        showSeriesSettingsButton: true,
         showCollapseButton: false,
         buttonSize: 20,
         buttonColor: '#FF0000',

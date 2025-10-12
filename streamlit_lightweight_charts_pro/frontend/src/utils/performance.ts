@@ -1,5 +1,33 @@
 /**
- * Performance optimization utilities for the chart component
+ * @fileoverview Performance Optimization Utilities
+ *
+ * Performance utilities for optimizing chart rendering and operations.
+ * Provides deep comparison, DOM caching, and timing helpers.
+ *
+ * This module provides:
+ * - Deep object comparison without JSON.stringify
+ * - DOM query caching for performance
+ * - Performance timing wrappers
+ * - Development-only logging
+ *
+ * Features:
+ * - Optimized recursive comparison
+ * - Automatic cache expiration (5s)
+ * - Production-friendly (minimal overhead)
+ * - Type-safe comparison helpers
+ *
+ * @example
+ * ```typescript
+ * import { deepCompare, getCachedDOMElement } from './performance';
+ *
+ * // Efficient comparison
+ * if (!deepCompare(oldConfig, newConfig)) {
+ *   updateChart(newConfig);
+ * }
+ *
+ * // Cached DOM queries
+ * const container = getCachedDOMElement('#chart-container');
+ * ```
  */
 
 import { Singleton } from './SingletonBase';

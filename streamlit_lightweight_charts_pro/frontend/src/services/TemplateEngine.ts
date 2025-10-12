@@ -88,25 +88,110 @@ export interface TemplateResult {
 }
 
 /**
- * TemplateEngine - Centralized template processing for primitives
+ * TemplateEngine - Centralized template processor for all primitives
+ *
+ * Provides unified HTML template processing with placeholder replacement
+ * for legends, tooltips, trade markers, and other primitives. This is the
+ * single source of truth for all template processing in the application.
+ *
+ * Architecture:
+ * - Singleton pattern (shared across all primitives)
+ * - Placeholder syntax: $$placeholder_name$$
+ * - Supports chart data, custom data, and formatting
+ * - Type-safe with comprehensive error handling
+ *
+ * Supported Placeholders:
+ * - **Chart values**: $$value$$, $$open$$, $$high$$, $$low$$, $$close$$
+ * - **Band/Ribbon**: $$upper$$, $$middle$$, $$lower$$
+ * - **Volume**: $$volume$$
+ * - **Time**: $$time$$
+ * - **Custom**: $$custom_key$$ (from customData)
+ * - **Trade**: $$pnl$$, $$entry_price$$, etc. (flexible)
+ *
+ * Features:
+ * - Automatic number formatting with precision
+ * - HTML escaping for security
+ * - Missing placeholder detection
+ * - Strict mode for validation
+ * - Comprehensive error reporting
+ *
+ * @export
+ * @class TemplateEngine
+ *
+ * @example
+ * ```typescript
+ * const engine = TemplateEngine.getInstance();
+ *
+ * const result = engine.processTemplate(
+ *   '<div>Price: $$close$$ ($$time$$)</div>',
+ *   {
+ *     seriesData: { close: 100.50, time: 1704067200 },
+ *     formatting: { precision: 2 }
+ *   }
+ * );
+ *
+ * console.log(result.content);
+ * // '<div>Price: 100.50 (2024-01-01)</div>'
+ * ```
  */
 // @ts-expect-error - Decorator doesn't support private constructors
 @Singleton()
 export class TemplateEngine {
+  /** Singleton instance getter (set by @Singleton decorator) */
   static getInstance: () => TemplateEngine;
 
+  /**
+   * Private constructor (Singleton pattern)
+   *
+   * @private
+   */
   private constructor() {
-    // Private constructor for singleton
+    // Private constructor enforces singleton pattern
   }
 
   /**
-   * Process template with given context and options
+   * Process HTML template with placeholder replacement
+   *
+   * Replaces all $$placeholder$$ tokens in the template with values from
+   * the provided context. Supports chart data, custom data, and formatting
+   * options. Returns comprehensive result with processed content and errors.
+   *
+   * Processing order:
+   * 1. Check if processing is enabled
+   * 2. Extract all placeholders from template
+   * 3. For each placeholder, resolve value from context
+   * 4. Apply formatting (precision, HTML escaping)
+   * 5. Replace placeholder with formatted value
+   * 6. Return result with processed content and metadata
+   *
+   * @public
+   * @param {string} template - HTML template with $$placeholder$$ syntax
+   * @param {TemplateContext} [context={}] - Data context for replacement
+   * @param {TemplateOptions} [options={}] - Processing options
+   * @returns {TemplateResult} Result with content, placeholders, and errors
+   *
+   * @example
+   * ```typescript
+   * const result = engine.processTemplate(
+   *   '<span>$$title$$: $$value$$</span>',
+   *   {
+   *     seriesData: { value: 123.45 },
+   *     customData: { title: 'Price' },
+   *     formatting: { precision: 2 }
+   *   },
+   *   { strict: true }
+   * );
+   *
+   * console.log(result.content); // '<span>Price: 123.45</span>'
+   * console.log(result.processedPlaceholders); // ['title', 'value']
+   * ```
    */
   public processTemplate(
     template: string,
     context: TemplateContext = {},
     options: TemplateOptions = {}
   ): TemplateResult {
+    // Initialize result with template and empty metadata
     const result: TemplateResult = {
       content: template,
       processedPlaceholders: [],
@@ -115,7 +200,7 @@ export class TemplateEngine {
       errors: [],
     };
 
-    // Early return if no processing needed
+    // Step 1: Early return if processing is disabled
     if (options.processPlaceholders === false) {
       return result;
     }
@@ -273,8 +358,24 @@ export class TemplateEngine {
       return this.formatTime(value, formatting?.timeFormat);
     }
 
-    // Handle numeric formatting
+    // Handle numeric formatting with trade-specific enhancements
     if (typeof value === 'number') {
+      // Trade-specific formatting for prices and P&L
+      if (key.includes('price') || key.includes('pnl')) {
+        const formatted = this.formatNumber(value, formatting?.valueFormat, formatting?.locale);
+        // Add sign for P&L values
+        if (key.includes('pnl') && value >= 0) {
+          return `+${formatted}`;
+        }
+        return formatted;
+      }
+
+      // Percentage formatting
+      if (key.includes('percentage') || key.includes('percent')) {
+        const format = formatting?.percentageFormat || '.1f';
+        return `${value.toFixed(format === '.1f' ? 1 : 2)}%`;
+      }
+
       return this.formatNumber(value, formatting?.valueFormat, formatting?.locale);
     }
 

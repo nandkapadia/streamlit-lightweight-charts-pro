@@ -105,8 +105,9 @@ def test_chart_with_annotations_and_trades():
             entry_price=100,
             exit_time=1640998800,
             exit_price=110,
-            quantity=1,
-            trade_type="long",
+            is_profitable=True,
+            id="trade_001",
+            additional_data={"quantity": 1, "trade_type": "long"},
         ),
     ]
     chart.options.trade_visualization = TradeVisualizationOptions()

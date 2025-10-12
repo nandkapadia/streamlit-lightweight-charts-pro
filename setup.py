@@ -203,7 +203,7 @@ def read_requirements():
 if __name__ == "__main__":
     setup(
         name="streamlit_lightweight_charts_pro",
-        version="0.1.0",
+        version="0.1.4",
         description=(
             "Enhanced Streamlit wrapper for TradingView's lightweight-charts with ultra-simplified"
             " API and performance optimizations"

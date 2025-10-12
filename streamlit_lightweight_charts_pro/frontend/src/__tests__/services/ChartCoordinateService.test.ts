@@ -1,8 +1,9 @@
 /**
+ * @vitest-environment jsdom
  * @fileoverview Tests for ChartCoordinateService
  */
 
-import { vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ChartCoordinateService } from '../../services/ChartCoordinateService';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
 import {

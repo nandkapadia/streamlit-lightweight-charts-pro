@@ -7,12 +7,7 @@
  * - Eliminates code duplication across the codebase
  */
 
-import {
-  ISeriesApi,
-  LineStyle,
-  LineWidth,
-  SeriesOptionsMap,
-} from 'lightweight-charts';
+import { ISeriesApi, LineStyle, LineWidth, SeriesOptionsMap } from 'lightweight-charts';
 
 /**
  * Property types for dialog rendering
@@ -168,7 +163,12 @@ export const PropertyDescriptors = {
   /**
    * Create a number property descriptor
    */
-  number(label: string, defaultValue: number, group?: string, hidden?: boolean): PropertyDescriptor {
+  number(
+    label: string,
+    defaultValue: number,
+    group?: string,
+    hidden?: boolean
+  ): PropertyDescriptor {
     return {
       type: 'number',
       label,
@@ -247,6 +247,8 @@ export function dialogConfigToApiOptions<T = unknown>(
     apiOptions.lastValueVisible = dialogConfig.lastValueVisible;
   if (dialogConfig.priceLineVisible !== undefined)
     apiOptions.priceLineVisible = dialogConfig.priceLineVisible;
+  if (dialogConfig.axisLabelVisible !== undefined)
+    apiOptions.axisLabelVisible = dialogConfig.axisLabelVisible;
   if (dialogConfig.title !== undefined) apiOptions.title = dialogConfig.title;
 
   // Property-descriptor-driven mapping
@@ -291,6 +293,8 @@ export function apiOptionsToDialogConfig<T = unknown>(
     dialogConfig.lastValueVisible = apiOptions.lastValueVisible;
   if (apiOptions.priceLineVisible !== undefined)
     dialogConfig.priceLineVisible = apiOptions.priceLineVisible;
+  if (apiOptions.axisLabelVisible !== undefined)
+    dialogConfig.axisLabelVisible = apiOptions.axisLabelVisible;
   if (apiOptions.title !== undefined) dialogConfig.title = apiOptions.title;
 
   // Property-descriptor-driven mapping

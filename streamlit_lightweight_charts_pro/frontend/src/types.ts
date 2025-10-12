@@ -1,3 +1,40 @@
+/**
+ * @fileoverview Main Type Definitions
+ *
+ * Central type definitions for the Streamlit Lightweight Charts component.
+ * Provides comprehensive type coverage for all chart, series, and configuration options.
+ *
+ * This module provides:
+ * - Component configuration types
+ * - Chart and pane configuration
+ * - Series configuration and data types
+ * - Trade visualization types
+ * - Annotation system types
+ * - Sync and layout types
+ *
+ * Features:
+ * - Complete type safety for all chart features
+ * - Backward compatibility with legacy options
+ * - Flexible configuration structures
+ * - Support for all series types and custom series
+ *
+ * @example
+ * ```typescript
+ * import { ComponentConfig, ChartConfig, SeriesConfig } from './types';
+ *
+ * const config: ComponentConfig = {
+ *   charts: [{
+ *     id: 'chart-1',
+ *     chart: { height: 400 },
+ *     series: [{
+ *       type: 'Line',
+ *       data: [{ time: '2024-01-01', value: 100 }]
+ *     }]
+ *   }]
+ * };
+ * ```
+ */
+
 import { Time, SeriesMarker } from 'lightweight-charts';
 import {
   SeriesDataPoint,
@@ -10,23 +47,20 @@ import {
 // Import the improved RangeConfig and TimeRange from RangeSwitcherPrimitive
 import type { RangeConfig as ImportedRangeConfig } from './primitives/RangeSwitcherPrimitive';
 
-// Enhanced Trade Configuration
+// Enhanced Trade Configuration - Core fields only
 export interface TradeConfig {
+  // Core fields required for trade visualization
   entryTime: string | number;
   entryPrice: number;
   exitTime: string | number;
   exitPrice: number;
-  quantity: number;
-  tradeType: 'long' | 'short';
-  id?: string;
-  notes?: string;
-  text?: string; // Custom tooltip text
-  pnl?: number;
-  pnlPercentage?: number;
-  isProfitable?: boolean;
-  series_id?: string;
-  series_index?: number;
-  side?: 'long' | 'short'; // Support both tradeType and side for compatibility
+  isProfitable: boolean;
+  id: string; // Required for trade identification
+  pnl?: number; // Calculated or provided
+  pnlPercentage?: number; // Calculated or provided
+
+  // All other data accessible via flexible properties for template access
+  [key: string]: any; // Allow any additional properties for template access
 }
 
 // Trade Visualization Options
@@ -41,6 +75,15 @@ export interface TradeVisualizationOptions {
   markerSize?: number;
   showPnlInMarkers?: boolean;
 
+  // Marker template options
+  entryMarkerTemplate?: string; // Custom HTML template for entry markers
+  exitMarkerTemplate?: string; // Custom HTML template for exit markers
+  entryMarkerShape?: 'arrowUp' | 'arrowDown' | 'circle' | 'square';
+  exitMarkerShape?: 'arrowUp' | 'arrowDown' | 'circle' | 'square';
+  entryMarkerPosition?: 'belowBar' | 'aboveBar';
+  exitMarkerPosition?: 'belowBar' | 'aboveBar';
+  showMarkerText?: boolean;
+
   // Rectangle options
   rectangleFillOpacity?: number;
   rectangleBorderWidth?: number;
@@ -51,6 +94,8 @@ export interface TradeVisualizationOptions {
   rectangleTextFontSize?: number;
   rectangleTextColor?: string;
   rectangleTextBackground?: string;
+  tooltipTemplate?: string;
+  markerTemplate?: string;
 
   // Line options
   lineWidth?: number;
@@ -199,7 +244,7 @@ export interface ButtonPanelConfig {
     expand?: string;
   };
   showCollapseButton?: boolean;
-  showGearButton?: boolean;
+  showSeriesSettingsButton?: boolean;
   legendConfig?: LegendData; // Legend configuration for this pane
   onPaneCollapse?: (_paneId: number, _isCollapsed: boolean) => void;
   onPaneExpand?: (_paneId: number, _isCollapsed: boolean) => void;

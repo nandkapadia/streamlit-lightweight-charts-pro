@@ -1,6 +1,10 @@
+/**
+ * @vitest-environment jsdom
+ */
+
 import { render, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import LightweightCharts from '../../LightweightCharts';
 import { ComponentConfig } from '../../types';
 import { resetMocks } from '../../test-utils/lightweightChartsMocks';

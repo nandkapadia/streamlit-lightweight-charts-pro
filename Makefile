@@ -122,6 +122,14 @@ pre-commit-clean:  ## Clean pre-commit cache
 	@echo "Cleaning pre-commit cache..."
 	@$(CONDA_ACTIVATE) && pre-commit clean
 
+verify-ci:  ## Verify CI/CD setup and branch protection
+	@echo "Verifying CI/CD setup..."
+	@bash scripts/verify_ci_setup.sh
+
+setup-branch-protection:  ## Setup GitHub branch protection rules
+	@echo "Setting up branch protection..."
+	@bash scripts/setup_branch_protection.sh
+
 test-frontend:  ## Run frontend tests and checks
 	@echo "Running frontend tests..."
 	@cd streamlit_lightweight_charts_pro/frontend && npm run test:all

@@ -1,8 +1,40 @@
 /**
- * Centralized configuration constants for all primitive components
+ * @fileoverview Primitive Defaults - Configuration Constants
  *
- * This file provides a single source of truth for default values,
- * styling constants, and configuration objects used across primitives.
+ * Single source of truth for all primitive configuration constants, default
+ * values, and styling configurations. Ensures consistency across all
+ * primitive components.
+ *
+ * This file provides:
+ * - Time range constants (seconds for various periods)
+ * - Layout spacing and positioning constants
+ * - Button dimensions and styling
+ * - Color schemes and themes
+ * - Typography defaults
+ * - Legend configuration defaults
+ * - Range switcher presets
+ *
+ * Architecture:
+ * - Const objects with 'as const' for type safety
+ * - Organized by category (buttons, legends, colors, etc.)
+ * - Readonly values prevent accidental mutations
+ * - Used by all primitive components
+ *
+ * DRY Principles:
+ * - Single source of truth for all defaults
+ * - No magic numbers scattered in code
+ * - Easy to update globally
+ * - Type-safe with TypeScript inference
+ *
+ * @example
+ * ```typescript
+ * import { ButtonColors, UniversalSpacing } from './PrimitiveDefaults';
+ *
+ * const buttonStyle = {
+ *   background: ButtonColors.DEFAULT_BACKGROUND,
+ *   padding: UniversalSpacing.EDGE_PADDING
+ * };
+ * ```
  */
 
 // ===== Range Configuration Constants =====

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Lightweight Charts Utils Test Suite
+ *
+ * Tests for Lightweight Charts type compatibility utilities.
+ */
+
+import { describe, it, expect } from 'vitest';
 import {
   asLineWidth,
   asLineStyle,

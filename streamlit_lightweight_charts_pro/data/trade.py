@@ -1,25 +1,23 @@
 """Trade data model for visualizing trades on charts.
 
 This module provides the TradeData class for representing individual trades
-with entry and exit information, profit/loss calculations, and visualization
-capabilities. It supports converting trades to marker representations for
-displaying buy/sell signals and trade outcomes on charts.
+with entry and exit information, profit/loss calculations, and flexible
+metadata storage. Trade visualization (markers, rectangles, tooltips) is
+handled by the frontend using template-based rendering.
 
 The module includes:
     - TradeData: Complete trade representation with entry/exit data
-    - TradeType enum support for long/short trade classification
     - Automatic profit/loss calculations and percentage calculations
-    - Marker conversion for visual representation on charts
+    - Flexible additional_data for custom trade metadata
     - Comprehensive serialization for frontend communication
 
 Key Features:
     - Entry and exit time/price tracking with validation
     - Automatic profit/loss and percentage calculations
-    - Trade type classification (long/short)
-    - Marker generation for visual representation
+    - Flexible additional_data dictionary for custom fields
     - Tooltip text generation with trade details
     - Time normalization and validation
-    - Frontend-compatible serialization
+    - Frontend-compatible serialization with camelCase keys
 
 Example Usage:
     ```python
@@ -31,10 +29,9 @@ Example Usage:
         entry_price=100.0,
         exit_time="2024-01-01T16:00:00",
         exit_price=105.0,
-        quantity=100,
-        trade_type=TradeType.LONG,
+        is_profitable=True,
         id="trade_001",
-        notes="Strong momentum trade",
+        additional_data={"quantity": 100, "trade_type": "long", "notes": "Strong momentum trade"},
     )
 
     # Access calculated properties
@@ -42,8 +39,8 @@ Example Usage:
     print(f"P&L %: {trade.pnl_percentage:.1f}%")
     print(f"Profitable: {trade.is_profitable}")
 
-    # Convert to markers for chart display
-    markers = trade.to_markers()
+    # Serialize for frontend
+    trade_dict = trade.asdict()
     ```
 
 Version: 0.1.0
@@ -60,15 +57,9 @@ from typing import Any, Dict, Optional, Union
 import pandas as pd
 
 # Local Imports
-from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.exceptions import (
     ExitTimeAfterEntryTimeError,
     ValueValidationError,
-)
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    MarkerPosition,
-    MarkerShape,
-    TradeType,
 )
 from streamlit_lightweight_charts_pro.utils.data_utils import from_utc_timestamp, to_utc_timestamp
 from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
@@ -94,13 +85,11 @@ class TradeData(SerializableMixin):
         exit_time (Union[pd.Timestamp, datetime, str, int, float]): Exit time
             in various formats (automatically normalized to UTC timestamp).
         exit_price (Union[float, int]): Exit price for the trade.
-        quantity (Union[float, int]): Trade quantity/size (converted to int).
-        trade_type (Union[TradeType, str]): Type of trade (LONG or SHORT).
-            Defaults to LONG. String values are converted to enum.
-        id (Optional[str]): Optional unique identifier for the trade.
-        notes (Optional[str]): Optional notes or comments about the trade.
-        text (Optional[str]): Optional custom tooltip text. If not provided,
-            auto-generated based on trade details.
+        is_profitable (bool): Whether the trade was profitable (True) or not (False).
+        id (str): Unique identifier for the trade (required).
+        additional_data (Optional[Dict[str, Any]]): Optional dictionary containing
+            any additional trade data such as quantity, trade_type, notes, etc.
+            This provides maximum flexibility for custom fields.
 
     Example:
         ```python
@@ -112,9 +101,9 @@ class TradeData(SerializableMixin):
             entry_price=100.0,
             exit_time="2024-01-01T16:00:00",
             exit_price=105.0,
-            quantity=100,
-            trade_type=TradeType.LONG,
+            is_profitable=True,
             id="trade_001",
+            additional_data={"quantity": 100, "trade_type": "long", "notes": "Strong momentum trade"},
         )
 
         # Access calculated properties
@@ -122,58 +111,64 @@ class TradeData(SerializableMixin):
         print(f"P&L %: {trade.pnl_percentage:.1f}%")  # 5.0%
         print(f"Profitable: {trade.is_profitable}")  # True
 
-        # Convert to markers for chart display
-        markers = trade.to_markers()
+        # Serialize for frontend
+        trade_dict = trade.asdict()
         ```
 
     Note:
         - Exit time must be after entry time, otherwise ExitTimeAfterEntryTimeError is raised
-        - Price and quantity values are automatically converted to appropriate numeric types
+        - Price values are automatically converted to appropriate numeric types
         - Time values are normalized to UTC timestamps for consistent handling
-        - Trade type strings are converted to TradeType enum values
+        - All additional data (quantity, trade_type, notes, etc.) should be provided in additional_data
+        - The id field is required for trade identification
     """
 
+    # Core fields required for trade visualization
     entry_time: Union[pd.Timestamp, datetime, str, int, float]
     entry_price: Union[float, int]
     exit_time: Union[pd.Timestamp, datetime, str, int, float]
     exit_price: Union[float, int]
-    quantity: Union[float, int]
-    trade_type: Union[TradeType, str] = TradeType.LONG
-    id: Optional[str] = None
-    notes: Optional[str] = None
-    text: Optional[str] = None
+    is_profitable: bool
+    id: str  # Required for trade identification
+
+    # All other data moved to additional_data for maximum flexibility
+    additional_data: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         """Post-initialization processing to normalize and validate trade data.
 
         This method is automatically called after the dataclass is initialized.
         It performs the following operations:
-        1. Converts price and quantity values to appropriate numeric types
+        1. Converts price values to appropriate numeric types
         2. Normalizes entry and exit times to UTC timestamps
         3. Validates that exit time is after entry time
-        4. Converts trade type string to enum if needed
-        5. Generates tooltip text if not provided
+        4. Ensures is_profitable is a boolean
 
         Raises:
             ExitTimeAfterEntryTimeError: If exit time is not after entry time.
             ValueValidationError: If time validation fails.
         """
-        # Convert numeric values to appropriate types for consistent calculations
+        # Step 1: Convert price values to float for consistent calculations
+        # This ensures prices are always numeric, regardless of input type
         self.entry_price = float(self.entry_price)
         self.exit_price = float(self.exit_price)
-        self.quantity = int(self.quantity)
 
-        # Convert times to UTC timestamps for consistent handling
-        # This ensures all time values are in the same format for comparison
+        # Step 2: Ensure is_profitable is a boolean for consistent logic
+        # Converts any truthy/falsy value to explicit True/False
+        self.is_profitable = bool(self.is_profitable)
+
+        # Step 3: Convert times to UTC timestamps for consistent handling
+        # This normalizes various time formats (datetime, string, timestamp) to UTC
         self._entry_timestamp = to_utc_timestamp(self.entry_time)
         self._exit_timestamp = to_utc_timestamp(self.exit_time)
 
-        # Validate that exit time is after entry time - critical for trade logic
+        # Step 4: Validate that exit time is after entry time
+        # This is critical for trade logic - a trade cannot exit before it enters
         if isinstance(self._entry_timestamp, (int, float)) and isinstance(
             self._exit_timestamp,
             (int, float),
         ):
-            # Compare numeric timestamps directly
+            # Case 1: Both timestamps are numeric - compare directly
             if self._exit_timestamp <= self._entry_timestamp:
                 raise ExitTimeAfterEntryTimeError()
         elif (
@@ -181,16 +176,8 @@ class TradeData(SerializableMixin):
             and isinstance(self._exit_timestamp, str)
             and self._exit_timestamp <= self._entry_timestamp
         ):
-            # Compare string timestamps lexicographically
+            # Case 2: Both timestamps are strings - compare lexicographically
             raise ValueValidationError("Exit time", "must be after entry time")
-
-        # Convert trade type string to enum if needed for type safety
-        if isinstance(self.trade_type, str):
-            self.trade_type = TradeType(self.trade_type.lower())
-
-        # Generate tooltip text if not provided - creates informative hover text
-        if self.text is None:
-            self.text = self.generate_tooltip_text()
 
     def generate_tooltip_text(self) -> str:
         """Generate tooltip text for the trade.
@@ -217,66 +204,82 @@ class TradeData(SerializableMixin):
             # Returns: "Entry: 100.00\nExit: 105.00\nQty: 100.00\nP&L: 500.00 (5.0%)\nWin"
             ```
         """
-        # Calculate profit/loss metrics for tooltip display
+        # Step 1: Calculate profit/loss metrics for tooltip display
+        # Uses the pnl and pnl_percentage properties which check additional_data first
         pnl = self.pnl
         pnl_pct = self.pnl_percentage
+
+        # Step 2: Determine win/loss label based on P&L value
+        # Positive P&L = Win, negative or zero = Loss
         win_loss = "Win" if pnl > 0 else "Loss"
 
-        # Format timestamps for display (though not currently used in tooltip)
-        # These could be used in future versions for time display
-        from_utc_timestamp(self._entry_timestamp)
-        from_utc_timestamp(self._exit_timestamp)
-
-        # Build tooltip components with formatted trade information
+        # Step 3: Build tooltip components with formatted trade information
+        # Start with core entry/exit prices (always shown)
         tooltip_parts = [
             f"Entry: {self.entry_price:.2f}",
             f"Exit: {self.exit_price:.2f}",
-            f"Qty: {self.quantity:.2f}",
-            f"P&L: {pnl:.2f} ({pnl_pct:.1f}%)",
-            f"{win_loss}",
         ]
 
-        # Add custom notes if provided for additional context
-        if self.notes:
-            tooltip_parts.append(f"Notes: {self.notes}")
+        # Step 4: Add quantity if available in additional_data
+        # Quantity is optional and only shown if user provided it
+        if self.additional_data and "quantity" in self.additional_data:
+            tooltip_parts.append(f"Qty: {self.additional_data['quantity']:.2f}")
 
-        # Join all parts with newlines for multi-line tooltip display
+        # Step 5: Add P&L information (always shown)
+        # Shows both absolute P&L and percentage for complete picture
+        tooltip_parts.extend(
+            [
+                f"P&L: {pnl:.2f} ({pnl_pct:.1f}%)",
+                f"{win_loss}",
+            ],
+        )
+
+        # Step 6: Add custom notes if provided for additional context
+        # Notes are optional and only shown if user provided them
+        if self.additional_data and "notes" in self.additional_data:
+            tooltip_parts.append(f"Notes: {self.additional_data['notes']}")
+
+        # Step 7: Join all parts with newlines for multi-line tooltip display
         return "\n".join(tooltip_parts)
 
     @property
     def pnl(self) -> float:
-        """Calculate profit/loss for the trade.
+        """Get profit/loss amount from additional_data or calculate basic price difference.
 
-        Computes the absolute profit or loss amount based on the trade type.
-        For long trades, profit is calculated as (exit_price - entry_price) * quantity.
-        For short trades, profit is calculated as (entry_price - exit_price) * quantity.
+        First checks if P&L is provided in additional_data, otherwise calculates
+        basic price difference. This allows users to provide their own P&L calculation
+        logic while maintaining a fallback for basic visualization.
 
         Returns:
-            float: Profit/loss amount in currency units. Positive values indicate
-                profit, negative values indicate loss.
+            float: Profit/loss amount. Positive values indicate profit,
+                negative values indicate loss.
 
         Example:
             ```python
-            # Long trade: entry=100, exit=105, quantity=100
+            # With additional_data containing pnl
+            trade = TradeData(..., additional_data={"pnl": 500.0})
             trade.pnl  # Returns: 500.0
 
-            # Short trade: entry=100, exit=95, quantity=100
-            trade.pnl  # Returns: 500.0
+            # Without additional_data, calculates basic difference
+            trade = TradeData(entry_price=100, exit_price=105, ...)
+            trade.pnl  # Returns: 5.0 (basic price difference)
             ```
         """
-        if self.trade_type == TradeType.LONG:
-            # Long trade: profit when exit price > entry price
-            return (self.exit_price - self.entry_price) * self.quantity
-        # SHORT trade: profit when entry price > exit price
-        return (self.entry_price - self.exit_price) * self.quantity
+        # Check if P&L is provided in additional_data dictionary
+        # User may provide custom P&L calculation (e.g., accounting for fees, quantity)
+        if self.additional_data and "pnl" in self.additional_data:
+            return float(self.additional_data["pnl"])
+
+        # Fallback: Calculate basic price difference for visualization
+        # Simple formula: exit_price - entry_price (doesn't account for quantity or fees)
+        return float(self.exit_price - self.entry_price)
 
     @property
     def pnl_percentage(self) -> float:
-        """Calculate profit/loss percentage.
+        """Get profit/loss percentage from additional_data or calculate basic percentage.
 
-        Computes the percentage return based on the entry price and trade type.
-        The percentage is calculated relative to the entry price, providing
-        a standardized measure of trade performance.
+        First checks if P&L percentage is provided in additional_data, otherwise
+        calculates basic percentage based on price difference relative to entry price.
 
         Returns:
             float: Profit/loss percentage. Positive values indicate profit,
@@ -284,154 +287,33 @@ class TradeData(SerializableMixin):
 
         Example:
             ```python
-            # Long trade: entry=100, exit=105
+            # With additional_data containing pnl_percentage
+            trade = TradeData(..., additional_data={"pnl_percentage": 5.0})
             trade.pnl_percentage  # Returns: 5.0
 
-            # Short trade: entry=100, exit=95
-            trade.pnl_percentage  # Returns: 5.0
+            # Without additional_data, calculates basic percentage
+            trade = TradeData(entry_price=100, exit_price=105, ...)
+            trade.pnl_percentage  # Returns: 5.0 (5% gain)
             ```
         """
-        if self.trade_type == TradeType.LONG:
-            # Long trade: percentage based on entry price
+        # Check if P&L percentage is provided in additional_data dictionary
+        # User may provide custom percentage calculation
+        if self.additional_data and "pnl_percentage" in self.additional_data:
+            return float(self.additional_data["pnl_percentage"])
+
+        # Fallback: Calculate basic percentage from price difference
+        # Formula: ((exit - entry) / entry) * 100
+        if self.entry_price != 0:
             return ((self.exit_price - self.entry_price) / self.entry_price) * 100
-        # SHORT trade: percentage based on entry price
-        return ((self.entry_price - self.exit_price) / self.entry_price) * 100
 
-    @property
-    def is_profitable(self) -> bool:
-        """Check if trade is profitable.
-
-        Determines whether the trade resulted in a profit or loss based on
-        the calculated P&L amount.
-
-        Returns:
-            bool: True if the trade is profitable (P&L > 0), False otherwise.
-
-        Example:
-            ```python
-            # Profitable trade
-            trade.is_profitable  # Returns: True
-
-            # Losing trade
-            trade.is_profitable  # Returns: False
-            ```
-        """
-        return self.pnl > 0
-
-    def to_markers(
-        self,
-        entry_color: Optional[str] = None,
-        exit_color: Optional[str] = None,
-        show_pnl: bool = True,
-    ) -> list:
-        """Convert trade to marker representations for chart display.
-
-        Creates visual markers for the entry and exit points of the trade,
-        including appropriate colors, shapes, and positioning based on the
-        trade type. The markers can be added to charts to visualize trade
-        execution and outcomes.
-
-        Args:
-            entry_color (Optional[str]): Color for entry marker. If None,
-                uses blue (#2196F3) for long trades, orange (#FF9800) for short trades.
-            exit_color (Optional[str]): Color for exit marker. If None,
-                uses green (#4CAF50) for profitable trades, red (#F44336) for losses.
-            show_pnl (bool): Whether to show P&L information in exit marker text.
-                Defaults to True.
-
-        Returns:
-            List[BarMarker]: List containing entry and exit markers for the trade.
-
-        Example:
-            ```python
-            trade = TradeData(
-                entry_time="2024-01-01",
-                entry_price=100.0,
-                exit_time="2024-01-01",
-                exit_price=105.0,
-                quantity=100,
-                trade_type=TradeType.LONG,
-            )
-
-            # Get markers with default colors
-            markers = trade.to_markers()
-
-            # Get markers with custom colors
-            markers = trade.to_markers(entry_color="#0000FF", exit_color="#00FF00", show_pnl=False)
-            ```
-        """
-        # Set default colors based on trade type and profitability
-        # Long trades use blue for entry, short trades use orange
-        if entry_color is None:
-            entry_color = "#2196F3" if self.trade_type == TradeType.LONG else "#FF9800"
-
-        # Exit markers use green for profitable trades, red for losses
-        if exit_color is None:
-            exit_color = "#4CAF50" if self.is_profitable else "#F44336"
-
-        # Initialize list to store both entry and exit markers
-        markers = []
-
-        # Create entry marker with trade type-specific positioning and shape
-        entry_text = f"Entry: ${self.entry_price:.2f}"
-        # Include trade ID in text if available for better identification
-        if self.id:
-            entry_text = f"{self.id} - {entry_text}"
-
-        # Entry marker positioned below bar for long trades, above for short trades
-        # Uses arrow up for long trades (buy signal), arrow down for short trades (sell signal)
-        entry_marker = BarMarker(
-            time=self._entry_timestamp,
-            position=(
-                MarkerPosition.BELOW_BAR
-                if self.trade_type == TradeType.LONG
-                else MarkerPosition.ABOVE_BAR
-            ),
-            shape=(
-                MarkerShape.ARROW_UP
-                if self.trade_type == TradeType.LONG
-                else MarkerShape.ARROW_DOWN
-            ),
-            color=entry_color,
-            text=entry_text,
-        )
-        markers.append(entry_marker)
-
-        # Create exit marker with P&L information if requested
-        exit_text = f"Exit: ${self.exit_price:.2f}"
-        # Add P&L information to exit marker if show_pnl is True
-        if show_pnl:
-            exit_text += f" (P&L: ${self.pnl:.2f}, {self.pnl_percentage:+.1f}%)"
-
-        # Exit marker positioned above bar for long trades, below for short trades
-        # Uses arrow down for long trades (sell signal), arrow up for short trades (cover signal)
-        exit_marker = BarMarker(
-            time=self._exit_timestamp,
-            position=(
-                MarkerPosition.ABOVE_BAR
-                if self.trade_type == TradeType.LONG
-                else MarkerPosition.BELOW_BAR
-            ),
-            shape=(
-                MarkerShape.ARROW_DOWN
-                if self.trade_type == TradeType.LONG
-                else MarkerShape.ARROW_UP
-            ),
-            color=exit_color,
-            text=exit_text,
-        )
-        markers.append(exit_marker)
-
-        # Return list containing both entry and exit markers for chart display
-        return markers
+        # Edge case: Return 0.0 if entry price is zero to avoid division by zero
+        return 0.0
 
     def asdict(self) -> Dict[str, Any]:
         """Serialize the trade data to a dict with camelCase keys for frontend.
 
         Converts the trade to a dictionary format suitable for frontend
-        communication. The serialization includes all trade information
-        with computed properties like P&L and profitability status.
-        Optional fields are only included if they have values.
+        communication. Only includes core fields required for visualization.
 
         Returns:
             Dict[str, Any]: Serialized trade with camelCase keys ready for
@@ -440,14 +322,10 @@ class TradeData(SerializableMixin):
                 - entryPrice: Entry price
                 - exitTime: Exit timestamp
                 - exitPrice: Exit price
-                - quantity: Trade quantity
-                - tradeType: Trade type (long/short)
                 - isProfitable: Profitability status
-                - pnl: Profit/loss amount
-                - pnlPercentage: Profit/loss percentage
-                - id: Trade ID (if provided)
-                - notes: Trade notes (if provided)
-                - text: Tooltip text (if provided)
+                - pnl: Profit/loss amount (from additional_data or calculated)
+                - pnlPercentage: Profit/loss percentage (from additional_data or calculated)
+                - All fields from additional_data (merged for template access)
 
         Example:
             ```python
@@ -456,33 +334,32 @@ class TradeData(SerializableMixin):
                 entry_price=100.0,
                 exit_time="2024-01-01",
                 exit_price=105.0,
-                quantity=100,
-                trade_type=TradeType.LONG,
+                is_profitable=True,
+                additional_data={"strategy": "momentum", "pnl": 500.0},
             )
 
             result = trade.asdict()
-            # Returns: {"entryTime": 1704067200, "entryPrice": 100.0, ...}
+            # Returns: {"entryTime": 1704067200, "entryPrice": 100.0,
+            #          "exitTime": 1704070800, "exitPrice": 105.0,
+            #          "isProfitable": True, "pnl": 500.0, "strategy": "momentum"}
             ```
         """
-        # Create base trade dictionary with required fields and computed properties
+        # Step 1: Create base trade dictionary with core fields
+        # Uses camelCase keys for JavaScript/TypeScript frontend compatibility
         trade_dict = {
-            "entryTime": self._entry_timestamp,
-            "entryPrice": self.entry_price,
-            "exitTime": self._exit_timestamp,
-            "exitPrice": self.exit_price,
-            "quantity": self.quantity,
-            "tradeType": self.trade_type.value.lower(),
-            "isProfitable": self.is_profitable,
-            "pnl": self.pnl,
-            "pnlPercentage": self.pnl_percentage,
+            "entryTime": self._entry_timestamp,  # Normalized UTC timestamp
+            "entryPrice": self.entry_price,  # Entry price as float
+            "exitTime": self._exit_timestamp,  # Normalized UTC timestamp
+            "exitPrice": self.exit_price,  # Exit price as float
+            "isProfitable": self.is_profitable,  # Profitability flag (required)
+            "id": self.id,  # Unique trade identifier (required)
+            "pnl": self.pnl,  # Profit/loss amount (calculated or from additional_data)
+            "pnlPercentage": self.pnl_percentage,  # P&L % (calculated or from additional_data)
         }
 
-        # Add optional fields only if they have values to keep serialization clean
-        if self.id:
-            trade_dict["id"] = self.id
-        if self.notes:
-            trade_dict["notes"] = self.notes
-        if self.text:
-            trade_dict["text"] = self.text
+        # Step 2: Merge additional data into the trade dict for template access
+        # This allows frontend templates to access custom fields like quantity, notes, etc.
+        if self.additional_data:
+            trade_dict.update(self.additional_data)
 
         return trade_dict

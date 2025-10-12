@@ -776,27 +776,10 @@ class Chart:
         self._trades = trades
 
         # Check if we should add markers based on TradeVisualizationOptions style
-        should_add_markers = False
-        if self.options and self.options.trade_visualization:
-            style = self.options.trade_visualization.style
-            # Add markers for styles that include markers
-            should_add_markers = style in [
-                TradeVisualization.MARKERS,
-                TradeVisualization.BOTH,
-                TradeVisualization.ARROWS,
-            ]
-
-        if should_add_markers:
-            for trade in trades:
-                # Convert trade to markers
-                markers = trade.to_markers()
-
-                # Add markers to the first series that supports markers
-                for series in self.series:
-                    if hasattr(series, "markers"):
-                        for marker in markers:
-                            series.markers.append(marker)
-                        break
+        # Note: Trade markers are now created in the frontend using templates
+        # The frontend createTradeMarkers() function handles marker generation
+        # based on TradeVisualizationOptions (entry_marker_template, exit_marker_template)
+        # This provides more flexibility and consistency with the template system
 
         return self
 

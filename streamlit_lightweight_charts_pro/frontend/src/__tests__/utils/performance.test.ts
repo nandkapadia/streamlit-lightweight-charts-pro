@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Performance Utilities Test Suite
+ *
+ * Tests for performance optimization utilities.
+ *
+ * @vitest-environment jsdom
+ */
+
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   perfLogFn,
   getCachedDOMElementForTesting as getCachedDOMElement,

@@ -68,8 +68,9 @@ function createMockWidget(
 describe('CornerLayoutManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Clear all instances
-    (CornerLayoutManager as any).instances = new Map();
+    // Clear all instances using the proper method to ensure clean state between tests
+    // This prevents configuration from one test bleeding into another
+    (CornerLayoutManager as any).clearAllInstances('CornerLayoutManager');
   });
 
   describe('Singleton Pattern', () => {
@@ -96,9 +97,10 @@ describe('CornerLayoutManager', () => {
 
     it('should use default values when chartId and paneId not provided', () => {
       const instance1 = CornerLayoutManager.getInstance();
-      const instance2 = CornerLayoutManager.getInstance('default', 0);
+      const instance2 = CornerLayoutManager.getInstance(); // Same signature
 
       expect(instance1).toBe(instance2);
+      expect(instance1.getChartId()).toBe('default'); // Verify default chartId
     });
 
     it('should get chart ID', () => {

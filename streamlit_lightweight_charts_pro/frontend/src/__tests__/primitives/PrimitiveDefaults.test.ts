@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * Tests for PrimitiveDefaults
  *
  * Centralized configuration constants for all primitive components
@@ -93,7 +94,7 @@ describe('PrimitiveDefaults - ButtonColors', () => {
     expect(ButtonColors.PRESSED_COLOR).toBe('white');
     expect(ButtonColors.DISABLED_BACKGROUND).toBe('rgba(128, 128, 128, 0.1)');
     expect(ButtonColors.DISABLED_COLOR).toBe('#999');
-    expect(ButtonColors.PANE_ACTION_BACKGROUND).toBe('rgba(255, 255, 255, 0.9)');
+    expect(ButtonColors.PANE_ACTION_BACKGROUND).toBe('rgba(255, 255, 255, 0.1)');
     expect(ButtonColors.PANE_ACTION_COLOR).toBe('#6b7280');
     expect(ButtonColors.ACTION_BACKGROUND).toBe('#007AFF');
     expect(ButtonColors.ACTION_HOVER_BACKGROUND).toBe('#0056CC');

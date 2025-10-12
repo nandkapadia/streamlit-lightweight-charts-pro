@@ -1,5 +1,6 @@
 /**
  * @fileoverview Tests for PaneCollapseManager
+ * @vitest-environment jsdom
  *
  * Tests the singleton pattern, pane collapse/expand functionality,
  * state management, and DOM manipulation.
@@ -16,29 +17,85 @@ describe('PaneCollapseManager', () => {
   let mockChartElement: HTMLElement;
   let mockPaneElement: HTMLElement;
   let mockCanvasElement: HTMLElement;
+  let mockPaneElements: Map<number, HTMLElement>;
+  let mockCanvasElements: Map<number, HTMLElement>;
 
   beforeEach(() => {
     // Clear singleton instances between tests using KeyedSingletonManager
     (KeyedSingletonManager as any).clearAllInstances('PaneCollapseManager');
 
-    // Create mock DOM elements
+    // Create mock DOM elements - store multiple panes
+    mockPaneElements = new Map();
+    mockCanvasElements = new Map();
+
+    // Create default pane (index 0)
     mockCanvasElement = document.createElement('canvas');
     mockCanvasElement.style.height = '200px';
+    mockCanvasElements.set(0, mockCanvasElement);
 
     mockPaneElement = document.createElement('div');
     mockPaneElement.className = 'pane';
     mockPaneElement.style.height = '200px';
     mockPaneElement.appendChild(mockCanvasElement);
+    mockPaneElements.set(0, mockPaneElement);
 
     mockChartElement = document.createElement('div');
     mockChartElement.appendChild(mockPaneElement);
 
-    // Mock chart API
+    // Mock chart API with complete pane API
+    // Create a dynamic panes array that supports any index
+    const mockPanes = new Proxy([], {
+      get(target, prop) {
+        const index = Number(prop);
+        // Return pane mock for numeric indices
+        if (!isNaN(index)) {
+          if (!target[index]) {
+            // Create DOM elements for this pane if they don't exist
+            if (!mockPaneElements.has(index)) {
+              const canvas = document.createElement('canvas');
+              canvas.style.height = '200px';
+              mockCanvasElements.set(index, canvas);
+
+              const pane = document.createElement('div');
+              pane.className = 'pane';
+              pane.style.height = '200px';
+              pane.appendChild(canvas);
+              mockPaneElements.set(index, pane);
+            }
+
+            const paneElement = mockPaneElements.get(index)!;
+            const canvasElement = mockCanvasElements.get(index)!;
+
+            target[index] = {
+              getSeries: vi.fn(() => []),
+              // setHeight should trigger DOM changes for THIS specific pane
+              setHeight: vi.fn((height: number) => {
+                paneElement.style.height = `${height}px`;
+                paneElement.style.minHeight = `${height}px`;
+                paneElement.style.maxHeight = `${height}px`;
+                // Hide canvas when collapsing
+                if (height <= 40 && canvasElement) {
+                  canvasElement.style.height = '0px';
+                  canvasElement.style.display = 'none';
+                } else if (canvasElement) {
+                  canvasElement.style.height = '';
+                  canvasElement.style.display = '';
+                }
+              }),
+            };
+          }
+          return target[index];
+        }
+        // Return array methods for other properties
+        return target[prop as any];
+      },
+    });
+
     mockChartApi = {
       chartElement: vi.fn(() => mockChartElement),
       paneSize: vi.fn(() => ({ height: 200, width: 400 })),
       resize: vi.fn(),
-      panes: vi.fn(() => [{ getSeries: () => [] }]),
+      panes: vi.fn(() => mockPanes),
     } as any;
   });
 

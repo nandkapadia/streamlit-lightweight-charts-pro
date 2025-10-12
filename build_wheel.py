@@ -184,13 +184,13 @@ def test_wheel():
 if __name__ == "__main__":
     print("🚀 Starting wheel build process...")
 
-    success = build_wheel()
+    BUILD_SUCCESS = build_wheel()
 
-    if success:
+    if BUILD_SUCCESS:
         print("\n🧪 Testing wheel...")
-        test_success = test_wheel()
+        TEST_SUCCESS = test_wheel()
 
-        if test_success:
+        if TEST_SUCCESS:
             print("\n🎉 Wheel build and test completed successfully!")
             print("\n📦 To install the wheel:")
             print("   pip install dist/*.whl")

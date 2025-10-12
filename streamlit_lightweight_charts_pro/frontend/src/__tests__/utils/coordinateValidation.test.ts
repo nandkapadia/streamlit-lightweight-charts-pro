@@ -1,5 +1,11 @@
+/**
+ * @fileoverview Coordinate Validation Test Suite
+ *
+ * Tests for coordinate validation utilities.
+ */
+
 // Unmock coordinate validation and its dependencies for this test file since we want to test the actual implementation
-import { vi } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
 vi.unmock('../../utils/coordinateValidation');
 vi.unmock('../../config/positioningConfig');
 

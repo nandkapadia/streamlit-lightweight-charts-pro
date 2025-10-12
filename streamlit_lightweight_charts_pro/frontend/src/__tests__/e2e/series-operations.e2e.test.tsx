@@ -1,5 +1,6 @@
 /**
  * @fileoverview E2E tests for series operations
+ * @vitest-environment jsdom
  *
  * Tests complete user flows for:
  * - Adding different series types
@@ -11,7 +12,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 import LightweightCharts from '../../LightweightCharts';
 import { ComponentConfig } from '../../types';
 

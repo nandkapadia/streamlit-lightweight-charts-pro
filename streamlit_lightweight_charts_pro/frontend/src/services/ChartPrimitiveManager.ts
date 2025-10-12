@@ -1,3 +1,50 @@
+/**
+ * @fileoverview Chart Primitive Manager
+ *
+ * Centralized manager for all chart primitives (legends, range switchers, buttons).
+ * Provides lifecycle management, coordinated positioning, and event handling
+ * for primitive-based chart features.
+ *
+ * This service is responsible for:
+ * - Creating and registering primitives (legends, range switchers, buttons)
+ * - Managing primitive lifecycle (attach, detach, destroy)
+ * - Coordinating with layout and event managers
+ * - Tracking primitives by ID for cleanup
+ * - Providing unified API for primitive operations
+ *
+ * Architecture:
+ * - Keyed singleton pattern (one instance per chart)
+ * - Integration with PrimitiveEventManager
+ * - Integration with CornerLayoutManager
+ * - Primitive registry with cleanup
+ * - Per-pane primitive attachment
+ *
+ * Managed Primitive Types:
+ * - **LegendPrimitive**: Dynamic legends with series data
+ * - **RangeSwitcherPrimitive**: Time range switching buttons
+ * - **ButtonPanelPrimitive**: Settings and collapse buttons
+ *
+ * @example
+ * ```typescript
+ * const manager = ChartPrimitiveManager.getInstance(chartApi, 'chart-1');
+ *
+ * // Add legend
+ * const legend = manager.addLegend({
+ *   position: 'top-left',
+ *   template: '<div>$$title$$: $$close$$</div>'
+ * }, false);
+ *
+ * // Add range switcher
+ * const switcher = manager.addRangeSwitcher({
+ *   position: 'top-right',
+ *   ranges: [{ text: '1D', seconds: 86400 }]
+ * });
+ *
+ * // Cleanup on unmount
+ * ChartPrimitiveManager.cleanup('chart-1');
+ * ```
+ */
+
 import { IChartApi } from 'lightweight-charts';
 import { logger } from '../utils/logger';
 import { LegendPrimitive } from '../primitives/LegendPrimitive';
@@ -13,10 +60,14 @@ import {
 } from '../primitives/ButtonPanelPrimitive';
 
 /**
- * ChartPrimitiveManager - Centralized management for all chart primitives
+ * ChartPrimitiveManager - Centralized primitive lifecycle manager
  *
- * This service provides unified API for adding/removing primitives and replaces
- * the old ChartWidgetManager system with pure primitive-only approach.
+ * Manages all chart primitives with unified API, coordinated positioning,
+ * and proper cleanup. Replaces old widget-based approach with pure
+ * primitive architecture.
+ *
+ * @export
+ * @class ChartPrimitiveManager
  */
 export class ChartPrimitiveManager {
   private static instances: Map<string, ChartPrimitiveManager> = new Map();
@@ -166,7 +217,7 @@ export class ChartPrimitiveManager {
           showTooltip: config.showTooltip,
           tooltipText: config.tooltipText,
           showCollapseButton: config.showCollapseButton,
-          showGearButton: config.showGearButton,
+          showSeriesSettingsButton: config.showSeriesSettingsButton,
           onPaneCollapse: config.onPaneCollapse,
           onPaneExpand: config.onPaneExpand,
           onSeriesConfigChange: config.onSeriesConfigChange,

@@ -159,7 +159,10 @@ export function createSeries(
     }
 
     if (!seriesType || typeof seriesType !== 'string') {
-      throw new SeriesCreationError(seriesType || 'unknown', 'Series type must be a non-empty string');
+      throw new SeriesCreationError(
+        seriesType || 'unknown',
+        'Series type must be a non-empty string'
+      );
     }
 
     // Normalize type using centralized utility
@@ -186,7 +189,7 @@ export function createSeries(
       ...defaultOptions,
       ...flattenedUserOptions,
       // Add _seriesType property so we can identify series type later via series.options()
-      _seriesType: mappedType
+      _seriesType: mappedType,
     };
 
     // Create series using descriptor's creator function
@@ -199,7 +202,11 @@ export function createSeries(
 
     // Wrap other errors in SeriesCreationError with detailed message
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`Series creation failed for ${seriesType}: ${errorMessage}`, 'UnifiedSeriesFactory', error);
+    logger.error(
+      `Series creation failed for ${seriesType}: ${errorMessage}`,
+      'UnifiedSeriesFactory',
+      error
+    );
     throw new SeriesCreationError(
       seriesType,
       `Series creation failed: ${errorMessage}`,
@@ -323,19 +330,18 @@ export function createSeriesWithConfig(
       legend,
       seriesId,
       chartId,
+      title, // Extract title from top-level config
     } = config;
 
-    // Step 1: Create the series using basic createSeries
-    const series = createSeries(chart, type, data, options, paneId) as ExtendedSeriesApi;
+    // Merge title into options if it exists (Python sends title at top level)
+    const mergedOptions = title ? { ...options, title } : options;
 
-    // Step 2: Set data if provided
-    if (data && data.length > 0) {
-      try {
-        series.setData(data as never[]);
-      } catch (error) {
-        logger.warn('Failed to set data on series', 'UnifiedSeriesFactory', error);
-      }
-    }
+    // Step 1: Create the series using basic createSeries
+    // Note: createSeries already handles data sorting and setting via descriptors
+    const series = createSeries(chart, type, data, mergedOptions, paneId) as ExtendedSeriesApi;
+
+    // Step 2: Data is already set by descriptor's create method (with sorting/deduplication)
+    // No need to set data again here - descriptor handles it properly
 
     // Step 3: Configure price scale if provided
     if (priceScale) {
@@ -380,7 +386,9 @@ export function createSeriesWithConfig(
     // Step 7: Handle legend registration
     if (legend && legend.visible && chartId) {
       try {
-        const legendManager = window.paneLegendManagers?.[chartId]?.[paneId] as LegendManager | undefined;
+        const legendManager = window.paneLegendManagers?.[chartId]?.[paneId] as
+          | LegendManager
+          | undefined;
         if (legendManager && typeof legendManager.addSeriesLegend === 'function') {
           legendManager.addSeriesLegend(seriesId || `series-${Date.now()}`, config);
         }
@@ -481,7 +489,10 @@ function applyTimestampSnapping(
  * @param series - Series instance
  * @param data - New data to set
  */
-export function updateSeriesData(series: ISeriesApi<keyof SeriesOptionsMap>, data: SeriesDataPoint[]): void {
+export function updateSeriesData(
+  series: ISeriesApi<keyof SeriesOptionsMap>,
+  data: SeriesDataPoint[]
+): void {
   try {
     series.setData(data as never[]);
   } catch (error) {
@@ -517,7 +528,10 @@ export function updateSeriesMarkers(
  * @param series - Series instance
  * @param options - New options to apply
  */
-export function updateSeriesOptions(series: ISeriesApi<any>, options: Partial<SeriesOptionsCommon>): void {
+export function updateSeriesOptions(
+  series: ISeriesApi<any>,
+  options: Partial<SeriesOptionsCommon>
+): void {
   try {
     const cleanedOptions = cleanLineStyleOptions(options);
     series.applyOptions(cleanedOptions);

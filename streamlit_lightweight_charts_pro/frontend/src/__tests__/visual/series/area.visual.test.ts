@@ -1,4 +1,7 @@
 /**
+ * @vitest-environment jsdom
+ */
+/**
  * Visual Regression Tests for Area Series
  *
  * Tests verify actual canvas rendering output, not just mock calls.
@@ -33,7 +36,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders basic area series with solid color', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(AreaSeries, {
         lineColor: TestColors.BLUE,
         topColor: TestColors.BLUE,
@@ -59,7 +62,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders area series with gradient fill', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(AreaSeries, {
         lineColor: TestColors.GREEN,
         topColor: 'rgba(76, 175, 80, 0.8)',
@@ -80,7 +83,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders area series with custom line width', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(AreaSeries, {
         lineColor: TestColors.ORANGE,
         topColor: 'rgba(255, 152, 0, 0.5)',
@@ -102,7 +105,7 @@ describe('Area Series Visual Rendering', () => {
 
   it('renders area series with price axis visible', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(AreaSeries, {
           lineColor: TestColors.PURPLE,
           topColor: 'rgba(156, 39, 176, 0.6)',
@@ -134,7 +137,7 @@ describe('Area Series Visual Rendering', () => {
 
   it('renders area series with crosshair marker', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(AreaSeries, {
           lineColor: TestColors.RED,
           topColor: 'rgba(244, 67, 54, 0.7)',
@@ -172,7 +175,7 @@ describe('Area Series Visual Rendering', () => {
 
   it('renders area series with inverted scale', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(AreaSeries, {
           lineColor: TestColors.BLUE,
           topColor: 'rgba(33, 150, 243, 0.6)',
@@ -201,7 +204,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders multiple area series with different colors', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series1 = chart.addSeries(AreaSeries, {
         lineColor: TestColors.BLUE,
         topColor: 'rgba(33, 150, 243, 0.4)',
@@ -231,7 +234,7 @@ describe('Area Series Visual Rendering', () => {
 
   it('renders area series with custom background color', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(AreaSeries, {
           lineColor: TestColors.GREEN,
           topColor: 'rgba(76, 175, 80, 0.6)',
@@ -261,7 +264,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders area series with relative gradient', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(AreaSeries, {
         lineColor: TestColors.BLUE,
         topColor: 'rgba(33, 150, 243, 0.8)',
@@ -283,7 +286,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders area series with inverted fill (above line)', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(AreaSeries, {
         lineColor: TestColors.RED,
         topColor: 'rgba(244, 67, 54, 0.0)',
@@ -305,7 +308,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders area series with dashed line style', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(AreaSeries, {
         lineColor: TestColors.PURPLE,
         topColor: 'rgba(156, 39, 176, 0.5)',
@@ -327,7 +330,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders area series with dotted line style', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(AreaSeries, {
         lineColor: TestColors.ORANGE,
         topColor: 'rgba(255, 152, 0, 0.5)',
@@ -349,7 +352,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders area series with stepped line type', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(AreaSeries, {
         lineColor: TestColors.BLUE,
         topColor: 'rgba(33, 150, 243, 0.5)',
@@ -371,7 +374,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders area series with line hidden (fill only)', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(AreaSeries, {
         lineColor: TestColors.GREEN,
         topColor: 'rgba(76, 175, 80, 0.6)',
@@ -392,7 +395,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders area series with point markers', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(AreaSeries, {
         lineColor: TestColors.BLUE,
         topColor: 'rgba(33, 150, 243, 0.4)',
@@ -416,7 +419,7 @@ describe('Area Series Visual Rendering', () => {
 
   it('renders area series with custom price line styling', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(AreaSeries, {
           lineColor: TestColors.BLUE,
           topColor: 'rgba(33, 150, 243, 0.5)',
@@ -449,7 +452,7 @@ describe('Area Series Visual Rendering', () => {
 
   it('renders area series with dotted price line', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(AreaSeries, {
           lineColor: TestColors.GREEN,
           topColor: 'rgba(76, 175, 80, 0.5)',
@@ -482,7 +485,7 @@ describe('Area Series Visual Rendering', () => {
 
   it('renders area series with title label', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(AreaSeries, {
           lineColor: TestColors.BLUE,
           topColor: 'rgba(33, 150, 243, 0.5)',
@@ -511,7 +514,7 @@ describe('Area Series Visual Rendering', () => {
   });
 
   it('renders chart with hidden area series', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const visibleSeries = chart.addSeries(AreaSeries, {
         lineColor: TestColors.BLUE,
         topColor: 'rgba(33, 150, 243, 0.4)',

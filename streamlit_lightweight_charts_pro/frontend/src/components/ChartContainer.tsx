@@ -1,3 +1,38 @@
+/**
+ * @fileoverview Chart Container Component
+ *
+ * React component that manages the lifecycle and rendering of TradingView charts.
+ * Provides React 19 concurrent features for optimal performance and user experience.
+ *
+ * This component provides:
+ * - Chart initialization and cleanup
+ * - React 19 transitions and deferred values
+ * - Error boundary integration
+ * - Responsive sizing and positioning
+ * - Performance optimizations
+ *
+ * Features:
+ * - Concurrent rendering with useTransition
+ * - Deferred value updates for smooth performance
+ * - FlushSync for critical DOM updates
+ * - Automatic chart cleanup on unmount
+ * - Error handling with fallback UI
+ *
+ * @example
+ * ```tsx
+ * import { ChartContainer } from './ChartContainer';
+ *
+ * <ChartContainer
+ *   chartConfig={config}
+ *   chartId="chart-1"
+ *   containerId="container-1"
+ *   width={800}
+ *   height={400}
+ *   onChartReady={(chart, id) => console.log('Chart ready:', id)}
+ * />
+ * ```
+ */
+
 import React, {
   useRef,
   useEffect,

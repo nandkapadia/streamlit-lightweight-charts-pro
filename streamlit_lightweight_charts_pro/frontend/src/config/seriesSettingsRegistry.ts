@@ -30,10 +30,7 @@ function propertyTypeToSettingType(propertyType: PropertyType): SettingType {
  * @param primitive - Optional primitive instance to check for static getSettings()
  * @returns Settings object mapping property names to types
  */
-export function getSeriesSettings(
-  seriesType: string | undefined,
-  primitive?: any
-): SeriesSettings {
+export function getSeriesSettings(seriesType: string | undefined, primitive?: any): SeriesSettings {
   if (!seriesType) return {};
 
   // Normalize type using centralized utility
@@ -51,7 +48,10 @@ export function getSeriesSettings(
   // Get descriptor and derive settings from it
   const descriptor = getSeriesDescriptor(mappedType);
   if (!descriptor) {
-    logger.warn(`Unknown series type: ${seriesType} (normalized to ${mappedType})`, 'seriesSettingsRegistry');
+    logger.warn(
+      `Unknown series type: ${seriesType} (normalized to ${mappedType})`,
+      'seriesSettingsRegistry'
+    );
     return {};
   }
 

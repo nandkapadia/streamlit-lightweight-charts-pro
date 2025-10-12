@@ -299,3 +299,11 @@ class NpmNotFoundError(ConfigurationError):
             "NPM not found in system PATH. Please install Node.js and NPM to build frontend assets."
         )
         super().__init__(message)
+
+
+class CliNotFoundError(ConfigurationError):
+    """Raised when CLI is not found in the system PATH."""
+
+    def __init__(self):
+        message = "CLI not found in system PATH. Please ensure the package is properly installed."
+        super().__init__(message)

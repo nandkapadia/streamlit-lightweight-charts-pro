@@ -1,5 +1,6 @@
 /**
  * @fileoverview Test Helper Verification - Simple tests to verify our enhanced utilities work
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';

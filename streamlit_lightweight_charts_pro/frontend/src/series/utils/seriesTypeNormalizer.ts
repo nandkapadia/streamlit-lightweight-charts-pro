@@ -23,21 +23,21 @@ export function normalizeSeriesType(seriesType: string): string {
   // Direct mappings for all known types (handles underscores and case)
   const typeMapping: Record<string, string> = {
     // Built-in series
-    'line': 'Line',
-    'area': 'Area',
-    'histogram': 'Histogram',
-    'bar': 'Bar',
-    'candlestick': 'Candlestick',
-    'baseline': 'Baseline',
+    line: 'Line',
+    area: 'Area',
+    histogram: 'Histogram',
+    bar: 'Bar',
+    candlestick: 'Candlestick',
+    baseline: 'Baseline',
     // Custom series
-    'band': 'Band',
-    'ribbon': 'Ribbon',
-    'gradient_ribbon': 'GradientRibbon',
-    'gradientribbon': 'GradientRibbon',
-    'signal': 'Signal',
+    band: 'Band',
+    ribbon: 'Ribbon',
+    gradient_ribbon: 'GradientRibbon',
+    gradientribbon: 'GradientRibbon',
+    signal: 'Signal',
     // Not implemented
-    'trend_fill': 'TrendFill',
-    'trendfill': 'TrendFill',
+    trend_fill: 'TrendFill',
+    trendfill: 'TrendFill',
   };
 
   // Check mapping first

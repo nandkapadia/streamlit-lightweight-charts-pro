@@ -1,105 +1,162 @@
-import { render, waitFor, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+/**
+ * @vitest-environment jsdom
+ *
+ * Integration tests for LightweightCharts component
+ *
+ * Note: Browser API mocks (matchMedia, ResizeObserver, etc.) are configured
+ * in setupTests.ts and automatically available to all tests.
+ */
+import { render, waitFor, fireEvent, cleanup, act } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import LightweightCharts from '../../LightweightCharts';
 import { ComponentConfig } from '../../types';
 
-// Note: LightweightCharts component and other mocks are already configured
-// in globalMockSetup.ts, so no need to mock them here
+// Mock the lightweight-charts library to prevent actual chart rendering
+// and avoid issues with canvas context in test environment
+vi.mock('lightweight-charts', () => {
+  const mockSeries = {
+    setData: vi.fn(),
+    update: vi.fn(),
+    setMarkers: vi.fn(),
+    createPriceLine: vi.fn(() => ({
+      applyOptions: vi.fn(),
+      remove: vi.fn(),
+    })),
+    applyOptions: vi.fn(),
+    priceScale: vi.fn(() => ({
+      applyOptions: vi.fn(),
+    })),
+    attachPrimitive: vi.fn(),
+    detachPrimitive: vi.fn(),
+  };
 
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(callback => ({
-  observe: vi.fn(element => {
-    // Simulate a resize event
-    if (callback) {
-      setTimeout(() => {
-        callback([
-          {
-            target: element,
-            contentRect: {
-              width: 800,
-              height: 600,
-              top: 0,
-              left: 0,
-              right: 800,
-              bottom: 600,
-            },
-          },
-        ]);
-      }, 0);
-    }
-  }),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+  const mockTimeScale = {
+    fitContent: vi.fn(),
+    scrollToPosition: vi.fn(),
+    scrollToRealTime: vi.fn(),
+    getVisibleRange: vi.fn(() => ({ from: 0, to: 100 })),
+    setVisibleRange: vi.fn(),
+    getVisibleLogicalRange: vi.fn(() => ({ from: 0, to: 100 })),
+    setVisibleLogicalRange: vi.fn(),
+    resetTimeScale: vi.fn(),
+    applyOptions: vi.fn(),
+    subscribeVisibleTimeRangeChange: vi.fn(() => vi.fn()),
+    subscribeVisibleLogicalRangeChange: vi.fn(() => vi.fn()),
+    unsubscribeVisibleTimeRangeChange: vi.fn(),
+    unsubscribeVisibleLogicalRangeChange: vi.fn(),
+  };
 
-// Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+  const mockChart = {
+    addSeries: vi.fn(() => mockSeries),
+    addLineSeries: vi.fn(() => mockSeries),
+    addCandlestickSeries: vi.fn(() => mockSeries),
+    addBarSeries: vi.fn(() => mockSeries),
+    addAreaSeries: vi.fn(() => mockSeries),
+    addHistogramSeries: vi.fn(() => mockSeries),
+    addBaselineSeries: vi.fn(() => mockSeries),
+    removeSeries: vi.fn(),
+    timeScale: vi.fn(() => mockTimeScale),
+    priceScale: vi.fn(() => ({
+      applyOptions: vi.fn(),
+    })),
+    applyOptions: vi.fn(),
+    resize: vi.fn(),
+    remove: vi.fn(),
+    takeScreenshot: vi.fn(() => ({
+      toDataURL: vi.fn(() => 'data:image/png;base64,...'),
+    })),
+    subscribeCrosshairMove: vi.fn(() => vi.fn()),
+    subscribeClick: vi.fn(() => vi.fn()),
+    unsubscribeCrosshairMove: vi.fn(),
+    unsubscribeClick: vi.fn(),
+  };
 
-// Mock performance API
-Object.defineProperty(window, 'performance', {
-  value: {
-    now: vi.fn(() => Date.now()),
-    mark: vi.fn(),
-    measure: vi.fn(),
-    getEntriesByType: vi.fn(() => []),
-  },
-  writable: true,
+  return {
+    createChart: vi.fn(() => mockChart),
+    LineStyle: {
+      Solid: 0,
+      Dotted: 1,
+      Dashed: 2,
+      LargeDashed: 3,
+      SparseDotted: 4,
+    },
+    CrosshairMode: {
+      Normal: 0,
+      Magnet: 1,
+    },
+    PriceScaleMode: {
+      Normal: 0,
+      Logarithmic: 1,
+      Percentage: 2,
+      IndexedTo100: 3,
+    },
+    ColorType: {
+      Solid: 'solid',
+      VerticalGradient: 'gradient',
+    },
+    // Default options for custom series (used by plugins)
+    customSeriesDefaultOptions: {
+      lastValueVisible: true,
+      title: '',
+      priceScaleId: 'right',
+    },
+    // WhitespaceData type for custom series
+    WhitespaceData: vi.fn(),
+    // Custom series view base
+    CustomSeriesView: vi.fn(),
+    // Default series type
+    SeriesType: {
+      Line: 'Line',
+      Area: 'Area',
+      Baseline: 'Baseline',
+      Histogram: 'Histogram',
+      Bar: 'Bar',
+      Candlestick: 'Candlestick',
+      Custom: 'Custom',
+    },
+  };
 });
 
-// Mock requestAnimationFrame
-global.requestAnimationFrame = vi.fn(callback => {
-  setTimeout(callback, 0);
-  return 1;
-});
-
-global.cancelAnimationFrame = vi.fn();
-
-// Mock DOM methods
-Object.defineProperty(window, 'getComputedStyle', {
-  value: () => ({
-    getPropertyValue: () => '',
-  }),
-});
-
-Element.prototype.getBoundingClientRect = vi.fn(
-  () =>
-    ({
-      width: 800,
-      height: 600,
-      top: 0,
-      left: 0,
-      right: 800,
-      bottom: 600,
-      x: 0,
-      y: 0,
-      toJSON: vi.fn(),
-    }) as DOMRect
-);
-
-Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
-  configurable: true,
-  value: 600,
-});
-
-Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-  configurable: true,
-  value: 600,
-});
-
-Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
-  configurable: true,
-  value: 800,
-});
+/**
+ * Helper function to ensure chart config has valid layout options
+ * This prevents undefined color errors in lightweight-charts
+ */
+function ensureValidChartConfig(config: any): any {
+  return {
+    ...config,
+    layout: {
+      background: { color: '#ffffff' },
+      textColor: '#000000',
+      ...config.layout,
+    },
+  };
+}
 
 describe('Frontend Integration Tests', () => {
   beforeEach(() => {
     // Centralized mocks are automatically reset in globalMockSetup.ts
     vi.clearAllMocks();
+
+    // Suppress console errors from Lightweight Charts library async operations
+    // These occur during cleanup and don't affect actual functionality
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(async () => {
+    // Wait for any pending async operations to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
+
+    // Wrap cleanup in act() to handle React 19 concurrent rendering
+    act(() => {
+      cleanup();
+    });
+
+    // Restore console mocks
+    vi.restoreAllMocks();
   });
 
   describe('Complete Chart Workflow', () => {
@@ -216,6 +273,8 @@ describe('Frontend Integration Tests', () => {
                 exitPrice: 110,
                 quantity: 10,
                 tradeType: 'long',
+                isProfitable: true,
+                id: 'trade-1',
               },
             ],
             annotations: [],
@@ -755,7 +814,10 @@ describe('Frontend Integration Tests', () => {
         expect(container.querySelector('[id^="chart-container-"]')).toBeInTheDocument();
       });
 
-      unmount();
+      // Wrap unmount in act() for React 19 concurrent rendering
+      act(() => {
+        unmount();
+      });
 
       // Should not throw any errors during cleanup
       expect(true).toBe(true);

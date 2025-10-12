@@ -5,6 +5,65 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   test: {
+    // Enable projects for both unit and visual tests
+    projects: [
+      // Unit tests
+      {
+        environment: 'jsdom',
+        globals: true,
+        setupFiles: ['./src/setupTests.ts'],
+        include: [
+          'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+          '!src/__tests__/visual/**',
+          '!src/__tests__/e2e-visual/**',
+        ],
+        exclude: ['node_modules', 'build', 'dist'],
+        name: 'unit',
+        // Ensure jsdom is available before tests run
+        environmentOptions: {
+          jsdom: {
+            resources: 'usable',
+            runScripts: 'dangerously',
+          },
+        },
+      },
+      // Visual regression tests
+      {
+        environment: 'jsdom',
+        globals: true,
+        setupFiles: ['./src/__tests__/visual/setup.ts'],
+        include: ['src/__tests__/visual/**/*.visual.test.ts'],
+        exclude: [
+          'node_modules',
+          'build',
+          'dist',
+          'src/__tests__/visual/__snapshots__',
+          'src/__tests__/visual/utils',
+        ],
+        name: 'visual',
+        testTimeout: 30000,
+        pool: 'forks',
+        poolOptions: {
+          forks: {
+            singleFork: true,
+            isolate: true,
+            maxForks: 1,
+            minForks: 1,
+          },
+        },
+        maxConcurrency: 1,
+        sequence: {
+          shuffle: false,
+          concurrent: false,
+          hooks: 'stack',
+        },
+        fileParallelism: false,
+        hookTimeout: 30000,
+        logHeapUsage: true,
+      },
+    ],
+
+    // Default configuration (kept for backwards compatibility)
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/setupTests.ts'],

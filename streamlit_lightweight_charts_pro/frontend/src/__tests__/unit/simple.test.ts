@@ -1,6 +1,10 @@
 /**
- * Simple test to verify Cursor can detect and run tests
+ * @fileoverview Simple Test Suite
+ *
+ * Simple test to verify Cursor can detect and run tests.
  */
+
+import { describe, it, expect } from 'vitest';
 
 export {};
 

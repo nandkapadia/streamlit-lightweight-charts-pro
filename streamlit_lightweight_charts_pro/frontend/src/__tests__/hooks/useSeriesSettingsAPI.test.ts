@@ -1,9 +1,13 @@
 /**
+ * @fileoverview useSeriesSettingsAPI Hook Test Suite
+ *
+ * Tests for the useSeriesSettingsAPI hook with Streamlit integration.
+ *
  * @vitest-environment jsdom
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useSeriesSettingsAPI } from '../../hooks/useSeriesSettingsAPI';
 
 // Mock Streamlit
@@ -13,16 +17,31 @@ vi.mock('streamlit-component-lib', () => ({
   },
 }));
 
+// Mock useStreamlit hooks
+vi.mock('../../hooks/useStreamlit', () => ({
+  isStreamlitComponentReady: vi.fn(() => true),
+}));
+
 // Import the mocked module to access the spy
 import { Streamlit } from 'streamlit-component-lib';
+import { isStreamlitComponentReady } from '../../hooks/useStreamlit';
+
 const mockSetComponentValue = vi.mocked(Streamlit.setComponentValue);
+const mockIsReady = vi.mocked(isStreamlitComponentReady);
 
 describe('useSeriesSettingsAPI', () => {
   let mockEventListener: any;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Clear mocks BEFORE setting up
     mockEventListener = vi.fn();
+
+    // Clear mocks
+    mockIsReady.mockClear();
+    mockSetComponentValue.mockClear();
+
+    // Ensure Streamlit is ready
+    mockIsReady.mockReturnValue(true);
 
     // Mock document.addEventListener and removeEventListener
     vi.spyOn(document, 'addEventListener').mockImplementation((event, handler) => {

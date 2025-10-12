@@ -150,7 +150,7 @@ const LineEditorControlRenderer: React.FC<{
 
   const rawStyle = lineConfig.lineStyle ?? seriesConfig.lineStyle ?? 0;
   const styleLabel =
-    typeof rawStyle === 'number' ? numberToStyleLabel[rawStyle] ?? 'solid' : rawStyle;
+    typeof rawStyle === 'number' ? (numberToStyleLabel[rawStyle] ?? 'solid') : rawStyle;
 
   return (
     <div
@@ -328,8 +328,18 @@ const LineStyleDropdownRenderer: React.FC<{
   );
 
   return (
-    <div className='select-row' style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }}>
-      <label htmlFor={property} style={{ fontSize: '13px', color: '#333' }}>{label}</label>
+    <div
+      className='select-row'
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '8px 0',
+      }}
+    >
+      <label htmlFor={property} style={{ fontSize: '13px', color: '#333' }}>
+        {label}
+      </label>
       <select
         id={property}
         name={property}

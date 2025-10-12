@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Two Charts - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
+        .chart-wrapper { margin-bottom: 20px; }
+        h3 { margin-bottom: 10px; font-size: 16px; }
+        #chart-1, #chart-2 { width: 800px; height: 300px; }
+    </style>
+</head>
+<body>
+    <div class="chart-wrapper">
+        <h3>Chart 1 - Price</h3>
+        <div id="chart-1"></div>
+    </div>
+    <div class="chart-wrapper">
+        <h3>Chart 2 - Volume</h3>
+        <div id="chart-2"></div>
+    </div>
+
+    <script>
+        function runTestCase(container) {
+            // Chart 1
+            const chart1 = LightweightCharts.createChart(document.getElementById('chart-1'), {
+                width: 800,
+                height: 300,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { color: '#f0f0f0' } },
+            });
+
+            const lineSeries = chart1.addSeries(LightweightCharts.LineSeries);
+            lineSeries.applyOptions({ color: '#2196F3', lineWidth: 2 });
+            const data1 = [];
+            for (let i = 0; i < 50; i++) {
+                data1.push({
+                    time: '2024-01-' + String(i + 1).padStart(2, '0'),
+                    value: 100 + i * 0.8 + Math.sin(i / 5) * 15
+                });
+            }
+            lineSeries.setData(data1);
+            chart1.timeScale().fitContent();
+
+            // Chart 2
+            const chart2 = LightweightCharts.createChart(document.getElementById('chart-2'), {
+                width: 800,
+                height: 300,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { color: '#f0f0f0' } },
+            });
+
+            const histogramSeries = chart2.addSeries(LightweightCharts.HistogramSeries);
+            histogramSeries.applyOptions({ color: '#26a69a' });
+            const data2 = [];
+            for (let i = 0; i < 50; i++) {
+                data2.push({
+                    time: '2024-01-' + String(i + 1).padStart(2, '0'),
+                    value: 1000 + Math.sin(i / 3) * 500,
+                    color: i % 2 === 0 ? '#26a69a' : '#ef5350'
+                });
+            }
+            histogramSeries.setData(data2);
+            chart2.timeScale().fitContent();
+        }
+
+        window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+    </script>
+</body>
+</html>

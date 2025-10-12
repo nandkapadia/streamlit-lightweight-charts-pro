@@ -92,7 +92,7 @@ from streamlit_lightweight_charts_pro.data.annotation import (
     create_shape_annotation,
     create_text_annotation,
 )
-from streamlit_lightweight_charts_pro.data.trade import TradeData, TradeType
+from streamlit_lightweight_charts_pro.data.trade import TradeData
 
 # Import logging configuration
 from streamlit_lightweight_charts_pro.logging_config import get_logger, setup_logging
@@ -100,6 +100,7 @@ from streamlit_lightweight_charts_pro.type_definitions import ChartType, LineSty
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     ColumnNames,
     MarkerShape,
+    TradeType,
     TradeVisualization,
 )
 
@@ -116,7 +117,7 @@ except ImportError:
 
 # Version information for the package
 # This version number is used for package distribution and compatibility checks
-__version__ = "0.1.0"
+__version__ = "0.1.4"
 
 
 # Check if frontend is built on import (for development mode)

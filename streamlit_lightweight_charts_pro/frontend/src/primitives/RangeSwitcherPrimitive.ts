@@ -1,3 +1,44 @@
+/**
+ * @fileoverview Range Switcher Primitive
+ *
+ * Interactive time range switching buttons for chart navigation. Provides
+ * predefined and custom time ranges with automatic chart updates.
+ *
+ * This primitive is responsible for:
+ * - Rendering clickable time range buttons
+ * - Switching visible time ranges (1D, 1W, 1M, etc.)
+ * - Highlighting active range
+ * - Custom range configuration
+ * - Corner positioning with automatic stacking
+ * - React portal rendering
+ *
+ * Architecture:
+ * - Extends BasePanePrimitive for core functionality
+ * - React portal for DOM management
+ * - Integration with CornerLayoutManager
+ * - Predefined range configurations
+ * - Support for custom ranges
+ *
+ * Predefined Ranges:
+ * - Trading: 1D, 1W, 1M, 3M, 6M, 1Y, All
+ * - Crypto: 1H, 4H, 1D, 1W, 1M, All
+ * - Long-term: 1M, 3M, 6M, 1Y, 2Y, 5Y, All
+ *
+ * @example
+ * ```typescript
+ * const switcher = new RangeSwitcherPrimitive('switcher-1', {
+ *   corner: 'top-right',
+ *   ranges: [
+ *     { text: '1D', range: TimeRange.ONE_DAY },
+ *     { text: '1W', range: TimeRange.ONE_WEEK },
+ *     { text: 'All', range: null }
+ *   ]
+ * });
+ *
+ * pane.attachPrimitive(switcher);
+ * ```
+ */
+
 import { BasePanePrimitive, BasePrimitiveConfig, PrimitivePriority } from './BasePanePrimitive';
 import { Time } from 'lightweight-charts';
 import {

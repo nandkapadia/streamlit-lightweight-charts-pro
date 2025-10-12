@@ -14,11 +14,28 @@ import { test, expect } from '@playwright/test';
  * Helper to wait for chart to be ready
  */
 async function waitForChartReady(page: any) {
-  await page.waitForFunction(() => (window as any).chartReady === true, {
-    timeout: 10000,
+  // Capture console errors
+  const errors: string[] = [];
+  page.on('console', (msg: any) => {
+    if (msg.type() === 'error') {
+      errors.push(msg.text());
+      console.log('Browser console error:', msg.text());
+    }
   });
-  // Give extra time for any animations or final rendering
-  await page.waitForTimeout(200);
+
+  page.on('pageerror', (error: Error) => {
+    console.log('Page error:', error.message);
+    errors.push(error.message);
+  });
+
+  try {
+    await page.evaluate(() => (window as any).testCaseReady);
+    // Give extra time for any animations or final rendering
+    await page.waitForTimeout(200);
+  } catch (e) {
+    console.log('Errors encountered:', errors);
+    throw e;
+  }
 }
 
 test.describe('Line Series E2E Visual', () => {

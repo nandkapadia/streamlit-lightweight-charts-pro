@@ -1,3 +1,53 @@
+/**
+ * @fileoverview Corner Layout Manager
+ *
+ * Centralized positioning system for UI widgets in chart corners. Manages
+ * automatic stacking, spacing, z-index, and overflow handling for primitives
+ * placed in the four chart corners.
+ *
+ * This service is responsible for:
+ * - Widget positioning in corners (top-left, top-right, bottom-left, bottom-right)
+ * - Automatic vertical stacking in corners
+ * - Consistent spacing and margins
+ * - Z-index management for layering
+ * - Overflow detection and handling
+ * - Dimension tracking per corner
+ *
+ * Architecture:
+ * - Keyed singleton pattern (one instance per chart+pane)
+ * - State tracking per corner (widgets, dimensions)
+ * - Integration with ChartCoordinateService
+ * - Event-driven updates on layout changes
+ * - Automatic position recalculation
+ *
+ * Layout Rules:
+ * - Widgets stack vertically in each corner
+ * - Edge padding applied to corners
+ * - Widget gap applied between stacked widgets
+ * - Z-index increases with stack position
+ * - Overflow detected when widgets exceed pane height
+ *
+ * @example
+ * ```typescript
+ * const manager = CornerLayoutManager.getInstance('chart-1', 0);
+ * manager.setChartApi(chartApi);
+ *
+ * // Register widget
+ * manager.register(
+ *   'legend-1',
+ *   'top-left',
+ *   { width: 200, height: 30 },
+ *   legendElement
+ * );
+ *
+ * // Calculate positions
+ * manager.calculatePositions();
+ *
+ * // Cleanup
+ * CornerLayoutManager.cleanup('chart-1');
+ * ```
+ */
+
 import {
   Corner,
   Dimensions,
@@ -14,10 +64,11 @@ import { LayoutSpacing } from '../primitives/PrimitiveDefaults';
 import { KeyedSingletonManager, createInstanceKey } from '../utils/KeyedSingletonManager';
 
 /**
- * CornerLayoutManager - Centralized widget positioning system
+ * CornerLayoutManager - Automatic corner-based widget positioning
  *
- * Manages placement of UI widgets (Legend, RangeSwitcher, CollapseButton, etc.)
- * in chart corners with automatic stacking, spacing, and overflow handling.
+ * @export
+ * @class CornerLayoutManager
+ * @extends {KeyedSingletonManager<CornerLayoutManager>}
  */
 export class CornerLayoutManager extends KeyedSingletonManager<CornerLayoutManager> {
   private config: LayoutConfig = {

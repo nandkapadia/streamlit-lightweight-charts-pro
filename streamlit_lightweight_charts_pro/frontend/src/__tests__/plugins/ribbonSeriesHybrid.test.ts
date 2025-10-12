@@ -97,7 +97,8 @@ describe('Ribbon Series - Hybrid Implementation', () => {
 
       const options = mockChart.addCustomSeries.mock.calls[0][1];
       expect(options._usePrimitive).toBe(false);
-      expect(options.lastValueVisible).toBe(true);
+      // lastValueVisible defaults to false per implementation (line 347 in ribbonSeriesPlugin.ts)
+      expect(options.lastValueVisible).toBe(false);
     });
   });
 

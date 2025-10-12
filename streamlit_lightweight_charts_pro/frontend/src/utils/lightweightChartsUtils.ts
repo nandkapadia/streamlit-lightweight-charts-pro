@@ -1,6 +1,27 @@
 /**
- * Utility functions for LightweightCharts type compatibility
- * Handles DeepPartial interface compatibility issues
+ * @fileoverview Lightweight Charts Utility Functions
+ *
+ * Type compatibility utilities for TradingView Lightweight Charts library.
+ * Handles DeepPartial interface compatibility and type conversions.
+ *
+ * This module provides:
+ * - Type-safe converters for chart options
+ * - Series options compatibility helpers
+ * - Line width, style, and source converters
+ * - Safe options update wrappers
+ *
+ * @example
+ * ```typescript
+ * import { createSeriesOptions, asLineWidth } from './lightweightChartsUtils';
+ *
+ * const options = createSeriesOptions({
+ *   lineWidth: 2,
+ *   lineStyle: 0,
+ *   color: '#2196F3'
+ * });
+ *
+ * series.applyOptions(options);
+ * ```
  */
 
 /**

@@ -1,5 +1,6 @@
 /**
  * @fileoverview Coverage Tests System Verification
+ * @vitest-environment jsdom
  *
  * This test file verifies that our Coverage Tests system works correctly
  * with our existing centralized mock infrastructure and test helpers.

@@ -1,6 +1,52 @@
 /**
- * Centralized service for managing chart coordinate calculations
- * Provides consistent positioning across all chart features
+ * @fileoverview Chart Coordinate Service
+ *
+ * Centralized singleton service for all chart coordinate calculations and
+ * positioning logic. Provides consistent coordinate conversion, dimension
+ * management, and layout calculations across all chart features.
+ *
+ * This service is the single source of truth for:
+ * - Chart-to-screen coordinate conversion
+ * - Screen-to-chart coordinate conversion
+ * - Pane dimension calculations
+ * - Legend positioning
+ * - Tooltip positioning
+ * - Overlay element positioning
+ * - Dimension validation and caching
+ *
+ * Architecture:
+ * - Singleton pattern (one instance per chart)
+ * - Keyed instances (multiple charts supported)
+ * - Coordinate caching with staleness detection
+ * - Robust validation and error handling
+ * - Integration with TradingView Lightweight Charts API
+ *
+ * Key Features:
+ * - Smart caching to prevent excessive calculations
+ * - Automatic viewport boundary detection
+ * - Consistent margins and spacing
+ * - Support for multi-pane charts
+ * - Tooltip smart positioning (avoids viewport edges)
+ * - Overlay bounding box calculations
+ *
+ * @example
+ * ```typescript
+ * const service = ChartCoordinateService.getInstance();
+ * service.registerChart('chart-1', chartApi);
+ *
+ * // Convert time/price to screen coordinates
+ * const screenCoords = service.convertDataToScreen(
+ *   'chart-1',
+ *   timestamp,
+ *   price,
+ *   seriesApi
+ * );
+ *
+ * // Calculate tooltip position
+ * const position = service.calculateTooltipPosition(
+ *   mouseX, mouseY, tooltipWidth, tooltipHeight, container, 'top'
+ * );
+ * ```
  */
 
 import { IChartApi, ISeriesApi, Time, PriceToCoordinateConverter } from 'lightweight-charts';
@@ -97,11 +143,66 @@ export interface SeriesDataConversionResult {
 }
 
 /**
- * Singleton service for chart coordinate management
+ * ChartCoordinateService - Centralized coordinate and positioning system
+ *
+ * Manages all coordinate conversions, dimension calculations, and positioning
+ * logic for chart features. Uses caching and validation to ensure accuracy
+ * and performance across pan, zoom, and resize operations.
+ *
+ * Architecture:
+ * - Singleton pattern with global instance
+ * - Per-chart registration and tracking
+ * - Multi-layer caching (coordinates, dimensions)
+ * - Automatic cache invalidation and cleanup
+ * - Integration with chart lifecycle
+ *
+ * Core Responsibilities:
+ * - Time/price to screen coordinate conversion
+ * - Screen to time/price coordinate conversion
+ * - Pane dimension calculations
+ * - Legend positioning (corners, relative)
+ * - Tooltip smart positioning
+ * - Overlay bounding box calculations
+ * - Margin and spacing management
+ *
+ * Caching Strategy:
+ * - Coordinates cached with staleness detection
+ * - Dimensions cached with expiration
+ * - Automatic cleanup every 60 seconds
+ * - Manual invalidation on chart changes
+ *
+ * @export
+ * @class ChartCoordinateService
+ *
+ * @example
+ * ```typescript
+ * const service = ChartCoordinateService.getInstance();
+ *
+ * // Register chart
+ * service.registerChart('my-chart', chartApi);
+ *
+ * // Get coordinates
+ * const coords = await service.getCoordinates(chartApi, container);
+ *
+ * // Convert data to screen
+ * const screenX = service.convertDataToScreen(
+ *   'my-chart', timestamp, price, seriesApi
+ * );
+ *
+ * // Calculate tooltip position
+ * const pos = service.calculateTooltipPosition(
+ *   mouseX, mouseY, 200, 100, container, 'top'
+ * );
+ * ```
  */
 export class ChartCoordinateService {
+  /** Singleton instance */
   private static instance: ChartCoordinateService;
+
+  /** Cache for coordinate calculations (per chart/container) */
   private coordinateCache = new Map<string, CoordinateCacheEntry>();
+
+  /** Cache for pane dimensions (per chart) */
   private paneDimensionsCache = new Map<
     string,
     {
@@ -109,11 +210,18 @@ export class ChartCoordinateService {
       expiresAt: number;
     }
   >();
+
+  /** Registry of chart instances by ID */
   private chartRegistry = new Map<string, IChartApi>();
+
+  /** Update callbacks for chart changes */
   private updateCallbacks = new Map<string, Set<() => void>>();
 
   /**
-   * Get singleton instance
+   * Get singleton instance (lazy initialization)
+   *
+   * @static
+   * @returns {ChartCoordinateService} The singleton instance
    */
   static getInstance(): ChartCoordinateService {
     if (!this.instance) {
@@ -122,8 +230,15 @@ export class ChartCoordinateService {
     return this.instance;
   }
 
+  /**
+   * Private constructor (Singleton pattern)
+   *
+   * Initializes the service and starts cache cleanup timer.
+   *
+   * @private
+   */
   private constructor() {
-    // Private constructor for singleton
+    // Start automatic cache cleanup every 60 seconds
     this.startCacheCleanup();
   }
 

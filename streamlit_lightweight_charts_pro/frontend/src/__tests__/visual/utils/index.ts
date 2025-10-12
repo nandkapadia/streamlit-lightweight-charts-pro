@@ -45,6 +45,11 @@ export {
   generateBaselineData,
   generateBandData,
   generateRibbonData,
+  generateTrendFillData,
+  generateBandData2,
+  generateRibbonData2,
+  generateSignalData,
+  generateGradientRibbonData,
   TestColors,
 } from './testData';
 

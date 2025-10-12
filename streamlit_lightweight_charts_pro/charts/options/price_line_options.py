@@ -51,7 +51,7 @@ class PriceLineOptions(Options):
     line_width: int = 1
     line_style: LineStyle = LineStyle.SOLID
     line_visible: bool = True
-    axis_label_visible: bool = True
+    axis_label_visible: bool = False
     title: str = ""
     axis_label_color: Optional[str] = None
     axis_label_text_color: Optional[str] = None

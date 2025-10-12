@@ -1,8 +1,13 @@
 /**
- * Trend Fill Primitive - ISeriesPrimitive Implementation
+ * @fileoverview Trend Fill Primitive Implementation
  *
- * This primitive renders filled areas between trend and base lines,
- * with the ability to control z-order (can render behind other series).
+ * ISeriesPrimitive for rendering filled areas between trend and base lines.
+ * Provides dynamic fill colors based on trend direction with z-order control.
+ *
+ * Architecture:
+ * - Extends BaseSeriesPrimitive for common lifecycle management
+ * - Implements ISeriesPrimitive interface for TradingView integration
+ * - Uses common rendering utilities for consistent behavior
  *
  * Features:
  * - Dynamic fill colors based on trend direction (uptrend/downtrend)
@@ -19,22 +24,24 @@
  * - When you need fine control over z-order positioning
  * - When using with createTrendFillSeries() factory function with usePrimitive: true
  *
- * Architecture:
- * - Attached to ICustomSeries via attachPrimitive()
- * - Provides its own price axis view (ISeriesPrimitiveAxisView)
- * - Detects last visible item using time-based visible range
- * - Uses solid colors for price axis labels (removes transparency from fill colors)
- *
  * Visibility & Autoscale Behavior:
  * - When fillVisible=false AND uptrendLineVisible=false AND downtrendLineVisible=false:
  *   • Nothing is rendered (primitive is completely invisible)
  *   • Price axis label is hidden
  *   • However, the underlying series data STILL affects autoscale
  * - To exclude from autoscale when invisible, set visible=false on the series itself
- *   (this is the series-level visible property, not the primitive's fillVisible/lineVisible)
  *
- * Note: For most cases, use createTrendFillSeries() factory function instead.
- * Only instantiate this primitive directly when you need advanced customization.
+ * @example
+ * ```typescript
+ * import { TrendFillPrimitive } from './TrendFillPrimitive';
+ *
+ * const trendFillPrimitive = new TrendFillPrimitive(chart, {
+ *   uptrendFillColor: 'rgba(0,255,0,0.1)',
+ *   downtrendFillColor: 'rgba(255,0,0,0.1)',
+ *   uptrendLineColor: '#00ff00',
+ *   downtrendLineColor: '#ff0000'
+ * });
+ * ```
  *
  * @see createTrendFillSeries for the factory function (recommended for most uses)
  * @see TrendFillSeries for the ICustomSeries implementation
@@ -257,9 +264,12 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
       // Read visibility flags from series options (flat properties)
       const series = this._viewData.series;
       const seriesOptions = series ? series.options() : null;
-      const uptrendLineVisible = seriesOptions?.uptrendLineVisible ?? this._viewData.options.uptrendLineVisible ?? true;
-      const downtrendLineVisible = seriesOptions?.downtrendLineVisible ?? this._viewData.options.downtrendLineVisible ?? true;
-      const baseLineVisible = seriesOptions?.baseLineVisible ?? this._viewData.options.baseLineVisible ?? false;
+      const uptrendLineVisible =
+        seriesOptions?.uptrendLineVisible ?? this._viewData.options.uptrendLineVisible ?? true;
+      const downtrendLineVisible =
+        seriesOptions?.downtrendLineVisible ?? this._viewData.options.downtrendLineVisible ?? true;
+      const baseLineVisible =
+        seriesOptions?.baseLineVisible ?? this._viewData.options.baseLineVisible ?? false;
 
       // Draw trend lines (foreground) - skip if both are invisible
       if (uptrendLineVisible || downtrendLineVisible) {
@@ -324,8 +334,14 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
     // Read colors from series options (single source of truth)
     const series = this._viewData.series;
     const seriesOptions = series ? series.options() : null;
-    const uptrendColor = seriesOptions?.uptrendFillColor || this._viewData.options.uptrendFillColor || 'rgba(76, 175, 80, 0.3)';
-    const downtrendColor = seriesOptions?.downtrendFillColor || this._viewData.options.downtrendFillColor || 'rgba(244, 67, 54, 0.3)';
+    const uptrendColor =
+      seriesOptions?.uptrendFillColor ||
+      this._viewData.options.uptrendFillColor ||
+      'rgba(76, 175, 80, 0.3)';
+    const downtrendColor =
+      seriesOptions?.downtrendFillColor ||
+      this._viewData.options.downtrendFillColor ||
+      'rgba(244, 67, 54, 0.3)';
 
     // Calculate half bar width if enabled
     const halfBarWidth = useHalfBarWidth ? (barSpacing * hRatio) / 2 : 0;
@@ -503,15 +519,23 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
     const seriesOptions = series ? series.options() : null;
 
     // Read flat line properties from series options
-    const uptrendLineColor = seriesOptions?.uptrendLineColor ?? this._viewData.options.uptrendLineColor ?? '#4CAF50';
-    const uptrendLineWidth = seriesOptions?.uptrendLineWidth ?? this._viewData.options.uptrendLineWidth ?? 2;
-    const uptrendLineStyle = seriesOptions?.uptrendLineStyle ?? this._viewData.options.uptrendLineStyle ?? 0;
-    const uptrendLineVisible = seriesOptions?.uptrendLineVisible ?? this._viewData.options.uptrendLineVisible ?? true;
+    const uptrendLineColor =
+      seriesOptions?.uptrendLineColor ?? this._viewData.options.uptrendLineColor ?? '#4CAF50';
+    const uptrendLineWidth =
+      seriesOptions?.uptrendLineWidth ?? this._viewData.options.uptrendLineWidth ?? 2;
+    const uptrendLineStyle =
+      seriesOptions?.uptrendLineStyle ?? this._viewData.options.uptrendLineStyle ?? 0;
+    const uptrendLineVisible =
+      seriesOptions?.uptrendLineVisible ?? this._viewData.options.uptrendLineVisible ?? true;
 
-    const downtrendLineColor = seriesOptions?.downtrendLineColor ?? this._viewData.options.downtrendLineColor ?? '#F44336';
-    const downtrendLineWidth = seriesOptions?.downtrendLineWidth ?? this._viewData.options.downtrendLineWidth ?? 2;
-    const downtrendLineStyle = seriesOptions?.downtrendLineStyle ?? this._viewData.options.downtrendLineStyle ?? 0;
-    const downtrendLineVisible = seriesOptions?.downtrendLineVisible ?? this._viewData.options.downtrendLineVisible ?? true;
+    const downtrendLineColor =
+      seriesOptions?.downtrendLineColor ?? this._viewData.options.downtrendLineColor ?? '#F44336';
+    const downtrendLineWidth =
+      seriesOptions?.downtrendLineWidth ?? this._viewData.options.downtrendLineWidth ?? 2;
+    const downtrendLineStyle =
+      seriesOptions?.downtrendLineStyle ?? this._viewData.options.downtrendLineStyle ?? 0;
+    const downtrendLineVisible =
+      seriesOptions?.downtrendLineVisible ?? this._viewData.options.downtrendLineVisible ?? true;
 
     // Skip drawing if lines are not visible
     if (!uptrendLineVisible && !downtrendLineVisible) {
@@ -589,7 +613,8 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
     // Read flat base line properties from series options
     const series = this._viewData.series;
     const seriesOptions = series ? series.options() : null;
-    const baseLineColor = seriesOptions?.baseLineColor ?? this._viewData.options.baseLineColor ?? '#666666';
+    const baseLineColor =
+      seriesOptions?.baseLineColor ?? this._viewData.options.baseLineColor ?? '#666666';
     const baseLineWidth = seriesOptions?.baseLineWidth ?? this._viewData.options.baseLineWidth ?? 1;
     const baseLineStyle = seriesOptions?.baseLineStyle ?? this._viewData.options.baseLineStyle ?? 1;
 
@@ -880,8 +905,10 @@ class TrendFillPriceAxisView implements ISeriesPrimitiveAxisView {
     const isUptrend = lastItem.trendDirection > 0;
 
     // Get colors from series options, fallback to primitive options
-    const uptrendColor = seriesOptions?.uptrendFillColor || this._source.getOptions().uptrendFillColor;
-    const downtrendColor = seriesOptions?.downtrendFillColor || this._source.getOptions().downtrendFillColor;
+    const uptrendColor =
+      seriesOptions?.uptrendFillColor || this._source.getOptions().uptrendFillColor;
+    const downtrendColor =
+      seriesOptions?.downtrendFillColor || this._source.getOptions().downtrendFillColor;
 
     // Use solid color based on trend direction (remove transparency for axis label)
     const fillColor = isUptrend ? uptrendColor : downtrendColor;
@@ -915,8 +942,10 @@ class TrendFillPriceAxisView implements ISeriesPrimitiveAxisView {
     const seriesOptions = attachedSeries ? attachedSeries.options() : null;
 
     const fillVisible = seriesOptions?.fillVisible ?? options.fillVisible ?? true;
-    const uptrendLineVisible = seriesOptions?.uptrendLineVisible ?? options.uptrendLineVisible ?? true;
-    const downtrendLineVisible = seriesOptions?.downtrendLineVisible ?? options.downtrendLineVisible ?? true;
+    const uptrendLineVisible =
+      seriesOptions?.uptrendLineVisible ?? options.uptrendLineVisible ?? true;
+    const downtrendLineVisible =
+      seriesOptions?.downtrendLineVisible ?? options.downtrendLineVisible ?? true;
 
     if (!fillVisible && !uptrendLineVisible && !downtrendLineVisible) {
       // All visual elements are hidden - primitive is completely invisible
@@ -1103,9 +1132,15 @@ export class TrendFillPrimitive extends BaseSeriesPrimitive<
         : this._options.downtrendFillColor;
 
       // Use appropriate flat line properties based on trend direction
-      const lineColor = isUptrend ? this._options.uptrendLineColor : this._options.downtrendLineColor;
-      const lineWidth = isUptrend ? this._options.uptrendLineWidth : this._options.downtrendLineWidth;
-      const lineStyle = isUptrend ? this._options.uptrendLineStyle : this._options.downtrendLineStyle;
+      const lineColor = isUptrend
+        ? this._options.uptrendLineColor
+        : this._options.downtrendLineColor;
+      const lineWidth = isUptrend
+        ? this._options.uptrendLineWidth
+        : this._options.downtrendLineWidth;
+      const lineStyle = isUptrend
+        ? this._options.uptrendLineStyle
+        : this._options.downtrendLineStyle;
 
       this.trendFillItems.push({
         time,

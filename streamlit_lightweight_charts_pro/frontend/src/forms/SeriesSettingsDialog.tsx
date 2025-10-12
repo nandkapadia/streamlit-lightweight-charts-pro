@@ -18,7 +18,10 @@ import { ColorPickerDialog } from './ColorPickerDialog';
 import { useSeriesSettingsAPI } from '../hooks/useSeriesSettingsAPI';
 import { SeriesSettingsRenderer } from '../components/SeriesSettingsRenderer';
 import { getSeriesSettings } from '../config/seriesSettingsRegistry';
-import { apiOptionsToDialogConfig, dialogConfigToApiOptions } from '../series/UnifiedPropertyMapper';
+import {
+  apiOptionsToDialogConfig,
+  dialogConfigToApiOptions,
+} from '../series/UnifiedPropertyMapper';
 import { toCss, extractColorAndOpacity } from '../utils/colorUtils';
 import '../styles/seriesConfigDialog.css';
 
@@ -34,6 +37,7 @@ export interface SeriesConfig {
   priceLineColor?: string;
   priceLineWidth?: number;
   priceLineStyle?: number; // LineStyle enum values
+  axisLabelVisible?: boolean; // Show/hide axis label
 
   // Line series settings (matching LineSeriesOptions)
   color?: string;
@@ -158,18 +162,27 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   }, [seriesConfigs, seriesList]);
 
   // Helper function to generate tab titles with fallback logic
-  const getTabTitle = useCallback((series: SeriesInfo, index: number): string => {
-    // If the series has a title (from seriesConfigs), use it
-    const seriesTitle = seriesConfigs[series.id]?.title;
-    if (seriesTitle && seriesTitle.trim()) {
-      return seriesTitle.trim();
-    }
+  const getTabTitle = useCallback(
+    (series: SeriesInfo, index: number): string => {
+      // Priority 1: Use series.displayName if available (already populated by SeriesDialogManager)
+      if (series.displayName && series.displayName.trim()) {
+        return series.displayName.trim();
+      }
 
-    // Otherwise, fall back to "Series Type + Number" format
-    const typeDisplayName = series.type.charAt(0).toUpperCase() + series.type.slice(1);
-    const seriesNumber = index + 1;
-    return `${typeDisplayName} Series ${seriesNumber}`;
-  }, [seriesConfigs]);
+      // Priority 2: Check for title in seriesConfigs (from API options)
+      const seriesTitle = seriesConfigs[series.id]?.title;
+      if (seriesTitle && seriesTitle.trim()) {
+        return seriesTitle.trim();
+      }
+
+      // Priority 3: Fall back to "Series Type + Number" format
+      const typeDisplayName = series.type.charAt(0).toUpperCase() + series.type.slice(1);
+      const seriesNumber = index + 1;
+      const fallbackTitle = `${typeDisplayName} Series ${seriesNumber}`;
+      return fallbackTitle;
+    },
+    [seriesConfigs]
+  );
 
   // Store previously focused element for restoration
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -203,7 +216,10 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         }
 
         // Also blur any currently active element
-        if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) {
+        if (
+          document.activeElement instanceof HTMLElement &&
+          document.activeElement !== document.body
+        ) {
           document.activeElement.blur();
         }
 
@@ -270,9 +286,11 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       // Debounce backend sync (batch multiple rapid changes)
       backendSyncTimeout.current = setTimeout(() => {
         // Batch all pending updates
-        const updates = Array.from(pendingBackendUpdates.current.entries()).map(
-          ([id, config]) => ({ paneId, seriesId: id, config })
-        );
+        const updates = Array.from(pendingBackendUpdates.current.entries()).map(([id, config]) => ({
+          paneId,
+          seriesId: id,
+          config,
+        }));
 
         if (updates.length > 0) {
           startTransition(() => {
@@ -364,7 +382,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       // If lineStyle is a number, convert it; otherwise use it as-is (or default to 'solid')
       const styleValue =
         typeof lineConfig.lineStyle === 'number'
-          ? numberToStyle[lineConfig.lineStyle] ?? 'solid'
+          ? (numberToStyle[lineConfig.lineStyle] ?? 'solid')
           : lineConfig.lineStyle || 'solid';
 
       setLineEditorOpen({
@@ -482,7 +500,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       >
         {/* Accessibility description */}
         <p id='series-settings-description' className='visually-hidden'>
-          Configure series options for this pane. Use Tab to navigate between controls, Escape to close.
+          Configure series options for this pane. Use Tab to navigate between controls, Escape to
+          close.
         </p>
 
         {/* Header */}
@@ -671,9 +690,13 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                       id='priceLineVisible'
                       name='priceLineVisible'
                       checked={activeSeriesConfig.priceLineVisible !== false}
-                      onChange={e =>
-                        handleConfigChange(activeSeriesId, { priceLineVisible: e.target.checked })
-                      }
+                      onChange={e => {
+                        // When hiding price line, also hide axis label for cleaner chart
+                        const config = e.target.checked
+                          ? { priceLineVisible: true }
+                          : { priceLineVisible: false, axisLabelVisible: false };
+                        handleConfigChange(activeSeriesId, config);
+                      }}
                       aria-label='Show price line'
                     />
                     <label htmlFor='priceLineVisible'>Price Line</label>
@@ -687,7 +710,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
               <SeriesSettingsRenderer
                 settings={seriesSettings}
                 seriesConfig={activeSeriesConfig}
-                onConfigChange={(config) => handleConfigChange(activeSeriesId, config)}
+                onConfigChange={config => handleConfigChange(activeSeriesId, config)}
                 onOpenLineEditor={openLineEditor}
                 onOpenColorPicker={openColorPicker}
               />

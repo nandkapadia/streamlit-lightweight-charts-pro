@@ -62,6 +62,11 @@ class SignalSeries(Series):
 
     @property
     def chart_type(self) -> ChartType:
+        """Get the chart type for this series.
+
+        Returns:
+            ChartType: ChartType.SIGNAL indicating this is a signal series.
+        """
         return ChartType.SIGNAL
 
     def __init__(

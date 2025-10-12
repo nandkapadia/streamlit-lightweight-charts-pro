@@ -1,3 +1,57 @@
+/**
+ * @fileoverview LightweightCharts Main Component
+ *
+ * Primary React component for rendering TradingView Lightweight Charts in Streamlit.
+ * Provides comprehensive chart management, series configuration, and interactive features.
+ *
+ * Architecture:
+ * - React 19 concurrent features (useTransition, useDeferredValue)
+ * - Unified series factory for all chart types
+ * - Centralized service management (coordinates, primitives, layout)
+ * - Error boundary integration for graceful degradation
+ *
+ * This component provides:
+ * - Multi-pane chart rendering
+ * - Multiple series types (line, candlestick, area, bar, histogram, baseline)
+ * - Custom series (band, ribbon, signal, trend fill, gradient ribbon)
+ * - Trade visualization with rectangles and markers
+ * - Annotations (text, arrows, shapes)
+ * - Legends with dynamic values
+ * - Range switchers for time navigation
+ * - Chart synchronization across multiple charts
+ * - Series settings dialog with live preview
+ * - Pane collapse/expand functionality
+ *
+ * Features:
+ * - React 19 optimizations (transitions, deferred values)
+ * - Automatic resize handling with ResizeObserver
+ * - Performance monitoring (optional)
+ * - Memory leak prevention with comprehensive cleanup
+ * - Error handling with fallback UI
+ * - Backend state synchronization
+ *
+ * @example
+ * ```tsx
+ * import LightweightCharts from './LightweightCharts';
+ *
+ * <LightweightCharts
+ *   config={{
+ *     charts: [{
+ *       id: 'chart-1',
+ *       chart: { height: 400 },
+ *       series: [{
+ *         type: 'line',
+ *         data: [{ time: '2024-01-01', value: 100 }]
+ *       }]
+ *     }]
+ *   }}
+ *   height={400}
+ *   width={800}
+ *   onChartsReady={() => console.log('Charts ready')}
+ * />
+ * ```
+ */
+
 import React, {
   useEffect,
   useRef,
@@ -30,10 +84,12 @@ import { ExtendedSeriesApi, ExtendedChartApi, SeriesDataPoint } from './types/Ch
 import { createAnnotationVisualElements } from './services/annotationSystem';
 import { SignalSeries } from './plugins/series/signalSeriesPlugin';
 import { TradeRectanglePrimitive } from './primitives/TradeRectanglePrimitive';
+import { createTradeVisualElements } from './services/tradeVisualization';
 import { ChartReadyDetector } from './utils/chartReadyDetection';
 import { ChartCoordinateService } from './services/ChartCoordinateService';
 import { ChartPrimitiveManager } from './services/ChartPrimitiveManager';
 import { CornerLayoutManager } from './services/CornerLayoutManager';
+import { TooltipPlugin } from './plugins/chart/tooltipPlugin';
 
 import { cleanLineStyleOptions } from './utils/lineStyle';
 import { createSeriesWithConfig } from './series/UnifiedSeriesFactory';
@@ -42,7 +98,24 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { react19Monitor } from './utils/react19PerformanceMonitor';
 import { dialogConfigToApiOptions } from './series/UnifiedPropertyMapper';
 
-// Helper function to find nearest available time in chart data
+/**
+ * Finds the nearest available time in chart data to a target timestamp.
+ *
+ * Used for synchronizing annotations and trades with actual data points,
+ * ensuring visual elements align with existing chart data.
+ *
+ * @param targetTime - Target timestamp in seconds
+ * @param chartData - Array of chart data points with time property
+ * @returns Nearest timestamp in seconds, or null if no valid data
+ *
+ * @example
+ * ```typescript
+ * const nearestTime = findNearestTime(1704067200, chartData);
+ * if (nearestTime) {
+ *   marker.time = nearestTime;
+ * }
+ * ```
+ */
 const findNearestTime = (targetTime: number, chartData: any[]): number | null => {
   if (!chartData || chartData.length === 0) {
     return null;
@@ -80,7 +153,27 @@ const findNearestTime = (targetTime: number, chartData: any[]): number | null =>
 // Global type declarations for window extensions
 // Global Window interface declarations moved to types/ChartInterfaces.ts to avoid conflicts
 
-// Utility function for retrying async operations with exponential backoff
+/**
+ * Retries an async operation with exponential backoff.
+ *
+ * Implements exponential backoff with jitter to avoid thundering herd problems.
+ * Used for primitive attachment and other operations that may fail transiently.
+ *
+ * @param operation - Async operation to retry
+ * @param maxRetries - Maximum number of retry attempts (default: 5)
+ * @param baseDelay - Base delay in milliseconds (default: 100ms)
+ * @returns Result of successful operation
+ * @throws Last error if all retries fail
+ *
+ * @example
+ * ```typescript
+ * const result = await retryWithBackoff(
+ *   () => attachPrimitive(chart, primitive),
+ *   5,
+ *   100
+ * );
+ * ```
+ */
 const retryWithBackoff = async (
   operation: () => Promise<any>,
   maxRetries: number = 5,
@@ -107,24 +200,66 @@ const retryWithBackoff = async (
   throw lastError || new Error('Unknown error occurred');
 };
 
+/**
+ * Props for LightweightCharts component.
+ *
+ * Defines the configuration interface for rendering charts with full control
+ * over appearance, data, and interactive features.
+ */
 interface LightweightChartsProps {
+  /** Complete configuration for all charts, series, and features */
   config: ComponentConfig;
+
+  /** Chart height in pixels (null for auto-sizing) */
   height?: number | null;
+
+  /** Chart width in pixels (null for auto-sizing) */
   width?: number | null;
+
+  /** Callback fired when all charts are initialized and ready */
   onChartsReady?: () => void;
 
   /** Enable React 19 performance monitoring (logs transition times, etc.) */
   enableReact19Monitoring?: boolean;
 
+  /**
+   * Series configuration change from SeriesSettingsDialog.
+   * Triggers live updates when user modifies series settings.
+   */
   configChange?: {
+    /** Pane identifier (e.g., 'pane-0') */
     paneId: string;
+    /** Series identifier (e.g., 'pane-0-series-0') */
     seriesId: string;
+    /** Partial configuration to apply */
     configPatch: any;
+    /** Timestamp to prevent duplicate processing */
     timestamp: number;
   } | null;
 }
 
-// Performance optimization: Memoize the component to prevent unnecessary re-renders
+/**
+ * LightweightCharts React Component
+ *
+ * Main chart rendering component with React 19 optimizations.
+ * Manages chart lifecycle, series configuration, and user interactions.
+ *
+ * Performance Features:
+ * - React.memo for preventing unnecessary re-renders
+ * - useTransition for non-blocking UI updates
+ * - useDeferredValue for smooth config updates
+ * - Optimized resize handling with debouncing
+ * - Lazy primitive attachment for performance
+ *
+ * Memory Management:
+ * - Comprehensive cleanup on unmount
+ * - ResizeObserver disconnect
+ * - Chart instance removal
+ * - Service cleanup (coordinates, primitives, layout)
+ *
+ * @param props - Component configuration and callbacks
+ * @returns Rendered chart components with error boundaries
+ */
 const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
   ({
     config,
@@ -135,6 +270,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     enableReact19Monitoring = false,
   }) => {
     // React 19 concurrent features with optional performance monitoring
+    // useTransition: Marks state updates as transitions for non-blocking UI
+    // useDeferredValue: Defers non-urgent config updates to maintain responsiveness
     const [isPending, startTransition] = useTransition();
     const deferredConfig = useDeferredValue(config);
 
@@ -328,7 +465,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     }
                   }
                 } catch (error) {
-                  logger.error('Error handling storage change for crosshair sync', 'ChartSync', error);
+                  logger.error(
+                    'Error handling storage change for crosshair sync',
+                    'ChartSync',
+                    error
+                  );
                 }
               }
             };
@@ -385,7 +526,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               try {
                 localStorage.setItem('chart_sync_data', JSON.stringify(syncData));
               } catch (error) {
-                logger.warn('Failed to store crosshair sync data in localStorage', 'ChartSync', error);
+                logger.warn(
+                  'Failed to store crosshair sync data in localStorage',
+                  'ChartSync',
+                  error
+                );
               }
             }
           });
@@ -432,7 +577,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       }
                     }
                   } catch (error) {
-                    logger.error('Error handling storage change for time range sync', 'ChartSync', error);
+                    logger.error(
+                      'Error handling storage change for time range sync',
+                      'ChartSync',
+                      error
+                    );
                   }
                 }
               };
@@ -491,7 +640,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 try {
                   localStorage.setItem('chart_time_range_sync', JSON.stringify(syncData));
                 } catch (error) {
-                  logger.warn('Failed to store time range sync data in localStorage', 'ChartSync', error);
+                  logger.warn(
+                    'Failed to store time range sync data in localStorage',
+                    'ChartSync',
+                    error
+                  );
                 }
               }
             });
@@ -513,8 +666,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         // Store chart reference for pane collapse to work with stretch factors
         window.chartInstances = window.chartInstances || {};
         window.chartInstances[chartId] = chart;
-      } catch {
-        logger.error('An error occurred', 'LightweightCharts');
+      } catch (error) {
+        logger.error('Failed to store chart instance', 'LightweightCharts', error);
       }
 
       // Crosshair subscription for legend value updates is now handled
@@ -754,103 +907,14 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         }
 
         try {
-          // Create rectangles if style includes rectangles
+          // Use the new unified trade visualization system
+          const visualElements = createTradeVisualElements(trades, options, chartData);
           const primitives: any[] = [];
 
-          if (options.style === 'rectangles' || options.style === 'both') {
-            // CRITICAL FIX: Use findNearestTime to adjust timestamps to match available chart data
-            const rectanglePrimitives = trades
-              .map(trade => {
-                // Parse and adjust timestamps using findNearestTime
-                const originalEntryTime =
-                  typeof trade.entryTime === 'string'
-                    ? Math.floor(new Date(trade.entryTime).getTime() / 1000)
-                    : trade.entryTime;
-                const originalExitTime =
-                  typeof trade.exitTime === 'string'
-                    ? Math.floor(new Date(trade.exitTime).getTime() / 1000)
-                    : trade.exitTime;
-
-                // Find nearest available times in chart data
-                let adjustedEntryTime = originalEntryTime;
-                let adjustedExitTime = originalExitTime;
-
-                if (chartData && chartData.length > 0) {
-                  // Use findNearestTime to get the closest available timestamps
-                  const nearestEntryTime = findNearestTime(originalEntryTime as number, chartData);
-                  const nearestExitTime = findNearestTime(originalExitTime as number, chartData);
-
-                  if (nearestEntryTime) adjustedEntryTime = nearestEntryTime;
-                  if (nearestExitTime) adjustedExitTime = nearestExitTime;
-                }
-
-                // Build dynamic text based on TradeVisualizationOptions
-                let rectangleText = '';
-                if (options.rectangleShowText !== false) {
-                  // Default to showing text unless explicitly disabled
-                  const textParts: string[] = [];
-
-                  // Add trade ID if enabled
-                  if (
-                    options.showTradeId !== false &&
-                    (trade as TradeConfig & { id?: string }).id
-                  ) {
-                    textParts.push(`ID: ${(trade as TradeConfig & { id?: string }).id}`);
-                  }
-
-                  // Add quantity if enabled
-                  if (
-                    options.showQuantity !== false &&
-                    (trade as TradeConfig & { quantity?: number }).quantity
-                  ) {
-                    textParts.push(
-                      `Qty: ${(trade as TradeConfig & { quantity?: number }).quantity}`
-                    );
-                  }
-
-                  // Add trade type if enabled
-                  if (options.showTradeType !== false) {
-                    const tradeType = trade.isProfitable ? 'Profit' : 'Loss';
-                    textParts.push(tradeType);
-                  }
-
-                  // Add P&L if available
-                  if (trade.pnl) {
-                    textParts.push(`P&L: ${trade.pnl.toFixed(2)}`);
-                  } else if (trade.pnlPercentage) {
-                    textParts.push(`P&L: ${trade.pnlPercentage.toFixed(1)}%`);
-                  }
-
-                  // Use built text or fallback to notes/text
-                  rectangleText =
-                    textParts.length > 0 ? textParts.join(' | ') : trade.notes || trade.text || '';
-                }
-
-                // Create primitive with adjusted timestamps
-                const primitiveData = {
-                  time1: adjustedEntryTime as UTCTimestamp,
-                  time2: adjustedExitTime as UTCTimestamp,
-                  price1: trade.entryPrice,
-                  price2: trade.exitPrice,
-                  fillColor: trade.isProfitable
-                    ? options.rectangleColorProfit || 'rgba(76, 175, 80, 0.2)'
-                    : options.rectangleColorLoss || 'rgba(244, 67, 54, 0.2)',
-                  borderColor: trade.isProfitable
-                    ? options.rectangleColorProfit || 'rgb(76, 175, 80)'
-                    : options.rectangleColorLoss || 'rgb(244, 67, 54)',
-                  borderWidth: options.rectangleBorderWidth || 1,
-                  borderStyle: 'solid' as const,
-                  opacity: options.rectangleFillOpacity || 0.2,
-                  label: rectangleText,
-                  // Pass text configuration to primitive
-                  textPosition: options.rectangleTextPosition || 'inside',
-                  textFontSize: options.rectangleTextFontSize || 10,
-                  textColor: options.rectangleTextColor || '#FFFFFF',
-                  textBackground: options.rectangleTextBackground || 'rgba(0, 0, 0, 0.7)',
-                };
-
-                return new TradeRectanglePrimitive(primitiveData);
-              })
+          // Convert rectangles to primitives
+          if (visualElements.rectangles.length > 0) {
+            const rectanglePrimitives = visualElements.rectangles
+              .map(rectangleData => new TradeRectanglePrimitive(rectangleData))
               .filter(primitive => primitive !== null);
 
             primitives.push(...rectanglePrimitives);
@@ -958,8 +1022,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           ) {
             // Style not yet implemented
           }
-        } catch {
-          logger.error('An error occurred', 'LightweightCharts');
+        } catch (error) {
+          logger.error('Trade visualization error', 'LightweightCharts', error);
         }
       },
       []
@@ -1107,41 +1171,34 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       []
     );
 
+    /**
+     * Initialize tooltip renderer for chart
+     * Note: Plugins/primitives will use TooltipManager to request tooltip display
+     */
     const addModularTooltip = useCallback(
       (
-        chart: IChartApi,
+        _chart: IChartApi,
         container: HTMLElement,
         _seriesList: ISeriesApi<any>[],
         chartConfig: ChartConfig
       ) => {
-        if (!chartConfig.tooltipConfigs || Object.keys(chartConfig.tooltipConfigs).length === 0) {
-          return;
-        }
-
         try {
-          // Import tooltip plugin dynamically
-          import('./plugins/chart/tooltipPlugin')
-            .then(({ createTooltipPlugin }) => {
-              const tooltipPlugin = createTooltipPlugin(
-                chart,
-                container,
-                chartConfig.chartId || `chart-${Date.now()}`, // Pass chartId as third parameter
-                chartConfig.tooltipConfigs, // Pass tooltipConfigs as fourth parameter
-                chartConfig // Pass entire chartConfig as fifth parameter for trade data
-              );
+          // Create tooltip renderer (just the DOM renderer)
+          // Primitives and plugins will use TooltipManager to request tooltips
+          const tooltipPlugin = new TooltipPlugin(
+            container,
+            chartConfig.chartId || `chart-${Date.now()}`
+          );
 
-              // Enable tooltip
-              tooltipPlugin.enable();
+          // Store plugin reference for cleanup
+          if (!window.chartPlugins) {
+            window.chartPlugins = new Map();
+          }
+          window.chartPlugins.set(chartConfig.chartId || `chart-${Date.now()}`, tooltipPlugin);
 
-              // Store plugin reference for cleanup
-              if (!window.chartPlugins) {
-                window.chartPlugins = new Map();
-              }
-              window.chartPlugins.set(chartConfig.chartId || `chart-${Date.now()}`, tooltipPlugin);
-            })
-            .catch(() => {});
-        } catch {
-          logger.error('An error occurred', 'LightweightCharts');
+          logger.info('TooltipPlugin initialized', 'LightweightCharts');
+        } catch (error) {
+          logger.error('Error initializing tooltip plugin', 'LightweightCharts', error);
         }
       },
       []
@@ -1162,11 +1219,15 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         if (!window.chartPlugins) {
           window.chartPlugins = new Map();
         }
-        const existingPlugins = (window.chartPlugins.get(chartId) as unknown[]) || [];
+
+        // Ensure we always get an array, even if the stored value is corrupted
+        const storedPlugins = window.chartPlugins.get(chartId);
+        const existingPlugins: any[] = Array.isArray(storedPlugins) ? storedPlugins : [];
+
         existingPlugins.push(rangeSwitcherWidget);
         window.chartPlugins.set(chartId, existingPlugins);
-      } catch {
-        logger.error('An error occurred', 'LightweightCharts');
+      } catch (error) {
+        logger.error('Failed to store chart instance', 'LightweightCharts', error);
       }
     }, []);
 
@@ -1246,8 +1307,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           }
 
           return;
-        } catch {
-          logger.error('An error occurred', 'LightweightCharts');
+        } catch (error) {
+          logger.error('Trade visualization error', 'LightweightCharts', error);
         }
 
         // OLD SYSTEM BELOW - keeping as fallback but should not be reached
@@ -1870,7 +1931,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                           );
                         }
                       } catch (error) {
-                        logger.error('Failed to apply price scale configuration for series', 'LightweightCharts', error);
+                        logger.error(
+                          'Failed to apply price scale configuration for series',
+                          'LightweightCharts',
+                          error
+                        );
                       }
                     }
 
@@ -1931,14 +1996,22 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                                 }
                               }
                             } catch (error) {
-                              logger.error('Error in chart readiness or trade visualization', 'LightweightCharts', error);
+                              logger.error(
+                                'Error in chart readiness or trade visualization',
+                                'LightweightCharts',
+                                error
+                              );
                             }
                           })().catch((error: Error) =>
                             logger.error('Async operation failed', 'LightweightCharts', error)
                           );
                         }, 50); // Small delay to let chart initialization complete
                       } catch (error) {
-                        logger.error('Error setting up trade visualization', 'LightweightCharts', error);
+                        logger.error(
+                          'Error setting up trade visualization',
+                          'LightweightCharts',
+                          error
+                        );
                       }
                     } else {
                       // No trade visualization options provided
@@ -1949,7 +2022,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       functionRefs.current.addAnnotations(chart, seriesConfig.annotations);
                     }
                   } else {
-                    logger.error('Failed to create series - createSeriesWithConfig returned null', 'LightweightCharts');
+                    logger.error(
+                      'Failed to create series - createSeriesWithConfig returned null',
+                      'LightweightCharts'
+                    );
                   }
                 } catch (error) {
                   logger.error('Error creating series', 'LightweightCharts', error);
@@ -1990,7 +2066,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       logger.error('Failed to set stretch factor for pane', 'ChartInit', error);
                     }
                   } else {
-                    logger.debug(`Skipping pane ${paneId} - out of range or no factor`, 'ChartInit');
+                    logger.debug(
+                      `Skipping pane ${paneId} - out of range or no factor`,
+                      'ChartInit'
+                    );
                   }
                 }
               );
@@ -2032,7 +2111,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   }
                 })
                 .catch(error => {
-                  logger.error('An error occurred', 'LightweightCharts');
+                  logger.error('Failed to add legend', 'LightweightCharts', error);
                 });
             }
 
@@ -2137,9 +2216,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             // Create individual pane containers and add collapse functionality (synchronous like working version)
             const paneCollapseConfig = chartConfig.paneCollapse || { enabled: true };
 
-            // Enable the gear button by default for series settings
-            if (paneCollapseConfig.showGearButton === undefined) {
-              paneCollapseConfig.showGearButton = true;
+            // Enable the series settings button by default
+            if (paneCollapseConfig.showSeriesSettingsButton === undefined) {
+              paneCollapseConfig.showSeriesSettingsButton = true;
             }
 
             // Debug logging
@@ -2185,8 +2264,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   }
                 });
 
-                // Show button panels when there are multiple panes (for collapse) or when gear button is enabled (for series settings)
-                if (allPanes.length > 1 || paneCollapseConfig.showGearButton) {
+                // Show button panels when there are multiple panes (for collapse) or when series settings button is enabled
+                if (allPanes.length > 1 || paneCollapseConfig.showSeriesSettingsButton) {
                   // Set up pane collapse support using ChartPrimitiveManager
                   try {
                     const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId); // Create button panels (gear + collapse buttons) for each pane using primitive manager
@@ -2194,8 +2273,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       // Configure button panel based on pane count
                       const buttonConfig = {
                         ...paneCollapseConfig,
-                        showCollapseButton: allPanes.length > 1, // Only show collapse button with multiple panes
-                        showGearButton: paneCollapseConfig.showGearButton, // Always respect gear button setting
+                        showCollapseButton: false, // TODO: Hidden until collapse functionality is fully implemented
+                        showSeriesSettingsButton: paneCollapseConfig.showSeriesSettingsButton, // Always respect series settings button setting
                       }; // Add button panel using primitive manager
                       const buttonPanelWidget = primitiveManager.addButtonPanel(
                         paneId,

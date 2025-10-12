@@ -1,4 +1,7 @@
-import { vi } from 'vitest';
+/**
+ * @vitest-environment jsdom
+ */
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RectangleOverlayPlugin } from '../../plugins/overlay/rectanglePlugin';
 import { createSignalSeries } from '../../plugins/series/signalSeriesPlugin';
 import { createTradeVisualElements } from '../../services/tradeVisualization';
@@ -192,6 +195,8 @@ describe('Chart Plugins', () => {
           exitPrice: 110,
           quantity: 10,
           tradeType: 'long' as const,
+          isProfitable: true,
+          id: 'trade-1',
         },
       ];
 
@@ -221,6 +226,8 @@ describe('Chart Plugins', () => {
           exitPrice: 110,
           quantity: 10,
           tradeType: 'long' as const,
+          isProfitable: true,
+          id: 'trade-1',
         },
         {
           entryTime: '2024-01-03',
@@ -229,6 +236,8 @@ describe('Chart Plugins', () => {
           exitPrice: 100,
           quantity: 5,
           tradeType: 'short' as const,
+          isProfitable: true,
+          id: 'trade-2',
         },
       ];
 
@@ -246,6 +255,8 @@ describe('Chart Plugins', () => {
           exitPrice: 110,
           quantity: 10,
           tradeType: 'long' as const,
+          isProfitable: true,
+          id: 'trade-1',
         },
         {
           entryTime: '2024-01-03',
@@ -254,6 +265,8 @@ describe('Chart Plugins', () => {
           exitPrice: 100,
           quantity: 5,
           tradeType: 'short' as const,
+          isProfitable: true,
+          id: 'trade-2',
         },
       ];
 

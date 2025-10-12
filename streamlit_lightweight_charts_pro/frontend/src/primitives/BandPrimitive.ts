@@ -1,8 +1,13 @@
 /**
- * Band Primitive - ISeriesPrimitive Implementation
+ * @fileoverview Band Primitive Implementation
  *
- * This primitive renders filled areas between three lines (upper, middle, lower),
- * with z-order control for background rendering.
+ * ISeriesPrimitive for rendering filled areas between three lines (upper, middle, lower).
+ * Provides z-order control for background rendering of technical indicators.
+ *
+ * Architecture:
+ * - Extends BaseSeriesPrimitive for common lifecycle management
+ * - Implements ISeriesPrimitive interface for TradingView integration
+ * - Uses common rendering utilities for consistent behavior
  *
  * Features:
  * - Three configurable lines (upper, middle, lower)
@@ -12,9 +17,22 @@
  * - Time-based visible range detection
  *
  * Use cases:
- * - When you need Band to render BEHIND other series
  * - Background indicators (Bollinger Bands, Keltner Channels, etc.)
  * - When using with createBandSeries() factory with usePrimitive: true
+ * - Technical analysis overlays that should render behind price series
+ *
+ * @example
+ * ```typescript
+ * import { BandPrimitive } from './BandPrimitive';
+ *
+ * const bandPrimitive = new BandPrimitive(chart, {
+ *   upperLineColor: '#ff0000',
+ *   middleLineColor: '#00ff00',
+ *   lowerLineColor: '#0000ff',
+ *   upperFillColor: 'rgba(255,0,0,0.1)',
+ *   lowerFillColor: 'rgba(0,0,255,0.1)'
+ * });
+ * ```
  *
  * @see createBandSeries for the factory function
  * @see BandSeries for the ICustomSeries implementation

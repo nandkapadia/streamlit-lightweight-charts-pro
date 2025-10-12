@@ -11,7 +11,7 @@
 
 import React, { useMemo, useEffect } from 'react';
 import { ButtonColors, ButtonDimensions, ButtonEffects } from '../primitives/PrimitiveDefaults';
-import { GearButton } from './buttons/types/GearButton';
+import { SeriesSettingsButton } from './buttons/types/SeriesSettingsButton';
 import { CollapseButton } from './buttons/types/CollapseButton';
 import { createButtonRegistry } from './buttons/base/ButtonRegistry';
 
@@ -29,8 +29,8 @@ interface ButtonPanelComponentProps {
   onGearClick: () => void;
   /** Whether to show the collapse button. Defaults to true. */
   showCollapseButton?: boolean;
-  /** Whether to show the gear (settings) button. Defaults to true. */
-  showGearButton?: boolean;
+  /** Whether to show the series settings button. Defaults to true. */
+  showSeriesSettingsButton?: boolean;
   /** Visual configuration for the buttons - uses PrimitiveDefaults when not specified */
   config?: {
     /** Button size in pixels - defaults to ButtonDimensions.PANE_ACTION_WIDTH */
@@ -60,7 +60,7 @@ interface ButtonPanelComponentProps {
  * opens the series configuration dialog, while the collapse button
  * can be conditionally hidden.
  *
- * Uses the extensible button architecture (BaseButton, GearButton, CollapseButton)
+ * Uses the extensible button architecture (BaseButton, SettingsButton, CollapseButton)
  * allowing additional custom buttons to be added via the customButtons prop.
  *
  * @param props - Button panel configuration and event handlers
@@ -105,7 +105,7 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
   onCollapseClick,
   onGearClick,
   showCollapseButton = true,
-  showGearButton = true,
+  showSeriesSettingsButton = true,
   config = {},
   customButtons = [],
 }) => {
@@ -113,31 +113,34 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
   const registry = useMemo(() => createButtonRegistry(), []);
 
   // Build button styling config from props (with PrimitiveDefaults fallbacks)
-  const buttonStyling = useMemo(() => ({
-    size: config.buttonSize ?? ButtonDimensions.PANE_ACTION_WIDTH,
-    color: config.buttonColor ?? ButtonColors.DEFAULT_COLOR,
-    background: config.buttonBackground ?? ButtonColors.DEFAULT_BACKGROUND,
-    borderRadius: config.buttonBorderRadius ?? 3,
-    hoverColor: config.buttonHoverColor ?? ButtonColors.HOVER_COLOR,
-    hoverBackground: config.buttonHoverBackground ?? ButtonColors.HOVER_BACKGROUND,
-    border: ButtonEffects.DEFAULT_BORDER,
-    hoverBoxShadow: ButtonEffects.HOVER_BOX_SHADOW,
-  }), [config]);
+  const buttonStyling = useMemo(
+    () => ({
+      size: config.buttonSize ?? ButtonDimensions.PANE_ACTION_WIDTH,
+      color: config.buttonColor ?? ButtonColors.DEFAULT_COLOR,
+      background: config.buttonBackground ?? ButtonColors.DEFAULT_BACKGROUND,
+      borderRadius: config.buttonBorderRadius ?? 3,
+      hoverColor: config.buttonHoverColor ?? ButtonColors.HOVER_COLOR,
+      hoverBackground: config.buttonHoverBackground ?? ButtonColors.HOVER_BACKGROUND,
+      border: ButtonEffects.DEFAULT_BORDER,
+      hoverBoxShadow: ButtonEffects.HOVER_BOX_SHADOW,
+    }),
+    [config]
+  );
 
   // Initialize buttons when dependencies change
   useEffect(() => {
     // Clear existing buttons
     registry.clear();
 
-    // Add gear button if enabled
-    if (showGearButton) {
-      const gearButton = new GearButton({
-        id: `gear-button-pane-${paneId}`,
+    // Add series settings button if enabled
+    if (showSeriesSettingsButton) {
+      const settingsButton = new SeriesSettingsButton({
+        id: `series-settings-button-pane-${paneId}`,
         tooltip: 'Series Settings',
-        onGearClick: onGearClick,
+        onSeriesSettingsClick: onGearClick,
         styling: buttonStyling,
       });
-      registry.register(gearButton, 10); // Priority 10 (appears first)
+      registry.register(settingsButton, 10); // Priority 10 (appears first)
     }
 
     // Add collapse button if enabled
@@ -162,7 +165,7 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
     onCollapseClick,
     onGearClick,
     showCollapseButton,
-    showGearButton,
+    showSeriesSettingsButton,
     buttonStyling,
     customButtons,
     registry,
@@ -188,9 +191,7 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
   return (
     <div className='button-panel' style={panelStyle}>
       {buttons.map(button => (
-        <React.Fragment key={button.getId()}>
-          {button.render()}
-        </React.Fragment>
+        <React.Fragment key={button.getId()}>{button.render()}</React.Fragment>
       ))}
     </div>
   );

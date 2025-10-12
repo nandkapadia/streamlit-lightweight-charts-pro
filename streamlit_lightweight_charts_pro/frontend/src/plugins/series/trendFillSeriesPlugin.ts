@@ -319,7 +319,11 @@ class TrendFillSeriesRenderer<TData extends TrendFillData> implements ICustomSer
       const y = bar.trendLineY;
 
       // When line properties change, stroke previous path and start new one
-      if (bar.lineColor !== currentColor || bar.lineWidth !== currentWidth || bar.lineStyle !== currentStyle) {
+      if (
+        bar.lineColor !== currentColor ||
+        bar.lineWidth !== currentWidth ||
+        bar.lineStyle !== currentStyle
+      ) {
         if (currentPath && currentColor && currentWidth && currentStyle !== null) {
           ctx.strokeStyle = currentColor;
           ctx.lineWidth = currentWidth;

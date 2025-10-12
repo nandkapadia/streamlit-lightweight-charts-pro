@@ -1,8 +1,13 @@
 /**
- * Ribbon Primitive - ISeriesPrimitive Implementation
+ * @fileoverview Ribbon Primitive Implementation
  *
- * This primitive renders filled areas between upper and lower lines,
- * with z-order control for background rendering.
+ * ISeriesPrimitive for rendering filled areas between upper and lower lines.
+ * Provides z-order control for background rendering of channel indicators.
+ *
+ * Architecture:
+ * - Extends BaseSeriesPrimitive for common lifecycle management
+ * - Implements ISeriesPrimitive interface for TradingView integration
+ * - Uses common rendering utilities for consistent behavior
  *
  * Features:
  * - Two configurable lines (upper and lower)
@@ -12,9 +17,20 @@
  * - Time-based visible range detection
  *
  * Use cases:
- * - When you need Ribbon to render BEHIND other series
  * - Background indicators (Bollinger Bands, channels, etc.)
  * - When using with createRibbonSeries() factory with usePrimitive: true
+ * - Technical analysis overlays that should render behind price series
+ *
+ * @example
+ * ```typescript
+ * import { RibbonPrimitive } from './RibbonPrimitive';
+ *
+ * const ribbonPrimitive = new RibbonPrimitive(chart, {
+ *   upperLineColor: '#ff0000',
+ *   lowerLineColor: '#0000ff',
+ *   fillColor: 'rgba(128,128,128,0.1)'
+ * });
+ * ```
  *
  * @see createRibbonSeries for the factory function
  * @see RibbonSeries for the ICustomSeries implementation

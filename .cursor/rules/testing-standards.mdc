@@ -752,7 +752,263 @@ npm run test:visual:update
 
 ---
 
-**Last Updated**: 2025-01-12
+## 11. Browser API Mocking and Integration Tests
+
+### Overview
+
+Integration tests require proper mocking of browser APIs (matchMedia, ResizeObserver, getComputedStyle) to work correctly with lightweight-charts and fancy-canvas libraries.
+
+### Centralized Mock Setup
+
+All browser API mocks are configured in `setupTests.ts` and automatically available to all tests. **Do not override these mocks in individual test files unless absolutely necessary.**
+
+### Critical Mocks
+
+#### 1. getComputedStyle Mock
+
+**❌ WRONG**: Returning empty strings causes color parsing errors
+```typescript
+Object.defineProperty(window, 'getComputedStyle', {
+  value: () => ({
+    getPropertyValue: () => '',  // ❌ Causes "Cannot read properties of undefined (reading 'match')"
+  }),
+});
+```
+
+**✅ CORRECT**: Return valid CSS values
+```typescript
+Object.defineProperty(window, 'getComputedStyle', {
+  value: (element: Element) => ({
+    getPropertyValue: (prop: string) => {
+      // Return valid defaults for properties used by lightweight-charts
+      if (prop === 'background-color' || prop === 'backgroundColor') {
+        return 'rgba(255, 255, 255, 1)';
+      }
+      if (prop === 'color' || prop === 'textColor') {
+        return 'rgba(0, 0, 0, 1)';
+      }
+      if (prop === 'font-family' || prop === 'fontFamily') {
+        return 'Arial, sans-serif';
+      }
+      if (prop === 'font-size' || prop === 'fontSize') {
+        return '12px';
+      }
+      return '';
+    },
+  }),
+  configurable: true,
+  writable: true,
+});
+```
+
+#### 2. matchMedia Mock
+
+**✅ CORRECT**: Include all required methods
+```typescript
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  configurable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),      // Required for fancy-canvas
+    removeListener: vi.fn(),   // Required for fancy-canvas
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+```
+
+#### 3. ResizeObserver Mock
+
+```typescript
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
+```
+
+### Library Mocking Best Practices
+
+#### Comprehensive lightweight-charts Mock
+
+When mocking lightweight-charts, include **all exports** used by your codebase:
+
+```typescript
+vi.mock('lightweight-charts', () => {
+  const mockSeries = {
+    setData: vi.fn(),
+    update: vi.fn(),
+    setMarkers: vi.fn(),
+    applyOptions: vi.fn(),
+    attachPrimitive: vi.fn(),
+    detachPrimitive: vi.fn(),
+    // ... other methods
+  };
+
+  const mockChart = {
+    addSeries: vi.fn(() => mockSeries),
+    addLineSeries: vi.fn(() => mockSeries),
+    addCandlestickSeries: vi.fn(() => mockSeries),
+    // ... other chart methods
+    timeScale: vi.fn(() => ({
+      fitContent: vi.fn(),
+      getVisibleRange: vi.fn(() => ({ from: 0, to: 100 })),
+      // ... other timeScale methods
+    })),
+  };
+
+  return {
+    createChart: vi.fn(() => mockChart),
+    // Enums
+    LineStyle: { Solid: 0, Dotted: 1, Dashed: 2 },
+    CrosshairMode: { Normal: 0, Magnet: 1 },
+    PriceScaleMode: { Normal: 0, Logarithmic: 1 },
+    ColorType: { Solid: 'solid', VerticalGradient: 'gradient' },
+
+    // CRITICAL: Custom series exports (required by plugins)
+    customSeriesDefaultOptions: {
+      lastValueVisible: true,
+      title: '',
+      priceScaleId: 'right',
+    },
+    WhitespaceData: vi.fn(),
+    CustomSeriesView: vi.fn(),
+    SeriesType: {
+      Line: 'Line',
+      Candlestick: 'Candlestick',
+      Custom: 'Custom',
+      // ... other types
+    },
+  };
+});
+```
+
+### Common Integration Test Issues
+
+#### Issue 1: Color Parser Error
+
+**Error**:
+```
+TypeError: Cannot read properties of undefined (reading 'match')
+at ColorParser._private__parseColor
+```
+
+**Cause**: `getComputedStyle` returning empty strings or undefined for color properties
+
+**Fix**: Update `setupTests.ts` to return valid color values (see section above)
+
+#### Issue 2: Device Pixel Ratio Observer Error
+
+**Error**:
+```
+TypeError: Cannot read properties of undefined (reading 'addListener')
+at Observable._installResolutionListener
+```
+
+**Cause**: `matchMedia` mock missing `addListener` method
+
+**Fix**: Ensure matchMedia mock includes deprecated `addListener`/`removeListener` methods
+
+#### Issue 3: Missing Custom Series Exports
+
+**Error**:
+```
+No "customSeriesDefaultOptions" export is defined on the "lightweight-charts" mock
+```
+
+**Cause**: Incomplete lightweight-charts mock
+
+**Fix**: Add all custom series exports to mock (see comprehensive mock above)
+
+### Integration Test Checklist
+
+- [ ] ✅ Use centralized mocks from `setupTests.ts`
+- [ ] ✅ Mock lightweight-charts comprehensively (include all exports)
+- [ ] ✅ Return valid CSS values from `getComputedStyle`
+- [ ] ✅ Include `addListener` in `matchMedia` mock
+- [ ] ✅ Add `customSeriesDefaultOptions` to lightweight-charts mock
+- [ ] ✅ Clean up properly in `afterEach` hooks
+- [ ] ✅ Suppress expected console warnings
+- [ ] ❌ Don't override global mocks in individual test files
+- [ ] ❌ Don't return empty strings from style getters
+- [ ] ❌ Don't create partial library mocks
+
+### Integration Test Template
+
+```typescript
+/**
+ * @vitest-environment jsdom
+ */
+import { render, waitFor, cleanup, act } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import MyComponent from '../../MyComponent';
+
+// Mock lightweight-charts (see comprehensive mock above)
+vi.mock('lightweight-charts', () => ({
+  // ... comprehensive mock
+}));
+
+describe('Integration Tests', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(async () => {
+    // Wait for async operations
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
+
+    // Cleanup
+    act(() => {
+      cleanup();
+    });
+
+    vi.restoreAllMocks();
+  });
+
+  it('should render correctly', async () => {
+    const { container } = render(<MyComponent />);
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-testid="component"]')).toBeInTheDocument();
+    });
+  });
+});
+```
+
+### Debugging Integration Tests
+
+#### View Test Output
+```bash
+# Run with verbose output
+npm test -- integration.test.tsx --run
+
+# Run specific test
+npm test -- integration.test.tsx -t "should render correctly"
+
+# Debug mode
+npm test -- integration.test.tsx --inspect-brk
+```
+
+#### Common Debug Steps
+
+1. **Check mock setup**: Ensure all required exports are mocked
+2. **Verify color values**: Check getComputedStyle returns valid colors
+3. **Test isolation**: Run tests individually to identify conflicts
+4. **Console output**: Review suppressed warnings for clues
+5. **Library versions**: Ensure compatible versions of test libraries
+
+---
+
+**Last Updated**: 2025-10-12
 **Test Framework**: Vitest + node-canvas + Playwright
 **Total Tests**: 1200+
 **Coverage**: 90%+ frontend, 95%+ backend

@@ -1,8 +1,13 @@
 /**
- * Gradient Ribbon Primitive - ISeriesPrimitive Implementation
+ * @fileoverview Gradient Ribbon Primitive Implementation
  *
- * This primitive renders filled gradient areas between upper and lower lines,
- * with z-order control for background rendering.
+ * ISeriesPrimitive for rendering filled gradient areas between upper and lower lines.
+ * Provides color interpolation with z-order control for background rendering.
+ *
+ * Architecture:
+ * - Extends BaseSeriesPrimitive for common lifecycle management
+ * - Implements ISeriesPrimitive interface for TradingView integration
+ * - Uses common rendering utilities for consistent behavior
  *
  * Features:
  * - Two configurable lines (upper and lower)
@@ -13,9 +18,21 @@
  * - Per-point fill colors or gradient based on spread magnitude
  *
  * Use cases:
- * - When you need Gradient Ribbon to render BEHIND other series
  * - Background volatility indicators (ATR bands, etc.)
  * - When using with createGradientRibbonSeries() factory with usePrimitive: true
+ * - Technical analysis overlays that should render behind price series
+ *
+ * @example
+ * ```typescript
+ * import { GradientRibbonPrimitive } from './GradientRibbonPrimitive';
+ *
+ * const gradientRibbonPrimitive = new GradientRibbonPrimitive(chart, {
+ *   upperLineColor: '#ff0000',
+ *   lowerLineColor: '#0000ff',
+ *   gradientStartColor: '#ff0000',
+ *   gradientEndColor: '#0000ff'
+ * });
+ * ```
  *
  * @see createGradientRibbonSeries for the factory function
  * @see GradientRibbonSeries for the ICustomSeries implementation

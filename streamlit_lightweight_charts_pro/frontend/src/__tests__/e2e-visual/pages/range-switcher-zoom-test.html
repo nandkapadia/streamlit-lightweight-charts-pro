@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Range Switcher Zoom Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #chart-container {
+            width: 800px;
+            height: 400px;
+            position: relative;
+            background: white;
+        }
+        #chart { width: 100%; height: 100%; }
+        #range-switcher {
+            position: absolute;
+            bottom: 50px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 10;
+            display: flex;
+            gap: 4px;
+        }
+        .range-button {
+            padding: 6px 12px;
+            border: 1px solid #2196F3;
+            background: white;
+            color: #2196F3;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .range-button:hover {
+            background: #E3F2FD;
+        }
+        .range-button.active {
+            background: #2196F3;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart-container">
+        <div id="chart"></div>
+        <div id="range-switcher">
+            <button class="range-button" data-range="1W">1W</button>
+            <button class="range-button" data-range="1M">1M</button>
+            <button class="range-button" data-range="3M">3M</button>
+            <button class="range-button active" data-range="ALL">ALL</button>
+        </div>
+    </div>
+    <script>
+let chart, series, allData;
+
+function runTestCase() {
+    allData = [];
+    const startDate = new Date('2024-01-01');
+
+    for (let i = 0; i < 120; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const price = 100 + i * 0.3 + Math.sin(i / 15) * 20;
+
+        allData.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+    }
+
+    chart = LightweightCharts.createChart(document.getElementById('chart'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+        handleScroll: { mouseWheel: true },
+        handleScale: { mouseWheel: true },
+    });
+
+    series = chart.addSeries(LightweightCharts.LineSeries);
+    series.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    series.setData(allData);
+
+    const buttons = document.querySelectorAll('.range-button');
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+
+            const range = button.getAttribute('data-range');
+            applyRange(range);
+        });
+    });
+
+    chart.timeScale().fitContent();
+}
+
+function applyRange(range) {
+    const lastDate = new Date(allData[allData.length - 1].time);
+    let fromDate;
+
+    switch(range) {
+        case '1W':
+            fromDate = new Date(lastDate);
+            fromDate.setDate(fromDate.getDate() - 7);
+            break;
+        case '1M':
+            fromDate = new Date(lastDate);
+            fromDate.setMonth(fromDate.getMonth() - 1);
+            break;
+        case '3M':
+            fromDate = new Date(lastDate);
+            fromDate.setMonth(fromDate.getMonth() - 3);
+            break;
+        case 'ALL':
+            chart.timeScale().fitContent();
+            return;
+    }
+
+    const fromStr = fromDate.toISOString().split('T')[0];
+    const toStr = lastDate.toISOString().split('T')[0];
+
+    chart.timeScale().setVisibleRange({
+        from: fromStr,
+        to: toStr,
+    });
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>

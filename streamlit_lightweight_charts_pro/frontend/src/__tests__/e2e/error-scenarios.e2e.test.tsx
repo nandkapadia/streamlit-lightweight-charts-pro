@@ -1,5 +1,6 @@
 /**
  * @fileoverview E2E tests for error scenarios
+ * @vitest-environment jsdom
  *
  * Tests complete user flows for:
  * - Invalid configuration handling
@@ -11,8 +12,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, cleanup } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { render, cleanup, act } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import LightweightCharts from '../../LightweightCharts';
 import { ComponentConfig } from '../../types';
 
@@ -44,7 +45,10 @@ describe('E2E: Error Scenarios', () => {
   });
 
   afterEach(() => {
-    cleanup();
+    // Wrap cleanup in act() to prevent React 19 concurrent rendering warnings
+    act(() => {
+      cleanup();
+    });
   });
 
   describe('Invalid Configuration', () => {
@@ -696,7 +700,7 @@ describe('E2E: Error Scenarios', () => {
       for (let i = 0; i < 10; i++) {
         const { unmount } = render(<LightweightCharts config={config} />);
 
-        expect(() => unmount()).not.toThrow();
+        expect(() => act(() => unmount())).not.toThrow();
       }
     });
   });

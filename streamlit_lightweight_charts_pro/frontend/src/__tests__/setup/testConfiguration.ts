@@ -6,7 +6,7 @@
  * and performance monitoring across the entire test suite.
  */
 
-import { vi } from 'vitest';
+import { vi, afterAll } from 'vitest';
 import { MockFactory, MockConfig, MockPresets, setupGlobalMocks } from '../mocks/MockFactory';
 
 import {

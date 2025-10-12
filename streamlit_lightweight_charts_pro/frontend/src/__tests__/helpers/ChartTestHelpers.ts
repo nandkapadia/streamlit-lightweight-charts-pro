@@ -17,6 +17,9 @@ import { logger } from '../../utils/logger';
 import { MockFactory } from '../mocks/MockFactory';
 import { TestDataFactory } from '../mocks/TestDataFactory';
 
+// Store reference to original createElement before it gets mocked
+const originalCreateElement = document.createElement.bind(document);
+
 export interface ChartTestConfig {
   width: number;
   height: number;
@@ -412,7 +415,8 @@ export class ChartTestHelpers {
   // Private helper methods
 
   private static createTestContainer(chartId: string, width: number, height: number): HTMLElement {
-    const container = MockFactory.createDOMElement('div');
+    // Use original createElement to get real DOM node (bypassing mocks)
+    const container = originalCreateElement('div');
     container.id = `chart-container-${chartId}`;
     container.style.width = `${width}px`;
     container.style.height = `${height}px`;

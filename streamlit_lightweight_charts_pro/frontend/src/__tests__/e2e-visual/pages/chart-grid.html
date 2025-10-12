@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chart Grid - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #ffffff; padding: 20px; }
+        #grid-container { display: grid; grid-template-columns: 400px 400px; gap: 10px; width: 810px; }
+        .grid-chart { width: 400px; height: 250px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div id="grid-container">
+        <div id="chart-1" class="grid-chart"></div>
+        <div id="chart-2" class="grid-chart"></div>
+        <div id="chart-3" class="grid-chart"></div>
+        <div id="chart-4" class="grid-chart"></div>
+    </div>
+    <script>
+function runTestCase(container) {
+    // Use LightweightCharts directly
+            const data = [];
+            for (let i = 0; i < 30; i++) {
+                data.push({ time: '2024-01-' + String(i + 1).padStart(2, '0'), value: 100 + i + Math.sin(i/5)*10 });
+            }
+            ['chart-1', 'chart-2', 'chart-3', 'chart-4'].forEach((id, idx) => {
+                const chart = LightweightCharts.createChart(document.getElementById(id), {
+                    width: 400, height: 250,
+                    layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+                });
+                const series = chart.addSeries(LightweightCharts.LineSeries);
+            series.applyOptions({ color: ['#2196F3', '#4CAF50', '#FF9800', '#E91E63'][idx] });
+                series.setData(data);
+                chart.timeScale().fitContent();
+            });
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+</script>
+</body>
+</html>

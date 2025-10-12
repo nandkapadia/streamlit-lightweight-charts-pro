@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Annotation Pan Test - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #chart-container { width: 800px; height: 400px; background: white; }
+    </style>
+</head>
+<body>
+    <div id="chart-container"></div>
+    <script>
+function runTestCase(container) {
+    // Create a longer dataset to allow for panning
+    const data = [];
+    const startDate = new Date('2024-01-01');
+    for (let i = 0; i < 100; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        data.push({
+            time: dateStr,
+            value: parseFloat((100 + i * 0.3 + Math.sin(i / 8) * 15).toFixed(2))
+        });
+    }
+
+    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+        timeScale: {
+            rightOffset: 10,
+            barSpacing: 8,
+        },
+    });
+
+    const series = chart.addSeries(LightweightCharts.LineSeries);
+    series.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    series.setData(data);
+
+    // Create annotations at different positions
+    const markers = LightweightCharts.createSeriesMarkers(series, [
+        {
+            time: '2024-01-20',
+            position: 'belowBar',
+            color: '#4CAF50',
+            shape: 'arrowUp',
+            text: 'Buy Signal',
+            size: 2,
+        },
+        {
+            time: '2024-01-50',
+            position: 'aboveBar',
+            color: '#FFEB3B',
+            shape: 'circle',
+            text: 'Resistance',
+            size: 2,
+        },
+        {
+            time: '2024-01-80',
+            position: 'aboveBar',
+            color: '#F44336',
+            shape: 'arrowDown',
+            text: 'Sell Signal',
+            size: 2,
+        },
+    ]);
+
+    // Fit content initially
+    chart.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('chart-container')));
+</script>
+</body>
+</html>

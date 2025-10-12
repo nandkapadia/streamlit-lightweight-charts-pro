@@ -29,6 +29,16 @@ from streamlit_lightweight_charts_pro import (
     create_arrow_annotation,
     create_text_annotation,
 )
+from streamlit_lightweight_charts_pro.charts.options import ChartOptions
+from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
+    TradeVisualizationOptions,
+)
+from streamlit_lightweight_charts_pro.charts.options.ui_options import (
+    LegendOptions,
+    RangeConfig,
+    RangeSwitcherOptions,
+    TimeRange,
+)
 from streamlit_lightweight_charts_pro.data import (
     BandData,
     GradientRibbonData,
@@ -36,8 +46,10 @@ from streamlit_lightweight_charts_pro.data import (
     RibbonData,
     SignalData,
     SingleValueData,
+    TradeData,
     TrendFillData,
 )
+from streamlit_lightweight_charts_pro.type_definitions.enums import TradeVisualization
 
 
 def generate_nse_synthetic_data(
@@ -296,6 +308,200 @@ def calculate_atr(ohlcv_data, period=10):
     return atr_values
 
 
+def generate_sample_trades(ohlcv_data, times):
+    """Generate sample trades using actual candlestick data.
+
+    Creates realistic trades based on actual price movements from the chart data.
+    Profitability is determined by actual price differences between entry and exit.
+
+    Args:
+        ohlcv_data: List of OHLCV data points
+        times: List of timestamps
+
+    Returns:
+        List of TradeData objects based on actual chart prices
+    """
+    trades = []
+
+    # Ensure we have enough data points
+    if len(ohlcv_data) < 100 or len(times) < 100:
+        # Create simple trades for shorter datasets
+        if len(ohlcv_data) >= 20:
+            # Create a profitable long trade for short datasets
+            entry_price = ohlcv_data[5].close
+            exit_price = entry_price * 1.05  # 5% profit
+            trades.append(
+                TradeData(
+                    entry_time=times[5],
+                    entry_price=entry_price,
+                    exit_time=times[15],
+                    exit_price=exit_price,
+                    is_profitable=True,
+                    id="TRADE_001",
+                    additional_data={
+                        "trade_type": "long",
+                        "quantity": 100,
+                        "notes": "Simple profitable test trade (5% gain)",
+                        "pnl": (exit_price - entry_price) * 100,
+                        "pnlPercentage": ((exit_price - entry_price) / entry_price) * 100,
+                    },
+                ),
+            )
+        return trades
+
+    # Trade 1: Use actual candlestick data for realistic trades
+    entry_idx = 5
+    exit_idx = 15
+    entry_price = ohlcv_data[entry_idx].close
+    exit_price = ohlcv_data[exit_idx].close  # Use actual exit price from candlestick data
+
+    # Determine profitability based on actual price movement
+    is_profitable = exit_price > entry_price
+
+    trades.append(
+        TradeData(
+            entry_time=times[entry_idx],
+            entry_price=entry_price,
+            exit_time=times[exit_idx],
+            exit_price=exit_price,
+            is_profitable=is_profitable,
+            id="TRADE_001",
+            additional_data={
+                "strategy": "momentum",
+                "risk_level": "medium",
+                "timeframe": "intraday",
+                "trade_type": "long",
+                "quantity": 100,
+                "notes": "Profitable long trade (5% gain)",
+                "pnl": (exit_price - entry_price) * 100,
+                "pnlPercentage": ((exit_price - entry_price) / entry_price) * 100,
+            },
+        ),
+    )
+
+    # Trade 2: Use actual candlestick data for realistic trades
+    entry_idx = 25
+    exit_idx = 35
+    entry_price = ohlcv_data[entry_idx].close
+    exit_price = ohlcv_data[exit_idx].close  # Use actual exit price from candlestick data
+
+    # Determine profitability based on actual price movement (short trade)
+    is_profitable = exit_price < entry_price
+
+    trades.append(
+        TradeData(
+            entry_time=times[entry_idx],
+            entry_price=entry_price,
+            exit_time=times[exit_idx],
+            exit_price=exit_price,
+            is_profitable=is_profitable,
+            id="TRADE_002",
+            additional_data={
+                "strategy": "mean_reversion",
+                "risk_level": "high",
+                "timeframe": "swing",
+                "trade_type": "short",
+                "quantity": 50,
+                "notes": "Profitable short trade (3% gain)",
+                "pnl": (entry_price - exit_price) * 50,  # Short trade P&L
+                "pnlPercentage": ((entry_price - exit_price) / entry_price) * 100,
+            },
+        ),
+    )
+
+    # Trade 3: Use actual candlestick data for realistic trades
+    entry_idx = 45
+    exit_idx = 55
+    entry_price = ohlcv_data[entry_idx].close
+    exit_price = ohlcv_data[exit_idx].close  # Use actual exit price from candlestick data
+
+    # Determine profitability based on actual price movement (long trade)
+    is_profitable = exit_price > entry_price
+
+    trades.append(
+        TradeData(
+            entry_time=times[entry_idx],
+            entry_price=entry_price,
+            exit_time=times[exit_idx],
+            exit_price=exit_price,
+            is_profitable=is_profitable,
+            id="TRADE_003",
+            additional_data={
+                "strategy": "breakout",
+                "risk_level": "low",
+                "timeframe": "daily",
+                "trade_type": "long",
+                "quantity": 75,
+                "notes": "Losing long trade (2% loss)",
+                "pnl": (exit_price - entry_price) * 75,  # Negative P&L
+                "pnlPercentage": ((exit_price - entry_price) / entry_price) * 100,
+            },
+        ),
+    )
+
+    # Trade 4: Use actual candlestick data for realistic trades
+    entry_idx = 65
+    exit_idx = 75
+    entry_price = ohlcv_data[entry_idx].close
+    exit_price = ohlcv_data[exit_idx].close  # Use actual exit price from candlestick data
+
+    # Determine profitability based on actual price movement (short trade)
+    is_profitable = exit_price < entry_price
+
+    trades.append(
+        TradeData(
+            entry_time=times[entry_idx],
+            entry_price=entry_price,
+            exit_time=times[exit_idx],
+            exit_price=exit_price,
+            is_profitable=is_profitable,
+            id="TRADE_004",
+            additional_data={
+                "strategy": "scalping",
+                "risk_level": "high",
+                "timeframe": "intraday",
+                "trade_type": "short",
+                "quantity": 120,
+                "notes": "Losing short trade (4% loss)",
+                "pnl": (entry_price - exit_price) * 120,  # Short trade loss
+                "pnlPercentage": ((entry_price - exit_price) / entry_price) * 100,
+            },
+        ),
+    )
+
+    # Trade 5: Use actual candlestick data for realistic trades
+    entry_idx = 85
+    exit_idx = 95
+    entry_price = ohlcv_data[entry_idx].close
+    exit_price = ohlcv_data[exit_idx].close  # Use actual exit price from candlestick data
+
+    # Determine profitability based on actual price movement (long trade)
+    is_profitable = exit_price > entry_price
+
+    trades.append(
+        TradeData(
+            entry_time=times[entry_idx],
+            entry_price=entry_price,
+            exit_time=times[exit_idx],
+            exit_price=exit_price,
+            is_profitable=is_profitable,
+            id="TRADE_005",
+            additional_data={
+                "strategy": "trend_following",
+                "risk_level": "medium",
+                "timeframe": "weekly",
+                "trade_type": "long",
+                "quantity": 200,
+                "notes": "Profitable long trade (6% gain)",
+                "pnl": (exit_price - entry_price) * 200,
+                "pnlPercentage": ((exit_price - entry_price) / entry_price) * 100,
+            },
+        ),
+    )
+
+    return trades
+
+
 def generate_sample_data():
     """Generate sample data with realistic uptrends and downtrends."""
     base_time = datetime(2024, 1, 1)
@@ -403,7 +609,12 @@ def main():
 
     st.title("📊 NSE Synthetic Data Test Harness")
     st.markdown(
-        "Testing all series types with realistic NSE data generated using Geometric Brownian Motion.",
+        """
+        Testing all series types with realistic NSE data generated using Geometric Brownian Motion.
+
+        **New Feature**: Hover over the colored rectangles in the candlestick chart to see **interactive trade tooltips**
+        with entry/exit prices, P&L, and trade notes!
+        """,
     )
 
     # Fixed parameters for 180 days of NIFTY50 data
@@ -450,17 +661,232 @@ def main():
 
         # Line Chart
         st.write("**Price Line**")
-        line_chart = Chart(series=LineSeries(data=data["line_data"]))
+        line_series = LineSeries(data=data["line_data"])
+        line_series.title = f"{symbol} Price Line"
+        line_chart = Chart(series=line_series)
         line_chart.render(key="line_test")
 
-        # Candlestick Chart
-        st.write("**OHLC Candlesticks**")
-        candlestick_chart = Chart(series=CandlestickSeries(data=data["ohlcv_data"]))
+        # Candlestick Chart with Trades (testing tooltip functionality)
+        st.write("**OHLC Candlesticks with Trades**")
+        st.caption("🎯 Hover over the colored trade rectangles to see interactive tooltips!")
+
+        # Generate sample trades for testing
+        trades = generate_sample_trades(data["ohlcv_data"], data["times"])
+
+        # Debug: Show trade count
+        if trades:
+            st.success(f"✅ Generated {len(trades)} trades for visualization")
+        else:
+            st.warning("⚠️ No trades generated - check data")
+
+        # Create trade visualization options with rectangles style
+        trade_viz_options = TradeVisualizationOptions(
+            style=TradeVisualization.BOTH,  # Show both rectangles and markers
+            rectangle_fill_opacity=0.3,  # More visible
+            rectangle_border_width=3,  # Thicker border
+            rectangle_color_profit="#4CAF50",  # Green for profitable
+            rectangle_color_loss="#F44336",  # Red for unprofitable
+            marker_size=1,  # Small markers like annotations
+            show_pnl_in_markers=True,
+            # Custom templates for tooltips and markers using flexible data
+            tooltip_template="<div style='font-family: Arial; padding: 6px;'><strong>$$trade_type$$ - $$profit_loss$$</strong><br/>Strategy: $$strategy$$ | Risk: $$risk_level$$<br/>Entry: $$entry_price$$<br/>Exit: $$exit_price$$<br/>P&L: $$pnl$$ ($$pnl_percentage$$%)</div>",
+            marker_template="$$trade_type_lower$$: $$entry_price$$",
+        )
+
+        # Create chart options with trade visualization
+        chart_options = ChartOptions(
+            height=400,
+            trade_visualization=trade_viz_options,
+        )
+
+        # Create candlestick chart with trade visualization options
+        candlestick_series = CandlestickSeries(data=data["ohlcv_data"])
+        candlestick_series.title = f"{symbol} OHLC"
+        candlestick_chart = Chart(
+            series=candlestick_series,
+            options=chart_options,
+        )
+
+        # Add trades to the chart (this will create trade rectangles with tooltips)
+        if trades:
+            candlestick_chart.add_trades(trades)
+
+            # Display trade details for debugging
+            with st.expander("📋 Trade Details (Click to view)", expanded=False):
+                st.write("**Trade Visualization Configuration:**")
+                st.code(f"Style: {trade_viz_options.style.value}")
+                st.code(f"Rectangle Opacity: {trade_viz_options.rectangle_fill_opacity}")
+                st.code(f"Profitable Color: {trade_viz_options.rectangle_color_profit}")
+                st.code(f"Loss Color: {trade_viz_options.rectangle_color_loss}")
+
+                st.write("**Generated Trades:**")
+                for trade in trades:
+                    pnl_color = "green" if trade.is_profitable else "red"
+                    price_diff = trade.exit_price - trade.entry_price
+                    expected_color = "🟢 GREEN" if trade.is_profitable else "🔴 RED"
+                    trade_type = (
+                        trade.additional_data.get("trade_type", "unknown")
+                        if trade.additional_data
+                        else "unknown"
+                    )
+                    notes = trade.additional_data.get("notes", "") if trade.additional_data else ""
+
+                    st.markdown(
+                        f"**{trade.id}** ({trade_type}): "
+                        f"Entry ${trade.entry_price:.2f} → Exit ${trade.exit_price:.2f} "
+                        f"(Δ: {price_diff:+.2f}) | "
+                        f"P&L: <span style='color:{pnl_color}'>${trade.pnl:.2f} "
+                        f"({trade.pnl_percentage:.1f}%)</span> | "
+                        f"Expected: {expected_color} | "
+                        f"{notes}",
+                        unsafe_allow_html=True,
+                    )
+
         candlestick_chart.render(key="candlestick_test")
+
+        # Display trade summary
+        if trades:
+            profitable_trades = sum(1 for t in trades if t.is_profitable)
+            total_pnl = sum(t.pnl for t in trades)
+            win_rate = (profitable_trades / len(trades) * 100) if trades else 0
+
+            col_a, col_b, col_c, col_d = st.columns(4)
+            with col_a:
+                st.metric("Total Trades", len(trades))
+            with col_b:
+                st.metric("Profitable", profitable_trades, delta=f"{win_rate:.0f}%")
+            with col_c:
+                st.metric("Unprofitable", len(trades) - profitable_trades)
+            with col_d:
+                st.metric(
+                    "Total P&L",
+                    f"${total_pnl:,.2f}",
+                    delta=f"{(total_pnl / trades[0].entry_price * 100):.1f}%",
+                )
+
+    with col2:
+        # Trade Visualization Comparison Charts
+        st.subheader("🎨 Trade Visualization Styles")
+
+        if trades:
+            # Chart 1: Markers Only
+            st.write("**1. Markers Only**")
+            st.caption("🎯 Entry/Exit markers with tooltips on hover")
+
+            markers_viz_options = TradeVisualizationOptions(
+                style=TradeVisualization.MARKERS,  # Only markers
+                entry_marker_color_long="#2196F3",  # Blue for long entries
+                entry_marker_color_short="#FF9800",  # Orange for short entries
+                exit_marker_color_profit="#4CAF50",  # Green for profitable exits
+                exit_marker_color_loss="#F44336",  # Red for loss exits
+                marker_size=1,  # Small markers like annotations
+                show_pnl_in_markers=True,
+                # Custom marker template
+                marker_template="$$trade_type_lower$$: $$entry_price$$",
+            )
+
+            markers_chart_options = ChartOptions(
+                height=300,
+                trade_visualization=markers_viz_options,
+            )
+
+            markers_candlestick_series = CandlestickSeries(data=data["ohlcv_data"])
+            markers_candlestick_series.title = f"{symbol} - Markers Only"
+            markers_chart = Chart(
+                series=markers_candlestick_series,
+                options=markers_chart_options,
+            )
+            markers_chart.add_trades(trades)
+            markers_chart.render(key="markers_only_test")
+
+            st.info("💡 **Hover over the colored arrows** to see trade details!")
+
+            # Chart 2: Rectangles Only
+            st.write("**2. Rectangles Only**")
+            st.caption("📦 Trade rectangles with tooltips on hover")
+
+            rectangles_viz_options = TradeVisualizationOptions(
+                style=TradeVisualization.RECTANGLES,  # Only rectangles
+                rectangle_fill_opacity=0.25,  # More visible
+                rectangle_border_width=2,
+                rectangle_color_profit="#4CAF50",  # Green for profitable
+                rectangle_color_loss="#F44336",  # Red for unprofitable
+                rectangle_show_text=False,  # No text overlay
+                # Custom tooltip template
+                tooltip_template="<div style='font-family: Arial; padding: 6px;'><strong>$$trade_type$$ - $$profit_loss$$</strong><br/>Strategy: $$strategy$$ | Risk: $$risk_level$$<br/>Entry: $$entry_price$$<br/>Exit: $$exit_price$$<br/>P&L: $$pnl$$ ($$pnl_percentage$$%)</div>",
+            )
+
+            rectangles_chart_options = ChartOptions(
+                height=300,
+                trade_visualization=rectangles_viz_options,
+            )
+
+            rectangles_candlestick_series = CandlestickSeries(data=data["ohlcv_data"])
+            rectangles_candlestick_series.title = f"{symbol} - Rectangles Only"
+            rectangles_chart = Chart(
+                series=rectangles_candlestick_series,
+                options=rectangles_chart_options,
+            )
+            rectangles_chart.add_trades(trades)
+            rectangles_chart.render(key="rectangles_only_test")
+
+            st.info("💡 **Hover over the colored rectangles** to see trade details!")
+
+            # Style Comparison Info
+            with st.expander("🎨 **Visualization Style Comparison**", expanded=False):
+                st.markdown("""
+                **Markers Only (`TradeVisualization.MARKERS`)**:
+                - ✅ Entry markers: Blue arrows (↑) for LONG, Orange arrows (↓) for SHORT
+                - ✅ Exit markers: Green arrows for profitable, Red arrows for losses
+                - ✅ Shows P&L in marker text
+                - ✅ Clean, minimal visualization
+                - ✅ Good for precise entry/exit point analysis
+
+                **Rectangles Only (`TradeVisualization.RECTANGLES`)**:
+                - ✅ Colored rectangles spanning from entry to exit
+                - ✅ Green rectangles for profitable trades
+                - ✅ Red rectangles for unprofitable trades
+                - ✅ Semi-transparent fill shows underlying price action
+                - ✅ Good for trade duration and price range analysis
+
+                **Both (`TradeVisualization.BOTH`)**:
+                - ✅ Combines markers AND rectangles
+                - ✅ Maximum information density
+                - ✅ Best for comprehensive trade analysis
+                """)
+
+                st.code(
+                    """
+# Usage Examples:
+
+# Markers only
+markers_options = TradeVisualizationOptions(
+    style=TradeVisualization.MARKERS,
+    marker_size=8,
+    show_pnl_in_markers=True
+)
+
+# Rectangles only
+rectangles_options = TradeVisualizationOptions(
+    style=TradeVisualization.RECTANGLES,
+    rectangle_fill_opacity=0.25,
+    rectangle_border_width=2
+)
+
+# Both styles
+both_options = TradeVisualizationOptions(
+    style=TradeVisualization.BOTH,
+    # ... configure both marker and rectangle options
+)
+                """,
+                    language="python",
+                )
 
         # Area Chart
         st.write("**Price Area**")
-        area_chart = Chart(series=AreaSeries(data=data["line_data"]))
+        area_series = AreaSeries(data=data["line_data"])
+        area_series.title = f"{symbol} Area"
+        area_chart = Chart(series=area_series)
         area_chart.render(key="area_test")
 
     with col2:
@@ -468,12 +894,16 @@ def main():
 
         # Bar Chart
         st.write("**OHLC Bars**")
-        bar_chart = Chart(series=BarSeries(data=data["ohlcv_data"]))
+        bar_series = BarSeries(data=data["ohlcv_data"])
+        bar_series.title = f"{symbol} Bars"
+        bar_chart = Chart(series=bar_series)
         bar_chart.render(key="bar_test")
 
         # Histogram
         st.write("**Volume Histogram**")
-        histogram_chart = Chart(series=HistogramSeries(data=data["volume_data"]))
+        histogram_series = HistogramSeries(data=data["volume_data"])
+        histogram_series.title = "Volume"
+        histogram_chart = Chart(series=histogram_series)
         histogram_chart.render(key="histogram_test")
 
         # Baseline
@@ -483,6 +913,7 @@ def main():
         data_mean = sum(line_values) / len(line_values)
 
         baseline_series = BaselineSeries(data=data["line_data"])
+        baseline_series.title = f"{symbol} Baseline"
         baseline_series.base_value = {"type": "price", "price": round(data_mean, 2)}
         baseline_series.top_fill_color1 = "rgba(76, 175, 80, 0.3)"  # Green for above mean
         baseline_series.bottom_fill_color1 = "rgba(255, 82, 82, 0.3)"  # Red for below mean
@@ -575,11 +1006,15 @@ def main():
         uptrend_fill_color="rgba(76, 175, 80, 0.3)",  # Green for uptrend
         downtrend_fill_color="rgba(239, 83, 80, 0.3)",  # Red for downtrend
     )
+    trend_fill_series.title = "Supertrend"
 
     # Add candlestick series to show price action
+    trend_candlestick_series = CandlestickSeries(data=data["ohlcv_data"])
+    trend_candlestick_series.title = f"{symbol} with Supertrend"
+
     trend_fill_chart = Chart(
         series=[
-            CandlestickSeries(data=data["ohlcv_data"]),
+            trend_candlestick_series,
             trend_fill_series,
         ],
     )
@@ -598,7 +1033,9 @@ def main():
         )
         for i in range(len(data["times"]))
     ]
-    band_chart = Chart(series=BandSeries(data=band_data))
+    band_series = BandSeries(data=band_data)
+    band_series.title = "Bollinger Bands"
+    band_chart = Chart(series=band_series)
     band_chart.render(key="band_test")
 
     # Ribbon Series
@@ -611,7 +1048,9 @@ def main():
         )
         for i in range(len(data["times"]))
     ]
-    ribbon_chart = Chart(series=RibbonSeries(data=ribbon_data))
+    ribbon_series = RibbonSeries(data=ribbon_data)
+    ribbon_series.title = "Price Channel"
+    ribbon_chart = Chart(series=ribbon_series)
     ribbon_chart.render(key="ribbon_test")
 
     # Gradient Ribbon Series
@@ -635,6 +1074,7 @@ def main():
         gradient_end_color="#F44336",  # Red for high gradient
         normalize_gradients=False,  # Use gradient values as-is (0-1)
     )
+    gradient_ribbon_series.title = "Momentum Gradient"
 
     gradient_ribbon_chart = Chart(series=gradient_ribbon_series)
     gradient_ribbon_chart.render(key="gradient_ribbon_test")
@@ -651,26 +1091,26 @@ def main():
         )
         for i in range(len(data["times"]))
     ]
+
+    # Create line series for price axis
+    signal_line_series = LineSeries(data=data["line_data"])
+    signal_line_series.title = f"{symbol} Price"
+
+    # Create signal series
+    signal_series = SignalSeries(data=signal_data)
+    signal_series.title = "Buy/Sell Signals"
+
     # Add a line series to ensure price axis is correctly set
     signal_chart = Chart(
         series=[
-            LineSeries(data=data["line_data"]),
-            SignalSeries(data=signal_data),
+            signal_line_series,
+            signal_series,
         ],
     )
     signal_chart.render(key="signal_test")
 
     # Multi-pane chart with legends and range switcher
     st.subheader("Multi-Pane Chart with Legends & Range Switcher")
-
-    # Import legend and range switcher options
-    from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-    from streamlit_lightweight_charts_pro.charts.options.ui_options import (
-        LegendOptions,
-        RangeConfig,
-        RangeSwitcherOptions,
-        TimeRange,
-    )
 
     # Create range switcher configuration
     range_switcher = RangeSwitcherOptions(
@@ -749,8 +1189,10 @@ def main():
         create_text_annotation(data["times"][10], 105, "Support"),
         create_arrow_annotation(data["times"][20], 120, "Resistance"),
     ]
+    annotation_candlestick = CandlestickSeries(data=data["ohlcv_data"])
+    annotation_candlestick.title = f"{symbol} with Annotations"
     annotation_chart = Chart(
-        series=CandlestickSeries(data=data["ohlcv_data"]),
+        series=annotation_candlestick,
         annotations=annotations,
     )
     annotation_chart.render(key="annotation_test")

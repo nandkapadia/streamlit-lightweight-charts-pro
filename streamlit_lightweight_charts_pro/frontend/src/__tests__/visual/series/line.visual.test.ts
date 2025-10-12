@@ -1,4 +1,7 @@
 /**
+ * @vitest-environment jsdom
+ */
+/**
  * Visual Regression Tests for Line Series
  *
  * Tests verify actual canvas rendering of line charts including:
@@ -35,7 +38,7 @@ describe('Line Series Visual Rendering', () => {
   });
 
   it('renders basic line series with solid line', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(LineSeries, {
         color: TestColors.BLUE,
         lineWidth: 2,
@@ -55,7 +58,7 @@ describe('Line Series Visual Rendering', () => {
   });
 
   it('renders line series with dashed style', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(LineSeries, {
         color: TestColors.RED,
         lineWidth: 2,
@@ -75,7 +78,7 @@ describe('Line Series Visual Rendering', () => {
   });
 
   it('renders line series with dotted style', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(LineSeries, {
         color: TestColors.GREEN,
         lineWidth: 2,
@@ -95,7 +98,7 @@ describe('Line Series Visual Rendering', () => {
   });
 
   it('renders line series with thick line width', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(LineSeries, {
         color: TestColors.ORANGE,
         lineWidth: 5 as any,
@@ -116,7 +119,7 @@ describe('Line Series Visual Rendering', () => {
 
   it('renders line series with crosshair marker', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(LineSeries, {
           color: TestColors.PURPLE,
           lineWidth: 2,
@@ -147,7 +150,7 @@ describe('Line Series Visual Rendering', () => {
   });
 
   it('renders multiple line series with different colors', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series1 = chart.addSeries(LineSeries, {
         color: TestColors.BLUE,
         lineWidth: 2,
@@ -179,7 +182,7 @@ describe('Line Series Visual Rendering', () => {
 
   it('renders line series with price axis visible', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(LineSeries, {
           color: TestColors.BLUE,
           lineWidth: 2,
@@ -210,7 +213,7 @@ describe('Line Series Visual Rendering', () => {
 
   it('renders line series on dark background', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(LineSeries, {
           color: '#00E676',
           lineWidth: 2,
@@ -238,7 +241,7 @@ describe('Line Series Visual Rendering', () => {
   });
 
   it('renders line series with stepped line type', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(LineSeries, {
         color: TestColors.BLUE,
         lineWidth: 2,
@@ -257,7 +260,7 @@ describe('Line Series Visual Rendering', () => {
   });
 
   it('renders line series with line hidden (markers only)', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(LineSeries, {
         color: TestColors.BLUE,
         lineVisible: false,
@@ -277,7 +280,7 @@ describe('Line Series Visual Rendering', () => {
   });
 
   it('renders line series with point markers', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(LineSeries, {
         color: TestColors.BLUE,
         lineWidth: 2,
@@ -297,7 +300,7 @@ describe('Line Series Visual Rendering', () => {
   });
 
   it('renders line series with large point markers', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const series = chart.addSeries(LineSeries, {
         color: TestColors.ORANGE,
         lineWidth: 1,
@@ -318,7 +321,7 @@ describe('Line Series Visual Rendering', () => {
 
   it('renders line series with custom price line styling', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(LineSeries, {
           color: TestColors.BLUE,
           lineWidth: 2,
@@ -348,7 +351,7 @@ describe('Line Series Visual Rendering', () => {
 
   it('renders line series with dotted price line', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(LineSeries, {
           color: TestColors.GREEN,
           lineWidth: 2,
@@ -378,7 +381,7 @@ describe('Line Series Visual Rendering', () => {
 
   it('renders line series with title label', async () => {
     renderResult = await renderChart(
-      (chart) => {
+      chart => {
         const series = chart.addSeries(LineSeries, {
           color: TestColors.BLUE,
           lineWidth: 2,
@@ -404,7 +407,7 @@ describe('Line Series Visual Rendering', () => {
   });
 
   it('renders chart with hidden line series', async () => {
-    renderResult = await renderChart((chart) => {
+    renderResult = await renderChart(chart => {
       const visibleSeries = chart.addSeries(LineSeries, {
         color: TestColors.BLUE,
         lineWidth: 2,

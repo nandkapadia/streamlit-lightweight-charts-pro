@@ -9,7 +9,10 @@ import { LineStyle, IChartApi } from 'lightweight-charts';
 import { UnifiedSeriesDescriptor, PropertyDescriptors } from '../core/UnifiedSeriesDescriptor';
 import { createBandSeries, type BandData } from '../../plugins/series/bandSeriesPlugin';
 import { createRibbonSeries, type RibbonData } from '../../plugins/series/ribbonSeriesPlugin';
-import { createGradientRibbonSeries, type GradientRibbonData } from '../../plugins/series/gradientRibbonSeriesPlugin';
+import {
+  createGradientRibbonSeries,
+  type GradientRibbonData,
+} from '../../plugins/series/gradientRibbonSeriesPlugin';
 import { createSignalSeries, type SignalData } from '../../plugins/series/signalSeriesPlugin';
 import { createTrendFillSeries } from '../../plugins/series/trendFillSeriesPlugin';
 
@@ -24,41 +27,23 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   description: 'Three-line band with filled areas (e.g., Bollinger Bands)',
 
   properties: {
-    upperLine: PropertyDescriptors.line(
-      'Upper Line',
-      '#2962FF',
-      2,
-      LineStyle.Solid,
-      {
-        colorKey: 'upperLineColor',
-        widthKey: 'upperLineWidth',
-        styleKey: 'upperLineStyle',
-      }
-    ),
+    upperLine: PropertyDescriptors.line('Upper Line', '#2962FF', 2, LineStyle.Solid, {
+      colorKey: 'upperLineColor',
+      widthKey: 'upperLineWidth',
+      styleKey: 'upperLineStyle',
+    }),
     upperLineVisible: PropertyDescriptors.boolean('Upper Line Visible', true, 'Upper Line'),
-    middleLine: PropertyDescriptors.line(
-      'Middle Line',
-      '#F7931A',
-      2,
-      LineStyle.Solid,
-      {
-        colorKey: 'middleLineColor',
-        widthKey: 'middleLineWidth',
-        styleKey: 'middleLineStyle',
-      }
-    ),
+    middleLine: PropertyDescriptors.line('Middle Line', '#F7931A', 2, LineStyle.Solid, {
+      colorKey: 'middleLineColor',
+      widthKey: 'middleLineWidth',
+      styleKey: 'middleLineStyle',
+    }),
     middleLineVisible: PropertyDescriptors.boolean('Middle Line Visible', true, 'Middle Line'),
-    lowerLine: PropertyDescriptors.line(
-      'Lower Line',
-      '#2962FF',
-      2,
-      LineStyle.Solid,
-      {
-        colorKey: 'lowerLineColor',
-        widthKey: 'lowerLineWidth',
-        styleKey: 'lowerLineStyle',
-      }
-    ),
+    lowerLine: PropertyDescriptors.line('Lower Line', '#2962FF', 2, LineStyle.Solid, {
+      colorKey: 'lowerLineColor',
+      widthKey: 'lowerLineWidth',
+      styleKey: 'lowerLineStyle',
+    }),
     lowerLineVisible: PropertyDescriptors.boolean('Lower Line Visible', true, 'Lower Line'),
     upperFillColor: PropertyDescriptors.color('Upper Fill Color', 'rgba(41, 98, 255, 0.1)', 'Fill'),
     upperFillVisible: PropertyDescriptors.boolean('Upper Fill Visible', true, 'Fill'),
@@ -104,29 +89,17 @@ export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   description: 'Two-line ribbon with filled area between lines',
 
   properties: {
-    upperLine: PropertyDescriptors.line(
-      'Upper Line',
-      '#2962FF',
-      2,
-      LineStyle.Solid,
-      {
-        colorKey: 'upperLineColor',
-        widthKey: 'upperLineWidth',
-        styleKey: 'upperLineStyle',
-      }
-    ),
+    upperLine: PropertyDescriptors.line('Upper Line', '#2962FF', 2, LineStyle.Solid, {
+      colorKey: 'upperLineColor',
+      widthKey: 'upperLineWidth',
+      styleKey: 'upperLineStyle',
+    }),
     upperLineVisible: PropertyDescriptors.boolean('Upper Line Visible', true, 'Upper Line'),
-    lowerLine: PropertyDescriptors.line(
-      'Lower Line',
-      '#2962FF',
-      2,
-      LineStyle.Solid,
-      {
-        colorKey: 'lowerLineColor',
-        widthKey: 'lowerLineWidth',
-        styleKey: 'lowerLineStyle',
-      }
-    ),
+    lowerLine: PropertyDescriptors.line('Lower Line', '#2962FF', 2, LineStyle.Solid, {
+      colorKey: 'lowerLineColor',
+      widthKey: 'lowerLineWidth',
+      styleKey: 'lowerLineStyle',
+    }),
     lowerLineVisible: PropertyDescriptors.boolean('Lower Line Visible', true, 'Lower Line'),
     fillColor: PropertyDescriptors.color('Fill Color', 'rgba(41, 98, 255, 0.1)', 'Fill'),
     fillVisible: PropertyDescriptors.boolean('Fill Visible', true, 'Fill'),
@@ -164,29 +137,17 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   description: 'Two-line ribbon with gradient-filled area',
 
   properties: {
-    upperLine: PropertyDescriptors.line(
-      'Upper Line',
-      '#2962FF',
-      2,
-      LineStyle.Solid,
-      {
-        colorKey: 'upperLineColor',
-        widthKey: 'upperLineWidth',
-        styleKey: 'upperLineStyle',
-      }
-    ),
+    upperLine: PropertyDescriptors.line('Upper Line', '#2962FF', 2, LineStyle.Solid, {
+      colorKey: 'upperLineColor',
+      widthKey: 'upperLineWidth',
+      styleKey: 'upperLineStyle',
+    }),
     upperLineVisible: PropertyDescriptors.boolean('Upper Line Visible', true, 'Upper Line'),
-    lowerLine: PropertyDescriptors.line(
-      'Lower Line',
-      '#2962FF',
-      2,
-      LineStyle.Solid,
-      {
-        colorKey: 'lowerLineColor',
-        widthKey: 'lowerLineWidth',
-        styleKey: 'lowerLineStyle',
-      }
-    ),
+    lowerLine: PropertyDescriptors.line('Lower Line', '#2962FF', 2, LineStyle.Solid, {
+      colorKey: 'lowerLineColor',
+      widthKey: 'lowerLineWidth',
+      styleKey: 'lowerLineStyle',
+    }),
     lowerLineVisible: PropertyDescriptors.boolean('Lower Line Visible', true, 'Lower Line'),
     fillVisible: PropertyDescriptors.boolean('Fill Visible', true, 'Fill'),
     gradientStartColor: PropertyDescriptors.color(
@@ -224,7 +185,10 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   } as any, // Factory accepts additional options beyond primitive options
 
   create: (chart, data, options, _paneId = 0) => {
-    return createGradientRibbonSeries(chart as IChartApi, { ...options, data: data as GradientRibbonData[] });
+    return createGradientRibbonSeries(chart as IChartApi, {
+      ...options,
+      data: data as GradientRibbonData[],
+    });
   },
 };
 
@@ -280,41 +244,27 @@ export const TREND_FILL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
       'Fill'
     ),
     fillVisible: PropertyDescriptors.boolean('Fill Visible', true, 'Fill'),
-    uptrendLine: PropertyDescriptors.line(
-      'Uptrend Line',
-      '#4CAF50',
-      2,
-      LineStyle.Solid,
-      {
-        colorKey: 'uptrendLineColor',
-        widthKey: 'uptrendLineWidth',
-        styleKey: 'uptrendLineStyle',
-      }
-    ),
+    uptrendLine: PropertyDescriptors.line('Uptrend Line', '#4CAF50', 2, LineStyle.Solid, {
+      colorKey: 'uptrendLineColor',
+      widthKey: 'uptrendLineWidth',
+      styleKey: 'uptrendLineStyle',
+    }),
     uptrendLineVisible: PropertyDescriptors.boolean('Uptrend Line Visible', true, 'Uptrend Line'),
-    downtrendLine: PropertyDescriptors.line(
-      'Downtrend Line',
-      '#F44336',
-      2,
-      LineStyle.Solid,
-      {
-        colorKey: 'downtrendLineColor',
-        widthKey: 'downtrendLineWidth',
-        styleKey: 'downtrendLineStyle',
-      }
+    downtrendLine: PropertyDescriptors.line('Downtrend Line', '#F44336', 2, LineStyle.Solid, {
+      colorKey: 'downtrendLineColor',
+      widthKey: 'downtrendLineWidth',
+      styleKey: 'downtrendLineStyle',
+    }),
+    downtrendLineVisible: PropertyDescriptors.boolean(
+      'Downtrend Line Visible',
+      true,
+      'Downtrend Line'
     ),
-    downtrendLineVisible: PropertyDescriptors.boolean('Downtrend Line Visible', true, 'Downtrend Line'),
-    baseLine: PropertyDescriptors.line(
-      'Base Line',
-      '#666666',
-      1,
-      LineStyle.Dotted,
-      {
-        colorKey: 'baseLineColor',
-        widthKey: 'baseLineWidth',
-        styleKey: 'baseLineStyle',
-      }
-    ),
+    baseLine: PropertyDescriptors.line('Base Line', '#666666', 1, LineStyle.Dotted, {
+      colorKey: 'baseLineColor',
+      widthKey: 'baseLineWidth',
+      styleKey: 'baseLineStyle',
+    }),
     baseLineVisible: PropertyDescriptors.boolean('Base Line Visible', false, 'Base Line'),
   },
 

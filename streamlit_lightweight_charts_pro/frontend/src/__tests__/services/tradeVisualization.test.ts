@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * @fileoverview Comprehensive tests for trade visualization service
  *
  * Tests cover:
@@ -98,6 +99,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -118,6 +120,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
@@ -138,6 +141,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'both' };
@@ -160,6 +164,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -179,6 +184,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -198,6 +204,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -217,6 +224,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -236,6 +244,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -255,6 +264,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -276,6 +286,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -297,6 +308,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'short',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -318,6 +330,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -337,6 +350,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = {
@@ -360,6 +374,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'short',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = {
@@ -383,6 +398,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
             text: 'Custom Trade Text',
           },
         ];
@@ -407,6 +423,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -428,6 +445,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
@@ -452,6 +470,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = {
@@ -474,6 +493,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: false,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = {
@@ -496,6 +516,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = {
@@ -518,6 +539,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = {
@@ -540,6 +562,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
@@ -563,6 +586,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
           {
             entryTime: 1672531200,
@@ -572,6 +596,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-2',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
@@ -591,6 +616,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const chartData = [
@@ -618,6 +644,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const chartData = [
@@ -644,6 +671,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const chartData = [
@@ -667,6 +695,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'rectangles' };
@@ -720,6 +749,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = {
@@ -746,6 +776,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = {
@@ -770,6 +801,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
         ];
         const options: TradeVisualizationOptions = {
@@ -794,6 +826,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
           {
             entryTime: 1672704000,
@@ -803,6 +836,7 @@ describe('Trade Visualization Service', () => {
             quantity: 5,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-2',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'both' };
@@ -823,6 +857,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
           {
             entryTime: 1672704000,
@@ -832,6 +867,7 @@ describe('Trade Visualization Service', () => {
             quantity: 5,
             tradeType: 'long',
             isProfitable: false,
+            id: 'trade-2',
           },
         ];
         const options: TradeVisualizationOptions = {
@@ -856,6 +892,7 @@ describe('Trade Visualization Service', () => {
             quantity: 10,
             tradeType: 'long',
             isProfitable: true,
+            id: 'trade-1',
           },
           {
             entryTime: 1672704000,
@@ -865,6 +902,7 @@ describe('Trade Visualization Service', () => {
             quantity: 5,
             tradeType: 'short',
             isProfitable: true,
+            id: 'trade-2',
           },
         ];
         const options: TradeVisualizationOptions = { style: 'markers' };
@@ -1082,5 +1120,4 @@ describe('Trade Visualization Service', () => {
       expect(result).toEqual([]);
     });
   });
-
 });

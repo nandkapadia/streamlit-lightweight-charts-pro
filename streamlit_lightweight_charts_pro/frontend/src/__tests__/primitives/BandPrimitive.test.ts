@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * Tests for BandPrimitive
  *
  * This primitive renders filled areas between three lines (upper, middle, lower)

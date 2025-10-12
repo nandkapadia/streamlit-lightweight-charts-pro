@@ -1,8 +1,62 @@
+/**
+ * @fileoverview Annotation System
+ *
+ * Handles conversion of annotation data to visual elements (markers, shapes, texts).
+ * Provides robust parsing and validation for annotation display on charts.
+ *
+ * This service is responsible for:
+ * - Converting annotation objects to Lightweight Charts markers
+ * - Creating shape primitives (rectangles, lines)
+ * - Processing text annotations with positioning
+ * - Validating annotation data with defensive programming
+ * - Layer-based annotation organization
+ *
+ * Architecture:
+ * - Pure functions (no state)
+ * - Defensive validation at every step
+ * - Graceful degradation on errors
+ * - Time parsing with timezone handling
+ * - Support for multiple annotation types
+ *
+ * Annotation Types Supported:
+ * - **arrow**: Arrow markers (up/down) at specific points
+ * - **shape**: Custom shapes (circle, square, etc.)
+ * - **circle**: Circle markers at specific points
+ * - **rectangle**: Rectangular overlays
+ * - **line**: Horizontal/vertical lines
+ * - **text**: Text labels at specific coordinates
+ *
+ * @example
+ * ```typescript
+ * const annotations = [
+ *   {
+ *     type: 'arrow',
+ *     time: '2024-01-01',
+ *     price: 100,
+ *     position: 'above',
+ *     color: '#4CAF50',
+ *     text: 'Buy Signal'
+ *   }
+ * ];
+ *
+ * const elements = createAnnotationVisualElements(annotations);
+ * // Returns: { markers: [...], shapes: [], texts: [] }
+ * ```
+ */
+
 import { Annotation, AnnotationLayer, AnnotationText } from '../types';
 import { logger } from '../utils/logger';
 import { ShapeData } from '../types/ChartInterfaces';
 import { UTCTimestamp, SeriesMarker, Time } from 'lightweight-charts';
 
+/**
+ * Result of annotation processing containing all visual elements
+ *
+ * @interface AnnotationVisualElements
+ * @property {SeriesMarker<Time>[]} markers - Lightweight Charts markers (arrows, shapes)
+ * @property {ShapeData[]} shapes - Custom shape primitives (rectangles, lines)
+ * @property {AnnotationText[]} texts - Text label annotations
+ */
 export interface AnnotationVisualElements {
   markers: SeriesMarker<Time>[];
   shapes: ShapeData[];

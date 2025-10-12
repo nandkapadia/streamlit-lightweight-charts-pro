@@ -1,3 +1,47 @@
+/**
+ * @fileoverview Base Pane Primitive
+ *
+ * Abstract base class for all pane primitives (legends, range switchers, buttons).
+ * Provides comprehensive foundation including layout management, event handling,
+ * template processing, and React integration.
+ *
+ * This base class provides:
+ * - **Layout Management**: Automatic corner positioning and stacking
+ * - **Event System**: Integration with PrimitiveEventManager
+ * - **Template Processing**: Built-in TemplateEngine access
+ * - **Coordinate Service**: Centralized coordinate calculations
+ * - **React Integration**: Support for React portal rendering
+ * - **Lifecycle Management**: Proper attach/detach with cleanup
+ *
+ * Architecture:
+ * - Abstract class (must be extended)
+ * - Implements IPanePrimitive and IPositionableWidget
+ * - Lazy service initialization (avoids loading order issues)
+ * - Template method pattern for customization
+ * - Comprehensive cleanup to prevent memory leaks
+ *
+ * DRY Principles:
+ * - Single source of truth for primitive behavior
+ * - Shared layout management across all primitives
+ * - Unified event handling
+ * - Consistent template processing
+ *
+ * @example
+ * ```typescript
+ * class MyPrimitive extends BasePanePrimitive {
+ *   protected createPrimitiveElement(): HTMLElement {
+ *     const el = document.createElement('div');
+ *     el.textContent = 'My Primitive';
+ *     return el;
+ *   }
+ *
+ *   updateView(): void {
+ *     // Custom update logic
+ *   }
+ * }
+ * ```
+ */
+
 import { IChartApi, ISeriesApi, IPanePrimitive, Time } from 'lightweight-charts';
 import { CornerLayoutManager } from '../services/CornerLayoutManager';
 import { ChartCoordinateService } from '../services/ChartCoordinateService';
@@ -217,7 +261,7 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
                 x: newCoords.x,
                 y: newCoords.y,
                 width: newCoords.width,
-                height: newCoords.height
+                height: newCoords.height,
               };
 
               if (this.layoutManager) {
@@ -233,7 +277,12 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
   /**
    * Check if pane coordinates changed (ignoring sub-pixel jitter)
    */
-  private hasCoordinatesChanged(newCoords: { x: number; y: number; width: number; height: number }): boolean {
+  private hasCoordinatesChanged(newCoords: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }): boolean {
     if (!this.lastPaneCoords) return true;
 
     return (

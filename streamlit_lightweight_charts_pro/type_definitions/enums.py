@@ -288,6 +288,20 @@ class MarkerShape(str, Enum):
 
 
 class AnnotationType(str, Enum):
+    """Annotation type enumeration.
+
+    Defines the available types of annotations that can be placed on charts
+    to mark important points, draw shapes, or add visual indicators.
+
+    Attributes:
+        TEXT: Text annotation - displays text at a specific location.
+        ARROW: Arrow annotation - points to a specific location with an arrow.
+        SHAPE: Shape annotation - draws geometric shapes (circles, squares, etc.).
+        LINE: Line annotation - draws horizontal or vertical lines.
+        RECTANGLE: Rectangle annotation - draws rectangular shapes.
+        CIRCLE: Circle annotation - draws circular shapes.
+    """
+
     TEXT = "text"
     ARROW = "arrow"
     SHAPE = "shape"
@@ -297,12 +311,40 @@ class AnnotationType(str, Enum):
 
 
 class AnnotationPosition(str, Enum):
+    """Annotation position enumeration.
+
+    Defines where annotations should be positioned relative to the data point
+    or price level on the chart.
+
+    Attributes:
+        ABOVE: Position annotation above the data point.
+        BELOW: Position annotation below the data point.
+        INLINE: Position annotation inline with the data point.
+    """
+
     ABOVE = "above"
     BELOW = "below"
     INLINE = "inline"
 
 
 class ColumnNames(str, Enum):
+    """Column name enumeration for DataFrame integration.
+
+    Defines the standard column names used when converting pandas DataFrames
+    to chart data. These names ensure consistent mapping between DataFrame
+    columns and chart data fields.
+
+    Attributes:
+        TIME: Time or datetime column.
+        OPEN: Open price column (for OHLC data).
+        HIGH: High price column (for OHLC data).
+        LOW: Low price column (for OHLC data).
+        CLOSE: Close price column (for OHLC data).
+        VOLUME: Volume column (for OHLCV data).
+        DATETIME: Datetime column (alternative to TIME).
+        VALUE: Value column (for single-value data like line charts).
+    """
+
     TIME = "time"
     OPEN = "open"
     HIGH = "high"
@@ -314,14 +356,35 @@ class ColumnNames(str, Enum):
 
 
 class TradeType(str, Enum):
-    """Trade type enumeration."""
+    """Trade type enumeration.
+
+    Defines the direction of a trade (long or short).
+    Used for trade visualization and profit/loss calculations.
+
+    Attributes:
+        LONG: Long trade - profit when price goes up.
+        SHORT: Short trade - profit when price goes down.
+    """
 
     LONG = "long"
     SHORT = "short"
 
 
 class TradeVisualization(str, Enum):
-    """Trade visualization style options."""
+    """Trade visualization style enumeration.
+
+    Defines how trades should be visualized on the chart.
+    Multiple visualization styles can be combined to create
+    comprehensive trade displays.
+
+    Attributes:
+        MARKERS: Display entry/exit markers only.
+        RECTANGLES: Display rectangle spanning from entry to exit.
+        BOTH: Display both markers and rectangles.
+        LINES: Display connecting lines between entry and exit.
+        ARROWS: Display directional arrows from entry to exit.
+        ZONES: Display colored zones with transparency around trades.
+    """
 
     MARKERS = "markers"  # Just entry/exit markers
     RECTANGLES = "rectangles"  # Rectangle from entry to exit
@@ -332,6 +395,16 @@ class TradeVisualization(str, Enum):
 
 
 class BackgroundStyle(str, Enum):
+    """Background style enumeration.
+
+    Defines how chart backgrounds should be styled.
+    Controls whether backgrounds use solid colors or gradients.
+
+    Attributes:
+        SOLID: Solid background color.
+        VERTICAL_GRADIENT: Vertical gradient background.
+    """
+
     SOLID = "solid"
     VERTICAL_GRADIENT = "gradient"
 

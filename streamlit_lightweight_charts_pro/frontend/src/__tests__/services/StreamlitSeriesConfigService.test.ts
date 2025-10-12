@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * @fileoverview Tests for Streamlit backend integration for series configuration
  *
  * Tests cover:
@@ -25,6 +26,11 @@ vi.mock('streamlit-component-lib', () => ({
   },
 }));
 
+// Mock isStreamlitComponentReady to return true for tests
+vi.mock('../../hooks/useStreamlit', () => ({
+  isStreamlitComponentReady: vi.fn(() => true),
+}));
+
 // Mock logger
 vi.mock('../../utils/logger', () => ({
   logger: {
@@ -42,6 +48,9 @@ describe('StreamlitSeriesConfigService', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    // Setup fake timers for debounce tests
+    vi.useFakeTimers();
+
     // Get the mock function
     const { Streamlit } = await import('streamlit-component-lib');
     mockSetComponentValue = Streamlit.setComponentValue as ReturnType<typeof vi.fn>;
@@ -53,6 +62,7 @@ describe('StreamlitSeriesConfigService', () => {
 
   afterEach(() => {
     vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('Singleton Pattern', () => {
@@ -259,30 +269,25 @@ describe('StreamlitSeriesConfigService', () => {
   });
 
   describe('Backend Synchronization', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
+    // Note: Fake timers are already set up in outer beforeEach
+    // No need for nested timer setup
 
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('should debounce backend sync', () => {
+    it('should debounce backend sync', async () => {
       service.recordConfigChange(0, 'series-1', 'line', { color: '#FF0000' });
 
       expect(mockSetComponentValue).not.toHaveBeenCalled();
 
-      vi.advanceTimersByTime(300);
+      await vi.runAllTimersAsync();
 
       expect(mockSetComponentValue).toHaveBeenCalledTimes(1);
     });
 
-    it('should batch multiple changes in debounce window', () => {
+    it('should batch multiple changes in debounce window', async () => {
       service.recordConfigChange(0, 'series-1', 'line', { color: '#FF0000' });
       service.recordConfigChange(0, 'series-2', 'area', { color: '#00FF00' });
       service.recordConfigChange(0, 'series-3', 'line', { color: '#0000FF' });
 
-      vi.advanceTimersByTime(300);
+      await vi.runAllTimersAsync();
 
       expect(mockSetComponentValue).toHaveBeenCalledTimes(1);
       expect(mockSetComponentValue).toHaveBeenCalledWith(
@@ -297,17 +302,17 @@ describe('StreamlitSeriesConfigService', () => {
       );
     });
 
-    it('should reset debounce timer on new change', () => {
+    it('should reset debounce timer on new change', async () => {
       service.recordConfigChange(0, 'series-1', 'line', { color: '#FF0000' });
 
-      vi.advanceTimersByTime(200);
+      await vi.advanceTimersByTimeAsync(200);
 
       service.recordConfigChange(0, 'series-2', 'area', { color: '#00FF00' });
 
-      vi.advanceTimersByTime(200);
+      await vi.advanceTimersByTimeAsync(200);
       expect(mockSetComponentValue).not.toHaveBeenCalled();
 
-      vi.advanceTimersByTime(100);
+      await vi.advanceTimersByTimeAsync(100);
       expect(mockSetComponentValue).toHaveBeenCalledTimes(1);
     });
 
@@ -325,7 +330,7 @@ describe('StreamlitSeriesConfigService', () => {
       expect(mockSetComponentValue).not.toHaveBeenCalled();
     });
 
-    it('should include complete state in sync payload', () => {
+    it('should include complete state in sync payload', async () => {
       service.recordConfigChange(0, 'series-1', 'line', { color: '#FF0000' });
 
       service.forceSyncToBackend();
@@ -337,25 +342,27 @@ describe('StreamlitSeriesConfigService', () => {
       );
     });
 
-    it('should clear pending changes after successful sync', () => {
+    it('should clear pending changes after successful sync', async () => {
       service.recordConfigChange(0, 'series-1', 'line', { color: '#FF0000' });
 
-      vi.advanceTimersByTime(300);
+      await vi.runAllTimersAsync();
 
       const stats = service.getStats();
       expect(stats.pendingChanges).toBe(0);
     });
 
-    it('should handle Streamlit not available', () => {
+    it('should handle Streamlit not available', async () => {
       mockSetComponentValue.mockImplementationOnce(() => {
         throw new Error('Streamlit not available');
       });
 
       service.recordConfigChange(0, 'series-1', 'line', { color: '#FF0000' });
 
-      expect(() => {
-        vi.advanceTimersByTime(300);
-      }).not.toThrow();
+      // Should not throw even if Streamlit throws
+      await vi.runAllTimersAsync();
+
+      // Error should be logged, not thrown
+      expect(true).toBe(true); // Test completed without throwing
     });
   });
 

@@ -1,10 +1,39 @@
 /**
- * Global test setup file for all frontend tests
- * This file is automatically loaded by Vitest before running tests
+ * @fileoverview Global Test Setup
+ *
+ * Global test configuration file automatically loaded by Vitest before running tests.
+ * Provides comprehensive test environment setup with mocks, polyfills, and utilities.
+ *
+ * This module provides:
+ * - Testing library configuration
+ * - DOM polyfills for Node.js environment
+ * - Global mocks (ResizeObserver, IntersectionObserver, RAF)
+ * - Canvas and rendering context mocks
+ * - Enhanced DOM element creation
+ * - Automatic cleanup between tests
+ *
+ * Features:
+ * - React 18/19 compatibility setup
+ * - Proper DOM mocking for testing
+ * - Memory leak prevention
+ * - Aggressive cleanup after each test
+ * - Error suppression for expected warnings
+ *
+ * @example
+ * ```typescript
+ * // This file is automatically loaded - no import needed
+ * // All tests have access to configured mocks and utilities
+ *
+ * describe('MyComponent', () => {
+ *   it('renders correctly', () => {
+ *     // DOM, Canvas, ResizeObserver all mocked
+ *   });
+ * });
+ * ```
  */
 
 import '@testing-library/jest-dom';
-import { configure } from '@testing-library/react';
+import { configure, cleanup } from '@testing-library/react';
 import { vi } from 'vitest';
 
 // Import global mock setup - this configures all shared mocks
@@ -42,6 +71,9 @@ if (typeof global.document === 'undefined') {
 
 // Document cleanup after each test with aggressive memory cleanup
 afterEach(() => {
+  // Cleanup React Testing Library components
+  cleanup();
+
   if (document.body) {
     document.body.innerHTML = '';
   }
@@ -91,11 +123,28 @@ global.requestAnimationFrame = vi.fn(callback => {
 
 global.cancelAnimationFrame = vi.fn();
 
-// Mock DOM methods
+// Mock DOM methods with proper color defaults for lightweight-charts
 Object.defineProperty(window, 'getComputedStyle', {
-  value: () => ({
-    getPropertyValue: () => '',
+  value: (element: Element) => ({
+    getPropertyValue: (prop: string) => {
+      // Return default values for common CSS properties used by lightweight-charts
+      if (prop === 'background-color' || prop === 'backgroundColor') {
+        return 'rgba(255, 255, 255, 1)';
+      }
+      if (prop === 'color' || prop === 'textColor') {
+        return 'rgba(0, 0, 0, 1)';
+      }
+      if (prop === 'font-family' || prop === 'fontFamily') {
+        return 'Arial, sans-serif';
+      }
+      if (prop === 'font-size' || prop === 'fontSize') {
+        return '12px';
+      }
+      return '';
+    },
   }),
+  configurable: true,
+  writable: true,
 });
 
 Element.prototype.getBoundingClientRect = vi.fn(

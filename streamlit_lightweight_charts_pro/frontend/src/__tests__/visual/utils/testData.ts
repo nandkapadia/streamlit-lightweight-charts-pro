@@ -111,7 +111,7 @@ export function generateBarData(
   let currentValue = startValue;
 
   for (let i = 0; i < count; i++) {
-    const change = (Math.sin(i / 5) * 5) + (i % 3 === 0 ? 2 : -1);
+    const change = Math.sin(i / 5) * 5 + (i % 3 === 0 ? 2 : -1);
     const open = currentValue;
     const close = currentValue + change;
     const high = Math.max(open, close) + Math.abs(change) * 0.3;
@@ -250,6 +250,192 @@ export function generateRibbonData(
   }
 
   return lines;
+}
+
+/**
+ * Generates TrendFill series data with uptrend/downtrend transitions
+ *
+ * @param count - Number of data points
+ * @param baseValue - Base/reference line value
+ * @param startDate - Starting date (YYYY-MM-DD)
+ * @returns Array of TrendFill data points
+ */
+export function generateTrendFillData(
+  count: number = 50,
+  baseValue: number = 100,
+  startDate: string = '2024-01-01'
+): Array<{ time: Time; baseLine: number; trendLine: number; trendDirection: number }> {
+  const data: Array<{ time: Time; baseLine: number; trendLine: number; trendDirection: number }> =
+    [];
+  const date = new Date(startDate);
+
+  for (let i = 0; i < count; i++) {
+    // Base line with slight trend
+    const baseLine = baseValue + i * 0.2;
+
+    // Trend line oscillates above and below base line
+    const trendLine = baseLine + Math.sin(i / 6) * 15;
+
+    // Direction: 1 (uptrend) when trendLine > baseLine, -1 (downtrend) otherwise
+    const trendDirection = trendLine > baseLine ? 1 : -1;
+
+    data.push({
+      time: formatDate(new Date(date.getTime() + i * 24 * 60 * 60 * 1000)) as Time,
+      baseLine: Number(baseLine.toFixed(2)),
+      trendLine: Number(trendLine.toFixed(2)),
+      trendDirection,
+    });
+  }
+
+  return data;
+}
+
+/**
+ * Generates Band series data (upper, middle, lower bounds)
+ *
+ * @param count - Number of data points
+ * @param middleValue - Middle line value
+ * @param bandWidth - Width of the band
+ * @param startDate - Starting date (YYYY-MM-DD)
+ * @returns Array of Band data points
+ */
+export function generateBandData2(
+  count: number = 50,
+  middleValue: number = 100,
+  bandWidth: number = 10,
+  startDate: string = '2024-01-01'
+): Array<{ time: Time; upper: number; middle: number; lower: number }> {
+  const data: Array<{ time: Time; upper: number; middle: number; lower: number }> = [];
+  const date = new Date(startDate);
+
+  for (let i = 0; i < count; i++) {
+    const trend = i * 0.3;
+    const oscillation = Math.sin(i / 6) * 3;
+
+    const middle = middleValue + trend + oscillation;
+    const upper = middle + bandWidth;
+    const lower = middle - bandWidth;
+
+    data.push({
+      time: formatDate(new Date(date.getTime() + i * 24 * 60 * 60 * 1000)) as Time,
+      upper: Number(upper.toFixed(2)),
+      middle: Number(middle.toFixed(2)),
+      lower: Number(lower.toFixed(2)),
+    });
+  }
+
+  return data;
+}
+
+/**
+ * Generates Ribbon series data (upper and lower bounds)
+ *
+ * @param count - Number of data points
+ * @param startValue - Starting value
+ * @param spread - Spread between upper and lower
+ * @param startDate - Starting date (YYYY-MM-DD)
+ * @returns Array of Ribbon data points
+ */
+export function generateRibbonData2(
+  count: number = 50,
+  startValue: number = 100,
+  spread: number = 10,
+  startDate: string = '2024-01-01'
+): Array<{ time: Time; upper: number; lower: number }> {
+  const data: Array<{ time: Time; upper: number; lower: number }> = [];
+  const date = new Date(startDate);
+
+  for (let i = 0; i < count; i++) {
+    const trend = startValue + i * 0.4;
+    const oscillation = Math.sin(i / 5) * 8;
+    const middle = trend + oscillation;
+
+    const upper = middle + spread / 2;
+    const lower = middle - spread / 2;
+
+    data.push({
+      time: formatDate(new Date(date.getTime() + i * 24 * 60 * 60 * 1000)) as Time,
+      upper: Number(upper.toFixed(2)),
+      lower: Number(lower.toFixed(2)),
+    });
+  }
+
+  return data;
+}
+
+/**
+ * Generates Signal series data with neutral/signal/alert values
+ *
+ * @param count - Number of data points
+ * @param startDate - Starting date (YYYY-MM-DD)
+ * @returns Array of Signal data points
+ */
+export function generateSignalData(
+  count: number = 50,
+  startDate: string = '2024-01-01'
+): Array<{ time: Time; value: number }> {
+  const data: Array<{ time: Time; value: number }> = [];
+  const date = new Date(startDate);
+
+  for (let i = 0; i < count; i++) {
+    // Create pattern: neutral (0), signal (1), alert (-1)
+    let value = 0;
+    const segment = Math.floor(i / 10) % 3;
+    if (segment === 0) {
+      value = 0; // Neutral
+    } else if (segment === 1) {
+      value = 1; // Signal (positive)
+    } else {
+      value = -1; // Alert (negative)
+    }
+
+    data.push({
+      time: formatDate(new Date(date.getTime() + i * 24 * 60 * 60 * 1000)) as Time,
+      value,
+    });
+  }
+
+  return data;
+}
+
+/**
+ * Generates GradientRibbon series data with gradient values
+ *
+ * @param count - Number of data points
+ * @param baseValue - Base value
+ * @param startDate - Starting date (YYYY-MM-DD)
+ * @returns Array of GradientRibbon data points
+ */
+export function generateGradientRibbonData(
+  count: number = 50,
+  baseValue: number = 100,
+  startDate: string = '2024-01-01'
+): Array<{ time: Time; upper: number; lower: number; gradient?: number }> {
+  const data: Array<{ time: Time; upper: number; lower: number; gradient?: number }> = [];
+  const date = new Date(startDate);
+
+  for (let i = 0; i < count; i++) {
+    const trend = baseValue + i * 0.4;
+    const oscillation = Math.sin(i / 5) * 8;
+    const middle = trend + oscillation;
+
+    // Varying spread for gradient effect
+    const spread = 5 + Math.abs(Math.sin(i / 8)) * 15;
+    const upper = middle + spread / 2;
+    const lower = middle - spread / 2;
+
+    // Gradient value based on spread magnitude (0-1)
+    const gradient = Math.abs(Math.sin(i / 8));
+
+    data.push({
+      time: formatDate(new Date(date.getTime() + i * 24 * 60 * 60 * 1000)) as Time,
+      upper: Number(upper.toFixed(2)),
+      lower: Number(lower.toFixed(2)),
+      gradient: Number(gradient.toFixed(2)),
+    });
+  }
+
+  return data;
 }
 
 /**

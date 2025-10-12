@@ -1,7 +1,55 @@
+/**
+ * @fileoverview Primitive Event Manager
+ *
+ * Centralized event coordination system for chart primitives. Provides
+ * typed event subscriptions, crosshair tracking, and series data updates
+ * for all primitives.
+ *
+ * This service is responsible for:
+ * - Subscribing to chart events (crosshair, resize, time scale changes)
+ * - Broadcasting events to registered primitives
+ * - Maintaining event listener registry
+ * - Providing typed event interfaces
+ * - Managing event lifecycle and cleanup
+ *
+ * Architecture:
+ * - Keyed singleton pattern (one instance per chart)
+ * - Type-safe event system with interfaces
+ * - Event aggregation and broadcasting
+ * - Automatic cleanup on destroy
+ * - Integration with Lightweight Charts events
+ *
+ * Supported Events:
+ * - **crosshairMove**: Crosshair position and series data
+ * - **dataUpdate**: Series data changes
+ * - **resize**: Chart dimension changes
+ * - **visibilityChange**: Primitive show/hide
+ * - **configChange**: Primitive configuration updates
+ * - **timeScaleChange**: Visible time range changes
+ * - **click**: Chart click interactions
+ *
+ * @example
+ * ```typescript
+ * const manager = PrimitiveEventManager.getInstance('chart-1');
+ * manager.initialize(chartApi);
+ *
+ * // Subscribe to crosshair events
+ * const unsubscribe = manager.on('crosshairMove', (data) => {
+ *   console.log('Crosshair at:', data.time, data.point);
+ * });
+ *
+ * // Cleanup
+ * unsubscribe();
+ * PrimitiveEventManager.cleanup('chart-1');
+ * ```
+ */
+
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
 
 /**
  * Event types for primitive interactions
+ *
+ * @interface PrimitiveEventTypes
  */
 export interface PrimitiveEventTypes {
   /**

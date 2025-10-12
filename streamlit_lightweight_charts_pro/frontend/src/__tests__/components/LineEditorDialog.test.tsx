@@ -3,9 +3,10 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import '@testing-library/jest-dom/vitest';
 import { LineEditorDialog, LineConfig } from '../../forms/LineEditorDialog';
 
 // Mock createPortal
@@ -43,6 +44,10 @@ describe('LineEditorDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it('should render when open', () => {

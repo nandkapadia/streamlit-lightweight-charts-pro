@@ -1,9 +1,50 @@
+/**
+ * @fileoverview Chart Ready Detection Utilities
+ *
+ * Utility class for detecting when charts are fully initialized and ready for use.
+ * Provides multiple fallback methods with exponential backoff retry logic.
+ *
+ * This module provides:
+ * - Chart dimension validation
+ * - Primitive attachment readiness checks
+ * - Series data validation
+ * - Coordinate system verification
+ *
+ * Features:
+ * - Multiple detection methods with fallbacks
+ * - Exponential backoff retry logic
+ * - Integration with ChartCoordinateService
+ * - Comprehensive readiness validation
+ * - Error handling and timeout management
+ *
+ * @example
+ * ```typescript
+ * import { ChartReadyDetector } from './chartReadyDetection';
+ *
+ * // Wait for chart to be ready
+ * const isReady = await ChartReadyDetector.waitForChartReady(
+ *   chart,
+ *   container,
+ *   { minWidth: 400, minHeight: 300 }
+ * );
+ *
+ * // Wait for primitives attachment readiness
+ * const canAttach = await ChartReadyDetector.waitForChartReadyForPrimitives(
+ *   chart,
+ *   series,
+ *   'chart-1'
+ * );
+ * ```
+ */
+
 import { IChartApi, ISeriesApi, UTCTimestamp, Logical } from 'lightweight-charts';
 import { ChartCoordinateService } from '../services/ChartCoordinateService';
 
 /**
- * Utility class for detecting when charts are ready with multiple fallback methods
+ * Utility class for detecting when charts are ready with multiple fallback methods.
+ *
  * Enhanced with comprehensive readiness checks using existing coordinate services
+ * for consistent validation across the application.
  */
 export class ChartReadyDetector {
   /**

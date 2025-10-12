@@ -1,6 +1,31 @@
 /**
- * Coordinate system types for robust chart positioning
- * Provides standardized interfaces for all positioning calculations
+ * @fileoverview Coordinate System Types
+ *
+ * Type definitions for robust chart positioning and coordinate calculations.
+ * Provides standardized interfaces for all positioning operations.
+ *
+ * This module provides:
+ * - Bounding box and dimension interfaces
+ * - Pane-specific coordinate types
+ * - Legend positioning interfaces
+ * - Validation and caching types
+ *
+ * Features:
+ * - Comprehensive coordinate system
+ * - Multi-pane support
+ * - Scale-aware positioning
+ * - Cache-friendly types
+ *
+ * @example
+ * ```typescript
+ * import { ChartCoordinates, PaneCoordinates } from './coordinates';
+ *
+ * const coords: ChartCoordinates = {
+ *   container: { width: 800, height: 400, offsetTop: 0, offsetLeft: 0 },
+ *   panes: [...],
+ *   isValid: true
+ * };
+ * ```
  */
 
 /**

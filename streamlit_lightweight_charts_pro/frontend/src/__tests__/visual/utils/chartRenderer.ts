@@ -7,12 +7,7 @@
  * @module visual/utils/chartRenderer
  */
 
-import {
-  createChart,
-  IChartApi,
-  DeepPartial,
-  ChartOptions,
-} from 'lightweight-charts';
+import { createChart, IChartApi, DeepPartial, ChartOptions } from 'lightweight-charts';
 
 /**
  * Default chart dimensions for consistent visual testing
@@ -67,7 +62,7 @@ export function createChartContainer(
  * @returns Promise that resolves after waiting
  */
 export async function waitForChartRender(chart: IChartApi, duration: number = 100): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     // Give the chart time to render
     setTimeout(() => {
       // Force a final layout update
@@ -232,10 +227,14 @@ export function cleanupChartRender(result: ChartRenderResult): void {
  * @param y - Y coordinate
  * @returns RGBA color array [r, g, b, a]
  */
-export function getPixelColor(imageData: ImageData, x: number, y: number): [number, number, number, number] {
+export function getPixelColor(
+  imageData: ImageData,
+  x: number,
+  y: number
+): [number, number, number, number] {
   const index = (y * imageData.width + x) * 4;
   return [
-    imageData.data[index],     // R
+    imageData.data[index], // R
     imageData.data[index + 1], // G
     imageData.data[index + 2], // B
     imageData.data[index + 3], // A

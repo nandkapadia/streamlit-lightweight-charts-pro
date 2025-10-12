@@ -240,24 +240,44 @@ def chainable_property(
     """
 
     def decorator(cls):
-        # Create the setter method name
+        """Inner decorator function that modifies the class.
+
+        Args:
+            cls: The class to be decorated.
+
+        Returns:
+            The modified class with added property and setter method.
+        """
+        # Step 1: Create the setter method name following convention set_{field}
         setter_name = f"set_{attr_name}"
 
-        # Create the chaining setter method with validation
         def setter_method(self, value):
-            # Handle None values
+            """Chainable setter method with validation.
+
+            Args:
+                self: The instance being modified.
+                value: The new value to set.
+
+            Returns:
+                Self for method chaining.
+            """
+            # Step 1: Handle None values early if they're allowed
+            # This bypasses all validation when None is explicitly permitted
             if value is None and allow_none:
                 setattr(self, f"_{attr_name}", None)
                 return self
 
-            # Apply type validation if specified
+            # Step 2: Apply type validation if specified
+            # Checks that the value matches the expected type before assignment
             if value_type is not None:
                 if value_type is bool:
-                    # For boolean properties, only accept actual boolean values
+                    # Case 1: Boolean type - strict validation (no truthy/falsy coercion)
+                    # Only accept actual True/False, not 1/0 or other truthy values
                     if not isinstance(value, bool):
                         raise TypeValidationError(attr_name, "boolean")
                 elif not isinstance(value, value_type):
-                    # Create user-friendly error message
+                    # Case 2: Type mismatch - create user-friendly error messages
+                    # Provide specific error messages for common types
                     if value_type is str:
                         raise TypeValidationError(attr_name, "string")
                     if value_type is int:
@@ -267,67 +287,97 @@ def chainable_property(
                     if value_type is bool:
                         raise TypeValidationError(attr_name, "boolean")
                     if hasattr(value_type, "__name__"):
-                        # For complex types, use a more user-friendly message
+                        # Case 3: Complex types (classes, custom types)
+                        # Indicate whether None is allowed in the error message
                         if allow_none:
                             raise InstanceTypeError(attr_name, value_type, allow_none=True)
                         raise InstanceTypeError(attr_name, value_type)
                     if isinstance(value_type, tuple):
-                        # For tuple types like (int, float), create a user-friendly message
+                        # Case 4: Union types like (int, float)
+                        # Create friendly error message from type names
                         type_names = [
                             t.__name__ if hasattr(t, "__name__") else str(t) for t in value_type
                         ]
+                        # Special handling for numeric union types
                         if len(type_names) == 2 and "int" in type_names and "float" in type_names:
                             raise TypeValidationError(attr_name, "number")
                         raise TypeMismatchError(attr_name, value_type, type(value))
 
-            # Apply custom validation if specified
+            # Step 3: Apply custom validation if specified
+            # Custom validators can transform values or perform additional checks
             if validator is not None:
                 if isinstance(validator, str):
-                    # Built-in validators
+                    # Case 1: Built-in validators (string identifiers)
+                    # These are predefined validators for common chart properties
                     if validator == "color":
-                        # Treat empty strings as valid (meaning "no color")
+                        # Color validator: Accepts hex codes and rgba values
+                        # Empty string is treated as "no color" (converted to None)
                         if value == "":
-                            # Convert empty string to None for consistent handling
                             value = None
                         elif not is_valid_color(value):
                             raise ColorValidationError(attr_name, value)
                     elif validator == "price_format_type":
+                        # Price format type validator
                         value = validate_price_format_type(value)
                     elif validator == "precision":
+                        # Precision validator (for decimal places)
                         value = validate_precision(value)
                     elif validator == "min_move":
+                        # Minimum move validator (for price scales)
                         value = validate_min_move(value)
                     else:
+                        # Unknown validator string
                         raise ValueValidationError("validator", "unknown validator")
                 else:
-                    # Custom validator function
+                    # Case 2: Custom validator function
+                    # Allows users to provide their own validation/transformation logic
                     value = validator(value)
 
+            # Step 4: Set the validated value on the private attribute
+            # Uses the private attribute convention (_attr_name)
             setattr(self, f"_{attr_name}", value)
+
+            # Step 5: Return self to enable method chaining
             return self
 
-        # Create the property getter
         def property_getter(self):
+            """Property getter for accessing the attribute value.
+
+            Args:
+                self: The instance.
+
+            Returns:
+                The current value of the attribute.
+            """
             return getattr(self, f"_{attr_name}")
 
-        # Create the property setter
         def property_setter(self, value):
-            # Handle None values
+            """Property setter for direct assignment with validation.
+
+            Args:
+                self: The instance being modified.
+                value: The new value to set.
+            """
+            # Step 1: Handle None values early if they're allowed
+            # This bypasses all validation when None is explicitly permitted
             if value is None and allow_none:
                 setattr(self, f"_{attr_name}", None)
                 return
 
-            # Apply type validation if specified
+            # Step 2: Apply type validation if specified
+            # Checks that the value matches the expected type before assignment
             if value_type is not None:
                 if value_type is bool:
                     # For boolean properties, only accept actual boolean values
                     if not isinstance(value, bool):
                         raise TypeValidationError(attr_name, "boolean")
                 elif _is_list_of_markers(value_type):
-                    # Special handling for List[MarkerBase] and similar types
+                    # Case 2a: Special handling for List[MarkerBase] and similar types
+                    # Markers require special validation due to their complex structure
                     _validate_list_of_markers(value, attr_name)
                 elif not isinstance(value, value_type):
-                    # Create user-friendly error message
+                    # Case 2b: Type mismatch - create user-friendly error messages
+                    # Provide specific error messages for common types
                     if value_type is str:
                         raise TypeValidationError(attr_name, "string")
                     if value_type is int:
@@ -467,19 +517,40 @@ def chainable_field(
     """
 
     def decorator(cls):
-        # Create the setter method name
+        """Inner decorator function that modifies the dataclass.
+
+        Args:
+            cls: The dataclass to be decorated.
+
+        Returns:
+            The modified class with added setter method.
+        """
+        # Step 1: Create the setter method name following convention set_{field}
         setter_name = f"set_{field_name}"
 
-        # Create the chaining setter method with validation
         def setter_method(self, value):
-            # Apply validation and set the value
+            """Chainable setter method with validation for dataclass fields.
+
+            Args:
+                self: The dataclass instance being modified.
+                value: The new value to set.
+
+            Returns:
+                Self for method chaining.
+            """
+            # Step 1: Apply validation and transformation
             validated_value = _validate_value(field_name, value, value_type, validator)
+
+            # Step 2: Set the validated value directly on the dataclass field
             setattr(self, field_name, validated_value)
+
+            # Step 3: Return self to enable method chaining
             return self
 
-        # Add the method to the class
+        # Step 2: Add the generated setter method to the class
         setattr(cls, setter_name, setter_method)
 
+        # Step 3: Return the modified class
         return cls
 
     return decorator
@@ -510,38 +581,51 @@ def _validate_value(field_name: str, value, value_type=None, validator=None):
         Boolean values have special handling - only actual boolean values are
         accepted, not truthy/falsy values. This prevents accidental type coercion.
     """
-    # Apply type validation if specified
+    # Step 1: Apply type validation if specified
+    # Checks that the value matches the expected type before assignment
     if value_type is not None:
         if value_type is bool:
-            # For boolean fields, only accept actual boolean values
+            # Case 1: Boolean type - strict validation (no truthy/falsy coercion)
+            # Only accept actual True/False, not 1/0 or other truthy values
             if not isinstance(value, bool):
                 raise TypeValidationError("field", "boolean")
         elif _is_list_of_markers(value_type):
-            # Special handling for List[MarkerBase] and similar types
+            # Case 2: Special handling for List[MarkerBase] and similar types
+            # Markers require special validation due to their complex structure
             _validate_list_of_markers(value, field_name)
         elif not isinstance(value, value_type):
+            # Case 3: Type mismatch - raise generic type error
             raise TypeValidationError("value", "invalid type")
 
-    # Apply custom validation if specified
+    # Step 2: Apply custom validation if specified
+    # Custom validators can transform values or perform additional checks
     if validator is not None:
         if isinstance(validator, str):
-            # Built-in validators
+            # Case 1: Built-in validators (string identifiers)
+            # These are predefined validators for common chart properties
             if validator == "color":
-                # Treat empty strings as valid (meaning "no color")
+                # Color validator: Accepts hex codes and rgba values
+                # Empty string is treated as "no color" (converted to None)
                 if value == "":
-                    # Convert empty string to None for consistent handling
                     value = None
                 elif not is_valid_color(value):
                     raise ColorValidationError(field_name, value)
             elif validator == "price_format_type":
+                # Price format type validator
                 value = validate_price_format_type(value)
             elif validator == "precision":
+                # Precision validator (for decimal places)
                 value = validate_precision(value)
             elif validator == "min_move":
+                # Minimum move validator (for price scales)
                 value = validate_min_move(value)
             else:
+                # Unknown validator string
                 raise ValueValidationError("validator", "unknown validator")
         else:
-            # Custom validator function
+            # Case 2: Custom validator function
+            # Allows users to provide their own validation/transformation logic
             value = validator(value)
+
+    # Return the validated (and possibly transformed) value
     return value

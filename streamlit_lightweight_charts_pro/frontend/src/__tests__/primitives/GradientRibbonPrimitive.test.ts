@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * Tests for GradientRibbonPrimitive
  *
  * This primitive renders gradient-filled areas between upper and lower lines

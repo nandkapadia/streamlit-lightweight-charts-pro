@@ -24,42 +24,64 @@ main                    # Production-ready code
 ```
 
 ### **2. Branch Protection Rules**
-Configure branch protection for main and develop:
+**CRITICAL**: Configure branch protection to prevent merging code that fails tests.
 
+#### Required Status Checks for `main` Branch:
 ```yaml
-# .github/branch-protection.yml
+# GitHub Branch Protection Settings (configured via GitHub UI)
 main:
   required_status_checks:
-    strict: true
+    strict: true  # Require branches to be up to date before merging
     contexts:
-      - "ci/python-tests"
-      - "ci/frontend-tests"
-      - "ci/security-scan"
-      - "ci/code-quality"
-  enforce_admins: true
-  required_pull_request_reviews:
-    required_approving_review_count: 2
-    dismiss_stale_reviews: true
-    require_code_owner_reviews: true
-  restrictions:
-    users: []
-    teams: ["maintainers"]
+      - "Test Suite (3.8)"          # Python 3.8 tests
+      - "Test Suite (3.9)"          # Python 3.9 tests
+      - "Test Suite (3.10)"         # Python 3.10 tests
+      - "Test Suite (3.11)"         # Python 3.11 tests
+      - "Test Suite (3.12)"         # Python 3.12 tests
+      - "Documentation Build"       # Docs build verification
+      - "Frontend Build"            # Frontend build and tests
+      - "Security Scan"             # Trivy vulnerability scanning
 
+  enforce_admins: true  # Admins must follow rules too
+
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true     # Dismiss approvals when new commits are pushed
+    require_code_owner_reviews: false
+    require_approval_of_most_recent_push: true
+
+  require_conversation_resolution: true  # All review comments must be resolved
+
+  allow_force_pushes: false  # NEVER allow force pushes to main
+  allow_deletions: false     # Prevent accidental branch deletion
+```
+
+#### Quick Setup for `develop` Branch:
+```yaml
 develop:
   required_status_checks:
     strict: true
     contexts:
-      - "ci/python-tests"
-      - "ci/frontend-tests"
-      - "ci/code-quality"
-  enforce_admins: false
+      - "Test Suite (3.11)"    # At least one Python version
+      - "Documentation Build"
+      - "Frontend Build"
+
+  enforce_admins: false  # More flexible for development
+
   required_pull_request_reviews:
     required_approving_review_count: 1
     dismiss_stale_reviews: true
-  restrictions:
-    users: []
-    teams: ["developers"]
 ```
+
+> **📚 Complete Setup Guide**: See [.github/BRANCH_PROTECTION_GUIDE.md](mdc:.github/BRANCH_PROTECTION_GUIDE.md) for comprehensive instructions including quick setup, detailed configuration, troubleshooting, and best practices.
+
+#### Key Benefits:
+- ✅ **Prevents broken code** from reaching main branch
+- ✅ **Enforces code review** before merging
+- ✅ **Requires all tests to pass** across Python versions
+- ✅ **Ensures documentation builds** correctly
+- ✅ **Validates frontend code** before deployment
+- ✅ **Scans for security vulnerabilities** automatically
 
 ### **3. Branch Naming Conventions**
 Use consistent branch naming:
