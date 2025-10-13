@@ -61,7 +61,7 @@ class Logger {
   private logLevel: LogLevel;
 
   constructor() {
-    this.logLevel = LogLevel.DEBUG; // Enable debug logging for troubleshooting
+    this.logLevel = LogLevel.WARN; // Production: only warnings and errors
   }
 
   private shouldLog(level: LogLevel): boolean {
