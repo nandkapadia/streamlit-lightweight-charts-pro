@@ -1876,7 +1876,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 const rightScale = chart.priceScale('right');
                 if (rightScale) {
                   rightScale.applyOptions(
-                    cleanLineStyleOptions(chartConfig.chart.rightPriceScale as Record<string, unknown>)
+                    cleanLineStyleOptions(
+                      chartConfig.chart.rightPriceScale as Record<string, unknown>
+                    )
                   );
                   logger.debug('Successfully configured right price scale', 'ChartInit');
                 }
@@ -1887,11 +1889,17 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             if (chartConfig.chart?.leftPriceScale) {
               try {
-                logger.debug('Configuring left price scale', 'ChartInit', chartConfig.chart.leftPriceScale);
+                logger.debug(
+                  'Configuring left price scale',
+                  'ChartInit',
+                  chartConfig.chart.leftPriceScale
+                );
                 const leftScale = chart.priceScale('left');
                 if (leftScale) {
                   leftScale.applyOptions(
-                    cleanLineStyleOptions(chartConfig.chart.leftPriceScale as Record<string, unknown>)
+                    cleanLineStyleOptions(
+                      chartConfig.chart.leftPriceScale as Record<string, unknown>
+                    )
                   );
                   logger.debug('Successfully configured left price scale', 'ChartInit');
                 }
@@ -1915,7 +1923,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       overlayScale.applyOptions(
                         cleanLineStyleOptions(scaleConfig as Record<string, unknown>)
                       );
-                      logger.debug(`Successfully configured overlay scale: ${scaleId}`, 'ChartInit');
+                      logger.debug(
+                        `Successfully configured overlay scale: ${scaleId}`,
+                        'ChartInit'
+                      );
                     } else {
                       logger.debug(
                         `Overlay scale ${scaleId} not found, will be created when series uses it`,
