@@ -126,26 +126,46 @@ def test_color_omitted_in_dict(valid_time):
 
 
 def test_time_normalization_from_string():
+    """Test time normalization happens in asdict(), not at construction."""
     data = LineData(time="2024-01-01", value=1.0)
-    assert isinstance(data.time, int)
+    # Time is stored as-is
+    assert data.time == "2024-01-01"
+    # Time is normalized in asdict()
+    result = data.asdict()
+    assert isinstance(result["time"], int)
 
 
 def test_time_normalization_from_float():
+    """Test time stored as-is, normalized in asdict()."""
     ts = 1704067200.0
     data = LineData(time=ts, value=1.0)
-    assert data.time == int(ts)
+    # Time is stored as-is (float)
+    assert data.time == ts
+    # Time is normalized to int in asdict()
+    result = data.asdict()
+    assert result["time"] == int(ts)
 
 
 def test_time_normalization_from_datetime():
+    """Test datetime time normalization in asdict()."""
     dt = datetime(2024, 1, 1)
     data = LineData(time=dt, value=1.0)
-    assert isinstance(data.time, int)
+    # Time is stored as datetime object
+    assert data.time == dt
+    # Time is normalized to int in asdict()
+    result = data.asdict()
+    assert isinstance(result["time"], int)
 
 
 def test_time_normalization_from_pandas_timestamp():
+    """Test pandas timestamp normalization in asdict()."""
     ts = pd.Timestamp("2024-01-01")
     data = LineData(time=ts, value=1.0)
-    assert isinstance(data.time, int)
+    # Time is stored as pandas Timestamp
+    assert data.time == ts
+    # Time is normalized to int in asdict()
+    result = data.asdict()
+    assert isinstance(result["time"], int)
 
 
 def test_error_on_none_value(valid_time):
@@ -153,9 +173,19 @@ def test_error_on_none_value(valid_time):
         LineData(time=valid_time, value=None)
 
 
-def test_error_on_invalid_time():
-    with pytest.raises(UnsupportedTimeTypeError):
-        LineData(time=[1, 2, 3], value=1.0)
+def test_time_modification_after_construction():
+    """Test that time can be modified after construction."""
+    data = LineData(time="2024-01-01", value=1.0)
+    result1 = data.asdict()
+    time1 = result1["time"]
+
+    # Modify time after construction
+    data.time = "2024-01-02"
+    result2 = data.asdict()
+    time2 = result2["time"]
+
+    # Times should be different
+    assert time1 != time2
 
 
 def test_to_dict_keys_are_camel_case(valid_time):

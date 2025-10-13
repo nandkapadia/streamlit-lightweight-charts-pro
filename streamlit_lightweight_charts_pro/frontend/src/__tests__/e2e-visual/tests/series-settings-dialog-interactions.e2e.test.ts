@@ -60,7 +60,7 @@ test.describe('Series Settings Dialog - Line Editor Interactions', () => {
 
     // Change line properties
     const colorInput = page.locator('[data-testid="line-color-input"]');
-    await colorInput.evaluate((el: HTMLInputElement) => el.value = '#FF0000');
+    await colorInput.evaluate((el: HTMLInputElement) => (el.value = '#FF0000'));
 
     const styleSelect = page.locator('[data-testid="line-style-select"]');
     await styleSelect.selectOption('dashed');
@@ -78,7 +78,9 @@ test.describe('Series Settings Dialog - Line Editor Interactions', () => {
     await expect(lineEditor).not.toBeVisible();
 
     // Main line should now show updated properties in the active Line Series tab
-    const linePreview = page.locator('#line-settings .line-row[data-line-type="mainLine"] .line-preview');
+    const linePreview = page.locator(
+      '#line-settings .line-row[data-line-type="mainLine"] .line-preview'
+    );
     await expect(linePreview).toContainText('dashed');
     await expect(linePreview).toContainText('3px');
   });
@@ -187,7 +189,9 @@ test.describe('Series Settings Dialog - Ribbon Series Interactions', () => {
     await page.waitForTimeout(200);
 
     // Click on fill color row
-    const fillColorRow = page.locator('text=Fill Color').locator('xpath=ancestor::div[@role="button"]');
+    const fillColorRow = page
+      .locator('text=Fill Color')
+      .locator('xpath=ancestor::div[@role="button"]');
     await fillColorRow.click();
     await page.waitForTimeout(300);
 
@@ -250,7 +254,9 @@ test.describe('Series Settings Dialog - Keyboard Navigation', () => {
     await page.waitForTimeout(200);
 
     // Open color picker
-    const fillColorRow = page.locator('text=Fill Color').locator('xpath=ancestor::div[@role="button"]');
+    const fillColorRow = page
+      .locator('text=Fill Color')
+      .locator('xpath=ancestor::div[@role="button"]');
     await fillColorRow.click();
     await page.waitForTimeout(300);
 
@@ -309,7 +315,9 @@ test.describe('Series Settings Dialog - Visual Regression', () => {
     await page.waitForTimeout(200);
 
     // Open color picker
-    const fillColorRow = page.locator('text=Fill Color').locator('xpath=ancestor::div[@role="button"]');
+    const fillColorRow = page
+      .locator('text=Fill Color')
+      .locator('xpath=ancestor::div[@role="button"]');
     await fillColorRow.click();
     await page.waitForTimeout(300);
 

@@ -61,27 +61,37 @@ class TestAreaDataConstruction:
         """Test AreaData construction with time string."""
         data = AreaData(time="2022-01-01", value=100)
 
-        assert data.time == 1640995200  # Normalized to UNIX timestamp
+        # Time is stored as-is
+        assert data.time == "2022-01-01"
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert result["time"] == 1640995200
 
     def test_construction_with_datetime(self):
         """Test AreaData construction with datetime."""
         dt = datetime(2022, 1, 1)
         data = AreaData(time=dt, value=100)
 
-        # Time is normalized to UNIX timestamp
-        assert isinstance(data.time, int)
+        # Time is stored as-is (datetime object)
+        assert data.time == dt
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
         # The actual timestamp depends on timezone, so we'll check it's a reasonable value
-        assert data.time > 1640970000  # Should be around 2022-01-01
-        assert data.time < 1641020000  # Should be around 2022-01-01 (accounting for timezone)
+        assert result["time"] > 1640970000  # Should be around 2022-01-01
+        assert result["time"] < 1641020000  # Should be around 2022-01-01 (accounting for timezone)
 
     def test_construction_with_pandas_timestamp(self):
         """Test AreaData construction with pandas Timestamp."""
         ts = pd.Timestamp("2022-01-01")
         data = AreaData(time=ts, value=100)
 
-        # Time is normalized to UNIX timestamp
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200  # UTC conversion
+        # Time is stored as-is (pandas Timestamp)
+        assert data.time == ts
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200  # UTC conversion
 
 
 class TestAreaDataValidation:
@@ -141,8 +151,11 @@ class TestAreaDataValidation:
 
     def test_invalid_time(self):
         """Test AreaData construction with invalid time."""
-        with pytest.raises(TimeValidationError):
-            AreaData(time="invalid_time", value=100)
+        # Invalid time won't raise error until asdict() is called
+        data = AreaData(time="invalid_time", value=100)
+        # Error happens during serialization
+        with pytest.raises((TimeValidationError, ValueError)):
+            data.asdict()
 
 
 class TestAreaDataSerialization:
@@ -296,7 +309,25 @@ class TestAreaDataEdgeCases:
     def test_unicode_strings(self):
         """Test AreaData with unicode strings in time."""
         data = AreaData(time="2022-01-01", value=100)
-        assert data.time == 1640995200
+        # Time stored as-is
+        assert data.time == "2022-01-01"
+        # Normalized in asdict()
+        result = data.asdict()
+        assert result["time"] == 1640995200
+
+    def test_time_modification_after_construction(self):
+        """Test that time can be modified after construction."""
+        data = AreaData(time="2024-01-01", value=100)
+        result1 = data.asdict()
+        time1 = result1["time"]
+
+        # Modify time after construction
+        data.time = "2024-01-02"
+        result2 = data.asdict()
+        time2 = result2["time"]
+
+        # Times should be different
+        assert time1 != time2
 
 
 class TestAreaDataComparison:

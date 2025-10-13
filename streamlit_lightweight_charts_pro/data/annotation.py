@@ -41,7 +41,6 @@ from typing import Any, Dict, List, Optional, Union
 import pandas as pd
 
 from streamlit_lightweight_charts_pro.exceptions import (
-    ColorValidationError,
     TypeValidationError,
     ValueValidationError,
 )
@@ -117,8 +116,8 @@ class Annotation:
         show_time: bool = False,
         tooltip: Optional[str] = None,
     ):
-        # Convert time to UTC timestamp for consistent storage
-        self._timestamp = to_utc_timestamp(time)
+        # Store time as-is, convert to UTC timestamp in asdict() for consistency
+        self.time = time
 
         # Accept both str and Enum for annotation_type
         if isinstance(annotation_type, str):
@@ -167,13 +166,15 @@ class Annotation:
 
     @property
     def timestamp(self) -> Union[int, str]:
-        """Get time as UTC timestamp.
+        """Get time as UTC timestamp (converted fresh).
+
+        Converts the time value to UTC timestamp each time it's accessed.
+        This allows the time to be modified after construction.
 
         Returns:
-            Union[int, str]: UTC timestamp as integer (seconds) or
-                date string if the original input was a date string.
+            Union[int, str]: UTC timestamp as integer (seconds).
         """
-        return self._timestamp
+        return to_utc_timestamp(self.time)
 
     @property
     def datetime_value(self) -> pd.Timestamp:
@@ -183,7 +184,7 @@ class Annotation:
             pd.Timestamp: Pandas Timestamp object representing the
                 annotation time.
         """
-        return pd.Timestamp(from_utc_timestamp(self._timestamp))
+        return pd.Timestamp(from_utc_timestamp(to_utc_timestamp(self.time)))
 
     def asdict(self) -> Dict[str, Any]:
         """Convert annotation to dictionary for serialization.
@@ -191,12 +192,16 @@ class Annotation:
         This method creates a dictionary representation of the annotation
         suitable for JSON serialization or frontend consumption.
 
+        Time conversion happens here (not cached) to allow users to modify
+        time values after construction.
+
         Returns:
             Dict[str, Any]: Dictionary containing all annotation properties
                 in a format suitable for the frontend component.
         """
+        # Convert time fresh during serialization
         return {
-            ColumnNames.TIME: self.timestamp,
+            ColumnNames.TIME: to_utc_timestamp(self.time),
             "price": self.price,
             "text": self.text,
             "type": self.annotation_type.value,

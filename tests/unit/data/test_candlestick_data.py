@@ -132,24 +132,36 @@ class TestCandlestickDataConstruction:
         """Test construction with string time that gets converted."""
         data = CandlestickData(time="2022-01-01", open=100.0, high=105.0, low=98.0, close=103.0)
 
-        assert isinstance(data.time, int)
-        assert data.time > 0
+        # Time is stored as-is
+        assert data.time == "2022-01-01"
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] > 0
 
     def test_construction_with_datetime_time(self):
         """Test construction with datetime time that gets converted."""
         dt = datetime(2022, 1, 1)
         data = CandlestickData(time=dt, open=100.0, high=105.0, low=98.0, close=103.0)
 
-        assert isinstance(data.time, int)
-        assert data.time > 0
+        # Time is stored as-is (datetime object)
+        assert data.time == dt
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] > 0
 
     def test_construction_with_pandas_timestamp(self):
         """Test construction with pandas timestamp."""
         ts = pd.Timestamp("2022-01-01")
         data = CandlestickData(time=ts, open=100.0, high=105.0, low=98.0, close=103.0)
 
-        assert isinstance(data.time, int)
-        assert data.time > 0
+        # Time is stored as-is (pandas Timestamp)
+        assert data.time == ts
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] > 0
 
 
 class TestCandlestickDataValidation:
@@ -410,16 +422,38 @@ class TestCandlestickDataTimeHandling:
         time_val = np.int64(1640995200)
         data = CandlestickData(time=time_val, open=100.0, high=105.0, low=98.0, close=103.0)
 
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        # Time stored as-is (numpy int64)
+        assert isinstance(data.time, np.int64)
+        # Normalized to int in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
 
     def test_time_normalization_numpy_float64(self):
         """Test time normalization with numpy float64."""
         time_val = np.float64(1640995200.0)
         data = CandlestickData(time=time_val, open=100.0, high=105.0, low=98.0, close=103.0)
 
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        # Time stored as-is (numpy float64)
+        assert isinstance(data.time, np.float64)
+        # Normalized to int in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
+
+    def test_time_modification_after_construction(self):
+        """Test that time can be modified after construction."""
+        data = CandlestickData(time="2024-01-01", open=100.0, high=105.0, low=98.0, close=103.0)
+        result1 = data.asdict()
+        time1 = result1["time"]
+
+        # Modify time after construction
+        data.time = "2024-01-02"
+        result2 = data.asdict()
+        time2 = result2["time"]
+
+        # Times should be different
+        assert time1 != time2
 
 
 class TestCandlestickDataColorHandling:

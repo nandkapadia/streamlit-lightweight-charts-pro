@@ -32,6 +32,7 @@ export interface SeriesConfig {
   // Common settings (matching LightweightCharts SeriesOptionsCommon)
   visible?: boolean;
   title?: string;
+  displayName?: string; // User-friendly name for UI elements
   lastValueVisible?: boolean;
   priceLineVisible?: boolean;
   priceLineColor?: string;
@@ -169,13 +170,19 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         return series.displayName.trim();
       }
 
-      // Priority 2: Check for title in seriesConfigs (from API options)
+      // Priority 2: Check for displayName in seriesConfigs (user-friendly UI name)
+      const seriesDisplayName = seriesConfigs[series.id]?.displayName;
+      if (seriesDisplayName && seriesDisplayName.trim()) {
+        return seriesDisplayName.trim();
+      }
+
+      // Priority 3: Check for title in seriesConfigs (technical name)
       const seriesTitle = seriesConfigs[series.id]?.title;
       if (seriesTitle && seriesTitle.trim()) {
         return seriesTitle.trim();
       }
 
-      // Priority 3: Fall back to "Series Type + Number" format
+      // Priority 4: Fall back to "Series Type + Number" format
       const typeDisplayName = series.type.charAt(0).toUpperCase() + series.type.slice(1);
       const seriesNumber = index + 1;
       const fallbackTitle = `${typeDisplayName} Series ${seriesNumber}`;
@@ -695,7 +702,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                         const config = e.target.checked
                           ? { priceLineVisible: true }
                           : { priceLineVisible: false, axisLabelVisible: false };
-                        handleConfigChange(activeSeriesId, config);
+                        void handleConfigChange(activeSeriesId, config);
                       }}
                       aria-label='Show price line'
                     />

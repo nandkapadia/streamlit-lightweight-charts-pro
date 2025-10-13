@@ -266,39 +266,68 @@ class TestHistogramDataTimeHandling:
     def test_time_normalization_string_date(self):
         """Test time normalization with string date."""
         data = HistogramData(time="2022-01-01", value=100.5)
-        # Should be normalized to UNIX timestamp
-        assert isinstance(data.time, int)
-        assert data.time > 0
+        # Time stored as-is
+        assert data.time == "2022-01-01"
+        # Normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] > 0
 
     def test_time_normalization_datetime_object(self):
         """Test time normalization with datetime object."""
         dt = datetime(2022, 1, 1, 12, 0, 0)
         data = HistogramData(time=dt, value=100.5)
-        # Should be normalized to UNIX timestamp
-        assert isinstance(data.time, int)
-        assert data.time > 0
+        # Time stored as-is (datetime)
+        assert data.time == dt
+        # Normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] > 0
 
     def test_time_normalization_pandas_timestamp(self):
         """Test time normalization with pandas timestamp."""
         ts = pd.Timestamp("2022-01-01 12:00:00")
         data = HistogramData(time=ts, value=100.5)
-        # Should be normalized to UNIX timestamp
-        assert isinstance(data.time, int)
-        assert data.time > 0
+        # Time stored as-is (pandas Timestamp)
+        assert data.time == ts
+        # Normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] > 0
 
     def test_time_normalization_float_timestamp(self):
         """Test time normalization with float timestamp."""
         data = HistogramData(time=1640995200.5, value=100.5)
-        # Should be converted to int
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        # Time stored as-is (float)
+        assert data.time == 1640995200.5
+        # Normalized to int in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
 
     def test_time_normalization_numpy_int64(self):
         """Test time normalization with numpy int64."""
         data = HistogramData(time=np.int64(1640995200), value=100.5)
-        # Should be converted to int
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        # Time stored as-is (numpy int64)
+        assert isinstance(data.time, np.int64)
+        # Normalized to int in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
+
+    def test_time_modification_after_construction(self):
+        """Test that time can be modified after construction."""
+        data = HistogramData(time="2024-01-01", value=100.5)
+        result1 = data.asdict()
+        time1 = result1["time"]
+
+        # Modify time after construction
+        data.time = "2024-01-02"
+        result2 = data.asdict()
+        time2 = result2["time"]
+
+        # Times should be different
+        assert time1 != time2
 
 
 class TestHistogramDataColorHandling:

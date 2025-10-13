@@ -46,6 +46,7 @@ from dataclasses import dataclass
 from typing import Any, ClassVar, Dict
 
 from streamlit_lightweight_charts_pro.logging_config import get_logger
+from streamlit_lightweight_charts_pro.type_definitions import ColumnNames
 from streamlit_lightweight_charts_pro.utils.data_utils import normalize_time
 from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
 
@@ -99,13 +100,13 @@ class Data(SerializableMixin, ABC):
     for all data structures in the library, handling time normalization, serialization,
     and column management for DataFrame operations.
 
-    The class automatically normalizes time values to UNIX timestamps and provides
-    standardized serialization to camelCase dictionaries for frontend communication.
-    It also manages required and optional columns for DataFrame conversion operations.
+    Time normalization happens during serialization (asdict()) rather than at construction,
+    allowing users to modify time values after creating data objects. This provides
+    flexibility while ensuring all serialized data uses consistent UTC timestamps.
 
     Attributes:
-        time (int): UNIX timestamp in seconds representing the data point time.
-            This value is automatically normalized during initialization.
+        time (Union[pd.Timestamp, datetime, str, int, float]): Time value in various
+            formats. Converted to UTC timestamp during serialization.
 
     Class Attributes:
         REQUIRED_COLUMNS (set): Set of required column names for DataFrame conversion.
@@ -130,21 +131,24 @@ class Data(SerializableMixin, ABC):
         # Create data point
         data = MyData(time="2024-01-01T00:00:00", value=100.0)
 
-        # Serialize for frontend
-        serialized = data.asdict()
+        # Can modify time after construction
+        data.time = "2024-01-02T00:00:00"
+
+        # Serialize for frontend (time normalized here)
+        serialized = data.asdict()  # {'time': <normalized_timestamp>, 'value': 100.0}
         ```
 
     Note:
         - All imports must be at the top of the file unless justified.
         - Use specific exceptions and lazy string formatting for logging.
-        - Time values are automatically normalized to seconds.
+        - Time values are normalized to UTC timestamps during serialization.
         - NaN values are converted to 0.0 for frontend compatibility.
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = {"time"}  # Required columns for DataFrame conversion
     OPTIONAL_COLUMNS: ClassVar[set] = set()  # Optional columns for DataFrame conversion
 
-    time: int
+    time: Any  # Accept any time format, normalize in asdict()
 
     @classproperty
     def required_columns(self):  # pylint: disable=no-self-argument
@@ -209,17 +213,17 @@ class Data(SerializableMixin, ABC):
         return optional
 
     def __post_init__(self):
-        """Post-initialization processing to normalize time values.
+        """Post-initialization processing.
 
         This method is automatically called after the dataclass is initialized.
-        It normalizes the time value to ensure consistent format across all
-        data points in the library.
+        Time normalization is intentionally NOT done here to allow users to
+        modify time values after construction. Normalization happens during
+        serialization in asdict().
 
-        The normalization process converts various time formats (strings,
-        datetime objects, etc.) to UNIX timestamps in seconds.
+        Subclasses can override this method to add validation or processing.
         """
-        # Normalize time to ensure consistent format
-        self.time = normalize_time(self.time)
+        # Time normalization happens in asdict() to allow post-construction modification
+        # Subclasses may override this for additional processing
 
     def asdict(self) -> Dict[str, Any]:
         """Serialize the data class to a dict with camelCase keys for frontend.
@@ -228,9 +232,13 @@ class Data(SerializableMixin, ABC):
         communication. This method handles various data type conversions and
         ensures proper formatting for JavaScript consumption.
 
+        Time normalization happens here (not in __post_init__) to allow users
+        to modify time values after construction and have changes reflected
+        in serialization.
+
         The method performs the following transformations:
+        - Normalizes time values to UNIX timestamps (fresh conversion each call)
         - Converts field names from snake_case to camelCase
-        - Normalizes time values to UNIX timestamps
         - Converts NaN values to 0.0 for frontend compatibility
         - Converts NumPy scalar types to Python native types
         - Extracts enum values using their .value property
@@ -251,13 +259,27 @@ class Data(SerializableMixin, ABC):
             data = MyData(time="2024-01-01T00:00:00", value=100.0, color="blue")
             result = data.asdict()
             # Returns: {'time': 1704067200, 'value': 100.0, 'color': 'blue'}
+
+            # Can modify time after construction
+            data.time = "2024-01-02T00:00:00"
+            result2 = data.asdict()
+            # Returns: {'time': 1704153600, 'value': 100.0, 'color': 'blue'}
             ```
 
         Note:
+            - Time is normalized fresh each call (no caching)
             - NaN values are converted to 0.0
             - NumPy scalar types are converted to Python native types
             - Enum values are extracted using their .value property
             - Time column uses standardized ColumnNames.TIME.value
         """
+        # Normalize time during serialization (not cached in __post_init__)
+        normalized_time = normalize_time(self.time)
+
         # Use the inherited serialization from SerializableMixin
-        return dict(self._serialize_to_dict())
+        result = dict(self._serialize_to_dict())
+
+        # Override the time field with normalized value
+        result[ColumnNames.TIME.value] = normalized_time
+
+        return result

@@ -269,8 +269,11 @@ class TestDataValidation:
 
     def test_line_data_with_invalid_time(self):
         """Test LineData with invalid time."""
-        with pytest.raises(TimeValidationError):
-            LineData(time="invalid_time", value=100)
+        # Invalid time won't raise error until asdict() is called
+        data = LineData(time="invalid_time", value=100)
+        # Error happens during serialization
+        with pytest.raises((TimeValidationError, ValueError)):
+            data.asdict()
 
     def test_line_data_with_color(self):
         """Test LineData with color."""
@@ -417,4 +420,8 @@ class TestEdgeCases:
         """Test handling of unicode strings in time."""
         # This should work with proper time strings
         data = LineData(time="2022-01-01", value=100)
-        assert data.time == 1640995200
+        # Time is stored as-is
+        assert data.time == "2022-01-01"
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert result["time"] == 1640995200

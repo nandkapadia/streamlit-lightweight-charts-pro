@@ -90,7 +90,7 @@ describe('UnifiedSeriesFactory - Title Handling', () => {
     });
 
     it('should work without title in options', () => {
-      const options = {
+      const options: Record<string, unknown> = {
         color: '#2196F3',
       };
 

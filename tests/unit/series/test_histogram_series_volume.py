@@ -210,9 +210,10 @@ class TestHistogramSeriesCreateVolumeSeries:
             down_color="rgba(244,67,54,0.5)",
         )
 
-        # Verify timestamps are in seconds (not nanoseconds)
+        # Verify timestamps are in seconds (not nanoseconds) when serialized
         expected_timestamps = [1704067200, 1704070800, 1704074400]  # Seconds
-        actual_timestamps = [data.time for data in volume_series.data]
+        # Get timestamps from asdict() since time is now normalized there
+        actual_timestamps = [data.asdict()["time"] for data in volume_series.data]
 
         assert actual_timestamps == expected_timestamps
         assert all(isinstance(ts, int) for ts in actual_timestamps)
@@ -243,8 +244,8 @@ class TestHistogramSeriesCreateVolumeSeries:
             down_color="rgba(244,67,54,0.5)",
         )
 
-        # All timestamps should be normalized to seconds
-        timestamps = [data.time for data in volume_series.data]
+        # All timestamps should be normalized to seconds in asdict()
+        timestamps = [data.asdict()["time"] for data in volume_series.data]
         assert all(isinstance(ts, int) for ts in timestamps)
         assert all(1704067200 <= ts <= 1704078000 for ts in timestamps)
 
@@ -271,8 +272,8 @@ class TestHistogramSeriesCreateVolumeSeries:
             column_mapping={"time": "time", "volume": "volume", "open": "open", "close": "close"},
         )
 
-        # All should be valid timestamps
-        timestamps = [data.time for data in volume_series.data]
+        # All should be valid timestamps when serialized
+        timestamps = [data.asdict()["time"] for data in volume_series.data]
         assert all(isinstance(ts, int) for ts in timestamps)
         assert all(ts > 0 for ts in timestamps)
 

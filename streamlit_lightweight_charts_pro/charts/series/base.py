@@ -55,6 +55,7 @@ logger = get_logger(__name__)
 
 # pylint: disable=no-member, invalid-name
 @chainable_property("title", top_level=True)
+@chainable_property("display_name", top_level=True)
 @chainable_property("visible", top_level=True)
 @chainable_property("z_index", allow_none=True, top_level=True)
 @chainable_property("price_scale_id", top_level=True)
@@ -95,6 +96,10 @@ class Series(ABC):  # noqa: B024
     Attributes:
         data (Union[List[Data], pd.DataFrame, pd.Series]): Data points for this series.
             Can be a list of Data objects, pandas DataFrame, or pandas Series.
+        title (Optional[str]): Technical title displayed on axis/legend.
+            Used for chart identification (e.g., "SMA(20)", "RSI(14)").
+        display_name (Optional[str]): User-friendly name for UI elements.
+            Used in dialog tabs and tooltips (e.g., "Moving Average", "Momentum").
         visible (bool): Whether the series is currently visible on the chart.
         price_scale_id (str): ID of the price scale this series is attached to.
             Common values are "left", "right", or custom scale IDs.
@@ -102,7 +107,6 @@ class Series(ABC):  # noqa: B024
         price_lines (List[PriceLineOptions]): List of price lines for horizontal markers.
         markers (List[MarkerBase]): List of markers to display on this series.
         pane_id (Optional[int]): The pane index this series belongs to for multi-pane charts.
-        title (Optional[str]): Optional title for the series in legends and tooltips.
         z_index (int): Z-index for controlling series rendering order.
 
     Class Attributes:
@@ -200,6 +204,7 @@ class Series(ABC):  # noqa: B024
 
         # Initialize series configuration properties with default values
         self._title = None  # Optional series title for legends and tooltips
+        self._display_name = None  # User-friendly name for UI elements
         self._visible = visible  # Series visibility flag
         self._price_scale_id = price_scale_id  # Price scale attachment ID
         self._price_scale = None  # Price scale configuration object

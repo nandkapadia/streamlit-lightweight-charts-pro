@@ -38,7 +38,7 @@ def test_default_values():
     assert opts.line_width == 1
     assert opts.line_style == LineStyle.SOLID
     assert opts.line_visible is True
-    assert opts.axis_label_visible is True
+    assert opts.axis_label_visible is False
     assert opts.title == ""
     assert opts.axis_label_color is None
     assert opts.axis_label_text_color is None

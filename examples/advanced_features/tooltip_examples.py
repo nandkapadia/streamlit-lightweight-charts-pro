@@ -29,7 +29,6 @@ from streamlit_lightweight_charts_pro.data import (
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     MarkerPosition,
     MarkerShape,
-    TradeType,
 )
 
 
@@ -93,30 +92,48 @@ def create_sample_trades():
             entry_price=105.0,
             exit_time="2024-01-20 15:00:00",
             exit_price=110.0,
-            quantity=100,
-            trade_type=TradeType.LONG,
+            is_profitable=True,
             id="TRADE_001",
-            notes="Breakout trade",
+            additional_data={
+                "quantity": 100,
+                "trade_type": "long",
+                "tradeType": "long",  # Frontend compatibility
+                "notes": "Breakout trade",
+                "pnl": (110.0 - 105.0) * 100,
+                "pnl_percentage": ((110.0 - 105.0) / 105.0) * 100,
+            },
         ),
         TradeData(
             entry_time="2024-01-25 14:30:00",
             entry_price=108.0,
             exit_time="2024-01-30 11:00:00",
             exit_price=102.0,
-            quantity=50,
-            trade_type=TradeType.SHORT,
+            is_profitable=False,
             id="TRADE_002",
-            notes="Pullback trade",
+            additional_data={
+                "quantity": 50,
+                "trade_type": "short",
+                "tradeType": "short",  # Frontend compatibility
+                "notes": "Pullback trade",
+                "pnl": (102.0 - 108.0) * 50,
+                "pnl_percentage": ((102.0 - 108.0) / 108.0) * 100,
+            },
         ),
         TradeData(
             entry_time="2024-02-05 09:15:00",
             entry_price=115.0,
             exit_time="2024-02-10 16:00:00",
             exit_price=120.0,
-            quantity=75,
-            trade_type=TradeType.LONG,
+            is_profitable=True,
             id="TRADE_003",
-            notes="Trend following",
+            additional_data={
+                "quantity": 75,
+                "trade_type": "long",
+                "tradeType": "long",  # Frontend compatibility
+                "notes": "Trend following",
+                "pnl": (120.0 - 115.0) * 75,
+                "pnl_percentage": ((120.0 - 115.0) / 115.0) * 100,
+            },
         ),
     ]
 
@@ -192,21 +209,15 @@ def example_multi_series_tooltip():
 
 
 def example_trade_tooltip():
-    """Example 4: Trade tooltip with markers."""
-    st.header("Example 4: Trade Tooltip with Markers")
-    st.write("This example shows trades with custom tooltips and markers.")
+    """Example 4: Trade tooltip with trade visualization."""
+    st.header("Example 4: Trade Tooltip with Trade Visualization")
+    st.write("This example shows trades with custom tooltips using the trade visualization system.")
 
     ohlc_data, _, _ = create_sample_data()
     trades = create_sample_trades()
 
     # Create candlestick series
     candlestick_series = CandlestickSeries(data=ohlc_data[:50])
-
-    # Add trade markers
-    for trade in trades:
-        markers = trade.to_markers()
-        for marker in markers:
-            candlestick_series.add_marker(marker)
 
     # Create trade tooltip
     trade_tooltip = create_trade_tooltip()
@@ -281,11 +292,16 @@ def example_tooltip_manager():
 
     # Add multiple tooltip configurations
     tooltip_manager.create_ohlc_tooltip("price")
-    tooltip_manager.create_single_value_tooltip("volume")
+
+    # Create custom tooltip for volume
+    volume_tooltip = create_single_value_tooltip()
+    volume_tooltip.fields = [TooltipField("Volume", "value", formatter=lambda x: f"{x:,.0f}")]
+    tooltip_manager.add_config("volume", volume_tooltip)
 
     # Create custom tooltip for moving average
-    ma_tooltip = tooltip_manager.create_custom_tooltip("Moving Average: {value}", "ma")
+    ma_tooltip = create_custom_tooltip("Moving Average: ${value}")
     ma_tooltip.fields = [TooltipField("MA20", "value", precision=2, prefix="$")]
+    tooltip_manager.add_config("ma", ma_tooltip)
 
     # Create candlestick series
     candlestick_series = CandlestickSeries(data=ohlc_data[:50])

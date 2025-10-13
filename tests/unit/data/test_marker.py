@@ -35,7 +35,7 @@ class TestMarkerBaseConstruction:
             shape=MarkerShape.CIRCLE,
         )
 
-        # Time is normalized to UNIX timestamp format
+        # Time is stored as-is format
         assert isinstance(marker.time, int)
         assert marker.time == 1640995200  # UNIX timestamp for 2022-01-01
         assert marker.position == MarkerPosition.ABOVE_BAR
@@ -49,7 +49,7 @@ class TestMarkerBaseConstruction:
         """Test Marker construction with only time (using all defaults)."""
         marker = Marker(time=1640995200)
 
-        # Time is normalized to UNIX timestamp format
+        # Time is stored as-is format
         assert isinstance(marker.time, int)
         assert marker.time == 1640995200  # UNIX timestamp for 2022-01-01
         assert marker.position == MarkerPosition.ABOVE_BAR  # Default position
@@ -70,7 +70,7 @@ class TestMarkerBaseConstruction:
             id="test_id",
         )
 
-        # Time is normalized to UNIX timestamp format
+        # Time is stored as-is format
         assert isinstance(marker.time, int)
         assert marker.time == 1640995200  # UNIX timestamp for 2022-01-01
         assert marker.position == MarkerPosition.ABOVE_BAR
@@ -98,9 +98,12 @@ class TestMarkerBaseConstruction:
             shape=MarkerShape.CIRCLE,
         )
 
-        # Time is normalized to UNIX timestamp format
-        assert isinstance(marker.time, int)
-        assert marker.time == 1640995200  # UNIX timestamp for 2022-01-01
+        # Time is stored as-is
+        assert marker.time == "2022-01-01"
+        # Time is normalized in asdict()
+        result = marker.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200  # UNIX timestamp for 2022-01-01
 
     def test_construction_with_datetime(self):
         """Test Marker construction with datetime."""
@@ -112,11 +115,14 @@ class TestMarkerBaseConstruction:
             shape=MarkerShape.CIRCLE,
         )
 
-        # Time is normalized to UNIX timestamp format
-        assert isinstance(marker.time, int)
+        # Time is stored as-is (datetime object)
+        assert marker.time == dt
+        # Time is normalized in asdict()
+        result = marker.asdict()
+        assert isinstance(result["time"], int)
         # The actual timestamp depends on timezone, so we'll check it's a reasonable value
-        assert marker.time > 1640970000  # Should be around 2022-01-01
-        assert marker.time < 1641020000  # Should be around 2022-01-01 (accounting for timezone)
+        assert result["time"] > 1640970000  # Should be around 2022-01-01
+        assert result["time"] < 1641020000  # Should be around 2022-01-01 (accounting for timezone)
 
     def test_construction_with_pandas_timestamp(self):
         """Test Marker construction with pandas Timestamp."""
@@ -128,9 +134,12 @@ class TestMarkerBaseConstruction:
             shape=MarkerShape.CIRCLE,
         )
 
-        # Time is normalized to UNIX timestamp format
-        assert isinstance(marker.time, int)
-        assert marker.time == 1640995200  # UNIX timestamp for 2022-01-01
+        # Time is stored as-is (pandas Timestamp)
+        assert marker.time == ts
+        # Time is normalized in asdict()
+        result = marker.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200  # UNIX timestamp for 2022-01-01
 
     def test_construction_with_all_position_variants(self):
         """Test Marker construction with all position variants."""
@@ -193,13 +202,16 @@ class TestMarkerValidation:
 
     def test_invalid_time(self):
         """Test Marker construction with invalid time."""
-        with pytest.raises(TimeValidationError):
-            Marker(
-                time="invalid_time",
-                position=MarkerPosition.ABOVE_BAR,
-                color="#ff0000",
-                shape=MarkerShape.CIRCLE,
-            )
+        # Invalid time won't raise error until asdict() is called
+        marker = Marker(
+            time="invalid_time",
+            position=MarkerPosition.ABOVE_BAR,
+            color="#ff0000",
+            shape=MarkerShape.CIRCLE,
+        )
+        # Error happens during serialization
+        with pytest.raises((TimeValidationError, ValueError)):
+            marker.asdict()
 
     def test_invalid_color_format(self):
         """Test Marker construction with invalid color format."""
@@ -241,23 +253,29 @@ class TestMarkerValidation:
 
     def test_none_time_raises_error(self):
         """Test that None time raises an error."""
-        with pytest.raises(UnsupportedTimeTypeError):
-            Marker(
-                time=None,
-                position=MarkerPosition.ABOVE_BAR,
-                color="#ff0000",
-                shape=MarkerShape.CIRCLE,
-            )
+        # None time won't raise error until asdict() is called
+        marker = Marker(
+            time=None,
+            position=MarkerPosition.ABOVE_BAR,
+            color="#ff0000",
+            shape=MarkerShape.CIRCLE,
+        )
+        # Error happens during serialization
+        with pytest.raises((UnsupportedTimeTypeError, ValueError, TypeError)):
+            marker.asdict()
 
     def test_empty_string_time_raises_error(self):
         """Test that empty string time raises an error."""
-        with pytest.raises(TimeValidationError):
-            Marker(
-                time="",
-                position=MarkerPosition.ABOVE_BAR,
-                color="#ff0000",
-                shape=MarkerShape.CIRCLE,
-            )
+        # Empty string time won't raise error until asdict() is called
+        marker = Marker(
+            time="",
+            position=MarkerPosition.ABOVE_BAR,
+            color="#ff0000",
+            shape=MarkerShape.CIRCLE,
+        )
+        # Error happens during serialization
+        with pytest.raises((TimeValidationError, ValueError)):
+            marker.asdict()
 
     def test_negative_time_raises_error(self):
         """Test that negative time is handled correctly."""
@@ -925,14 +943,16 @@ class TestMarkerDataHandling:
     def test_marker_with_nan_handling(self):
         """Test Marker behavior with NaN values in time."""
         # This test ensures Marker handles NaN values appropriately
-        # Note: The base Data class should handle NaN conversion
+        # NaN time won't raise error until asdict() is called
+        marker = Marker(
+            time=float("nan"),
+            position=MarkerPosition.ABOVE_BAR,
+            color="#ff0000",
+            shape=MarkerShape.CIRCLE,
+        )
+        # Error happens during serialization
         with pytest.raises(ValueError):
-            Marker(
-                time=float("nan"),
-                position=MarkerPosition.ABOVE_BAR,
-                color="#ff0000",
-                shape=MarkerShape.CIRCLE,
-            )
+            marker.asdict()
 
 
 class TestMarkerIntegration:

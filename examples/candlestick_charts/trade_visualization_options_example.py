@@ -18,6 +18,7 @@ from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options
 )
 from streamlit_lightweight_charts_pro.data import OhlcvData, TradeData
 from streamlit_lightweight_charts_pro.type_definitions.enums import TradeType, TradeVisualization
+from streamlit_lightweight_charts_pro.utils.data_utils import to_utc_timestamp
 
 
 def generate_sample_ohlcv_data(n_periods=50):
@@ -71,7 +72,7 @@ def create_sample_trades(ohlcv_data):
 
     random.seed(42)
 
-    for _i in range(5):
+    for i in range(5):
         entry_idx = random.randint(0, n_periods - 2)
         exit_idx = random.randint(entry_idx + 1, n_periods - 1)
 
@@ -81,15 +82,31 @@ def create_sample_trades(ohlcv_data):
         entry_price = (entry_data.open + entry_data.close) / 2
         exit_price = (exit_data.open + exit_data.close) / 2
 
+        # Determine trade type based on price direction
         trade_type = TradeType.LONG if exit_price > entry_price else TradeType.SHORT
+
+        # Calculate profitability
+        is_profitable = exit_price > entry_price
+
+        # Calculate quantity and P&L
+        quantity = int(random.randint(100, 1000))
+        pnl = (exit_price - entry_price) * quantity
+        pnl_percentage = ((exit_price - entry_price) / entry_price) * 100
 
         trade = TradeData(
             entry_time=int(entry_data.time),  # Ensure Python int
             exit_time=int(exit_data.time),  # Ensure Python int
             entry_price=float(round(entry_price, 2)),  # Ensure Python float
             exit_price=float(round(exit_price, 2)),  # Ensure Python float
-            trade_type=trade_type,
-            quantity=int(random.randint(100, 1000)),  # Ensure Python int
+            is_profitable=is_profitable,
+            id=f"TRADE_{i + 1:03d}",
+            additional_data={
+                "trade_type": trade_type.value,
+                "tradeType": trade_type.value,  # Frontend compatibility
+                "quantity": quantity,
+                "pnl": round(pnl, 2),
+                "pnl_percentage": round(pnl_percentage, 2),
+            },
         )
 
         trades.append(trade)
@@ -223,18 +240,31 @@ def main():
         [
             {
                 "Trade #": i + 1,
-                "Type": trade.trade_type.value.upper(),
+                "Type": (
+                    trade.additional_data.get("trade_type", "LONG").upper()
+                    if trade.additional_data
+                    else "LONG"
+                ),
                 "Entry Time": (
-                    datetime.fromtimestamp(trade.entry_timestamp).strftime("%Y-%m-%d %H:%M")
+                    datetime.fromtimestamp(to_utc_timestamp(trade.entry_time)).strftime(
+                        "%Y-%m-%d %H:%M",
+                    )
                 ),
                 "Exit Time": (
-                    datetime.fromtimestamp(trade.exit_timestamp).strftime("%Y-%m-%d %H:%M")
+                    datetime.fromtimestamp(to_utc_timestamp(trade.exit_time)).strftime(
+                        "%Y-%m-%d %H:%M",
+                    )
                 ),
                 "Entry Price": f"${trade.entry_price:.2f}",
                 "Exit Price": f"${trade.exit_price:.2f}",
-                "Quantity": trade.quantity,
+                "Quantity": trade.additional_data.get("quantity", 0)
+                if trade.additional_data
+                else 0,
                 "PnL": f"${trade.pnl:.2f}",
-                "Duration": f"{trade.exit_timestamp - trade.entry_timestamp} hours",
+                "Duration": (
+                    f"{to_utc_timestamp(trade.exit_time) - to_utc_timestamp(trade.entry_time)}"
+                    " hours"
+                ),
             }
             for i, trade in enumerate(trades)
         ],
@@ -257,10 +287,13 @@ def main():
 
     trade_data = pd.DataFrame(df_data)
 
-    # Create chart with TradeVisualizationOptions using factory method
+    # Create chart with TradeVisualizationOptions
     st.subheader("📈 Chart with Trade Visualization Options")
 
-    chart = Chart.from_price_volume_dataframe(
+    chart = Chart()
+
+    # Add price and volume series
+    chart.add_price_volume_series(
         data=trade_data,
         column_mapping={
             "time": "time",
@@ -337,8 +370,9 @@ chart_options = ChartOptions(
     trade_visualization=trade_viz_options
 )
 
-# Create chart using factory method
-chart = Chart.from_price_volume_dataframe(
+# Create chart and add price/volume series
+chart = Chart()
+chart.add_price_volume_series(
     data=trade_data,
     column_mapping={
         "time": "time",
@@ -355,7 +389,7 @@ chart = Chart.from_price_volume_dataframe(
 chart.update_options(**chart_options.asdict())
 
 # Add trade visualization
-chart.add_trade_visualization(trades)
+chart.add_trades(trades)
 chart.render(key="chart")
     """,
         language="python",

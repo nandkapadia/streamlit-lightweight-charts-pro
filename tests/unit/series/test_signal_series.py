@@ -178,11 +178,13 @@ class TestSignalSeries:
         )
 
         assert len(series.data) == 2
-        # Time is automatically normalized to timestamp
-        assert series.data[0].time == 1704067200  # 2024-01-01 timestamp
+        # Time is stored as-is, normalized in asdict()
+        result0 = series.data[0].asdict()
+        result1 = series.data[1].asdict()
+        assert result0["time"] == 1704067200  # 2024-01-01 timestamp
         assert series.data[0].value == 0
         assert series.data[0].color == "#ffffff"
-        assert series.data[1].time == 1704153600  # 2024-01-02 timestamp
+        assert result1["time"] == 1704153600  # 2024-01-02 timestamp
         assert series.data[1].value == 1
         assert series.data[1].color == "#ff0000"
 
@@ -212,9 +214,11 @@ class TestSignalSeries:
         )
 
         assert len(series.data) == 2
-        # Time is automatically normalized to timestamp
-        assert series.data[0].time == 1704067200  # 2024-01-01 timestamp
-        assert series.data[1].time == 1704153600  # 2024-01-02 timestamp
+        # Time is stored as-is, normalized in asdict()
+        result0 = series.data[0].asdict()
+        result1 = series.data[1].asdict()
+        assert result0["time"] == 1704067200  # 2024-01-01 timestamp
+        assert result1["time"] == 1704153600  # 2024-01-02 timestamp
 
     def test_asdict(self):
         """Test converting SignalSeries to dictionary."""
@@ -341,8 +345,9 @@ class TestSignalSeries:
         long_time = "2024-01-01T00:00:00.000000000"
         data = [SignalData(long_time, 1)]
         series = SignalSeries(data=data)
-        # Time is automatically normalized to timestamp
-        assert series.data[0].time == 1704067200  # 2024-01-01 timestamp
+        # Time is stored as-is, normalized in asdict()
+        result = series.data[0].asdict()
+        assert result["time"] == 1704067200  # 2024-01-01 timestamp
 
         # Test with special characters in colors
         special_color = "rgba(255, 255, 255, 0.123456789)"

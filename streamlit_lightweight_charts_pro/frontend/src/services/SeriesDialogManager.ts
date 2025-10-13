@@ -372,26 +372,27 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
       const panes = this.chartApi.panes();
 
       if (paneId >= 0 && paneId < panes.length) {
-        // For now, create mock series data since we need to simulate series
-        // In a real implementation, this would query actual series from the chart
-        const mockSeriesData = this.getMockSeriesForPane(paneId);
+        // Detect actual series from the chart pane
+        const detectedSeries = this.detectSeriesInPane(paneId);
 
-        mockSeriesData.forEach((mockSeries, index) => {
+        detectedSeries.forEach((seriesInfo, index) => {
           const seriesId = `pane-${paneId}-series-${index}`;
 
           // Get existing config or create default
           let seriesConfig = state.seriesConfigs.get(seriesId);
           if (!seriesConfig) {
-            seriesConfig = this.getDefaultSeriesConfig(mockSeries.type);
+            seriesConfig = this.getDefaultSeriesConfig(seriesInfo.type);
             state.seriesConfigs.set(seriesId, seriesConfig);
           }
 
           seriesList.push({
             id: seriesId,
-            displayName: mockSeries.title,
-            type: mockSeries.type,
+            // Use displayName if available, otherwise fall back to title
+            // displayName is for UI (dialog tabs), title is for chart axis/legend
+            displayName: seriesInfo.displayName || seriesInfo.title,
+            type: seriesInfo.type,
             config: seriesConfig,
-            title: mockSeries.title,
+            title: seriesInfo.title,
           });
         });
       }
@@ -404,10 +405,18 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
   }
 
   /**
-   * Get actual series data for a pane by detecting from chart
+   * Detect series in a pane by inspecting the chart API
+   *
+   * This method queries the actual chart to discover what series exist in the specified pane.
+   * It extracts type, title, and displayName from each series' options.
+   *
+   * @param paneId - The pane index to inspect
+   * @returns Array of detected series information
    */
-  private getMockSeriesForPane(paneId: number): Array<{ type: SeriesType; title?: string }> {
-    const seriesData: Array<{ type: SeriesType; title?: string }> = [];
+  private detectSeriesInPane(
+    paneId: number
+  ): Array<{ type: SeriesType; title?: string; displayName?: string }> {
+    const seriesData: Array<{ type: SeriesType; title?: string; displayName?: string }> = [];
 
     try {
       // Get all panes from the chart
@@ -418,7 +427,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
         const pane = panes[paneId];
         const paneSeries = pane.getSeries();
 
-        // Detect type and title from each series
+        // Detect type, title, and displayName from each series
         paneSeries.forEach((series: ISeriesApi<any>) => {
           try {
             const options = series.options() as any;
@@ -426,12 +435,16 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
             // Get series type from _seriesType metadata (added by UnifiedSeriesFactory)
             const seriesType = (options._seriesType as SeriesType) || 'line';
 
-            // Get title from series options
-            const title = options.title;
+            // CRITICAL: displayName and title are stored as direct properties on the series object,
+            // not in options() - lightweight-charts doesn't preserve custom properties in options
+            const extendedSeries = series as any;
+            const displayName = extendedSeries.displayName;
+            const title = extendedSeries.title || options.title;
 
             seriesData.push({
               type: seriesType,
               title: title || `${seriesType} series`,
+              displayName: displayName, // May be undefined - that's OK
             });
           } catch (error) {
             // If we can't get series info, log and skip
@@ -441,7 +454,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
       }
     } catch (error) {
       // Pane access errors - log as warning
-      handleError(error, 'SeriesDialogManager.getMockSeriesForPane', ErrorSeverity.WARNING);
+      handleError(error, 'SeriesDialogManager.detectSeriesInPane', ErrorSeverity.WARNING);
     }
 
     return seriesData;

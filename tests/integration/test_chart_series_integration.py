@@ -76,16 +76,26 @@ class TestChartSeriesIntegration:
                 entry_price=100.0,
                 exit_time="2024-01-01 12:00:00",
                 exit_price=102.0,
-                quantity=100,
-                trade_type=TradeType.LONG,
+                is_profitable=True,
+                id="trade_001",
+                additional_data={
+                    "quantity": 100,
+                    "trade_type": "long",
+                    "tradeType": "long",
+                },
             ),
             TradeData(
                 entry_time="2024-01-01 13:00:00",
                 entry_price=103.0,
                 exit_time="2024-01-01 14:00:00",
                 exit_price=101.0,
-                quantity=50,
-                trade_type=TradeType.SHORT,
+                is_profitable=False,
+                id="trade_002",
+                additional_data={
+                    "quantity": 50,
+                    "trade_type": "short",
+                    "tradeType": "short",
+                },
             ),
         ]
 
@@ -716,9 +726,12 @@ class TestChartSeriesErrorHandlingIntegration:
 
     def test_series_recovery_after_invalid_data(self):
         """Test series behavior when invalid data is provided."""
-        # Test series with corrupted data
-        with pytest.raises(OverflowError):
-            LineSeries(data=[LineData(time=float("inf"), value=100)])
+        # Test series with corrupted data - error happens during serialization
+        series = LineSeries(data=[LineData(time=float("inf"), value=100)])
+        chart = Chart(series=series)
+        # Error happens when serializing
+        with pytest.raises((OverflowError, ValueError)):
+            chart.to_frontend_config()
 
     def test_chart_with_partially_invalid_series_list(self):
         """Test chart with partially invalid series list."""

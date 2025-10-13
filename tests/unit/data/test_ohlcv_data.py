@@ -186,8 +186,11 @@ class TestOhlcvData:
         dt = datetime.now()
         data = OhlcvData(time=dt, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0)
 
-        assert isinstance(data.time, int)
-        assert data.time == int(dt.timestamp())
+        # Time stored as datetime object
+        assert data.time == dt
+        result = data.asdict()
+        assert isinstance(result["time"], int)  # Normalized in asdict()
+        assert result["time"] == int(dt.timestamp())
 
         # Test with integer timestamp (not string)
         timestamp_int = 1640995200  # 2022-01-01 00:00:00 UTC
@@ -200,8 +203,31 @@ class TestOhlcvData:
             volume=1000.0,
         )
 
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        assert data.time == timestamp_int  # Stored as-is
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
+
+    def test_time_modification_after_construction(self):
+        """Test that time can be modified after construction."""
+        data = OhlcvData(
+            time="2024-01-01",
+            open=100.0,
+            high=105.0,
+            low=95.0,
+            close=102.0,
+            volume=1000,
+        )
+        result1 = data.asdict()
+        time1 = result1["time"]
+
+        # Modify time after construction
+        data.time = "2024-01-02"
+        result2 = data.asdict()
+        time2 = result2["time"]
+
+        # Times should be different
+        assert time1 != time2
 
     def test_to_dict_serialization(self):
         """Test serialization to dictionary."""

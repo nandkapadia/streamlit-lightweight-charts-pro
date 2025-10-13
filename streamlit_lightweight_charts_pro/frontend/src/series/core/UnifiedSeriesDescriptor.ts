@@ -247,9 +247,13 @@ export function dialogConfigToApiOptions<T = unknown>(
     apiOptions.lastValueVisible = dialogConfig.lastValueVisible;
   if (dialogConfig.priceLineVisible !== undefined)
     apiOptions.priceLineVisible = dialogConfig.priceLineVisible;
-  if (dialogConfig.axisLabelVisible !== undefined)
-    apiOptions.axisLabelVisible = dialogConfig.axisLabelVisible;
+
+  // Title vs DisplayName:
+  // - title: Passed to TradingView API, displayed on chart axis/legend
+  // - displayName: NOT passed to TradingView API, only used for UI elements (dialog tabs, tooltips)
+  // Both are stored in dialogConfig, but only title goes to the chart API
   if (dialogConfig.title !== undefined) apiOptions.title = dialogConfig.title;
+  if (dialogConfig.displayName !== undefined) apiOptions.displayName = dialogConfig.displayName;
 
   // Property-descriptor-driven mapping
   for (const [propName, propDesc] of Object.entries(descriptor.properties)) {
@@ -293,9 +297,13 @@ export function apiOptionsToDialogConfig<T = unknown>(
     dialogConfig.lastValueVisible = apiOptions.lastValueVisible;
   if (apiOptions.priceLineVisible !== undefined)
     dialogConfig.priceLineVisible = apiOptions.priceLineVisible;
-  if (apiOptions.axisLabelVisible !== undefined)
-    dialogConfig.axisLabelVisible = apiOptions.axisLabelVisible;
+
+  // Title vs DisplayName:
+  // - title: Technical name shown on chart axis/legend (e.g., "SMA(20)", "RSI(14)")
+  // - displayName: User-friendly name shown in UI dialogs (e.g., "Moving Average", "Momentum")
+  // Both are stored separately; getTabTitle() in SeriesSettingsDialog handles priority logic
   if (apiOptions.title !== undefined) dialogConfig.title = apiOptions.title;
+  if (apiOptions.displayName !== undefined) dialogConfig.displayName = apiOptions.displayName;
 
   // Property-descriptor-driven mapping
   for (const [propName, propDesc] of Object.entries(descriptor.properties)) {

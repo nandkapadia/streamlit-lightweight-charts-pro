@@ -24,6 +24,7 @@ from streamlit_lightweight_charts_pro.type_definitions.enums import (
     MarkerShape,
     TradeType,
 )
+from streamlit_lightweight_charts_pro.utils.data_utils import to_utc_timestamp
 
 
 def generate_brownian_motion_ohlcv(
@@ -112,7 +113,7 @@ def identify_trades(ohlcv_data, num_trades=10):
     # Set random seed for reproducibility
     random.seed(42)
 
-    for _i in range(num_trades):
+    for i in range(num_trades):
         # Random entry and exit points
         entry_idx = random.randint(0, n_periods - 2)
         exit_idx = random.randint(entry_idx + 1, n_periods - 1)
@@ -127,14 +128,29 @@ def identify_trades(ohlcv_data, num_trades=10):
         # Determine trade type based on price movement
         trade_type = TradeType.LONG if exit_price > entry_price else TradeType.SHORT
 
+        # Calculate profitability
+        is_profitable = exit_price > entry_price
+
+        # Calculate quantity and P&L
+        quantity = random.randint(100, 1000)  # Random position size
+        pnl = (exit_price - entry_price) * quantity
+        pnl_percentage = ((exit_price - entry_price) / entry_price) * 100
+
         # Create trade object
         trade = TradeData(
             entry_time=entry_data.time,
             exit_time=exit_data.time,
             entry_price=round(entry_price, 2),
             exit_price=round(exit_price, 2),
-            trade_type=trade_type,
-            quantity=random.randint(100, 1000),  # Random position size
+            is_profitable=is_profitable,
+            id=f"TRADE_{i + 1:03d}",
+            additional_data={
+                "trade_type": trade_type.value,
+                "tradeType": trade_type.value,  # Frontend compatibility
+                "quantity": quantity,
+                "pnl": round(pnl, 2),
+                "pnl_percentage": round(pnl_percentage, 2),
+            },
         )
 
         trades.append(trade)
@@ -299,8 +315,14 @@ def create_custom_trade_markers(trades, options):
     }
 
     for i, trade in enumerate(trades):
+        # Get trade type from additional_data
+        trade_type_value = (
+            trade.additional_data.get("trade_type", "long") if trade.additional_data else "long"
+        )
+        trade_type = TradeType.LONG if trade_type_value == "long" else TradeType.SHORT
+
         # Determine colors based on trade type
-        if trade.trade_type == TradeType.LONG:
+        if trade_type == TradeType.LONG:
             entry_color = options["colors"]["long_entry"]
             exit_color = options["colors"]["long_exit"]
             entry_position = position_mapping[options["positions"]["long_entry"]]
@@ -311,13 +333,16 @@ def create_custom_trade_markers(trades, options):
             entry_position = position_mapping[options["positions"]["short_entry"]]
             exit_position = position_mapping[options["positions"]["short_exit"]]
 
+        # Get quantity from additional_data
+        quantity = trade.additional_data.get("quantity", 0) if trade.additional_data else 0
+
         # Create entry marker text
         entry_text_parts = []
         if options["options"]["show_trade_ids"]:
             entry_text_parts.append(f"#{i + 1}")
         entry_text_parts.append(f"Entry: ${trade.entry_price:.2f}")
         if options["options"]["show_quantity"]:
-            entry_text_parts.append(f"Qty: {trade.quantity}")
+            entry_text_parts.append(f"Qty: {quantity}")
 
         entry_text = " - ".join(entry_text_parts)
 
@@ -333,17 +358,19 @@ def create_custom_trade_markers(trades, options):
             exit_text_parts.append(f"{trade.pnl_percentage:+.1f}%")
 
         if options["options"]["show_quantity"]:
-            exit_text_parts.append(f"Qty: {trade.quantity}")
+            exit_text_parts.append(f"Qty: {quantity}")
 
         if options["options"]["show_duration"]:
-            duration_hours = trade.exit_timestamp - trade.entry_timestamp
+            duration_hours = to_utc_timestamp(trade.exit_time) - to_utc_timestamp(
+                trade.entry_time,
+            )
             exit_text_parts.append(f"Dur: {duration_hours}h")
 
         exit_text = " - ".join(exit_text_parts)
 
         # Create entry marker
         entry_marker = BarMarker(
-            time=trade.entry_timestamp,
+            time=to_utc_timestamp(trade.entry_time),
             position=entry_position,
             shape=shape_mapping[options["shapes"]["entry"]],
             color=entry_color,
@@ -353,7 +380,7 @@ def create_custom_trade_markers(trades, options):
 
         # Create exit marker
         exit_marker = BarMarker(
-            time=trade.exit_timestamp,
+            time=to_utc_timestamp(trade.exit_time),
             position=exit_position,
             shape=shape_mapping[options["shapes"]["exit"]],
             color=exit_color,
@@ -451,18 +478,31 @@ def main():
         [
             {
                 "Trade #": i + 1,
-                "Type": trade.trade_type.value.upper(),
+                "Type": (
+                    trade.additional_data.get("trade_type", "long").upper()
+                    if trade.additional_data
+                    else "LONG"
+                ),
                 "Entry Time": (
-                    datetime.fromtimestamp(trade.entry_timestamp).strftime("%Y-%m-%d %H:%M")
+                    datetime.fromtimestamp(to_utc_timestamp(trade.entry_time)).strftime(
+                        "%Y-%m-%d %H:%M",
+                    )
                 ),
                 "Exit Time": (
-                    datetime.fromtimestamp(trade.exit_timestamp).strftime("%Y-%m-%d %H:%M")
+                    datetime.fromtimestamp(to_utc_timestamp(trade.exit_time)).strftime(
+                        "%Y-%m-%d %H:%M",
+                    )
                 ),
                 "Entry Price": f"${trade.entry_price:.2f}",
                 "Exit Price": f"${trade.exit_price:.2f}",
-                "Quantity": trade.quantity,
+                "Quantity": trade.additional_data.get("quantity", 0)
+                if trade.additional_data
+                else 0,
                 "PnL": f"${trade.pnl:.2f}",
-                "Duration": f"{trade.exit_timestamp - trade.entry_timestamp} hours",
+                "Duration": (
+                    f"{to_utc_timestamp(trade.exit_time) - to_utc_timestamp(trade.entry_time)}"
+                    " hours"
+                ),
             }
             for i, trade in enumerate(trades)
         ],
@@ -542,6 +582,31 @@ def main():
 
     # Display the chart
     chart.render(key="brownian_motion_chart")
+
+    # DEBUG: Output the frontend configuration JSON
+    st.subheader("🔍 Debug: Frontend Configuration JSON")
+    with st.expander("View Frontend Configuration", expanded=False):
+        config = chart.to_frontend_config()
+        st.json(config)
+
+        # Also show series information
+        st.write("**Series Configuration:**")
+        for i, series in enumerate(chart.series):
+            st.write(f"**Series {i}:**")
+            st.write(f"- Type: {type(series).__name__}")
+            st.write(f"- Price Scale ID: {series.price_scale_id}")
+            st.write(f"- Pane ID: {series.pane_id}")
+
+        # Show overlay price scales
+        st.write("**Overlay Price Scales:**")
+        if chart.options and chart.options.overlay_price_scales:
+            for scale_id, scale_options in chart.options.overlay_price_scales.items():
+                st.write(f"**Scale ID: '{scale_id}'**")
+                st.write(f"- price_scale_id field: '{scale_options.price_scale_id}'")
+                st.write(f"- visible: {scale_options.visible}")
+                st.write(f"- auto_scale: {scale_options.auto_scale}")
+        else:
+            st.write("No overlay price scales configured")
 
     # Display trade statistics
     st.subheader("📊 Trade Statistics")

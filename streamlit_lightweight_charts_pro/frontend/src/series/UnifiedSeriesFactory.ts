@@ -288,6 +288,10 @@ export interface ExtendedSeriesConfig {
   seriesId?: string;
   /** Chart ID for global identification */
   chartId?: string;
+  /** Series title (technical name for chart axis/legend) */
+  title?: string;
+  /** Display name (user-friendly name for UI elements like dialog tabs) */
+  displayName?: string;
   /** Trade configurations for visualization */
   trades?: TradeConfig[];
   /** Trade visualization options */
@@ -303,6 +307,10 @@ export interface ExtendedSeriesApi extends ISeriesApi<keyof SeriesOptionsMap> {
   paneId?: number;
   seriesId?: string;
   legendConfig?: Record<string, unknown>;
+  /** Display name (user-friendly name for UI elements like dialog tabs) */
+  displayName?: string;
+  /** Series title (technical name for chart axis/legend) */
+  title?: string;
 }
 
 /**
@@ -325,16 +333,27 @@ export function createSeriesWithConfig(
       options = {},
       paneId = 0,
       priceScale,
+      priceScaleId, // CRITICAL FIX: Extract priceScaleId from top-level config
       priceLines,
       markers,
       legend,
       seriesId,
       chartId,
       title, // Extract title from top-level config
+      displayName, // Extract displayName from top-level config
     } = config;
 
-    // Merge title into options if it exists (Python sends title at top level)
-    const mergedOptions = title ? { ...options, title } : options;
+    // CRITICAL FIX: Merge top-level properties into options
+    // Python sends these at top level, but lightweight-charts expects them in options
+    let mergedOptions = options;
+    if (title || displayName || priceScaleId) {
+      mergedOptions = { ...options } as any;
+      if (title) (mergedOptions as any).title = title;
+      if (displayName) (mergedOptions as any).displayName = displayName;
+      // CRITICAL FIX: Include priceScaleId in options passed to descriptor
+      // Without this, the series won't attach to the correct price scale!
+      if (priceScaleId) (mergedOptions as any).priceScaleId = priceScaleId;
+    }
 
     // Step 1: Create the series using basic createSeries
     // Note: createSeries already handles data sorting and setting via descriptors
@@ -381,6 +400,13 @@ export function createSeriesWithConfig(
     }
     if (legend) {
       series.legendConfig = legend;
+    }
+    // Store displayName and title for UI (lightweight-charts doesn't preserve these in options)
+    if (displayName) {
+      series.displayName = displayName;
+    }
+    if (title) {
+      series.title = title;
     }
 
     // Step 7: Handle legend registration

@@ -118,21 +118,6 @@ vi.mock('lightweight-charts', () => {
   };
 });
 
-/**
- * Helper function to ensure chart config has valid layout options
- * This prevents undefined color errors in lightweight-charts
- */
-function ensureValidChartConfig(config: any): any {
-  return {
-    ...config,
-    layout: {
-      background: { color: '#ffffff' },
-      textColor: '#000000',
-      ...config.layout,
-    },
-  };
-}
-
 describe('Frontend Integration Tests', () => {
   beforeEach(() => {
     // Centralized mocks are automatically reset in globalMockSetup.ts

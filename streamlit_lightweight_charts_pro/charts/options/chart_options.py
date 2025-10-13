@@ -190,6 +190,17 @@ class ChartOptions(Options):
 
     def __post_init__(self):
         """Validate chart options after initialization."""
+        # CRITICAL FIX: Ensure default price scales have their IDs set
+        # Without this, the empty string price_scale_id gets filtered out during serialization
+        # This causes the frontend to fail matching series to their price scales
+        if self.right_price_scale is not None and not self.right_price_scale.price_scale_id:
+            # Set the price_scale_id to "right" if it's empty or not set
+            self.right_price_scale.price_scale_id = "right"
+
+        if self.left_price_scale is not None and not self.left_price_scale.price_scale_id:
+            # Set the price_scale_id to "left" if it's empty or not set
+            self.left_price_scale.price_scale_id = "left"
+
         # Validate price scale options
         if self.right_price_scale is not None and not isinstance(
             self.right_price_scale,

@@ -323,9 +323,10 @@ function createTradeMarkers(
 
     // Entry marker - use tradeType for color selection
     const tradeType = trade.trade_type || trade.tradeType || 'long';
-    const entryColor = tradeType === 'long'
-      ? options.entryMarkerColorLong || '#2196F3'
-      : options.entryMarkerColorShort || '#FF9800';
+    const entryColor =
+      tradeType === 'long'
+        ? options.entryMarkerColorLong || '#2196F3'
+        : options.entryMarkerColorShort || '#FF9800';
 
     // Generate entry marker text using template or default
     let entryMarkerText = '';

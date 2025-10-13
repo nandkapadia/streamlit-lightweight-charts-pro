@@ -357,7 +357,7 @@ class TestPriceLineOptions:
         assert options.line_width == 1
         assert options.line_style == LineStyle.SOLID
         assert options.line_visible is True
-        assert options.axis_label_visible is True
+        assert options.axis_label_visible is False
         assert options.title == ""
 
     def test_custom_construction(self):

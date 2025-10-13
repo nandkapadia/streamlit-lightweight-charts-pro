@@ -1706,21 +1706,27 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           try {
             // Check if container is still valid
             if (!container || !container.isConnected) {
+              logger.error('Container is not valid or not connected', 'ChartInit');
               return;
             }
 
             // Use pre-processed chart options
             const chartOptions = chartConfig.chartOptions || chartConfig.chart || {};
 
+            logger.debug('Creating chart', 'ChartInit', { chartId, chartOptions });
+
             let chart: IChartApi;
             try {
               chart = createChart(container, chartOptions as any);
-            } catch {
+              logger.debug('Chart created successfully', 'ChartInit', { chartId });
+            } catch (error) {
+              logger.error('Failed to create chart', 'ChartInit', error);
               return;
             }
 
             // Check if chart was created successfully
             if (!chart) {
+              logger.error('Chart is null after creation', 'ChartInit');
               return;
             }
 
@@ -1861,36 +1867,89 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             // Note: Pane heights will be applied AFTER series creation to ensure all panes exist
 
+            // CRITICAL FIX: Apply right and left price scale configurations
+            // These scales need to be configured after chart creation to apply any
+            // modifications made by the backend (e.g., scale margins for price+volume charts)
+            if (chartConfig.chart?.rightPriceScale) {
+              try {
+                logger.debug('Configuring right price scale', 'ChartInit');
+                const rightScale = chart.priceScale('right');
+                if (rightScale) {
+                  rightScale.applyOptions(
+                    cleanLineStyleOptions(chartConfig.chart.rightPriceScale as Record<string, unknown>)
+                  );
+                  logger.debug('Successfully configured right price scale', 'ChartInit');
+                }
+              } catch (error) {
+                logger.error('Failed to configure right price scale', 'ChartInit', error);
+              }
+            }
+
+            if (chartConfig.chart?.leftPriceScale) {
+              try {
+                logger.debug('Configuring left price scale', 'ChartInit', chartConfig.chart.leftPriceScale);
+                const leftScale = chart.priceScale('left');
+                if (leftScale) {
+                  leftScale.applyOptions(
+                    cleanLineStyleOptions(chartConfig.chart.leftPriceScale as Record<string, unknown>)
+                  );
+                  logger.debug('Successfully configured left price scale', 'ChartInit');
+                }
+              } catch (error) {
+                logger.error('Failed to configure left price scale', 'ChartInit', error);
+              }
+            }
+
             // Configure overlay price scales (volume, indicators, etc.) if they exist
             if (chartConfig.chart?.overlayPriceScales) {
+              logger.debug('Configuring overlay price scales', 'ChartInit', {
+                scales: Object.keys(chartConfig.chart.overlayPriceScales),
+              });
               Object.entries(chartConfig.chart.overlayPriceScales).forEach(
                 ([scaleId, scaleConfig]) => {
                   try {
+                    logger.debug(`Attempting to configure overlay scale: ${scaleId}`, 'ChartInit');
                     // Create overlay price scale - use the scaleId directly
                     const overlayScale = chart.priceScale(scaleId);
                     if (overlayScale) {
                       overlayScale.applyOptions(
                         cleanLineStyleOptions(scaleConfig as Record<string, unknown>)
                       );
+                      logger.debug(`Successfully configured overlay scale: ${scaleId}`, 'ChartInit');
                     } else {
-                      // Price scale not found, will be created when series uses it
+                      logger.debug(
+                        `Overlay scale ${scaleId} not found, will be created when series uses it`,
+                        'ChartInit'
+                      );
                     }
                   } catch (error) {
                     logger.error('Failed to configure overlay price scale', 'ChartInit', error);
                   }
                 }
               );
+            } else {
+              logger.debug('No overlay price scales configured', 'ChartInit');
             }
 
             // Create series for this chart
             const seriesList: ISeriesApi<any>[] = [];
 
             if (chartConfig.series && Array.isArray(chartConfig.series)) {
+              logger.debug(
+                `Creating ${chartConfig.series.length} series for chart ${chartId}`,
+                'ChartInit'
+              );
               chartConfig.series.forEach((seriesConfig: SeriesConfig, seriesIndex: number) => {
                 try {
                   if (!seriesConfig || typeof seriesConfig !== 'object') {
+                    logger.warn(`Series ${seriesIndex} is invalid, skipping`, 'ChartInit');
                     return;
                   }
+
+                  logger.debug(
+                    `Creating series ${seriesIndex}: type=${seriesConfig.type}, priceScaleId=${seriesConfig.priceScaleId}`,
+                    'ChartInit'
+                  );
 
                   // Pass trade data to the first series (candlestick series) for marker creation
                   if (
@@ -1910,6 +1969,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     seriesId: `${chartId || 'default'}-series-${seriesIndex}`,
                   });
                   if (series) {
+                    logger.debug(
+                      `Series ${seriesIndex} created successfully: type=${seriesConfig.type}, priceScaleId=${seriesConfig.priceScaleId}`,
+                      'ChartInit'
+                    );
                     seriesList.push(series);
 
                     // Legend will be created after chart is ready

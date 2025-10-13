@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""
-Quick launcher for the series test harness.
+"""Quick launcher for the visual test harness.
 
 Usage:
-    python run_test.py              # Run simple test
-    python run_test.py --complete   # Run complete test harness
-    python run_test.py --help       # Show help
+    python run_test.py     # Launch visual test
+    streamlit run simple_series_test.py  # Direct run
 """
 
 import subprocess
@@ -17,27 +15,18 @@ def main():
     """Main launcher function."""
     # Get the directory of this script
     script_dir = Path(__file__).parent
-
-    # Determine which test to run
-    if len(sys.argv) > 1 and sys.argv[1] == "--complete":
-        test_file = script_dir / "comprehensive_series_test.py"
-        print("🚀 Launching Comprehensive Series Test...")
-    elif len(sys.argv) > 1 and sys.argv[1] == "--help":
-        print(__doc__)
-        return None
-    else:
-        test_file = script_dir / "simple_series_test.py"
-        print("🚀 Launching Simple Series Test...")
+    test_file = script_dir / "simple_series_test.py"
 
     # Check if test file exists
     if not test_file.exists():
         print(f"❌ Test file not found: {test_file}")
-        print("Available tests:")
-        print("  - simple_series_test.py")
-        print("  - comprehensive_series_test.py")
         return 1
 
     # Run the test
+    print("🚀 Launching Quick Visual Test...")
+    print("   Use this to visually confirm all series types work before pushing")
+    print()
+
     try:
         cmd = [sys.executable, "-m", "streamlit", "run", str(test_file)]
         subprocess.run(cmd, check=True)

@@ -164,9 +164,9 @@ class TestHistogramChartIntegration:
         # Verify data alignment
         assert len(chart.series[0].data) == len(chart.series[1].data)
 
-        # Verify timestamps match
-        candlestick_times = [data.time for data in chart.series[0].data]
-        volume_times = [data.time for data in chart.series[1].data]
+        # Verify timestamps match when serialized (time normalized in asdict())
+        candlestick_times = [data.asdict()["time"] for data in chart.series[0].data]
+        volume_times = [data.asdict()["time"] for data in chart.series[1].data]
         assert candlestick_times == volume_times
 
     def test_custom_volume_colors(self):

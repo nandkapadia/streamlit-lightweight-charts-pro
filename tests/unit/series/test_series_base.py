@@ -488,9 +488,11 @@ class TestSeriesBase:
 
         assert len(series.data) == 2
         assert all(isinstance(d, LineData) for d in series.data)
-        # Verify the time values are properly converted
-        assert series.data[0].time == 1640995200  # 2022-01-01
-        assert series.data[1].time == 1641081600  # 2022-01-02
+        # Verify the time values are properly converted in asdict()
+        result0 = series.data[0].asdict()
+        result1 = series.data[1].asdict()
+        assert result0["time"] == 1640995200  # 2022-01-01
+        assert result1["time"] == 1641081600  # 2022-01-02
 
     def test_from_dataframe_with_unnamed_datetime_multi_index(self):
         """Test from_dataframe with MultiIndex containing unnamed DatetimeIndex level."""
@@ -510,9 +512,11 @@ class TestSeriesBase:
 
         assert len(series.data) == 2
         assert all(isinstance(d, LineData) for d in series.data)
-        # Verify the time values are properly converted
-        assert series.data[0].time == 1640995200  # 2022-01-01
-        assert series.data[1].time == 1641081600  # 2022-01-02
+        # Verify the time values are properly converted in asdict()
+        result0 = series.data[0].asdict()
+        result1 = series.data[1].asdict()
+        assert result0["time"] == 1640995200  # 2022-01-01
+        assert result1["time"] == 1641081600  # 2022-01-02
 
     def test_validate_pane_config(self):
         """Test the _validate_pane_config method."""
@@ -560,6 +564,73 @@ class TestSeriesBase:
         assert series._visible is False
         assert len(series.markers) == 0
         assert len(series.price_lines) == 0
+
+    def test_display_name_property(self):
+        """Test display_name property functionality."""
+        data = [LineData(time=1640995200, value=100)]
+        series = ConcreteSeries(data=data)
+
+        # Test initial state
+        assert series.display_name is None
+
+        # Test setting display_name
+        series.display_name = "My Custom Series"
+        assert series.display_name == "My Custom Series"
+
+        # Test setting to None
+        series.display_name = None
+        assert series.display_name is None
+
+        # Test setting empty string
+        series.display_name = ""
+        assert series.display_name == ""
+
+    def test_display_name_method_chaining(self):
+        """Test display_name with method chaining."""
+        data = [LineData(time=1640995200, value=100)]
+        series = ConcreteSeries(data=data)
+
+        # Test chaining with display_name
+        result = series.set_display_name("Moving Average").set_title("SMA(20)").set_visible(True)
+
+        assert result is series
+        assert series.display_name == "Moving Average"
+        assert series.title == "SMA(20)"
+        assert series.visible is True
+
+    def test_display_name_independence_from_title(self):
+        """Test that display_name and title are independent properties."""
+        data = [LineData(time=1640995200, value=100)]
+        series = ConcreteSeries(data=data)
+
+        # Set both properties independently
+        series.title = "RSI(14)"
+        series.display_name = "Relative Strength Index"
+
+        # Verify they are independent
+        assert series.title == "RSI(14)"
+        assert series.display_name == "Relative Strength Index"
+
+        # Change one without affecting the other
+        series.display_name = "Momentum Oscillator"
+        assert series.title == "RSI(14)"  # Should remain unchanged
+        assert series.display_name == "Momentum Oscillator"
+
+    def test_display_name_serialization(self):
+        """Test that display_name is properly serialized."""
+        data = [LineData(time=1640995200, value=100)]
+        series = ConcreteSeries(data=data)
+
+        # Set both title and display_name
+        series.title = "SMA(20)"
+        series.display_name = "Simple Moving Average"
+
+        # Serialize to dictionary
+        series_dict = series.asdict()
+
+        # Verify both properties are serialized
+        assert series_dict["title"] == "SMA(20)"
+        assert series_dict["displayName"] == "Simple Moving Average"  # camelCase conversion
 
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""

@@ -22,13 +22,11 @@ from streamlit_lightweight_charts_pro.data import LineData, OhlcvData, TradeData
 from streamlit_lightweight_charts_pro.data.annotation import Annotation
 from streamlit_lightweight_charts_pro.exceptions import (
     AnnotationItemsTypeError,
-    DuplicateError,
     SeriesItemsTypeError,
     TimeValidationError,
     TypeValidationError,
     ValueValidationError,
 )
-from streamlit_lightweight_charts_pro.type_definitions.enums import TradeType
 
 
 class TestChartConstructionEdgeCases:
@@ -308,16 +306,18 @@ class TestChartPriceScaleManagementEdgeCases:
             chart.add_overlay_price_scale("test_scale", "not_options")
 
     def test_add_overlay_price_scale_with_duplicate_scale_id(self):
-        """Test adding overlay price scale with duplicate scale ID."""
+        """Test adding overlay price scale with duplicate scale ID allows updates."""
         chart = Chart()
-        options = PriceScaleOptions()
+        options1 = PriceScaleOptions(visible=True)
+        options2 = PriceScaleOptions(visible=False)
 
         # Add first scale
-        chart.add_overlay_price_scale("test_scale", options)
+        chart.add_overlay_price_scale("test_scale", options1)
+        assert chart.options.overlay_price_scales["test_scale"].visible is True
 
-        # Add duplicate scale - should raise DuplicateError
-        with pytest.raises(DuplicateError):
-            chart.add_overlay_price_scale("test_scale", options)
+        # Adding duplicate scale ID updates the existing scale (not an error)
+        chart.add_overlay_price_scale("test_scale", options2)
+        assert chart.options.overlay_price_scales["test_scale"].visible is False
 
 
 class TestChartPriceVolumeSeriesEdgeCases:
@@ -715,9 +715,13 @@ class TestChartDataValidationEdgeCases:
 
     def test_chart_with_invalid_time_formats(self):
         """Test chart with invalid time formats."""
-        # Test with invalid time format
-        with pytest.raises(TimeValidationError):
-            LineData(time="invalid_time", value=100)
+        # Test with invalid time format - error happens during serialization
+        data = LineData(time="invalid_time", value=100)
+        series = LineSeries(data=[data])
+        chart = Chart(series=series)
+        # Error happens when serializing the chart config
+        with pytest.raises((TimeValidationError, ValueError)):
+            chart.to_frontend_config()
 
     def test_chart_with_very_large_numbers(self):
         """Test chart with very large numbers."""

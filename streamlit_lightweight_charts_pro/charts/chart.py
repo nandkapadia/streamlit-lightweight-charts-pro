@@ -33,7 +33,6 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 
 # Third Party Imports
 import pandas as pd
-import streamlit as st
 import streamlit.components.v1 as components
 
 # Local Imports
@@ -62,7 +61,6 @@ from streamlit_lightweight_charts_pro.data.trade import TradeData
 from streamlit_lightweight_charts_pro.exceptions import (
     AnnotationItemsTypeError,
     ComponentNotAvailableError,
-    DuplicateError,
     PriceScaleIdTypeError,
     PriceScaleOptionsTypeError,
     SeriesItemsTypeError,
@@ -73,7 +71,6 @@ from streamlit_lightweight_charts_pro.logging_config import get_logger
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     ColumnNames,
     PriceScaleMode,
-    TradeVisualization,
 )
 
 # Initialize logger
@@ -582,10 +579,12 @@ class Chart:
         if not isinstance(options, PriceScaleOptions):
             raise ValueValidationError("options", "must be a PriceScaleOptions instance")
 
-        # Check for duplicate scale_id
-        if scale_id in self.options.overlay_price_scales:
-            raise DuplicateError("Price scale", scale_id)
+        # CRITICAL FIX: Ensure the price_scale_id field matches the scale_id parameter
+        # This ensures proper mapping between dictionary key and the PriceScaleOptions ID
+        # Without this, the frontend cannot match series to their price scales
+        options.price_scale_id = scale_id
 
+        # Update or add the overlay price scale (allow updates to existing scales)
         self.options.overlay_price_scales[scale_id] = options
         return self
 
@@ -657,6 +656,17 @@ class Chart:
         price_kwargs = price_kwargs or {}
         volume_kwargs = volume_kwargs or {}
 
+        # CRITICAL FIX: Configure right price scale margins to leave space for volume
+        # Volume will use bottom 20% (top=0.8), so right scale needs bottom >= 0.2
+        # Using bottom=0.25 to provide comfortable spacing between price and volume
+        if self.options.right_price_scale is not None:
+            # Explicitly set visible=True to ensure it's serialized and sent to frontend
+            self.options.right_price_scale.visible = True
+            self.options.right_price_scale.scale_margins = PriceScaleMargins(
+                top=0.1,  # 10% margin at top
+                bottom=0.25,  # 25% margin at bottom (leaves room for volume overlay)
+            )
+
         # Price series (default price scale)
         if price_type == "candlestick":
             # Filter column mapping to only include OHLC fields for candlestick series
@@ -689,16 +699,17 @@ class Chart:
         volume_down_color = volume_kwargs.get("down_color", "rgba(239,83,80,0.5)")
         volume_base = volume_kwargs.get("base", 0)
 
-        # Add overlay price scale
+        # Add overlay price scale for volume
+        # Volume uses bottom 20% of chart (top=0.8 to bottom=1.0)
         volume_price_scale = PriceScaleOptions(
             visible=False,
             auto_scale=True,
             border_visible=False,
             mode=PriceScaleMode.NORMAL,
             scale_margins=PriceScaleMargins(top=0.8, bottom=0.0),
-            price_scale_id=ColumnNames.VOLUME,
+            price_scale_id=ColumnNames.VOLUME.value,
         )
-        self.add_overlay_price_scale(ColumnNames.VOLUME, volume_price_scale)
+        self.add_overlay_price_scale(ColumnNames.VOLUME.value, volume_price_scale)
 
         # The volume series histogram expects a column called 'value'
         if "value" not in column_mapping:
@@ -711,7 +722,7 @@ class Chart:
             up_color=volume_up_color,
             down_color=volume_down_color,
             pane_id=pane_id,
-            price_scale_id=ColumnNames.VOLUME,
+            price_scale_id=ColumnNames.VOLUME.value,
         )
 
         # Set volume-specific properties
@@ -1210,10 +1221,14 @@ class Chart:
         Streamlit component. This is the final step in the chart creation process
         that displays the interactive chart in the Streamlit application.
 
+        The chart configuration is generated fresh on each render, allowing users
+        to control chart lifecycle and state management in their own code if needed.
+
         Args:
             key (Optional[str]): Optional unique key for the Streamlit component.
                 This key is used to identify the component instance and is useful
-                for debugging and component state management.
+                for debugging and component state management. If not provided,
+                a unique key will be generated automatically.
 
         Returns:
             Any: The rendered Streamlit component that displays the interactive chart.
@@ -1228,6 +1243,11 @@ class Chart:
 
             # Method chaining with rendering
             chart.add_series(line_series).update_options(height=600).render(key="chart1")
+
+            # User-managed state (optional)
+            if "my_chart" not in st.session_state:
+                st.session_state.my_chart = Chart(series=LineSeries(data))
+            st.session_state.my_chart.render(key="persistent_chart")
             ```
         """
         # Generate a unique key if none provided or if it's empty/invalid
@@ -1236,49 +1256,29 @@ class Chart:
             unique_id = str(uuid.uuid4())[:8]
             key = f"chart_{int(time.time() * 1000)}_{unique_id}"
 
-        # Store chart instance in session state to persist across reruns
-        session_key = f"chart_instance_{key}"
-        if session_key not in st.session_state:
-            st.session_state[session_key] = self
-        else:
-            # Update existing chart instance with current state
-            existing_chart = st.session_state[session_key]
-            existing_chart.series = self.series
-            existing_chart.options = self.options
-            existing_chart.annotation_manager = self.annotation_manager
-            existing_chart._trades = self._trades
-            existing_chart._tooltip_manager = self._tooltip_manager
-            existing_chart._chart_group_id = self._chart_group_id
-            existing_chart._chart_manager = self._chart_manager
+        # Generate chart configuration from current state
+        config = self.to_frontend_config()
 
-        # Use the persisted chart instance for rendering
-        chart_instance = st.session_state[session_key]
-        config = chart_instance.to_frontend_config()
+        # Get component function
         component_func = get_component_func()
 
         if component_func is None:
             # Try to reinitialize the component
-
             if reinitialize_component():
                 component_func = get_component_func()
 
             if component_func is None:
                 raise ComponentNotAvailableError()
 
+        # Build component kwargs
         kwargs = {"config": config}
 
         # Extract height and width from chart options and pass to frontend
-        if chart_instance.options:
-            if (
-                hasattr(chart_instance.options, "height")
-                and chart_instance.options.height is not None
-            ):
-                kwargs["height"] = chart_instance.options.height
-            if (
-                hasattr(chart_instance.options, "width")
-                and chart_instance.options.width is not None
-            ):
-                kwargs["width"] = chart_instance.options.width
+        if self.options:
+            if hasattr(self.options, "height") and self.options.height is not None:
+                kwargs["height"] = self.options.height
+            if hasattr(self.options, "width") and self.options.width is not None:
+                kwargs["width"] = self.options.width
 
         kwargs["key"] = key
 
@@ -1286,14 +1286,14 @@ class Chart:
         series_api = get_series_settings_api(key)
 
         # Register all series with the API (assuming pane 0 for single-pane charts)
-        for _i, series in enumerate(chart_instance.series):
+        for _i, series in enumerate(self.series):
             series_api.register_series(pane_id=0, series=series)
 
-        # Handle series settings API calls if they exist in the returned data
+        # Render component and handle series settings API responses
         result = component_func(**kwargs)
 
         if result and isinstance(result, dict):
-            chart_instance._handle_series_settings_response(result, series_api)
+            self._handle_series_settings_response(result, series_api)
 
         return result
 

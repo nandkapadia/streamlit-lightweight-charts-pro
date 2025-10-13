@@ -89,8 +89,13 @@ class TestTradeDataTimeFormats:
             is_profitable=True,
             id="trade1",
         )
-        assert trade._entry_timestamp == 1640995200
-        assert trade._exit_timestamp == 1641081600
+        # Verify times are stored correctly
+        assert trade.entry_time == 1640995200
+        assert trade.exit_time == 1641081600
+        # Verify asdict converts them correctly
+        result = trade.asdict()
+        assert result["entryTime"] == 1640995200
+        assert result["exitTime"] == 1641081600
 
     def test_unix_timestamp_milliseconds(self):
         """Test with Unix timestamp in milliseconds (handled by to_utc_timestamp)."""
@@ -102,11 +107,13 @@ class TestTradeDataTimeFormats:
             is_profitable=True,
             id="trade1",
         )
-        # Timestamps should be stored (to_utc_timestamp may or may not convert)
-        assert trade._entry_timestamp is not None
-        assert trade._exit_timestamp is not None
+        # Timestamps are converted to UTC in asdict()
+        result = trade.asdict()
+        assert result["entryTime"] is not None
+        assert result["exitTime"] is not None
         # Verify they're valid timestamps
-        assert isinstance(trade._entry_timestamp, (int, float, str))
+        assert isinstance(result["entryTime"], (int, float, str))
+        assert isinstance(result["exitTime"], (int, float, str))
 
     def test_string_datetime(self):
         """Test with string datetime format."""
@@ -118,8 +125,10 @@ class TestTradeDataTimeFormats:
             is_profitable=True,
             id="trade1",
         )
-        assert trade._entry_timestamp is not None
-        assert trade._exit_timestamp is not None
+        # Verify conversion happens in asdict()
+        result = trade.asdict()
+        assert result["entryTime"] is not None
+        assert result["exitTime"] is not None
 
     def test_datetime_object(self):
         """Test with datetime object."""
@@ -131,8 +140,10 @@ class TestTradeDataTimeFormats:
             is_profitable=True,
             id="trade1",
         )
-        assert trade._entry_timestamp is not None
-        assert trade._exit_timestamp is not None
+        # Verify conversion happens in asdict()
+        result = trade.asdict()
+        assert result["entryTime"] is not None
+        assert result["exitTime"] is not None
 
     def test_pandas_timestamp(self):
         """Test with pandas Timestamp."""
@@ -144,8 +155,10 @@ class TestTradeDataTimeFormats:
             is_profitable=True,
             id="trade1",
         )
-        assert trade._entry_timestamp is not None
-        assert trade._exit_timestamp is not None
+        # Verify conversion happens in asdict()
+        result = trade.asdict()
+        assert result["entryTime"] is not None
+        assert result["exitTime"] is not None
 
 
 class TestTradeDataPriceValidation:
@@ -732,6 +745,149 @@ class TestTradeDataTooltipGeneration:
         assert "Exit: 105.00" in tooltip
         # Should not include quantity if not provided
         assert "Qty:" not in tooltip
+
+
+class TestTradeDataUTCConversion:
+    """Test UTC conversion behavior in asdict()."""
+
+    def test_utc_conversion_happens_in_asdict(self):
+        """Test that UTC conversion happens in asdict(), not in __post_init__."""
+        trade = TradeData(
+            entry_time="2022-01-01T00:00:00",
+            entry_price=100.0,
+            exit_time="2022-01-02T00:00:00",
+            exit_price=105.0,
+            is_profitable=True,
+            id="trade1",
+        )
+
+        # Call asdict multiple times - should return same result
+        result1 = trade.asdict()
+        result2 = trade.asdict()
+
+        assert result1["entryTime"] == result2["entryTime"]
+        assert result1["exitTime"] == result2["exitTime"]
+        # Verify the times were converted (not the string values)
+        assert isinstance(result1["entryTime"], (int, float))
+        assert isinstance(result1["exitTime"], (int, float))
+
+    def test_changing_entry_time_updates_asdict(self):
+        """Test that changing entry_time after construction updates asdict() output."""
+        trade = TradeData(
+            entry_time=1640995200,  # Jan 1, 2022
+            entry_price=100.0,
+            exit_time=1641081600,  # Jan 2, 2022
+            exit_price=105.0,
+            is_profitable=True,
+            id="trade1",
+        )
+
+        # Get initial serialization
+        result1 = trade.asdict()
+        initial_entry_time = result1["entryTime"]
+
+        # Change entry_time
+        trade.entry_time = 1641081600  # Jan 2, 2022
+
+        # Get new serialization
+        result2 = trade.asdict()
+        new_entry_time = result2["entryTime"]
+
+        # Verify the change is reflected
+        assert new_entry_time != initial_entry_time
+        assert new_entry_time == 1641081600
+
+    def test_changing_exit_time_updates_asdict(self):
+        """Test that changing exit_time after construction updates asdict() output."""
+        trade = TradeData(
+            entry_time=1640995200,  # Jan 1, 2022
+            entry_price=100.0,
+            exit_time=1641081600,  # Jan 2, 2022
+            exit_price=105.0,
+            is_profitable=True,
+            id="trade1",
+        )
+
+        # Get initial serialization
+        result1 = trade.asdict()
+        initial_exit_time = result1["exitTime"]
+
+        # Change exit_time
+        trade.exit_time = 1641168000  # Jan 3, 2022
+
+        # Get new serialization
+        result2 = trade.asdict()
+        new_exit_time = result2["exitTime"]
+
+        # Verify the change is reflected
+        assert new_exit_time != initial_exit_time
+        assert new_exit_time == 1641168000
+
+    def test_multiple_time_format_conversions(self):
+        """Test that different time formats all convert properly in asdict()."""
+        # Test with timestamp
+        trade1 = TradeData(
+            entry_time=1640995200,
+            entry_price=100.0,
+            exit_time=1641081600,
+            exit_price=105.0,
+            is_profitable=True,
+            id="trade1",
+        )
+
+        # Test with string
+        trade2 = TradeData(
+            entry_time="2022-01-01T00:00:00",
+            entry_price=100.0,
+            exit_time="2022-01-02T00:00:00",
+            exit_price=105.0,
+            is_profitable=True,
+            id="trade2",
+        )
+
+        # Test with datetime
+        trade3 = TradeData(
+            entry_time=datetime(2022, 1, 1),
+            entry_price=100.0,
+            exit_time=datetime(2022, 1, 2),
+            exit_price=105.0,
+            is_profitable=True,
+            id="trade3",
+        )
+
+        # All should serialize to numeric timestamps
+        result1 = trade1.asdict()
+        result2 = trade2.asdict()
+        result3 = trade3.asdict()
+
+        assert isinstance(result1["entryTime"], (int, float))
+        assert isinstance(result2["entryTime"], (int, float))
+        assert isinstance(result3["entryTime"], (int, float))
+
+    def test_asdict_converts_fresh_each_time(self):
+        """Test that asdict() does fresh conversion each time, not caching."""
+        trade = TradeData(
+            entry_time="2022-01-01T00:00:00",
+            entry_price=100.0,
+            exit_time="2022-01-02T00:00:00",
+            exit_price=105.0,
+            is_profitable=True,
+            id="trade1",
+        )
+
+        # First call
+        result1 = trade.asdict()
+        time1 = result1["entryTime"]
+
+        # Modify the time
+        trade.entry_time = "2022-01-03T00:00:00"
+
+        # Second call should reflect the change
+        result2 = trade.asdict()
+        time2 = result2["entryTime"]
+
+        # Times should be different
+        assert time1 != time2
 
 
 class TestTradeDataEdgeCases:

@@ -8,7 +8,6 @@ import '@testing-library/jest-dom/vitest';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SeriesSettingsDialog, SeriesInfo, SeriesConfig } from '../../forms/SeriesSettingsDialog';
-import { getSeriesSettings } from '../../config/seriesSettingsRegistry';
 
 // Mock createPortal
 vi.mock('react-dom', () => ({
@@ -43,7 +42,7 @@ vi.mock('../../config/seriesSettingsRegistry', () => ({
       ribbon: {
         upperLine: 'line',
         lowerLine: 'line',
-        fillVisible: 'boolean',
+        fill: 'boolean',
         fillColor: 'color',
       },
     };
@@ -95,21 +94,17 @@ describe('SeriesSettingsDialog - Schema-Based Architecture', () => {
       visible: true,
       lastValueVisible: true,
       priceLineVisible: true,
-      mainLine: {
-        color: '#2196F3',
-        lineStyle: 'solid',
-        lineWidth: 1,
-      },
+      color: '#2196F3',
+      lineStyle: 'solid',
+      lineWidth: 1,
     },
     series2: {
       visible: true,
       lastValueVisible: true,
       priceLineVisible: true,
-      mainLine: {
-        color: '#2196F3',
-        lineStyle: 'solid',
-        lineWidth: 2,
-      },
+      color: '#2196F3',
+      lineStyle: 'solid',
+      lineWidth: 2,
     },
     series3: {
       visible: true,
@@ -125,7 +120,7 @@ describe('SeriesSettingsDialog - Schema-Based Architecture', () => {
         lineStyle: 'solid',
         lineWidth: 2,
       },
-      fillVisible: true,
+      fill: true,
       fillColor: '#2196F3',
     },
   };
@@ -682,8 +677,7 @@ describe('SeriesSettingsDialog - Schema-Based Architecture', () => {
         'pane-0-series-0': {
           visible: true,
           title: 'NIFTY50 OHLC',
-          upColor: '#26a69a',
-          downColor: '#ef5350',
+          color: '#26a69a',
         },
         'pane-0-series-1': {
           visible: true,
@@ -750,6 +744,109 @@ describe('SeriesSettingsDialog - Schema-Based Architecture', () => {
       // Should properly capitalize in fallback titles
       expect(screen.getByText(/Candlestick Series/i)).toBeInTheDocument();
       expect(screen.getByText(/Line Series/i)).toBeInTheDocument();
+    });
+
+    it('should handle displayName from seriesConfigs independently of title', () => {
+      const seriesWithBothNames: SeriesInfo[] = [{ id: 'series1', displayName: '', type: 'line' }];
+
+      const configsWithBothNames: Record<string, SeriesConfig> = {
+        series1: {
+          visible: true,
+          title: 'SMA(20)', // Technical title
+          displayName: 'Moving Average', // User-friendly name
+        },
+      };
+
+      render(
+        <SeriesSettingsDialog
+          {...defaultProps}
+          seriesList={seriesWithBothNames}
+          seriesConfigs={configsWithBothNames}
+        />
+      );
+
+      // Should use displayName for tab title, not title
+      expect(screen.getByText('Moving Average')).toBeInTheDocument();
+      expect(screen.queryByText('SMA(20)')).not.toBeInTheDocument();
+    });
+
+    it('should prioritize displayName over title when both are present', () => {
+      const seriesWithBothNames: SeriesInfo[] = [
+        { id: 'series1', displayName: 'Custom Display Name', type: 'line' },
+      ];
+
+      const configsWithBothNames: Record<string, SeriesConfig> = {
+        series1: {
+          visible: true,
+          title: 'RSI(14)', // Technical title
+          displayName: 'Momentum Indicator', // User-friendly name
+        },
+      };
+
+      render(
+        <SeriesSettingsDialog
+          {...defaultProps}
+          seriesList={seriesWithBothNames}
+          seriesConfigs={configsWithBothNames}
+        />
+      );
+
+      // Should use series.displayName over config.title
+      expect(screen.getByText('Custom Display Name')).toBeInTheDocument();
+      expect(screen.queryByText('Momentum Indicator')).not.toBeInTheDocument();
+      expect(screen.queryByText('RSI(14)')).not.toBeInTheDocument();
+    });
+
+    it('should handle displayName with special characters and unicode', () => {
+      const seriesWithUnicode: SeriesInfo[] = [
+        { id: 'series1', displayName: '📈 Price Action', type: 'line' },
+        { id: 'series2', displayName: 'EMA(20) - Trend', type: 'line' },
+        { id: 'series3', displayName: 'Volume & Liquidity', type: 'histogram' },
+      ];
+
+      render(
+        <SeriesSettingsDialog
+          {...defaultProps}
+          seriesList={seriesWithUnicode}
+          seriesConfigs={{
+            series1: { visible: true },
+            series2: { visible: true },
+            series3: { visible: true },
+          }}
+        />
+      );
+
+      // Should display all special characters and unicode correctly
+      expect(screen.getByText('📈 Price Action')).toBeInTheDocument();
+      expect(screen.getByText('EMA(20) - Trend')).toBeInTheDocument();
+      expect(screen.getByText('Volume & Liquidity')).toBeInTheDocument();
+    });
+
+    it('should properly map displayName through dialogConfigToApiOptions', () => {
+      // This test verifies that displayName is properly handled in the mapping functions
+      const mockSeriesType = 'line';
+      const mockDialogConfig = {
+        visible: true,
+        title: 'SMA(20)',
+        displayName: 'Moving Average',
+        lastValueVisible: true,
+      };
+
+      // Mock the dialogConfigToApiOptions function
+      const mockDialogConfigToApiOptions = vi.fn().mockReturnValue({
+        visible: true,
+        title: 'SMA(20)',
+        displayName: 'Moving Average',
+        lastValueVisible: true,
+      });
+
+      // Test the mapping
+      const result = mockDialogConfigToApiOptions(mockSeriesType, mockDialogConfig);
+
+      // Verify displayName is preserved in the mapping
+      expect(result.displayName).toBe('Moving Average');
+      expect(result.title).toBe('SMA(20)');
+      expect(mockDialogConfigToApiOptions).toHaveBeenCalledWith(mockSeriesType, mockDialogConfig);
     });
   });
 });

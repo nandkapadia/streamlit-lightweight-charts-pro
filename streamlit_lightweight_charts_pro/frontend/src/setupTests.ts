@@ -125,7 +125,7 @@ global.cancelAnimationFrame = vi.fn();
 
 // Mock DOM methods with proper color defaults for lightweight-charts
 Object.defineProperty(window, 'getComputedStyle', {
-  value: (element: Element) => ({
+  value: (_element: Element) => ({
     getPropertyValue: (prop: string) => {
       // Return default values for common CSS properties used by lightweight-charts
       if (prop === 'background-color' || prop === 'backgroundColor') {

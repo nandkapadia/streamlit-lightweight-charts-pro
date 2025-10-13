@@ -45,7 +45,9 @@ class TestBandDataConstruction:
     def test_construction_with_string_time(self):
         """Test BandData construction with string time."""
         data = BandData(time="2024-01-01", upper=110.0, middle=105.0, lower=100.0)
-        assert isinstance(data.time, int)
+        assert isinstance(data.time, str)  # Stored as-is
+        result = data.asdict()
+        assert isinstance(result["time"], int)  # Normalized in asdict()
         assert data.upper == 110.0
         assert data.middle == 105.0
         assert data.lower == 100.0
@@ -54,7 +56,11 @@ class TestBandDataConstruction:
         """Test BandData construction with float time."""
         ts = 1704067200.0
         data = BandData(time=ts, upper=110.0, middle=105.0, lower=100.0)
-        assert data.time == int(ts)
+        # Time stored as-is (float)
+        assert data.time == ts
+        # Normalized to int in asdict()
+        result = data.asdict()
+        assert result["time"] == int(ts)
         assert data.upper == 110.0
         assert data.middle == 105.0
         assert data.lower == 100.0
@@ -63,7 +69,11 @@ class TestBandDataConstruction:
         """Test BandData construction with datetime object."""
         dt = datetime(2024, 1, 1)
         data = BandData(time=dt, upper=110.0, middle=105.0, lower=100.0)
-        assert isinstance(data.time, int)
+        # Time stored as-is (datetime)
+        assert data.time == dt
+        # Normalized to int in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
         assert data.upper == 110.0
         assert data.middle == 105.0
         assert data.lower == 100.0
@@ -72,7 +82,11 @@ class TestBandDataConstruction:
         """Test BandData construction with pandas Timestamp."""
         ts = pd.Timestamp("2024-01-01")
         data = BandData(time=ts, upper=110.0, middle=105.0, lower=100.0)
-        assert isinstance(data.time, int)
+        # Time stored as-is (pandas Timestamp)
+        assert data.time == ts
+        # Normalized to int in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
         assert data.upper == 110.0
         assert data.middle == 105.0
         assert data.lower == 100.0
@@ -113,8 +127,11 @@ class TestBandDataValidation:
 
     def test_invalid_time_type(self):
         """Test error on invalid time type."""
-        with pytest.raises(UnsupportedTimeTypeError):
-            BandData(time=[1, 2, 3], upper=110.0, middle=105.0, lower=100.0)
+        # Invalid time won't raise error until asdict() is called
+        data = BandData(time=[1, 2, 3], upper=110.0, middle=105.0, lower=100.0)
+        # Error happens during serialization
+        with pytest.raises((UnsupportedTimeTypeError, ValueError, TypeError)):
+            data.asdict()
 
     def test_band_relationship_validation(self, valid_time):
         """Test that band relationships are maintained."""

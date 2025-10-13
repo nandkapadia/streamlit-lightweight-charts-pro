@@ -61,7 +61,7 @@ from streamlit_lightweight_charts_pro.exceptions import (
     ExitTimeAfterEntryTimeError,
     ValueValidationError,
 )
-from streamlit_lightweight_charts_pro.utils.data_utils import from_utc_timestamp, to_utc_timestamp
+from streamlit_lightweight_charts_pro.utils.data_utils import to_utc_timestamp
 from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
 
 
@@ -140,9 +140,8 @@ class TradeData(SerializableMixin):
         This method is automatically called after the dataclass is initialized.
         It performs the following operations:
         1. Converts price values to appropriate numeric types
-        2. Normalizes entry and exit times to UTC timestamps
-        3. Validates that exit time is after entry time
-        4. Ensures is_profitable is a boolean
+        2. Validates that exit time is after entry time
+        3. Ensures is_profitable is a boolean
 
         Raises:
             ExitTimeAfterEntryTimeError: If exit time is not after entry time.
@@ -157,24 +156,23 @@ class TradeData(SerializableMixin):
         # Converts any truthy/falsy value to explicit True/False
         self.is_profitable = bool(self.is_profitable)
 
-        # Step 3: Convert times to UTC timestamps for consistent handling
-        # This normalizes various time formats (datetime, string, timestamp) to UTC
-        self._entry_timestamp = to_utc_timestamp(self.entry_time)
-        self._exit_timestamp = to_utc_timestamp(self.exit_time)
+        # Step 3: Validate that exit time is after entry time
+        # Convert times temporarily for validation only
+        entry_timestamp = to_utc_timestamp(self.entry_time)
+        exit_timestamp = to_utc_timestamp(self.exit_time)
 
-        # Step 4: Validate that exit time is after entry time
         # This is critical for trade logic - a trade cannot exit before it enters
-        if isinstance(self._entry_timestamp, (int, float)) and isinstance(
-            self._exit_timestamp,
+        if isinstance(entry_timestamp, (int, float)) and isinstance(
+            exit_timestamp,
             (int, float),
         ):
             # Case 1: Both timestamps are numeric - compare directly
-            if self._exit_timestamp <= self._entry_timestamp:
+            if exit_timestamp <= entry_timestamp:
                 raise ExitTimeAfterEntryTimeError()
         elif (
-            isinstance(self._entry_timestamp, str)
-            and isinstance(self._exit_timestamp, str)
-            and self._exit_timestamp <= self._entry_timestamp
+            isinstance(entry_timestamp, str)
+            and isinstance(exit_timestamp, str)
+            and exit_timestamp <= entry_timestamp
         ):
             # Case 2: Both timestamps are strings - compare lexicographically
             raise ValueValidationError("Exit time", "must be after entry time")
@@ -313,14 +311,15 @@ class TradeData(SerializableMixin):
         """Serialize the trade data to a dict with camelCase keys for frontend.
 
         Converts the trade to a dictionary format suitable for frontend
-        communication. Only includes core fields required for visualization.
+        communication. Converts times to UTC timestamps at serialization time
+        to handle any changes made to entry_time or exit_time after construction.
 
         Returns:
             Dict[str, Any]: Serialized trade with camelCase keys ready for
                 frontend consumption. Contains:
-                - entryTime: Entry timestamp
+                - entryTime: Entry timestamp (converted from entry_time)
                 - entryPrice: Entry price
-                - exitTime: Exit timestamp
+                - exitTime: Exit timestamp (converted from exit_time)
                 - exitPrice: Exit price
                 - isProfitable: Profitability status
                 - pnl: Profit/loss amount (from additional_data or calculated)
@@ -344,12 +343,17 @@ class TradeData(SerializableMixin):
             #          "isProfitable": True, "pnl": 500.0, "strategy": "momentum"}
             ```
         """
-        # Step 1: Create base trade dictionary with core fields
+        # Step 1: Convert times to UTC timestamps at serialization time
+        # This ensures we always use current entry_time/exit_time values
+        entry_timestamp = to_utc_timestamp(self.entry_time)
+        exit_timestamp = to_utc_timestamp(self.exit_time)
+
+        # Step 2: Create base trade dictionary with core fields
         # Uses camelCase keys for JavaScript/TypeScript frontend compatibility
         trade_dict = {
-            "entryTime": self._entry_timestamp,  # Normalized UTC timestamp
+            "entryTime": entry_timestamp,  # Normalized UTC timestamp
             "entryPrice": self.entry_price,  # Entry price as float
-            "exitTime": self._exit_timestamp,  # Normalized UTC timestamp
+            "exitTime": exit_timestamp,  # Normalized UTC timestamp
             "exitPrice": self.exit_price,  # Exit price as float
             "isProfitable": self.is_profitable,  # Profitability flag (required)
             "id": self.id,  # Unique trade identifier (required)
@@ -357,7 +361,7 @@ class TradeData(SerializableMixin):
             "pnlPercentage": self.pnl_percentage,  # P&L % (calculated or from additional_data)
         }
 
-        # Step 2: Merge additional data into the trade dict for template access
+        # Step 3: Merge additional data into the trade dict for template access
         # This allows frontend templates to access custom fields like quantity, notes, etc.
         if self.additional_data:
             trade_dict.update(self.additional_data)

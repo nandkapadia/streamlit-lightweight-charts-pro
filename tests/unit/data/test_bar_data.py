@@ -67,29 +67,38 @@ class TestBarDataConstruction:
         """Test BarData construction with string time."""
         data = BarData(time="2022-01-01", open=100.0, high=110.0, low=95.0, close=105.0)
 
-        # Time should be normalized to UNIX timestamp
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        # Time is stored as-is
+        assert data.time == "2022-01-01"
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
 
     def test_construction_with_datetime_time(self):
         """Test BarData construction with datetime time."""
         dt = datetime(2022, 1, 1)
         data = BarData(time=dt, open=100.0, high=110.0, low=95.0, close=105.0)
 
-        # Time should be normalized to UNIX timestamp
-        assert isinstance(data.time, int)
+        # Time is stored as-is (datetime object)
+        assert data.time == dt
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
         # The actual timestamp depends on timezone, so we'll check it's a reasonable value
-        assert data.time > 1640970000  # Should be around 2022-01-01
-        assert data.time < 1641020000  # Should be around 2022-01-01 (accounting for timezone)
+        assert result["time"] > 1640970000  # Should be around 2022-01-01
+        assert result["time"] < 1641020000  # Should be around 2022-01-01 (accounting for timezone)
 
     def test_construction_with_pandas_timestamp(self):
         """Test BarData construction with pandas timestamp."""
         ts = pd.Timestamp("2022-01-01")
         data = BarData(time=ts, open=100.0, high=110.0, low=95.0, close=105.0)
 
-        # Time should be normalized to UNIX timestamp
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        # Time is stored as-is (pandas Timestamp)
+        assert data.time == ts
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
 
     def test_construction_with_float_values(self):
         """Test BarData construction with float values."""
@@ -363,11 +372,14 @@ class TestBarDataEdgeCases:
 
     def test_time_normalization_edge_cases(self):
         """Test time normalization edge cases."""
-        # Test with numpy int64 (common in pandas)
+        # Test with numpy int64 (common in pandas) - stored as-is
         data = BarData(time=np.int64(1640995200), open=100.0, high=110.0, low=95.0, close=105.0)
 
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        assert isinstance(data.time, np.int64)  # Stored as-is
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
 
     def test_json_serialization(self):
         """Test JSON serialization."""
