@@ -112,7 +112,7 @@ except ImportError:
     # Fallback for Python < 3.8 - use backported importlib_metadata
     # This ensures compatibility with older Python versions that don't have
     # importlib.metadata in the standard library
-    from importlib_metadata import distribution  # type: ignore[assignment]
+    from importlib_metadata import distribution  # type: ignore[assignment,no-redef]
 
 
 # Version information for the package
