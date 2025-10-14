@@ -6,7 +6,7 @@
  * across component redraws and browser sessions.
  */
 
-// import { Streamlit } from 'streamlit-component-lib'; // Temporarily disabled to prevent rerenders
+import { Streamlit } from 'streamlit-component-lib';
 import { SeriesConfiguration, SeriesType } from '../types/SeriesTypes';
 import { logger } from '../utils/logger';
 import { Singleton } from '../utils/SingletonBase';
@@ -197,13 +197,13 @@ export class StreamlitSeriesConfigService {
     }
 
     try {
-      // CRITICAL FIX: Skip payload preparation since we're not syncing
-      // const payload = {
-      //   type: 'series_config_changes',
-      //   changes: [...this.pendingChanges],
-      //   completeState: this.getCompleteState(),
-      //   timestamp: Date.now(),
-      // };
+      // Prepare payload for backend sync
+      const payload = {
+        type: 'series_config_changes',
+        changes: [...this.pendingChanges],
+        completeState: this.getCompleteState(),
+        timestamp: Date.now(),
+      };
 
       // Send to Streamlit backend only if component is ready
       if (!isStreamlitComponentReady()) {
@@ -211,20 +211,19 @@ export class StreamlitSeriesConfigService {
         return;
       }
 
-      // This service should only be used for final persistence, not live updates
-
-      // Clear pending changes to prevent accumulation
+      // Clear pending changes before sending to prevent duplicates
       this.pendingChanges = [];
 
-      // TODO: Re-enable this when we have a proper sync mechanism that doesn't cause rerenders
-      // if (typeof Streamlit !== 'undefined' && Streamlit.setComponentValue) {
-      //   Streamlit.setComponentValue(payload);
-      // } else {
-      //   logger.warn(
-      //     'Streamlit not available or setComponentValue not found',
-      //     'StreamlitSeriesConfigService'
-      //   );
-      // }
+      // Send configuration to backend for persistence
+      if (typeof Streamlit !== 'undefined' && Streamlit.setComponentValue) {
+        Streamlit.setComponentValue(payload);
+        logger.debug('Sent series config to backend', 'StreamlitSeriesConfigService', payload);
+      } else {
+        logger.warn(
+          'Streamlit not available or setComponentValue not found',
+          'StreamlitSeriesConfigService'
+        );
+      }
     } catch (error) {
       logger.error('Error syncing to backend', 'StreamlitSeriesConfigService', error);
       // Backend sync errors are non-critical - log as warning
