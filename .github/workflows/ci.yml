@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
+        python-version: [3.11, 3.12]
 
     steps:
     - name: Checkout code
@@ -121,7 +121,7 @@ jobs:
         "
 
     - name: Upload documentation artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: documentation
         path: docs/
@@ -164,7 +164,7 @@ jobs:
       run: npm run build
 
     - name: Upload frontend artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: frontend-build
         path: streamlit_lightweight_charts_pro/frontend/dist/
@@ -220,7 +220,7 @@ jobs:
         twine check dist/*
 
     - name: Upload package artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: python-package
         path: dist/
