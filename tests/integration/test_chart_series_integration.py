@@ -18,12 +18,8 @@ from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
-from streamlit_lightweight_charts_pro.charts.options.price_line_options import (
-    PriceLineOptions,
-)
-from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
-    PriceScaleOptions,
-)
+from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
+from streamlit_lightweight_charts_pro.charts.options.price_scale_options import PriceScaleOptions
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
@@ -34,6 +30,8 @@ from streamlit_lightweight_charts_pro.charts.series import (
     LineSeries,
 )
 from streamlit_lightweight_charts_pro.data import Annotation, LineData, OhlcvData, TradeData
+from streamlit_lightweight_charts_pro.data.marker import BarMarker
+from streamlit_lightweight_charts_pro.exceptions import SeriesItemsTypeError, TypeValidationError
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     LineStyle,
     MarkerPosition,
@@ -78,16 +76,26 @@ class TestChartSeriesIntegration:
                 entry_price=100.0,
                 exit_time="2024-01-01 12:00:00",
                 exit_price=102.0,
-                quantity=100,
-                trade_type=TradeType.LONG,
+                is_profitable=True,
+                id="trade_001",
+                additional_data={
+                    "quantity": 100,
+                    "trade_type": "long",
+                    "tradeType": "long",
+                },
             ),
             TradeData(
                 entry_time="2024-01-01 13:00:00",
                 entry_price=103.0,
                 exit_time="2024-01-01 14:00:00",
                 exit_price=101.0,
-                quantity=50,
-                trade_type=TradeType.SHORT,
+                is_profitable=False,
+                id="trade_002",
+                additional_data={
+                    "quantity": 50,
+                    "trade_type": "short",
+                    "tradeType": "short",
+                },
             ),
         ]
 
@@ -124,7 +132,8 @@ class TestChartSeriesIntegration:
         # Create multiple series
         line_series = LineSeries(data=[LineData(time=1640995200, value=100)], visible=True)
         candlestick_series = CandlestickSeries(
-            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)], visible=True
+            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)],
+            visible=True,
         )
 
         chart = Chart(series=[line_series, candlestick_series])
@@ -152,7 +161,7 @@ class TestChartSeriesIntegration:
         # Create series in specific order
         line_series = LineSeries(data=[LineData(time=1640995200, value=100)])
         candlestick_series = CandlestickSeries(
-            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)]
+            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)],
         )
         area_series = AreaSeries(data=[LineData(time=1640995200, value=100)])
 
@@ -173,7 +182,7 @@ class TestChartSeriesIntegration:
         line_series.z_index = 10  # Higher z-index (renders on top)
 
         candlestick_series = CandlestickSeries(
-            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)]
+            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)],
         )
         candlestick_series.z_index = 5  # Lower z-index (renders behind)
 
@@ -199,12 +208,14 @@ class TestChartSeriesIntegration:
         line_series.z_index = 20  # Higher z-index in pane 0
 
         candlestick_series = CandlestickSeries(
-            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)], pane_id=0
+            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)],
+            pane_id=0,
         )
         candlestick_series.z_index = 10  # Lower z-index in pane 0
 
         area_series = AreaSeries(
-            data=[LineData(time=1640995200, value=100)], pane_id=1  # Different pane
+            data=[LineData(time=1640995200, value=100)],
+            pane_id=1,  # Different pane
         )
         area_series.z_index = 5  # Lower z-index in pane 1
 
@@ -241,8 +252,6 @@ class TestChartSeriesIntegration:
         line_series = LineSeries(data=[LineData(time=1640995200, value=100)])
 
         # Add markers
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position=MarkerPosition.ABOVE_BAR,
@@ -281,7 +290,9 @@ class TestChartSeriesIntegration:
 
         # Set custom line options after construction
         line_series.line_options = LineOptions(
-            color="rgba(255,0,0,1)", line_width=3, line_style=LineStyle.DASHED
+            color="rgba(255,0,0,1)",
+            line_width=3,
+            line_style=LineStyle.DASHED,
         )
 
         chart = Chart(series=line_series)
@@ -347,20 +358,25 @@ class TestChartSeriesIntegration:
                 entry_price=100.0,
                 exit_time="2024-01-01 11:00:00",
                 exit_price=102.0,
-                quantity=100,
-                trade_type=TradeType.LONG,
-            )
+                is_profitable=True,
+                id="trade_001",
+                additional_data={"quantity": 100, "trade_type": TradeType.LONG},
+            ),
         ]
 
         chart.add_trades(trades)
 
         # Verify trade visualization is added
         config = chart.to_frontend_config()
-        series_config = config["charts"][0]["series"][0]
+        chart_config = config["charts"][0]
 
-        # Should have markers for trade visualization
-        assert "markers" in series_config
-        assert len(series_config["markers"]) == 2  # Entry and exit markers
+        # Should have trades in chart config (markers are created in frontend)
+        assert "trades" in chart_config
+        assert len(chart_config["trades"]) == 1  # One trade added
+        assert chart_config["trades"][0]["id"] == "trade_001"
+
+        # Should have trade visualization options
+        assert "tradeVisualizationOptions" in chart_config
 
     def test_chart_with_overlay_price_scales(self):
         """Test chart with overlay price scales."""
@@ -371,14 +387,17 @@ class TestChartSeriesIntegration:
         )
 
         candlestick_series = CandlestickSeries(
-            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)], price_scale_id="right"
+            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)],
+            price_scale_id="right",
         )
 
         chart = Chart(series=[line_series, candlestick_series])
 
         # Add overlay price scale
         overlay_options = PriceScaleOptions(
-            visible=True, auto_scale=True, mode=PriceScaleMode.NORMAL
+            visible=True,
+            auto_scale=True,
+            mode=PriceScaleMode.NORMAL,
         )
 
         chart.add_overlay_price_scale("overlay_scale", overlay_options)
@@ -396,7 +415,7 @@ class TestChartSeriesIntegration:
             .add_series(LineSeries(data=[LineData(time=1640995200, value=100)]))
             .update_options(height=500, width=800)
             .add_series(
-                CandlestickSeries(data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)])
+                CandlestickSeries(data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)]),
             )
         )
 
@@ -412,9 +431,7 @@ class TestChartSeriesIntegration:
     def test_chart_with_large_dataset(self):
         """Test chart with large dataset."""
         # Create large dataset (1000 points)
-        large_data = []
-        for i in range(1000):
-            large_data.append(LineData(time=1640995200 + i, value=100 + i))
+        large_data = [LineData(time=1640995200 + i, value=100 + i) for i in range(1000)]
 
         line_series = LineSeries(data=large_data)
         chart = Chart(series=line_series)
@@ -459,7 +476,7 @@ class TestChartSeriesIntegration:
         line_series = LineSeries(data=[LineData(time=1640995200, value=100)])
 
         candlestick_series = CandlestickSeries(
-            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)]
+            data=[OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000)],
         )
 
         chart = Chart(series=[line_series, candlestick_series])
@@ -549,7 +566,7 @@ class TestChartSeriesDataFlowIntegration:
     def test_dataframe_to_series_to_chart_pipeline(self):
         """Test complete pipeline: DataFrame → Series → Chart → JSON."""
         # Create sample DataFrame
-        df = pd.DataFrame(
+        test_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=5, freq="1h"),
                 "open": [100, 101, 102, 103, 104],
@@ -557,13 +574,13 @@ class TestChartSeriesDataFlowIntegration:
                 "low": [99, 100, 101, 102, 103],
                 "close": [101, 102, 101, 104, 105],
                 "volume": [1000, 1500, 1200, 1800, 2000],
-            }
+            },
         )
 
         # Process through pipeline
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=test_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -596,7 +613,7 @@ class TestChartSeriesDataFlowIntegration:
     def test_data_type_conversions_throughout_pipeline(self):
         """Test data type conversions throughout the pipeline."""
         # Create DataFrame with various data types
-        df = pd.DataFrame(
+        test_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=3, freq="1h"),
                 "open": [100.0, 101.5, 102.25],
@@ -604,13 +621,13 @@ class TestChartSeriesDataFlowIntegration:
                 "low": [99, 100, 101],
                 "close": [101, 102, 103],
                 "volume": [1000, 1500, 2000],
-            }
+            },
         )
 
         # Process through pipeline
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=test_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -642,23 +659,24 @@ class TestChartSeriesDataFlowIntegration:
         """Test memory usage in data processing pipeline."""
         process = psutil.Process()
         initial_memory = process.memory_info().rss
+        rng = np.random.default_rng(42)
 
         # Create large DataFrame
-        df = pd.DataFrame(
+        test_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=10000, freq="1min"),
-                "open": np.random.uniform(100, 200, 10000),
-                "high": np.random.uniform(200, 300, 10000),
-                "low": np.random.uniform(50, 100, 10000),
-                "close": np.random.uniform(100, 200, 10000),
-                "volume": np.random.randint(1000, 10000, 10000),
-            }
+                "open": rng.uniform(100, 200, 10000),
+                "high": rng.uniform(200, 300, 10000),
+                "low": rng.uniform(50, 100, 10000),
+                "close": rng.uniform(100, 200, 10000),
+                "volume": rng.integers(1000, 10000, 10000),
+            },
         )
 
         # Process through pipeline
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=test_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -698,7 +716,7 @@ class TestChartSeriesErrorHandlingIntegration:
         chart.add_series(valid_series)
 
         # Attempt to add invalid series
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeValidationError):
             chart.add_series("invalid_series")
 
         # Verify chart still works with valid series
@@ -708,16 +726,19 @@ class TestChartSeriesErrorHandlingIntegration:
 
     def test_series_recovery_after_invalid_data(self):
         """Test series behavior when invalid data is provided."""
-        # Test series with corrupted data
-        with pytest.raises(OverflowError):
-            LineSeries(data=[LineData(time=float("inf"), value=100)])
+        # Test series with corrupted data - error happens during serialization
+        series = LineSeries(data=[LineData(time=float("inf"), value=100)])
+        chart = Chart(series=series)
+        # Error happens when serializing
+        with pytest.raises((OverflowError, ValueError)):
+            chart.to_frontend_config()
 
     def test_chart_with_partially_invalid_series_list(self):
         """Test chart with partially invalid series list."""
         valid_series = LineSeries(data=[LineData(time=1640995200, value=100)])
 
-        # Chart constructor now validates series types, so this should raise TypeError
-        with pytest.raises(TypeError):
+        # Chart constructor now validates series types, so this should raise SeriesItemsTypeError
+        with pytest.raises(SeriesItemsTypeError):
             Chart(series=[valid_series, "invalid_series", valid_series])
 
     def test_chart_with_series_returning_invalid_config(self):

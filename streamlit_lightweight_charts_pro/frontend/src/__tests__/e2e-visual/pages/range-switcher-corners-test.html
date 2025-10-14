@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Range Switcher Corners Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #container {
+            width: 800px;
+            background: white;
+        }
+        .chart-pane {
+            width: 100%;
+            height: 250px;
+            position: relative;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+        .chart { width: 100%; height: 100%; }
+        .range-switcher {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 10;
+            display: flex;
+            gap: 4px;
+        }
+        .range-switcher-tr { top: 10px; right: 10px; }
+        .range-switcher-bl { bottom: 50px; left: 10px; }
+        .range-button {
+            padding: 4px 10px;
+            border: 1px solid #2196F3;
+            background: white;
+            color: #2196F3;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .range-button:hover {
+            background: #E3F2FD;
+        }
+        .range-button.active {
+            background: #2196F3;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div class="chart-pane">
+            <div id="chart1" class="chart"></div>
+            <div class="range-switcher range-switcher-tr">
+                <button class="range-button" data-chart="1" data-range="1W">1W</button>
+                <button class="range-button" data-chart="1" data-range="1M">1M</button>
+                <button class="range-button active" data-chart="1" data-range="ALL">ALL</button>
+            </div>
+        </div>
+        <div class="chart-pane">
+            <div id="chart2" class="chart"></div>
+            <div class="range-switcher range-switcher-bl">
+                <button class="range-button" data-chart="2" data-range="1W">1W</button>
+                <button class="range-button" data-chart="2" data-range="1M">1M</button>
+                <button class="range-button active" data-chart="2" data-range="ALL">ALL</button>
+            </div>
+        </div>
+    </div>
+    <script>
+const charts = {};
+const allData = {};
+
+function runTestCase() {
+    const startDate = new Date('2024-01-01');
+    const data = [];
+
+    for (let i = 0; i < 90; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const price = 100 + i * 0.4 + Math.sin(i / 12) * 15;
+
+        data.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+    }
+
+    // Chart 1
+    charts['1'] = LightweightCharts.createChart(document.getElementById('chart1'), {
+        width: 800,
+        height: 250,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    const series1 = charts['1'].addSeries(LightweightCharts.LineSeries);
+    series1.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    series1.setData(data);
+    allData['1'] = data;
+
+    // Chart 2
+    charts['2'] = LightweightCharts.createChart(document.getElementById('chart2'), {
+        width: 800,
+        height: 250,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    const series2 = charts['2'].addSeries(LightweightCharts.LineSeries);
+    series2.applyOptions({ color: '#9C27B0', lineWidth: 2 });
+    series2.setData(data);
+    allData['2'] = data;
+
+    // Range switcher functionality
+    document.querySelectorAll('.range-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const chartId = button.getAttribute('data-chart');
+            const range = button.getAttribute('data-range');
+
+            // Update active state for buttons in this chart
+            document.querySelectorAll(`[data-chart="${chartId}"]`).forEach(b => {
+                b.classList.remove('active');
+            });
+            button.classList.add('active');
+
+            applyRange(chartId, range);
+        });
+    });
+
+    charts['1'].timeScale().fitContent();
+    charts['2'].timeScale().fitContent();
+}
+
+function applyRange(chartId, range) {
+    const chart = charts[chartId];
+    const data = allData[chartId];
+    const lastDate = new Date(data[data.length - 1].time);
+    let fromDate;
+
+    switch(range) {
+        case '1W':
+            fromDate = new Date(lastDate);
+            fromDate.setDate(fromDate.getDate() - 7);
+            break;
+        case '1M':
+            fromDate = new Date(lastDate);
+            fromDate.setMonth(fromDate.getMonth() - 1);
+            break;
+        case 'ALL':
+            chart.timeScale().fitContent();
+            return;
+    }
+
+    const fromStr = fromDate.toISOString().split('T')[0];
+    const toStr = lastDate.toISOString().split('T')[0];
+
+    chart.timeScale().setVisibleRange({
+        from: fromStr,
+        to: toStr,
+    });
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>

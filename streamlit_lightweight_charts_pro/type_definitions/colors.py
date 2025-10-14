@@ -1,138 +1,73 @@
-"""
-Color-related classes for Streamlit Lightweight Charts Pro.
+"""Color-related classes for Streamlit Lightweight Charts Pro.
 
-This module provides Background classes for chart backgrounds with proper validation.
-It includes classes for solid colors and gradient backgrounds, with comprehensive
-color format validation supporting hex, RGB/RGBA, and named colors.
+This module provides comprehensive background classes for chart backgrounds with
+proper validation and type safety. It includes classes for solid colors and gradient
+backgrounds, with extensive color format validation supporting hex, RGB/RGBA, and
+named colors commonly used in financial chart visualization.
 
 The module provides:
-    - BackgroundSolid: For solid color backgrounds
-    - BackgroundGradient: For gradient backgrounds
+    - BackgroundSolid: For solid color backgrounds with validation
+    - BackgroundGradient: For gradient backgrounds with color transitions
     - Background: Union type for both background types
-    - Color validation utilities
+    - Color validation utilities with comprehensive format support
+    - Background style enumeration for different rendering modes
 
-These classes ensure type safety and proper color formatting for chart backgrounds,
-with automatic validation during initialization.
+These classes ensure type safety, proper color formatting, and validation for chart
+backgrounds, with automatic validation during initialization and comprehensive
+error handling for invalid color formats.
+
+Key Features:
+    - Comprehensive color format validation (hex, RGB, RGBA, named colors)
+    - Type-safe background configuration with validation
+    - Gradient support with top and bottom color specification
+    - Automatic color format normalization and validation
+    - Clear error messages for invalid color formats
+    - Support for transparency and alpha channels
 
 Example Usage:
     ```python
     from streamlit_lightweight_charts_pro.type_definitions.colors import (
-        BackgroundSolid, BackgroundGradient, Background
+        BackgroundSolid,
+        BackgroundGradient,
+        Background,
     )
 
-    # Solid background
+    # Solid background with validation
     solid_bg = BackgroundSolid(color="#ffffff")
 
-    # Gradient background
-    gradient_bg = BackgroundGradient(
-        top_color="#ffffff",
-        bottom_color="#f0f0f0"
-    )
+    # Gradient background with color transitions
+    gradient_bg = BackgroundGradient(top_color="#ffffff", bottom_color="#f0f0f0")
 
     # Using with charts
     chart = Chart().set_background(solid_bg)
     ```
 
 Supported Color Formats:
-    - Hex: "#FF0000", "#F00"
-    - RGB: "rgb(255, 0, 0)"
-    - RGBA: "rgba(255, 0, 0, 1)"
-    - Named colors: "red", "blue", "white", etc.
+    - Hex: "#FF0000", "#F00" (3 or 6 digit hex codes)
+    - RGB: "rgb(255, 0, 0)" (with or without spaces)
+    - RGBA: "rgba(255, 0, 0, 0.5)" (with alpha channel support)
+    - Named colors: "red", "blue", "white", "transparent", etc.
 
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
 """
 
-import re
+# Standard Imports
 from abc import ABC
 from dataclasses import dataclass
 from typing import Union
 
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 from streamlit_lightweight_charts_pro.type_definitions.enums import BackgroundStyle
-
-
-def _is_valid_color(color: str) -> bool:
-    """
-    Validate if a color string is in a valid format.
-
-    This function validates color strings against multiple formats commonly
-    used in web development and chart styling. It supports hex colors,
-    RGB/RGBA colors, and a set of common named colors.
-
-    Args:
-        color: Color string to validate. Supported formats:
-            - Hex: "#FF0000", "#F00"
-            - RGB: "rgb(255, 0, 0)"
-            - RGBA: "rgba(255, 0, 0, 1)"
-            - Named: "red", "blue", "white", etc.
-
-    Returns:
-        bool: True if the color format is valid, False otherwise.
-
-    Example:
-        ```python
-        _is_valid_color("#FF0000")  # True
-        _is_valid_color("rgb(255, 0, 0)")  # True
-        _is_valid_color("red")  # True
-        _is_valid_color("invalid")  # False
-        ```
-
-    Note:
-        The function is permissive with whitespace in RGB/RGBA formats
-        and accepts both 3-digit and 6-digit hex codes. Named colors
-        are case-insensitive.
-    """
-    if not color or not isinstance(color, str):
-        return False
-
-    # Hex color pattern
-    hex_pattern = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-    if re.match(hex_pattern, color):
-        return True
-
-    # RGB/RGBA pattern - allow negative numbers for alpha
-    rgba_pattern = r"^rgba?\(\s*-?\d+\s*,\s*-?\d+\s*,\s*-?\d+\s*(?:,\s*-?[\d.]+\s*)?\)$"
-    if re.match(rgba_pattern, color):
-        return True
-
-    # Named colors (basic support)
-    named_colors = {
-        "black",
-        "white",
-        "red",
-        "green",
-        "blue",
-        "yellow",
-        "cyan",
-        "magenta",
-        "gray",
-        "grey",
-        "orange",
-        "purple",
-        "brown",
-        "pink",
-        "lime",
-        "navy",
-        "teal",
-        "silver",
-        "gold",
-        "maroon",
-        "olive",
-        "aqua",
-        "fuchsia",
-    }
-    if color.lower() in named_colors:
-        return True
-
-    return False
+from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 
 
 @dataclass
 class BackgroundSolid(Options, ABC):
-    """
-    Solid background color configuration.
+    """Solid background color configuration.
 
     This class represents a solid color background for charts. It provides
     type safety and validation for color values, ensuring that only valid
@@ -162,15 +97,14 @@ class BackgroundSolid(Options, ABC):
 
     Note:
         The color attribute is validated during initialization using
-        the _is_valid_color function.
+        the is_valid_color function.
     """
 
     color: str = "#ffffff"
     style: BackgroundStyle = BackgroundStyle.SOLID
 
     def __post_init__(self):
-        """
-        Post-initialization validation.
+        """Post-initialization validation.
 
         Validates the color format after the dataclass is initialized.
         Raises a ValueError if the color is not in a valid format.
@@ -178,16 +112,18 @@ class BackgroundSolid(Options, ABC):
         Raises:
             ValueError: If the color format is invalid.
         """
-        if not _is_valid_color(self.color):
-            raise ValueError(
-                f"Invalid color format: {self.color!r}. Must be hex, rgba, or named color."
-            )
+        # Validate the color format using the comprehensive validation function
+        # This ensures that only valid CSS color formats are accepted
+        # The validation supports hex, RGB, RGBA, and named colors
+        if not is_valid_color(self.color):
+            # Raise a specific validation error with the field name and invalid value
+            # This provides clear feedback about what went wrong during initialization
+            raise ColorValidationError("color", self.color)
 
 
 @dataclass
 class BackgroundGradient(Options, ABC):
-    """
-    Gradient background configuration.
+    """Gradient background configuration.
 
     This class represents a gradient background for charts, transitioning
     from a top color to a bottom color. It provides type safety and
@@ -204,16 +140,10 @@ class BackgroundGradient(Options, ABC):
     Example:
         ```python
         # Create a white to black gradient
-        bg = BackgroundGradient(
-            top_color="#ffffff",
-            bottom_color="#000000"
-        )
+        bg = BackgroundGradient(top_color="#ffffff", bottom_color="#000000")
 
         # Create a blue to red gradient
-        bg = BackgroundGradient(
-            top_color="blue",
-            bottom_color="red"
-        )
+        bg = BackgroundGradient(top_color="blue", bottom_color="red")
 
         # Use with chart
         chart = Chart().set_background(bg)
@@ -232,8 +162,7 @@ class BackgroundGradient(Options, ABC):
     style: BackgroundStyle = BackgroundStyle.VERTICAL_GRADIENT
 
     def __post_init__(self):
-        """
-        Post-initialization validation.
+        """Post-initialization validation.
 
         Validates both color formats after the dataclass is initialized.
         Raises a ValueError if either color is not in a valid format.
@@ -241,15 +170,21 @@ class BackgroundGradient(Options, ABC):
         Raises:
             ValueError: If either color format is invalid.
         """
-        if not _is_valid_color(self.top_color):
-            raise ValueError(
-                f"Invalid top_color format: {self.top_color!r}. Must be hex, rgba, or named color."
-            )
-        if not _is_valid_color(self.bottom_color):
-            raise ValueError(
-                f"Invalid bottom_color format: {self.bottom_color!r}. "
-                "Must be hex, rgba, or named color."
-            )
+        # Validate the top color format using the comprehensive validation function
+        # This ensures that the top color is in a valid CSS format
+        # The validation supports hex, RGB, RGBA, and named colors
+        if not is_valid_color(self.top_color):
+            # Raise a specific validation error with the field name and invalid value
+            # This provides clear feedback about what went wrong with the top color
+            raise ColorValidationError("top_color", self.top_color)
+
+        # Validate the bottom color format using the comprehensive validation function
+        # This ensures that the bottom color is in a valid CSS format
+        # The validation supports hex, RGB, RGBA, and named colors
+        if not is_valid_color(self.bottom_color):
+            # Raise a specific validation error with the field name and invalid value
+            # This provides clear feedback about what went wrong with the bottom color
+            raise ColorValidationError("bottom_color", self.bottom_color)
 
 
 # Union type for all background types

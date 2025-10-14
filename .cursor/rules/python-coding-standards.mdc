@@ -1,0 +1,458 @@
+---
+globs: *.py
+---
+
+# Python Coding Standards
+
+## Scope
+This file focuses on **coding patterns and architecture** for Python:
+- Fluent API patterns
+- Mixin patterns
+- Type hints and validation
+- Error handling
+- Performance best practices
+
+For **tooling and enforcement**, see [code-quality-standards.mdc](mdc:.cursor/rules/code-quality-standards.mdc)
+
+## ⚙️ Code Style Configuration
+
+```python
+# Line length: 100 characters max
+# Formatter: Ruff (configured in ruff.toml)
+# Style: PEP 8 compliant with project customizations
+```
+
+## 📝 Import Standards
+
+```python
+# Order: future → stdlib → third-party → first-party → local
+from __future__ import annotations  # Future imports first
+import json                         # Standard library
+from typing import List, Optional   # Standard library typing
+
+import pandas as pd                 # Third-party
+import streamlit as st              # Third-party
+
+from streamlit_lightweight_charts_pro import Chart  # First-party
+from .local_module import helper    # Local/relative imports last
+```
+
+## 🎯 Type Hints Requirements
+
+```python
+# ALWAYS include type hints for:
+def process_data(
+    data: List[SingleValueData],      # Input parameters
+    color: str = "#2196F3"            # Default values
+) -> Chart:                          # Return types
+    """Process data and return chart."""
+
+# Use Optional for nullable types
+def get_value(key: str) -> Optional[float]:
+    """Return value or None."""
+
+# Use Union for multiple types
+from typing import Union
+SeriesData = Union[SingleValueData, OhlcData, OhlcvData]
+```
+
+## 📚 Docstring Standards
+
+**Note**: For comprehensive docstring standards, see [google-docstring-standards.mdc](mdc:.cursor/rules/google-docstring-standards.mdc)
+
+### Key Requirements
+- **Google Style**: All docstrings must follow Google style format
+- **Complete Sections**: Args, Returns, Raises, Example for all functions
+- **Inline Comments**: Step-by-step logic explanation for complex code
+- **Line Length**: All docstrings and comments <= 100 characters
+
+## 🔗 Fluent API Pattern
+
+```python
+class Chart:
+    """Chart class with fluent API support."""
+
+    def add_series(self, series: Series) -> "Chart":
+        """Add series and return self for chaining."""
+        self._series.append(series)
+        return self  # ALWAYS return self for chaining
+
+    def update_options(self, **kwargs) -> "Chart":
+        """Update options and return self for chaining."""
+        self._options.update(kwargs)
+        return self  # Enable method chaining
+```
+
+## 🧩 Mixin Patterns
+
+### SerializableMixin for Consistent Serialization
+```python
+# ✅ CORRECT: Using SerializableMixin for frontend communication
+from dataclasses import dataclass
+from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
+
+@dataclass
+class ChartConfig(SerializableMixin):
+    """Chart configuration with automatic serialization support.
+
+    This class uses SerializableMixin to provide consistent serialization
+    to frontend-compatible dictionaries with camelCase keys.
+
+    Attributes:
+        title: Chart title displayed in the UI.
+        is_visible: Whether the chart is visible by default.
+        background_color: Background color in hex format.
+
+    Example:
+        ```python
+        config = ChartConfig(title="My Chart", is_visible=True)
+        serialized = config.asdict()  # {"title": "My Chart", "isVisible": True}
+        ```
+    """
+    title: str = "My Chart"
+    is_visible: bool = True
+    background_color: str = "#ffffff"
+
+    def asdict(self) -> dict[str, Any]:
+        """Serialize to dictionary with camelCase keys for frontend."""
+        return self._serialize_to_dict()
+```
+
+### Chainable Property Mixin for Fluent API
+```python
+# ✅ CORRECT: Using chainable_property decorator for fluent API
+from streamlit_lightweight_charts_pro.utils import chainable_property
+
+@chainable_property("color", str, validator="color")
+@chainable_property("width", int)
+@chainable_property("line_options", LineOptions, allow_none=True)
+@chainable_property("price_scale_id", top_level=True)
+class LineSeries(Series):
+    """Line series with chainable property configuration.
+
+    This class demonstrates the chainable_property mixin pattern for creating
+    fluent API methods that return self for method chaining.
+
+    Attributes:
+        color: Line color in hex format with validation.
+        width: Line width in pixels.
+        line_options: Optional line styling options.
+        price_scale_id: Price scale identifier for multi-scale charts.
+
+    Example:
+        ```python
+        # Method chaining with validation
+        series = (LineSeries(data)
+                 .set_color("#ff0000")
+                 .set_width(2)
+                 .set_price_scale_id("right"))
+
+        # Property assignment (same validation)
+        series.color = "#00ff00"
+        series.width = 3
+        ```
+    """
+
+    def __init__(self, data, **kwargs):
+        """Initialize line series with data and configuration."""
+        # Initialize private attributes for chainable properties
+        self._color = "#2196F3"
+        self._width = 1
+        self._line_options = None
+        self._price_scale_id = "right"
+
+        # Call parent constructor
+        super().__init__(data, **kwargs)
+```
+
+### Options Mixin for Configuration Classes
+```python
+# ✅ CORRECT: Using Options mixin for configuration classes
+from dataclasses import dataclass
+from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+
+@dataclass
+class LineOptions(Options):
+    """Line styling options with automatic serialization.
+
+    This class inherits from Options mixin to provide consistent
+    serialization and validation for line styling configuration.
+
+    Attributes:
+        color: Line color in hex format.
+        width: Line width in pixels.
+        style: Line style (solid, dotted, dashed).
+        visible: Whether the line is visible.
+
+    Example:
+        ```python
+        # Create and configure line options
+        options = (LineOptions()
+                  .set_color("#ff0000")
+                  .set_width(2)
+                  .set_style(LineStyle.SOLID))
+
+        # Serialize for frontend
+        serialized = options.asdict()
+        # Returns: {"color": "#ff0000", "width": 2, "style": 0}
+        ```
+    """
+    color: str = "#2196F3"
+    width: int = 1
+    style: LineStyle = LineStyle.SOLID
+    visible: bool = True
+
+    def asdict(self) -> dict[str, Any]:
+        """Serialize to dictionary with camelCase keys."""
+        return self._serialize_to_dict()
+```
+
+### Data Mixin for Chart Data Points
+```python
+# ✅ CORRECT: Using Data mixin for chart data points
+from dataclasses import dataclass
+from streamlit_lightweight_charts_pro.data.data import Data
+
+@dataclass
+class LineData(Data):
+    """Single value data point for line charts.
+
+    This class inherits from Data mixin to provide automatic time
+    normalization and serialization for line chart data points.
+
+    Attributes:
+        time: UNIX timestamp in seconds (automatically normalized).
+        value: Data value for this point.
+        color: Optional color override for this point.
+
+    Example:
+        ```python
+        # Create data point with automatic time normalization
+        data = LineData(time="2024-01-01T00:00:00", value=100.0)
+
+        # Serialize for frontend
+        serialized = data.asdict()
+        # Returns: {"time": 1704067200, "value": 100.0}
+        ```
+    """
+    value: float
+    color: Optional[str] = None
+
+    def asdict(self) -> dict[str, Any]:
+        """Serialize to dictionary with camelCase keys."""
+        return self._serialize_to_dict()
+```
+
+## ⚠️ Error Handling
+
+```python
+# Use specific exceptions with clear messages
+if not data:
+    raise ValueError(f"Data cannot be empty for {self.__class__.__name__}")
+
+# Provide context in error messages
+try:
+    series = create_series(data)
+except Exception as e:
+    raise ValueError(f"Failed to create series from data: {e}") from e
+
+# NEVER use bare except
+# BAD:  except:
+# GOOD: except (ValueError, TypeError) as e:
+```
+
+## 🧪 Testing Requirements
+
+```python
+# Test file naming: test_<module>.py
+# Test function naming: test_<functionality>_<scenario>
+
+@pytest.mark.unit  # Mark test category
+def test_chart_creation_with_valid_data(sample_data):
+    """Test chart creation with valid data."""
+    # Arrange
+    series = LineSeries(sample_data)
+
+    # Act
+    chart = Chart(series=series)
+
+    # Assert
+    assert chart is not None
+    assert chart.series[0] == series
+
+# Use parametrize for multiple scenarios
+@pytest.mark.parametrize("color,expected", [
+    ("#ff0000", "#ff0000"),
+    ("red", "#ff0000"),
+    (None, "#2196F3"),  # Default
+])
+def test_color_conversion(color, expected):
+    """Test color conversion and defaults."""
+    result = convert_color(color)
+    assert result == expected
+```
+
+## 🚀 Performance Best Practices
+
+```python
+# Use generators for large datasets
+def process_large_dataset(data: List[float]) -> Iterator[float]:
+    """Process data lazily."""
+    for value in data:
+        yield value * 2
+
+# Cache expensive operations
+from functools import lru_cache
+
+@lru_cache(maxsize=128)
+def expensive_calculation(param: str) -> float:
+    """Cache results of expensive calculations."""
+    return complex_operation(param)
+
+# Use slots for memory efficiency
+class DataPoint:
+    __slots__ = ['time', 'value']  # Reduce memory overhead
+
+    def __init__(self, time: str, value: float):
+        self.time = time
+        self.value = value
+```
+
+## 🔒 Security & Validation
+
+```python
+# Validate inputs early
+def set_height(self, height: int) -> "Chart":
+    """Set chart height with validation."""
+    if not isinstance(height, int):
+        raise TypeError(f"Height must be int, got {type(height)}")
+    if not 100 <= height <= 2000:
+        raise ValueError(f"Height must be between 100-2000, got {height}")
+    self._height = height
+    return self
+
+# Sanitize user inputs
+def sanitize_label(label: str) -> str:
+    """Sanitize user-provided labels."""
+    return label.strip()[:100]  # Limit length and strip whitespace
+```
+
+## 🔄 Import Organization
+
+### **1. Standard Import Placement**
+**CRITICAL**: All imports must be at the top of the file unless there is a very valid justification:
+
+```python
+# ✅ CORRECT: All imports at the top
+from __future__ import annotations
+
+import json
+import logging
+from pathlib import Path
+from typing import List, Optional, Union
+
+import pandas as pd
+import streamlit as st
+from lightweight_charts import ChartOptions
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.data import SingleValueData
+from streamlit_lightweight_charts_pro.exceptions import ChartError
+
+# Rest of the code...
+def create_chart(data: List[SingleValueData]) -> Chart:
+    """Create a chart with the provided data."""
+    return Chart(data=data)
+```
+
+### **2. Valid Justifications for Non-Top Imports**
+
+#### **Circular Import Resolution**
+```python
+# ✅ VALID: Circular import resolution
+def get_chart_instance():
+    """Get chart instance to avoid circular import."""
+    from streamlit_lightweight_charts_pro.charts.chart import Chart
+    return Chart()
+
+# Document the reason:
+# NOTE: Import moved inside function to avoid circular import
+# between Chart and ChartOptions classes
+```
+
+#### **Conditional/Lazy Loading for Performance**
+```python
+# ✅ VALID: Lazy loading for performance
+def process_large_dataset():
+    """Process large dataset with optional heavy dependencies."""
+    # Only import heavy libraries when actually needed
+    try:
+        import numpy as np
+        import scipy.stats
+        # Process with heavy libraries
+        return np.array(data)
+    except ImportError:
+        # Fallback to standard library
+        return list(data)
+
+# Document the reason:
+# NOTE: Heavy imports moved inside function to avoid
+# loading expensive libraries when not needed
+```
+
+#### **Optional Dependencies**
+```python
+# ✅ VALID: Optional dependencies
+def export_to_excel(data, filename):
+    """Export data to Excel if openpyxl is available."""
+    try:
+        import openpyxl
+        # Export logic here
+        return True
+    except ImportError:
+        print("Excel export requires openpyxl package")
+        return False
+
+# Document the reason:
+# NOTE: openpyxl import moved inside function as it's
+# an optional dependency that may not be installed
+```
+
+### **3. Import Organization Standards**
+1. **Standard library imports** first
+2. **Third-party imports** second
+3. **Local application imports** last
+4. **Each group separated** by blank lines
+5. **Alphabetical order** within each group
+
+```python
+# ✅ CORRECT: Proper import organization
+from __future__ import annotations
+
+import json
+import logging
+from pathlib import Path
+from typing import List, Optional
+
+import pandas as pd
+import streamlit as st
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.data import SingleValueData
+```
+
+### **4. Documentation Requirements**
+**Every non-top import MUST be documented** with a clear justification:
+
+```python
+# ✅ CORRECT: Properly documented non-top import
+def get_optional_feature():
+    """Get optional feature if available."""
+    # NOTE: Import moved inside function to handle optional dependency
+    # 'optional_package' may not be installed in all environments
+    try:
+        import optional_package
+        return optional_package.Feature()
+    except ImportError:
+        return None
+```

@@ -1,535 +1,443 @@
+/**
+ * Band Series - Hybrid ICustomSeries + ISeriesPrimitive Implementation
+ *
+ * A custom series that renders three lines (upper, middle, lower) with filled areas between them.
+ *
+ * Features:
+ * - Three configurable lines (upper, middle, lower)
+ * - Two fill areas (upper fill between upper/middle, lower fill between middle/lower)
+ * - Hybrid rendering: ICustomSeries (default) or ISeriesPrimitive (background)
+ * - Full autoscaling support
+ * - Price axis labels for all three lines
+ *
+ * Use cases:
+ * - Bollinger Bands with middle line
+ * - Keltner Channels
+ * - Any indicator with upper/middle/lower bounds
+ *
+ * @see RibbonSeriesPlugin for reference hybrid implementation
+ */
+
 import {
-  IChartApi,
-  ISeriesApi,
-  LineData,
+  CustomData,
   Time,
-  LineSeries,
-  ISeriesPrimitive,
-  SeriesAttachedParameter,
-  IPrimitivePaneView,
-  IPrimitivePaneRenderer,
-  Coordinate
-} from 'lightweight-charts'
+  customSeriesDefaultOptions,
+  CustomSeriesOptions,
+  PaneRendererCustomData,
+  CustomSeriesPricePlotValues,
+  CustomSeriesWhitespaceData,
+  ICustomSeriesPaneRenderer,
+  ICustomSeriesPaneView,
+  LineWidth,
+  IChartApi,
+  PriceToCoordinateConverter,
+} from 'lightweight-charts';
+import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { isWhitespaceDataMultiField } from './base/commonRendering';
+import { LineStyle } from '../../utils/renderingUtils';
+import { drawMultiLine, drawFillArea } from './base/commonRendering';
 
-// Band data interface
-export interface BandData extends LineData {
-  upper: number
-  middle: number
-  lower: number
+// ============================================================================
+// Data Interface
+// ============================================================================
+
+/**
+ * Data point for Band series
+ *
+ * @property time - Timestamp for the data point
+ * @property upper - Y value of the upper line
+ * @property middle - Y value of the middle line
+ * @property lower - Y value of the lower line
+ */
+export interface BandData extends CustomData<Time> {
+  time: Time;
+  upper: number;
+  middle: number;
+  lower: number;
 }
 
-// Line style options interface
-export interface LineStyleOptions {
-  color?: string
-  lineStyle?: number
-  lineWidth?: number
-  lineVisible?: boolean
-  lineType?: number
-  crosshairMarkerVisible?: boolean
-  crosshairMarkerRadius?: number
-  crosshairMarkerBorderColor?: string
-  crosshairMarkerBackgroundColor?: string
-  crosshairMarkerBorderWidth?: number
-  lastPriceAnimation?: number
+// ============================================================================
+// Options Interface
+// ============================================================================
+
+/**
+ * Configuration options for Band series
+ */
+export interface BandSeriesOptions extends CustomSeriesOptions {
+  // Upper line styling
+  upperLineColor: string;
+  upperLineWidth: LineWidth;
+  upperLineStyle: LineStyle;
+  upperLineVisible: boolean;
+
+  // Middle line styling
+  middleLineColor: string;
+  middleLineWidth: LineWidth;
+  middleLineStyle: LineStyle;
+  middleLineVisible: boolean;
+
+  // Lower line styling
+  lowerLineColor: string;
+  lowerLineWidth: LineWidth;
+  lowerLineStyle: LineStyle;
+  lowerLineVisible: boolean;
+
+  // Fill styling
+  upperFillColor: string;
+
+  // Series options
+  lastValueVisible: boolean;
+  title: string;
+  visible: boolean;
+  priceLineVisible: boolean;
+  upperFillVisible: boolean;
+  lowerFillColor: string;
+  lowerFillVisible: boolean;
+
+  // Internal flag (set automatically by factory)
+  _usePrimitive?: boolean;
 }
 
-// Band series options
-export interface BandSeriesOptions {
-  // Z-index for proper layering
-  zIndex?: number
-
-  // Line style options
-  upperLine?: LineStyleOptions
-  middleLine?: LineStyleOptions
-  lowerLine?: LineStyleOptions
-
-  // Fill colors
-  upperFillColor: string
-  lowerFillColor: string
-
-  // Fill visibility
-  upperFill: boolean
-  lowerFill: boolean
-
-  // Base options
-  visible: boolean
-  priceScaleId: string
-  lastValueVisible: boolean
-  priceLineVisible: boolean
-  priceLineSource: string
-  priceLineWidth: number
-  priceLineColor: string
-  priceLineStyle: number
-  baseLineVisible: boolean
-  baseLineWidth: number
-  baseLineColor: string
-  baseLineStyle: string
-  priceFormat: any
-}
-
-// Default options
-const defaultOptions: BandSeriesOptions = {
-  // Line style options
-  upperLine: {
-    color: '#4CAF50',
-    lineStyle: 0, // SOLID
-    lineWidth: 2,
-    lineVisible: true,
-    lineType: 0, // SIMPLE
-    crosshairMarkerVisible: true,
-    crosshairMarkerRadius: 4,
-    crosshairMarkerBorderColor: '',
-    crosshairMarkerBackgroundColor: '',
-    crosshairMarkerBorderWidth: 2,
-    lastPriceAnimation: 0 // DISABLED
-  },
-  middleLine: {
-    color: '#2196F3',
-    lineStyle: 0, // SOLID
-    lineWidth: 2,
-    lineVisible: true,
-    lineType: 0, // SIMPLE
-    crosshairMarkerVisible: true,
-    crosshairMarkerRadius: 4,
-    crosshairMarkerBorderColor: '',
-    crosshairMarkerBackgroundColor: '',
-    crosshairMarkerBorderWidth: 2,
-    lastPriceAnimation: 0 // DISABLED
-  },
-  lowerLine: {
-    color: '#F44336',
-    lineStyle: 0, // SOLID
-    lineWidth: 2,
-    lineVisible: true,
-    lineType: 0, // SIMPLE
-    crosshairMarkerVisible: true,
-    crosshairMarkerRadius: 4,
-    crosshairMarkerBorderColor: '',
-    crosshairMarkerBackgroundColor: '',
-    crosshairMarkerBorderWidth: 2,
-    lastPriceAnimation: 0 // DISABLED
-  },
-
-  // Fill colors
+/**
+ * Default options for Band series
+ * CRITICAL: Must match Python defaults
+ */
+const defaultBandOptions: BandSeriesOptions = {
+  ...customSeriesDefaultOptions,
+  upperLineColor: '#4CAF50',
+  upperLineWidth: 2,
+  upperLineStyle: LineStyle.Solid,
+  upperLineVisible: true,
+  middleLineColor: '#2196F3',
+  middleLineWidth: 2,
+  middleLineStyle: LineStyle.Solid,
+  middleLineVisible: true,
+  lowerLineColor: '#F44336',
+  lowerLineWidth: 2,
+  lowerLineStyle: LineStyle.Solid,
+  lowerLineVisible: true,
   upperFillColor: 'rgba(76, 175, 80, 0.1)',
+  upperFillVisible: true,
   lowerFillColor: 'rgba(244, 67, 54, 0.1)',
+  lowerFillVisible: true,
+};
 
-  // Fill visibility
-  upperFill: true,
-  lowerFill: true,
+// ============================================================================
+// ICustomSeries Implementation
+// ============================================================================
 
-  // Base options
-  visible: true,
-  priceScaleId: 'right',
-  lastValueVisible: false,
-  priceLineVisible: true,
-  priceLineSource: 'lastBar',
-  priceLineWidth: 1,
-  priceLineColor: '#2196F3',
-  priceLineStyle: 2, // DASHED
-  baseLineVisible: false,
-  baseLineWidth: 1,
-  baseLineColor: '#FF9800',
-  baseLineStyle: 'solid',
-  priceFormat: {type: 'price', precision: 2}
-}
+/**
+ * Band Series - ICustomSeries implementation
+ * Provides autoscaling and direct rendering
+ */
+class BandSeries<TData extends BandData = BandData>
+  implements ICustomSeriesPaneView<Time, TData, BandSeriesOptions>
+{
+  private _renderer: BandSeriesRenderer<TData>;
 
-// Band renderer data interface
-interface BandRendererData {
-  x: Coordinate | number
-  upper: Coordinate | number
-  middle: Coordinate | number
-  lower: Coordinate | number
-}
-
-// Band view data interface
-interface BandViewData {
-  data: BandRendererData[]
-  options: BandSeriesOptions
-}
-
-// Band primitive pane renderer
-class BandPrimitivePaneRenderer implements IPrimitivePaneRenderer {
-  _viewData: BandViewData
-
-  constructor(data: BandViewData) {
-    this._viewData = data
+  constructor() {
+    this._renderer = new BandSeriesRenderer();
   }
 
-  draw() {}
+  priceValueBuilder(plotRow: TData): CustomSeriesPricePlotValues {
+    // Return all three values for autoscaling
+    return [plotRow.lower, plotRow.middle, plotRow.upper];
+  }
 
-  drawBackground(target: any) {
-    // Apply Z-index context for proper layering
-    const zIndex = this._viewData.options.zIndex || 0
-    const points: BandRendererData[] = this._viewData.data
-    if (points.length === 0) return
+  isWhitespace(
+    data: TData | CustomSeriesWhitespaceData<Time>
+  ): data is CustomSeriesWhitespaceData<Time> {
+    return isWhitespaceDataMultiField(data, ['upper', 'middle', 'lower']);
+  }
 
-    target.useBitmapCoordinateSpace((scope: any) => {
-      const ctx = scope.context
-      ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio)
+  renderer(): ICustomSeriesPaneRenderer {
+    return this._renderer;
+  }
 
-      // Set Z-index context for proper layering
-      if (zIndex > 0) {
-        // Apply Z-index through canvas context properties
-        // This ensures the primitive renders at the correct layer
-        ctx.globalCompositeOperation = 'source-over'
-        ctx.globalAlpha = 1.0
+  update(data: PaneRendererCustomData<Time, TData>, options: BandSeriesOptions): void {
+    this._renderer.update(data, options);
+  }
 
-        // Store Z-index in canvas context for potential use by other renderers
-        ;(ctx as any).__zIndex = zIndex
-      }
-
-      // Draw upper fill area (between upper and middle) only if enabled
-      if (
-        this._viewData.options.upperFill &&
-        this._viewData.options.upperFillColor !== 'rgba(0, 0, 0, 0)'
-      ) {
-        ctx.fillStyle = this._viewData.options.upperFillColor
-        ctx.beginPath()
-        ctx.moveTo(points[0].x, points[0].upper)
-        for (const point of points) {
-          ctx.lineTo(point.x, point.upper)
-        }
-        for (let i = points.length - 1; i >= 0; i--) {
-          ctx.lineTo(points[i].x, points[i].middle)
-        }
-        ctx.closePath()
-        ctx.fill()
-      }
-
-      // Draw lower fill area (between middle and lower) only if enabled
-      if (
-        this._viewData.options.lowerFill &&
-        this._viewData.options.lowerFillColor !== 'rgba(0, 0, 0, 0)'
-      ) {
-        ctx.fillStyle = this._viewData.options.lowerFillColor
-        ctx.beginPath()
-        ctx.moveTo(points[0].x, points[0].middle)
-        for (const point of points) {
-          ctx.lineTo(point.x, point.middle)
-        }
-        for (let i = points.length - 1; i >= 0; i--) {
-          ctx.lineTo(points[i].x, points[i].lower)
-        }
-        ctx.closePath()
-        ctx.fill()
-      }
-    })
+  defaultOptions(): BandSeriesOptions {
+    return defaultBandOptions;
   }
 }
 
-// Band primitive pane view
-class BandPrimitivePaneView implements IPrimitivePaneView {
-  _source: BandSeries
-  _data: BandViewData
+/**
+ * Band Series Renderer - ICustomSeries
+ * Only used when primitive is NOT attached
+ */
+class BandSeriesRenderer<TData extends BandData = BandData> implements ICustomSeriesPaneRenderer {
+  private _data: PaneRendererCustomData<Time, TData> | null = null;
+  private _options: BandSeriesOptions | null = null;
 
-  constructor(source: BandSeries) {
-    this._source = source
-    this._data = {
-      data: [],
-      options: this._source.getOptions()
+  update(data: PaneRendererCustomData<Time, TData>, options: BandSeriesOptions): void {
+    this._data = data;
+    this._options = options;
+  }
+
+  draw(target: any, priceConverter: PriceToCoordinateConverter): void {
+    target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
+      this._drawImpl(scope, priceConverter);
+    });
+  }
+
+  /**
+   * Main drawing implementation following TradingView's plugin pattern
+   * Converts all bars to screen coordinates once, then draws visible range
+   */
+  private _drawImpl(
+    renderingScope: BitmapCoordinatesRenderingScope,
+    priceToCoordinate: PriceToCoordinateConverter
+  ): void {
+    // Early exit if no data to render
+    if (
+      this._data === null ||
+      this._data.bars.length === 0 ||
+      this._data.visibleRange === null ||
+      this._options === null
+    ) {
+      return;
     }
-  }
 
-  update() {
-    const timeScale = this._source.getChart().timeScale()
-    this._data.data = this._source.getData().map(d => {
+    // Early exit if primitive handles rendering
+    if (this._options._usePrimitive) {
+      return;
+    }
+
+    const options = this._options;
+    const visibleRange = this._data.visibleRange;
+
+    // Transform all bars to bitmap coordinates once (performance optimization)
+    const bars = this._data.bars.map(bar => {
+      const { upper, middle, lower } = bar.originalData;
       return {
-        x: timeScale.timeToCoordinate(d.time) ?? -100,
-        upper: this._source.getUpperSeries().priceToCoordinate(d.upper) ?? -100,
-        middle: this._source.getMiddleSeries().priceToCoordinate(d.middle) ?? -100,
-        lower: this._source.getLowerSeries().priceToCoordinate(d.lower) ?? -100
-      }
-    })
-  }
+        x: bar.x * renderingScope.horizontalPixelRatio,
+        upperY: (priceToCoordinate(upper) ?? 0) * renderingScope.verticalPixelRatio,
+        middleY: (priceToCoordinate(middle) ?? 0) * renderingScope.verticalPixelRatio,
+        lowerY: (priceToCoordinate(lower) ?? 0) * renderingScope.verticalPixelRatio,
+      };
+    });
 
-  renderer() {
-    return new BandPrimitivePaneRenderer(this._data)
-  }
+    const ctx = renderingScope.context;
+    ctx.save();
 
-  // Z-index support: Return the Z-index for proper layering
-  zIndex(): number {
-    const sourceZIndex = this._source.getOptions().zIndex
-    // Validate Z-index is a positive number
-    if (typeof sourceZIndex === 'number' && sourceZIndex >= 0) {
-      return sourceZIndex
+    // Draw in z-order (background to foreground)
+    // Using shared rendering functions with visibleRange for optimal performance
+    if (options.upperFillVisible) {
+      drawFillArea(
+        ctx,
+        bars,
+        'upperY',
+        'middleY',
+        options.upperFillColor,
+        visibleRange.from,
+        visibleRange.to
+      );
     }
-    // Return default Z-index for band series
-    return 100
+
+    if (options.lowerFillVisible) {
+      drawFillArea(
+        ctx,
+        bars,
+        'middleY',
+        'lowerY',
+        options.lowerFillColor,
+        visibleRange.from,
+        visibleRange.to
+      );
+    }
+
+    if (options.upperLineVisible) {
+      drawMultiLine(
+        ctx,
+        bars,
+        'upperY',
+        options.upperLineColor,
+        options.upperLineWidth * renderingScope.horizontalPixelRatio,
+        options.upperLineStyle,
+        visibleRange.from,
+        visibleRange.to
+      );
+    }
+
+    if (options.middleLineVisible) {
+      drawMultiLine(
+        ctx,
+        bars,
+        'middleY',
+        options.middleLineColor,
+        options.middleLineWidth * renderingScope.horizontalPixelRatio,
+        options.middleLineStyle,
+        visibleRange.from,
+        visibleRange.to
+      );
+    }
+
+    if (options.lowerLineVisible) {
+      drawMultiLine(
+        ctx,
+        bars,
+        'lowerY',
+        options.lowerLineColor,
+        options.lowerLineWidth * renderingScope.horizontalPixelRatio,
+        options.lowerLineStyle,
+        visibleRange.from,
+        visibleRange.to
+      );
+    }
+
+    ctx.restore();
   }
 }
 
-// Band series class
-export class BandSeries implements ISeriesPrimitive<Time> {
-  private chart: IChartApi
-  private upperSeries: ISeriesApi<'Line'>
-  private middleSeries: ISeriesApi<'Line'>
-  private lowerSeries: ISeriesApi<'Line'>
-  private options: BandSeriesOptions
-  private data: BandData[] = []
-  private _paneViews: BandPrimitivePaneView[]
+// ============================================================================
+// Factory Function
+// ============================================================================
 
-  constructor(chart: IChartApi, options: Partial<BandSeriesOptions> = {}) {
-    this.chart = chart
-    this.options = {...defaultOptions, ...options}
-    this._paneViews = [new BandPrimitivePaneView(this)]
-
-    // Create the three line series
-    this.upperSeries = chart.addSeries(LineSeries, {
-      color: this.options.upperLine?.color || '#4CAF50',
-      lineStyle: this.options.upperLine?.lineStyle || 0,
-      lineWidth: (this.options.upperLine?.lineWidth || 2) as any,
-      visible: this.options.upperLine?.lineVisible !== false,
-      priceScaleId: this.options.priceScaleId,
-      lastValueVisible: this.options.lastValueVisible,
-      priceLineVisible: this.options.priceLineVisible,
-      priceLineSource: this.options.priceLineSource as any,
-      priceLineWidth: this.options.priceLineWidth as any,
-      priceLineColor: this.options.priceLineColor,
-      priceLineStyle: this.options.priceLineStyle as any,
-      baseLineVisible: this.options.baseLineVisible,
-      baseLineWidth: this.options.baseLineWidth as any,
-      baseLineColor: this.options.baseLineColor,
-      baseLineStyle: this.options.baseLineStyle as any,
-      priceFormat: this.options.priceFormat,
-      crosshairMarkerVisible: this.options.upperLine?.crosshairMarkerVisible !== false,
-      crosshairMarkerRadius: this.options.upperLine?.crosshairMarkerRadius || 4,
-      crosshairMarkerBorderColor: this.options.upperLine?.crosshairMarkerBorderColor || '',
-      crosshairMarkerBackgroundColor: this.options.upperLine?.crosshairMarkerBackgroundColor || '',
-      crosshairMarkerBorderWidth: this.options.upperLine?.crosshairMarkerBorderWidth || 2,
-      lastPriceAnimation: this.options.upperLine?.lastPriceAnimation || 0,
-      lineType: this.options.upperLine?.lineType || 0
-    })
-
-    this.middleSeries = chart.addSeries(LineSeries, {
-      color: this.options.middleLine?.color || '#2196F3',
-      lineStyle: this.options.middleLine?.lineStyle || 0,
-      lineWidth: (this.options.middleLine?.lineWidth || 2) as any,
-      visible: this.options.middleLine?.lineVisible !== false,
-      priceScaleId: this.options.priceScaleId,
-      lastValueVisible: this.options.lastValueVisible,
-      priceLineVisible: this.options.priceLineVisible,
-      priceLineSource: this.options.priceLineSource as any,
-      priceLineWidth: this.options.priceLineWidth as any,
-      priceLineColor: this.options.priceLineColor,
-      priceLineStyle: this.options.priceLineStyle as any,
-      baseLineVisible: this.options.baseLineVisible,
-      baseLineWidth: this.options.baseLineWidth as any,
-      baseLineColor: this.options.baseLineColor,
-      baseLineStyle: this.options.baseLineStyle as any,
-      priceFormat: this.options.priceFormat,
-      crosshairMarkerVisible: this.options.middleLine?.crosshairMarkerVisible !== false,
-      crosshairMarkerRadius: this.options.middleLine?.crosshairMarkerRadius || 4,
-      crosshairMarkerBorderColor: this.options.middleLine?.crosshairMarkerBorderColor || '',
-      crosshairMarkerBackgroundColor: this.options.middleLine?.crosshairMarkerBackgroundColor || '',
-      crosshairMarkerBorderWidth: this.options.middleLine?.crosshairMarkerBorderWidth || 2,
-      lastPriceAnimation: this.options.middleLine?.lastPriceAnimation || 0,
-      lineType: this.options.middleLine?.lineType || 0
-    })
-
-    this.lowerSeries = chart.addSeries(LineSeries, {
-      color: this.options.lowerLine?.color || '#F44336',
-      lineStyle: this.options.lowerLine?.lineStyle || 0,
-      lineWidth: (this.options.lowerLine?.lineWidth || 2) as any,
-      visible: this.options.lowerLine?.lineVisible !== false,
-      priceScaleId: this.options.priceScaleId,
-      lastValueVisible: this.options.lastValueVisible,
-      priceLineVisible: this.options.priceLineVisible,
-      priceLineSource: this.options.priceLineSource as any,
-      priceLineWidth: this.options.priceLineWidth as any,
-      priceLineColor: this.options.priceLineColor,
-      priceLineStyle: this.options.priceLineStyle as any,
-      baseLineVisible: this.options.baseLineVisible,
-      baseLineWidth: this.options.baseLineWidth as any,
-      baseLineColor: this.options.baseLineColor,
-      baseLineStyle: this.options.baseLineStyle as any,
-      priceFormat: this.options.priceFormat,
-      crosshairMarkerVisible: this.options.lowerLine?.crosshairMarkerVisible !== false,
-      crosshairMarkerRadius: this.options.lowerLine?.crosshairMarkerRadius || 4,
-      crosshairMarkerBorderColor: this.options.lowerLine?.crosshairMarkerBorderColor || '',
-      crosshairMarkerBackgroundColor: this.options.lowerLine?.crosshairMarkerBackgroundColor || '',
-      crosshairMarkerBorderWidth: this.options.lowerLine?.crosshairMarkerBorderWidth || 2,
-      lastPriceAnimation: this.options.lowerLine?.lastPriceAnimation || 0,
-      lineType: this.options.lowerLine?.lineType || 0
-    })
-
-    // Attach the primitive to the middle series for rendering
-    this.middleSeries.attachPrimitive(this)
-
-    // Z-index is handled through the primitive system
-    // The primitive's zIndex() method will return the configured Z-index
-    if (this.options.zIndex !== undefined) {
-    }
-  }
-
-  // Getter for options
-  getOptions(): BandSeriesOptions {
-    return this.options
-  }
-
-  // Getter for data
-  getData(): BandData[] {
-    return this.data
-  }
-
-  // Getter for chart
-  getChart(): IChartApi {
-    return this.chart
-  }
-
-  // Getter for series
-  getUpperSeries(): ISeriesApi<'Line'> {
-    return this.upperSeries
-  }
-
-  getMiddleSeries(): ISeriesApi<'Line'> {
-    return this.middleSeries
-  }
-
-  getLowerSeries(): ISeriesApi<'Line'> {
-    return this.lowerSeries
-  }
-
-  // ISeriesPrimitive implementation
-  attached(param: SeriesAttachedParameter<Time>): void {
-    // Primitive is attached to the series
-  }
-
-  detached(): void {
-    // Primitive is detached from the series
-  }
-
-  updateAllViews(): void {
-    this._paneViews.forEach(pv => pv.update())
-  }
-
-  paneViews(): IPrimitivePaneView[] {
-    return this._paneViews
-  }
-
-  setData(data: BandData[]): void {
-    this.data = data
-
-    // Extract individual series data
-    const upperData: LineData[] = data.map(item => ({
-      time: item.time,
-      value: item.upper
-    }))
-
-    const middleData: LineData[] = data.map(item => ({
-      time: item.time,
-      value: item.middle
-    }))
-
-    const lowerData: LineData[] = data.map(item => ({
-      time: item.time,
-      value: item.lower
-    }))
-
-    // Set data for each series
-    this.upperSeries.setData(upperData)
-    this.middleSeries.setData(middleData)
-    this.lowerSeries.setData(lowerData)
-
-    // Update the primitive view
-    this.updateAllViews()
-  }
-
-  update(data: BandData): void {
-    // Update individual series
-    this.upperSeries.update({time: data.time, value: data.upper})
-    this.middleSeries.update({time: data.time, value: data.middle})
-    this.lowerSeries.update({time: data.time, value: data.lower})
-
-    // Update the primitive view
-    this.updateAllViews()
-  }
-
-  setVisible(visible: boolean): void {
-    this.upperSeries.applyOptions({visible})
-    this.middleSeries.applyOptions({visible})
-    this.lowerSeries.applyOptions({visible})
-  }
-
-  setOptions(options: Partial<BandSeriesOptions>): void {
-    this.options = {...this.options, ...options}
-
-    // Z-index updates are handled through the primitive system
-    if (options.zIndex !== undefined) {
-    }
-
-    // Update line series options
-    if (options.upperLine !== undefined) {
-      this.upperSeries.applyOptions({
-        color: options.upperLine.color,
-        lineStyle: options.upperLine.lineStyle,
-        lineWidth: options.upperLine.lineWidth as any,
-        visible: options.upperLine.lineVisible,
-        lineType: options.upperLine.lineType,
-        crosshairMarkerVisible: options.upperLine.crosshairMarkerVisible,
-        crosshairMarkerRadius: options.upperLine.crosshairMarkerRadius,
-        crosshairMarkerBorderColor: options.upperLine.crosshairMarkerBorderColor,
-        crosshairMarkerBackgroundColor: options.upperLine.crosshairMarkerBackgroundColor,
-        crosshairMarkerBorderWidth: options.upperLine.crosshairMarkerBorderWidth,
-        lastPriceAnimation: options.upperLine.lastPriceAnimation
-      })
-    }
-
-    if (options.middleLine !== undefined) {
-      this.middleSeries.applyOptions({
-        color: options.middleLine.color,
-        lineStyle: options.middleLine.lineStyle,
-        lineWidth: options.middleLine.lineWidth as any,
-        visible: options.middleLine.lineVisible,
-        lineType: options.middleLine.lineType,
-        crosshairMarkerVisible: options.middleLine.crosshairMarkerVisible,
-        crosshairMarkerRadius: options.middleLine.crosshairMarkerRadius,
-        crosshairMarkerBorderColor: options.middleLine.crosshairMarkerBorderColor,
-        crosshairMarkerBackgroundColor: options.middleLine.crosshairMarkerBackgroundColor,
-        crosshairMarkerBorderWidth: options.middleLine.crosshairMarkerBorderWidth,
-        lastPriceAnimation: options.middleLine.lastPriceAnimation
-      })
-    }
-
-    if (options.lowerLine !== undefined) {
-      this.lowerSeries.applyOptions({
-        color: options.lowerLine.color,
-        lineStyle: options.lowerLine.lineStyle,
-        lineWidth: options.lowerLine.lineWidth as any,
-        visible: options.lowerLine.lineVisible,
-        lineType: options.lowerLine.lineType,
-        crosshairMarkerVisible: options.lowerLine.crosshairMarkerVisible,
-        crosshairMarkerRadius: options.lowerLine.crosshairMarkerRadius,
-        crosshairMarkerBorderColor: options.lowerLine.crosshairMarkerBorderColor,
-        crosshairMarkerBackgroundColor: options.lowerLine.crosshairMarkerBackgroundColor,
-        crosshairMarkerBorderWidth: options.lowerLine.crosshairMarkerBorderWidth,
-        lastPriceAnimation: options.lowerLine.lastPriceAnimation
-      })
-    }
-
-    // Update the primitive view
-    this.updateAllViews()
-  }
-
-  remove(): void {
-    this.chart.removeSeries(this.upperSeries)
-    this.chart.removeSeries(this.middleSeries)
-    this.chart.removeSeries(this.lowerSeries)
-  }
-
-  to_frontend_config(): any {
-    return {
-      type: 'band',
-      data: this.data,
-      options: this.options
-    }
-  }
-}
-
-// Plugin factory function
+/**
+ * Factory function to create Band series with optional primitive
+ *
+ * Two rendering modes:
+ * 1. **Direct ICustomSeries rendering (default, usePrimitive: false)**
+ *    - Series renders lines and fills directly
+ *    - Normal z-order with other series
+ *    - Best for most use cases
+ *
+ * 2. **Primitive rendering mode (usePrimitive: true)**
+ *    - Series provides autoscaling only (no rendering)
+ *    - Primitive handles rendering with custom z-order
+ *    - Can render in background (zIndex: -100) or foreground
+ *    - Best for background indicators
+ *
+ * @param chart - Chart instance
+ * @param options - Band series options
+ * @param options.upperLineColor - Upper line color (default: '#4CAF50')
+ * @param options.middleLineColor - Middle line color (default: '#2196F3')
+ * @param options.lowerLineColor - Lower line color (default: '#F44336')
+ * @param options.upperFillColor - Upper fill color (default: 'rgba(76, 175, 80, 0.1)')
+ * @param options.lowerFillColor - Lower fill color (default: 'rgba(244, 67, 54, 0.1)')
+ * @param options.usePrimitive - Enable primitive rendering mode
+ * @param options.zIndex - Z-order for primitive mode (default: -100)
+ * @param options.data - Initial data
+ * @returns ICustomSeries instance
+ *
+ * @example Standard usage
+ * ```typescript
+ * const series = createBandSeries(chart, {
+ *   upperLineColor: '#4CAF50',
+ *   middleLineColor: '#2196F3',
+ *   lowerLineColor: '#F44336',
+ * });
+ * series.setData(data);
+ * ```
+ *
+ * @example Background rendering with primitive
+ * ```typescript
+ * const series = createBandSeries(chart, {
+ *   usePrimitive: true,
+ *   zIndex: -100,
+ *   data: bandData,
+ * });
+ * ```
+ */
 export function createBandSeries(
   chart: IChartApi,
-  options: Partial<BandSeriesOptions> = {}
-): BandSeries {
-  return new BandSeries(chart, options)
+  options: {
+    // Visual options
+    upperLineColor?: string;
+    upperLineWidth?: LineWidth;
+    upperLineStyle?: LineStyle;
+    upperLineVisible?: boolean;
+    middleLineColor?: string;
+    middleLineWidth?: LineWidth;
+    middleLineStyle?: LineStyle;
+    middleLineVisible?: boolean;
+    lowerLineColor?: string;
+    lowerLineWidth?: LineWidth;
+    lowerLineStyle?: LineStyle;
+    lowerLineVisible?: boolean;
+    upperFillColor?: string;
+    upperFillVisible?: boolean;
+    lowerFillColor?: string;
+    lowerFillVisible?: boolean;
+    priceScaleId?: string;
+
+    // Series options
+    lastValueVisible?: boolean;
+    title?: string;
+    visible?: boolean;
+    priceLineVisible?: boolean;
+
+    // Rendering control
+    usePrimitive?: boolean;
+
+    // Primitive-specific options
+    zIndex?: number;
+    data?: BandData[];
+  } = {}
+): any {
+  // Create ICustomSeries (always created for autoscaling)
+  const series = chart.addCustomSeries(new BandSeries(), {
+    _seriesType: 'Band', // Internal property for series type identification
+    upperLineColor: options.upperLineColor ?? '#4CAF50',
+    upperLineWidth: options.upperLineWidth ?? 2,
+    upperLineStyle: options.upperLineStyle ?? LineStyle.Solid,
+    upperLineVisible: options.upperLineVisible !== false,
+    middleLineColor: options.middleLineColor ?? '#2196F3',
+    middleLineWidth: options.middleLineWidth ?? 2,
+    middleLineStyle: options.middleLineStyle ?? LineStyle.Solid,
+    middleLineVisible: options.middleLineVisible !== false,
+    lowerLineColor: options.lowerLineColor ?? '#F44336',
+    lowerLineWidth: options.lowerLineWidth ?? 2,
+    lowerLineStyle: options.lowerLineStyle ?? LineStyle.Solid,
+    lowerLineVisible: options.lowerLineVisible !== false,
+    upperFillColor: options.upperFillColor ?? 'rgba(76, 175, 80, 0.1)',
+    upperFillVisible: options.upperFillVisible !== false,
+    lowerFillColor: options.lowerFillColor ?? 'rgba(244, 67, 54, 0.1)',
+    lowerFillVisible: options.lowerFillVisible !== false,
+    priceScaleId: options.priceScaleId ?? 'right',
+    lastValueVisible: options.lastValueVisible ?? false,
+    priceLineVisible: options.priceLineVisible ?? false,
+    visible: options.visible ?? true,
+    title: options.title,
+    _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
+  } as any);
+
+  // Set data on series (for autoscaling)
+  if (options.data && options.data.length > 0) {
+    series.setData(options.data);
+  }
+
+  // Attach primitive if requested
+  if (options.usePrimitive) {
+    // Dynamic import to avoid circular dependencies
+    void import('../../primitives/BandPrimitive').then(({ BandPrimitive }) => {
+      const primitive = new BandPrimitive(chart, {
+        upperLineColor: options.upperLineColor ?? '#4CAF50',
+        upperLineWidth: options.upperLineWidth ?? 2,
+        upperLineStyle: Math.min(options.upperLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
+        upperLineVisible: options.upperLineVisible !== false,
+        middleLineColor: options.middleLineColor ?? '#2196F3',
+        middleLineWidth: options.middleLineWidth ?? 2,
+        middleLineStyle: Math.min(options.middleLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
+        middleLineVisible: options.middleLineVisible !== false,
+        lowerLineColor: options.lowerLineColor ?? '#F44336',
+        lowerLineWidth: options.lowerLineWidth ?? 2,
+        lowerLineStyle: Math.min(options.lowerLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
+        lowerLineVisible: options.lowerLineVisible !== false,
+        upperFillColor: options.upperFillColor ?? 'rgba(76, 175, 80, 0.1)',
+        upperFillVisible: options.upperFillVisible !== false,
+        lowerFillColor: options.lowerFillColor ?? 'rgba(244, 67, 54, 0.1)',
+        lowerFillVisible: options.lowerFillVisible !== false,
+        visible: true,
+        priceScaleId: options.priceScaleId ?? 'right',
+        zIndex: options.zIndex ?? 0,
+      });
+
+      series.attachPrimitive(primitive);
+    });
+  }
+
+  return series;
 }

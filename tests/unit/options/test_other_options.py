@@ -20,10 +20,12 @@ from streamlit_lightweight_charts_pro.charts.options.time_scale_options import T
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    LineStyle,
-    TradeVisualization,
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
+    TypeValidationError,
+    ValueValidationError,
 )
+from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle, TradeVisualization
 
 
 class TestTimeScaleOptions:
@@ -206,7 +208,10 @@ class TestTimeScaleOptions:
         """Test edge cases for TimeScaleOptions."""
         # Test with zero values
         options = TimeScaleOptions(
-            right_offset=0, left_offset=0, bar_spacing=0, min_bar_spacing=0.0
+            right_offset=0,
+            left_offset=0,
+            bar_spacing=0,
+            min_bar_spacing=0.0,
         )
         result = options.asdict()
 
@@ -217,7 +222,10 @@ class TestTimeScaleOptions:
 
         # Test with large values
         options = TimeScaleOptions(
-            right_offset=1000, left_offset=1000, bar_spacing=100, min_bar_spacing=1.0
+            right_offset=1000,
+            left_offset=1000,
+            bar_spacing=100,
+            min_bar_spacing=1.0,
         )
         result = options.asdict()
 
@@ -304,11 +312,11 @@ class TestPriceFormatOptions:
         """Test validation of type field."""
         options = PriceFormatOptions()
         # Test type validation first
-        with pytest.raises(TypeError, match="type must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_type(123)
 
         # Test custom validator with invalid string
-        with pytest.raises(ValueError, match="Invalid type: 'invalid'"):
+        with pytest.raises(ValueValidationError):
             options.set_type("invalid")
 
     def test_validation_precision(self):
@@ -316,8 +324,7 @@ class TestPriceFormatOptions:
 
         options = PriceFormatOptions()
 
-        with pytest.raises(TypeError, match="precision must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_precision("invalid")
 
     def test_validation_min_move(self):
@@ -325,8 +332,7 @@ class TestPriceFormatOptions:
 
         options = PriceFormatOptions()
 
-        with pytest.raises(TypeError, match="min_move must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_min_move("invalid")
 
     def test_to_dict(self):
@@ -351,7 +357,7 @@ class TestPriceLineOptions:
         assert options.line_width == 1
         assert options.line_style == LineStyle.SOLID
         assert options.line_visible is True
-        assert options.axis_label_visible is True
+        assert options.axis_label_visible is False
         assert options.title == ""
 
     def test_custom_construction(self):
@@ -377,19 +383,18 @@ class TestPriceLineOptions:
 
         options = PriceLineOptions()
 
-        with pytest.raises(TypeError, match="price must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_price("invalid")
 
     def test_validation_color(self):
         """Test validation of color field."""
         options = PriceLineOptions()
         # Test type validation first
-        with pytest.raises(TypeError, match="color must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_color(123)
 
         # Test custom validator with invalid string
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             options.set_color("invalid_color")
 
     def test_validation_line_width(self):
@@ -397,8 +402,7 @@ class TestPriceLineOptions:
 
         options = PriceLineOptions()
 
-        with pytest.raises(TypeError, match="line_width must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_line_width("invalid")
 
     def test_validation_line_style(self):
@@ -489,11 +493,11 @@ class TestLineOptions:
         """Test validation of color field."""
         options = LineOptions()
         # Test type validation first
-        with pytest.raises(TypeError, match="color must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_color(123)
 
         # Test custom validator with invalid string
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             options.set_color("invalid_color")
 
     def test_validation_line_width(self):
@@ -501,8 +505,7 @@ class TestLineOptions:
 
         options = LineOptions()
 
-        with pytest.raises(TypeError, match="line_width must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_line_width("invalid")
 
     def test_validation_line_style(self):
@@ -559,8 +562,7 @@ class TestTradeVisualizationOptions:
 
         options = TradeVisualizationOptions()
 
-        with pytest.raises(TypeError, match="style must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_style("invalid")
 
     def test_to_dict(self):
@@ -614,7 +616,10 @@ class TestTradeVisualizationOptions:
     def test_line_options(self):
         """Test line-related options."""
         options = TradeVisualizationOptions(
-            line_width=5, line_style="solid", line_color_profit="#00FF00", line_color_loss="#FF0000"
+            line_width=5,
+            line_style="solid",
+            line_color_profit="#00FF00",
+            line_color_loss="#FF0000",
         )
         result = options.asdict()
 
@@ -626,7 +631,9 @@ class TestTradeVisualizationOptions:
     def test_arrow_options(self):
         """Test arrow-related options."""
         options = TradeVisualizationOptions(
-            arrow_size=15, arrow_color_profit="#00FF00", arrow_color_loss="#FF0000"
+            arrow_size=15,
+            arrow_color_profit="#00FF00",
+            arrow_color_loss="#FF0000",
         )
         result = options.asdict()
 
@@ -766,13 +773,19 @@ class TestTradeVisualizationOptions:
     def test_equality_comparison(self):
         """Test equality comparison for TradeVisualizationOptions."""
         options1 = TradeVisualizationOptions(
-            style=TradeVisualization.MARKERS, marker_size=20, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.MARKERS,
+            marker_size=20,
+            entry_marker_color_long="#0000FF",
         )
         options2 = TradeVisualizationOptions(
-            style=TradeVisualization.MARKERS, marker_size=20, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.MARKERS,
+            marker_size=20,
+            entry_marker_color_long="#0000FF",
         )
         options3 = TradeVisualizationOptions(
-            style=TradeVisualization.RECTANGLES, marker_size=20, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.RECTANGLES,
+            marker_size=20,
+            entry_marker_color_long="#0000FF",
         )
 
         assert options1 == options2
@@ -781,7 +794,9 @@ class TestTradeVisualizationOptions:
     def test_repr_representation(self):
         """Test string representation of TradeVisualizationOptions."""
         options = TradeVisualizationOptions(
-            style=TradeVisualization.MARKERS, marker_size=25, entry_marker_color_long="#0000FF"
+            style=TradeVisualization.MARKERS,
+            marker_size=25,
+            entry_marker_color_long="#0000FF",
         )
         repr_str = repr(options)
 
@@ -796,7 +811,10 @@ class TestOtherOptionsIntegration:
     def test_time_scale_with_localization(self):
         """Test TimeScaleOptions with LocalizationOptions integration."""
         time_scale = TimeScaleOptions(
-            time_visible=True, seconds_visible=False, right_offset=20, bar_spacing=5
+            time_visible=True,
+            seconds_visible=False,
+            right_offset=20,
+            bar_spacing=5,
         )
         localization = LocalizationOptions(locale="de-DE", date_format="dd.MM.yyyy")
 

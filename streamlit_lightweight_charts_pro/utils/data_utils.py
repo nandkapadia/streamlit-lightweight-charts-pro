@@ -1,34 +1,49 @@
-"""
-Data utilities for Streamlit Lightweight Charts Pro.
+"""Data utilities for Streamlit Lightweight Charts Pro.
 
-This module provides utility functions for data processing and manipulation
-used throughout the library. It includes functions for time normalization,
-data validation, format conversion, and other common data operations.
+This module provides comprehensive utility functions for data processing and manipulation
+used throughout the library. It includes functions for time normalization, data validation,
+format conversion, and other common data operations essential for financial chart rendering.
 
 The module provides utilities for:
     - Time conversion and normalization (UNIX timestamps)
     - Color validation and format checking
     - String format conversion (snake_case to camelCase)
     - Data validation for chart configuration options
-    - Precision and minimum move validation
+    - Precision and minimum move validation for price formatting
+    - Type checking and conversion utilities
 
-These utilities ensure data consistency and proper formatting across all
-components of the charting library.
+These utilities ensure data consistency, proper formatting, and type safety across all
+components of the charting library, providing a robust foundation for financial data
+visualization.
+
+Key Features:
+    - Robust time handling with multiple input format support
+    - Comprehensive color validation for hex and rgba formats
+    - Efficient string conversion utilities for frontend compatibility
+    - Type-safe validation with descriptive error messages
+    - NumPy type handling for scientific computing integration
+    - Pandas integration for DataFrame and Series processing
 
 Example Usage:
     ```python
     from streamlit_lightweight_charts_pro.utils.data_utils import (
-        normalize_time, is_valid_color, snake_to_camel
+        normalize_time,
+        is_valid_color,
+        snake_to_camel,
+        validate_precision,
     )
 
     # Time normalization
-    timestamp = normalize_time("2024-01-01T00:00:00")
+    timestamp = normalize_time("2024-01-01T00:00:00")  # Returns UNIX timestamp
 
     # Color validation
-    is_valid = is_valid_color("#FF0000")
+    is_valid = is_valid_color("#FF0000")  # Returns True
 
-    # Format conversion
-    camel_case = snake_to_camel("price_scale_id")
+    # Format conversion for frontend
+    camel_case = snake_to_camel("price_scale_id")  # Returns "priceScaleId"
+
+    # Precision validation
+    validate_precision(2)  # Validates precision value
     ```
 
 Version: 0.1.0
@@ -36,38 +51,50 @@ Author: Streamlit Lightweight Charts Contributors
 License: MIT
 """
 
+# Standard Imports
 import re
 from datetime import datetime
 from typing import Any
 
+# Third Party Imports
 import pandas as pd
+
+# Local Imports
+from streamlit_lightweight_charts_pro.exceptions import (
+    TimeValidationError,
+    UnsupportedTimeTypeError,
+    ValueValidationError,
+)
 
 
 def normalize_time(time_value: Any) -> int:
-    """
-    Convert time input to int UNIX seconds.
+    """Convert time input to int UNIX seconds for consistent chart data handling.
 
     This function handles various time input formats and converts them to
     UNIX timestamps (seconds since epoch). It supports multiple input types
-    including integers, floats, strings, datetime objects, and pandas Timestamps.
+    including integers, floats, strings, datetime objects, and pandas Timestamps,
+    providing a unified interface for time data processing across the library.
 
     The function is designed to be robust and handle edge cases such as
-    numpy types and various string formats that pandas can parse.
+    numpy types and various string formats that pandas can parse, ensuring
+    compatibility with different data sources and formats commonly used
+    in financial applications.
 
     Args:
-        time_value: Time value to convert. Supported types:
-            - int/float: Already in UNIX seconds
-            - str: Date/time string (parsed by pandas)
-            - datetime: Python datetime object
-            - pd.Timestamp: Pandas timestamp object
-            - numpy types: Automatically converted to Python types
+        time_value (Any): Time value to convert. Supported types:
+            - int/float: Already in UNIX seconds (returned as-is)
+            - str: Date/time string (parsed by pandas.to_datetime())
+            - datetime: Python datetime object (converted to timestamp)
+            - pd.Timestamp: Pandas timestamp object (converted to timestamp)
+            - numpy types: Automatically converted to Python types first
 
     Returns:
-        int: UNIX timestamp in seconds since epoch.
+        int: UNIX timestamp in seconds since epoch, suitable for chart rendering.
 
     Raises:
         ValueError: If the input string cannot be parsed as a valid date/time.
-        TypeError: If the input type is not supported.
+        TypeError: If the input type is not supported or cannot be converted.
+        TimeValidationError: If the converted time value is invalid.
 
     Example:
         ```python
@@ -75,18 +102,20 @@ def normalize_time(time_value: Any) -> int:
         import pandas as pd
 
         # Various input formats
-        normalize_time(1640995200)  # 1640995200
-        normalize_time("2024-01-01T00:00:00")  # 1704067200
-        normalize_time(datetime(2024, 1, 1))  # 1704067200
-        normalize_time(pd.Timestamp("2024-01-01"))  # 1704067200
+        normalize_time(1640995200)  # Returns: 1640995200
+        normalize_time("2024-01-01T00:00:00")  # Returns: 1704067200
+        normalize_time(datetime(2024, 1, 1))  # Returns: 1704067200
+        normalize_time(pd.Timestamp("2024-01-01"))  # Returns: 1704067200
         ```
 
     Note:
         String inputs are parsed using pandas.to_datetime(), which supports
         a wide variety of date/time formats including ISO format, common
-        date formats, and relative dates.
+        date formats, and relative dates. This ensures maximum compatibility
+        with different data sources.
     """
-    # Handle numpy types by converting to Python native types
+    # Handle numpy types by converting to Python native types first
+    # This prevents issues with numpy-specific type checking and conversion
     if hasattr(time_value, "item"):
         time_value = time_value.item()
     elif hasattr(time_value, "dtype"):
@@ -107,24 +136,20 @@ def normalize_time(time_value: Any) -> int:
             dt = pd.to_datetime(time_value)
             return int(dt.timestamp())
         except (ValueError, TypeError) as exc:
-            raise ValueError(f"Invalid time string: {time_value!r}") from exc
+            raise TimeValidationError(time_value) from exc
     if isinstance(time_value, datetime):
         return int(time_value.timestamp())
     if isinstance(time_value, pd.Timestamp):
         return int(time_value.timestamp())
     # Handle datetime.date objects
     if hasattr(time_value, "date") and hasattr(time_value, "timetuple"):
-        # This handles datetime.date objects
-        from datetime import datetime as dt_class
-
-        dt = dt_class.combine(time_value, dt_class.min.time())
+        dt = datetime.combine(time_value, datetime.min.time())
         return int(dt.timestamp())
-    raise TypeError(f"Unsupported time type: {type(time_value)}")
+    raise UnsupportedTimeTypeError(type(time_value))
 
 
 def to_utc_timestamp(time_value: Any) -> int:
-    """
-    Convert time input to int UNIX seconds.
+    """Convert time input to int UNIX seconds.
 
     This is an alias for normalize_time for backward compatibility.
     It provides the same functionality as normalize_time().
@@ -142,8 +167,7 @@ def to_utc_timestamp(time_value: Any) -> int:
 
 
 def from_utc_timestamp(timestamp: int) -> str:
-    """
-    Convert UNIX timestamp to ISO format string.
+    """Convert UNIX timestamp to ISO format string.
 
     This function converts a UNIX timestamp (seconds since epoch) to an
     ISO format datetime string. The output is in UTC timezone.
@@ -168,8 +192,7 @@ def from_utc_timestamp(timestamp: int) -> str:
 
 
 def snake_to_camel(snake_str: str) -> str:
-    """
-    Convert snake_case string to camelCase.
+    """Convert snake_case string to camelCase.
 
     This function converts strings from snake_case format (e.g., "price_scale_id")
     to camelCase format (e.g., "priceScaleId"). It's commonly used for
@@ -198,19 +221,18 @@ def snake_to_camel(snake_str: str) -> str:
 
 
 def is_valid_color(color: str) -> bool:
-    """
-    Check if a color string is valid.
+    """Check if a color string is valid.
 
     This function validates color strings in various formats commonly used
     in web development and chart styling. It supports hex colors, RGB/RGBA
-    colors, and empty strings (representing "no color").
+    colors, and named colors.
 
     Args:
         color: Color string to validate. Supported formats:
             - Hex colors: "#FF0000", "#F00", "#FF0000AA"
             - RGB colors: "rgb(255, 0, 0)"
             - RGBA colors: "rgba(255, 0, 0, 1)"
-            - Empty string: "" (represents no color)
+            - Named colors: "red", "blue", "white", etc.
 
     Returns:
         bool: True if color is valid, False otherwise.
@@ -221,35 +243,74 @@ def is_valid_color(color: str) -> bool:
         is_valid_color("#F00")  # True
         is_valid_color("rgb(255, 0, 0)")  # True
         is_valid_color("rgba(255, 0, 0, 1)")  # True
-        is_valid_color("")  # True (no color)
+        is_valid_color("red")  # True
+        is_valid_color("")  # False (empty string is invalid)
         is_valid_color("invalid")  # False
         is_valid_color("#GG0000")  # False
         ```
 
     Note:
         The function is permissive with whitespace in RGB/RGBA formats
-        and accepts both 3-digit and 6-digit hex codes.
+        and accepts both 3-digit and 6-digit hex codes. Named colors
+        are case-insensitive.
     """
+    # Validate input: must be a string
     if not isinstance(color, str):
         return False
 
-    # Accept empty strings as valid (meaning "no color")
+    # Reject empty strings as invalid colors
     if color == "":
+        return False
+
+    # Check hex color pattern: matches #RRGGBB (6 hex digits) or #RGB (3 hex digits)
+    # Also supports #RRGGBBAA format for alpha channel
+    hex_pattern = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$"
+    if re.match(hex_pattern, color):
         return True
 
-    # Check for hex colors (#RRGGBB, #RGB, #RRGGBBAA)
-    if color.startswith("#"):
-        hex_pattern = r"^#[0-9A-Fa-f]{3}(?:[0-9A-Fa-f]{1,5})?$"
-        return bool(re.match(hex_pattern, color))
-
-    # Check for rgb/rgba colors
+    # Check RGB/RGBA pattern: matches rgb(r,g,b) or rgba(r,g,b,a) format
+    # Allows optional spaces around commas and parentheses
+    # Alpha channel is optional and can be decimal or integer values
     rgba_pattern = r"^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+\s*)?\)$"
-    return bool(re.match(rgba_pattern, color))
+    if re.match(rgba_pattern, color):
+        return True
+
+    # Check named colors: basic set of commonly used color names
+    # These are case-insensitive and include standard web colors
+    named_colors = {
+        "black",
+        "white",
+        "red",
+        "green",
+        "blue",
+        "yellow",
+        "cyan",
+        "magenta",
+        "gray",
+        "grey",
+        "orange",
+        "purple",
+        "brown",
+        "pink",
+        "lime",
+        "navy",
+        "teal",
+        "silver",
+        "gold",
+        "maroon",
+        "olive",
+        "aqua",
+        "fuchsia",
+        "transparent",
+    }
+
+    # Return True if the color (converted to lowercase) is in the named colors set
+    # This makes the named color check case-insensitive for user convenience
+    return color.lower() in named_colors
 
 
 def validate_price_format_type(type_value: str) -> str:
-    """
-    Validate price format type.
+    """Validate price format type.
 
     This function validates price format type strings used in chart configuration.
     It ensures that only valid format types are used for price display options.
@@ -278,15 +339,15 @@ def validate_price_format_type(type_value: str) -> str:
     """
     valid_types = {"price", "volume", "percent", "custom"}
     if type_value not in valid_types:
-        raise ValueError(
-            f"Invalid type: {type_value!r}. Must be one of 'price', 'volume', 'percent', 'custom'."
+        raise ValueValidationError(
+            "type",
+            f"must be one of {valid_types}, got {type_value!r}",
         )
     return type_value
 
 
 def validate_precision(precision: int) -> int:
-    """
-    Validate precision value.
+    """Validate precision value.
 
     This function validates precision values used for number formatting
     in charts. Precision determines the number of decimal places shown
@@ -316,13 +377,15 @@ def validate_precision(precision: int) -> int:
         display issues in the frontend.
     """
     if not isinstance(precision, int) or precision < 0:
-        raise ValueError(f"precision must be a non-negative integer, got {precision}")
+        raise ValueValidationError(
+            "precision",
+            f"must be a non-negative integer, got {precision}",
+        )
     return precision
 
 
 def validate_min_move(min_move: float) -> float:
-    """
-    Validate minimum move value.
+    """Validate minimum move value.
 
     This function validates minimum move values used in chart configuration.
     Minimum move determines the smallest price change that will trigger
@@ -352,5 +415,5 @@ def validate_min_move(min_move: float) -> float:
         both integers and floats, converting them to float for consistency.
     """
     if not isinstance(min_move, (int, float)) or min_move <= 0:
-        raise ValueError(f"min_move must be a positive number, got {min_move}")
+        raise ValueValidationError.positive_value("min_move", min_move)
     return float(min_move)

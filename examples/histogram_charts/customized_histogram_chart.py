@@ -1,22 +1,20 @@
-"""
-Customized Histogram Chart Example.
+"""Customized Histogram Chart Example.
 
 This example demonstrates advanced styling and customization options for HistogramSeries
 including colors, base values, and interactive features.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
-from examples.data_samples import get_volume_data
+from examples.utilities.data_samples import get_volume_data
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
+from streamlit_lightweight_charts_pro.charts.series import HistogramSeries
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
@@ -66,8 +64,8 @@ def main():
 
     with col3:
         st.write("**Properties:**")
-        st.write(f"Visible: {histogram_series._visible}")
-        st.write(f"Price scale ID: {histogram_series.price_scale_id}")
+        st.write(f"Visible: {histogram_series.visible}")  # pylint: disable=no-member
+        st.write(f"Price scale ID: {histogram_series.price_scale_id}")  # pylint: disable=no-member
 
     # Show data statistics
     st.subheader("Data Statistics")
@@ -108,7 +106,7 @@ def main():
         st.write(f"Average volume: {sum(values) / len(values):.2f}")
         st.write(
             "Volume variance:"
-            f" {sum((v - sum(values)/len(values))**2 for v in values) / len(values):.2f}"
+            f" {sum((v - sum(values) / len(values)) ** 2 for v in values) / len(values):.2f}",
         )
         st.write(f"Volume range: {max(values) - min(values):.2f}")
 
@@ -130,28 +128,28 @@ def main():
         st.metric(
             "Volume Increases",
             positive_changes,
-            delta=f"{positive_changes/len(volume_changes)*100:.1f}%",
+            delta=f"{positive_changes / len(volume_changes) * 100:.1f}%",
         )
     with col2:
         st.metric(
             "Volume Decreases",
             negative_changes,
-            delta=f"-{negative_changes/len(volume_changes)*100:.1f}%",
+            delta=f"-{negative_changes / len(volume_changes) * 100:.1f}%",
         )
     with col3:
-        st.metric("No Change", no_changes, delta=f"{no_changes/len(volume_changes)*100:.1f}%")
+        st.metric("No Change", no_changes, delta=f"{no_changes / len(volume_changes) * 100:.1f}%")
 
     # Show series properties
     st.subheader("Series Properties")
     st.json(
         {
             "chart_type": histogram_series.chart_type,
-            "visible": histogram_series._visible,
-            "price_scale_id": histogram_series.price_scale_id,
-            "pane_id": histogram_series.pane_id,
+            "visible": histogram_series.visible,  # pylint: disable=no-member
+            "price_scale_id": histogram_series.price_scale_id,  # pylint: disable=no-member
+            "pane_id": histogram_series.pane_id,  # pylint: disable=no-member
             "color": histogram_series.color,
             "base": histogram_series.base,
-        }
+        },
     )
 
 

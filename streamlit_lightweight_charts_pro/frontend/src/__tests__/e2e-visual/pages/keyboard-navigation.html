@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Keyboard Navigation</title>
+<script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+<style>* { margin: 0; padding: 0; } body { padding: 20px; } #controls { margin-bottom: 15px; } button { padding: 8px 16px; margin-right: 8px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; } button:focus { outline: 2px solid #FF9800; outline-offset: 2px; } #chart-container { width: 800px; height: 400px; }</style>
+</head><body>
+<div id="controls">
+    <button data-action="zoom-in" tabindex="1">Zoom In</button>
+    <button data-action="zoom-out" tabindex="2">Zoom Out</button>
+    <button data-action="reset" tabindex="3">Reset</button>
+</div>
+<div id="chart-container"></div>
+<script>
+function runTestCase(container) {
+    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), { width: 800, height: 400, layout: { background: { color: '#FFFFFF' } } });
+    const series = chart.addSeries(LightweightCharts.LineSeries);
+            series.applyOptions({ color: '#2196F3' });
+    const data = []; for (let i = 0; i < 50; i++) data.push({ time: '2024-01-'+String(i+1).padStart(2,'0'), value: 100+i*0.6+Math.sin(i/5)*12 });
+    series.setData(data); chart.timeScale().fitContent();
+    document.querySelector('[data-action="zoom-in"]').onclick = () => {
+        const r = chart.timeScale().getVisibleRange();
+        if (r) { const m = (r.from+r.to)/2, s = (r.to-r.from)/4; chart.timeScale().setVisibleRange({ from: m-s, to: m+s }); }
+    };
+    document.querySelector('[data-action="zoom-out"]').onclick = () => {
+        const r = chart.timeScale().getVisibleRange();
+        if (r) { const m = (r.from+r.to)/2, s = (r.to-r.from); chart.timeScale().setVisibleRange({ from: m-s, to: m+s }); }
+    };
+    document.querySelector('[data-action="reset"]').onclick = () => chart.timeScale().fitContent();
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('chart-container')));
+</script></body></html>

@@ -6,35 +6,36 @@ This module tests the color validation and background classes in the colors modu
 
 import pytest
 
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 from streamlit_lightweight_charts_pro.type_definitions.colors import (
     Background,
     BackgroundGradient,
     BackgroundSolid,
-    _is_valid_color,
 )
 from streamlit_lightweight_charts_pro.type_definitions.enums import BackgroundStyle
+from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 
 
 class TestIsValidColor:
-    """Test the _is_valid_color function."""
+    """Test the is_valid_color function."""
 
     def test_valid_hex_colors_3_digits(self):
         """Test valid 3-digit hex colors."""
         valid_colors = ["#fff", "#000", "#abc", "#DEF", "#123", "#456", "#789"]
         for color in valid_colors:
-            assert _is_valid_color(color) is True
+            assert is_valid_color(color) is True
 
     def test_valid_hex_colors_6_digits(self):
         """Test valid 6-digit hex colors."""
         valid_colors = ["#ffffff", "#000000", "#abcdef", "#ABCDEF", "#123456", "#789abc"]
         for color in valid_colors:
-            assert _is_valid_color(color) is True
+            assert is_valid_color(color) is True
 
     def test_invalid_hex_colors(self):
         """Test invalid hex colors."""
         invalid_colors = ["#ff", "#ffff", "#fffffff", "#ggg", "#123g", "#", "#abcde"]
         for color in invalid_colors:
-            assert _is_valid_color(color) is False
+            assert is_valid_color(color) is False
 
     def test_valid_rgb_colors(self):
         """Test valid RGB colors."""
@@ -46,7 +47,7 @@ class TestIsValidColor:
             "rgb(0,0,0)",
         ]
         for color in valid_colors:
-            assert _is_valid_color(color) is True
+            assert is_valid_color(color) is True
 
     def test_valid_rgba_colors(self):
         """Test valid RGBA colors."""
@@ -59,7 +60,7 @@ class TestIsValidColor:
             "rgba(255, 255, 255, 0.123)",
         ]
         for color in valid_colors:
-            assert _is_valid_color(color) is True
+            assert is_valid_color(color) is True
 
     def test_invalid_rgba_colors(self):
         """Test invalid RGBA colors."""
@@ -69,7 +70,7 @@ class TestIsValidColor:
             "rgba(abc, def, ghi, 1)",  # Non-numeric values
         ]
         for color in invalid_colors:
-            assert _is_valid_color(color) is False
+            assert is_valid_color(color) is False
 
     def test_rgba_alpha_values(self):
         """Test RGBA alpha values (regex accepts any decimal)."""
@@ -79,17 +80,17 @@ class TestIsValidColor:
             "rgba(255, 255, 255, 0.5)",  # Normal alpha - accepted
         ]
         for color in valid_colors:
-            assert _is_valid_color(color) is True
+            assert is_valid_color(color) is True
 
     def test_rgba_negative_alpha_values(self):
-        """Test RGBA negative alpha values (permissive validator accepts them)."""
-        valid_colors = [
-            "rgba(255, 255, 255, -0.1)",  # Negative alpha - accepted by permissive validator
-            "rgba(255, 255, 255, -0.5)",  # Negative alpha - accepted by permissive validator
-            "rgba(255, 255, 255, -1.0)",  # Negative alpha - accepted by permissive validator
+        """Test RGBA negative alpha values (validator rejects them)."""
+        invalid_colors = [
+            "rgba(255, 255, 255, -0.1)",  # Negative alpha - invalid
+            "rgba(255, 255, 255, -0.5)",  # Negative alpha - invalid
+            "rgba(255, 255, 255, -1.0)",  # Negative alpha - invalid
         ]
-        for color in valid_colors:
-            assert _is_valid_color(color) is True
+        for color in invalid_colors:
+            assert is_valid_color(color) is False
 
     def test_rgba_without_alpha_is_valid(self):
         """Test that rgba without alpha is valid (treated as rgb)."""
@@ -98,7 +99,7 @@ class TestIsValidColor:
             "rgba(0, 0, 0)",  # Missing alpha - valid as rgb
         ]
         for color in valid_colors:
-            assert _is_valid_color(color) is True
+            assert is_valid_color(color) is True
 
     def test_valid_named_colors(self):
         """Test valid named colors."""
@@ -134,27 +135,27 @@ class TestIsValidColor:
             "Blue",
         ]
         for color in valid_colors:
-            assert _is_valid_color(color) is True
+            assert is_valid_color(color) is True
 
     def test_invalid_named_colors(self):
         """Test invalid named colors."""
         invalid_colors = ["invalid", "notacolor", "random", "test", "color123"]
         for color in invalid_colors:
-            assert _is_valid_color(color) is False
+            assert is_valid_color(color) is False
 
     def test_invalid_input_types(self):
         """Test invalid input types."""
         invalid_inputs = [None, 123, 0.5, True, False, [], {}, ()]
         for invalid_input in invalid_inputs:
-            assert _is_valid_color(invalid_input) is False
+            assert is_valid_color(invalid_input) is False
 
     def test_empty_string(self):
         """Test empty string input."""
-        assert _is_valid_color("") is False
+        assert is_valid_color("") is False
 
     def test_whitespace_string(self):
         """Test whitespace string input."""
-        assert _is_valid_color("   ") is False
+        assert is_valid_color("   ") is False
 
 
 class TestBackgroundSolid:
@@ -193,18 +194,18 @@ class TestBackgroundSolid:
         assert background.color == "red"
 
     def test_invalid_color_raises_value_error(self):
-        """Test that invalid color raises ValueError."""
-        with pytest.raises(ValueError, match="Invalid color format"):
+        """Test that invalid color raises ColorValidationError."""
+        with pytest.raises(ColorValidationError, match="Invalid color format"):
             BackgroundSolid(color="invalid_color")
 
     def test_empty_color_raises_value_error(self):
-        """Test that empty color raises ValueError."""
-        with pytest.raises(ValueError, match="Invalid color format"):
+        """Test that empty color raises ColorValidationError."""
+        with pytest.raises(ColorValidationError, match="Invalid color format"):
             BackgroundSolid(color="")
 
     def test_none_color_raises_value_error(self):
-        """Test that None color raises ValueError."""
-        with pytest.raises(ValueError, match="Invalid color format"):
+        """Test that None color raises ColorValidationError."""
+        with pytest.raises(ColorValidationError, match="Invalid color format"):
             BackgroundSolid(color=None)
 
     def test_to_dict_method(self):
@@ -262,7 +263,8 @@ class TestBackgroundGradient:
     def test_valid_rgba_colors(self):
         """Test with valid RGBA colors."""
         background = BackgroundGradient(
-            top_color="rgba(255, 0, 0, 0.5)", bottom_color="rgba(0, 255, 0, 0.8)"
+            top_color="rgba(255, 0, 0, 0.5)",
+            bottom_color="rgba(0, 255, 0, 0.8)",
         )
         assert background.top_color == "rgba(255, 0, 0, 0.5)"
         assert background.bottom_color == "rgba(0, 255, 0, 0.8)"
@@ -274,34 +276,34 @@ class TestBackgroundGradient:
         assert background.bottom_color == "blue"
 
     def test_invalid_top_color_raises_value_error(self):
-        """Test that invalid top color raises ValueError."""
-        with pytest.raises(ValueError, match="Invalid top_color format"):
+        """Test that invalid top color raises ColorValidationError."""
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_color"):
             BackgroundGradient(top_color="invalid_color")
 
     def test_invalid_bottom_color_raises_value_error(self):
-        """Test that invalid bottom color raises ValueError."""
-        with pytest.raises(ValueError, match="Invalid bottom_color format"):
+        """Test that invalid bottom color raises ColorValidationError."""
+        with pytest.raises(ColorValidationError, match="Invalid color format for bottom_color"):
             BackgroundGradient(bottom_color="invalid_color")
 
     def test_both_invalid_colors_raises_value_error(self):
-        """Test that both invalid colors raises ValueError."""
-        with pytest.raises(ValueError, match="Invalid top_color format"):
+        """Test that both invalid colors raises ColorValidationError."""
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_color"):
             BackgroundGradient(top_color="invalid_top", bottom_color="invalid_bottom")
 
     def test_empty_colors_raise_value_error(self):
-        """Test that empty colors raise ValueError."""
-        with pytest.raises(ValueError, match="Invalid top_color format"):
+        """Test that empty colors raise ColorValidationError."""
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_color"):
             BackgroundGradient(top_color="")
 
-        with pytest.raises(ValueError, match="Invalid bottom_color format"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for bottom_color"):
             BackgroundGradient(bottom_color="")
 
     def test_none_colors_raise_value_error(self):
-        """Test that None colors raise ValueError."""
-        with pytest.raises(ValueError, match="Invalid top_color format"):
+        """Test that None colors raise ColorValidationError."""
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_color"):
             BackgroundGradient(top_color=None)
 
-        with pytest.raises(ValueError, match="Invalid bottom_color format"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for bottom_color"):
             BackgroundGradient(bottom_color=None)
 
     def test_to_dict_method(self):
@@ -358,13 +360,13 @@ class TestColorValidationEdgeCases:
         """Test hex colors with spaces (should be invalid)."""
         invalid_colors = [" #fff", "#fff ", " #fff "]
         for color in invalid_colors:
-            assert _is_valid_color(color) is False
+            assert is_valid_color(color) is False
 
     def test_rgb_colors_with_extra_spaces(self):
         """Test RGB colors with extra spaces."""
         valid_colors = ["rgb(  255  ,  255  ,  255  )", "rgb(0,0,0)", "rgb( 0 , 0 , 0 )"]
         for color in valid_colors:
-            assert _is_valid_color(color) is True
+            assert is_valid_color(color) is True
 
     def test_rgba_colors_with_extra_spaces(self):
         """Test RGBA colors with extra spaces."""
@@ -374,25 +376,25 @@ class TestColorValidationEdgeCases:
             "rgba( 0 , 0 , 0 , 0.5 )",
         ]
         for color in valid_colors:
-            assert _is_valid_color(color) is True
+            assert is_valid_color(color) is True
 
     def test_mixed_case_hex_colors(self):
         """Test mixed case hex colors."""
         valid_colors = ["#FfF", "#aBc", "#DEF", "#123AbC"]
         for color in valid_colors:
-            assert _is_valid_color(color) is True
+            assert is_valid_color(color) is True
 
     def test_named_colors_with_spaces(self):
         """Test named colors with spaces (should be invalid)."""
         invalid_colors = [" red", "red ", " red "]
         for color in invalid_colors:
-            assert _is_valid_color(color) is False
+            assert is_valid_color(color) is False
 
     def test_special_characters_in_colors(self):
         """Test colors with special characters."""
         invalid_colors = ["#fff!", "rgb(255,255,255)!", "red!", "color@123"]
         for color in invalid_colors:
-            assert _is_valid_color(color) is False
+            assert is_valid_color(color) is False
 
 
 class TestBackgroundIntegration:
@@ -440,33 +442,33 @@ class TestBackgroundErrorMessages:
 
     def test_background_solid_error_message_format(self):
         """Test error message format for BackgroundSolid."""
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ColorValidationError) as exc_info:
             BackgroundSolid(color="invalid")
-        assert "Invalid color format: 'invalid'" in str(exc_info.value)
-        assert "Must be hex, rgba, or named color" in str(exc_info.value)
+        assert "Invalid color format for color: 'invalid'" in str(exc_info.value)
+        assert "Must be hex or rgba" in str(exc_info.value)
 
     def test_background_gradient_top_color_error_message(self):
         """Test error message format for BackgroundGradient top color."""
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ColorValidationError) as exc_info:
             BackgroundGradient(top_color="invalid")
-        assert "Invalid top_color format: 'invalid'" in str(exc_info.value)
-        assert "Must be hex, rgba, or named color" in str(exc_info.value)
+        assert "Invalid color format for top_color: 'invalid'" in str(exc_info.value)
+        assert "Must be hex or rgba" in str(exc_info.value)
 
     def test_background_gradient_bottom_color_error_message(self):
         """Test error message format for BackgroundGradient bottom color."""
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ColorValidationError) as exc_info:
             BackgroundGradient(bottom_color="invalid")
-        assert "Invalid bottom_color format: 'invalid'" in str(exc_info.value)
-        assert "Must be hex, rgba, or named color" in str(exc_info.value)
+        assert "Invalid color format for bottom_color: 'invalid'" in str(exc_info.value)
+        assert "Must be hex or rgba" in str(exc_info.value)
 
     def test_background_solid_empty_string_error_message(self):
         """Test error message for empty string in BackgroundSolid."""
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ColorValidationError) as exc_info:
             BackgroundSolid(color="")
-        assert "Invalid color format: ''" in str(exc_info.value)
+        assert "Invalid color format for color: ''" in str(exc_info.value)
 
     def test_background_gradient_empty_string_error_message(self):
         """Test error message for empty string in BackgroundGradient."""
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ColorValidationError) as exc_info:
             BackgroundGradient(top_color="")
-        assert "Invalid top_color format: ''" in str(exc_info.value)
+        assert "Invalid color format for top_color: ''" in str(exc_info.value)

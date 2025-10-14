@@ -147,7 +147,10 @@ class TestTimeScaleOptions:
         """Test edge cases and boundary conditions."""
         # Zero values
         options = TimeScaleOptions(
-            right_offset=0, left_offset=0, bar_spacing=0, min_bar_spacing=0.0
+            right_offset=0,
+            left_offset=0,
+            bar_spacing=0,
+            min_bar_spacing=0.0,
         )
         assert options.right_offset == 0
         assert options.left_offset == 0

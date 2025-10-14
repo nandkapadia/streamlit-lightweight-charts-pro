@@ -10,6 +10,7 @@ import pytest
 
 from streamlit_lightweight_charts_pro.charts.series.signal_series import SignalSeries
 from streamlit_lightweight_charts_pro.data.signal_data import SignalData
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 
 
@@ -36,7 +37,10 @@ class TestSignalSeries:
         """Test SignalSeries construction with custom colors."""
         data = [SignalData("2024-01-01", 0)]
         series = SignalSeries(
-            data=data, neutral_color="#ffffff", signal_color="#00ff00", alert_color="#0000ff"
+            data=data,
+            neutral_color="#ffffff",
+            signal_color="#00ff00",
+            alert_color="#0000ff",
         )
 
         assert series._neutral_color == "#ffffff"
@@ -60,7 +64,7 @@ class TestSignalSeries:
 
     def test_data_class(self):
         """Test that SignalSeries has correct data class."""
-        assert SignalSeries.DATA_CLASS == SignalData
+        assert SignalData == SignalSeries.DATA_CLASS
 
     def test_repr(self):
         """Test string representation of SignalSeries."""
@@ -126,15 +130,15 @@ class TestSignalSeries:
         series = SignalSeries(data=data)
 
         # Test invalid neutral color
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             series.neutral_color = "#invalid"
 
         # Test invalid signal color
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             series.signal_color = "not_a_color"
 
         # Test invalid alert color
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             series.alert_color = "rgba(255, 255)"
 
     def test_valid_color_validation(self):
@@ -160,29 +164,37 @@ class TestSignalSeries:
 
     def test_from_dataframe(self):
         """Test creating SignalSeries from DataFrame."""
-        df = pd.DataFrame(
-            {"time": ["2024-01-01", "2024-01-02"], "value": [0, 1], "color": ["#ffffff", "#ff0000"]}
+        test_dataframe = pd.DataFrame(
+            {
+                "time": ["2024-01-01", "2024-01-02"],
+                "value": [0, 1],
+                "color": ["#ffffff", "#ff0000"],
+            },
         )
 
         series = SignalSeries.from_dataframe(
-            df=df, column_mapping={"time": "time", "value": "value", "color": "color"}
+            df=test_dataframe,
+            column_mapping={"time": "time", "value": "value", "color": "color"},
         )
 
         assert len(series.data) == 2
-        # Time is automatically normalized to timestamp
-        assert series.data[0].time == 1704067200  # 2024-01-01 timestamp
+        # Time is stored as-is, normalized in asdict()
+        result0 = series.data[0].asdict()
+        result1 = series.data[1].asdict()
+        assert result0["time"] == 1704067200  # 2024-01-01 timestamp
         assert series.data[0].value == 0
         assert series.data[0].color == "#ffffff"
-        assert series.data[1].time == 1704153600  # 2024-01-02 timestamp
+        assert result1["time"] == 1704153600  # 2024-01-02 timestamp
         assert series.data[1].value == 1
         assert series.data[1].color == "#ff0000"
 
     def test_from_dataframe_without_color(self):
         """Test creating SignalSeries from DataFrame without color column."""
-        df = pd.DataFrame({"time": ["2024-01-01", "2024-01-02"], "value": [0, 1]})
+        test_dataframe = pd.DataFrame({"time": ["2024-01-01", "2024-01-02"], "value": [0, 1]})
 
         series = SignalSeries.from_dataframe(
-            df=df, column_mapping={"time": "time", "value": "value"}
+            df=test_dataframe,
+            column_mapping={"time": "time", "value": "value"},
         )
 
         assert len(series.data) == 2
@@ -191,16 +203,22 @@ class TestSignalSeries:
 
     def test_from_dataframe_with_datetime_index(self):
         """Test creating SignalSeries from DataFrame with datetime index."""
-        df = pd.DataFrame({"value": [0, 1]}, index=pd.to_datetime(["2024-01-01", "2024-01-02"]))
+        test_dataframe = pd.DataFrame(
+            {"value": [0, 1]},
+            index=pd.to_datetime(["2024-01-01", "2024-01-02"]),
+        )
 
         series = SignalSeries.from_dataframe(
-            df=df, column_mapping={"time": "index", "value": "value"}
+            df=test_dataframe,
+            column_mapping={"time": "index", "value": "value"},
         )
 
         assert len(series.data) == 2
-        # Time is automatically normalized to timestamp
-        assert series.data[0].time == 1704067200  # 2024-01-01 timestamp
-        assert series.data[1].time == 1704153600  # 2024-01-02 timestamp
+        # Time is stored as-is, normalized in asdict()
+        result0 = series.data[0].asdict()
+        result1 = series.data[1].asdict()
+        assert result0["time"] == 1704067200  # 2024-01-01 timestamp
+        assert result1["time"] == 1704153600  # 2024-01-02 timestamp
 
     def test_asdict(self):
         """Test converting SignalSeries to dictionary."""
@@ -209,7 +227,10 @@ class TestSignalSeries:
             SignalData("2024-01-02", 1, color="#ff0000"),
         ]
         series = SignalSeries(
-            data=data, neutral_color="#f0f0f0", signal_color="#ff0000", alert_color="#0000ff"
+            data=data,
+            neutral_color="#f0f0f0",
+            signal_color="#ff0000",
+            alert_color="#0000ff",
         )
 
         result = series.asdict()
@@ -324,8 +345,9 @@ class TestSignalSeries:
         long_time = "2024-01-01T00:00:00.000000000"
         data = [SignalData(long_time, 1)]
         series = SignalSeries(data=data)
-        # Time is automatically normalized to timestamp
-        assert series.data[0].time == 1704067200  # 2024-01-01 timestamp
+        # Time is stored as-is, normalized in asdict()
+        result = series.data[0].asdict()
+        assert result["time"] == 1704067200  # 2024-01-01 timestamp
 
         # Test with special characters in colors
         special_color = "rgba(255, 255, 255, 0.123456789)"

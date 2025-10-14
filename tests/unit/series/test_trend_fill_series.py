@@ -82,17 +82,17 @@ class TestTrendFillData:
 
     def test_pandas_integration(self):
         """Test integration with pandas DataFrames."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "time": ["2024-01-01", "2024-01-02"],
                 "trend_line": [110.0, 112.0],
                 "base_line": [105.0, 107.0],
                 "trend_direction": [1, 1],
-            }
+            },
         )
 
         series = TrendFillSeries(
-            data=df,
+            data=test_dataframe,
             column_mapping={
                 "time": "time",
                 "trend_line": "trend_line",
@@ -108,7 +108,9 @@ class TestTrendFillData:
     def test_fill_color_handling(self):
         """Test fill color handling."""
         series = TrendFillSeries(
-            data=[], uptrend_fill_color="#00FF00", downtrend_fill_color="#FF0000"
+            data=[],
+            uptrend_fill_color="#00FF00",
+            downtrend_fill_color="#FF0000",
         )
 
         assert series.uptrend_fill_color == "rgba(0, 255, 0, 0.3)"

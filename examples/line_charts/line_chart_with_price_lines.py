@@ -1,26 +1,24 @@
-"""
-Line Chart with Price Lines Example.
+"""Line Chart with Price Lines Example.
 
 This example demonstrates a line chart with price lines.
 Price lines are horizontal lines that can be used to highlight
 specific price levels or support/resistance levels.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
-from examples.data_samples import get_line_data
+from examples.utilities.data_samples import get_line_data
 from streamlit_lightweight_charts_pro import Chart
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
+from streamlit_lightweight_charts_pro.charts.options import LineOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
+from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 # Page configuration

@@ -1,18 +1,56 @@
-"""
-Enum definitions for streamlit-lightweight-charts.
+"""Enum definitions for streamlit-lightweight-charts.
 
-This module contains all the enumeration types used throughout the library
-for defining chart types, styling options, and configuration parameters.
-These enums ensure type safety and provide a consistent interface for
-chart configuration.
+This module contains comprehensive enumeration types used throughout the library
+for defining chart types, styling options, configuration parameters, and behavior
+modes. These enums ensure type safety, provide a consistent interface for chart
+configuration, and enable IntelliSense support for better developer experience.
+
+The module provides enums for:
+    - Chart types and visualization modes
+    - Color and styling options
+    - Line styles and types
+    - Crosshair and interaction modes
+    - Price scale and time scale configurations
+    - Marker positions and shapes
+    - Animation and tracking modes
+
+These enums are designed to be compatible with TradingView's Lightweight Charts
+library while providing a Python-native interface for configuration.
+
+Key Features:
+    - Type-safe enum values with proper string/int representations
+    - Comprehensive coverage of all chart configuration options
+    - Clear documentation for each enum value
+    - Compatibility with frontend JavaScript enum values
+    - IntelliSense support for IDE autocompletion
+
+Example Usage:
+    ```python
+    from streamlit_lightweight_charts_pro.type_definitions.enums import (
+        ChartType,
+        LineStyle,
+        MarkerPosition,
+        PriceScaleMode,
+    )
+
+    # Use enums for type-safe configuration
+    chart_type = ChartType.CANDLESTICK
+    line_style = LineStyle.SOLID
+    marker_pos = MarkerPosition.ABOVE_BAR
+    scale_mode = PriceScaleMode.NORMAL
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
+# Standard Imports
 from enum import Enum, IntEnum
 
 
 class ChartType(str, Enum):
-    """
-    Chart type enumeration.
+    """Chart type enumeration.
 
     Defines the available chart types that can be created and rendered.
     Each chart type corresponds to a specific visualization style and
@@ -28,7 +66,6 @@ class ChartType(str, Enum):
         CANDLESTICK: Candlestick chart - traditional Japanese candlesticks.
         RIBBON: Ribbon chart - upper and lower bands with fill areas.
         GRADIENT_RIBBON: Gradient ribbon chart - ribbon with gradient fills.
-        GRADIENT_BAND: Gradient band chart - band with gradient fills.
         TREND_FILL: Trend fill chart - fills between trend lines and candle body midpoints.
         SIGNAL: Signal chart - background coloring based on signal values.
     """
@@ -42,14 +79,12 @@ class ChartType(str, Enum):
     CANDLESTICK = "candlestick"
     RIBBON = "ribbon"
     GRADIENT_RIBBON = "gradient_ribbon"
-    GRADIENT_BAND = "gradient_band"
     TREND_FILL = "trend_fill"
     SIGNAL = "signal"
 
 
 class ColorType(str, Enum):
-    """
-    Color type enumeration.
+    """Color type enumeration.
 
     Defines how colors should be applied to chart elements.
     Controls whether colors are solid or use gradient effects.
@@ -64,8 +99,7 @@ class ColorType(str, Enum):
 
 
 class LineStyle(IntEnum):
-    """
-    Line style enumeration.
+    """Line style enumeration.
 
     Defines the visual style of lines in charts, including borders,
     grid lines, and series lines.
@@ -84,8 +118,7 @@ class LineStyle(IntEnum):
 
 
 class LineType(IntEnum):
-    """
-    Line type enumeration.
+    """Line type enumeration.
 
     Defines how lines should be drawn between data points.
     Controls the interpolation method used for line series.
@@ -101,8 +134,7 @@ class LineType(IntEnum):
 
 
 class CrosshairMode(IntEnum):
-    """
-    Crosshair mode enumeration.
+    """Crosshair mode enumeration.
 
     Defines how the crosshair behaves when hovering over the chart.
     Controls whether the crosshair snaps to data points or moves freely.
@@ -117,8 +149,7 @@ class CrosshairMode(IntEnum):
 
 
 class LastPriceAnimationMode(IntEnum):
-    """
-    Last price animation mode enumeration.
+    """Last price animation mode enumeration.
 
     Defines how the last price line should be animated when new data
     is added to the chart.
@@ -135,8 +166,7 @@ class LastPriceAnimationMode(IntEnum):
 
 
 class PriceScaleMode(IntEnum):
-    """
-    Price scale mode enumeration.
+    """Price scale mode enumeration.
 
     Defines how the price scale (y-axis) should be displayed and calculated.
     Controls the scale type and reference point for price values.
@@ -155,8 +185,7 @@ class PriceScaleMode(IntEnum):
 
 
 class HorzAlign(str, Enum):
-    """
-    Horizontal alignment enumeration.
+    """Horizontal alignment enumeration.
 
     Defines horizontal text alignment for labels, annotations, and
     other text elements on the chart.
@@ -173,8 +202,7 @@ class HorzAlign(str, Enum):
 
 
 class VertAlign(str, Enum):
-    """
-    Vertical alignment enumeration.
+    """Vertical alignment enumeration.
 
     Defines vertical text alignment for labels, annotations, and
     other text elements on the chart.
@@ -191,8 +219,7 @@ class VertAlign(str, Enum):
 
 
 class TrackingExitMode(str, Enum):
-    """
-    Tracking exit mode enumeration.
+    """Tracking exit mode enumeration.
 
     Defines when the tracking mode should exit.
 
@@ -208,8 +235,7 @@ class TrackingExitMode(str, Enum):
 
 
 class TrackingActivationMode(str, Enum):
-    """
-    Tracking activation mode enumeration.
+    """Tracking activation mode enumeration.
 
     Defines when the tracking mode should be activated.
 
@@ -223,8 +249,7 @@ class TrackingActivationMode(str, Enum):
 
 
 class MarkerPosition(str, Enum):
-    """
-    Marker position enumeration for chart markers.
+    """Marker position enumeration for chart markers.
 
     Defines where markers should be positioned relative to the data bars
     or points on the chart.
@@ -244,8 +269,7 @@ class MarkerPosition(str, Enum):
 
 
 class MarkerShape(str, Enum):
-    """
-    Marker shape enumeration for chart markers.
+    """Marker shape enumeration for chart markers.
 
     Defines the available shapes for chart markers that can be displayed
     on charts to highlight specific data points or events.
@@ -264,6 +288,20 @@ class MarkerShape(str, Enum):
 
 
 class AnnotationType(str, Enum):
+    """Annotation type enumeration.
+
+    Defines the available types of annotations that can be placed on charts
+    to mark important points, draw shapes, or add visual indicators.
+
+    Attributes:
+        TEXT: Text annotation - displays text at a specific location.
+        ARROW: Arrow annotation - points to a specific location with an arrow.
+        SHAPE: Shape annotation - draws geometric shapes (circles, squares, etc.).
+        LINE: Line annotation - draws horizontal or vertical lines.
+        RECTANGLE: Rectangle annotation - draws rectangular shapes.
+        CIRCLE: Circle annotation - draws circular shapes.
+    """
+
     TEXT = "text"
     ARROW = "arrow"
     SHAPE = "shape"
@@ -273,12 +311,40 @@ class AnnotationType(str, Enum):
 
 
 class AnnotationPosition(str, Enum):
+    """Annotation position enumeration.
+
+    Defines where annotations should be positioned relative to the data point
+    or price level on the chart.
+
+    Attributes:
+        ABOVE: Position annotation above the data point.
+        BELOW: Position annotation below the data point.
+        INLINE: Position annotation inline with the data point.
+    """
+
     ABOVE = "above"
     BELOW = "below"
     INLINE = "inline"
 
 
 class ColumnNames(str, Enum):
+    """Column name enumeration for DataFrame integration.
+
+    Defines the standard column names used when converting pandas DataFrames
+    to chart data. These names ensure consistent mapping between DataFrame
+    columns and chart data fields.
+
+    Attributes:
+        TIME: Time or datetime column.
+        OPEN: Open price column (for OHLC data).
+        HIGH: High price column (for OHLC data).
+        LOW: Low price column (for OHLC data).
+        CLOSE: Close price column (for OHLC data).
+        VOLUME: Volume column (for OHLCV data).
+        DATETIME: Datetime column (alternative to TIME).
+        VALUE: Value column (for single-value data like line charts).
+    """
+
     TIME = "time"
     OPEN = "open"
     HIGH = "high"
@@ -290,14 +356,35 @@ class ColumnNames(str, Enum):
 
 
 class TradeType(str, Enum):
-    """Trade type enumeration."""
+    """Trade type enumeration.
+
+    Defines the direction of a trade (long or short).
+    Used for trade visualization and profit/loss calculations.
+
+    Attributes:
+        LONG: Long trade - profit when price goes up.
+        SHORT: Short trade - profit when price goes down.
+    """
 
     LONG = "long"
     SHORT = "short"
 
 
 class TradeVisualization(str, Enum):
-    """Trade visualization style options."""
+    """Trade visualization style enumeration.
+
+    Defines how trades should be visualized on the chart.
+    Multiple visualization styles can be combined to create
+    comprehensive trade displays.
+
+    Attributes:
+        MARKERS: Display entry/exit markers only.
+        RECTANGLES: Display rectangle spanning from entry to exit.
+        BOTH: Display both markers and rectangles.
+        LINES: Display connecting lines between entry and exit.
+        ARROWS: Display directional arrows from entry to exit.
+        ZONES: Display colored zones with transparency around trades.
+    """
 
     MARKERS = "markers"  # Just entry/exit markers
     RECTANGLES = "rectangles"  # Rectangle from entry to exit
@@ -308,13 +395,22 @@ class TradeVisualization(str, Enum):
 
 
 class BackgroundStyle(str, Enum):
+    """Background style enumeration.
+
+    Defines how chart backgrounds should be styled.
+    Controls whether backgrounds use solid colors or gradients.
+
+    Attributes:
+        SOLID: Solid background color.
+        VERTICAL_GRADIENT: Vertical gradient background.
+    """
+
     SOLID = "solid"
     VERTICAL_GRADIENT = "gradient"
 
 
 class PriceLineSource(str, Enum):
-    """
-    Price line source enumeration.
+    """Price line source enumeration.
 
     Defines the source to use for the value of the price line.
     Controls which data point determines the price line position.
@@ -329,8 +425,7 @@ class PriceLineSource(str, Enum):
 
 
 class TooltipType(str, Enum):
-    """
-    Tooltip type enumeration.
+    """Tooltip type enumeration.
 
     Defines the types of tooltips supported by the system.
     Each type corresponds to a specific data format and display style.
@@ -353,8 +448,7 @@ class TooltipType(str, Enum):
 
 
 class TooltipPosition(str, Enum):
-    """
-    Tooltip position enumeration.
+    """Tooltip position enumeration.
 
     Defines how tooltips should be positioned relative to the cursor
     or chart elements.

@@ -1,5 +1,4 @@
-"""
-Trend fill data classes for streamlit-lightweight-charts.
+"""Trend fill data classes for streamlit-lightweight-charts.
 
 This module provides TrendFillData class for creating trend-based fill charts
 that display fills between trend lines and base lines, similar to
@@ -13,15 +12,19 @@ The class now uses a simplified approach with a single trendLine field:
 
 import math
 from dataclasses import dataclass
-from typing import Optional
+from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.data import Data
+from streamlit_lightweight_charts_pro.exceptions import (
+    TrendDirectionIntegerError,
+    TypeValidationError,
+    ValueValidationError,
+)
 
 
 @dataclass
 class TrendFillData(Data):
-    """
-    Trend fill data for lightweight charts.
+    """Trend fill data for lightweight charts.
 
     This data class represents a single data point for trend fill charts,
     with simplified trend line handling:
@@ -44,8 +47,8 @@ class TrendFillData(Data):
         downtrendFillColor: Optional custom downtrend fill color
     """
 
-    REQUIRED_COLUMNS = {"base_line", "trend_line", "trend_direction"}
-    OPTIONAL_COLUMNS = {
+    REQUIRED_COLUMNS: ClassVar[set] = {"base_line", "trend_line", "trend_direction"}
+    OPTIONAL_COLUMNS: ClassVar[set] = {
         "uptrend_fill_color",
         "downtrend_fill_color",
     }
@@ -71,22 +74,20 @@ class TrendFillData(Data):
 
         # Validate trend_direction
         if not isinstance(self.trend_direction, int):
-            raise ValueError(
-                f"trend_direction must be an integer, got {type(self.trend_direction)}"
+            raise TrendDirectionIntegerError(
+                "trend_direction",
+                "integer",
+                type(self.trend_direction).__name__,
             )
 
         if self.trend_direction not in [-1, 0, 1]:
-            raise ValueError(f"trend_direction must be -1, 0, or 1, got {self.trend_direction}")
+            raise ValueValidationError("trend_direction", "must be -1, 0, or 1")
 
         # Validate fill colors if provided
         if self.uptrend_fill_color is not None and not isinstance(self.uptrend_fill_color, str):
-            raise ValueError(
-                f"uptrend_fill_color must be a string, got {type(self.uptrend_fill_color)}"
-            )
+            raise TypeValidationError("uptrend_fill_color", "string")
         if self.downtrend_fill_color is not None and not isinstance(self.downtrend_fill_color, str):
-            raise ValueError(
-                f"downtrend_fill_color must be a string, got {type(self.downtrend_fill_color)}"
-            )
+            raise TypeValidationError("downtrend_fill_color", "string")
 
     @property
     def is_uptrend(self) -> bool:
@@ -105,8 +106,7 @@ class TrendFillData(Data):
 
     @property
     def has_valid_fill_data(self) -> bool:
-        """
-        Check if this data point has valid data for creating fills.
+        """Check if this data point has valid data for creating fills.
 
         Returns True if we have a valid trend line and base line,
         with the appropriate trend line based on direction.
@@ -135,8 +135,7 @@ class TrendFillData(Data):
 
     @property
     def active_trend_line(self) -> Optional[float]:
-        """
-        Get the active trend line value based on trend direction.
+        """Get the active trend line value based on trend direction.
 
         Returns the trend line value for the current trend direction:
         - Uptrend (+1): Returns trend_line (trend line above price)
@@ -148,22 +147,20 @@ class TrendFillData(Data):
 
     @property
     def active_fill_color(self) -> Optional[str]:
-        """
-        Get the active fill color based on trend direction.
+        """Get the active fill color based on trend direction.
 
         Returns the appropriate fill color for the current trend direction,
         prioritizing direction-specific colors.
         """
         if self.trend_direction == 1:  # Uptrend
             return self.uptrend_fill_color
-        elif self.trend_direction == -1:  # Downtrend
+        if self.trend_direction == -1:  # Downtrend
             return self.downtrend_fill_color
         return None
 
     @property
     def trend_line_type(self) -> Optional[str]:
-        """
-        Get the type of trend line being displayed.
+        """Get the type of trend line being displayed.
 
         Returns:
             'upper' for uptrend (trend line above price)
@@ -172,6 +169,6 @@ class TrendFillData(Data):
         """
         if self.trend_direction == 1:
             return "upper"
-        elif self.trend_direction == -1:
+        if self.trend_direction == -1:
             return "lower"
         return None

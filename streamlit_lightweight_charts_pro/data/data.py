@@ -1,5 +1,4 @@
-"""
-Data classes and utilities for Streamlit Lightweight Charts Pro.
+"""Data classes and utilities for Streamlit Lightweight Charts Pro.
 
 This module provides the base data class and utility functions for time format conversion
 used throughout the library for representing financial data points. The Data class serves
@@ -24,9 +23,11 @@ Example Usage:
     from streamlit_lightweight_charts_pro.data import Data
     from dataclasses import dataclass
 
+
     @dataclass
     class MyData(Data):
         value: float
+
 
     # Create data point with automatic time normalization
     data = MyData(time="2024-01-01T00:00:00", value=100.0)
@@ -40,15 +41,14 @@ Author: Streamlit Lightweight Charts Contributors
 License: MIT
 """
 
-import math
 from abc import ABC
-from dataclasses import dataclass, fields
-from enum import Enum
-from typing import Dict
+from dataclasses import dataclass
+from typing import Any, ClassVar, Dict
 
 from streamlit_lightweight_charts_pro.logging_config import get_logger
-from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames
-from streamlit_lightweight_charts_pro.utils.data_utils import normalize_time, snake_to_camel
+from streamlit_lightweight_charts_pro.type_definitions import ColumnNames
+from streamlit_lightweight_charts_pro.utils.data_utils import normalize_time
+from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
 
 logger = get_logger(__name__)
 
@@ -57,9 +57,8 @@ logger = get_logger(__name__)
 # Note: 'classproperty' intentionally uses snake_case for compatibility with Python conventions.
 
 
-class classproperty(property):
-    """
-    Descriptor to create class-level properties.
+class classproperty(property):  # noqa: N801
+    """Descriptor to create class-level properties.
 
     This class provides a way to define properties that work at the class level
     rather than the instance level. It's used for accessing class attributes
@@ -74,14 +73,14 @@ class classproperty(property):
             def required_columns(cls):
                 return {"time", "value"}
 
+
         # Usage
         columns = MyClass.required_columns
         ```
     """
 
     def __get__(self, obj, cls):
-        """
-        Get the class property value.
+        """Get the class property value.
 
         Args:
             obj: The instance (unused for class properties).
@@ -94,21 +93,20 @@ class classproperty(property):
 
 
 @dataclass
-class Data(ABC):
-    """
-    Abstract base class for chart data points.
+class Data(SerializableMixin, ABC):
+    """Abstract base class for chart data points.
 
     All chart data classes should inherit from Data. This class provides the foundation
     for all data structures in the library, handling time normalization, serialization,
     and column management for DataFrame operations.
 
-    The class automatically normalizes time values to UNIX timestamps and provides
-    standardized serialization to camelCase dictionaries for frontend communication.
-    It also manages required and optional columns for DataFrame conversion operations.
+    Time normalization happens during serialization (asdict()) rather than at construction,
+    allowing users to modify time values after creating data objects. This provides
+    flexibility while ensuring all serialized data uses consistent UTC timestamps.
 
     Attributes:
-        time (int): UNIX timestamp in seconds representing the data point time.
-            This value is automatically normalized during initialization.
+        time (Union[pd.Timestamp, datetime, str, int, float]): Time value in various
+            formats. Converted to UTC timestamp during serialization.
 
     Class Attributes:
         REQUIRED_COLUMNS (set): Set of required column names for DataFrame conversion.
@@ -124,33 +122,37 @@ class Data(ABC):
         from dataclasses import dataclass
         from streamlit_lightweight_charts_pro.data import Data
 
+
         @dataclass
         class MyData(Data):
             value: float
 
+
         # Create data point
         data = MyData(time="2024-01-01T00:00:00", value=100.0)
 
-        # Serialize for frontend
-        serialized = data.asdict()
+        # Can modify time after construction
+        data.time = "2024-01-02T00:00:00"
+
+        # Serialize for frontend (time normalized here)
+        serialized = data.asdict()  # {'time': <normalized_timestamp>, 'value': 100.0}
         ```
 
     Note:
         - All imports must be at the top of the file unless justified.
         - Use specific exceptions and lazy string formatting for logging.
-        - Time values are automatically normalized to seconds.
+        - Time values are normalized to UTC timestamps during serialization.
         - NaN values are converted to 0.0 for frontend compatibility.
     """
 
-    REQUIRED_COLUMNS = {"time"}  # Required columns for DataFrame conversion
-    OPTIONAL_COLUMNS = set()  # Optional columns for DataFrame conversion
+    REQUIRED_COLUMNS: ClassVar[set] = {"time"}  # Required columns for DataFrame conversion
+    OPTIONAL_COLUMNS: ClassVar[set] = set()  # Optional columns for DataFrame conversion
 
-    time: int
+    time: Any  # Accept any time format, normalize in asdict()
 
     @classproperty
-    def required_columns(cls):  # pylint: disable=no-self-argument
-        """
-        Return the union of all REQUIRED_COLUMNS from the class and its parents.
+    def required_columns(self):  # pylint: disable=no-self-argument
+        """Return the union of all REQUIRED_COLUMNS from the class and its parents.
 
         This method traverses the class hierarchy to collect all required columns
         defined in REQUIRED_COLUMNS class attributes. It ensures that all required
@@ -164,23 +166,24 @@ class Data(ABC):
             class ParentData(Data):
                 REQUIRED_COLUMNS = {"time", "value"}
 
+
             class ChildData(ParentData):
                 REQUIRED_COLUMNS = {"time", "volume"}
+
 
             # Returns {"time", "value", "volume"}
             columns = ChildData.required_columns
             ```
         """
         required = set()
-        for base in cls.__mro__:  # pylint: disable=no-member
+        for base in self.__mro__:  # pylint: disable=no-member
             if hasattr(base, "REQUIRED_COLUMNS"):
-                required |= getattr(base, "REQUIRED_COLUMNS")
+                required |= base.REQUIRED_COLUMNS
         return required
 
     @classproperty
-    def optional_columns(cls):  # pylint: disable=no-self-argument
-        """
-        Return the union of all OPTIONAL_COLUMNS from the class and its parents.
+    def optional_columns(self):  # pylint: disable=no-self-argument
+        """Return the union of all OPTIONAL_COLUMNS from the class and its parents.
 
         This method traverses the class hierarchy to collect all optional columns
         defined in OPTIONAL_COLUMNS class attributes. It ensures that all optional
@@ -194,51 +197,55 @@ class Data(ABC):
             class ParentData(Data):
                 OPTIONAL_COLUMNS = {"color"}
 
+
             class ChildData(ParentData):
                 OPTIONAL_COLUMNS = {"size"}
+
 
             # Returns {"color", "size"}
             columns = ChildData.optional_columns
             ```
         """
         optional = set()
-        for base in cls.__mro__:  # pylint: disable=no-member
+        for base in self.__mro__:  # pylint: disable=no-member
             if hasattr(base, "OPTIONAL_COLUMNS"):
-                optional |= getattr(base, "OPTIONAL_COLUMNS")
+                optional |= base.OPTIONAL_COLUMNS
         return optional
 
     def __post_init__(self):
-        """
-        Post-initialization processing to normalize time values.
+        """Post-initialization processing.
 
         This method is automatically called after the dataclass is initialized.
-        It normalizes the time value to ensure consistent format across all
-        data points in the library.
+        Time normalization is intentionally NOT done here to allow users to
+        modify time values after construction. Normalization happens during
+        serialization in asdict().
 
-        The normalization process converts various time formats (strings,
-        datetime objects, etc.) to UNIX timestamps in seconds.
+        Subclasses can override this method to add validation or processing.
         """
-        # Normalize time to ensure consistent format
-        self.time = normalize_time(self.time)
+        # Time normalization happens in asdict() to allow post-construction modification
+        # Subclasses may override this for additional processing
 
-    def asdict(self) -> Dict[str, object]:
-        """
-        Serialize the data class to a dict with camelCase keys for frontend.
+    def asdict(self) -> Dict[str, Any]:
+        """Serialize the data class to a dict with camelCase keys for frontend.
 
         Converts the data point to a dictionary format suitable for frontend
         communication. This method handles various data type conversions and
         ensures proper formatting for JavaScript consumption.
 
+        Time normalization happens here (not in __post_init__) to allow users
+        to modify time values after construction and have changes reflected
+        in serialization.
+
         The method performs the following transformations:
+        - Normalizes time values to UNIX timestamps (fresh conversion each call)
         - Converts field names from snake_case to camelCase
-        - Normalizes time values to UNIX timestamps
         - Converts NaN values to 0.0 for frontend compatibility
         - Converts NumPy scalar types to Python native types
         - Extracts enum values using their .value property
         - Skips None values and empty strings
 
         Returns:
-            Dict[str, object]: Serialized data with camelCase keys ready for
+            Dict[str, Any]: Serialized data with camelCase keys ready for
                 frontend consumption.
 
         Example:
@@ -248,39 +255,31 @@ class Data(ABC):
                 value: float
                 color: str = "red"
 
+
             data = MyData(time="2024-01-01T00:00:00", value=100.0, color="blue")
             result = data.asdict()
             # Returns: {'time': 1704067200, 'value': 100.0, 'color': 'blue'}
+
+            # Can modify time after construction
+            data.time = "2024-01-02T00:00:00"
+            result2 = data.asdict()
+            # Returns: {'time': 1704153600, 'value': 100.0, 'color': 'blue'}
             ```
 
         Note:
+            - Time is normalized fresh each call (no caching)
             - NaN values are converted to 0.0
             - NumPy scalar types are converted to Python native types
             - Enum values are extracted using their .value property
             - Time column uses standardized ColumnNames.TIME.value
         """
-        result = {}
-        for f in fields(self):
-            name = f.name
-            value = getattr(self, name)
-            # Skip None values and empty strings
-            if value is None or value == "":
-                continue
-            # Handle NaN for floats
-            if isinstance(value, float) and math.isnan(value):
-                value = 0.0
-            # Convert NumPy types to Python native types for JSON serialization
-            if hasattr(value, "item"):  # NumPy scalar types
-                value = value.item()
-            # Convert enums to their values
-            if isinstance(value, Enum):
-                value = value.value
-            # Use enum value for known columns
-            if name == "time":
-                key = ColumnNames.TIME.value
-            elif name == "value":
-                key = ColumnNames.VALUE.value
-            else:
-                key = snake_to_camel(name)
-            result[key] = value
+        # Normalize time during serialization (not cached in __post_init__)
+        normalized_time = normalize_time(self.time)
+
+        # Use the inherited serialization from SerializableMixin
+        result = dict(self._serialize_to_dict())
+
+        # Override the time field with normalized value
+        result[ColumnNames.TIME.value] = normalized_time
+
         return result

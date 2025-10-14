@@ -1,0 +1,1747 @@
+---
+description: Comprehensive guide for creating custom series using TradingView's ICustomSeries and ISeriesPrimitive APIs with development best practices
+---
+
+# Custom Series Development Guide
+
+## 🎯 Overview
+
+This guide provides comprehensive instructions for creating custom series using **TradingView's official APIs**, including implementation patterns, best practices, and development guidelines.
+
+**Official Documentation**:
+- ICustomSeries: https://tradingview.github.io/lightweight-charts/docs/api/interfaces/ICustomSeriesPaneView
+- ISeriesPrimitive: https://tradingview.github.io/lightweight-charts/docs/plugins/series-primitives
+
+## 🏛️ Architecture Patterns
+
+We support three architectural patterns for custom series:
+
+### Pattern 1: ICustomSeries Only (Recommended Default)
+**Use when**: Standard series rendering, no z-order control needed
+
+```typescript
+class MyCustomSeries implements ICustomSeriesPaneView<Time> {
+  renderer(): ICustomSeriesPaneRenderer {
+    return new MyRenderer(this._data, this._options);
+  }
+}
+```
+
+**Pros**:
+- Simpler implementation
+- Built-in autoscaling
+- Direct rendering control
+- Easier testing
+
+**Cons**:
+- Cannot control z-order (render layer)
+- Always renders on top of grid/series
+
+### Pattern 2: ISeriesPrimitive Only
+**Use when**: Need z-order control, background rendering
+
+```typescript
+class MyPrimitive implements ISeriesPrimitive<Time> {
+  attached(params: SeriesAttachedParameter<Time>): void { }
+  paneViews(): IPrimitivePaneView[] { }
+  priceAxisViews(): ISeriesPrimitiveAxisView[] { }
+}
+```
+
+**Pros**:
+- Full z-order control (can render behind series)
+- Can attach to any series
+- Independent price axis views
+
+**Cons**:
+- More complex implementation
+- No built-in autoscaling (must implement manually)
+- Requires dummy series attachment
+
+### Pattern 3: Hybrid (ICustomSeries + Optional ISeriesPrimitive) ⭐ NEW
+**Use when**: Want both autoscaling AND z-order control
+
+```typescript
+// ICustomSeries provides autoscaling
+class MyCustomSeries implements ICustomSeriesPaneView<Time> { }
+
+// ISeriesPrimitive handles rendering when attached
+class MyPrimitive implements ISeriesPrimitive<Time> { }
+
+// Factory function creates series with optional primitive
+function createMySeries(chart, options) {
+  const series = chart.addCustomSeries(new MyCustomSeries(), {
+    disableSeriesRendering: options.usePrimitive,
+    lastValueVisible: !options.usePrimitive,
+  });
+
+  if (options.usePrimitive) {
+    const primitive = new MyPrimitive(chart, options);
+    series.attachPrimitive(primitive);
+  }
+
+  return series;
+}
+```
+
+**Pros**:
+- Best of both worlds
+- Autoscaling from series
+- Z-order control from primitive
+- Single API for both modes
+- User chooses rendering mode
+
+**Cons**:
+- Most complex implementation
+- Must maintain both renderers
+- Need to sync data between series and primitive
+
+**Reference Implementation**: `trendFillSeriesPlugin.ts` + `TrendFillPrimitive.ts`
+
+## 📚 Core Interfaces
+
+### ICustomSeries Interface
+
+```typescript
+interface ICustomSeriesPaneView<Time> {
+  priceValueBuilder(plotRow: CustomSeriesPricePlotValues): number;
+  isWhitespace(data: CustomData | WhitespaceData): boolean;
+  renderer(): ICustomSeriesPaneRenderer;
+  update?(data: PaneRendererCustomData, options: CustomSeriesOptions): void;
+  defaultOptions(): CustomSeriesOptions;
+}
+
+interface ICustomSeriesPaneRenderer {
+  draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void;
+}
+```
+
+### ISeriesPrimitive Interface
+
+```typescript
+interface ISeriesPrimitive<Time> {
+  attached?(params: SeriesAttachedParameter<Time>): void;
+  detached?(): void;
+  paneViews?(): readonly IPrimitivePaneView[];
+  priceAxisViews?(): readonly ISeriesPrimitiveAxisView[];
+  updateAllViews?(): void;
+  autoscaleInfo?(startTimePoint: Logical, endTimePoint: Logical): AutoscaleInfo | null;
+}
+
+interface IPrimitivePaneView {
+  renderer(): IPrimitivePaneRenderer;
+  zOrder?(): number;
+}
+
+interface IPrimitivePaneRenderer {
+  draw(target: CanvasRenderingTarget2D): void;
+}
+
+interface ISeriesPrimitiveAxisView {
+  coordinate(): number;
+  text(): string;
+  textColor(): string;
+  backColor(): string;
+  visible(): boolean;
+  tickVisible(): boolean;
+}
+```
+
+## 🔧 Pattern 3: Hybrid Implementation (Recommended for Complex Series)
+
+This is the most powerful pattern. Let's implement a complete example.
+
+### Step 1: Define Shared Data and Options
+
+```typescript
+/**
+ * Shared data interface
+ * Used by both ICustomSeries and ISeriesPrimitive
+ */
+export interface MySeriesData extends CustomData<Time> {
+  time: Time;
+  value1: number;
+  value2: number;
+  direction: number; // -1, 0, 1
+}
+
+/**
+ * Shared options interface
+ * Used by both ICustomSeries and ISeriesPrimitive
+ */
+export interface MySeriesOptions extends CustomSeriesOptions {
+  // Visual options
+  color1: string;
+  color2: string;
+  lineWidth: number;
+  lineStyle: LineStyle;
+  fillVisible: boolean;
+
+  // Rendering control
+  disableSeriesRendering?: boolean; // Auto-set by factory
+  lastValueVisible?: boolean; // Auto-managed by factory
+
+  // Primitive-specific (only used when usePrimitive: true)
+  usePrimitive?: boolean; // User sets this
+  zIndex?: number; // Only for primitive mode
+  useHalfBarWidth?: boolean; // Only for primitive mode
+}
+
+/**
+ * Default options
+ * CRITICAL: Must match Python defaults exactly
+ */
+export const defaultOptions: MySeriesOptions = {
+  ...customSeriesDefaultOptions,
+  color1: '#4CAF50',
+  color2: '#F44336',
+  lineWidth: 2,
+  lineStyle: LineStyle.Solid,
+  fillVisible: true,
+  disableSeriesRendering: false,
+  lastValueVisible: true,
+};
+```
+
+### Step 2: Implement ICustomSeries (Autoscaling + Direct Rendering)
+
+```typescript
+/**
+ * ICustomSeries implementation
+ * Provides:
+ * - Autoscaling
+ * - Direct rendering (when primitive not attached)
+ * - Price value building
+ */
+class MySeries implements ICustomSeriesPaneView<Time> {
+  private _renderer: MySeriesRenderer;
+
+  constructor() {
+    this._renderer = new MySeriesRenderer();
+  }
+
+  priceValueBuilder(plotRow: CustomSeriesPricePlotValues): number {
+    // Return main price value for autoscaling
+    return (plotRow as unknown as MySeriesData).value1;
+  }
+
+  isWhitespace(data: CustomData | WhitespaceData): boolean {
+    return isWhitespaceDataMultiField(data, ['value1', 'value2']);
+  }
+
+  renderer(): ICustomSeriesPaneRenderer {
+    return this._renderer;
+  }
+
+  update(data: PaneRendererCustomData<Time, MySeriesData>, options: MySeriesOptions): void {
+    this._renderer.update(data, options);
+  }
+
+  defaultOptions(): MySeriesOptions {
+    return defaultOptions;
+  }
+}
+
+/**
+ * ICustomSeries renderer
+ * Only used when primitive is NOT attached (disableSeriesRendering: false)
+ */
+class MySeriesRenderer implements ICustomSeriesPaneRenderer {
+  private _data: PaneRendererCustomData<Time, MySeriesData> | null = null;
+  private _options: MySeriesOptions | null = null;
+
+  update(data: PaneRendererCustomData<Time, MySeriesData>, options: MySeriesOptions): void {
+    this._data = data;
+    this._options = options;
+  }
+
+  draw(target: CanvasRenderingTarget2D, isHovered: boolean, hitTestData?: unknown): void {
+    target.useBitmapCoordinateSpace((scope) => {
+      if (!this._data || !this._options) return;
+
+      const ctx = scope.context;
+      const hRatio = scope.horizontalPixelRatio;
+      const vRatio = scope.verticalPixelRatio;
+
+      ctx.save();
+
+      // Draw your visualization here
+      this._drawVisualization(ctx, hRatio, vRatio);
+
+      ctx.restore();
+    });
+  }
+
+  private _drawVisualization(ctx: CanvasRenderingContext2D, hRatio: number, vRatio: number): void {
+    // Implementation specific to your series
+  }
+}
+```
+
+### Step 3: Implement ISeriesPrimitive (Z-Order Control + Price Axis)
+
+```typescript
+/**
+ * ISeriesPrimitive implementation
+ * Provides:
+ * - Z-order control (background rendering)
+ * - Independent price axis views
+ * - Syncs data from attached series
+ */
+export class MySeriesPrimitive implements ISeriesPrimitive<Time> {
+  private _chart: IChartApi;
+  private _series: ISeriesApi<Time> | null = null;
+  private _options: MySeriesPrimitiveOptions;
+  private _data: MyProcessedData[] = [];
+  private _paneView: MyPrimitivePaneView;
+  private _priceAxisView: MyPrimitiveAxisView;
+
+  constructor(chart: IChartApi, options: MySeriesPrimitiveOptions) {
+    this._chart = chart;
+    this._options = options;
+    this._paneView = new MyPrimitivePaneView(this);
+    this._priceAxisView = new MyPrimitiveAxisView(this);
+  }
+
+  // Lifecycle
+  attached(params: SeriesAttachedParameter<Time>): void {
+    this._series = params.series;
+    this._syncDataFromSeries();
+  }
+
+  detached(): void {
+    this._series = null;
+    this._data = [];
+  }
+
+  // Views
+  paneViews(): IPrimitivePaneView[] {
+    return [this._paneView];
+  }
+
+  priceAxisViews(): ISeriesPrimitiveAxisView[] {
+    return [this._priceAxisView];
+  }
+
+  // Update
+  updateAllViews(): void {
+    this._syncDataFromSeries();
+  }
+
+  // Public API
+  getChart(): IChartApi {
+    return this._chart;
+  }
+
+  getAttachedSeries(): ISeriesApi<Time> | null {
+    return this._series;
+  }
+
+  getOptions(): MySeriesPrimitiveOptions {
+    return this._options;
+  }
+
+  getProcessedData(): MyProcessedData[] {
+    return this._data;
+  }
+
+  private _syncDataFromSeries(): void {
+    if (!this._series) return;
+
+    // Get data from series
+    const seriesData = this._series.data() as MySeriesData[];
+
+    // Process and convert coordinates
+    this._data = seriesData.map(item => ({
+      time: item.time,
+      value1: item.value1,
+      value2: item.value2,
+      direction: item.direction,
+    }));
+  }
+}
+
+/**
+ * Primitive pane view
+ */
+class MyPrimitivePaneView implements IPrimitivePaneView {
+  private _source: MySeriesPrimitive;
+
+  constructor(source: MySeriesPrimitive) {
+    this._source = source;
+  }
+
+  renderer(): IPrimitivePaneRenderer {
+    return new MyPrimitiveRenderer(this._source);
+  }
+
+  zOrder(): number {
+    const zIndex = this._source.getOptions().zIndex;
+    if (typeof zIndex === 'number') {
+      return zIndex;
+    }
+    return -100; // Default: render behind series
+  }
+}
+
+/**
+ * Primitive renderer
+ * Only used when primitive is attached (disableSeriesRendering: true)
+ */
+class MyPrimitiveRenderer implements IPrimitivePaneRenderer {
+  private _source: MySeriesPrimitive;
+
+  constructor(source: MySeriesPrimitive) {
+    this._source = source;
+  }
+
+  draw(target: CanvasRenderingTarget2D): void {
+    target.useBitmapCoordinateSpace((scope) => {
+      const ctx = scope.context;
+      const hRatio = scope.horizontalPixelRatio;
+      const vRatio = scope.verticalPixelRatio;
+
+      ctx.save();
+
+      // Draw visualization using primitive's data
+      this._drawVisualization(ctx, hRatio, vRatio);
+
+      ctx.restore();
+    });
+  }
+
+  private _drawVisualization(ctx: CanvasRenderingContext2D, hRatio: number, vRatio: number): void {
+    // Implementation specific to your series
+    const data = this._source.getProcessedData();
+    const options = this._source.getOptions();
+    const series = this._source.getAttachedSeries();
+
+    if (!series || data.length === 0) return;
+
+    // Convert to screen coordinates and draw
+    // ...
+  }
+}
+
+/**
+ * Primitive price axis view
+ */
+class MyPrimitiveAxisView implements ISeriesPrimitiveAxisView {
+  private _source: MySeriesPrimitive;
+
+  constructor(source: MySeriesPrimitive) {
+    this._source = source;
+  }
+
+  coordinate(): number {
+    const lastItem = this._getLastVisibleItem();
+    if (!lastItem) return 0;
+
+    const series = this._source.getAttachedSeries();
+    if (!series) return 0;
+
+    const coordinate = series.priceToCoordinate(lastItem.value1);
+    return coordinate ?? 0;
+  }
+
+  text(): string {
+    const lastItem = this._getLastVisibleItem();
+    if (!lastItem) return '';
+    return lastItem.value1.toFixed(2);
+  }
+
+  textColor(): string {
+    // Return white for contrast
+    return '#FFFFFF';
+  }
+
+  backColor(): string {
+    const lastItem = this._getLastVisibleItem();
+    if (!lastItem) return 'transparent';
+
+    const options = this._source.getOptions();
+
+    // Use direction to determine color
+    const fillColor = lastItem.direction > 0 ? options.color1 : options.color2;
+
+    // Convert to solid color (remove transparency)
+    return getSolidColorFromFill(fillColor);
+  }
+
+  visible(): boolean {
+    const lastItem = this._getLastVisibleItem();
+    if (!lastItem) return false;
+
+    if (!this._source.getOptions().visible) return false;
+
+    // Primitive's price axis view is independent of series' lastValueVisible
+    return true;
+  }
+
+  tickVisible(): boolean {
+    return true;
+  }
+
+  /**
+   * Get last visible item using time-based range detection
+   *
+   * CRITICAL: Use getVisibleRange() not getVisibleLogicalRange()
+   * - getVisibleRange() returns time coordinates (what user sees)
+   * - getVisibleLogicalRange() returns bar indices (misleading when zoomed)
+   */
+  private _getLastVisibleItem(): MyProcessedData | null {
+    const items = this._source.getProcessedData();
+    if (items.length === 0) return null;
+
+    const chart = this._source.getChart();
+    const timeScale = chart.timeScale();
+    const visibleTimeRange = timeScale.getVisibleRange();
+
+    if (!visibleTimeRange) {
+      return items[items.length - 1];
+    }
+
+    // Find last item within visible range
+    for (let i = items.length - 1; i >= 0; i--) {
+      const itemTime = items[i].time;
+      if ((itemTime as number) <= (visibleTimeRange.to as number)) {
+        return items[i];
+      }
+    }
+
+    return items[0];
+  }
+}
+```
+
+### Step 4: Factory Function (Hybrid Mode Selector)
+
+```typescript
+/**
+ * Factory function to create series with optional primitive
+ *
+ * Two rendering modes:
+ * 1. Direct ICustomSeries rendering (default)
+ *    - Series renders visuals
+ *    - Normal z-order
+ *    - Price axis label from series
+ *
+ * 2. Primitive rendering (usePrimitive: true)
+ *    - Series provides autoscaling only
+ *    - Primitive handles rendering
+ *    - Custom z-order (background)
+ *    - Price axis label from primitive
+ *
+ * @param chart - Chart instance
+ * @param options - Series options
+ * @param options.usePrimitive - Enable primitive rendering mode
+ * @param options.zIndex - Z-order for primitive (default: -100)
+ * @param options.data - Initial data
+ * @returns ICustomSeries instance (with optional primitive)
+ */
+export function createMySeries(
+  chart: IChartApi,
+  options: {
+    // ICustomSeries options
+    color1?: string;
+    color2?: string;
+    lineWidth?: number;
+    lineStyle?: LineStyle;
+    fillVisible?: boolean;
+    priceScaleId?: string;
+    disableSeriesRendering?: boolean;
+
+    // Primitive-specific options
+    usePrimitive?: boolean;
+    zIndex?: number;
+    useHalfBarWidth?: boolean;
+    data?: MySeriesData[];
+  } = {}
+): any {
+  // Determine rendering mode
+  const shouldUsePrimitive = options.usePrimitive || options.disableSeriesRendering;
+
+  // Create ICustomSeries (always created for autoscaling)
+  const series = chart.addCustomSeries(new MySeries(), {
+    color1: options.color1 ?? '#4CAF50',
+    color2: options.color2 ?? '#F44336',
+    lineWidth: options.lineWidth ?? 2,
+    lineStyle: options.lineStyle ?? LineStyle.Solid,
+    fillVisible: options.fillVisible !== false,
+    priceScaleId: options.priceScaleId ?? 'right',
+    disableSeriesRendering: !!shouldUsePrimitive, // Disable if using primitive
+    lastValueVisible: !shouldUsePrimitive, // Hide series label when primitive handles it
+  });
+
+  // Set data on series (for autoscaling)
+  if (options.data && options.data.length > 0) {
+    series.setData(options.data);
+  }
+
+  // Attach primitive if requested
+  if (shouldUsePrimitive) {
+    const primitive = new MySeriesPrimitive(chart, {
+      color1: options.color1 ?? '#4CAF50',
+      color2: options.color2 ?? '#F44336',
+      lineWidth: options.lineWidth ?? 2,
+      lineStyle: Math.min((options.lineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2,
+      fillVisible: options.fillVisible !== false,
+      visible: true,
+      priceScaleId: options.priceScaleId ?? 'right',
+      useHalfBarWidth: options.useHalfBarWidth !== false,
+      zIndex: options.zIndex ?? -100,
+    });
+
+    series.attachPrimitive(primitive);
+  }
+
+  return series;
+}
+```
+
+### Step 5: Usage Examples
+
+```typescript
+// Example 1: Standard ICustomSeries rendering (default)
+const series1 = createMySeries(chart, {
+  color1: 'rgba(76, 175, 80, 0.3)',
+  color2: 'rgba(244, 67, 54, 0.3)',
+  data: myData,
+});
+
+// Example 2: Primitive rendering for background fills
+const series2 = createMySeries(chart, {
+  color1: 'rgba(76, 175, 80, 0.3)',
+  color2: 'rgba(244, 67, 54, 0.3)',
+  usePrimitive: true, // Enable primitive mode
+  zIndex: -100, // Render behind other series
+  data: myData,
+});
+```
+
+## 🧪 Testing Pattern 3 (Hybrid)
+
+```typescript
+describe('MySeries (Hybrid)', () => {
+  describe('Series Creation', () => {
+    it('should create ICustomSeries with default options', () => {
+      const series = createMySeries(mockChart as any);
+
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          disableSeriesRendering: false, // Direct rendering by default
+          lastValueVisible: true, // Series handles price axis
+        })
+      );
+    });
+  });
+
+  describe('Primitive Mode', () => {
+    it('should attach primitive when usePrimitive is true', () => {
+      createMySeries(mockChart as any, {
+        usePrimitive: true,
+        data: testData,
+      });
+
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          disableSeriesRendering: true, // Primitive handles rendering
+          lastValueVisible: false, // Primitive handles price axis
+        })
+      );
+      expect(mockSeries.attachPrimitive).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Price Axis View', () => {
+    it('should show correct last visible value', () => {
+      // Test time-based visible range detection
+      const primitive = new MySeriesPrimitive(chart, options);
+      const axisView = primitive.priceAxisViews()[0];
+
+      expect(axisView.visible()).toBe(true);
+      expect(axisView.text()).toBe('99.00'); // Last visible, not last data
+    });
+  });
+});
+```
+
+## 🐍 Python Backend Implementation
+
+```python
+from dataclasses import dataclass
+from typing import List, Optional, Dict, Any
+from streamlit_lightweight_charts_pro.data.data import Data
+from streamlit_lightweight_charts_pro.charts.series.base import Series
+from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+
+@dataclass
+class MySeriesData(Data):
+    """Data structure for MySeries."""
+    value1: float
+    value2: float
+    direction: int  # -1, 0, 1
+
+@dataclass
+class MySeriesOptions(Options):
+    """
+    Options for MySeries.
+
+    CRITICAL: All defaults must match TypeScript defaults exactly.
+    """
+    color1: str = "#4CAF50"
+    color2: str = "#F44336"
+    line_width: int = 2  # Must match TS: lineWidth: 2
+    line_style: int = 0  # Solid
+    fill_visible: bool = True
+
+class MySeries(Series):
+    """Custom series with hybrid rendering support."""
+
+    data_class = MySeriesData
+
+    def __init__(self, data: Optional[List[MySeriesData]] = None, **kwargs):
+        super().__init__(data=data, **kwargs)
+        self.series_type = "my_series"
+
+    def asdict(self) -> Dict[str, Any]:
+        """Serialize for frontend."""
+        return {
+            "type": self.series_type,
+            "data": [item.asdict() for item in self.data],
+            "options": {
+                "color1": self.options.color1,
+                "color2": self.options.color2,
+                "lineWidth": self.options.line_width,  # snake_case -> camelCase
+                "lineStyle": self.options.line_style,
+                "fillVisible": self.options.fill_visible,
+            }
+        }
+```
+
+## 🚨 Critical Implementation Notes
+
+### 1. Default Value Consistency
+**CRITICAL**: Python and TypeScript defaults MUST match exactly.
+
+```python
+# Python
+line_width: int = 2
+
+# TypeScript
+lineWidth: 2
+```
+
+Use `??` (nullish coalescing) not `||` for numeric defaults:
+
+```typescript
+// ❌ WRONG: 0 is falsy, uses default even when user passes 0
+lineWidth: options.lineWidth || 2
+
+// ✅ CORRECT: Only uses default when undefined/null
+lineWidth: options.lineWidth ?? 2
+```
+
+### 2. Price Axis Label Visibility
+
+When using primitive mode:
+- Set `lastValueVisible: false` on series (disables series label)
+- Primitive's price axis view is independent (returns true in `visible()`)
+- Primitive manages its own label display
+
+```typescript
+// Factory function
+const series = chart.addCustomSeries(new MySeries(), {
+  disableSeriesRendering: !!shouldUsePrimitive,
+  lastValueVisible: !shouldUsePrimitive, // Key: hide series label when primitive active
+});
+```
+
+### 3. Time-Based Visible Range Detection
+
+**CRITICAL**: Use `getVisibleRange()` not `getVisibleLogicalRange()` for price axis views.
+
+```typescript
+// ✅ CORRECT: Time-based (what user sees)
+const visibleRange = timeScale.getVisibleRange();
+
+// ❌ WRONG: Index-based (misleading when zoomed)
+const visibleRange = timeScale.getVisibleLogicalRange();
+```
+
+### 4. Line Style Limitations
+
+ISeriesPrimitive only supports 3 line styles:
+- 0 = Solid
+- 1 = Dotted
+- 2 = Dashed
+
+Clamp values when passing to primitive:
+
+```typescript
+lineStyle: Math.min((options.lineStyle ?? LineStyle.Solid), 2) as 0 | 1 | 2
+```
+
+### 5. Color Transparency Handling
+
+Price axis labels don't support transparency. Convert fill colors to solid:
+
+```typescript
+import { getSolidColorFromFill } from '../utils/colorUtils';
+
+backColor(): string {
+  const fillColor = 'rgba(76, 175, 80, 0.3)';
+  return getSolidColorFromFill(fillColor); // Returns 'rgba(76, 175, 80, 1)'
+}
+```
+
+### 6. Coordinate Null Handling
+
+Always check for null coordinates:
+
+```typescript
+const x = timeScale.timeToCoordinate(item.time);
+if (x === null) continue;
+
+const y = priceToCoordinate(item.value);
+if (y === null) continue;
+```
+
+### 7. Series Primitive Rendering Method Separation
+
+**CRITICAL**: In series primitives, proper z-order rendering requires separating line drawing and fill rendering into different methods:
+
+#### Proper Method Separation
+
+```typescript
+class MyPrimitiveRenderer implements IPrimitivePaneRenderer {
+  private _source: MySeriesPrimitive;
+
+  constructor(source: MySeriesPrimitive) {
+    this._source = source;
+  }
+
+  /**
+   * Draw method - handles LINE drawing (foreground elements)
+   * This method renders lines, markers, and other foreground elements
+   * that should appear on top of fills and other series
+   */
+  draw(target: CanvasRenderingTarget2D): void {
+    target.useBitmapCoordinateSpace((scope) => {
+      const ctx = scope.context;
+      const hRatio = scope.horizontalPixelRatio;
+      const vRatio = scope.verticalPixelRatio;
+
+      ctx.save();
+
+      // Draw lines, markers, and other foreground elements
+      this._drawLines(ctx, hRatio, vRatio);
+      this._drawMarkers(ctx, hRatio, vRatio);
+
+      ctx.restore();
+    });
+  }
+
+  /**
+   * Draw background method - handles FILL rendering (background elements)
+   * This method renders fills, areas, and other background elements
+   * that should appear behind lines and other series
+   */
+  drawBackground(target: CanvasRenderingTarget2D): void {
+    target.useBitmapCoordinateSpace((scope) => {
+      const ctx = scope.context;
+      const hRatio = scope.horizontalPixelRatio;
+      const vRatio = scope.verticalPixelRatio;
+
+      ctx.save();
+
+      // Draw fills, areas, and other background elements
+      this._drawFills(ctx, hRatio, vRatio);
+      this._drawAreas(ctx, hRatio, vRatio);
+
+      ctx.restore();
+    });
+  }
+
+  private _drawLines(ctx: CanvasRenderingContext2D, hRatio: number, vRatio: number): void {
+    // Draw trend lines, support/resistance lines, etc.
+    // These should appear on top of fills
+  }
+
+  private _drawFills(ctx: CanvasRenderingContext2D, hRatio: number, vRatio: number): void {
+    // Draw filled areas, background bands, etc.
+    // These should appear behind lines
+  }
+}
+```
+
+#### Why This Separation Matters
+
+1. **Z-Order Control**:
+   - `drawBackground()` renders behind other series (negative z-index)
+   - `draw()` renders on top of other series (positive z-index)
+
+2. **Visual Hierarchy**:
+   - Fills provide context and background information
+   - Lines provide precise data points and trends
+   - Proper separation ensures fills don't obscure important line data
+
+3. **Performance**:
+   - Background elements can be rendered once and cached
+   - Foreground elements can be updated more frequently
+   - Reduces overdraw and improves rendering performance
+
+#### Common Patterns
+
+**Pattern A: Fill + Line Series**
+```typescript
+// Background: Fill areas between two lines
+drawBackground(target) {
+  this._drawFillAreas(ctx, hRatio, vRatio);
+}
+
+// Foreground: Draw the actual lines
+draw(target) {
+  this._drawTrendLine(ctx, hRatio, vRatio);
+  this._drawBaseLine(ctx, hRatio, vRatio);
+}
+```
+
+**Pattern B: Band/Ribbon Series**
+```typescript
+// Background: Fill between upper and lower bounds
+drawBackground(target) {
+  this._drawBandFill(ctx, hRatio, vRatio);
+}
+
+// Foreground: Draw boundary lines
+draw(target) {
+  this._drawUpperLine(ctx, hRatio, vRatio);
+  this._drawLowerLine(ctx, hRatio, vRatio);
+}
+```
+
+**Pattern C: Signal Series**
+```typescript
+// Background: Vertical bands for signal periods
+drawBackground(target) {
+  this._drawSignalBands(ctx, hRatio, vRatio);
+}
+
+// Foreground: Signal markers and lines
+draw(target) {
+  this._drawSignalMarkers(ctx, hRatio, vRatio);
+  this._drawSignalLines(ctx, hRatio, vRatio);
+}
+```
+
+#### Implementation Checklist
+
+- [ ] **Fills go in `drawBackground()`** - areas, bands, backgrounds
+- [ ] **Lines go in `draw()`** - trend lines, boundaries, markers
+- [ ] **Z-index is negative for background** - renders behind series
+- [ ] **Z-index is positive for foreground** - renders on top of series
+- [ ] **Both methods use `useBitmapCoordinateSpace()`** - proper pixel rendering
+- [ ] **Coordinate conversion is consistent** - same pixel ratios in both methods
+- [ ] **Performance is optimized** - minimize coordinate conversions
+
+## 🔄 DRY Principles and Code Reuse
+
+**CRITICAL**: Follow DRY (Don't Repeat Yourself) principles to maintain clean, maintainable code.
+
+### Common DRY Violations Found
+
+#### 1. **Series Primitive Lifecycle Methods**
+**Problem**: Every primitive implements identical `attached()`, `detached()`, `paneViews()`, `priceAxisViews()` methods.
+
+```typescript
+// ❌ WRONG: Repeated in every primitive
+class MyPrimitive implements ISeriesPrimitive<Time> {
+  attached(params: SeriesAttachedParameter<Time>): void {
+    this._series = params.series;
+    this._syncDataFromSeries();
+  }
+
+  detached(): void {
+    this._series = null;
+    this._data = [];
+  }
+
+  paneViews(): IPrimitivePaneView[] {
+    return [this._paneView];
+  }
+
+  priceAxisViews(): ISeriesPrimitiveAxisView[] {
+    return [this._priceAxisView];
+  }
+}
+```
+
+**Solution**: Use `BaseSeriesPrimitive` abstract class.
+
+```typescript
+// ✅ CORRECT: Extend BaseSeriesPrimitive
+class MyPrimitive extends BaseSeriesPrimitive<MyData, MyOptions> {
+  protected _initializeViews(): void {
+    this._addPaneView(new MyPaneView(this));
+    this._addPriceAxisView(new MyAxisView(this));
+  }
+
+  protected _processData(rawData: any[]): MyData[] {
+    // Custom data processing logic
+  }
+}
+```
+
+#### 2. **Z-Order Management**
+**Problem**: Every primitive implements identical z-order logic.
+
+```typescript
+// ❌ WRONG: Repeated z-order logic
+zOrder(): PrimitivePaneViewZOrder {
+  const zIndex = this._source.getOptions().zIndex;
+  if (typeof zIndex === 'number') {
+    if (zIndex < 0) return 'bottom';
+    if (zIndex >= 1000) return 'top';
+    return 'normal';
+  }
+  return 'normal';
+}
+```
+
+**Solution**: Use `BaseSeriesPrimitive._getZOrder()` method.
+
+```typescript
+// ✅ CORRECT: Inherited from BaseSeriesPrimitive
+zOrder(): PrimitivePaneViewZOrder {
+  return this._source._getZOrder();
+}
+```
+
+#### 3. **Time-Based Visible Range Detection**
+**Problem**: Every axis view implements identical last visible item detection.
+
+```typescript
+// ❌ WRONG: Repeated time-based detection
+private _getLastVisibleItem(): MyData | null {
+  const items = this._source.getProcessedData();
+  if (items.length === 0) return null;
+
+  const chart = this._source.getChart();
+  const timeScale = chart.timeScale();
+  const visibleTimeRange = timeScale.getVisibleRange();
+
+  if (!visibleTimeRange) {
+    return items[items.length - 1];
+  }
+
+  for (let i = items.length - 1; i >= 0; i--) {
+    const itemTime = items[i].time;
+    if ((itemTime as number) <= (visibleTimeRange.to as number)) {
+      return items[i];
+    }
+  }
+
+  return items[0];
+}
+```
+
+**Solution**: Use `BaseSeriesPrimitiveAxisView._getLastVisibleItem()` method.
+
+```typescript
+// ✅ CORRECT: Inherited from BaseSeriesPrimitiveAxisView
+private _getLastVisibleItem(): MyData | null {
+  return super._getLastVisibleItem();
+}
+```
+
+#### 4. **Coordinate Conversion Patterns**
+**Problem**: Every renderer implements similar coordinate conversion logic.
+
+```typescript
+// ❌ WRONG: Repeated coordinate conversion
+const coordinates = convertToCoordinates(data, chart, series, ['upper', 'lower']);
+const scaledCoords = coordinates.map(coord => ({
+  x: coord.x !== null ? coord.x * hRatio : null,
+  upper: coord.upper !== null ? coord.upper * vRatio : null,
+  lower: coord.lower !== null ? coord.lower * vRatio : null,
+}));
+```
+
+**Solution**: Create utility functions in `commonRendering.ts`.
+
+```typescript
+// ✅ CORRECT: Reusable utility function
+const scaledCoords = scaleCoordinates(coordinates, hRatio, vRatio);
+```
+
+### BaseSeriesPrimitive Usage Pattern
+
+```typescript
+/**
+ * Example: Refactored primitive using BaseSeriesPrimitive
+ */
+export class MySeriesPrimitive extends BaseSeriesPrimitive<MyData, MyOptions> {
+  constructor(chart: IChartApi, options: MyOptions) {
+    super(chart, options);
+  }
+
+  // Required: Initialize views
+  protected _initializeViews(): void {
+    this._addPaneView(new MyPaneView(this));
+    this._addPriceAxisView(new MyAxisView(this));
+  }
+
+  // Required: Process raw data
+  protected _processData(rawData: any[]): MyData[] {
+    return rawData
+      .filter(item => this._isValidData(item))
+      .map(item => this._convertToProcessedData(item));
+  }
+
+  // Optional: Custom z-order default
+  protected _getDefaultZOrder(): PrimitivePaneViewZOrder {
+    return 'normal'; // or 'bottom', 'top'
+  }
+
+  // Optional: Custom lifecycle behavior
+  attached(params: SeriesAttachedParameter<Time>): void {
+    super.attached(params); // Call parent implementation
+    // Add custom logic here
+  }
+}
+
+/**
+ * Example: Refactored pane view using BaseSeriesPrimitivePaneView
+ */
+class MyPaneView extends BaseSeriesPrimitivePaneView<MyData, MyOptions> {
+  renderer(): IPrimitivePaneRenderer {
+    return new MyRenderer(this._source);
+  }
+
+  // Optional: Custom z-order
+  zOrder(): PrimitivePaneViewZOrder {
+    return this._source._getZOrder();
+  }
+}
+
+/**
+ * Example: Refactored axis view using BaseSeriesPrimitiveAxisView
+ */
+class MyAxisView extends BaseSeriesPrimitiveAxisView<MyData, MyOptions> {
+  coordinate(): number {
+    const lastItem = this._getLastVisibleItem(); // Inherited method
+    if (!lastItem) return 0;
+
+    const series = this._source.getAttachedSeries();
+    if (!series) return 0;
+
+    const coordinate = series.priceToCoordinate(lastItem.value);
+    return coordinate ?? 0;
+  }
+
+  text(): string {
+    const lastItem = this._getLastVisibleItem(); // Inherited method
+    if (!lastItem) return '';
+    return lastItem.value.toFixed(2);
+  }
+
+  backColor(): string {
+    const lastItem = this._getLastVisibleItem(); // Inherited method
+    if (!lastItem) return 'transparent';
+
+    const options = this._source.getOptions();
+    return getSolidColorFromFill(options.fillColor);
+  }
+}
+```
+
+### DRY Benefits
+
+1. **Reduced Code Duplication**: Common patterns implemented once
+2. **Consistent Behavior**: All primitives behave the same way
+3. **Easier Maintenance**: Changes in one place affect all primitives
+4. **Better Testing**: Common functionality tested once
+5. **Faster Development**: New primitives require less boilerplate
+
+### DRY Implementation Checklist
+
+- [ ] **Use BaseSeriesPrimitive** for all new series primitives
+- [ ] **Use BaseSeriesPrimitivePaneView** for pane views
+- [ ] **Use BaseSeriesPrimitiveAxisView** for axis views
+- [ ] **Extract common utilities** to shared modules
+- [ ] **Avoid duplicating lifecycle methods**
+- [ ] **Reuse coordinate conversion patterns**
+- [ ] **Share time-based visible range detection**
+- [ ] **Consolidate z-order management**
+
+## ⚙️ Series Settings Schema
+
+### Overview
+
+Every custom series **MUST** publish a settings schema that declares what settings are configurable in the settings dialog. This enables a **data-driven, plugin-ready architecture** where the dialog automatically renders appropriate controls for each series type.
+
+**Key Benefits**:
+- ✅ **Single Source of Truth** - Series owns its settings
+- ✅ **Open/Closed Principle** - Add new series without modifying dialog
+- ✅ **Plugin-Ready** - Third-party series work automatically
+- ✅ **Type-Safe** - Schema validates property names
+- ✅ **Zero Dialog Changes** - Settings render dynamically
+
+### Schema Architecture
+
+The settings system consists of three layers:
+
+1. **Schema Interface** (`src/types/seriesSettingsSchema.ts`) - Defines schema types
+2. **Series Schemas** (`src/config/seriesSettingsRegistry.ts`) - Registry of all series schemas
+3. **Schema Renderer** (`src/components/SeriesSettingsRenderer.tsx`) - Renders schemas to UI
+
+### Schema Structure
+
+```typescript
+interface SeriesSettingsSchema {
+  sections: SettingsSection[];        // Groups of related settings
+  defaults?: Record<string, any>;     // Default values for reset
+  validation?: Record<string, ValidationRule>; // Validation rules
+}
+
+interface SettingsSection {
+  label: string;                      // Section heading
+  description?: string;               // Optional description
+  controls: SettingControl[];         // Settings controls in this section
+  condition?: (config: any) => boolean; // Show section conditionally
+}
+```
+
+### Supported Control Types
+
+#### 1. Line Editor Control
+Opens a dialog to configure line color, style, and width.
+
+```typescript
+{
+  type: 'line-editor',
+  property: 'upperLine',
+  label: 'Upper Line',
+  description: 'Configure upper boundary line'
+}
+```
+
+**Renders:** Clickable row showing line preview with color swatch + style/width
+
+#### 2. Color Picker Control
+Opens a color picker with optional opacity slider.
+
+```typescript
+{
+  type: 'color-picker',
+  property: 'fillColor',
+  label: 'Fill Color',
+  description: 'Color of the filled area',
+  withOpacity: true,              // Enable opacity slider
+  opacityProperty: 'fillOpacity'  // Property name for opacity value
+}
+```
+
+**Renders:** Clickable row showing color swatch + opacity percentage
+
+#### 3. Checkbox Control
+Boolean toggle for on/off settings.
+
+```typescript
+{
+  type: 'checkbox',
+  property: 'fill',
+  label: 'Fill',
+  description: 'Show filled area between lines'
+}
+```
+
+**Renders:** Checkbox with label
+
+#### 4. Number Input Control
+Numeric input with optional min/max/step.
+
+```typescript
+{
+  type: 'number',
+  property: 'baseValue',
+  label: 'Base Value',
+  description: 'Baseline reference price',
+  min: 0,
+  max: 100,
+  step: 0.01
+}
+```
+
+**Renders:** Number input field
+
+#### 5. Select Control
+Dropdown for predefined options.
+
+```typescript
+{
+  type: 'select',
+  property: 'mode',
+  label: 'Display Mode',
+  description: 'Visualization mode',
+  options: [
+    { value: 'line', label: 'Line' },
+    { value: 'area', label: 'Area' },
+    { value: 'histogram', label: 'Histogram' }
+  ]
+}
+```
+
+**Renders:** Select dropdown
+
+### Example: Complete Schema
+
+```typescript
+// File: src/config/seriesSettingsRegistry.ts
+
+export const RibbonSeriesSchema: SeriesSettingsSchema = {
+  sections: [
+    {
+      label: 'Ribbon Settings',
+      controls: [
+        {
+          type: 'line-editor',
+          property: 'upperLine',
+          label: 'Upper Line',
+          description: 'Configure upper boundary line',
+        },
+        {
+          type: 'line-editor',
+          property: 'lowerLine',
+          label: 'Lower Line',
+          description: 'Configure lower boundary line',
+        },
+        {
+          type: 'checkbox',
+          property: 'fill',
+          label: 'Fill',
+          description: 'Show filled area between lines',
+        },
+      ],
+    },
+    {
+      label: 'Fill Settings',
+      controls: [
+        {
+          type: 'color-picker',
+          property: 'fillColor',
+          label: 'Fill Color',
+          description: 'Color of the filled area',
+          withOpacity: true,
+          opacityProperty: 'fillOpacity',
+        },
+      ],
+      // Only show this section when fill is enabled
+      condition: (config) => config.fill !== false,
+    },
+  ],
+  defaults: {
+    upperLine: { color: '#4CAF50', lineStyle: 'solid', lineWidth: 2 },
+    lowerLine: { color: '#F44336', lineStyle: 'solid', lineWidth: 2 },
+    fill: true,
+    fillColor: '#2196F3',
+    fillOpacity: 20,
+  },
+};
+```
+
+### Registering Your Schema
+
+Add your schema to the central registry:
+
+```typescript
+// File: src/config/seriesSettingsRegistry.ts
+
+import { MySeriesSchema } from '../plugins/series/mySeriesPlugin';
+
+export const SERIES_SETTINGS_REGISTRY: SeriesSettingsRegistry = {
+  // ... existing series
+
+  // Add your series
+  my_series: MySeriesSchema,
+
+  // Case-insensitive alias (optional)
+  MySeries: MySeriesSchema,
+};
+```
+
+### Schema Best Practices
+
+#### 1. Match Series Options Interface
+
+Your schema properties **MUST** match your series options interface:
+
+```typescript
+// Series options interface
+export interface MySeriesOptions extends CustomSeriesOptions {
+  upperLine: { color: string; lineStyle: LineStyle; lineWidth: number };
+  lowerLine: { color: string; lineStyle: LineStyle; lineWidth: number };
+  fill: boolean;
+  fillColor: string;
+  fillOpacity: number;
+}
+
+// Schema MUST use same property names
+const schema = {
+  sections: [{
+    controls: [
+      { type: 'line-editor', property: 'upperLine' }, // ✅ Matches
+      { type: 'line-editor', property: 'lowerLine' }, // ✅ Matches
+      { type: 'checkbox', property: 'fill' },         // ✅ Matches
+      { type: 'color-picker', property: 'fillColor' } // ✅ Matches
+    ]
+  }]
+};
+```
+
+#### 2. Provide Sensible Defaults
+
+Defaults are used by the "Reset to Defaults" button:
+
+```typescript
+defaults: {
+  // Match your series plugin defaults exactly
+  upperLine: { color: '#4CAF50', lineStyle: 'solid', lineWidth: 2 },
+  lowerLine: { color: '#F44336', lineStyle: 'solid', lineWidth: 2 },
+  fill: true,
+  fillColor: '#2196F3',
+  fillOpacity: 20,
+}
+```
+
+#### 3. Use Conditional Sections
+
+Show/hide sections based on other settings:
+
+```typescript
+{
+  label: 'Fill Settings',
+  controls: [/* fill color, opacity */],
+  condition: (config) => config.fill !== false  // Only show when fill enabled
+}
+
+{
+  label: 'Border Settings',
+  controls: [/* border colors */],
+  condition: (config) => config.borderVisible !== false
+}
+```
+
+#### 4. Group Related Controls
+
+Organize controls into logical sections:
+
+```typescript
+sections: [
+  {
+    label: 'Line Settings',
+    controls: [/* line color, style, width */]
+  },
+  {
+    label: 'Fill Settings',
+    controls: [/* fill color, opacity */]
+  },
+  {
+    label: 'Advanced',
+    controls: [/* advanced options */]
+  }
+]
+```
+
+#### 5. Add Descriptions
+
+Help users understand each control:
+
+```typescript
+{
+  type: 'number',
+  property: 'period',
+  label: 'Period',
+  description: 'Number of bars used for calculation (higher = smoother)'
+}
+```
+
+### Common Patterns
+
+#### Pattern A: Line Series
+
+```typescript
+export const LineSeriesSchema: SeriesSettingsSchema = {
+  sections: [
+    {
+      label: 'Line Settings',
+      controls: [
+        { type: 'line-editor', property: 'mainLine', label: 'Line' }
+      ]
+    }
+  ],
+  defaults: {
+    color: '#2196F3',
+    lineStyle: 'solid',
+    lineWidth: 1,
+  }
+};
+```
+
+#### Pattern B: Band/Channel Series
+
+```typescript
+export const BandSeriesSchema: SeriesSettingsSchema = {
+  sections: [
+    {
+      label: 'Band Settings',
+      controls: [
+        { type: 'line-editor', property: 'upperLine', label: 'Upper Band' },
+        { type: 'line-editor', property: 'middleLine', label: 'Middle Line' },
+        { type: 'line-editor', property: 'lowerLine', label: 'Lower Band' },
+        { type: 'checkbox', property: 'fill', label: 'Fill' }
+      ]
+    },
+    {
+      label: 'Fill Settings',
+      controls: [
+        {
+          type: 'color-picker',
+          property: 'fillColor',
+          label: 'Fill Color',
+          withOpacity: true,
+          opacityProperty: 'fillOpacity'
+        }
+      ],
+      condition: (config) => config.fill !== false
+    }
+  ],
+  defaults: {
+    upperLine: { color: '#2196F3', lineStyle: 'solid', lineWidth: 1 },
+    middleLine: { color: '#FF9800', lineStyle: 'solid', lineWidth: 1 },
+    lowerLine: { color: '#2196F3', lineStyle: 'solid', lineWidth: 1 },
+    fill: true,
+    fillColor: '#2196F3',
+    fillOpacity: 10,
+  }
+};
+```
+
+#### Pattern C: Candlestick/Bar Series
+
+```typescript
+export const CandlestickSeriesSchema: SeriesSettingsSchema = {
+  sections: [
+    {
+      label: 'Candle Colors',
+      controls: [
+        { type: 'color-picker', property: 'upColor', label: 'Up Color' },
+        { type: 'color-picker', property: 'downColor', label: 'Down Color' }
+      ]
+    },
+    {
+      label: 'Wick Settings',
+      controls: [
+        { type: 'color-picker', property: 'wickUpColor', label: 'Wick Up Color' },
+        { type: 'color-picker', property: 'wickDownColor', label: 'Wick Down Color' }
+      ]
+    },
+    {
+      label: 'Border Settings',
+      controls: [
+        { type: 'checkbox', property: 'borderVisible', label: 'Show Borders' },
+        { type: 'color-picker', property: 'borderUpColor', label: 'Border Up Color' },
+        { type: 'color-picker', property: 'borderDownColor', label: 'Border Down Color' }
+      ],
+      condition: (config) => config.borderVisible !== false
+    }
+  ],
+  defaults: {
+    upColor: '#26a69a',
+    downColor: '#ef5350',
+    wickUpColor: '#26a69a',
+    wickDownColor: '#ef5350',
+    borderVisible: true,
+    borderUpColor: '#26a69a',
+    borderDownColor: '#ef5350',
+  }
+};
+```
+
+### Testing Your Schema
+
+#### 1. Verify Schema is Registered
+
+```typescript
+import { getSeriesSettingsSchema } from '../config/seriesSettingsRegistry';
+
+const schema = getSeriesSettingsSchema('my_series');
+console.log(schema); // Should return your schema
+```
+
+#### 2. Test in Settings Dialog
+
+1. Create a series of your type
+2. Right-click the series → Settings
+3. Verify all controls appear
+4. Verify conditional sections show/hide correctly
+5. Verify defaults button works
+
+#### 3. Type Safety Check
+
+TypeScript will error if property names don't match:
+
+```typescript
+// ❌ TypeScript error - 'invalidProp' doesn't exist on SeriesOptions
+{ type: 'checkbox', property: 'invalidProp', label: 'Invalid' }
+
+// ✅ Valid - 'fill' exists on SeriesOptions
+{ type: 'checkbox', property: 'fill', label: 'Fill' }
+```
+
+### Schema Checklist
+
+When creating a new series schema:
+
+- [ ] Define schema in series plugin file or separate schema file
+- [ ] Export schema constant
+- [ ] Register in `SERIES_SETTINGS_REGISTRY`
+- [ ] Add case-insensitive alias (optional)
+- [ ] Match property names to series options interface
+- [ ] Provide complete defaults
+- [ ] Use conditional sections where appropriate
+- [ ] Group related controls into sections
+- [ ] Add descriptions for clarity
+- [ ] Test schema renders correctly
+- [ ] Verify defaults button works
+- [ ] Verify conditional logic works
+
+### Migration from Hardcoded Dialog
+
+**Before** (Hardcoded in SeriesSettingsDialog.tsx):
+```typescript
+{activeSeriesInfo?.type === 'my_series' && (
+  <div>
+    {/* 80+ lines of hardcoded UI */}
+  </div>
+)}
+```
+
+**After** (Schema-based):
+```typescript
+// Just add schema to registry - dialog renders automatically!
+export const SERIES_SETTINGS_REGISTRY = {
+  my_series: MySeriesSchema  // That's it!
+};
+```
+
+### Reference Implementations
+
+**Simple Series**:
+- Line: `seriesSettingsRegistry.ts:LineSeriesSchema`
+- Histogram: `seriesSettingsRegistry.ts:HistogramSeriesSchema`
+
+**Band/Channel Series**:
+- Ribbon: `seriesSettingsRegistry.ts:RibbonSeriesSchema`
+- Band: `seriesSettingsRegistry.ts:BandSeriesSchema`
+
+**Complex Series**:
+- Candlestick: `seriesSettingsRegistry.ts:CandlestickSeriesSchema`
+- Baseline: `seriesSettingsRegistry.ts:BaselineSeriesSchema`
+
+### Summary
+
+**Every custom series MUST provide a settings schema** that:
+
+1. ✅ Declares what properties are configurable
+2. ✅ Specifies appropriate UI controls for each property
+3. ✅ Provides default values
+4. ✅ Matches the series options interface exactly
+5. ✅ Is registered in the central registry
+
+This architecture enables:
+- ✅ **Zero dialog changes** when adding new series
+- ✅ **Plugin-ready** third-party series support
+- ✅ **Type-safe** property editing
+- ✅ **Consistent UX** across all series types
+- ✅ **Automatic UI** generation from schema
+
+## 📋 Implementation Checklist
+
+### Design Phase
+- [ ] Choose architecture pattern (ICustomSeries, ISeriesPrimitive, or Hybrid)
+- [ ] Define data interface with `Time` type
+- [ ] Define options interface (match Python exactly)
+- [ ] Plan visualization requirements
+- [ ] Determine if z-order control needed (use Pattern 3)
+
+### Implementation Phase
+- [ ] Create ICustomSeries implementation
+- [ ] Create ICustomSeriesPaneRenderer
+- [ ] Create ISeriesPrimitive (if Pattern 2 or 3)
+- [ ] Create IPrimitivePaneView and renderer (if Pattern 2 or 3)
+- [ ] **Separate rendering methods** - lines in `draw()`, fills in `drawBackground()`
+- [ ] Create ISeriesPrimitiveAxisView (if Pattern 2 or 3)
+- [ ] Implement time-based visible range detection
+- [ ] Create factory function with mode selection
+- [ ] Add default options (match Python)
+- [ ] Implement Python backend class
+
+### Testing Phase
+- [ ] Test ICustomSeries rendering
+- [ ] Test primitive rendering (if applicable)
+- [ ] Test mode switching (if hybrid)
+- [ ] Test price axis views
+- [ ] Test time-based visible range
+- [ ] Test default values (Python ↔ TypeScript)
+- [ ] Test coordinate null handling
+- [ ] Test with empty, small, and large datasets
+
+### Validation Phase
+- [ ] Run `npm run build` - no errors
+- [ ] Run `npm run lint` - no warnings
+- [ ] Run `npm test` - all pass
+- [ ] Verify Python defaults match TypeScript
+- [ ] Test in Streamlit app
+- [ ] Verify autoscaling works
+- [ ] Verify z-order (if using primitive)
+
+## 📖 Reference Implementations
+
+### Pattern 1: ICustomSeries Only
+- Not yet implemented (coming soon)
+
+### Pattern 2: ISeriesPrimitive Only
+- **Ribbon**: `ribbonSeriesPlugin.ts`
+- **Band**: `bandSeriesPlugin.ts`
+
+### Pattern 3: Hybrid (ICustomSeries + ISeriesPrimitive)
+- **TrendFill**: `trendFillSeriesPlugin.ts` + `TrendFillPrimitive.ts` ⭐ **Reference**
+
+## 🎯 Summary
+
+**Key Principles**:
+1. ✅ Choose the right architecture pattern for your needs
+2. ✅ Match Python and TypeScript defaults exactly
+3. ✅ Use `??` not `||` for numeric defaults
+4. ✅ Implement time-based visible range detection
+5. ✅ Handle coordinate nulls properly
+6. ✅ Convert fill colors to solid for price axis
+7. ✅ Control `lastValueVisible` based on rendering mode
+8. ✅ Use `disableSeriesRendering` to switch modes
+9. ✅ **Separate line drawing and fill rendering** - lines in `draw()`, fills in `drawBackground()`
+10. ✅ **Follow DRY principles** - use BaseSeriesPrimitive for common functionality
+
+**When to Use Each Pattern**:
+- **Pattern 1**: Simple series, no z-order control needed
+- **Pattern 2**: Need z-order, no autoscaling needed
+- **Pattern 3**: Need both autoscaling AND z-order control ⭐
+
+---
+
+**Status**: ✅ **COMPLETE** - Comprehensive guide with hybrid pattern
+**Last Updated**: January 2025
+**Next Review**: Quarterly review of custom series development standards

@@ -1,428 +1,384 @@
+/**
+ * Ribbon Series - Hybrid ICustomSeries + ISeriesPrimitive Implementation
+ *
+ * A custom series that renders two lines (upper and lower) with a filled area between them.
+ *
+ * Features:
+ * - Two configurable lines (upper and lower)
+ * - Fill area between lines with customizable color
+ * - Hybrid rendering: ICustomSeries (default) or ISeriesPrimitive (background)
+ * - Full autoscaling support
+ * - Price axis labels for both lines
+ *
+ * Use cases:
+ * - Bollinger Bands
+ * - Keltner Channels
+ * - Donchian Channels
+ * - Any indicator with upper/lower bounds
+ *
+ * @see TrendFillSeriesPlugin for reference hybrid implementation
+ */
+
 import {
-  IChartApi,
-  ISeriesApi,
-  LineData,
+  CustomData,
   Time,
-  LineSeries,
-  ISeriesPrimitive,
-  SeriesAttachedParameter,
-  IPrimitivePaneView,
-  IPrimitivePaneRenderer,
-  Coordinate
-} from 'lightweight-charts'
+  customSeriesDefaultOptions,
+  CustomSeriesOptions,
+  PaneRendererCustomData,
+  CustomSeriesPricePlotValues,
+  CustomSeriesWhitespaceData,
+  ICustomSeriesPaneRenderer,
+  ICustomSeriesPaneView,
+  LineWidth,
+  IChartApi,
+  PriceToCoordinateConverter,
+} from 'lightweight-charts';
+import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { isWhitespaceDataMultiField } from './base/commonRendering';
+import { LineStyle } from '../../utils/renderingUtils';
+import { drawFillArea, drawMultiLine } from './base/commonRendering';
 
-// Ribbon data interface
-export interface RibbonData extends LineData {
-  upper: number
-  lower: number
+// ============================================================================
+// Data Interface
+// ============================================================================
+
+/**
+ * Data point for Ribbon series
+ *
+ * @property time - Timestamp for the data point
+ * @property upper - Y value of the upper line
+ * @property lower - Y value of the lower line
+ */
+export interface RibbonData extends CustomData<Time> {
+  time: Time;
+  upper: number;
+  lower: number;
 }
 
-// Line style options interface
-export interface LineStyleOptions {
-  color?: string
-  lineStyle?: number
-  lineWidth?: number
-  lineVisible?: boolean
-  lineType?: number
-  crosshairMarkerVisible?: boolean
-  crosshairMarkerRadius?: number
-  crosshairMarkerBorderColor?: string
-  crosshairMarkerBackgroundColor?: string
-  crosshairMarkerBorderWidth?: number
-  lastPriceAnimation?: number
+// ============================================================================
+// Options Interface
+// ============================================================================
+
+/**
+ * Configuration options for Ribbon series
+ */
+export interface RibbonSeriesOptions extends CustomSeriesOptions {
+  // Upper line styling
+  upperLineColor: string;
+  upperLineWidth: LineWidth;
+  upperLineStyle: LineStyle;
+  upperLineVisible: boolean;
+
+  // Lower line styling
+  lowerLineColor: string;
+  lowerLineWidth: LineWidth;
+  lowerLineStyle: LineStyle;
+  lowerLineVisible: boolean;
+
+  // Fill styling
+  fillColor: string;
+  fillVisible: boolean;
+
+  // Series options
+  lastValueVisible: boolean;
+  title: string;
+  visible: boolean;
+  priceLineVisible: boolean;
+
+  // Internal flag (set automatically by factory)
+  _usePrimitive?: boolean;
 }
 
-// Ribbon series options
-export interface RibbonSeriesOptions {
-  // Z-index for proper layering
-  zIndex?: number
-
-  // Line style options
-  upperLine?: LineStyleOptions
-  lowerLine?: LineStyleOptions
-
-  // Fill options
-  fill: string
-  fillVisible: boolean
-
-  // Base options
-  visible: boolean
-  priceScaleId: string
-  lastValueVisible: boolean
-  priceLineVisible: boolean
-  priceLineSource: string
-  priceLineWidth: number
-  priceLineColor: string
-  priceLineStyle: number
-  baseLineVisible: boolean
-  baseLineWidth: number
-  baseLineColor: string
-  baseLineStyle: string
-  priceFormat: any
-}
-
-// Default options
-const defaultOptions: RibbonSeriesOptions = {
-  // Line style options
-  upperLine: {
-    color: '#4CAF50',
-    lineStyle: 0, // SOLID
-    lineWidth: 2,
-    lineVisible: true,
-    lineType: 0, // SIMPLE
-    crosshairMarkerVisible: true,
-    crosshairMarkerRadius: 4,
-    crosshairMarkerBorderColor: '',
-    crosshairMarkerBackgroundColor: '',
-    crosshairMarkerBorderWidth: 2,
-    lastPriceAnimation: 0 // DISABLED
-  },
-  lowerLine: {
-    color: '#F44336',
-    lineStyle: 0, // SOLID
-    lineWidth: 2,
-    lineVisible: true,
-    lineType: 0, // SIMPLE
-    crosshairMarkerVisible: true,
-    crosshairMarkerRadius: 4,
-    crosshairMarkerBorderColor: '',
-    crosshairMarkerBackgroundColor: '',
-    crosshairMarkerBorderWidth: 2,
-    lastPriceAnimation: 0 // DISABLED
-  },
-
-  // Fill options
-  fill: 'rgba(76, 175, 80, 0.1)',
+/**
+ * Default options for Ribbon series
+ * CRITICAL: Must match Python defaults
+ */
+const defaultRibbonOptions: RibbonSeriesOptions = {
+  ...customSeriesDefaultOptions,
+  upperLineColor: '#4CAF50',
+  upperLineWidth: 2,
+  upperLineStyle: LineStyle.Solid,
+  upperLineVisible: true,
+  lowerLineColor: '#F44336',
+  lowerLineWidth: 2,
+  lowerLineStyle: LineStyle.Solid,
+  lowerLineVisible: true,
+  fillColor: 'rgba(76, 175, 80, 0.1)',
   fillVisible: true,
+};
 
-  // Base options
-  visible: true,
-  priceScaleId: 'right',
-  lastValueVisible: false,
-  priceLineVisible: true,
-  priceLineSource: 'lastBar',
-  priceLineWidth: 1,
-  priceLineColor: '#2196F3',
-  priceLineStyle: 2, // DASHED
-  baseLineVisible: false,
-  baseLineWidth: 1,
-  baseLineColor: '#FF9800',
-  baseLineStyle: 'solid',
-  priceFormat: {type: 'price', precision: 2}
-}
+// ============================================================================
+// ICustomSeries Implementation
+// ============================================================================
 
-// Ribbon renderer data interface
-interface RibbonRendererData {
-  x: Coordinate | number
-  upper: Coordinate | number
-  lower: Coordinate | number
-}
+/**
+ * Ribbon Series - ICustomSeries implementation
+ * Provides autoscaling and direct rendering
+ */
+class RibbonSeries<TData extends RibbonData = RibbonData>
+  implements ICustomSeriesPaneView<Time, TData, RibbonSeriesOptions>
+{
+  private _renderer: RibbonSeriesRenderer<TData>;
 
-// Ribbon view data interface
-interface RibbonViewData {
-  data: RibbonRendererData[]
-  options: RibbonSeriesOptions
-}
-
-// Ribbon primitive pane renderer
-class RibbonPrimitivePaneRenderer implements IPrimitivePaneRenderer {
-  _viewData: RibbonViewData
-
-  constructor(data: RibbonViewData) {
-    this._viewData = data
+  constructor() {
+    this._renderer = new RibbonSeriesRenderer();
   }
 
-  draw() {}
+  priceValueBuilder(plotRow: TData): CustomSeriesPricePlotValues {
+    // Return both upper and lower for autoscaling
+    return [plotRow.lower, plotRow.upper];
+  }
 
-  drawBackground(target: any) {
-    const points: RibbonRendererData[] = this._viewData.data
+  isWhitespace(
+    data: TData | CustomSeriesWhitespaceData<Time>
+  ): data is CustomSeriesWhitespaceData<Time> {
+    return isWhitespaceDataMultiField(data, ['upper', 'lower']);
+  }
 
-    if (points.length === 0) {
-      return
+  renderer(): ICustomSeriesPaneRenderer {
+    return this._renderer;
+  }
+
+  update(data: PaneRendererCustomData<Time, TData>, options: RibbonSeriesOptions): void {
+    this._renderer.update(data, options);
+  }
+
+  defaultOptions(): RibbonSeriesOptions {
+    return defaultRibbonOptions;
+  }
+}
+
+/**
+ * Ribbon Series Renderer - ICustomSeries
+ * Only used when primitive is NOT attached
+ */
+class RibbonSeriesRenderer<TData extends RibbonData = RibbonData>
+  implements ICustomSeriesPaneRenderer
+{
+  private _data: PaneRendererCustomData<Time, TData> | null = null;
+  private _options: RibbonSeriesOptions | null = null;
+
+  update(data: PaneRendererCustomData<Time, TData>, options: RibbonSeriesOptions): void {
+    this._data = data;
+    this._options = options;
+  }
+
+  draw(target: any, priceConverter: PriceToCoordinateConverter): void {
+    target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
+      this._drawImpl(scope, priceConverter);
+    });
+  }
+
+  /**
+   * Main drawing implementation following TradingView's plugin pattern
+   * Converts all bars to screen coordinates once, then draws visible range
+   */
+  private _drawImpl(
+    renderingScope: BitmapCoordinatesRenderingScope,
+    priceToCoordinate: PriceToCoordinateConverter
+  ): void {
+    // Early exit if no data to render
+    if (
+      this._data === null ||
+      this._data.bars.length === 0 ||
+      this._data.visibleRange === null ||
+      this._options === null
+    ) {
+      return;
     }
 
-    target.useBitmapCoordinateSpace((scope: any) => {
-      const ctx = scope.context
-      ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio)
-
-      // Draw fill area between upper and lower bands only if enabled
-      if (this._viewData.options.fillVisible) {
-        ctx.fillStyle = this._viewData.options.fill
-        ctx.beginPath()
-
-        // Draw upper line forward
-        ctx.moveTo(points[0].x, points[0].upper)
-        for (const point of points) {
-          if (point.upper !== null && point.lower !== null) {
-            ctx.lineTo(point.x, point.upper)
-          }
-        }
-
-        // Draw lower line backward
-        for (let i = points.length - 1; i >= 0; i--) {
-          const point = points[i]
-          if (point.upper !== null && point.lower !== null) {
-            ctx.lineTo(point.x, point.lower)
-          }
-        }
-
-        ctx.closePath()
-        ctx.fill()
-      } else {
-      }
-    })
-  }
-}
-
-// Ribbon primitive pane view
-class RibbonPrimitivePaneView implements IPrimitivePaneView {
-  _source: RibbonSeries
-  _data: RibbonViewData
-
-  constructor(source: RibbonSeries) {
-    this._source = source
-    this._data = {
-      data: [],
-      options: this._source.getOptions()
+    // Early exit if primitive handles rendering
+    if (this._options._usePrimitive) {
+      return;
     }
-  }
 
-  update() {
-    const timeScale = this._source.getChart().timeScale()
+    const options = this._options;
+    const visibleRange = this._data.visibleRange;
 
-    // Get the actual rendered coordinates from the series
-    // This ensures compatibility with all line types (SIMPLE, STEPPED, CURVED)
-    this._data.data = this._source.getData().map(d => {
+    // Transform all bars to bitmap coordinates once (performance optimization)
+    const bars = this._data.bars.map(bar => {
+      const { upper, lower } = bar.originalData;
       return {
-        x: timeScale.timeToCoordinate(d.time) ?? -100,
-        // Use the series' actual rendered coordinates for proper line type support
-        upper: this._source.getUpperSeries().priceToCoordinate(d.upper) ?? -100,
-        lower: this._source.getLowerSeries().priceToCoordinate(d.lower) ?? -100
-      }
-    })
-  }
+        x: bar.x * renderingScope.horizontalPixelRatio,
+        upperY: (priceToCoordinate(upper) ?? 0) * renderingScope.verticalPixelRatio,
+        lowerY: (priceToCoordinate(lower) ?? 0) * renderingScope.verticalPixelRatio,
+      };
+    });
 
-  renderer() {
-    return new RibbonPrimitivePaneRenderer(this._data)
-  }
+    const ctx = renderingScope.context;
+    ctx.save();
 
-  // Z-index support: Return the Z-index for proper layering
-  zIndex(): number {
-    const sourceZIndex = this._source.getOptions().zIndex
-    // Validate Z-index is a positive number
-    if (typeof sourceZIndex === 'number' && sourceZIndex >= 0) {
-      return sourceZIndex
+    // Draw in z-order (background to foreground)
+    // Using shared rendering functions with visibleRange for optimal performance
+    if (options.fillVisible) {
+      drawFillArea(
+        ctx,
+        bars,
+        'upperY',
+        'lowerY',
+        options.fillColor,
+        visibleRange.from,
+        visibleRange.to
+      );
     }
-    // Return default Z-index for ribbon series
-    return 100
+
+    if (options.upperLineVisible) {
+      drawMultiLine(
+        ctx,
+        bars,
+        'upperY',
+        options.upperLineColor,
+        options.upperLineWidth * renderingScope.horizontalPixelRatio,
+        options.upperLineStyle,
+        visibleRange.from,
+        visibleRange.to
+      );
+    }
+
+    if (options.lowerLineVisible) {
+      drawMultiLine(
+        ctx,
+        bars,
+        'lowerY',
+        options.lowerLineColor,
+        options.lowerLineWidth * renderingScope.horizontalPixelRatio,
+        options.lowerLineStyle,
+        visibleRange.from,
+        visibleRange.to
+      );
+    }
+
+    ctx.restore();
   }
 }
 
-// Ribbon series class - follows working band series pattern
-export class RibbonSeries implements ISeriesPrimitive<Time> {
-  private chart: IChartApi
-  private upperSeries: ISeriesApi<'Line'>
-  private lowerSeries: ISeriesApi<'Line'>
-  private options: RibbonSeriesOptions
-  private data: RibbonData[] = []
-  private _paneViews: RibbonPrimitivePaneView[]
+// ============================================================================
+// Factory Function
+// ============================================================================
 
-  constructor(chart: IChartApi, options: Partial<RibbonSeriesOptions> = {}) {
-    this.chart = chart
-    this.options = {...defaultOptions, ...options}
-    this._paneViews = [new RibbonPrimitivePaneView(this)]
-
-    // Create the two line series (upper and lower)
-    this.upperSeries = chart.addSeries(LineSeries, {
-      color: this.options.upperLine?.color || '#4CAF50',
-      lineStyle: this.options.upperLine?.lineStyle || 0,
-      lineWidth: (this.options.upperLine?.lineWidth || 2) as any,
-      visible: this.options.upperLine?.lineVisible !== false,
-      priceScaleId: this.options.priceScaleId,
-      lastValueVisible: this.options.lastValueVisible,
-      priceLineVisible: this.options.priceLineVisible,
-      priceLineSource: this.options.priceLineSource as any,
-      priceLineWidth: (this.options.priceLineWidth || 1) as any,
-      priceLineColor: this.options.priceLineColor,
-      priceLineStyle: (this.options.priceLineStyle || 2) as any,
-      baseLineVisible: this.options.baseLineVisible,
-      baseLineWidth: (this.options.baseLineWidth || 1) as any,
-      baseLineColor: this.options.baseLineColor,
-      baseLineStyle: (this.options.baseLineStyle || 'solid') as any,
-      priceFormat: this.options.priceFormat,
-      crosshairMarkerVisible: this.options.upperLine?.crosshairMarkerVisible !== false,
-      crosshairMarkerRadius: this.options.upperLine?.crosshairMarkerRadius || 4,
-      crosshairMarkerBorderColor: this.options.upperLine?.crosshairMarkerBorderColor || '',
-      crosshairMarkerBackgroundColor: this.options.upperLine?.crosshairMarkerBackgroundColor || '',
-      crosshairMarkerBorderWidth: this.options.upperLine?.crosshairMarkerBorderWidth || 2,
-      lastPriceAnimation: this.options.upperLine?.lastPriceAnimation || 0,
-      lineType: this.options.upperLine?.lineType || 0
-    })
-
-    this.lowerSeries = chart.addSeries(LineSeries, {
-      color: this.options.lowerLine?.color || '#F44336',
-      lineStyle: this.options.lowerLine?.lineStyle || 0,
-      lineWidth: (this.options.lowerLine?.lineWidth || 2) as any,
-      visible: this.options.lowerLine?.lineVisible !== false,
-      priceScaleId: this.options.priceScaleId,
-      lastValueVisible: this.options.lastValueVisible,
-      priceLineVisible: this.options.priceLineVisible,
-      priceLineSource: this.options.priceLineSource as any,
-      priceLineWidth: (this.options.priceLineWidth || 1) as any,
-      priceLineColor: this.options.priceLineColor,
-      priceLineStyle: (this.options.priceLineStyle || 2) as any,
-      baseLineVisible: this.options.baseLineVisible,
-      baseLineWidth: (this.options.baseLineWidth || 1) as any,
-      baseLineColor: this.options.baseLineColor,
-      baseLineStyle: (this.options.baseLineStyle || 'solid') as any,
-      priceFormat: this.options.priceFormat,
-      crosshairMarkerVisible: this.options.lowerLine?.crosshairMarkerVisible !== false,
-      crosshairMarkerRadius: this.options.lowerLine?.crosshairMarkerRadius || 4,
-      crosshairMarkerBorderColor: this.options.lowerLine?.crosshairMarkerBorderColor || '',
-      crosshairMarkerBackgroundColor: this.options.lowerLine?.crosshairMarkerBackgroundColor || '',
-      crosshairMarkerBorderWidth: this.options.lowerLine?.crosshairMarkerBorderWidth || 2,
-      lastPriceAnimation: this.options.lowerLine?.lastPriceAnimation || 0,
-      lineType: this.options.lowerLine?.lineType || 0
-    })
-
-    // Attach the primitive to the upper series for rendering
-    this.upperSeries.attachPrimitive(this)
-  }
-
-  // Getter for options
-  getOptions(): RibbonSeriesOptions {
-    return this.options
-  }
-
-  // Getter for data
-  getData(): RibbonData[] {
-    return this.data
-  }
-
-  // Getter for chart
-  getChart(): IChartApi {
-    return this.chart
-  }
-
-  // Getter for series
-  getUpperSeries(): ISeriesApi<'Line'> {
-    return this.upperSeries
-  }
-
-  getLowerSeries(): ISeriesApi<'Line'> {
-    return this.lowerSeries
-  }
-
-  // ISeriesPrimitive implementation
-  attached(param: SeriesAttachedParameter<Time>): void {
-    // Primitive is attached to the series
-  }
-
-  detached(): void {
-    // Primitive is detached from the series
-  }
-
-  updateAllViews(): void {
-    this._paneViews.forEach(pv => pv.update())
-  }
-
-  paneViews(): IPrimitivePaneView[] {
-    return this._paneViews
-  }
-
-  setData(data: RibbonData[]): void {
-    this.data = data
-
-    // Extract individual series data
-    const upperData: LineData[] = data.map(item => ({
-      time: item.time,
-      value: item.upper
-    }))
-
-    const lowerData: LineData[] = data.map(item => ({
-      time: item.time,
-      value: item.lower
-    }))
-
-    // Set data for each series
-    this.upperSeries.setData(upperData)
-    this.lowerSeries.setData(lowerData)
-
-    // Update the primitive view
-    this.updateAllViews()
-  }
-
-  update(data: RibbonData): void {
-    // Update individual series
-    this.upperSeries.update({time: data.time, value: data.upper})
-    this.lowerSeries.update({time: data.time, value: data.lower})
-
-    // Update the primitive view
-    this.updateAllViews()
-  }
-
-  setVisible(visible: boolean): void {
-    this.upperSeries.applyOptions({visible})
-    this.lowerSeries.applyOptions({visible})
-  }
-
-  setOptions(options: Partial<RibbonSeriesOptions>): void {
-    this.options = {...this.options, ...options}
-
-    // Update line series options
-    if (options.upperLine !== undefined) {
-      this.upperSeries.applyOptions({
-        color: options.upperLine.color,
-        lineStyle: options.upperLine.lineStyle,
-        lineWidth: options.upperLine.lineWidth as any,
-        visible: options.upperLine.lineVisible,
-        lineType: options.upperLine.lineType,
-        crosshairMarkerVisible: options.upperLine.crosshairMarkerVisible,
-        crosshairMarkerRadius: options.upperLine.crosshairMarkerRadius,
-        crosshairMarkerBorderColor: options.upperLine.crosshairMarkerBorderColor,
-        crosshairMarkerBackgroundColor: options.upperLine.crosshairMarkerBackgroundColor,
-        crosshairMarkerBorderWidth: options.upperLine.crosshairMarkerBorderWidth,
-        lastPriceAnimation: options.upperLine.lastPriceAnimation
-      })
-    }
-
-    if (options.lowerLine !== undefined) {
-      this.lowerSeries.applyOptions({
-        color: options.lowerLine.color,
-        lineStyle: options.lowerLine.lineStyle,
-        lineWidth: options.lowerLine.lineWidth as any,
-        visible: options.lowerLine.lineVisible,
-        lineType: 0, // Always force SIMPLE for fill compatibility
-        crosshairMarkerVisible: options.lowerLine.crosshairMarkerVisible,
-        crosshairMarkerRadius: options.lowerLine.crosshairMarkerRadius,
-        crosshairMarkerBorderColor: options.lowerLine.crosshairMarkerBorderColor,
-        crosshairMarkerBackgroundColor: options.lowerLine.crosshairMarkerBackgroundColor,
-        crosshairMarkerBorderWidth: options.lowerLine.crosshairMarkerBorderWidth,
-        lastPriceAnimation: options.lowerLine.lastPriceAnimation
-      })
-    }
-
-    // Update the primitive view
-    this.updateAllViews()
-  }
-
-  remove(): void {
-    this.chart.removeSeries(this.upperSeries)
-    this.chart.removeSeries(this.lowerSeries)
-  }
-}
-
-// Plugin factory function
+/**
+ * Factory function to create Ribbon series with optional primitive
+ *
+ * Two rendering modes:
+ * 1. **Direct ICustomSeries rendering (default, usePrimitive: false)**
+ *    - Series renders lines and fill directly
+ *    - Normal z-order with other series
+ *    - Best for most use cases
+ *
+ * 2. **Primitive rendering mode (usePrimitive: true)**
+ *    - Series provides autoscaling only (no rendering)
+ *    - Primitive handles rendering with custom z-order
+ *    - Can render in background (zIndex: -100) or foreground
+ *    - Best for background indicators like Bollinger Bands
+ *
+ * @param chart - Chart instance
+ * @param options - Ribbon series options
+ * @param options.upperLineColor - Upper line color (default: '#4CAF50')
+ * @param options.lowerLineColor - Lower line color (default: '#F44336')
+ * @param options.fillColor - Fill color (default: 'rgba(76, 175, 80, 0.1)')
+ * @param options.usePrimitive - Enable primitive rendering mode
+ * @param options.zIndex - Z-order for primitive mode (default: -100)
+ * @param options.data - Initial data
+ * @returns ICustomSeries instance
+ *
+ * @example Standard usage
+ * ```typescript
+ * const series = createRibbonSeries(chart, {
+ *   upperLineColor: '#4CAF50',
+ *   lowerLineColor: '#F44336',
+ *   fillColor: 'rgba(76, 175, 80, 0.1)',
+ * });
+ * series.setData(data);
+ * ```
+ *
+ * @example Background rendering with primitive
+ * ```typescript
+ * const series = createRibbonSeries(chart, {
+ *   usePrimitive: true,
+ *   zIndex: -100,
+ *   data: ribbonData,
+ * });
+ * ```
+ */
 export function createRibbonSeries(
   chart: IChartApi,
-  options: Partial<RibbonSeriesOptions> = {}
-): RibbonSeries {
-  return new RibbonSeries(chart, options)
-}
+  options: {
+    // Visual options
+    upperLineColor?: string;
+    upperLineWidth?: LineWidth;
+    upperLineStyle?: LineStyle;
+    upperLineVisible?: boolean;
+    lowerLineColor?: string;
+    lowerLineWidth?: LineWidth;
+    lowerLineStyle?: LineStyle;
+    lowerLineVisible?: boolean;
+    fillColor?: string;
+    fillVisible?: boolean;
+    priceScaleId?: string;
 
-// Plugin function
-export function ribbonSeriesPlugin(): (chart: IChartApi) => void {
-  return (chart: IChartApi) => {
-    // Plugin initialization if needed
+    // Series options
+    lastValueVisible?: boolean;
+    title?: string;
+    visible?: boolean;
+    priceLineVisible?: boolean;
+
+    // Rendering control
+    usePrimitive?: boolean;
+
+    // Primitive-specific options
+    zIndex?: number;
+    data?: RibbonData[];
+  } = {}
+): any {
+  // Create ICustomSeries (always created for autoscaling)
+  const series = chart.addCustomSeries(new RibbonSeries(), {
+    _seriesType: 'Ribbon', // Internal property for series type identification
+    upperLineColor: options.upperLineColor ?? '#4CAF50',
+    upperLineWidth: options.upperLineWidth ?? 2,
+    upperLineStyle: options.upperLineStyle ?? LineStyle.Solid,
+    upperLineVisible: options.upperLineVisible !== false,
+    lowerLineColor: options.lowerLineColor ?? '#F44336',
+    lowerLineWidth: options.lowerLineWidth ?? 2,
+    lowerLineStyle: options.lowerLineStyle ?? LineStyle.Solid,
+    lowerLineVisible: options.lowerLineVisible !== false,
+    fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
+    fillVisible: options.fillVisible !== false,
+    priceScaleId: options.priceScaleId ?? 'right',
+    lastValueVisible: options.lastValueVisible ?? false,
+    priceLineVisible: options.priceLineVisible ?? false,
+    visible: options.visible ?? true,
+    title: options.title,
+    _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
+  } as any);
+
+  // Set data on series (for autoscaling)
+  if (options.data && options.data.length > 0) {
+    series.setData(options.data);
   }
+
+  // Attach primitive if requested
+  if (options.usePrimitive) {
+    // Dynamic import to avoid circular dependencies
+    void import('../../primitives/RibbonPrimitive').then(({ RibbonPrimitive }) => {
+      const primitive = new RibbonPrimitive(chart, {
+        upperLineColor: options.upperLineColor ?? '#4CAF50',
+        upperLineWidth: options.upperLineWidth ?? 2,
+        upperLineStyle: Math.min(options.upperLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
+        upperLineVisible: options.upperLineVisible !== false,
+        lowerLineColor: options.lowerLineColor ?? '#F44336',
+        lowerLineWidth: options.lowerLineWidth ?? 2,
+        lowerLineStyle: Math.min(options.lowerLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
+        lowerLineVisible: options.lowerLineVisible !== false,
+        fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
+        fillVisible: options.fillVisible !== false,
+        visible: true,
+        priceScaleId: options.priceScaleId ?? 'right',
+        zIndex: options.zIndex ?? 0,
+      });
+
+      series.attachPrimitive(primitive);
+    });
+  }
+
+  return series;
 }

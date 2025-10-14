@@ -1,37 +1,64 @@
 /**
- * Configuration constants for chart positioning system
- * Centralizes all positioning-related magic numbers and defaults
+ * @fileoverview Positioning Configuration Constants
+ *
+ * Centralized configuration for all chart positioning and layout calculations.
+ * Eliminates magic numbers and provides single source of truth for dimensions.
+ *
+ * This module provides:
+ * - Standard margins for all components
+ * - Default dimensions for chart elements
+ * - Fallback values for error cases
+ * - Z-index layering constants
+ * - Timing and animation configurations
+ *
+ * Features:
+ * - Unified spacing constants from PrimitiveDefaults
+ * - Type-safe constant exports
+ * - Configuration validation
+ * - CSS class name generators
+ *
+ * @example
+ * ```typescript
+ * import { MARGINS, DIMENSIONS, Z_INDEX } from './positioningConfig';
+ *
+ * const legendMargin = MARGINS.legend.top;
+ * const paneHeight = DIMENSIONS.pane.defaultHeight;
+ * const zIndex = Z_INDEX.tooltip;
+ * ```
  */
+
+import { UniversalSpacing } from '../primitives/PrimitiveDefaults';
 
 /**
  * Standard margins used throughout the application
+ * All margins now use the centralized 6px constants for consistency
  */
 export const MARGINS = {
   legend: {
-    top: 20,
-    right: 20,
-    bottom: 20,
-    left: 20
+    top: UniversalSpacing.EDGE_PADDING,
+    right: UniversalSpacing.EDGE_PADDING,
+    bottom: UniversalSpacing.WIDGET_GAP,
+    left: UniversalSpacing.EDGE_PADDING,
   },
   pane: {
-    top: 10,
-    right: 10,
-    bottom: 10,
-    left: 10
+    top: UniversalSpacing.EDGE_PADDING,
+    right: UniversalSpacing.EDGE_PADDING,
+    bottom: UniversalSpacing.EDGE_PADDING,
+    left: UniversalSpacing.EDGE_PADDING,
   },
   content: {
-    top: 5,
-    right: 5,
-    bottom: 5,
-    left: 5
+    top: UniversalSpacing.EDGE_PADDING,
+    right: UniversalSpacing.EDGE_PADDING,
+    bottom: UniversalSpacing.EDGE_PADDING,
+    left: UniversalSpacing.EDGE_PADDING,
   },
   tooltip: {
-    top: 10,
-    right: 10,
-    bottom: 10,
-    left: 10
-  }
-} as const
+    top: UniversalSpacing.EDGE_PADDING,
+    right: UniversalSpacing.EDGE_PADDING,
+    bottom: UniversalSpacing.EDGE_PADDING,
+    left: UniversalSpacing.EDGE_PADDING,
+  },
+} as const;
 
 /**
  * Default dimensions for chart components
@@ -40,33 +67,36 @@ export const DIMENSIONS = {
   timeAxis: {
     defaultHeight: 35,
     minHeight: 25,
-    maxHeight: 50
+    maxHeight: 50,
   },
   priceScale: {
     defaultWidth: 70,
     minWidth: 50,
     maxWidth: 100,
-    rightScaleDefaultWidth: 0
+    rightScaleDefaultWidth: 0,
   },
   legend: {
     defaultHeight: 80,
     minHeight: 60,
     maxHeight: 120,
     defaultWidth: 200,
-    minWidth: 150
+    minWidth: 150,
   },
   pane: {
     defaultHeight: 200,
     minHeight: 100,
-    maxHeight: 1000
+    maxHeight: 1000,
+    minWidth: 200,
+    maxWidth: 2000,
+    collapsedHeight: 30, // Height when pane is collapsed (30px is minimum per lightweight-charts API)
   },
   chart: {
     defaultWidth: 800,
     defaultHeight: 600,
     minWidth: 300,
-    minHeight: 200
-  }
-} as const
+    minHeight: 200,
+  },
+} as const;
 
 /**
  * Fallback values for error cases
@@ -79,8 +109,8 @@ export const FALLBACKS = {
   timeScaleHeight: 35,
   priceScaleWidth: 70,
   containerWidth: 800,
-  containerHeight: 600
-} as const
+  containerHeight: 600,
+} as const;
 
 /**
  * Z-index values for layering
@@ -93,45 +123,27 @@ export const Z_INDEX = {
   overlay: 30,
   legend: 40,
   tooltip: 50,
-  modal: 100
-} as const
+  modal: 100,
+} as const;
 
 /**
  * Animation and timing configurations
  */
 export const TIMING = {
   cacheExpiration: 5000, // 5 seconds
+  cacheCleanupInterval: 10000, // 10 seconds
   debounceDelay: 100, // 100ms
   throttleDelay: 50, // 50ms
-  animationDuration: 200 // 200ms
-} as const
-
-/**
- * Positioning calculation modes
- */
-export enum PositioningMode {
-  ABSOLUTE = 'absolute',
-  RELATIVE = 'relative',
-  FIXED = 'fixed',
-  STICKY = 'sticky'
-}
-
-/**
- * Coordinate system origins
- */
-export enum CoordinateOrigin {
-  TOP_LEFT = 'top-left',
-  TOP_RIGHT = 'top-right',
-  BOTTOM_LEFT = 'bottom-left',
-  BOTTOM_RIGHT = 'bottom-right',
-  CENTER = 'center'
-}
+  animationDuration: 200, // 200ms
+  chartReadyDelay: 300, // 300ms - Delay for chart initialization
+  backendSyncDebounce: 300, // 300ms - Debounce for backend sync operations
+} as const;
 
 /**
  * Get margin configuration by feature type
  */
 export function getMargins(feature: keyof typeof MARGINS): (typeof MARGINS)[keyof typeof MARGINS] {
-  return MARGINS[feature] || MARGINS.content
+  return MARGINS[feature] || MARGINS.content;
 }
 
 /**
@@ -140,14 +152,14 @@ export function getMargins(feature: keyof typeof MARGINS): (typeof MARGINS)[keyo
 export function getDimensions(
   component: keyof typeof DIMENSIONS
 ): (typeof DIMENSIONS)[keyof typeof DIMENSIONS] {
-  return DIMENSIONS[component] || DIMENSIONS.chart
+  return DIMENSIONS[component] || DIMENSIONS.chart;
 }
 
 /**
  * Get fallback value by type
  */
 export function getFallback(type: keyof typeof FALLBACKS): number {
-  return FALLBACKS[type] || 0
+  return FALLBACKS[type] || 0;
 }
 
 /**
@@ -155,30 +167,43 @@ export function getFallback(type: keyof typeof FALLBACKS): number {
  */
 export function validateConfiguration(): boolean {
   // Ensure all dimensions are positive
-  for (const [key, value] of Object.entries(DIMENSIONS)) {
-    for (const [prop, val] of Object.entries(value)) {
+  for (const [, value] of Object.entries(DIMENSIONS)) {
+    for (const [, val] of Object.entries(value)) {
       if (typeof val === 'number' && val < 0) {
-        console.error(`Invalid dimension: ${key}.${prop} = ${val}`)
-        return false
+        return false;
       }
     }
   }
 
   // Ensure min values are less than max values
   if (DIMENSIONS.timeAxis.minHeight > DIMENSIONS.timeAxis.maxHeight) {
-    console.error('Invalid time axis height range')
-    return false
+    return false;
   }
 
   if (DIMENSIONS.priceScale.minWidth > DIMENSIONS.priceScale.maxWidth) {
-    console.error('Invalid price scale width range')
-    return false
+    return false;
   }
 
-  return true
+  return true;
 }
+
+/**
+ * CSS class name generators
+ * Centralizes all dynamic class name generation
+ */
+export const CSS_CLASSES = {
+  /**
+   * Generate series configuration dialog container class name
+   */
+  seriesDialogContainer: (paneId: number): string => `series-config-dialog-container-${paneId}`,
+
+  /**
+   * Generate pane button panel container class name
+   */
+  paneButtonPanelContainer: (paneId: number): string => `pane-button-panel-container-${paneId}`,
+} as const;
 
 // Validate configuration on load
 if (process.env.NODE_ENV === 'development') {
-  validateConfiguration()
+  validateConfiguration();
 }

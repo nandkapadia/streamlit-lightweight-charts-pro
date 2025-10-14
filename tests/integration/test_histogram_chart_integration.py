@@ -12,8 +12,11 @@ import pandas as pd
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
+from streamlit_lightweight_charts_pro.charts.options import ChartOptions
+from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
 from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
+from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
 
 
@@ -23,7 +26,7 @@ class TestHistogramChartIntegration:
     def test_price_volume_chart_creation(self):
         """Test creating a price-volume chart with candlestick and volume series."""
         # Create sample OHLCV data
-        df = pd.DataFrame(
+        histogram_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=10, freq="1h"),
                 "open": [100, 101, 102, 103, 104, 105, 106, 107, 108, 109],
@@ -31,13 +34,13 @@ class TestHistogramChartIntegration:
                 "low": [99, 100, 101, 102, 103, 104, 105, 106, 107, 108],
                 "close": [101, 102, 101, 104, 105, 104, 107, 108, 107, 110],
                 "volume": [1000, 1500, 1200, 1800, 2000, 1600, 2200, 2400, 2000, 2600],
-            }
+            },
         )
 
         # Create chart using the factory method
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=histogram_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -73,7 +76,7 @@ class TestHistogramChartIntegration:
     def test_price_volume_chart_json_serialization(self):
         """Test that price-volume chart can be properly serialized to JSON."""
         # Create sample data
-        df = pd.DataFrame(
+        histogram_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=5, freq="1h"),
                 "open": [100, 101, 102, 103, 104],
@@ -81,12 +84,12 @@ class TestHistogramChartIntegration:
                 "low": [99, 100, 101, 102, 103],
                 "close": [101, 102, 101, 104, 105],
                 "volume": [1000, 1500, 1200, 1800, 2000],
-            }
+            },
         )
 
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=histogram_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -129,8 +132,6 @@ class TestHistogramChartIntegration:
     def test_manual_series_addition(self):
         """Test manually adding histogram series to a chart."""
         # Create chart with options
-        from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-
         chart = Chart(options=ChartOptions(height=500))
 
         # Create candlestick data
@@ -163,14 +164,14 @@ class TestHistogramChartIntegration:
         # Verify data alignment
         assert len(chart.series[0].data) == len(chart.series[1].data)
 
-        # Verify timestamps match
-        candlestick_times = [data.time for data in chart.series[0].data]
-        volume_times = [data.time for data in chart.series[1].data]
+        # Verify timestamps match when serialized (time normalized in asdict())
+        candlestick_times = [data.asdict()["time"] for data in chart.series[0].data]
+        volume_times = [data.asdict()["time"] for data in chart.series[1].data]
         assert candlestick_times == volume_times
 
     def test_custom_volume_colors(self):
         """Test using custom colors for volume series."""
-        df = pd.DataFrame(
+        histogram_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=5, freq="1h"),
                 "open": [100, 101, 102, 103, 104],
@@ -178,13 +179,13 @@ class TestHistogramChartIntegration:
                 "low": [99, 100, 101, 102, 103],
                 "close": [101, 102, 101, 104, 105],
                 "volume": [1000, 1500, 1200, 1800, 2000],
-            }
+            },
         )
 
         # Create chart with custom volume colors
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=histogram_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -204,13 +205,13 @@ class TestHistogramChartIntegration:
         assert isinstance(volume_series, HistogramSeries)
 
         # Check that custom colors are applied
-        colors_used = set(data.color for data in volume_series.data)
+        colors_used = {data.color for data in volume_series.data}
         assert "rgba(0,255,0,0.5)" in colors_used  # Custom green
         assert "rgba(255,0,0,0.5)" in colors_used  # Custom red
 
     def test_volume_series_with_markers(self):
         """Test volume series with markers."""
-        df = pd.DataFrame(
+        histogram_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=5, freq="1h"),
                 "open": [100, 101, 102, 103, 104],
@@ -218,12 +219,12 @@ class TestHistogramChartIntegration:
                 "low": [99, 100, 101, 102, 103],
                 "close": [101, 102, 101, 104, 105],
                 "volume": [1000, 1500, 1200, 1800, 2000],
-            }
+            },
         )
 
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=histogram_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -236,7 +237,6 @@ class TestHistogramChartIntegration:
 
         # Add markers to volume series
         volume_series = chart.series[1]
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time="2024-01-01 01:00:00",
@@ -259,7 +259,7 @@ class TestHistogramChartIntegration:
 
     def test_volume_series_with_price_lines(self):
         """Test volume series with price lines."""
-        df = pd.DataFrame(
+        histogram_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=5, freq="1h"),
                 "open": [100, 101, 102, 103, 104],
@@ -267,12 +267,12 @@ class TestHistogramChartIntegration:
                 "low": [99, 100, 101, 102, 103],
                 "close": [101, 102, 101, 104, 105],
                 "volume": [1000, 1500, 1200, 1800, 2000],
-            }
+            },
         )
 
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=histogram_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -285,9 +285,6 @@ class TestHistogramChartIntegration:
 
         # Add price line to volume series
         volume_series = chart.series[1]
-        from streamlit_lightweight_charts_pro.charts.options.price_line_options import (
-            PriceLineOptions,
-        )
 
         price_line = PriceLineOptions(
             price=1500,
@@ -312,7 +309,7 @@ class TestHistogramChartIntegration:
 
     def test_volume_series_visibility_control(self):
         """Test controlling volume series visibility."""
-        df = pd.DataFrame(
+        histogram_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=5, freq="1h"),
                 "open": [100, 101, 102, 103, 104],
@@ -320,12 +317,12 @@ class TestHistogramChartIntegration:
                 "low": [99, 100, 101, 102, 103],
                 "close": [101, 102, 101, 104, 105],
                 "volume": [1000, 1500, 1200, 1800, 2000],
-            }
+            },
         )
 
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=histogram_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -351,7 +348,7 @@ class TestHistogramChartIntegration:
 
     def test_volume_series_price_scale_configuration(self):
         """Test volume series with custom price scale configuration."""
-        df = pd.DataFrame(
+        histogram_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=5, freq="1h"),
                 "open": [100, 101, 102, 103, 104],
@@ -359,12 +356,12 @@ class TestHistogramChartIntegration:
                 "low": [99, 100, 101, 102, 103],
                 "close": [101, 102, 101, 104, 105],
                 "volume": [1000, 1500, 1200, 1800, 2000],
-            }
+            },
         )
 
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=histogram_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -393,26 +390,27 @@ class TestHistogramChartIntegration:
     def test_large_dataset_integration(self):
         """Test integration with large dataset."""
         # Create large dataset
+        rng = np.random.default_rng(42)
         n_points = 10000
-        df = pd.DataFrame(
+        histogram_data = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=n_points, freq="1min"),
-                "open": np.random.uniform(100, 200, n_points),
-                "high": np.random.uniform(100, 200, n_points),
-                "low": np.random.uniform(100, 200, n_points),
-                "close": np.random.uniform(100, 200, n_points),
-                "volume": np.random.randint(1000, 10000, n_points),
-            }
+                "open": rng.uniform(100, 200, n_points),
+                "high": rng.uniform(100, 200, n_points),
+                "low": rng.uniform(100, 200, n_points),
+                "close": rng.uniform(100, 200, n_points),
+                "volume": rng.integers(1000, 10000, n_points),
+            },
         )
 
         # Ensure high >= open, close and low <= open, close
-        df["high"] = df[["open", "close", "high"]].max(axis=1)
-        df["low"] = df[["open", "close", "low"]].min(axis=1)
+        histogram_data["high"] = histogram_data[["open", "close", "high"]].max(axis=1)
+        histogram_data["low"] = histogram_data[["open", "close", "low"]].min(axis=1)
 
         # Create chart
         manager = ChartManager()
         chart = manager.from_price_volume_dataframe(
-            data=df,
+            data=histogram_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -435,7 +433,7 @@ class TestHistogramChartIntegration:
 
         # Verify volume colors are assigned
         volume_series = chart.series[1]
-        colors_used = set(data.color for data in volume_series.data)
+        colors_used = {data.color for data in volume_series.data}
         assert "rgba(38,166,154,0.5)" in colors_used  # Up color
         assert "rgba(239,83,80,0.5)" in colors_used  # Down color
 

@@ -1,5 +1,4 @@
-"""
-Signal series for background coloring in charts.
+"""Signal series for background coloring in charts.
 
 This module provides the SignalSeries class for creating signal-based background
 coloring in financial charts. SignalSeries creates vertical background bands
@@ -21,8 +20,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_property
 @chainable_property("signal_color", str, validator="color")
 @chainable_property("alert_color", str, validator="color", allow_none=True)
 class SignalSeries(Series):
-    """
-    Signal series for background coloring in charts.
+    """Signal series for background coloring in charts.
 
     SignalSeries creates vertical background bands that span the entire chart
     height, colored based on signal values at specific time points. This is
@@ -52,7 +50,7 @@ class SignalSeries(Series):
         signal_series = SignalSeries(
             data=signal_data,
             neutral_color="#ffffff",  # White for value=0 (when no individual color)
-            signal_color="#ff0000"   # Red for value=1 (when no individual color)
+            signal_color="#ff0000",  # Red for value=1 (when no individual color)
         )
 
         # Add to chart
@@ -64,6 +62,11 @@ class SignalSeries(Series):
 
     @property
     def chart_type(self) -> ChartType:
+        """Get the chart type for this series.
+
+        Returns:
+            ChartType: ChartType.SIGNAL indicating this is a signal series.
+        """
         return ChartType.SIGNAL
 
     def __init__(
@@ -77,8 +80,7 @@ class SignalSeries(Series):
         price_scale_id: str = "right",
         pane_id: Optional[int] = 0,
     ):
-        """
-        Initialize SignalSeries.
+        """Initialize SignalSeries.
 
         Args:
             data: List of SignalData objects, DataFrame, or Series.

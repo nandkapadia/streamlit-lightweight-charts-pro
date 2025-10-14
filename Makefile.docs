@@ -1,0 +1,30 @@
+# Documentation build targets
+
+.PHONY: docs-build docs-serve docs-clean docs-help
+
+docs-build: ## Build documentation to docs/ directory
+	@echo "Building documentation..."
+	mkdocs build
+	@echo "Documentation built to docs/ directory"
+
+docs-serve: ## Serve documentation locally
+	@echo "Starting local documentation server..."
+	mkdocs serve
+
+docs-clean: ## Clean documentation build
+	@echo "Cleaning documentation..."
+	rm -rf docs/
+	rm -rf site/
+	@echo "Documentation cleaned"
+
+docs-help: ## Show documentation help
+	@echo "Available documentation targets:"
+	@echo "  docs-build  - Build documentation to docs/ directory"
+	@echo "  docs-serve  - Serve documentation locally for development"
+	@echo "  docs-clean  - Clean documentation build files"
+	@echo "  docs-help   - Show this help message"
+	@echo ""
+	@echo "Configuration:"
+	@echo "  Source files: docs-src/"
+	@echo "  Output directory: docs/"
+	@echo "  Links: Explicit .html files (no directory URLs)"

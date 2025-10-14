@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 
 
 class TestOhlcvData:
@@ -19,7 +20,12 @@ class TestOhlcvData:
         """Test construction with valid values."""
         timestamp = int(datetime.now().timestamp())
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
 
         assert data.time == timestamp
@@ -41,7 +47,12 @@ class TestOhlcvData:
         timestamp = int(datetime.now().timestamp())
         large_volume = 1e12  # 1 trillion
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=large_volume
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=large_volume,
         )
 
         assert data.volume == large_volume
@@ -50,7 +61,12 @@ class TestOhlcvData:
         """Test construction with decimal volume values."""
         timestamp = int(datetime.now().timestamp())
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1234.5678
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1234.5678,
         )
 
         assert data.volume == 1234.5678
@@ -59,7 +75,7 @@ class TestOhlcvData:
         """Test validation of negative volume."""
         timestamp = int(datetime.now().timestamp())
 
-        with pytest.raises(ValueError, match="volume must be non-negative"):
+        with pytest.raises(ValueValidationError):
             OhlcvData(time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=-100.0)
 
     def test_validation_nan_volume(self):
@@ -68,7 +84,12 @@ class TestOhlcvData:
 
         # NaN should be converted to 0.0
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=float("nan")
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=float("nan"),
         )
 
         assert data.volume == 0.0
@@ -80,7 +101,8 @@ class TestOhlcvData:
         # The validation order in the parent class will catch None values first
         # So we need to test for the parent class error message
         with pytest.raises(
-            TypeError, match="'<' not supported between instances of 'NoneType' and 'int'"
+            TypeError,
+            match="'<' not supported between instances of 'NoneType' and 'int'",
         ):
             OhlcvData(time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=None)
 
@@ -89,7 +111,7 @@ class TestOhlcvData:
         timestamp = int(datetime.now().timestamp())
 
         # Test high < low constraint
-        with pytest.raises(ValueError, match="high must be greater than or equal to low"):
+        with pytest.raises(ValueValidationError):
             OhlcvData(
                 time=timestamp,
                 open=100.0,
@@ -100,7 +122,7 @@ class TestOhlcvData:
             )
 
         # Test negative OHLC values
-        with pytest.raises(ValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(ValueValidationError):
             OhlcvData(
                 time=timestamp,
                 open=-100.0,  # Negative open
@@ -135,22 +157,26 @@ class TestOhlcvData:
 
         # The parent class validation will catch None values during comparison
         with pytest.raises(
-            TypeError, match="'<' not supported between instances of 'NoneType' and 'int'"
+            TypeError,
+            match="'<' not supported between instances of 'NoneType' and 'int'",
         ):
             OhlcvData(time=timestamp, open=None, high=110.0, low=95.0, close=105.0, volume=1000.0)
 
         with pytest.raises(
-            TypeError, match="'<' not supported between instances of 'NoneType' and 'float'"
+            TypeError,
+            match="'<' not supported between instances of 'NoneType' and 'float'",
         ):
             OhlcvData(time=timestamp, open=100.0, high=None, low=95.0, close=105.0, volume=1000.0)
 
         with pytest.raises(
-            TypeError, match="'<' not supported between instances of 'float' and 'NoneType'"
+            TypeError,
+            match="'<' not supported between instances of 'float' and 'NoneType'",
         ):
             OhlcvData(time=timestamp, open=100.0, high=110.0, low=None, close=105.0, volume=1000.0)
 
         with pytest.raises(
-            TypeError, match="'<' not supported between instances of 'NoneType' and 'int'"
+            TypeError,
+            match="'<' not supported between instances of 'NoneType' and 'int'",
         ):
             OhlcvData(time=timestamp, open=100.0, high=110.0, low=95.0, close=None, volume=1000.0)
 
@@ -160,23 +186,59 @@ class TestOhlcvData:
         dt = datetime.now()
         data = OhlcvData(time=dt, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0)
 
-        assert isinstance(data.time, int)
-        assert data.time == int(dt.timestamp())
+        # Time stored as datetime object
+        assert data.time == dt
+        result = data.asdict()
+        assert isinstance(result["time"], int)  # Normalized in asdict()
+        assert result["time"] == int(dt.timestamp())
 
         # Test with integer timestamp (not string)
         timestamp_int = 1640995200  # 2022-01-01 00:00:00 UTC
         data = OhlcvData(
-            time=timestamp_int, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=timestamp_int,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
 
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        assert data.time == timestamp_int  # Stored as-is
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
+
+    def test_time_modification_after_construction(self):
+        """Test that time can be modified after construction."""
+        data = OhlcvData(
+            time="2024-01-01",
+            open=100.0,
+            high=105.0,
+            low=95.0,
+            close=102.0,
+            volume=1000,
+        )
+        result1 = data.asdict()
+        time1 = result1["time"]
+
+        # Modify time after construction
+        data.time = "2024-01-02"
+        result2 = data.asdict()
+        time2 = result2["time"]
+
+        # Times should be different
+        assert time1 != time2
 
     def test_to_dict_serialization(self):
         """Test serialization to dictionary."""
         timestamp = 1640995200
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
 
         result = data.asdict()
@@ -226,10 +288,20 @@ class TestOhlcvData:
         """Test equality comparison for OhlcvData objects."""
         timestamp = 1640995200
         data1 = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
         data2 = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
         data3 = OhlcvData(
             time=timestamp,
@@ -247,7 +319,12 @@ class TestOhlcvData:
         """Test string representation of OhlcvData."""
         timestamp = 1640995200
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
 
         repr_str = repr(data)
@@ -263,7 +340,12 @@ class TestOhlcvData:
         """Test that OhlcvData properly inherits from OhlcData."""
         timestamp = 1640995200
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
 
         # Should have all OHLC attributes
@@ -362,7 +444,12 @@ class TestOhlcvData:
         timestamp = 1640995200
         value = 100.0
         data = OhlcvData(
-            time=timestamp, open=value, high=value, low=value, close=value, volume=1000.0
+            time=timestamp,
+            open=value,
+            high=value,
+            low=value,
+            close=value,
+            volume=1000.0,
         )
 
         assert data.open == data.high == data.low == data.close == value
@@ -371,7 +458,12 @@ class TestOhlcvData:
         """Test edge case with future timestamp."""
         future_timestamp = int((datetime.now() + timedelta(days=365)).timestamp())
         data = OhlcvData(
-            time=future_timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=future_timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
 
         assert data.time == future_timestamp
@@ -380,7 +472,12 @@ class TestOhlcvData:
         """Test edge case with past timestamp."""
         past_timestamp = 0  # Unix epoch
         data = OhlcvData(
-            time=past_timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=past_timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
 
         assert data.time == past_timestamp
@@ -389,7 +486,12 @@ class TestOhlcvData:
         """Test edge case with very large timestamp."""
         large_timestamp = 9999999999  # Far future
         data = OhlcvData(
-            time=large_timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=large_timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
 
         assert data.time == large_timestamp
@@ -398,7 +500,12 @@ class TestOhlcvData:
         """Test edge case with negative timestamp."""
         negative_timestamp = -1000000  # Past
         data = OhlcvData(
-            time=negative_timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=1000.0
+            time=negative_timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=1000.0,
         )
 
         assert data.time == negative_timestamp
@@ -408,13 +515,21 @@ class TestOhlcvData:
         timestamp = 1640995200
 
         # Let's check what actually happens with infinity values
+        def _raise_assertion_error():
+            raise AssertionError("Expected exception but got success")
+
         try:
             data = OhlcvData(
-                time=timestamp, open=float("inf"), high=110.0, low=95.0, close=105.0, volume=1000.0
+                time=timestamp,
+                open=float("inf"),
+                high=110.0,
+                low=95.0,
+                close=105.0,
+                volume=1000.0,
             )
             # If it doesn't raise an exception, let's check what the value is
             print(f"Infinity open value: {data.open}")
-            assert False, "Expected exception but got success"
+            _raise_assertion_error()
         except Exception as e:
             print(f"Caught exception: {type(e).__name__}: {e}")
             # Accept any exception for now
@@ -425,9 +540,14 @@ class TestOhlcvData:
         timestamp = 1640995200
 
         # Negative infinity should be handled by the parent class validation
-        with pytest.raises(ValueError, match="all OHLC values must be non-negative"):
+        with pytest.raises(ValueValidationError):
             OhlcvData(
-                time=timestamp, open=float("-inf"), high=110.0, low=95.0, close=105.0, volume=1000.0
+                time=timestamp,
+                open=float("-inf"),
+                high=110.0,
+                low=95.0,
+                close=105.0,
+                volume=1000.0,
             )
 
     def test_edge_case_mixed_nan_values(self):
@@ -471,7 +591,12 @@ class TestOhlcvData:
         timestamp = 1640995200
         precise_volume = 123456789.123456789
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=precise_volume
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=precise_volume,
         )
 
         assert data.volume == precise_volume
@@ -481,7 +606,12 @@ class TestOhlcvData:
         timestamp = 1640995200
         scientific_volume = 1.23e6  # 1,230,000
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=scientific_volume
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=scientific_volume,
         )
 
         assert data.volume == scientific_volume
@@ -491,7 +621,12 @@ class TestOhlcvData:
         timestamp = 1640995200
         small_volume = 0.000000001
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=small_volume
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=small_volume,
         )
 
         assert data.volume == small_volume
@@ -501,7 +636,12 @@ class TestOhlcvData:
         timestamp = 1640995200
         large_volume = 999999999.999999999
         data = OhlcvData(
-            time=timestamp, open=100.0, high=110.0, low=95.0, close=105.0, volume=large_volume
+            time=timestamp,
+            open=100.0,
+            high=110.0,
+            low=95.0,
+            close=105.0,
+            volume=large_volume,
         )
 
         assert data.volume == large_volume

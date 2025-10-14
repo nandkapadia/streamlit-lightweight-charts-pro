@@ -1,5 +1,4 @@
-"""
-Data model classes for Streamlit Lightweight Charts Pro.
+"""Data model classes for Streamlit Lightweight Charts Pro.
 
 This module provides the core data models used throughout the library for
 representing financial data points, markers, annotations, and other chart elements.
@@ -22,7 +21,10 @@ The module includes:
 Example Usage:
     ```python
     from streamlit_lightweight_charts_pro.data import (
-        SingleValueData, CandlestickData, Marker, create_text_annotation
+        SingleValueData,
+        CandlestickData,
+        Marker,
+        create_text_annotation,
     )
 
     # Create single value data
@@ -72,7 +74,6 @@ from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickDa
 
 # Import base data classes
 from streamlit_lightweight_charts_pro.data.data import Data
-from streamlit_lightweight_charts_pro.data.gradient_band import GradientBandData
 from streamlit_lightweight_charts_pro.data.gradient_ribbon import GradientRibbonData
 from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
 
@@ -102,61 +103,49 @@ from streamlit_lightweight_charts_pro.data.tooltip import (
 )
 
 # Import trade classes
-from streamlit_lightweight_charts_pro.data.trade import (
-    TradeData,
-    TradeType,
-)
+from streamlit_lightweight_charts_pro.data.trade import TradeData
 from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData
 
 # Import tooltip enums from type_definitions
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     TooltipPosition,
     TooltipType,
+    TradeType,
     TradeVisualization,
 )
 
 # Re-export all classes for backward compatibility
 __all__ = [
-    # Base data classes
-    "Data",
-    # Single value data classes
-    "SingleValueData",
-    "LineData",
-    "HistogramData",
-    # Area and bar data classes
-    "AreaData",
-    "BarData",
-    "BaselineData",
-    # OHLC data classes
-    "CandlestickData",
-    "OhlcvData",
-    # Band data classes
-    "BandData",
-    "RibbonData",
-    "GradientBandData",
-    "GradientRibbonData",
-    "TrendFillData",
-    # Marker classes
-    "MarkerBase",
-    "PriceMarker",
-    "BarMarker",
-    "Marker",
-    # Trade classes
-    "TradeData",
-    "TradeType",
-    "TradeVisualization",
-    "TradeVisualizationOptions",
     # Annotation classes
     "Annotation",
     "AnnotationLayer",
     "AnnotationManager",
     "AnnotationPosition",
     "AnnotationType",
-    "create_arrow_annotation",
-    "create_shape_annotation",
-    "create_text_annotation",
+    # Area and bar data classes
+    "AreaData",
+    # Band data classes
+    "BandData",
+    "BarData",
+    "BarMarker",
+    "BaselineData",
+    # OHLC data classes
+    "CandlestickData",
+    # Base data classes
+    "Data",
+    "GradientRibbonData",
+    "HistogramData",
+    "LineData",
+    "Marker",
+    # Marker classes
+    "MarkerBase",
+    "OhlcvData",
+    "PriceMarker",
+    "RibbonData",
     # Signal data classes
     "SignalData",
+    # Single value data classes
+    "SingleValueData",
     # Tooltip classes
     "TooltipConfig",
     "TooltipField",
@@ -164,9 +153,18 @@ __all__ = [
     "TooltipPosition",
     "TooltipStyle",
     "TooltipType",
+    # Trade classes
+    "TradeData",
+    "TradeType",
+    "TradeVisualization",
+    "TradeVisualizationOptions",
+    "TrendFillData",
+    "create_arrow_annotation",
     "create_custom_tooltip",
     "create_multi_series_tooltip",
     "create_ohlc_tooltip",
+    "create_shape_annotation",
     "create_single_value_tooltip",
+    "create_text_annotation",
     "create_trade_tooltip",
 ]

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Series Dialog Multi-Series Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #container {
+            width: 800px;
+            height: 400px;
+            position: relative;
+            background: white;
+        }
+        #chart { width: 100%; height: 100%; }
+
+        .series-config-button {
+            position: absolute;
+            top: 10px;
+            width: 32px;
+            height: 32px;
+            border: 1px solid #666;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            z-index: 10;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .series-config-button:hover {
+            background: #f0f0f0;
+        }
+
+        #button-1 { right: 10px; }
+        #button-2 { right: 50px; }
+
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+        .dialog-overlay.open { display: block; }
+
+        .series-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            min-width: 320px;
+            z-index: 101;
+        }
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .dialog-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .dialog-close {
+            border: none;
+            background: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .color-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            position: relative;
+        }
+        .color-button:hover {
+            border-color: #999;
+        }
+
+        .color-picker {
+            display: none;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+            z-index: 200;
+        }
+        .color-picker.open {
+            display: block;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 40px);
+            gap: 8px;
+        }
+
+        .color-preset {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid #ddd;
+        }
+        .color-preset:hover {
+            border-color: #666;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="chart"></div>
+        <button class="series-config-button" id="button-1" data-testid="series-config-button-1">
+            <span style="color: #2196F3;">1</span>
+        </button>
+        <button class="series-config-button" id="button-2" data-testid="series-config-button-2">
+            <span style="color: #F44336;">2</span>
+        </button>
+    </div>
+
+    <div class="dialog-overlay" id="overlay">
+        <div class="series-dialog" data-testid="series-config-dialog" onclick="event.stopPropagation()">
+            <div class="dialog-header">
+                <span class="dialog-title" id="dialog-title">Series 1</span>
+                <button class="dialog-close" data-testid="dialog-close">×</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Series Name</label>
+                <input type="text" id="series-name">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Color</label>
+                <button class="color-button" id="color-button" data-testid="series-color-button"></button>
+                <div class="color-picker" id="color-picker" data-testid="color-picker">
+                    <div class="color-grid">
+                        <div class="color-preset" style="background: #FF0000;" data-color="#FF0000"></div>
+                        <div class="color-preset" style="background: #00FF00;" data-color="#00FF00"></div>
+                        <div class="color-preset" style="background: #0000FF;" data-color="#0000FF"></div>
+                        <div class="color-preset" style="background: #FFFF00;" data-color="#FFFF00"></div>
+                        <div class="color-preset" style="background: #FF00FF;" data-color="#FF00FF"></div>
+                        <div class="color-preset" style="background: #00FFFF;" data-color="#00FFFF"></div>
+                        <div class="color-preset" style="background: #FFA500;" data-color="#FFA500"></div>
+                        <div class="color-preset" style="background: #800080;" data-color="#800080"></div>
+                        <div class="color-preset" style="background: #008000;" data-color="#008000"></div>
+                        <div class="color-preset" style="background: #000080;" data-color="#000080"></div>
+                        <div class="color-preset" style="background: #808080;" data-color="#808080"></div>
+                        <div class="color-preset" style="background: #000000;" data-color="#000000"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Line Width</label>
+                <input type="number" min="1" max="5" id="line-width">
+            </div>
+        </div>
+    </div>
+
+    <script>
+let chart, series1, series2, currentSeries = null;
+
+const seriesConfig = {
+    1: { name: 'Series 1', color: '#2196F3', width: 2 },
+    2: { name: 'Series 2', color: '#F44336', width: 2 }
+};
+
+function runTestCase() {
+    const data1 = [];
+    const data2 = [];
+    const startDate = new Date('2024-01-01');
+
+    for (let i = 0; i < 60; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const price1 = 100 + i * 0.5 + Math.sin(i / 8) * 15;
+        const price2 = 120 + i * 0.3 + Math.cos(i / 6) * 12;
+
+        data1.push({ time: dateStr, value: parseFloat(price1.toFixed(2)) });
+        data2.push({ time: dateStr, value: parseFloat(price2.toFixed(2)) });
+    }
+
+    chart = LightweightCharts.createChart(document.getElementById('chart'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    series1 = chart.addSeries(LightweightCharts.LineSeries);
+    series1.applyOptions({ color: seriesConfig[1].color, lineWidth: seriesConfig[1].width });
+    series1.setData(data1);
+
+    series2 = chart.addSeries(LightweightCharts.LineSeries);
+    series2.applyOptions({ color: seriesConfig[2].color, lineWidth: seriesConfig[2].width });
+    series2.setData(data2);
+
+    // Dialog control
+    const overlay = document.getElementById('overlay');
+    const closeButton = document.querySelector('[data-testid="dialog-close"]');
+    const dialogTitle = document.getElementById('dialog-title');
+    const seriesNameInput = document.getElementById('series-name');
+    const colorButton = document.getElementById('color-button');
+    const colorPicker = document.getElementById('color-picker');
+    const lineWidthInput = document.getElementById('line-width');
+
+    function openDialog(seriesId) {
+        currentSeries = seriesId;
+        const config = seriesConfig[seriesId];
+
+        dialogTitle.textContent = `Series ${seriesId}`;
+        seriesNameInput.value = config.name;
+        colorButton.style.background = config.color;
+        lineWidthInput.value = config.width;
+
+        overlay.classList.add('open');
+    }
+
+    // Color picker control
+    colorButton.onclick = (e) => {
+        e.stopPropagation();
+        colorPicker.classList.toggle('open');
+    };
+
+    // Color preset selection
+    document.querySelectorAll('.color-preset').forEach(preset => {
+        preset.onclick = () => {
+            const color = preset.getAttribute('data-color');
+            seriesConfig[currentSeries].color = color;
+            colorButton.style.background = color;
+            colorPicker.classList.remove('open');
+
+            // Apply to the appropriate series
+            if (currentSeries === 1) {
+                series1.applyOptions({ color: color });
+            } else {
+                series2.applyOptions({ color: color });
+            }
+        };
+    });
+
+    document.getElementById('button-1').onclick = () => openDialog(1);
+    document.getElementById('button-2').onclick = () => openDialog(2);
+
+    closeButton.onclick = () => {
+        overlay.classList.remove('open');
+    };
+
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            overlay.classList.remove('open');
+        }
+    };
+
+    // Update series when inputs change
+    seriesNameInput.oninput = (e) => {
+        seriesConfig[currentSeries].name = e.target.value;
+    };
+
+    lineWidthInput.oninput = (e) => {
+        const width = parseInt(e.target.value);
+        seriesConfig[currentSeries].width = width;
+        if (currentSeries === 1) {
+            series1.applyOptions({ lineWidth: width });
+        } else {
+            series2.applyOptions({ lineWidth: width });
+        }
+    };
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.classList.contains('open')) {
+            overlay.classList.remove('open');
+        }
+    });
+
+    chart.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>

@@ -11,6 +11,11 @@ import pandas as pd
 import pytest
 
 from streamlit_lightweight_charts_pro.data.area_data import AreaData
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
+    RequiredFieldError,
+    TimeValidationError,
+)
 
 
 class TestAreaDataConstruction:
@@ -56,27 +61,37 @@ class TestAreaDataConstruction:
         """Test AreaData construction with time string."""
         data = AreaData(time="2022-01-01", value=100)
 
-        assert data.time == 1640995200  # Normalized to UNIX timestamp
+        # Time is stored as-is
+        assert data.time == "2022-01-01"
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert result["time"] == 1640995200
 
     def test_construction_with_datetime(self):
         """Test AreaData construction with datetime."""
         dt = datetime(2022, 1, 1)
         data = AreaData(time=dt, value=100)
 
-        # Time is normalized to UNIX timestamp
-        assert isinstance(data.time, int)
+        # Time is stored as-is (datetime object)
+        assert data.time == dt
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
         # The actual timestamp depends on timezone, so we'll check it's a reasonable value
-        assert data.time > 1640970000  # Should be around 2022-01-01
-        assert data.time < 1640990000  # Should be around 2022-01-01
+        assert result["time"] > 1640970000  # Should be around 2022-01-01
+        assert result["time"] < 1641020000  # Should be around 2022-01-01 (accounting for timezone)
 
     def test_construction_with_pandas_timestamp(self):
         """Test AreaData construction with pandas Timestamp."""
         ts = pd.Timestamp("2022-01-01")
         data = AreaData(time=ts, value=100)
 
-        # Time is normalized to UNIX timestamp
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200  # UTC conversion
+        # Time is stored as-is (pandas Timestamp)
+        assert data.time == ts
+        # Time is normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200  # UTC conversion
 
 
 class TestAreaDataValidation:
@@ -88,7 +103,11 @@ class TestAreaDataValidation:
 
         for color in valid_colors:
             data = AreaData(
-                time=1640995200, value=100, line_color=color, top_color=color, bottom_color=color
+                time=1640995200,
+                value=100,
+                line_color=color,
+                top_color=color,
+                bottom_color=color,
             )
             assert data.line_color == color
             assert data.top_color == color
@@ -100,7 +119,11 @@ class TestAreaDataValidation:
 
         for color in valid_colors:
             data = AreaData(
-                time=1640995200, value=100, line_color=color, top_color=color, bottom_color=color
+                time=1640995200,
+                value=100,
+                line_color=color,
+                top_color=color,
+                bottom_color=color,
             )
             assert data.line_color == color
             assert data.top_color == color
@@ -108,28 +131,31 @@ class TestAreaDataValidation:
 
     def test_invalid_line_color(self):
         """Test AreaData construction with invalid line color."""
-        with pytest.raises(ValueError, match="Invalid line_color format"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for line_color"):
             AreaData(time=1640995200, value=100, line_color="invalid_color")
 
     def test_invalid_top_color(self):
         """Test AreaData construction with invalid top color."""
-        with pytest.raises(ValueError, match="Invalid top_color format"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_color"):
             AreaData(time=1640995200, value=100, top_color="invalid_color")
 
     def test_invalid_bottom_color(self):
         """Test AreaData construction with invalid bottom color."""
-        with pytest.raises(ValueError, match="Invalid bottom_color format"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for bottom_color"):
             AreaData(time=1640995200, value=100, bottom_color="invalid_color")
 
     def test_none_value(self):
         """Test AreaData construction with None value."""
-        with pytest.raises(ValueError):
+        with pytest.raises(RequiredFieldError):
             AreaData(time=1640995200, value=None)
 
     def test_invalid_time(self):
         """Test AreaData construction with invalid time."""
-        with pytest.raises(ValueError):
-            AreaData(time="invalid_time", value=100)
+        # Invalid time won't raise error until asdict() is called
+        data = AreaData(time="invalid_time", value=100)
+        # Error happens during serialization
+        with pytest.raises((TimeValidationError, ValueError)):
+            data.asdict()
 
 
 class TestAreaDataSerialization:
@@ -188,7 +214,11 @@ class TestAreaDataSerialization:
     def test_to_dict_with_whitespace_colors(self):
         """Test AreaData to_dict with whitespace-only color strings."""
         data = AreaData(
-            time=1640995200, value=100, line_color="   ", top_color="   ", bottom_color="   "
+            time=1640995200,
+            value=100,
+            line_color="   ",
+            top_color="   ",
+            bottom_color="   ",
         )
         data_dict = data.asdict()
 
@@ -213,9 +243,11 @@ class TestAreaDataInheritance:
         """Test AreaData optional columns."""
         optional = AreaData.optional_columns
         assert isinstance(optional, set)
-        assert "line_color" in optional
-        assert "top_color" in optional
-        assert "bottom_color" in optional
+        # Convert to set if it's not already one (defensive programming)
+        optional_set = set(optional) if not isinstance(optional, set) else optional
+        assert "line_color" in optional_set
+        assert "top_color" in optional_set
+        assert "bottom_color" in optional_set
 
     def test_inheritance_from_base_data(self):
         """Test that AreaData properly inherits from SingleValueData."""
@@ -277,7 +309,25 @@ class TestAreaDataEdgeCases:
     def test_unicode_strings(self):
         """Test AreaData with unicode strings in time."""
         data = AreaData(time="2022-01-01", value=100)
-        assert data.time == 1640995200
+        # Time stored as-is
+        assert data.time == "2022-01-01"
+        # Normalized in asdict()
+        result = data.asdict()
+        assert result["time"] == 1640995200
+
+    def test_time_modification_after_construction(self):
+        """Test that time can be modified after construction."""
+        data = AreaData(time="2024-01-01", value=100)
+        result1 = data.asdict()
+        time1 = result1["time"]
+
+        # Modify time after construction
+        data.time = "2024-01-02"
+        result2 = data.asdict()
+        time2 = result2["time"]
+
+        # Times should be different
+        assert time1 != time2
 
 
 class TestAreaDataComparison:

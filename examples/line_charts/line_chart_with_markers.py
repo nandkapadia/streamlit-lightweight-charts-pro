@@ -1,26 +1,24 @@
-"""
-Line Chart with Markers Example.
+"""Line Chart with Markers Example.
 
 This example demonstrates a line chart with markers.
 Markers are visual indicators that can be placed on specific
 data points to highlight events, signals, or important moments.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
-from examples.data_samples import get_line_data
+from examples.utilities.data_samples import get_line_data
 from streamlit_lightweight_charts_pro import Chart
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
+from streamlit_lightweight_charts_pro.charts.options import LineOptions
+from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 # Page configuration
@@ -55,7 +53,7 @@ markers.append(
         shape=MarkerShape.ARROW_UP,
         text="Support Level",
         size=12,
-    )
+    ),
 )
 
 # Maximum point marker (resistance level)
@@ -67,7 +65,7 @@ markers.append(
         shape=MarkerShape.ARROW_DOWN,
         text="Resistance Level",
         size=12,
-    )
+    ),
 )
 
 # First significant above-average point
@@ -81,7 +79,7 @@ if above_avg_points:
             shape=MarkerShape.CIRCLE,
             text="Above Average",
             size=10,
-        )
+        ),
     )
 
 # First significant below-average point
@@ -95,7 +93,7 @@ if below_avg_points:
             shape=MarkerShape.CIRCLE,
             text="Below Average",
             size=10,
-        )
+        ),
     )
 
 # Add a trend change marker (simplified - using middle point)
@@ -108,12 +106,12 @@ markers.append(
         shape=MarkerShape.SQUARE,
         text="Trend Change",
         size=8,
-    )
+    ),
 )
 
 # Create line series with markers
 line_options = LineOptions()
-line_series = LineSeries(data=line_data, line_options=line_options).add_markers(markers)
+line_series = LineSeries(data=line_data).add_line_options(line_options).add_markers(markers)
 
 # Create chart
 chart = Chart(series=line_series)

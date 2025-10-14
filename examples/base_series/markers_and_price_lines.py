@@ -1,25 +1,23 @@
-"""
-Markers and Price Lines Example
+"""Markers and Price Lines Example
 
 This example demonstrates the markers and price lines functionality that all series types share.
 It shows how to add, configure, and manage markers and price lines on any series.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
-from examples.data_samples import get_line_data
+from examples.utilities.data_samples import get_line_data
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
@@ -45,7 +43,7 @@ def main():
             shape=MarkerShape.CIRCLE,
             text="Peak",
             size=12,
-        )
+        ),
     )
 
     series_with_markers.add_marker(
@@ -56,7 +54,7 @@ def main():
             shape=MarkerShape.SQUARE,
             text="Low",
             size=10,
-        )
+        ),
     )
 
     series_with_markers.add_marker(
@@ -67,11 +65,11 @@ def main():
             shape=MarkerShape.TRIANGLE,
             text="Important",
             size=8,
-        )
+        ),
     )
 
     chart = Chart(series=series_with_markers)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("2. Different Marker Positions")
     st.write("Demonstrate different marker positions:")
@@ -88,10 +86,10 @@ def main():
                 color="#FF0000",
                 shape=MarkerShape.CIRCLE,
                 text="Above",
-            )
+            ),
         )
         above_chart = Chart(series=above_series)
-        above_chart.render()
+        above_chart.render(key="chart")
 
     with col2:
         st.subheader("Below Bar Markers")
@@ -103,10 +101,10 @@ def main():
                 color="#00FF00",
                 shape=MarkerShape.SQUARE,
                 text="Below",
-            )
+            ),
         )
         below_chart = Chart(series=below_series)
-        below_chart.render()
+        below_chart.render(key="chart")
 
     st.header("3. Different Marker Shapes")
     st.write("Demonstrate different marker shapes:")
@@ -121,7 +119,7 @@ def main():
             color="#FF0000",
             shape=MarkerShape.CIRCLE,
             text="Circle",
-        )
+        ),
     )
     shapes_series.add_marker(
         BarMarker(
@@ -130,7 +128,7 @@ def main():
             color="#00FF00",
             shape=MarkerShape.SQUARE,
             text="Square",
-        )
+        ),
     )
     shapes_series.add_marker(
         BarMarker(
@@ -139,7 +137,7 @@ def main():
             color="#0000FF",
             shape=MarkerShape.TRIANGLE,
             text="Triangle",
-        )
+        ),
     )
     shapes_series.add_marker(
         BarMarker(
@@ -148,11 +146,11 @@ def main():
             color="#FFFF00",
             shape=MarkerShape.ARROW_DOWN,
             text="Arrow",
-        )
+        ),
     )
 
     chart = Chart(series=shapes_series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("4. Adding Price Lines")
     st.write("Add price lines to show support/resistance levels:")
@@ -183,7 +181,7 @@ def main():
     series_with_price_lines.add_price_line(resistance_line)
 
     chart = Chart(series=series_with_price_lines)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("5. Multiple Price Lines")
     st.write("Add multiple price lines with different styles:")
@@ -196,7 +194,7 @@ def main():
     multi_lines_series.add_price_line(PriceLineOptions(price=20.0, color="#0000FF", title="Lower"))
 
     chart = Chart(series=multi_lines_series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("6. Combined Markers and Price Lines")
     st.write("Combine markers and price lines on the same series:")
@@ -211,7 +209,7 @@ def main():
             color="#FF0000",
             shape=MarkerShape.CIRCLE,
             text="Peak",
-        )
+        ),
     )
     combined_series.add_marker(
         BarMarker(
@@ -220,17 +218,17 @@ def main():
             color="#00FF00",
             shape=MarkerShape.SQUARE,
             text="Low",
-        )
+        ),
     )
 
     # Add price lines
     combined_series.add_price_line(
-        PriceLineOptions(price=30.0, color="#FF0000", title="Resistance")
+        PriceLineOptions(price=30.0, color="#FF0000", title="Resistance"),
     )
     combined_series.add_price_line(PriceLineOptions(price=20.0, color="#00FF00", title="Support"))
 
     chart = Chart(series=combined_series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("7. Marker and Price Line Management")
     st.write("Manage markers and price lines programmatically:")
@@ -245,7 +243,7 @@ def main():
             color="#FF0000",
             shape=MarkerShape.CIRCLE,
             text="Initial",
-        )
+        ),
     )
     management_series.add_price_line(PriceLineOptions(price=30.0, color="#FF0000", title="Initial"))
 
@@ -262,7 +260,7 @@ def main():
     st.write(f"Number of price lines: {len(management_series.price_lines)}")
 
     chart = Chart(series=management_series)
-    chart.render()
+    chart.render(key="chart")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,4 @@
-"""
-Utilities for Streamlit Lightweight Charts Pro.
+"""Utilities for Streamlit Lightweight Charts Pro.
 
 This module provides utility functions and decorators that enhance the functionality
 of the charting library. It includes tools for method chaining, data processing,
@@ -15,6 +14,7 @@ allowing for intuitive method chaining when building charts and configuring opti
 Example Usage:
     ```python
     from streamlit_lightweight_charts_pro.utils import chainable_property, chainable_field
+
 
     class ChartConfig:
         @chainable_property
@@ -38,13 +38,23 @@ License: MIT
 """
 
 from .chainable import chainable_field, chainable_property
+from .serialization import (
+    DEFAULT_CONFIG,
+    SerializableMixin,
+    SerializationConfig,
+    SimpleSerializableMixin,
+)
 
 # Trade visualization utilities have been removed - functionality is handled by frontend plugins
 # to avoid circular imports with the options module
 
 __all__ = [
-    "chainable_property",
+    "DEFAULT_CONFIG",
+    "SerializableMixin",
+    "SerializationConfig",
+    "SimpleSerializableMixin",
     "chainable_field",
+    "chainable_property",
     # Trade visualization functions are available directly from the module
     # when needed, avoiding circular imports
 ]

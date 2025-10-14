@@ -1,61 +1,190 @@
-"""
-Chart Manager Module
+"""Chart Manager Module for managing multiple synchronized charts.
 
-This module provides the ChartManager class for managing multiple synchronized charts.
+This module provides the ChartManager class for managing multiple Chart instances
+with synchronization capabilities. It enables coordinated display of multiple
+charts with shared time ranges, crosshair synchronization, and group-based
+configuration management.
+
+The module includes:
+    - ChartManager: Main class for managing multiple charts
+    - Chart synchronization and group management
+    - Batch rendering and configuration capabilities
+    - Cross-chart communication and state management
+
+Key Features:
+    - Multiple chart management with unique identifiers
+    - Synchronization groups for coordinated chart behavior
+    - Crosshair and time range synchronization
+    - Batch rendering with consistent configuration
+    - Chart lifecycle management (add, remove, update)
+    - Automatic sync group assignment and management
+
+Example Usage:
+    ```python
+    from streamlit_lightweight_charts_pro import ChartManager, Chart, LineSeries
+    from streamlit_lightweight_charts_pro.data import SingleValueData
+
+    # Create manager and add charts
+    manager = ChartManager()
+
+    # Create data for multiple charts
+    data1 = [SingleValueData("2024-01-01", 100), SingleValueData("2024-01-02", 105)]
+    data2 = [SingleValueData("2024-01-01", 200), SingleValueData("2024-01-02", 195)]
+
+    # Add charts to manager
+    manager.add_chart(Chart(series=LineSeries(data1)), "price_chart")
+    manager.add_chart(Chart(series=LineSeries(data2)), "volume_chart")
+
+    # Configure synchronization
+    manager.set_sync_group("price_chart", "main_group")
+    manager.set_sync_group("volume_chart", "main_group")
+
+    # Render synchronized charts
+    manager.render_all_charts()
+    ```
+
+Version: 0.1.0
+Author: Streamlit Lightweight Charts Contributors
+License: MIT
 """
 
+# Standard Imports
 import time
 import uuid
 from typing import Any, Dict, List, Optional, Sequence, Union
 
+# Third Party Imports
 import pandas as pd
 
+# Local Imports
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.options.sync_options import SyncOptions
-from streamlit_lightweight_charts_pro.component import get_component_func
+from streamlit_lightweight_charts_pro.component import (  # pylint: disable=import-outside-toplevel
+    get_component_func,
+    reinitialize_component,
+)
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+from streamlit_lightweight_charts_pro.exceptions import (
+    ComponentNotAvailableError,
+    DuplicateError,
+    NotFoundError,
+    TypeValidationError,
+)
 
 
 class ChartManager:
-    """
-    Manager for multiple synchronized charts.
+    """Manager for multiple synchronized charts.
 
-    This class provides functionality to manage multiple Chart instances
-    with synchronization capabilities including crosshair and time range sync.
+    This class provides comprehensive functionality to manage multiple Chart instances
+    with advanced synchronization capabilities. It enables coordinated display of
+    multiple charts with shared time ranges, crosshair synchronization, and group-based
+    configuration management.
+
+    The ChartManager maintains a registry of charts with unique identifiers and
+    manages synchronization groups that allow charts to share crosshair position,
+    time ranges, and other interactive states. This is particularly useful for
+    creating multi-pane financial dashboards with coordinated chart behavior.
+
+    Attributes:
+        charts (Dict[str, Chart]): Dictionary mapping chart IDs to Chart instances.
+        sync_groups (Dict[str, SyncOptions]): Dictionary mapping chart IDs to their
+            synchronization group options.
+        default_sync (SyncOptions): Default synchronization options applied to
+            new charts when no specific group is assigned.
+
+    Example:
+        ```python
+        from streamlit_lightweight_charts_pro import ChartManager, Chart, LineSeries
+        from streamlit_lightweight_charts_pro.data import SingleValueData
+
+        # Create manager
+        manager = ChartManager()
+
+        # Add charts with unique IDs
+        manager.add_chart(Chart(series=LineSeries(data1)), "price_chart")
+        manager.add_chart(Chart(series=LineSeries(data2)), "volume_chart")
+
+        # Configure synchronization groups
+        manager.set_sync_group("price_chart", "main_group")
+        manager.set_sync_group("volume_chart", "main_group")
+
+        # Render all charts with synchronization
+        manager.render_all_charts()
+        ```
+
+    Note:
+        - Charts must have unique IDs within the manager
+        - Synchronization groups allow coordinated behavior between charts
+        - Individual charts can be rendered or all charts can be rendered together
+        - The manager handles component lifecycle and state management
     """
 
-    def __init__(self):
-        """Initialize the ChartManager."""
+    def __init__(self) -> None:
+        """Initialize the ChartManager.
+
+        Creates a new ChartManager with empty chart registry and default
+        synchronization settings. The manager starts with no charts and uses
+        default sync options for new charts.
+        """
+        # Initialize chart registry - maps chart IDs to Chart instances
         self.charts: Dict[str, Chart] = {}
+
+        # Initialize sync groups - maps chart IDs to their sync configuration
         self.sync_groups: Dict[str, SyncOptions] = {}
+
+        # Set default sync options for new charts without specific group assignment
         self.default_sync: SyncOptions = SyncOptions()
 
     def add_chart(self, chart: Chart, chart_id: Optional[str] = None) -> "ChartManager":
-        """
-        Add a chart to the manager.
+        """Add a chart to the manager.
+
+        Adds a Chart instance to the manager with a unique identifier. The chart
+        is registered in the manager's chart registry and can participate in
+        synchronization groups. If no chart ID is provided, one is automatically
+        generated.
 
         Args:
-            chart: The Chart instance to add
-            chart_id: Optional ID for the chart. If not provided, auto-generated
+            chart (Chart): The Chart instance to add to the manager.
+            chart_id (Optional[str]): Optional unique identifier for the chart.
+                If not provided, an auto-generated ID in the format "chart_N"
+                will be assigned.
 
         Returns:
-            Self for method chaining
+            ChartManager: Self for method chaining.
+
+        Raises:
+            DuplicateError: If a chart with the specified ID already exists.
+
+        Example:
+            ```python
+            manager = ChartManager()
+            chart = Chart(series=LineSeries(data))
+
+            # Add chart with auto-generated ID
+            manager.add_chart(chart)
+
+            # Add chart with custom ID
+            manager.add_chart(chart, "price_chart")
+            ```
         """
+        # Generate unique chart ID if not provided
         if chart_id is None:
             chart_id = f"chart_{len(self.charts) + 1}"
 
+        # Validate that chart ID is unique within the manager
         if chart_id in self.charts:
-            raise ValueError(f"Chart with ID '{chart_id}' already exists")
+            raise DuplicateError("Chart", chart_id)
 
-        # Set the ChartManager reference on the chart
+        # Set the ChartManager reference on the chart for bidirectional communication
+        # This allows the chart to access manager configuration and sync settings
         chart._chart_manager = self
 
+        # Add chart to the registry with its unique identifier
         self.charts[chart_id] = chart
         return self
 
     def remove_chart(self, chart_id: str) -> "ChartManager":
-        """
-        Remove a chart from the manager.
+        """Remove a chart from the manager.
 
         Args:
             chart_id: ID of the chart to remove
@@ -64,14 +193,13 @@ class ChartManager:
             Self for method chaining
         """
         if chart_id not in self.charts:
-            raise ValueError(f"Chart with ID '{chart_id}' not found")
+            raise NotFoundError("Chart", chart_id)
 
         del self.charts[chart_id]
         return self
 
     def get_chart(self, chart_id: str) -> Chart:
-        """
-        Get a chart by ID.
+        """Get a chart by ID.
 
         Args:
             chart_id: ID of the chart to retrieve
@@ -80,13 +208,12 @@ class ChartManager:
             The Chart instance
         """
         if chart_id not in self.charts:
-            raise ValueError(f"Chart with ID '{chart_id}' not found")
+            raise NotFoundError("Chart", chart_id)
 
         return self.charts[chart_id]
 
     def render_chart(self, chart_id: str, key: Optional[str] = None) -> Any:
-        """
-        Render a specific chart from the manager with proper sync configuration.
+        """Render a specific chart from the manager with proper sync configuration.
 
         This method renders a single chart while preserving the ChartManager's
         sync configuration and group settings. This ensures that individual
@@ -116,15 +243,14 @@ class ChartManager:
             ```
         """
         if chart_id not in self.charts:
-            raise ValueError(f"Chart with ID '{chart_id}' not found")
+            raise NotFoundError("Chart", chart_id)
 
         # Get the chart and render it (sync config is automatically included)
         chart = self.charts[chart_id]
         return chart.render(key=key)
 
     def get_chart_ids(self) -> List[str]:
-        """
-        Get all chart IDs.
+        """Get all chart IDs.
 
         Returns:
             List of chart IDs
@@ -132,8 +258,7 @@ class ChartManager:
         return list(self.charts.keys())
 
     def clear_charts(self) -> "ChartManager":
-        """
-        Remove all charts from the manager.
+        """Remove all charts from the manager.
 
         Returns:
             Self for method chaining
@@ -142,10 +267,11 @@ class ChartManager:
         return self
 
     def set_sync_group_config(
-        self, group_id: Union[int, str], sync_options: SyncOptions
+        self,
+        group_id: Union[int, str],
+        sync_options: SyncOptions,
     ) -> "ChartManager":
-        """
-        Set synchronization configuration for a specific group.
+        """Set synchronization configuration for a specific group.
 
         Args:
             group_id: The sync group ID (int or str)
@@ -158,8 +284,7 @@ class ChartManager:
         return self
 
     def get_sync_group_config(self, group_id: Union[int, str]) -> Optional[SyncOptions]:
-        """
-        Get synchronization configuration for a specific group.
+        """Get synchronization configuration for a specific group.
 
         Args:
             group_id: The sync group ID (int or str)
@@ -170,8 +295,7 @@ class ChartManager:
         return self.sync_groups.get(str(group_id))
 
     def enable_crosshair_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """
-        Enable crosshair synchronization.
+        """Enable crosshair synchronization.
 
         Args:
             group_id: Optional group ID. If None, applies to default sync
@@ -189,8 +313,7 @@ class ChartManager:
         return self
 
     def disable_crosshair_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """
-        Disable crosshair synchronization.
+        """Disable crosshair synchronization.
 
         Args:
             group_id: Optional group ID. If None, applies to default sync
@@ -207,8 +330,7 @@ class ChartManager:
         return self
 
     def enable_time_range_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """
-        Enable time range synchronization.
+        """Enable time range synchronization.
 
         Args:
             group_id: Optional group ID. If None, applies to default sync
@@ -226,8 +348,7 @@ class ChartManager:
         return self
 
     def disable_time_range_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """
-        Disable time range synchronization.
+        """Disable time range synchronization.
 
         Args:
             group_id: Optional group ID. If None, applies to default sync
@@ -244,8 +365,7 @@ class ChartManager:
         return self
 
     def enable_all_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """
-        Enable all synchronization features.
+        """Enable all synchronization features.
 
         Args:
             group_id: Optional group ID. If None, applies to default sync
@@ -263,8 +383,7 @@ class ChartManager:
         return self
 
     def disable_all_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """
-        Disable all synchronization features.
+        """Disable all synchronization features.
 
         Args:
             group_id: Optional group ID. If None, applies to default sync
@@ -283,15 +402,14 @@ class ChartManager:
     def from_price_volume_dataframe(
         self,
         data: Union[Sequence[OhlcvData], pd.DataFrame],
-        column_mapping: dict = None,
+        column_mapping: Optional[dict] = None,
         price_type: str = "candlestick",
         chart_id: str = "main_chart",
         price_kwargs=None,
         volume_kwargs=None,
         pane_id: int = 0,
-    ) -> "ChartManager":
-        """
-        Create a chart from OHLCV data with price and volume series.
+    ) -> "Chart":
+        """Create a chart from OHLCV data with price and volume series.
 
         Factory method that creates a new Chart instance with both price and volume
         series from OHLCV data. This is a convenient way to create a complete
@@ -318,23 +436,21 @@ class ChartManager:
             ```python
             # Create chart from DataFrame
             chart = Chart.from_price_volume_dataframe(
-                df,
-                column_mapping={"time": "timestamp", "volume": "vol"},
-                price_type="candlestick"
+                df, column_mapping={"time": "timestamp", "volume": "vol"}, price_type="candlestick"
             )
 
             # Create chart from OHLCV data
             chart = Chart.from_price_volume_dataframe(
                 ohlcv_data,
                 price_type="line",
-                volume_kwargs={"up_color": "green", "down_color": "red"}
+                volume_kwargs={"up_color": "green", "down_color": "red"},
             )
             ```
         """
         if data is None:
-            raise TypeError("data cannot be None")
+            raise TypeValidationError("data", "list or DataFrame")
         if not isinstance(data, (list, pd.DataFrame)):
-            raise TypeError(f"data must be a list or DataFrame, got {type(data)}")
+            raise TypeValidationError("data", "list or DataFrame")
 
         chart = Chart()
         chart.add_price_volume_series(
@@ -355,8 +471,7 @@ class ChartManager:
         return chart
 
     def to_frontend_config(self) -> Dict[str, Any]:
-        """
-        Convert the chart manager to frontend configuration.
+        """Convert the chart manager to frontend configuration.
 
         Returns:
             Dictionary containing the frontend configuration
@@ -393,8 +508,7 @@ class ChartManager:
         }
 
     def render(self, key: Optional[str] = None) -> Any:
-        """
-        Render the chart manager.
+        """Render the chart manager.
 
         Args:
             key: Optional key for the Streamlit component
@@ -403,23 +517,18 @@ class ChartManager:
             The rendered component
         """
         if not self.charts:
-            raise RuntimeError("No charts configured in ChartManager")
+            raise RuntimeError()
 
         config = self.to_frontend_config()
         component_func = get_component_func()
 
         if component_func is None:
-            from streamlit_lightweight_charts_pro.component import reinitialize_component
-
             if reinitialize_component():
                 component_func = get_component_func()
             if component_func is None:
-                raise RuntimeError(
-                    "Component function not available. "
-                    "Please check if the component is properly initialized."
-                )
+                raise ComponentNotAvailableError()
 
-        kwargs = {"config": config}
+        kwargs: Dict[str, Any] = {"config": config}
         if key is None or not isinstance(key, str) or not key.strip():
             unique_id = str(uuid.uuid4())[:8]
             key = f"chart_manager_{int(time.time() * 1000)}_{unique_id}"

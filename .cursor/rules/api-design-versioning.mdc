@@ -1,0 +1,637 @@
+---
+description: API design and versioning patterns for endpoints, request/response schemas, and backward compatibility
+---
+
+# API Design and Versioning
+
+## 🎯 API Design Principles
+
+The project follows **RESTful API design principles** with clear versioning, consistent schemas, and backward compatibility.
+
+## 📡 API Endpoint Design
+
+### **1. RESTful Resource Naming**
+Use clear, consistent resource naming:
+
+```python
+# ✅ CORRECT: RESTful endpoint design
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import List, Optional
+
+router = APIRouter(prefix="/api/v1")
+
+# Resource: charts
+@router.get("/charts", response_model=List[ChartResponse])
+async def list_charts(
+    limit: int = 10,
+    offset: int = 0,
+    chart_type: Optional[str] = None
+) -> List[ChartResponse]:
+    """List charts with optional filtering."""
+    pass
+
+@router.get("/charts/{chart_id}", response_model=ChartResponse)
+async def get_chart(chart_id: str) -> ChartResponse:
+    """Get a specific chart by ID."""
+    pass
+
+@router.post("/charts", response_model=ChartResponse)
+async def create_chart(chart_data: ChartCreateRequest) -> ChartResponse:
+    """Create a new chart."""
+    pass
+
+@router.put("/charts/{chart_id}", response_model=ChartResponse)
+async def update_chart(
+    chart_id: str,
+    chart_data: ChartUpdateRequest
+) -> ChartResponse:
+    """Update an existing chart."""
+    pass
+
+@router.delete("/charts/{chart_id}")
+async def delete_chart(chart_id: str) -> dict:
+    """Delete a chart."""
+    pass
+
+# Sub-resource: chart series
+@router.get("/charts/{chart_id}/series", response_model=List[SeriesResponse])
+async def list_chart_series(chart_id: str) -> List[SeriesResponse]:
+    """List series for a specific chart."""
+    pass
+
+@router.post("/charts/{chart_id}/series", response_model=SeriesResponse)
+async def add_chart_series(
+    chart_id: str,
+    series_data: SeriesCreateRequest
+) -> SeriesResponse:
+    """Add a series to a chart."""
+    pass
+```
+
+### **2. Request/Response Schemas**
+Define clear, validated schemas:
+
+```python
+# ✅ CORRECT: Pydantic schemas for API
+from pydantic import BaseModel, Field, validator
+from typing import List, Optional, Dict, Any
+from datetime import datetime
+from enum import Enum
+
+class ChartType(str, Enum):
+    LINE = "line"
+    CANDLESTICK = "candlestick"
+    AREA = "area"
+    BAR = "bar"
+    HISTOGRAM = "histogram"
+
+class ChartCreateRequest(BaseModel):
+    """Request schema for creating a chart."""
+    name: str = Field(..., min_length=1, max_length=100, description="Chart name")
+    chart_type: ChartType = Field(..., description="Type of chart")
+    width: int = Field(800, ge=100, le=2000, description="Chart width in pixels")
+    height: int = Field(400, ge=100, le=2000, description="Chart height in pixels")
+    theme: str = Field("light", regex="^(light|dark)$", description="Chart theme")
+    options: Optional[Dict[str, Any]] = Field(None, description="Additional chart options")
+
+    @validator('name')
+    def validate_name(cls, v):
+        if not v.strip():
+            raise ValueError('Chart name cannot be empty')
+        return v.strip()
+
+class ChartUpdateRequest(BaseModel):
+    """Request schema for updating a chart."""
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    width: Optional[int] = Field(None, ge=100, le=2000)
+    height: Optional[int] = Field(None, ge=100, le=2000)
+    theme: Optional[str] = Field(None, regex="^(light|dark)$")
+    options: Optional[Dict[str, Any]] = None
+
+class ChartResponse(BaseModel):
+    """Response schema for chart data."""
+    id: str = Field(..., description="Unique chart identifier")
+    name: str = Field(..., description="Chart name")
+    chart_type: ChartType = Field(..., description="Type of chart")
+    width: int = Field(..., description="Chart width in pixels")
+    height: int = Field(..., description="Chart height in pixels")
+    theme: str = Field(..., description="Chart theme")
+    options: Dict[str, Any] = Field(default_factory=dict, description="Chart options")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    updated_at: datetime = Field(..., description="Last update timestamp")
+    series_count: int = Field(0, description="Number of series in the chart")
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+
+class SeriesCreateRequest(BaseModel):
+    """Request schema for creating a series."""
+    name: str = Field(..., min_length=1, max_length=100)
+    series_type: str = Field(..., regex="^(line|candlestick|area|bar|histogram)$")
+    data: List[Dict[str, Any]] = Field(..., min_items=1, description="Series data points")
+    options: Optional[Dict[str, Any]] = Field(None, description="Series-specific options")
+
+    @validator('data')
+    def validate_data(cls, v):
+        if not v:
+            raise ValueError('Series data cannot be empty')
+        return v
+
+class SeriesResponse(BaseModel):
+    """Response schema for series data."""
+    id: str = Field(..., description="Unique series identifier")
+    name: str = Field(..., description="Series name")
+    series_type: str = Field(..., description="Type of series")
+    data_count: int = Field(..., description="Number of data points")
+    options: Dict[str, Any] = Field(default_factory=dict, description="Series options")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    updated_at: datetime = Field(..., description="Last update timestamp")
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+```
+
+### **3. Error Response Schemas**
+Standardize error responses:
+
+```python
+# ✅ CORRECT: Standardized error responses
+class APIError(BaseModel):
+    """Standard API error response."""
+    error: str = Field(..., description="Error type")
+    message: str = Field(..., description="Human-readable error message")
+    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
+    timestamp: datetime = Field(default_factory=datetime.now, description="Error timestamp")
+    request_id: Optional[str] = Field(None, description="Request identifier for tracking")
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+
+class ValidationError(APIError):
+    """Validation error response."""
+    error: str = Field("validation_error", description="Error type")
+    field_errors: Dict[str, List[str]] = Field(..., description="Field-specific validation errors")
+
+# Custom exception handler
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    return JSONResponse(
+        status_code=422,
+        content=exc.dict()
+    )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=APIError(
+            error="http_error",
+            message=exc.detail,
+            request_id=request.headers.get("X-Request-ID")
+        ).dict()
+    )
+```
+
+## 🔄 API Versioning Strategy
+
+### **1. URL Path Versioning**
+Use URL path for major version changes:
+
+```python
+# ✅ CORRECT: URL path versioning
+from fastapi import APIRouter
+
+# Version 1 API
+v1_router = APIRouter(prefix="/api/v1")
+
+@v1_router.get("/charts")
+async def list_charts_v1():
+    """Version 1 chart listing."""
+    pass
+
+# Version 2 API (breaking changes)
+v2_router = APIRouter(prefix="/api/v2")
+
+@v2_router.get("/charts")
+async def list_charts_v2():
+    """Version 2 chart listing with new features."""
+    pass
+
+# Register both versions
+app.include_router(v1_router)
+app.include_router(v2_router)
+```
+
+### **2. Header Versioning**
+Use headers for minor version changes:
+
+```python
+# ✅ CORRECT: Header versioning for minor changes
+from fastapi import Header, HTTPException
+from typing import Optional
+
+async def get_chart(
+    chart_id: str,
+    api_version: Optional[str] = Header(None, alias="API-Version")
+) -> ChartResponse:
+    """Get chart with optional version header."""
+
+    # Default to latest version
+    if api_version is None:
+        api_version = "1.0"
+
+    # Validate version format
+    try:
+        major, minor = map(int, api_version.split('.'))
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid API version format. Use 'major.minor' (e.g., '1.0')"
+        )
+
+    # Handle version-specific logic
+    if major == 1 and minor >= 1:
+        # Version 1.1+ features
+        return await get_chart_v1_1(chart_id)
+    elif major == 1 and minor == 0:
+        # Version 1.0 features
+        return await get_chart_v1_0(chart_id)
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported API version: {api_version}"
+        )
+```
+
+### **3. Backward Compatibility**
+Maintain backward compatibility:
+
+```python
+# ✅ CORRECT: Backward compatible API changes
+class ChartResponseV1(BaseModel):
+    """Version 1 chart response."""
+    id: str
+    name: str
+    chart_type: str
+    width: int
+    height: int
+    created_at: datetime
+
+class ChartResponseV2(BaseModel):
+    """Version 2 chart response (backward compatible)."""
+    id: str
+    name: str
+    chart_type: str
+    width: int
+    height: int
+    created_at: datetime
+    # New fields in v2
+    theme: str = "light"
+    options: Dict[str, Any] = Field(default_factory=dict)
+    updated_at: Optional[datetime] = None
+
+def get_chart_response(version: str, chart_data: dict) -> dict:
+    """Get version-specific chart response."""
+    if version.startswith("2."):
+        return ChartResponseV2(**chart_data).dict()
+    else:
+        # Return v1 response (exclude new fields)
+        v1_data = {k: v for k, v in chart_data.items()
+                  if k in ChartResponseV1.__fields__}
+        return ChartResponseV1(**v1_data).dict()
+```
+
+## 📋 API Documentation
+
+### **1. OpenAPI/Swagger Documentation**
+Use FastAPI's automatic documentation:
+
+```python
+# ✅ CORRECT: Comprehensive API documentation
+from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
+
+app = FastAPI(
+    title="Streamlit Lightweight Charts Pro API",
+    description="API for creating and managing financial charts",
+    version="1.0.0",
+    contact={
+        "name": "API Support",
+        "email": "support@example.com",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+)
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title="Streamlit Lightweight Charts Pro API",
+        version="1.0.0",
+        description="API for creating and managing financial charts",
+        routes=app.routes,
+    )
+
+    # Add custom documentation
+    openapi_schema["info"]["x-logo"] = {
+        "url": "https://example.com/logo.png"
+    }
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
+```
+
+### **2. Endpoint Documentation**
+Document endpoints with examples:
+
+```python
+# ✅ CORRECT: Well-documented endpoints
+@router.post(
+    "/charts",
+    response_model=ChartResponse,
+    status_code=201,
+    summary="Create a new chart",
+    description="Create a new financial chart with the specified configuration",
+    response_description="The created chart",
+    responses={
+        201: {"description": "Chart created successfully"},
+        400: {"description": "Invalid request data"},
+        422: {"description": "Validation error"},
+        500: {"description": "Internal server error"}
+    }
+)
+async def create_chart(
+    chart_data: ChartCreateRequest = Body(
+        ...,
+        example={
+            "name": "My Stock Chart",
+            "chart_type": "candlestick",
+            "width": 800,
+            "height": 400,
+            "theme": "light",
+            "options": {
+                "show_volume": True,
+                "show_grid": True
+            }
+        }
+    )
+) -> ChartResponse:
+    """
+    Create a new chart.
+
+    This endpoint creates a new financial chart with the specified configuration.
+    The chart will be created with default settings and can be customized after creation.
+
+    Args:
+        chart_data: Chart configuration data
+
+    Returns:
+        ChartResponse: The created chart with assigned ID and timestamps
+
+    Raises:
+        HTTPException: If chart creation fails
+    """
+    pass
+```
+
+## 🔒 API Security
+
+### **1. Authentication and Authorization**
+Implement proper security:
+
+```python
+# ✅ CORRECT: API security implementation
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+security = HTTPBearer()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> dict:
+    """Get current authenticated user."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = get_user(username)
+    if user is None:
+        raise credentials_exception
+
+    return user
+
+async def get_current_active_user(
+    current_user: dict = Depends(get_current_user)
+) -> dict:
+    """Get current active user."""
+    if not current_user.get("is_active"):
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+# Protected endpoints
+@router.post("/charts")
+async def create_chart(
+    chart_data: ChartCreateRequest,
+    current_user: dict = Depends(get_current_active_user)
+) -> ChartResponse:
+    """Create chart (requires authentication)."""
+    pass
+```
+
+### **2. Rate Limiting**
+Implement rate limiting:
+
+```python
+# ✅ CORRECT: Rate limiting implementation
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@router.post("/charts")
+@limiter.limit("10/minute")
+async def create_chart(
+    request: Request,
+    chart_data: ChartCreateRequest
+) -> ChartResponse:
+    """Create chart with rate limiting."""
+    pass
+```
+
+## 🚫 Anti-Patterns to Avoid
+
+### **❌ Wrong: Inconsistent Naming**
+```python
+# Don't use inconsistent resource naming
+@router.get("/getCharts")  # Wrong: not RESTful
+@router.get("/chart-list")  # Wrong: inconsistent with other endpoints
+@router.get("/charts")  # Correct: RESTful and consistent
+```
+
+### **❌ Wrong: Missing Validation**
+```python
+# Don't skip input validation
+@router.post("/charts")
+async def create_chart(chart_data: dict):  # Wrong: no validation
+    pass
+
+@router.post("/charts")
+async def create_chart(chart_data: ChartCreateRequest):  # Correct: validated
+    pass
+```
+
+### **❌ Wrong: Breaking Changes Without Versioning**
+```python
+# Don't make breaking changes without versioning
+# Version 1
+@router.get("/charts")
+async def list_charts():
+    return {"charts": []}
+
+# Version 2 (breaking change)
+@router.get("/charts")
+async def list_charts():
+    return {"data": [], "pagination": {}}  # Wrong: breaks existing clients
+```
+
+## ✅ Best Practices
+
+### **1. Consistent Response Format**
+Use consistent response format:
+
+```python
+# ✅ CORRECT: Consistent response format
+class APIResponse(BaseModel):
+    """Standard API response wrapper."""
+    success: bool = Field(..., description="Whether the request was successful")
+    data: Optional[Any] = Field(None, description="Response data")
+    message: Optional[str] = Field(None, description="Response message")
+    errors: Optional[List[str]] = Field(None, description="Error messages")
+    meta: Optional[Dict[str, Any]] = Field(None, description="Metadata")
+
+def success_response(data: Any, message: str = None) -> APIResponse:
+    """Create success response."""
+    return APIResponse(success=True, data=data, message=message)
+
+def error_response(message: str, errors: List[str] = None) -> APIResponse:
+    """Create error response."""
+    return APIResponse(success=False, message=message, errors=errors)
+```
+
+### **2. Pagination**
+Implement consistent pagination:
+
+```python
+# ✅ CORRECT: Consistent pagination
+class PaginationParams(BaseModel):
+    """Pagination parameters."""
+    page: int = Field(1, ge=1, description="Page number")
+    size: int = Field(10, ge=1, le=100, description="Page size")
+
+    @property
+    def offset(self) -> int:
+        return (self.page - 1) * self.size
+
+class PaginatedResponse(BaseModel):
+    """Paginated response wrapper."""
+    data: List[Any] = Field(..., description="Response data")
+    pagination: Dict[str, Any] = Field(..., description="Pagination info")
+
+    @classmethod
+    def create(
+        cls,
+        data: List[Any],
+        total: int,
+        params: PaginationParams
+    ) -> "PaginatedResponse":
+        """Create paginated response."""
+        return cls(
+            data=data,
+            pagination={
+                "page": params.page,
+                "size": params.size,
+                "total": total,
+                "pages": (total + params.size - 1) // params.size,
+                "has_next": params.page * params.size < total,
+                "has_prev": params.page > 1
+            }
+        )
+```
+
+### **3. API Versioning Strategy**
+Plan versioning strategy:
+
+```python
+# ✅ CORRECT: Planned versioning strategy
+class APIVersion:
+    """API version management."""
+
+    SUPPORTED_VERSIONS = ["1.0", "1.1", "2.0"]
+    DEFAULT_VERSION = "1.0"
+    DEPRECATED_VERSIONS = ["1.0"]
+
+    @classmethod
+    def is_supported(cls, version: str) -> bool:
+        """Check if version is supported."""
+        return version in cls.SUPPORTED_VERSIONS
+
+    @classmethod
+    def is_deprecated(cls, version: str) -> bool:
+        """Check if version is deprecated."""
+        return version in cls.DEPRECATED_VERSIONS
+
+    @classmethod
+    def get_latest_version(cls) -> str:
+        """Get latest supported version."""
+        return cls.SUPPORTED_VERSIONS[-1]
+```
+
+## 📋 API Design Checklist
+
+- [ ] **RESTful design** with consistent resource naming
+- [ ] **Request/response schemas** are defined and validated
+- [ ] **Error responses** are standardized
+- [ ] **API versioning** strategy is implemented
+- [ ] **Backward compatibility** is maintained
+- [ ] **Authentication/authorization** is implemented
+- [ ] **Rate limiting** is configured
+- [ ] **API documentation** is comprehensive
+- [ ] **Input validation** is thorough
+- [ ] **Response format** is consistent
+- [ ] **Pagination** is implemented where needed
+- [ ] **Error handling** is comprehensive
+- [ ] **Security best practices** are followed
+- [ ] **Performance considerations** are addressed

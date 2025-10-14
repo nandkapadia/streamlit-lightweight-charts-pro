@@ -1,5 +1,4 @@
-"""
-Chart options package for Streamlit Lightweight Charts Pro.
+"""Chart options package for Streamlit Lightweight Charts Pro.
 
 This package contains all chart option classes organized by functionality.
 These options provide comprehensive customization capabilities for charts,
@@ -29,20 +28,16 @@ These options enable comprehensive chart customization including:
 
 Example Usage:
     ```python
-    from streamlit_lightweight_charts_pro.charts.options import (
-        ChartOptions, LayoutOptions, GridOptions
-    )
+    from streamlit_lightweight_charts_pro.charts.options import ChartOptions,
+        LayoutOptions,
+        GridOptions
 
     # Create chart options
     options = ChartOptions(
-        layout=LayoutOptions(
-            background_color="#ffffff",
-            text_color="#000000"
-        ),
+        layout=LayoutOptions(background_color="#ffffff", text_color="#000000"),
         grid=GridOptions(
-            vert_lines=GridLineOptions(color="#e1e1e1"),
-            horz_lines=GridLineOptions(color="#e1e1e1")
-        )
+            vert_lines=GridLineOptions(color="#e1e1e1"), horz_lines=GridLineOptions(color="#e1e1e1")
+        ),
     )
 
     # Apply to chart
@@ -90,40 +85,40 @@ from streamlit_lightweight_charts_pro.charts.options.ui_options import (
 )
 
 __all__ = [
-    # Base options class
-    "Options",
     # Main chart options
     "ChartOptions",
-    # Line options
-    "LineOptions",
-    # Price options
-    "PriceLineOptions",
-    "PriceFormatOptions",
-    # Layout options
-    "GridLineOptions",
-    "GridOptions",
-    "LayoutOptions",
-    "PaneHeightOptions",
-    "WatermarkOptions",
     # Interaction options
     "CrosshairLineOptions",
     "CrosshairOptions",
     "CrosshairSyncOptions",
+    # Layout options
+    "GridLineOptions",
+    "GridOptions",
     "KineticScrollOptions",
-    "TrackingModeOptions",
-    # Scale options
-    "TimeScaleOptions",
-    "PriceScaleOptions",
-    "PriceScaleMargins",
-    # Sync options
-    "SyncOptions",
+    "LayoutOptions",
     # UI options
     "LegendOptions",
-    "RangeConfig",
-    "RangeSwitcherOptions",
+    # Line options
+    "LineOptions",
     # Localization options
     "LocalizationOptions",
+    # Base options class
+    "Options",
+    "PaneHeightOptions",
+    "PriceFormatOptions",
+    # Price options
+    "PriceLineOptions",
+    "PriceScaleMargins",
+    "PriceScaleOptions",
+    "RangeConfig",
+    "RangeSwitcherOptions",
+    # Sync options
+    "SyncOptions",
+    # Scale options
+    "TimeScaleOptions",
+    "TrackingModeOptions",
     # Trade visualization options
     "TradeVisualizationOptions",
+    "WatermarkOptions",
     # Signal options
 ]

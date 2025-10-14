@@ -1,0 +1,536 @@
+---
+description: Common issues, solutions, and debugging techniques
+---
+
+# Troubleshooting Guide
+
+## 🔴 Common Issues & Solutions
+
+### Chart Not Rendering
+
+```python
+# Issue: Chart doesn't appear in Streamlit
+# Solution 1: Ensure unique key
+chart.render(key="unique_chart_key")  # ✅ Each chart needs unique key
+
+# Solution 2: Check data format
+data = [SingleValueData("2024-01-01", 100)]  # ✅ Correct format
+# NOT: data = [("2024-01-01", 100)]  # ❌ Wrong format
+
+# Solution 3: Verify frontend build
+# Run: streamlit-lightweight-charts-pro build-frontend
+```
+
+### Data Format Errors
+
+```python
+# Issue: "Invalid data format" error
+# Solution: Use proper data classes
+
+# ✅ CORRECT - Using data classes
+from streamlit_lightweight_charts_pro.data import OhlcData
+ohlc_data = [
+    OhlcData(time="2024-01-01", open=100, high=105, low=98, close=102),
+    OhlcData(time="2024-01-02", open=102, high=108, low=101, close=106),
+]
+
+# ❌ WRONG - Using dictionaries
+ohlc_data = [
+    {"time": "2024-01-01", "open": 100, "high": 105, "low": 98, "close": 102}
+]
+
+# Solution for DataFrame conversion
+chart = Chart(series=CandlestickSeries.from_dataframe(
+    df=df,
+    column_mapping={
+        'time': 'Date',  # Map to your column names
+        'open': 'Open',
+        'high': 'High',
+        'low': 'Low',
+        'close': 'Close'
+    }
+))
+```
+
+### Method Chaining Issues
+
+```python
+# Issue: AttributeError when chaining methods
+# Solution: Ensure methods return self
+
+# ❌ WRONG - Method doesn't return self
+class Chart:
+    def add_series(self, series):
+        self._series.append(series)
+        # Missing return statement!
+
+# ✅ CORRECT - Method returns self
+class Chart:
+    def add_series(self, series: Series) -> "Chart":
+        self._series.append(series)
+        return self  # Enable chaining
+```
+
+### Memory Leaks
+
+```python
+# Issue: Memory usage increases over time
+# Solution: Proper cleanup and caching
+
+import streamlit as st
+from functools import lru_cache
+
+# Use session state for persistent data
+if 'chart_data' not in st.session_state:
+    st.session_state.chart_data = load_data()
+
+# Cache expensive operations
+@st.cache_data
+def load_large_dataset(file_path: str) -> pd.DataFrame:
+    return pd.read_csv(file_path)
+
+# Clear old charts before creating new ones
+if 'chart' in st.session_state:
+    del st.session_state.chart
+```
+
+### Performance Issues
+
+```python
+# Issue: Slow chart rendering with large datasets
+# Solution: Data sampling and optimization
+
+# Sample large datasets
+def optimize_data(df: pd.DataFrame, max_points: int = 5000) -> pd.DataFrame:
+    if len(df) > max_points:
+        # Sample evenly across the dataset
+        step = len(df) // max_points
+        return df.iloc[::step]
+    return df
+
+# Use efficient data structures
+# ✅ GOOD - Generator for large datasets
+def generate_data():
+    for i in range(1000000):
+        yield SingleValueData(f"2024-01-{i:02d}", i * 100)
+
+# ❌ BAD - Loading all data into memory
+data = [SingleValueData(f"2024-01-{i:02d}", i * 100) for i in range(1000000)]
+```
+
+## 🐛 Debugging Techniques
+
+### Enable Logging
+
+```python
+# Enable debug logging
+from streamlit_lightweight_charts_pro.logging_config import setup_logging, get_logger
+
+# Setup logging at app start
+setup_logging(level="DEBUG")
+logger = get_logger(__name__)
+
+# Add debug statements
+logger.debug(f"Creating chart with {len(data)} data points")
+logger.info(f"Chart rendered with key: {key}")
+logger.error(f"Failed to process data: {error}")
+```
+
+### Validate Data
+
+```python
+# Data validation helper
+def validate_chart_data(data: List[SingleValueData]) -> bool:
+    """Validate chart data before rendering."""
+    if not data:
+        st.error("❌ Data is empty")
+        return False
+
+    # Check for None values
+    if any(d.value is None for d in data):
+        st.warning("⚠️ Data contains None values")
+        return False
+
+    # Check time ordering
+    times = [d.time for d in data]
+    if times != sorted(times):
+        st.warning("⚠️ Data is not sorted by time")
+
+    return True
+
+# Use before rendering
+if validate_chart_data(data):
+    chart = Chart(series=LineSeries(data))
+    chart.render(key="validated_chart")
+```
+
+### Frontend Debugging
+
+```typescript
+// Enable console logging in frontend
+// streamlit_lightweight_charts_pro/frontend/src/utils/logger.ts
+
+export const logger = {
+    debug: (message: string, ...args: any[]) => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEBUG] ${message}`, ...args)
+        }
+    },
+    error: (message: string, ...args: any[]) => {
+        console.error(`[ERROR] ${message}`, ...args)
+    }
+}
+
+// Use in components
+logger.debug('Chart data received:', data)
+logger.error('Failed to render chart:', error)
+```
+
+## 🎨 Frontend Issues & Solutions
+
+### **1. Chart Not Rendering in Browser**
+
+```typescript
+// Issue: Chart component doesn't appear
+// Solution 1: Check container dimensions
+const ChartContainer: React.FC<{ width: number; height: number }> = ({ width, height }) => {
+  return (
+    <div
+      style={{
+        width: `${width}px`,
+        height: `${height}px`,
+        minHeight: '200px' // Ensure minimum height
+      }}
+    >
+      <ChartComponent />
+    </div>
+  )
+}
+
+// Solution 2: Verify ResizeObserver support
+const useResizeObserver = (ref: RefObject<HTMLElement>) => {
+  useEffect(() => {
+    if (!ref.current || !window.ResizeObserver) {
+      console.warn('ResizeObserver not supported')
+      return
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      // Handle resize
+    })
+
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [ref])
+}
+```
+
+### **2. TypeScript Compilation Errors**
+
+```typescript
+// Issue: TypeScript errors in frontend
+// Solution 1: Check type definitions
+interface ChartProps {
+  data: LineData[]
+  options?: Partial<ChartOptions>
+  onReady?: (chart: IChartApi) => void
+}
+
+// Solution 2: Handle optional properties
+const ChartComponent: React.FC<ChartProps> = ({
+  data,
+  options = {},
+  onReady
+}) => {
+  // Implementation
+}
+
+// Solution 3: Type assertions for external libraries
+const chart = createChart(container, options as ChartOptions)
+```
+
+### **3. React State Management Issues**
+
+```typescript
+// Issue: State not updating properly
+// Solution 1: Use functional state updates
+const [chartData, setChartData] = useState<LineData[]>([])
+
+const updateData = useCallback((newData: LineData[]) => {
+  setChartData(prev => [...prev, ...newData])
+}, [])
+
+// Solution 2: Proper dependency arrays
+useEffect(() => {
+  if (chart && data) {
+    chart.setData(data)
+  }
+}, [chart, data]) // Include all dependencies
+
+// Solution 3: Memoize expensive calculations
+const processedData = useMemo(() => {
+  return data.map(item => ({
+    ...item,
+    processed: true
+  }))
+}, [data])
+```
+
+### **4. Memory Leaks in React Components**
+
+```typescript
+// Issue: Memory leaks from event listeners
+// Solution: Proper cleanup
+const ChartComponent: React.FC<ChartProps> = ({ data }) => {
+  const chartRef = useRef<IChartApi | null>(null)
+
+  useEffect(() => {
+    const chart = createChart(container, options)
+    chartRef.current = chart
+
+    // Subscribe to events
+    const unsubscribe = chart.subscribe('timeScaleChanged', handleTimeScaleChange)
+
+    return () => {
+      // Cleanup
+      unsubscribe()
+      chart.remove()
+      chartRef.current = null
+    }
+  }, [])
+
+  // Prevent memory leaks from closures
+  const handleTimeScaleChange = useCallback((timeScale: TimeScale) => {
+    // Handle time scale change
+  }, [])
+}
+```
+
+### **5. Performance Issues with Large Datasets**
+
+```typescript
+// Issue: Slow rendering with large datasets
+// Solution 1: Data sampling
+const sampleData = (data: LineData[], maxPoints: number = 1000): LineData[] => {
+  if (data.length <= maxPoints) return data
+
+  const step = Math.ceil(data.length / maxPoints)
+  return data.filter((_, index) => index % step === 0)
+}
+
+// Solution 2: Virtual scrolling for large datasets
+const VirtualizedChart: React.FC<{ data: LineData[] }> = ({ data }) => {
+  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 100 })
+
+  const visibleData = useMemo(() => {
+    return data.slice(visibleRange.start, visibleRange.end)
+  }, [data, visibleRange])
+
+  return <ChartComponent data={visibleData} />
+}
+
+// Solution 3: Debounced updates
+const useDebouncedValue = <T>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => clearTimeout(handler)
+  }, [value, delay])
+
+  return debouncedValue
+}
+```
+
+### **6. Build and Bundle Issues**
+
+```typescript
+// Issue: Build failures or large bundle sizes
+// Solution 1: Check Vite configuration
+// vite.config.ts
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'lightweight-charts': ['lightweight-charts'],
+          'react': ['react', 'react-dom']
+        }
+      }
+    }
+  }
+})
+
+// Solution 2: Tree shaking for unused code
+import { createChart } from 'lightweight-charts'
+// Instead of: import * as LightweightCharts from 'lightweight-charts'
+
+// Solution 3: Dynamic imports for large dependencies
+const loadChartLibrary = async () => {
+  const { createChart } = await import('lightweight-charts')
+  return createChart
+}
+```
+
+### **7. CSS and Styling Issues**
+
+```typescript
+// Issue: Charts not styled correctly
+// Solution 1: CSS-in-JS for dynamic styling
+const ChartContainer = styled.div<{ theme: 'light' | 'dark' }>`
+  background-color: ${props => props.theme === 'light' ? '#ffffff' : '#1e1e1e'};
+  border: 1px solid ${props => props.theme === 'light' ? '#e0e0e0' : '#333333'};
+  border-radius: 8px;
+  padding: 16px;
+`
+
+// Solution 2: CSS custom properties for theming
+const chartStyles = {
+  '--chart-background': theme === 'light' ? '#ffffff' : '#1e1e1e',
+  '--chart-text': theme === 'light' ? '#000000' : '#ffffff',
+  '--chart-grid': theme === 'light' ? '#e0e0e0' : '#333333'
+} as React.CSSProperties
+
+// Solution 3: Responsive design
+const useResponsiveChart = () => {
+  const [dimensions, setDimensions] = useState({ width: 800, height: 400 })
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      const container = document.getElementById('chart-container')
+      if (container) {
+        setDimensions({
+          width: container.clientWidth,
+          height: Math.max(400, container.clientHeight)
+        })
+      }
+    }
+
+    updateDimensions()
+    window.addEventListener('resize', updateDimensions)
+    return () => window.removeEventListener('resize', updateDimensions)
+  }, [])
+
+  return dimensions
+}
+```
+
+### **8. Error Boundaries and Error Handling**
+
+```typescript
+// Issue: Unhandled errors crash the app
+// Solution: Implement error boundaries
+class ChartErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Chart error:', error, errorInfo)
+    // Log to error reporting service
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="chart-error-fallback">
+          <h3>Chart Error</h3>
+          <p>Something went wrong while rendering the chart.</p>
+          <button onClick={() => this.setState({ hasError: false })}>
+            Try Again
+          </button>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
+// Usage
+<ChartErrorBoundary>
+  <ChartComponent data={data} />
+</ChartErrorBoundary>
+```
+
+## 🔧 Development Tools
+
+### Testing Helpers
+
+```python
+# Quick test for chart rendering
+def test_chart_render():
+    """Quick test to verify chart rendering."""
+    try:
+        from streamlit_lightweight_charts_pro import Chart, LineSeries
+        from streamlit_lightweight_charts_pro.data import SingleValueData
+
+        data = [SingleValueData("2024-01-01", 100)]
+        chart = Chart(series=LineSeries(data))
+
+        # This will fail if frontend isn't built
+        chart.render(key="test_chart")
+        st.success("✅ Chart rendering works!")
+
+    except Exception as e:
+        st.error(f"❌ Chart rendering failed: {e}")
+        st.info("Try running: make pre-commit-setup")
+```
+
+### Performance Profiling
+
+```python
+import time
+import cProfile
+import pstats
+from io import StringIO
+
+def profile_chart_creation():
+    """Profile chart creation performance."""
+    profiler = cProfile.Profile()
+
+    # Profile chart creation
+    profiler.enable()
+    start = time.time()
+
+    # Your chart code here
+    data = generate_large_dataset()
+    chart = Chart(series=LineSeries(data))
+    chart.render(key="profile_chart")
+
+    end = time.time()
+    profiler.disable()
+
+    # Display results
+    st.metric("Rendering Time", f"{end - start:.2f}s")
+
+    # Show profile stats
+    s = StringIO()
+    ps = pstats.Stats(profiler, stream=s).sort_stats('cumulative')
+    ps.print_stats(10)
+    st.text(s.getvalue())
+```
+
+## 📋 Checklist for Issues
+
+Before reporting an issue, check:
+
+- [ ] Using latest version: `pip install --upgrade streamlit_lightweight_charts_pro`
+- [ ] Frontend is built: `streamlit-lightweight-charts-pro build-frontend`
+- [ ] Unique keys for each chart
+- [ ] Correct data format (using data classes)
+- [ ] No syntax errors in f-strings with comments
+- [ ] Python 3.7+ and Streamlit 1.0+
+- [ ] Check browser console for JavaScript errors
+- [ ] Review logs for Python errors

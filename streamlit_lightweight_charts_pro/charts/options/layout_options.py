@@ -1,5 +1,4 @@
-"""
-Layout options configuration for streamlit-lightweight-charts.
+"""Layout options configuration for streamlit-lightweight-charts.
 
 This module provides layout-related option classes for configuring
 chart appearance, grid settings, panes, and watermarks.
@@ -9,19 +8,14 @@ from dataclasses import dataclass, field
 from typing import Dict, Optional
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 from streamlit_lightweight_charts_pro.type_definitions.colors import (
     BackgroundGradient,
     BackgroundSolid,
 )
-from streamlit_lightweight_charts_pro.type_definitions.colors import (
-    _is_valid_color as is_valid_color,
-)
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    HorzAlign,
-    LineStyle,
-    VertAlign,
-)
+from streamlit_lightweight_charts_pro.type_definitions.enums import HorzAlign, LineStyle, VertAlign
 from streamlit_lightweight_charts_pro.utils import chainable_field
+from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 
 
 @dataclass
@@ -68,7 +62,7 @@ class PaneHeightOptions(Options):
     def __post_init__(self):
         """Validate factor value."""
         if self.factor <= 0:
-            raise ValueError(f"Pane height factor must be positive, got {self.factor}")
+            raise ValueValidationError.positive_value("Pane height factor", self.factor)
 
 
 @dataclass
@@ -83,7 +77,7 @@ class LayoutOptions(Options):
     """Layout configuration for chart."""
 
     background_options: BackgroundSolid = field(
-        default_factory=lambda: BackgroundSolid(color="#ffffff")
+        default_factory=lambda: BackgroundSolid(color="#ffffff"),
     )
     text_color: str = "#131722"
     font_size: int = 11
@@ -96,7 +90,7 @@ class LayoutOptions(Options):
     def _validate_color_static(color: str, property_name: str) -> str:
         """Validate color format."""
         if not is_valid_color(color):
-            raise ValueError(f"Invalid color format for {property_name}")
+            raise ValueValidationError(property_name, "Invalid color format")
         return color
 
 

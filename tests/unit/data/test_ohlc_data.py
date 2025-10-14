@@ -8,6 +8,7 @@ construction, validation, and serialization.
 import pytest
 
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 
 
 class TestOhlcData:
@@ -59,17 +60,21 @@ class TestOhlcData:
 
     def test_validation_time(self):
         """Test validation of time parameter."""
-        # Valid integer time
+        # Valid integer time - stored as-is
         data = OhlcData(time=1640995200, open=100.0, high=105.0, low=95.0, close=102.0)
         assert data.time == 1640995200
 
-        # Valid string time - will be normalized to timestamp
+        # Valid string time - stored as-is, normalized in asdict()
         data = OhlcData(time="2022-01-01", open=100.0, high=105.0, low=95.0, close=102.0)
-        assert isinstance(data.time, int)  # Time is normalized to integer timestamp
+        assert data.time == "2022-01-01"  # Stored as-is
+        result = data.asdict()
+        assert isinstance(result["time"], int)  # Normalized in asdict()
 
-        # Valid float time - will be normalized to integer
+        # Valid float time - stored as-is, normalized in asdict()
         data = OhlcData(time=1640995200.5, open=100.0, high=105.0, low=95.0, close=102.0)
-        assert data.time == 1640995200  # Time is normalized to integer timestamp
+        assert data.time == 1640995200.5  # Stored as-is
+        result = data.asdict()
+        assert result["time"] == 1640995200  # Normalized to int in asdict()
 
     def test_validation_price_fields(self):
         """Test validation of price fields."""
@@ -87,8 +92,8 @@ class TestOhlcData:
         assert data.low == 0.0
         assert data.close == 0.0
 
-        # Negative prices should raise ValueError (OHLC values must be non-negative)
-        with pytest.raises(ValueError, match="all OHLC values must be non-negative"):
+        # Negative prices should raise ValueValidationError (OHLC values must be non-negative)
+        with pytest.raises(ValueValidationError):
             OhlcData(time=1640995200, open=-100.0, high=-95.0, low=-105.0, close=-102.0)
 
         # Valid integer prices (should be converted to float)
@@ -131,7 +136,11 @@ class TestOhlcData:
         """Test edge cases and boundary conditions."""
         # Very large numbers
         data = OhlcData(
-            time=1640995200, open=999999.99, high=999999.99, low=999999.99, close=999999.99
+            time=1640995200,
+            open=999999.99,
+            high=999999.99,
+            low=999999.99,
+            close=999999.99,
         )
         assert data.open == 999999.99
         assert data.high == 999999.99
@@ -162,6 +171,20 @@ class TestOhlcData:
 
         assert result1 == result2
 
+    def test_time_modification_after_construction(self):
+        """Test that time can be modified after construction."""
+        data = OhlcData(time="2024-01-01", open=100.0, high=105.0, low=95.0, close=102.0)
+        result1 = data.asdict()
+        time1 = result1["time"]
+
+        # Modify time after construction
+        data.time = "2024-01-02"
+        result2 = data.asdict()
+        time2 = result2["time"]
+
+        # Times should be different
+        assert time1 != time2
+
     def test_copy_method(self):
         """Test the copy method creates a new instance with same values."""
         original = OhlcData(time=1640995200, open=100.0, high=105.0, low=95.0, close=102.0)
@@ -188,7 +211,11 @@ class TestOhlcData:
         data1 = OhlcData(time=1640995200, open=100.0, high=105.0, low=95.0, close=102.0)
         data2 = OhlcData(time=1640995200, open=100.0, high=105.0, low=95.0, close=102.0)
         data3 = OhlcData(
-            time=1640995200, open=100.0, high=105.0, low=95.0, close=103.0  # Different close
+            time=1640995200,
+            open=100.0,
+            high=105.0,
+            low=95.0,
+            close=103.0,  # Different close
         )
 
         assert data1 == data2
@@ -269,7 +296,11 @@ class TestOhlcData:
 
         # Shooting star candle (long upper shadow)
         shooting_star_data = OhlcData(
-            time=1640995200, open=100.0, high=105.0, low=100.0, close=100.5
+            time=1640995200,
+            open=100.0,
+            high=105.0,
+            low=100.0,
+            close=100.5,
         )
         assert shooting_star_data.high > shooting_star_data.open
         assert shooting_star_data.high > shooting_star_data.close

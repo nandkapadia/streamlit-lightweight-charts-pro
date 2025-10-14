@@ -1,0 +1,1014 @@
+---
+globs: test_*.py,*_test.py,*.test.ts,*.test.tsx,*.visual.test.ts,*.e2e.test.ts
+---
+
+# Testing Standards
+
+## Overview
+
+This project uses a comprehensive testing strategy with three layers:
+1. **Unit Tests** - Fast, isolated component tests
+2. **Visual Regression Tests** - Pixel-perfect rendering verification
+3. **E2E Tests** - Browser-based interaction tests
+
+**Current Status**: 1200+ tests, ~99.75% pass rate
+
+## Test Organization
+
+### Frontend Tests Structure
+
+```
+streamlit_lightweight_charts_pro/frontend/src/__tests__/
+├── components/          # React component tests (139+ tests)
+├── services/            # Service layer tests (513+ tests)
+├── primitives/          # Primitive tests (415+ tests)
+├── utils/               # Utility function tests (100+ tests)
+├── visual/              # Visual regression tests (119 tests)
+│   ├── series/          # Series visual tests
+│   ├── features/        # Feature visual tests
+│   └── utils/           # Visual test utilities
+└── e2e-visual/          # E2E browser tests (108 tests)
+    ├── pages/           # Test HTML pages
+    └── tests/           # Playwright test specs
+```
+
+### Python Tests Structure
+
+```
+tests/
+├── unit/                # Unit tests
+├── integration/         # Integration tests
+└── conftest.py          # Shared fixtures
+```
+
+---
+
+## 1. Unit Tests (Vitest)
+
+### Running Unit Tests
+
+```bash
+# All unit tests
+npm test
+
+# Specific file
+npm test -- ButtonPanelPrimitive.test.ts
+
+# Watch mode
+npm test -- --watch
+
+# With coverage
+npm test -- --coverage
+```
+
+### Writing Unit Tests
+
+#### Basic Test Structure
+
+```typescript
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { MyComponent } from '../MyComponent';
+
+describe('MyComponent', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe('Feature Category', () => {
+    it('should do something specific', () => {
+      const component = new MyComponent({ config: 'value' });
+
+      expect(component).toBeDefined();
+      expect(component.config).toBe('value');
+    });
+  });
+});
+```
+
+#### Testing React Components
+
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+import React from 'react';
+
+vi.mock('react', () => ({
+  Component: class Component {
+    props: any;
+    constructor(props: any) { this.props = props; }
+    render() { return null; }
+  },
+  createElement: vi.fn((type, props, ...children) => ({ type, props, children })),
+  Fragment: 'Fragment',
+}));
+
+describe('MyReactComponent', () => {
+  it('should be defined', () => {
+    expect(MyReactComponent).toBeDefined();
+  });
+});
+```
+
+#### Mocking Dependencies
+
+```typescript
+// Mock services
+vi.mock('../../services/StreamlitSeriesConfigService', () => ({
+  StreamlitSeriesConfigService: class {
+    recordConfigChange = vi.fn();
+    forceSyncToBackend = vi.fn();
+  },
+}));
+
+// Mock singletons
+vi.mock('../../services/PaneCollapseManager', () => ({
+  PaneCollapseManager: {
+    getInstance: vi.fn(() => ({
+      toggle: vi.fn(),
+      isCollapsed: vi.fn(() => false),
+    })),
+  },
+}));
+```
+
+#### Testing Lifecycle
+
+```typescript
+describe('Lifecycle Management', () => {
+  it('should initialize on attach', () => {
+    const primitive = new MyPrimitive('id', { config });
+
+    primitive.onAttached({
+      chart: mockChart,
+      series: mockSeries,
+      requestUpdate: vi.fn(),
+    });
+
+    expect(primitive.isInitialized).toBe(true);
+  });
+
+  it('should cleanup on detach', () => {
+    const primitive = new MyPrimitive('id', { config });
+    const mockRoot = { unmount: vi.fn() };
+    primitive.reactRoot = mockRoot;
+
+    primitive.onDetached();
+
+    expect(mockRoot.unmount).toHaveBeenCalled();
+    expect(primitive.reactRoot).toBeNull();
+  });
+});
+```
+
+### Test Coverage Best Practices
+
+**Aim for comprehensive coverage of:**
+- Constructor and initialization
+- Public API methods
+- Lifecycle hooks (onAttached, onDetached)
+- Error handling
+- Edge cases (null values, empty arrays, etc.)
+- Manager interactions and delegation
+- Rendering logic
+- State management
+
+**Test count guidelines by file size:**
+- Small components (<200 lines): 15-25 tests
+- Medium components (200-400 lines): 25-45 tests
+- Large components (400+ lines): 45-85 tests
+
+---
+
+## 2. Visual Regression Tests (Node Canvas)
+
+Visual tests verify pixel-perfect rendering of charts using real canvas rendering.
+
+### Running Visual Tests
+
+```bash
+# All visual tests
+npm run test:visual
+
+# Watch mode
+npm run test:visual:watch
+
+# Update baselines (after intentional changes)
+npm run test:visual:update
+
+# Interactive UI mode
+npm run test:visual:ui
+
+# Specific test file
+npm run test:visual -- line.visual.test.ts
+```
+
+### Writing Visual Tests
+
+#### Basic Visual Test
+
+```typescript
+import { describe, it, expect, afterEach } from 'vitest';
+import {
+  renderChart,
+  cleanupChartRender,
+  assertMatchesSnapshot,
+  sanitizeTestName,
+  generateLineData,
+  TestColors,
+  LineSeries,
+  type ChartRenderResult,
+} from '../utils';
+
+describe('My Visual Tests', () => {
+  let renderResult: ChartRenderResult | null = null;
+
+  afterEach(() => {
+    if (renderResult) {
+      cleanupChartRender(renderResult);
+      renderResult = null;
+    }
+  });
+
+  it('renders basic line chart', async () => {
+    renderResult = await renderChart((chart) => {
+      const series = chart.addSeries(LineSeries, {
+        color: TestColors.BLUE,
+        lineWidth: 2,
+      });
+      series.setData(generateLineData(30, 100));
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('line-basic'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+});
+```
+
+#### Custom Chart Configuration
+
+```typescript
+renderResult = await renderChart(
+  (chart) => {
+    // Setup series
+    const series = chart.addSeries(CandlestickSeries, {
+      upColor: TestColors.UP_COLOR,
+      downColor: TestColors.DOWN_COLOR,
+    });
+    series.setData(generateCandlestickData(30, 100));
+  },
+  {
+    width: 800,
+    height: 400,
+    chartOptions: {
+      layout: { background: { color: '#1E222D' } },
+      grid: {
+        vertLines: { visible: true },
+        horzLines: { visible: true },
+      },
+      rightPriceScale: { visible: true },
+    },
+  }
+);
+```
+
+#### Data Generators
+
+All generators create deterministic data for consistent snapshots:
+
+```typescript
+// Line/Area series
+generateLineData(count: number, startValue: number, startDate?: Date)
+
+// OHLC series
+generateCandlestickData(count: number, startValue: number, startDate?: Date)
+generateBarData(count: number, startValue: number, startDate?: Date)
+
+// Other builtin series
+generateHistogramData(count: number, startValue: number, startDate?: Date)
+generateBaselineData(count: number, baselineValue: number, startDate?: Date)
+
+// Custom series
+generateBandData(count: number, middleValue: number, bandWidth: number, startDate?: Date)
+generateRibbonData(count: number, lineCount: number, startValue: number, spread: number, startDate?: Date)
+generateTrendFillData(count: number, baseValue: number)
+generateSignalData(count: number)
+generateGradientRibbonData(count: number, baseValue: number)
+```
+
+#### Comparison Options
+
+```typescript
+assertMatchesSnapshot(testName, imageData, {
+  threshold: 0.1,        // Per-pixel color difference (0-1)
+  tolerance: 1.0,        // % of pixels allowed to differ (0-100)
+  includeAA: true,       // Consider anti-aliasing
+  createDiffImage: true, // Generate diff image on failure
+});
+```
+
+**Tolerance Guidelines:**
+- Simple charts: `{ threshold: 0.05, tolerance: 0.5 }`
+- Standard tests: `{ threshold: 0.1, tolerance: 1.0 }`
+- Complex charts: `{ threshold: 0.15, tolerance: 2.0 }`
+- Gradient series: `{ threshold: 0.2, tolerance: 2.5 }`
+
+#### Test Colors
+
+Use consistent colors from `TestColors`:
+
+```typescript
+TestColors.BLUE         // '#2196F3'
+TestColors.RED          // '#F44336'
+TestColors.GREEN        // '#4CAF50'
+TestColors.ORANGE       // '#FF9800'
+TestColors.PURPLE       // '#9C27B0'
+TestColors.UP_COLOR     // '#26A69A'
+TestColors.DOWN_COLOR   // '#EF5350'
+TestColors.UP_WICK      // '#26A69A'
+TestColors.DOWN_WICK    // '#EF5350'
+```
+
+### Updating Visual Baselines
+
+**⚠️ Important**: Only update baselines after intentional visual changes!
+
+1. Run tests to see failures: `npm run test:visual`
+2. Review diff images in `src/__tests__/visual/__snapshots__/__diffs__/`
+3. If changes are correct: `npm run test:visual:update`
+4. Verify updates: `npm run test:visual`
+5. Commit updated baselines:
+   ```bash
+   git add src/__tests__/visual/__snapshots__/*.png
+   git commit -m "Update visual baselines: [reason]"
+   ```
+
+**Never commit diff images** - they're gitignored and temporary.
+
+---
+
+## 3. E2E Tests (Playwright)
+
+E2E tests verify real browser interactions with rendered HTML pages.
+
+### Running E2E Tests
+
+```bash
+# All E2E tests
+npm run test:e2e
+
+# Update snapshots
+npm run test:e2e:update
+
+# With UI
+npm run test:e2e:ui
+
+# Specific test
+npx playwright test series.e2e.test.ts
+```
+
+### Writing E2E Tests
+
+#### Page Structure
+
+Create test HTML pages in `src/__tests__/e2e-visual/pages/`:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Page</title>
+  <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+  <div id="container" style="width: 800px; height: 400px;"></div>
+
+  <script>
+    function runTestCase() {
+      const chart = LightweightCharts.createChart(document.getElementById('container'), {
+        width: 800,
+        height: 400,
+      });
+
+      const series = chart.addSeries(LightweightCharts.LineSeries);
+      series.setData([
+        { time: '2024-01-01', value: 100 },
+        { time: '2024-01-02', value: 105 },
+      ]);
+
+      chart.timeScale().fitContent();
+    }
+
+    // Signal test is ready
+    window.testCaseReady = Promise.resolve(runTestCase());
+  </script>
+</body>
+</html>
+```
+
+#### E2E Test Spec
+
+Create test specs in `src/__tests__/e2e-visual/tests/`:
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('My E2E Tests', () => {
+  test('renders chart correctly', async ({ page }) => {
+    await page.goto('http://localhost:8080/my-test.html');
+
+    // Wait for test to be ready
+    await page.waitForFunction(() => (window as any).testCaseReady);
+    await page.waitForTimeout(500);
+
+    // Take screenshot
+    const container = page.locator('#container');
+    await expect(container).toHaveScreenshot('my-test.png', {
+      maxDiffPixelRatio: 0.02,
+    });
+  });
+});
+```
+
+#### Testing Interactions
+
+```typescript
+test('updates legend on hover', async ({ page }) => {
+  await page.goto('http://localhost:8080/legend-test.html');
+  await page.waitForFunction(() => (window as any).testCaseReady);
+
+  const container = page.locator('#container');
+  const legend = page.locator('[data-testid="legend"]');
+
+  // Get initial value
+  const initialText = await legend.textContent();
+
+  // Move mouse to trigger crosshair
+  const box = await container.boundingBox();
+  await page.mouse.move(box.x + 400, box.y + 200);
+  await page.waitForTimeout(150);
+
+  // Verify value changed
+  const updatedText = await legend.textContent();
+  expect(updatedText).not.toBe(initialText);
+});
+```
+
+#### Dropdown Interaction
+
+```typescript
+test('changes series style via dropdown', async ({ page }) => {
+  await page.goto('http://localhost:8080/dialog-test.html');
+  await page.waitForFunction(() => (window as any).testCaseReady);
+
+  // Open dialog
+  await page.click('[data-testid="config-button"]');
+  await page.waitForTimeout(100);
+
+  // Use selectOption for dropdowns (not click on option!)
+  const dropdown = page.locator('[data-testid="line-style-dropdown"]');
+  await dropdown.selectOption('1'); // 1 = Dashed
+
+  await page.waitForTimeout(200);
+
+  // Verify visual change
+  const container = page.locator('#container');
+  await expect(container).toHaveScreenshot('dashed-line.png');
+});
+```
+
+### E2E Best Practices
+
+**✅ DO:**
+- Use `data-testid` attributes for reliable element selection
+- Use deterministic data (no `Math.random()`)
+- Use `page.mouse.move()` for canvas interactions
+- Use `selectOption()` for dropdowns
+- Expose `window.chart` for programmatic control
+- Wait for `testCaseReady` promise
+- Add timeouts after interactions (100-500ms)
+
+**❌ DON'T:**
+- Don't use `.hover()` on canvas elements (doesn't trigger events)
+- Don't click on `<option>` elements (use `selectOption()`)
+- Don't use random data in HTML pages
+- Don't rely on pan gestures (use programmatic changes)
+
+---
+
+## 4. Test Commands Reference
+
+### Unit Tests
+
+```bash
+npm test                           # All unit tests
+npm test -- MyComponent.test.ts    # Specific file
+npm test -- --watch               # Watch mode
+npm test -- --coverage            # With coverage
+npm test -- --ui                  # Interactive UI
+```
+
+### Visual Tests
+
+```bash
+npm run test:visual               # All visual tests
+npm run test:visual:watch         # Watch mode
+npm run test:visual:update        # Update baselines
+npm run test:visual:ui            # Interactive UI
+```
+
+### E2E Tests
+
+```bash
+npm run test:e2e                  # All E2E tests
+npm run test:e2e:update           # Update snapshots
+npm run test:e2e:ui               # Interactive UI
+npx playwright test --headed      # See browser
+```
+
+### Python Tests
+
+```bash
+make test                         # All Python tests
+make test-cov                     # With coverage
+pytest tests/unit/                # Unit tests only
+pytest -n auto                    # Parallel execution
+```
+
+---
+
+## 5. Coverage Requirements
+
+### Frontend Coverage Targets
+
+- **Overall**: 90%+ coverage
+- **Critical paths**: 95%+ coverage
+- **Services**: 85%+ coverage
+- **Components**: 80%+ coverage
+- **Utilities**: 95%+ coverage
+
+### Python Coverage Targets
+
+- **Overall**: 95%+ coverage
+- **Core logic**: 98%+ coverage
+
+### Current Coverage Status
+
+```
+Frontend Tests:     1200+ tests, 99.75% pass rate
+├── Unit Tests:     1067+ tests ✅
+├── Visual Tests:   119 tests ✅
+└── E2E Tests:      108 tests ✅
+
+Python Tests:       [Run: make test-cov]
+```
+
+---
+
+## 6. Common Patterns
+
+### Testing Private Methods
+
+```typescript
+it('should call private method correctly', () => {
+  const component = new MyComponent({ config });
+
+  // Access private method via type assertion
+  const result = (component as any).privateMethod();
+
+  expect(result).toBe(expected);
+});
+```
+
+### Testing Error Handling
+
+```typescript
+it('should handle errors gracefully', () => {
+  const component = new MyComponent({ config });
+
+  // Mock to throw error
+  component.dependency = {
+    method: vi.fn(() => { throw new Error('Test error'); }),
+  };
+
+  expect(() => component.doSomething()).not.toThrow();
+  expect(mockLogger.error).toHaveBeenCalled();
+});
+```
+
+### Testing Callbacks
+
+```typescript
+it('should call onSuccess callback', async () => {
+  const onSuccess = vi.fn();
+  const component = new MyComponent({ onSuccess });
+
+  await component.performAction();
+
+  expect(onSuccess).toHaveBeenCalledWith(expectedData);
+});
+```
+
+### Testing Async Operations
+
+```typescript
+it('should handle async operations', async () => {
+  const component = new MyComponent({ config });
+
+  const promise = component.asyncMethod();
+
+  await expect(promise).resolves.toBe(expectedValue);
+});
+```
+
+---
+
+## 7. Troubleshooting
+
+### Unit Tests
+
+**Memory Issues**:
+```bash
+NODE_OPTIONS='--max-old-space-size=4096 --expose-gc' npm test
+```
+
+**Module Not Found**:
+- Check import paths are correct
+- Verify file exists
+- Check vitest.config.ts for path aliases
+
+### Visual Tests
+
+**Baseline Not Found**:
+```bash
+npm run test:visual:update
+```
+
+**Pixel Differences**:
+1. Check diff image in `__snapshots__/__diffs__/`
+2. If intentional: `npm run test:visual:update`
+3. If bug: Fix the code
+4. If flaky: Adjust tolerance
+
+**Canvas Not Rendering**:
+- Ensure jsdom environment is initialized
+- Check node-canvas is installed
+- Verify setup.ts is in setupFiles
+
+### E2E Tests
+
+**Tests Timeout**:
+- Increase timeout in test: `test.setTimeout(30000)`
+- Check page loads correctly
+- Verify `window.testCaseReady` is set
+
+**Screenshots Don't Match**:
+- Run with `--update-snapshots` to update
+- Check for non-deterministic data
+- Verify consistent viewport size
+
+**Selector Not Found**:
+- Use `data-testid` attributes
+- Check element is visible
+- Add wait: `await page.waitForSelector('[data-testid="element"]')`
+
+---
+
+## 8. CI/CD Integration
+
+### GitHub Actions Example
+
+```yaml
+- name: Run unit tests
+  run: |
+    cd streamlit_lightweight_charts_pro/frontend
+    npm test -- --run
+
+- name: Run visual tests
+  run: |
+    cd streamlit_lightweight_charts_pro/frontend
+    npm run test:visual
+
+- name: Run E2E tests
+  run: |
+    cd streamlit_lightweight_charts_pro/frontend
+    npm run test:e2e
+
+- name: Upload test artifacts on failure
+  if: failure()
+  uses: actions/upload-artifact@v3
+  with:
+    name: test-results
+    path: |
+      streamlit_lightweight_charts_pro/frontend/src/__tests__/visual/__snapshots__/__diffs__/
+      streamlit_lightweight_charts_pro/frontend/test-results/
+```
+
+---
+
+## 9. Best Practices Summary
+
+### ✅ DO
+
+- Write tests for all new features
+- Test edge cases and error conditions
+- Use descriptive test names
+- Clean up resources in `afterEach`
+- Use deterministic test data
+- Mock external dependencies
+- Review test failures before updating baselines
+- Commit baseline images with tests
+- Document complex test setups
+
+### ❌ DON'T
+
+- Don't skip tests without good reason
+- Don't use random data in tests
+- Don't ignore test failures
+- Don't update baselines blindly
+- Don't test implementation details
+- Don't write flaky tests
+- Don't commit diff images or test artifacts
+- Don't mix test types (unit, visual, E2E)
+
+---
+
+## 10. Getting Help
+
+- **Test failures**: Check test output and error messages
+- **Documentation**: See test files for examples
+- **Coverage gaps**: Run with `--coverage` flag
+- **Performance issues**: Use `--no-coverage` for faster runs
+- **Visual differences**: Check diff images in `__diffs__/`
+- **E2E issues**: Use `--headed` to see browser
+
+---
+
+## 11. Browser API Mocking and Integration Tests
+
+### Overview
+
+Integration tests require proper mocking of browser APIs (matchMedia, ResizeObserver, getComputedStyle) to work correctly with lightweight-charts and fancy-canvas libraries.
+
+### Centralized Mock Setup
+
+All browser API mocks are configured in `setupTests.ts` and automatically available to all tests. **Do not override these mocks in individual test files unless absolutely necessary.**
+
+### Critical Mocks
+
+#### 1. getComputedStyle Mock
+
+**❌ WRONG**: Returning empty strings causes color parsing errors
+```typescript
+Object.defineProperty(window, 'getComputedStyle', {
+  value: () => ({
+    getPropertyValue: () => '',  // ❌ Causes "Cannot read properties of undefined (reading 'match')"
+  }),
+});
+```
+
+**✅ CORRECT**: Return valid CSS values
+```typescript
+Object.defineProperty(window, 'getComputedStyle', {
+  value: (element: Element) => ({
+    getPropertyValue: (prop: string) => {
+      // Return valid defaults for properties used by lightweight-charts
+      if (prop === 'background-color' || prop === 'backgroundColor') {
+        return 'rgba(255, 255, 255, 1)';
+      }
+      if (prop === 'color' || prop === 'textColor') {
+        return 'rgba(0, 0, 0, 1)';
+      }
+      if (prop === 'font-family' || prop === 'fontFamily') {
+        return 'Arial, sans-serif';
+      }
+      if (prop === 'font-size' || prop === 'fontSize') {
+        return '12px';
+      }
+      return '';
+    },
+  }),
+  configurable: true,
+  writable: true,
+});
+```
+
+#### 2. matchMedia Mock
+
+**✅ CORRECT**: Include all required methods
+```typescript
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  configurable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),      // Required for fancy-canvas
+    removeListener: vi.fn(),   // Required for fancy-canvas
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+```
+
+#### 3. ResizeObserver Mock
+
+```typescript
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
+```
+
+### Library Mocking Best Practices
+
+#### Comprehensive lightweight-charts Mock
+
+When mocking lightweight-charts, include **all exports** used by your codebase:
+
+```typescript
+vi.mock('lightweight-charts', () => {
+  const mockSeries = {
+    setData: vi.fn(),
+    update: vi.fn(),
+    setMarkers: vi.fn(),
+    applyOptions: vi.fn(),
+    attachPrimitive: vi.fn(),
+    detachPrimitive: vi.fn(),
+    // ... other methods
+  };
+
+  const mockChart = {
+    addSeries: vi.fn(() => mockSeries),
+    addLineSeries: vi.fn(() => mockSeries),
+    addCandlestickSeries: vi.fn(() => mockSeries),
+    // ... other chart methods
+    timeScale: vi.fn(() => ({
+      fitContent: vi.fn(),
+      getVisibleRange: vi.fn(() => ({ from: 0, to: 100 })),
+      // ... other timeScale methods
+    })),
+  };
+
+  return {
+    createChart: vi.fn(() => mockChart),
+    // Enums
+    LineStyle: { Solid: 0, Dotted: 1, Dashed: 2 },
+    CrosshairMode: { Normal: 0, Magnet: 1 },
+    PriceScaleMode: { Normal: 0, Logarithmic: 1 },
+    ColorType: { Solid: 'solid', VerticalGradient: 'gradient' },
+
+    // CRITICAL: Custom series exports (required by plugins)
+    customSeriesDefaultOptions: {
+      lastValueVisible: true,
+      title: '',
+      priceScaleId: 'right',
+    },
+    WhitespaceData: vi.fn(),
+    CustomSeriesView: vi.fn(),
+    SeriesType: {
+      Line: 'Line',
+      Candlestick: 'Candlestick',
+      Custom: 'Custom',
+      // ... other types
+    },
+  };
+});
+```
+
+### Common Integration Test Issues
+
+#### Issue 1: Color Parser Error
+
+**Error**:
+```
+TypeError: Cannot read properties of undefined (reading 'match')
+at ColorParser._private__parseColor
+```
+
+**Cause**: `getComputedStyle` returning empty strings or undefined for color properties
+
+**Fix**: Update `setupTests.ts` to return valid color values (see section above)
+
+#### Issue 2: Device Pixel Ratio Observer Error
+
+**Error**:
+```
+TypeError: Cannot read properties of undefined (reading 'addListener')
+at Observable._installResolutionListener
+```
+
+**Cause**: `matchMedia` mock missing `addListener` method
+
+**Fix**: Ensure matchMedia mock includes deprecated `addListener`/`removeListener` methods
+
+#### Issue 3: Missing Custom Series Exports
+
+**Error**:
+```
+No "customSeriesDefaultOptions" export is defined on the "lightweight-charts" mock
+```
+
+**Cause**: Incomplete lightweight-charts mock
+
+**Fix**: Add all custom series exports to mock (see comprehensive mock above)
+
+### Integration Test Checklist
+
+- [ ] ✅ Use centralized mocks from `setupTests.ts`
+- [ ] ✅ Mock lightweight-charts comprehensively (include all exports)
+- [ ] ✅ Return valid CSS values from `getComputedStyle`
+- [ ] ✅ Include `addListener` in `matchMedia` mock
+- [ ] ✅ Add `customSeriesDefaultOptions` to lightweight-charts mock
+- [ ] ✅ Clean up properly in `afterEach` hooks
+- [ ] ✅ Suppress expected console warnings
+- [ ] ❌ Don't override global mocks in individual test files
+- [ ] ❌ Don't return empty strings from style getters
+- [ ] ❌ Don't create partial library mocks
+
+### Integration Test Template
+
+```typescript
+/**
+ * @vitest-environment jsdom
+ */
+import { render, waitFor, cleanup, act } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import MyComponent from '../../MyComponent';
+
+// Mock lightweight-charts (see comprehensive mock above)
+vi.mock('lightweight-charts', () => ({
+  // ... comprehensive mock
+}));
+
+describe('Integration Tests', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(async () => {
+    // Wait for async operations
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
+
+    // Cleanup
+    act(() => {
+      cleanup();
+    });
+
+    vi.restoreAllMocks();
+  });
+
+  it('should render correctly', async () => {
+    const { container } = render(<MyComponent />);
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-testid="component"]')).toBeInTheDocument();
+    });
+  });
+});
+```
+
+### Debugging Integration Tests
+
+#### View Test Output
+```bash
+# Run with verbose output
+npm test -- integration.test.tsx --run
+
+# Run specific test
+npm test -- integration.test.tsx -t "should render correctly"
+
+# Debug mode
+npm test -- integration.test.tsx --inspect-brk
+```
+
+#### Common Debug Steps
+
+1. **Check mock setup**: Ensure all required exports are mocked
+2. **Verify color values**: Check getComputedStyle returns valid colors
+3. **Test isolation**: Run tests individually to identify conflicts
+4. **Console output**: Review suppressed warnings for clues
+5. **Library versions**: Ensure compatible versions of test libraries
+
+---
+
+**Last Updated**: 2025-10-12
+**Test Framework**: Vitest + node-canvas + Playwright
+**Total Tests**: 1200+
+**Coverage**: 90%+ frontend, 95%+ backend

@@ -1,25 +1,27 @@
-"""
-Multi-Area Chart Example.
+"""Multi-Area Chart Example.
 
 This example demonstrates how to create charts with multiple AreaSeries,
 showing different datasets and overlay options.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
-from examples.data_samples import get_line_data, get_multi_area_data_1, get_multi_area_data_2
+from examples.utilities.data_samples import (
+    get_line_data,
+    get_multi_area_data_1,
+    get_multi_area_data_2,
+)
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
+from streamlit_lightweight_charts_pro.charts.options import LineOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
-from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
+from streamlit_lightweight_charts_pro.charts.series import AreaSeries
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 def main():
@@ -91,7 +93,9 @@ def main():
         top_color="rgba(255, 107, 107, 0.4)",
         bottom_color="rgba(255, 107, 107, 0.1)",
         line_options=LineOptions(
-            color="rgba(255, 107, 107, 0.8)", line_width=1, line_style=LineStyle.DOTTED
+            color="rgba(255, 107, 107, 0.8)",
+            line_width=1,
+            line_style=LineStyle.DOTTED,
         ),
     )
 
@@ -105,9 +109,7 @@ def main():
     st.write("Showing three different datasets with distinct styling:")
 
     # Create a third dataset by scaling the line data
-    scaled_data = []
-    for point in line_data:
-        scaled_data.append(type(point)(time=point.time, value=point.value * 2 + 100))
+    scaled_data = [type(point)(time=point.time, value=point.value * 2 + 100) for point in line_data]
 
     # Area 1 - Solid style
     area1_style = AreaSeries(
@@ -195,11 +197,11 @@ def main():
     avg2 = sum(values2) / len(values2)
 
     comp_area1.add_price_line(
-        PriceLineOptions(price=avg1, color="#e74c3c", line_width=1, line_style=LineStyle.DASHED)
+        PriceLineOptions(price=avg1, color="#e74c3c", line_width=1, line_style=LineStyle.DASHED),
     )
 
     comp_area2.add_price_line(
-        PriceLineOptions(price=avg2, color="#f39c12", line_width=1, line_style=LineStyle.DASHED)
+        PriceLineOptions(price=avg2, color="#f39c12", line_width=1, line_style=LineStyle.DASHED),
     )
 
     chart4 = Chart()
@@ -239,7 +241,7 @@ def main():
     - **Different Styles**: Various line styles and colors for distinction
     - **Annotations**: Markers and price lines for key points
     - **Data Comparison**: Statistical comparison of different datasets
-    """
+    """,
     )
 
 

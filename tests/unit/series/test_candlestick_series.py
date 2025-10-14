@@ -5,12 +5,24 @@ This module contains comprehensive tests for the CandlestickSeries class,
 which represents candlestick chart series with styling options.
 """
 
+# pylint: disable=no-member,protected-access
+
 import pandas as pd
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
+from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
 from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
+from streamlit_lightweight_charts_pro.data.marker import BarMarker
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
+    ColumnMappingRequiredError,
+    DataFrameValidationError,
+    DataItemsTypeError,
+    TypeValidationError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions import ChartType, MarkerPosition, MarkerShape
 
 
@@ -42,17 +54,17 @@ class TestCandlestickSeriesConstruction:
 
     def test_construction_with_dataframe(self):
         """Test construction with pandas DataFrame."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "time": [1640995200, 1641081600],
                 "open": [100, 103],
                 "high": [105, 108],
                 "low": [98, 102],
                 "close": [103, 106],
-            }
+            },
         )
         series = CandlestickSeries(
-            data=df,
+            data=test_dataframe,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -68,11 +80,11 @@ class TestCandlestickSeriesConstruction:
     def test_construction_with_pandas_series(self):
         """Test construction with pandas Series."""
         # Create a DataFrame instead of Series for simpler testing
-        df = pd.DataFrame(
-            {"time": [1640995200], "open": [100], "high": [105], "low": [98], "close": [103]}
+        test_dataframe = pd.DataFrame(
+            {"time": [1640995200], "open": [100], "high": [105], "low": [98], "close": [103]},
         )
         series = CandlestickSeries(
-            data=df,
+            data=test_dataframe,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -241,8 +253,8 @@ class TestCandlestickSeriesProperties:
         series.up_color = "#FF0000"
         series.down_color = "rgba(0, 255, 0, 0.5)"
 
-        # Test invalid colors (should raise ValueError)
-        with pytest.raises(ValueError):
+        # Test invalid colors (should raise ColorValidationError)
+        with pytest.raises(ColorValidationError):
             series.up_color = "invalid_color"
 
     def test_boolean_validation(self):
@@ -263,17 +275,17 @@ class TestCandlestickSeriesProperties:
         series.border_visible = False
         assert series.border_visible is False
 
-        # Test invalid values - should raise TypeError
-        with pytest.raises(TypeError, match="wick_visible must be a boolean"):
+        # Test invalid values - should raise TypeValidationError
+        with pytest.raises(TypeValidationError, match="wick_visible must be boolean"):
             series.wick_visible = 1
 
-        with pytest.raises(TypeError, match="wick_visible must be a boolean"):
+        with pytest.raises(TypeValidationError, match="wick_visible must be boolean"):
             series.wick_visible = 0
 
-        with pytest.raises(TypeError, match="border_visible must be a boolean"):
+        with pytest.raises(TypeValidationError, match="border_visible must be boolean"):
             series.border_visible = "true"
 
-        with pytest.raises(TypeError, match="border_visible must be a boolean"):
+        with pytest.raises(TypeValidationError, match="border_visible must be boolean"):
             series.border_visible = ""
 
 
@@ -348,7 +360,6 @@ class TestCandlestickSeriesSerialization:
         """Test asdict with markers."""
         data = [CandlestickData(time=1640995200, open=100, high=105, low=98, close=103)]
         series = CandlestickSeries(data=data)
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -385,8 +396,6 @@ class TestCandlestickSeriesMethods:
         data = [CandlestickData(time=1640995200, open=100, high=105, low=98, close=103)]
         series = CandlestickSeries(data=data)
 
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position=MarkerPosition.BELOW_BAR,
@@ -396,7 +405,6 @@ class TestCandlestickSeriesMethods:
         series.add_marker(marker)
 
         assert len(series.markers) == 1
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         assert isinstance(series.markers[0], BarMarker)
         assert series.markers[0].time == 1640995200
@@ -422,8 +430,6 @@ class TestCandlestickSeriesMethods:
         data = [CandlestickData(time=1640995200, open=100, high=105, low=98, close=103)]
         series = CandlestickSeries(data=data)
 
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position=MarkerPosition.BELOW_BAR,
@@ -431,7 +437,7 @@ class TestCandlestickSeriesMethods:
             shape=MarkerShape.CIRCLE,
         )
         result = series.add_marker(marker).add_price_line(
-            PriceLineOptions(price=100, color="#FF0000")
+            PriceLineOptions(price=100, color="#FF0000"),
         )
 
         assert result is series
@@ -444,18 +450,18 @@ class TestCandlestickSeriesDataHandling:
 
     def test_from_dataframe_classmethod(self):
         """Test from_dataframe classmethod."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "time": [1640995200, 1641081600],
                 "open": [100, 103],
                 "high": [105, 108],
                 "low": [98, 102],
                 "close": [103, 106],
-            }
+            },
         )
 
         series = CandlestickSeries.from_dataframe(
-            df,
+            test_dataframe,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -474,13 +480,13 @@ class TestCandlestickSeriesDataHandling:
 
     def test_from_dataframe_with_index_columns(self):
         """Test from_dataframe with index columns."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {"open": [100, 103], "high": [105, 108], "low": [98, 102], "close": [103, 106]},
             index=pd.to_datetime(["2022-01-01", "2022-01-02"]),
         )
 
         series = CandlestickSeries.from_dataframe(
-            df,
+            test_dataframe,
             column_mapping={
                 "time": "datetime",
                 "open": "open",
@@ -495,15 +501,16 @@ class TestCandlestickSeriesDataHandling:
 
     def test_from_dataframe_with_multi_index(self):
         """Test from_dataframe with multi-index."""
-        df = pd.DataFrame(
-            {"open": [100, 103], "high": [105, 108], "low": [98, 102], "close": [103, 106]}
+        test_dataframe = pd.DataFrame(
+            {"open": [100, 103], "high": [105, 108], "low": [98, 102], "close": [103, 106]},
         )
-        df.index = pd.MultiIndex.from_tuples(
-            [(1640995200, "A"), (1641081600, "B")], names=["date", "symbol"]
+        test_dataframe.index = pd.MultiIndex.from_tuples(
+            [(1640995200, "A"), (1641081600, "B")],
+            names=["date", "symbol"],
         )
 
         series = CandlestickSeries.from_dataframe(
-            df,
+            test_dataframe,
             column_mapping={
                 "time": "date",
                 "open": "open",
@@ -533,54 +540,44 @@ class TestCandlestickSeriesValidation:
         data = [CandlestickData(time=1640995200, open=100, high=105, low=98, close=103)]
         series = CandlestickSeries(data=data, pane_id=-1)
 
-        with pytest.raises(ValueError, match="pane_id must be non-negative"):
+        with pytest.raises(ValueValidationError):
             series._validate_pane_config()
 
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""
-        with pytest.raises(
-            ValueError, match="data must be a list of SingleValueData objects, DataFrame, or Series"
-        ):
+        with pytest.raises(DataFrameValidationError):
             CandlestickSeries(data="invalid_data")
 
     def test_error_handling_missing_required_columns(self):
         """Test error handling with missing required columns."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "time": [1640995200],
                 "open": [100],
                 # Missing high, low, close
-            }
+            },
         )
 
-        with pytest.raises(
-            ValueError, match="column_mapping is required when providing DataFrame or Series data"
-        ):
-            CandlestickSeries(data=df)
+        with pytest.raises(ColumnMappingRequiredError):
+            CandlestickSeries(data=test_dataframe)
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(
-            ValueError, match="data must be a list of SingleValueData objects, DataFrame, or Series"
-        ):
+        with pytest.raises(DataFrameValidationError):
             CandlestickSeries(data=123)
 
     def test_error_handling_dataframe_without_column_mapping(self):
         """Test error handling with DataFrame without column mapping."""
-        df = pd.DataFrame(
-            {"time": [1640995200], "open": [100], "high": [105], "low": [98], "close": [103]}
+        test_dataframe = pd.DataFrame(
+            {"time": [1640995200], "open": [100], "high": [105], "low": [98], "close": [103]},
         )
 
-        with pytest.raises(
-            ValueError, match="column_mapping is required when providing DataFrame or Series data"
-        ):
-            CandlestickSeries(data=df)
+        with pytest.raises(ColumnMappingRequiredError):
+            CandlestickSeries(data=test_dataframe)
 
     def test_error_handling_invalid_list_data(self):
         """Test error handling with invalid list data."""
-        with pytest.raises(
-            ValueError, match="All items in data list must be instances of Data or its subclasses"
-        ):
+        with pytest.raises(DataItemsTypeError):
             CandlestickSeries(data=[1, 2, 3])
 
 
@@ -608,7 +605,11 @@ class TestCandlestickSeriesEdgeCases:
         """Test handling of large dataset."""
         data = [
             CandlestickData(
-                time=1640995200 + i, open=100 + i, high=105 + i, low=98 + i, close=103 + i
+                time=1640995200 + i,
+                open=100 + i,
+                high=105 + i,
+                low=98 + i,
+                close=103 + i,
             )
             for i in range(1000)
         ]
@@ -628,8 +629,12 @@ class TestCandlestickSeriesEdgeCases:
         """Test handling of very small values."""
         data = [
             CandlestickData(
-                time=1640995200, open=0.000001, high=0.000002, low=0.000001, close=0.000001
-            )
+                time=1640995200,
+                open=0.000001,
+                high=0.000002,
+                low=0.000001,
+                close=0.000001,
+            ),
         ]
         series = CandlestickSeries(data=data)
 
@@ -639,7 +644,7 @@ class TestCandlestickSeriesEdgeCases:
     def test_very_large_values(self):
         """Test handling of very large values."""
         data = [
-            CandlestickData(time=1640995200, open=1000000, high=1000001, low=999999, close=1000000)
+            CandlestickData(time=1640995200, open=1000000, high=1000001, low=999999, close=1000000),
         ]
         series = CandlestickSeries(data=data)
 
@@ -658,11 +663,11 @@ class TestCandlestickSeriesEdgeCases:
         series.wick_visible = False
         assert series.wick_visible is False
 
-        # Test invalid values - should raise TypeError
-        with pytest.raises(TypeError, match="wick_visible must be a boolean"):
+        # Test invalid values - should raise TypeValidationError
+        with pytest.raises(TypeValidationError, match="wick_visible must be boolean"):
             series.wick_visible = 1
 
-        with pytest.raises(TypeError, match="wick_visible must be a boolean"):
+        with pytest.raises(TypeValidationError, match="wick_visible must be boolean"):
             series.wick_visible = 0
 
     def test_boolean_validation_for_border_visible(self):
@@ -677,11 +682,11 @@ class TestCandlestickSeriesEdgeCases:
         series.border_visible = False
         assert series.border_visible is False
 
-        # Test invalid values - should raise TypeError
-        with pytest.raises(TypeError, match="border_visible must be a boolean"):
+        # Test invalid values - should raise TypeValidationError
+        with pytest.raises(TypeValidationError, match="border_visible must be boolean"):
             series.border_visible = "true"
 
-        with pytest.raises(TypeError, match="border_visible must be a boolean"):
+        with pytest.raises(TypeValidationError, match="border_visible must be boolean"):
             series.border_visible = ""
 
 
@@ -690,8 +695,6 @@ class TestCandlestickSeriesInheritance:
 
     def test_inherits_from_series(self):
         """Test that CandlestickSeries inherits from Series."""
-        from streamlit_lightweight_charts_pro.charts.series.base import Series
-
         assert issubclass(CandlestickSeries, Series)
 
     def test_has_required_methods(self):
@@ -751,7 +754,6 @@ class TestCandlestickSeriesJsonStructure:
         """Test markers JSON structure."""
         data = [CandlestickData(time=1640995200, open=100, high=105, low=98, close=103)]
         series = CandlestickSeries(data=data)
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -799,8 +801,6 @@ class TestCandlestickSeriesJsonStructure:
         series.border_visible = False
 
         # Add markers and price lines
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position=MarkerPosition.BELOW_BAR,

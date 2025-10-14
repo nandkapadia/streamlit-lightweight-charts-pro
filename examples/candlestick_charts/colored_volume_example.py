@@ -1,5 +1,4 @@
-"""
-Colored Volume Example
+"""Colored Volume Example
 
 This example demonstrates how to create a candlestick chart with volume bars
 that are colored based on whether the candle is bullish (green) or bearish (red).
@@ -16,7 +15,7 @@ from streamlit_lightweight_charts_pro import Chart
 
 def generate_sample_data(days: int = 30) -> pd.DataFrame:
     """Generate sample OHLCV data with realistic price movements."""
-    np.random.seed(42)  # For reproducible results
+    rng = np.random.default_rng(42)  # For reproducible results
 
     # Generate dates
     start_date = datetime(2024, 1, 1)
@@ -26,24 +25,24 @@ def generate_sample_data(days: int = 30) -> pd.DataFrame:
     base_price = 100.0
     prices = [base_price]
 
-    for i in range(1, days):
+    for _i in range(1, days):
         # Add some trend and random walk
-        change = np.random.normal(0, 2) + (0.1 if i < days // 2 else -0.1)  # Trend change
+        change = rng.normal(0, 2) + (0.1 if _i < days // 2 else -0.1)  # Trend change
         new_price = prices[-1] + change
         prices.append(max(new_price, 50))  # Ensure price doesn't go too low
 
     # Generate OHLCV data
     data = []
-    for i, (date, close_price) in enumerate(zip(dates, prices)):
+    for _i, (date, close_price) in enumerate(zip(dates, prices)):
         # Create realistic OHLC from close price
-        volatility = np.random.uniform(1, 3)
-        open_price = close_price + np.random.normal(0, volatility)
-        high_price = max(open_price, close_price) + np.random.uniform(0, volatility)
-        low_price = min(open_price, close_price) - np.random.uniform(0, volatility)
+        volatility = rng.uniform(1, 3)
+        open_price = close_price + rng.normal(0, volatility)
+        high_price = max(open_price, close_price) + rng.uniform(0, volatility)
+        low_price = min(open_price, close_price) - rng.uniform(0, volatility)
 
         # Generate volume (higher volume on larger price moves)
         price_change = abs(close_price - open_price)
-        base_volume = np.random.uniform(500, 2000)
+        base_volume = rng.uniform(500, 2000)
         volume = base_volume + price_change * 100
 
         data.append(
@@ -54,7 +53,7 @@ def generate_sample_data(days: int = 30) -> pd.DataFrame:
                 "low": round(low_price, 2),
                 "close": round(close_price, 2),
                 "volume": int(volume),
-            }
+            },
         )
 
     return pd.DataFrame(data)
@@ -69,7 +68,7 @@ def main():
     This example demonstrates volume bars that are colored based on price movement:
     - **Green bars**: When close price >= open price (bullish)
     - **Red bars**: When close price < open price (bearish)
-    """
+    """,
     )
 
     # Sidebar controls
@@ -106,23 +105,23 @@ def main():
     show_volume = st.sidebar.checkbox("Show volume", value=True)
 
     # Generate data
-    df = generate_sample_data(days)
+    volume_data = generate_sample_data(days)
 
     # Display data summary
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Total Days", len(df))
+        st.metric("Total Days", len(volume_data))
     with col2:
-        bullish_days = len(df[df["close"] >= df["open"]])
+        bullish_days = len(volume_data[volume_data["close"] >= volume_data["open"]])
         st.metric("Bullish Days", bullish_days)
     with col3:
-        bearish_days = len(df[df["close"] < df["open"]])
+        bearish_days = len(volume_data[volume_data["close"] < volume_data["open"]])
         st.metric("Bearish Days", bearish_days)
 
     # Create chart
     if show_volume:
         chart = Chart.from_price_volume_dataframe(
-            data=df,
+            data=volume_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -137,7 +136,7 @@ def main():
         # Create chart without volume
         chart = Chart()
         chart.add_price_volume_series(
-            data=df,
+            data=volume_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -158,14 +157,14 @@ def main():
     # Display data table
     st.subheader("Data Table")
     st.dataframe(
-        df.style.apply(
-            lambda x: [
+        volume_data.style.apply(
+            lambda _: [
                 (
                     "background-color: rgba(76,175,80,0.2)"
                     if row["close"] >= row["open"]
                     else "background-color: rgba(244,67,54,0.2)"
                 )
-                for _, row in df.iterrows()
+                for _, row in volume_data.iterrows()
             ],
             axis=1,
         ),
@@ -177,12 +176,13 @@ def main():
     st.markdown(
         """
     The volume bars are colored based on the price movement of each candle:
-    
-    1. **Green bars** (`rgba(76,175,80,0.5)`): When the close price is greater than or equal to the open price
+
+     1. **Green bars** (`rgba(76,175,80,0.5)`): When the close price is
+        greater than or equal to the open price
     2. **Red bars** (`rgba(244,67,54,0.5)`): When the close price is less than the open price
-    
+
     This provides a quick visual indication of market sentiment for each period.
-    """
+    """,
     )
 
     # Code example
@@ -191,7 +191,7 @@ def main():
         """
 # Method 1: Using Chart.from_price_volume_dataframe (recommended)
 chart = Chart.from_price_volume_dataframe(
-    data=df,
+    data=volume_data,
     column_mapping={
         'time': 'time',
         'open': 'open',
@@ -207,10 +207,10 @@ chart = Chart.from_price_volume_dataframe(
 )
 
 # Method 2: Using HistogramSeries.create_volume_series directly
-from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
+from streamlit_lightweight_charts_pro.charts.series import HistogramSeries
 
 volume_series = HistogramSeries.create_volume_series(
-    data=df,  # DataFrame with OHLCV data
+    data=volume_data,  # DataFrame with OHLCV data
     column_mapping={
         'time': 'time',
         'volume': 'volume',
@@ -224,7 +224,7 @@ volume_series = HistogramSeries.create_volume_series(
 )
 
 # Method 3: Using OHLCV data objects
-from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+from streamlit_lightweight_charts_pro.data import OhlcvData
 
 ohlcv_data = [
     OhlcvData('2024-01-01', 100, 105, 98, 105, 1000),

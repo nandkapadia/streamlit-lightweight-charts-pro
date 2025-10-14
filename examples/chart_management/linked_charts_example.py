@@ -1,5 +1,4 @@
-"""
-Linked Charts Example
+"""Linked Charts Example
 
 This example demonstrates how to create and use linked charts with
 synchronization features. It shows how to create multiple charts
@@ -29,9 +28,9 @@ def generate_sample_data():
     dates = [start_date + timedelta(days=i) for i in range(100)]
 
     # Generate price data
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     base_price = 100
-    price_changes = np.random.normal(0, 2, 100)
+    price_changes = rng.normal(0, 2, 100)
     prices = [base_price]
 
     for change in price_changes[1:]:
@@ -40,10 +39,10 @@ def generate_sample_data():
     # Generate OHLCV data
     ohlcv_data = []
     for i, (date, close) in enumerate(zip(dates, prices)):
-        high = close + abs(np.random.normal(0, 1))
-        low = close - abs(np.random.normal(0, 1))
+        high = close + abs(rng.normal(0, 1))
+        low = close - abs(rng.normal(0, 1))
         open_price = prices[i - 1] if i > 0 else close
-        volume = np.random.randint(1000, 10000)
+        volume = rng.integers(1000, 10000)
 
         ohlcv_data.append(
             OhlcvData(
@@ -53,7 +52,7 @@ def generate_sample_data():
                 low=round(low, 2),
                 close=round(close, 2),
                 volume=volume,
-            )
+            ),
         )
 
     # Generate volume data
@@ -64,7 +63,7 @@ def generate_sample_data():
 
     # Generate RSI-like indicator data
     rsi_data = []
-    for i, price in enumerate(prices):
+    for i, _price in enumerate(prices):
         if i < 14:
             rsi = 50  # Default RSI value
         else:
@@ -91,7 +90,7 @@ def main():
         """
     This example demonstrates linked charts with synchronization features.
     Try interacting with one chart and see how the others respond!
-    """
+    """,
     )
 
     # Generate sample data
@@ -156,19 +155,19 @@ def main():
     st.markdown(
         """
     ### Features Demonstrated:
-    
+
     1. **Multiple Chart Types**: Candlestick, Histogram, and Line charts
     2. **Synchronization**: Crosshair and time range synchronization
     3. **Flexible Configuration**: Different sync options
     4. **Method Chaining**: Fluent API for easy configuration
-    
+
     ### How to Use:
-    
+
     - **Hover** over any chart to see crosshair synchronization
     - **Zoom/Pan** on any chart to see time range synchronization
     - **Change sync options** to see different behaviors
     - **Compare** with individual charts above to see the difference
-    """
+    """,
     )
 
 

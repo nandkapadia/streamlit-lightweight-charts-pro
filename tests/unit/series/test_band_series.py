@@ -5,6 +5,8 @@ This module contains comprehensive tests for the BandSeries class,
 covering construction, styling options, serialization, and edge cases.
 """
 
+# pylint: disable=no-member,protected-access
+
 import pandas as pd
 import pytest
 
@@ -13,6 +15,13 @@ from streamlit_lightweight_charts_pro.charts.options.price_line_options import P
 from streamlit_lightweight_charts_pro.charts.series.band import BandSeries
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.band import BandData
+from streamlit_lightweight_charts_pro.data.marker import BarMarker
+from streamlit_lightweight_charts_pro.exceptions import (
+    DataFrameValidationError,
+    InstanceTypeError,
+    TypeValidationError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     LineStyle,
     LineType,
@@ -59,17 +68,17 @@ class TestBandSeriesConstruction:
 
     def test_construction_with_dataframe(self):
         """Test BandSeries construction with DataFrame."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "datetime": [1640995200, 1641081600],
                 "upper": [110.0, 112.0],
                 "middle": [105.0, 107.0],
                 "lower": [100.0, 102.0],
-            }
+            },
         )
 
         series = BandSeries(
-            data=df,
+            data=test_dataframe,
             column_mapping={
                 "time": "datetime",
                 "upper": "upper",
@@ -104,9 +113,9 @@ class TestBandSeriesConstruction:
         assert series.lower_line.line_width == 2
 
         # Check default line styles
-        assert series.upper_line.line_style == "solid"
-        assert series.middle_line.line_style == "solid"
-        assert series.lower_line.line_style == "solid"
+        assert series.upper_line.line_style == LineStyle.SOLID
+        assert series.middle_line.line_style == LineStyle.SOLID
+        assert series.lower_line.line_style == LineStyle.SOLID
 
 
 class TestBandSeriesProperties:
@@ -208,27 +217,21 @@ class TestBandSeriesProperties:
         series = BandSeries(data=data)
 
         # Test invalid line options type
-        with pytest.raises(
-            TypeError, match="upper_line must be an instance of LineOptions or None"
-        ):
+        with pytest.raises(InstanceTypeError):
             series.upper_line = "invalid"
 
         # Test invalid middle line options type
-        with pytest.raises(
-            TypeError, match="middle_line must be an instance of LineOptions or None"
-        ):
+        with pytest.raises(InstanceTypeError):
             series.middle_line = "invalid"
 
-        with pytest.raises(
-            TypeError, match="lower_line must be an instance of LineOptions or None"
-        ):
+        with pytest.raises(InstanceTypeError):
             series.lower_line = "invalid"
 
         # Test invalid fill color type
-        with pytest.raises(TypeError, match="upper_fill_color must be a string"):
+        with pytest.raises(TypeValidationError):
             series.upper_fill_color = 123
 
-        with pytest.raises(TypeError, match="lower_fill_color must be a string"):
+        with pytest.raises(TypeValidationError):
             series.lower_fill_color = 123
 
 
@@ -324,8 +327,6 @@ class TestBandSeriesSerialization:
         data = [BandData(time=1640995200, upper=110.0, middle=105.0, lower=100.0)]
         series = BandSeries(data=data)
 
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position=MarkerPosition.ABOVE_BAR,
@@ -392,7 +393,6 @@ class TestBandSeriesSerialization:
         series = BandSeries(data=data)
 
         # Test chaining add_marker and add_price_line
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -401,7 +401,7 @@ class TestBandSeriesSerialization:
             shape=MarkerShape.CIRCLE,
         )
         result = series.add_marker(marker).add_price_line(
-            PriceLineOptions(price=105.0, color="#FF0000")
+            PriceLineOptions(price=105.0, color="#FF0000"),
         )
 
         assert result is series
@@ -414,17 +414,17 @@ class TestBandSeriesDataHandling:
 
     def test_from_dataframe_classmethod(self):
         """Test from_dataframe classmethod."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "datetime": [1640995200, 1641081600],
                 "upper": [110.0, 112.0],
                 "middle": [105.0, 107.0],
                 "lower": [100.0, 102.0],
-            }
+            },
         )
 
         series = BandSeries.from_dataframe(
-            df=df,
+            df=test_dataframe,
             column_mapping={
                 "time": "datetime",
                 "upper": "upper",
@@ -441,17 +441,17 @@ class TestBandSeriesDataHandling:
 
     def test_dataframe_with_nan_values(self):
         """Test DataFrame handling with NaN values."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "datetime": [1640995200, 1641081600, 1641168000],
                 "upper": [110.0, float("nan"), 108.0],
                 "middle": [105.0, 107.0, float("nan")],
                 "lower": [100.0, 102.0, 98.0],
-            }
+            },
         )
 
         series = BandSeries(
-            data=df,
+            data=test_dataframe,
             column_mapping={
                 "time": "datetime",
                 "upper": "upper",
@@ -483,27 +483,27 @@ class TestBandSeriesValidation:
         data = [BandData(time=1640995200, upper=110.0, middle=105.0, lower=100.0)]
         series = BandSeries(data=data, pane_id=-1)
 
-        with pytest.raises(ValueError, match="pane_id must be non-negative"):
+        with pytest.raises(ValueValidationError):
             series._validate_pane_config()
 
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""
-        with pytest.raises(ValueError):
+        with pytest.raises(DataFrameValidationError):
             BandSeries(data="invalid_data")
 
     def test_error_handling_missing_required_columns(self):
         """Test error handling with missing required columns."""
-        df = pd.DataFrame(
+        test_dataframe = pd.DataFrame(
             {
                 "datetime": [1640995200],
                 "upper": [110.0],
                 # Missing middle and lower columns
-            }
+            },
         )
 
-        with pytest.raises(ValueError, match="DataFrame is missing required column"):
+        with pytest.raises(ValueValidationError):
             BandSeries(
-                data=df,
+                data=test_dataframe,
                 column_mapping={
                     "time": "datetime",
                     "upper": "upper",
@@ -514,7 +514,7 @@ class TestBandSeriesValidation:
 
     def test_error_handling_invalid_data_type(self):
         """Test error handling with invalid data type."""
-        with pytest.raises(ValueError, match="data must be a list of SingleValueData objects"):
+        with pytest.raises(DataFrameValidationError):
             BandSeries(data=123)
 
 
@@ -540,7 +540,10 @@ class TestBandSeriesEdgeCases:
         """Test handling of large dataset."""
         data = [
             BandData(
-                time=1640995200 + i * 86400, upper=110.0 + i, middle=105.0 + i, lower=100.0 + i
+                time=1640995200 + i * 86400,
+                upper=110.0 + i,
+                middle=105.0 + i,
+                lower=100.0 + i,
             )
             for i in range(100)
         ]
@@ -668,8 +671,6 @@ class TestBandSeriesJsonStructure:
         data = [BandData(time=1640995200, upper=110.0, middle=105.0, lower=100.0)]
         series = BandSeries(data=data)
 
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
-
         marker = BarMarker(
             time=1640995200,
             position=MarkerPosition.ABOVE_BAR,
@@ -714,7 +715,6 @@ class TestBandSeriesJsonStructure:
         data = [BandData(time=1640995200, upper=110.0, middle=105.0, lower=100.0)]
         series = BandSeries(data=data)
         # Add markers and price lines
-        from streamlit_lightweight_charts_pro.data.marker import BarMarker
 
         marker = BarMarker(
             time=1640995200,
@@ -768,8 +768,8 @@ class TestBandSeriesJsonStructure:
         series = BandSeries(data=data)
         result = series.asdict()
         # Check that all option keys are camelCase
-        for key in result["options"].keys():
-            assert key[0].islower() and not "_" in key, f"Key {key} is not camelCase"
+        for key in result["options"]:
+            assert key[0].islower() and "_" not in key, f"Key {key} is not camelCase"
 
     def test_empty_options_handling(self):
         """Test handling of empty options."""

@@ -1,5 +1,4 @@
-"""
-Component initialization for streamlit-lightweight-charts.
+"""Component initialization for streamlit-lightweight-charts.
 
 This module handles the initialization of the Streamlit component to avoid
 circular import issues. It manages the component function that renders
@@ -45,8 +44,7 @@ _RELEASE = True
 
 
 def get_component_func() -> Optional[Callable[..., Any]]:
-    """
-    Get the Streamlit component function for rendering charts.
+    """Get the Streamlit component function for rendering charts.
 
     This function returns the initialized component function that can be used
     to render charts in Streamlit applications. The component function is
@@ -79,13 +77,12 @@ def get_component_func() -> Optional[Callable[..., Any]]:
 
 
 def debug_component_status() -> Dict[str, Any]:
-    """
-    Debug function to check component initialization status.
+    """Debug function to check component initialization status.
 
     Returns:
         Dict[str, Any]: Status information about the component
     """
-    status = {
+    status: Dict[str, Any] = {
         "component_initialized": _component_func is not None,
         "release_mode": _RELEASE,
         "frontend_dir_exists": False,
@@ -113,45 +110,49 @@ def debug_component_status() -> Dict[str, Any]:
 
 
 def reinitialize_component() -> bool:
-    """
-    Attempt to reinitialize the component if it failed to load initially.
+    """Attempt to reinitialize the component if it failed to load initially.
 
     Returns:
         bool: True if reinitialization was successful, False otherwise
     """
-    global _component_func  # pylint: disable=global-statement
+    global _component_func  # pylint: disable=global-statement  # noqa: PLW0603
 
     logger.info("Attempting to reinitialize component...")
 
     if _RELEASE:
         frontend_dir = Path(__file__).parent / "frontend" / "build"
-        if frontend_dir.exists():
-            try:
-                _component_func = components.declare_component(
-                    "streamlit_lightweight_charts_pro", path=str(frontend_dir)
-                )
-                logger.info("Successfully reinitialized production component")
-                return True
-            except Exception as e:
-                logger.error("Failed to reinitialize component: %s", e)
-                return False
-    else:
-        try:
-            _component_func = components.declare_component(
-                "streamlit_lightweight_charts_pro", url="http://localhost:3001"
-            )
-            logger.info("Successfully reinitialized development component")
-            return True
-        except Exception as e:
-            logger.error("Failed to reinitialize development component: %s", e)
+        if not frontend_dir.exists():
+            logger.error("Frontend build directory not found at %s", frontend_dir)
             return False
 
-    return False
+        try:
+            _component_func = components.declare_component(
+                "streamlit_lightweight_charts_pro",
+                path=str(frontend_dir),
+            )
+        except Exception:
+            logger.exception("Failed to reinitialize component")
+            return False
+        else:
+            logger.info("Successfully reinitialized production component")
+            return True
+
+    try:
+        _component_func = components.declare_component(
+            "streamlit_lightweight_charts_pro",
+            url="http://localhost:3001",
+        )
+    except Exception:
+        logger.exception("Failed to reinitialize development component")
+        return False
+    else:
+        logger.info("Successfully reinitialized development component")
+        return True
 
 
 def _initialize_component() -> None:
     """Initialize the component function based on environment."""
-    global _component_func  # pylint: disable=global-statement
+    global _component_func  # pylint: disable=global-statement  # noqa: PLW0603
 
     if _RELEASE:
         # Production mode: Use built frontend files from the build directory
@@ -165,16 +166,17 @@ def _initialize_component() -> None:
 
                 # Declare the component with the built frontend files
                 _component_func = components.declare_component(
-                    "streamlit_lightweight_charts_pro", path=str(frontend_dir)
+                    "streamlit_lightweight_charts_pro",
+                    path=str(frontend_dir),
                 )
                 logger.info("Successfully initialized production component")
-            except ImportError as e:
+            except ImportError:
                 # Log warning if Streamlit components module cannot be imported
-                logger.error("Failed to import streamlit.components.v1: %s", e)
+                logger.exception("Failed to import streamlit.components.v1")
                 _component_func = None
-            except Exception as e:
+            except Exception:
                 # Log warning if component initialization fails
-                logger.error("Could not load frontend component: %s", e)
+                logger.exception("Could not load frontend component")
                 _component_func = None
         else:
             # Log warning if build directory is missing
@@ -189,16 +191,17 @@ def _initialize_component() -> None:
 
             # Declare the component with development server URL
             _component_func = components.declare_component(
-                "streamlit_lightweight_charts_pro", url="http://localhost:3001"
+                "streamlit_lightweight_charts_pro",
+                url="http://localhost:3001",
             )
             logger.info("Successfully initialized development component")
-        except ImportError as e:
+        except ImportError:
             # Log warning if Streamlit components module cannot be imported
-            logger.error("Failed to import streamlit.components.v1 for development: %s", e)
+            logger.exception("Failed to import streamlit.components.v1 for development")
             _component_func = None
-        except Exception as e:
+        except Exception:
             # Log warning if development component initialization fails
-            logger.error("Could not load development component: %s", e)
+            logger.exception("Could not load development component")
             _component_func = None
 
 

@@ -111,7 +111,7 @@ chart.render(key="fluent_chart")
 # Line Chart
 LineSeries(data, color="#2196F3")
 
-# Area Chart  
+# Area Chart
 AreaSeries(data, color="#4CAF50", fill_color="rgba(76, 175, 80, 0.3)")
 
 # Bar Chart
@@ -162,7 +162,7 @@ trades = [
     Trade(
         entry_time="2024-01-01",
         entry_price=100,
-        exit_time="2024-01-05", 
+        exit_time="2024-01-05",
         exit_price=105,
         quantity=100,
         trade_type=TradeType.LONG,
@@ -252,7 +252,7 @@ chart = PriceVolumeChart(
     column_mapping={
         'time': 'Date',
         'open': 'Open',
-        'high': 'High', 
+        'high': 'High',
         'low': 'Low',
         'close': 'Close',
         'volume': 'Volume'
@@ -460,3 +460,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Made with ❤️ for the Streamlit community**
+test change
+test change 2
+test change 3
+test clean commit
+test smart commit

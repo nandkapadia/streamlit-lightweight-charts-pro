@@ -18,10 +18,8 @@ from streamlit_lightweight_charts_pro.charts.options.interaction_options import 
     KineticScrollOptions,
     TrackingModeOptions,
 )
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    CrosshairMode,
-    LineStyle,
-)
+from streamlit_lightweight_charts_pro.exceptions import TypeValidationError
+from streamlit_lightweight_charts_pro.type_definitions.enums import CrosshairMode, LineStyle
 
 
 class TestCrosshairOptions:
@@ -41,7 +39,9 @@ class TestCrosshairOptions:
         horz_line = CrosshairLineOptions(color="#00ff00", width=3)
 
         options = CrosshairOptions(
-            mode=CrosshairMode.MAGNET, vert_line=vert_line, horz_line=horz_line
+            mode=CrosshairMode.MAGNET,
+            vert_line=vert_line,
+            horz_line=horz_line,
         )
 
         assert options.mode == CrosshairMode.MAGNET
@@ -51,19 +51,19 @@ class TestCrosshairOptions:
     def test_validation_mode(self):
         """Test validation of mode field."""
         options = CrosshairOptions()
-        with pytest.raises(TypeError, match="mode must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_mode("invalid")
 
     def test_validation_vert_line(self):
         """Test validation of vert_line field."""
         options = CrosshairOptions()
-        with pytest.raises(TypeError, match="vert_line must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_vert_line("invalid")
 
     def test_validation_horz_line(self):
         """Test validation of horz_line field."""
         options = CrosshairOptions()
-        with pytest.raises(TypeError, match="horz_line must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_horz_line("invalid")
 
     def test_to_dict(self):
@@ -72,7 +72,9 @@ class TestCrosshairOptions:
         horz_line = CrosshairLineOptions(color="#00ff00", width=3)
 
         options = CrosshairOptions(
-            mode=CrosshairMode.MAGNET, vert_line=vert_line, horz_line=horz_line
+            mode=CrosshairMode.MAGNET,
+            vert_line=vert_line,
+            horz_line=horz_line,
         )
         result = options.asdict()
 
@@ -100,7 +102,11 @@ class TestCrosshairLineOptions:
     def test_custom_construction(self):
         """Test construction with custom values."""
         options = CrosshairLineOptions(
-            color="#ff0000", width=3, style=LineStyle.DOTTED, visible=False, label_visible=False
+            color="#ff0000",
+            width=3,
+            style=LineStyle.DOTTED,
+            visible=False,
+            label_visible=False,
         )
 
         assert options.color == "#ff0000"
@@ -112,37 +118,41 @@ class TestCrosshairLineOptions:
     def test_validation_color(self):
         """Test validation of color field."""
         options = CrosshairLineOptions()
-        with pytest.raises(TypeError, match="color must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_color(123)
 
     def test_validation_width(self):
         """Test validation of width field."""
         options = CrosshairLineOptions()
-        with pytest.raises(TypeError, match="width must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_width("invalid")
 
     def test_validation_style(self):
         """Test validation of style field."""
         options = CrosshairLineOptions()
-        with pytest.raises(TypeError, match="style must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_style("invalid")
 
     def test_validation_visible(self):
         """Test validation of visible field."""
         options = CrosshairLineOptions()
-        with pytest.raises(TypeError, match="visible must be a boolean"):
+        with pytest.raises(TypeValidationError):
             options.set_visible("invalid")
 
     def test_validation_label_visible(self):
         """Test validation of label_visible field."""
         options = CrosshairLineOptions()
-        with pytest.raises(TypeError, match="label_visible must be a boolean"):
+        with pytest.raises(TypeValidationError):
             options.set_label_visible("invalid")
 
     def test_to_dict(self):
         """Test serialization."""
         options = CrosshairLineOptions(
-            color="#ff0000", width=3, style=LineStyle.DOTTED, visible=False, label_visible=False
+            color="#ff0000",
+            width=3,
+            style=LineStyle.DOTTED,
+            visible=False,
+            label_visible=False,
         )
         result = options.asdict()
 
@@ -185,13 +195,13 @@ class TestCrosshairSyncOptions:
     def test_validation_group_id(self):
         """Test validation of group_id field."""
         options = CrosshairSyncOptions()
-        with pytest.raises(TypeError, match="group_id must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_group_id("invalid")
 
     def test_validation_suppress_series_animations(self):
         """Test validation of suppress_series_animations field."""
         options = CrosshairSyncOptions()
-        with pytest.raises(TypeError, match="suppress_series_animations must be a boolean"):
+        with pytest.raises(TypeValidationError):
             options.set_suppress_series_animations("invalid")
 
     def test_to_dict(self):
@@ -223,13 +233,13 @@ class TestKineticScrollOptions:
     def test_validation_touch(self):
         """Test validation of touch field."""
         options = KineticScrollOptions()
-        with pytest.raises(TypeError, match="touch must be a boolean"):
+        with pytest.raises(TypeValidationError):
             options.set_touch("invalid")
 
     def test_validation_mouse(self):
         """Test validation of mouse field."""
         options = KineticScrollOptions()
-        with pytest.raises(TypeError, match="mouse must be a boolean"):
+        with pytest.raises(TypeValidationError):
             options.set_mouse("invalid")
 
     def test_to_dict(self):
@@ -259,7 +269,7 @@ class TestTrackingModeOptions:
     def test_validation_exit_on_escape(self):
         """Test validation of exit_on_escape field."""
         options = TrackingModeOptions()
-        with pytest.raises(TypeError, match="exit_on_escape must be a boolean"):
+        with pytest.raises(TypeValidationError):
             options.set_exit_on_escape("invalid")
 
     def test_to_dict(self):
@@ -276,15 +286,25 @@ class TestInteractionOptionsIntegration:
     def test_crosshair_options_with_custom_lines(self):
         """Test CrosshairOptions with custom line configurations."""
         vert_line = CrosshairLineOptions(
-            color="#ff0000", width=2, style=LineStyle.DASHED, visible=True, label_visible=True
+            color="#ff0000",
+            width=2,
+            style=LineStyle.DASHED,
+            visible=True,
+            label_visible=True,
         )
 
         horz_line = CrosshairLineOptions(
-            color="#00ff00", width=3, style=LineStyle.DOTTED, visible=True, label_visible=False
+            color="#00ff00",
+            width=3,
+            style=LineStyle.DOTTED,
+            visible=True,
+            label_visible=False,
         )
 
         options = CrosshairOptions(
-            mode=CrosshairMode.MAGNET, vert_line=vert_line, horz_line=horz_line
+            mode=CrosshairMode.MAGNET,
+            vert_line=vert_line,
+            horz_line=horz_line,
         )
         result = options.asdict()
 
@@ -357,13 +377,19 @@ class TestInteractionOptionsEdgeCases:
         horz_line = CrosshairLineOptions(color="#00ff00")
 
         options1 = CrosshairOptions(
-            mode=CrosshairMode.NORMAL, vert_line=vert_line, horz_line=horz_line
+            mode=CrosshairMode.NORMAL,
+            vert_line=vert_line,
+            horz_line=horz_line,
         )
         options2 = CrosshairOptions(
-            mode=CrosshairMode.NORMAL, vert_line=vert_line, horz_line=horz_line
+            mode=CrosshairMode.NORMAL,
+            vert_line=vert_line,
+            horz_line=horz_line,
         )
         options3 = CrosshairOptions(
-            mode=CrosshairMode.MAGNET, vert_line=vert_line, horz_line=horz_line
+            mode=CrosshairMode.MAGNET,
+            vert_line=vert_line,
+            horz_line=horz_line,
         )
 
         assert options1 == options2

@@ -1,5 +1,4 @@
-"""
-Type definitions for Streamlit Lightweight Charts Pro.
+"""Type definitions for Streamlit Lightweight Charts Pro.
 
 This module provides type definitions, enums, and color classes used throughout
 the charting library. It includes enumerations for chart configuration options,
@@ -17,7 +16,10 @@ providing clear interfaces for chart configuration and data handling.
 Example Usage:
     ```python
     from streamlit_lightweight_charts_pro.type_definitions import (
-        ChartType, LineStyle, MarkerShape, Background
+        ChartType,
+        LineStyle,
+        MarkerShape,
+        Background,
     )
 
     # Using enums for type safety
@@ -27,10 +29,7 @@ Example Usage:
 
     # Using color classes
     background = BackgroundSolid(color="#ffffff")
-    gradient = BackgroundGradient(
-        top_color="#ffffff",
-        bottom_color="#f0f0f0"
-    )
+    gradient = BackgroundGradient(top_color="#ffffff", bottom_color="#f0f0f0")
     ```
 
 Version: 0.1.0
@@ -68,24 +67,24 @@ __all__ = [
     # Enums
     "AnnotationPosition",
     "AnnotationType",
+    # Colors
+    "Background",
+    "BackgroundGradient",
+    "BackgroundSolid",
     "ChartType",
     "ColorType",
+    "ColumnNames",
+    "CrosshairMode",
+    "HorzAlign",
+    "LastPriceAnimationMode",
     "LineStyle",
     "LineType",
-    "CrosshairMode",
     "MarkerPosition",
     "MarkerShape",
     "PriceScaleMode",
-    "LastPriceAnimationMode",
-    "HorzAlign",
-    "VertAlign",
-    "TrackingExitMode",
     "TrackingActivationMode",
-    "ColumnNames",
+    "TrackingExitMode",
     "TradeType",
     "TradeVisualization",
-    # Colors
-    "Background",
-    "BackgroundSolid",
-    "BackgroundGradient",
+    "VertAlign",
 ]

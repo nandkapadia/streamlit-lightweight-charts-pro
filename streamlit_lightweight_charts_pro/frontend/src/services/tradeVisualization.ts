@@ -1,10 +1,71 @@
-import {UTCTimestamp, SeriesMarker, Time} from 'lightweight-charts'
-import {TradeConfig, TradeVisualizationOptions} from '../types'
+/**
+ * @fileoverview Trade Visualization Service
+ *
+ * Handles creation and rendering of trade visualization elements including
+ * rectangles, markers, lines, arrows, and zones. Provides timezone-agnostic
+ * time parsing and template-based marker generation.
+ *
+ * This service is responsible for:
+ * - Converting trade data to visual primitives (rectangles, markers)
+ * - Timezone-agnostic time parsing (critical for consistency)
+ * - Template-based marker text generation
+ * - Color determination based on profitability
+ * - Multiple visualization styles (rectangles, markers, lines, etc.)
+ *
+ * Architecture:
+ * - Pure functions (no state)
+ * - Backend-driven display values (no frontend calculations)
+ * - Template engine integration for flexible text
+ * - Support for additional_data pattern
+ *
+ * Trade Visualization Modes:
+ * - RECTANGLES: Visual boxes showing trade duration and P&L
+ * - MARKERS: Entry/exit markers with optional text
+ * - BOTH: Rectangles + markers combined
+ * - LINES: Horizontal lines at entry/exit prices
+ * - ARROWS: Arrow markers for entry/exit
+ * - ZONES: Shaded zones between entry and exit
+ *
+ * @example
+ * ```typescript
+ * // Create trade rectangles
+ * const rectangles = createTradeRectangles(trades, options, chartData);
+ *
+ * // Create trade markers
+ * const markers = createTradeMarkers(trades, options);
+ *
+ * // Create all visual elements
+ * const elements = createTradeVisualElements(trades, options, chartData);
+ * ```
+ */
 
+import { UTCTimestamp, SeriesMarker, Time } from 'lightweight-charts';
+import { TradeConfig, TradeVisualizationOptions } from '../types';
+import { TradeTemplateProcessor } from './TradeTemplateProcessor';
+import { UniversalSpacing } from '../primitives/PrimitiveDefaults';
+
+// ============================================================================
 // CRITICAL: Timezone-agnostic parsing functions
+// ============================================================================
 /**
  * Parse time value to UTC timestamp without timezone conversion
- * Handles both string dates and numeric timestamps
+ *
+ * Handles multiple time formats consistently without timezone conversion issues.
+ * This is CRITICAL for chart accuracy - all times must be treated as UTC.
+ *
+ * Supported formats:
+ * - Unix timestamp (seconds): 1704067200
+ * - Unix timestamp (milliseconds): 1704067200000 (auto-converted to seconds)
+ * - ISO string: '2024-01-01T00:00:00Z'
+ * - Date string: '2024-01-01'
+ *
+ * @param {string | number} time - Time value to parse
+ * @returns {UTCTimestamp | null} UTC timestamp in seconds, or null if invalid
+ *
+ * @remarks
+ * - Milliseconds are automatically converted to seconds
+ * - No timezone conversion applied (preserves UTC)
+ * - Returns null for invalid inputs
  */
 function parseTime(time: string | number): UTCTimestamp | null {
   try {
@@ -12,48 +73,45 @@ function parseTime(time: string | number): UTCTimestamp | null {
     if (typeof time === 'number') {
       // If timestamp is in milliseconds, convert to seconds
       if (time > 1000000000000) {
-        return Math.floor(time / 1000) as UTCTimestamp
+        return Math.floor(time / 1000) as UTCTimestamp;
       }
-      return Math.floor(time) as UTCTimestamp
+      return Math.floor(time) as UTCTimestamp;
     }
 
     // If it's a string, try to parse as date
     if (typeof time === 'string') {
       // First try to parse as Unix timestamp string
-      const timestamp = parseInt(time, 10)
+      const timestamp = parseInt(time, 10);
       if (!isNaN(timestamp)) {
         // It's a numeric string (Unix timestamp)
         if (timestamp > 1000000000000) {
-          return Math.floor(timestamp / 1000) as UTCTimestamp
+          return Math.floor(timestamp / 1000) as UTCTimestamp;
         }
-        return Math.floor(timestamp) as UTCTimestamp
+        return Math.floor(timestamp) as UTCTimestamp;
       }
 
       // Try to parse as ISO date string - CRITICAL: No timezone conversion
       if (time.includes('T') || time.includes('Z') || time.includes('+')) {
         // ISO format - parse directly to avoid local timezone conversion
-        const date = new Date(time)
+        const date = new Date(time);
         if (isNaN(date.getTime())) {
-          console.warn(`Failed to parse ISO time: ${time}`)
-          return null
+          return null;
         }
         // Use UTC timestamp directly - no timezone conversion
-        return Math.floor(date.getTime() / 1000) as UTCTimestamp
+        return Math.floor(date.getTime() / 1000) as UTCTimestamp;
       }
 
       // Regular date string parsing as fallback
-      const date = new Date(time)
+      const date = new Date(time);
       if (isNaN(date.getTime())) {
-        console.warn(`Failed to parse time: ${time}`)
-        return null
+        return null;
       }
-      return Math.floor(date.getTime() / 1000) as UTCTimestamp
+      return Math.floor(date.getTime() / 1000) as UTCTimestamp;
     }
 
-    return null
-  } catch (error) {
-    console.error(`Error parsing time ${time}:`, error)
-    return null
+    return null;
+  } catch {
+    return null;
   }
 }
 
@@ -62,50 +120,56 @@ function parseTime(time: string | number): UTCTimestamp | null {
  */
 function findNearestTime(targetTime: UTCTimestamp, chartData: any[]): UTCTimestamp | null {
   if (!chartData || chartData.length === 0) {
-    return null
+    return null;
   }
 
-  let nearestTime: UTCTimestamp | null = null
-  let minDiff = Infinity
+  let nearestTime: UTCTimestamp | null = null;
+  let minDiff = Infinity;
 
   for (const item of chartData) {
-    if (!item.time) continue
+    if (!item.time) continue;
 
-    let itemTime: UTCTimestamp | null = null
+    let itemTime: UTCTimestamp | null = null;
 
     if (typeof item.time === 'number') {
       itemTime =
         item.time > 1000000000000
           ? (Math.floor(item.time / 1000) as UTCTimestamp)
-          : (item.time as UTCTimestamp)
+          : (item.time as UTCTimestamp);
     } else if (typeof item.time === 'string') {
-      itemTime = parseTime(item.time)
+      itemTime = parseTime(item.time);
     }
 
-    if (itemTime === null) continue
+    if (itemTime === null) continue;
 
-    const diff = Math.abs(itemTime - targetTime)
+    const diff = Math.abs(itemTime - targetTime);
     if (diff < minDiff) {
-      minDiff = diff
-      nearestTime = itemTime
+      minDiff = diff;
+      nearestTime = itemTime;
     }
   }
 
-  return nearestTime
+  return nearestTime;
 }
 
 // Trade rectangle data interface (for data creation only)
 export interface TradeRectangleData {
-  time1: UTCTimestamp
-  time2: UTCTimestamp
-  price1: number
-  price2: number
-  fillColor: string
-  borderColor: string
-  borderWidth: number
-  borderStyle: 'solid' | 'dashed' | 'dotted'
-  opacity: number
-  priceScaleId?: string
+  time1: UTCTimestamp;
+  time2: UTCTimestamp;
+  price1: number;
+  price2: number;
+  fillColor: string;
+  borderColor: string;
+  borderWidth: number;
+  borderStyle: 'solid' | 'dashed' | 'dotted';
+  opacity: number;
+  priceScaleId?: string;
+  quantity?: number;
+  notes?: string;
+  tradeId?: string;
+  isProfitable?: boolean; // Add profitability flag
+  // Allow any additional custom data for template access
+  [key: string]: any;
 }
 
 // Create trade rectangles from trade data
@@ -114,87 +178,98 @@ function createTradeRectangles(
   options: TradeVisualizationOptions,
   chartData?: any[]
 ): TradeRectangleData[] {
-  const rectangles: TradeRectangleData[] = []
+  const rectangles: TradeRectangleData[] = [];
 
   // Enhanced validation using coordinate service
 
-  trades.forEach((trade, index) => {
+  trades.forEach((trade, _index) => {
     // Validate trade data - allow exitTime to be null for open trades
     if (
       !trade.entryTime ||
       typeof trade.entryPrice !== 'number' ||
       typeof trade.exitPrice !== 'number'
     ) {
-      return
+      return;
     }
 
     // Parse entry time
-    const time1 = parseTime(trade.entryTime)
+    const time1 = parseTime(trade.entryTime);
     if (time1 === null) {
-      return
+      return;
     }
 
     // Handle exit time - can be null for open trades
-    let time2: UTCTimestamp | null = null
+    let time2: UTCTimestamp | null = null;
     if (trade.exitTime) {
-      time2 = parseTime(trade.exitTime)
+      time2 = parseTime(trade.exitTime);
       if (time2 === null) {
-        return
+        return;
       }
     } else {
       // For open trades, use the last available time from chart data
       if (chartData && chartData.length > 0) {
-        const lastTime = chartData[chartData.length - 1]?.time
+        const lastTime = chartData[chartData.length - 1]?.time;
         if (lastTime) {
-          time2 = parseTime(lastTime)
+          time2 = parseTime(lastTime);
         }
       }
 
       // If still no exit time, skip this trade
       if (time2 === null) {
-        return
+        return;
       }
     }
 
     // Find nearest available times in chart data if provided
-    let adjustedTime1 = time1
-    let adjustedTime2 = time2
+    let adjustedTime1 = time1;
+    let adjustedTime2 = time2;
 
     if (chartData && chartData.length > 0) {
-      const nearestTime1 = findNearestTime(time1, chartData)
-      const nearestTime2 = findNearestTime(time2, chartData)
+      const nearestTime1 = findNearestTime(time1, chartData);
+      const nearestTime2 = findNearestTime(time2, chartData);
 
-      if (nearestTime1) adjustedTime1 = nearestTime1
-      if (nearestTime2) adjustedTime2 = nearestTime2
+      if (nearestTime1) adjustedTime1 = nearestTime1;
+      if (nearestTime2) adjustedTime2 = nearestTime2;
     }
 
     // Validate prices
     if (trade.entryPrice <= 0 || trade.exitPrice <= 0) {
-      return
+      return;
     }
 
-    const color = trade.isProfitable
-      ? options.rectangleColorProfit || '#4CAF50'
-      : options.rectangleColorLoss || '#F44336'
+    // Use isProfitable from trade data - no calculations in frontend
+    const isProfitable = trade.isProfitable ?? false; // Default to false if not specified
 
-    const opacity = options.rectangleFillOpacity || 1.0
+    const color = isProfitable
+      ? options.rectangleColorProfit || '#4CAF50' // Green for profitable
+      : options.rectangleColorLoss || '#F44336'; // Red for unprofitable
+
+    const opacity = options.rectangleFillOpacity || 0.25;
+
+    // Normalize coordinates: time1/price1 should be minimum, time2/price2 should be maximum
+    const minTime = Math.min(adjustedTime1, adjustedTime2);
+    const maxTime = Math.max(adjustedTime1, adjustedTime2);
+    const minPrice = Math.min(trade.entryPrice, trade.exitPrice);
+    const maxPrice = Math.max(trade.entryPrice, trade.exitPrice);
 
     const rectangle: TradeRectangleData = {
-      time1: Math.min(adjustedTime1, adjustedTime2) as UTCTimestamp,
-      price1: Math.min(trade.entryPrice, trade.exitPrice),
-      time2: Math.max(adjustedTime1, adjustedTime2) as UTCTimestamp,
-      price2: Math.max(trade.entryPrice, trade.exitPrice),
+      time1: minTime as UTCTimestamp, // Always the earlier time
+      price1: minPrice, // Always the lower price
+      time2: maxTime as UTCTimestamp, // Always the later time
+      price2: maxPrice, // Always the higher price
       fillColor: color,
       borderColor: color,
       borderWidth: options.rectangleBorderWidth || 3,
       borderStyle: 'solid' as const,
-      opacity: opacity
-    }
+      opacity: opacity,
+      // Pass all additional trade data for template access
+      ...trade, // Spread all trade properties for flexible template access
+    };
 
-    rectangles.push(rectangle)
-  })
+    rectangles.push(rectangle);
+  });
 
-  return rectangles
+  return rectangles;
 }
 
 // Create trade markers
@@ -203,88 +278,136 @@ function createTradeMarkers(
   options: TradeVisualizationOptions,
   chartData?: any[]
 ): SeriesMarker<Time>[] {
-  const markers: SeriesMarker<Time>[] = []
+  const markers: SeriesMarker<Time>[] = [];
 
   // Enhanced validation using coordinate service
 
-  trades.forEach((trade, index) => {
+  trades.forEach((trade, _index) => {
     // Validate trade data - allow exitTime to be null for open trades
     if (
       !trade.entryTime ||
       typeof trade.entryPrice !== 'number' ||
       typeof trade.exitPrice !== 'number'
     ) {
-      return
+      return;
     }
 
     // Parse entry time
-    const entryTime = parseTime(trade.entryTime)
+    const entryTime = parseTime(trade.entryTime);
     if (!entryTime) {
-      return
+      return;
     }
 
     // Handle exit time - can be null for open trades
-    let exitTime: UTCTimestamp | null = null
+    let exitTime: UTCTimestamp | null = null;
     if (trade.exitTime) {
-      exitTime = parseTime(trade.exitTime)
+      exitTime = parseTime(trade.exitTime);
       if (!exitTime) {
-        return
+        return;
       }
     }
 
     // Find nearest available times in chart data if provided
-    let adjustedEntryTime = entryTime
-    let adjustedExitTime = exitTime
+    let adjustedEntryTime = entryTime;
+    let adjustedExitTime = exitTime;
 
     if (chartData && chartData.length > 0) {
-      const nearestEntryTime = findNearestTime(entryTime, chartData)
-      if (nearestEntryTime) adjustedEntryTime = nearestEntryTime
+      const nearestEntryTime = findNearestTime(entryTime, chartData);
+      if (nearestEntryTime) adjustedEntryTime = nearestEntryTime;
 
       if (exitTime) {
-        const nearestExitTime = findNearestTime(exitTime, chartData)
-        if (nearestExitTime) adjustedExitTime = nearestExitTime
+        const nearestExitTime = findNearestTime(exitTime, chartData);
+        if (nearestExitTime) adjustedExitTime = nearestExitTime;
       }
     }
 
-    // Entry marker
+    // Entry marker - use tradeType for color selection
+    const tradeType = trade.trade_type || trade.tradeType || 'long';
     const entryColor =
-      trade.tradeType === 'long'
+      tradeType === 'long'
         ? options.entryMarkerColorLong || '#2196F3'
-        : options.entryMarkerColorShort || '#FF9800'
+        : options.entryMarkerColorShort || '#FF9800';
+
+    // Generate entry marker text using template or default
+    let entryMarkerText = '';
+    if (options.showMarkerText !== false) {
+      // Default to true if not specified
+      if (options.entryMarkerTemplate) {
+        // Use entry-specific template
+        const result = TradeTemplateProcessor.processTemplate(
+          options.entryMarkerTemplate,
+          trade // Pass entire trade object for flexible template access
+        );
+        entryMarkerText = result.content;
+      } else if (options.showPnlInMarkers && trade.text) {
+        // Use custom text from trade if showPnlInMarkers is true
+        entryMarkerText = trade.text;
+      } else if (options.showPnlInMarkers && trade.pnl !== undefined) {
+        // Calculate and show P&L
+        entryMarkerText = `$${trade.pnl.toFixed(2)}`;
+      } else {
+        // Default entry marker text
+        entryMarkerText = `$${trade.entryPrice.toFixed(2)}`;
+      }
+    }
 
     const entryMarker: SeriesMarker<Time> = {
       time: adjustedEntryTime,
-      position: trade.tradeType === 'long' ? 'belowBar' : 'aboveBar',
+      position:
+        (options.entryMarkerPosition as 'belowBar' | 'aboveBar') ||
+        (tradeType === 'long' ? 'belowBar' : 'aboveBar'),
       color: entryColor,
-      shape: trade.tradeType === 'long' ? 'arrowUp' : 'arrowDown',
-      text:
-        options.showPnlInMarkers && trade.text
-          ? trade.text
-          : `Entry: $${trade.entryPrice.toFixed(2)}`
-    }
-    markers.push(entryMarker)
+      shape:
+        (options.entryMarkerShape as 'arrowUp' | 'arrowDown' | 'circle' | 'square') ||
+        (tradeType === 'long' ? 'arrowUp' : 'arrowDown'),
+      text: entryMarkerText,
+      size: options.markerSize || 1,
+    };
+    markers.push(entryMarker);
 
     // Exit marker - only create if trade has been closed
     if (adjustedExitTime) {
-      const exitColor = trade.isProfitable
-        ? options.exitMarkerColorProfit || '#4CAF50'
-        : options.exitMarkerColorLoss || '#F44336'
+      // Use isProfitable from trade data - no calculations in frontend
+      const isProfit = trade.isProfitable ?? false; // Default to false if not specified
+
+      const exitColor = isProfit
+        ? options.exitMarkerColorProfit || '#4CAF50' // Green for profitable
+        : options.exitMarkerColorLoss || '#F44336'; // Red for unprofitable
+
+      // Generate exit marker text using template or default
+      let exitMarkerText = '';
+      if (options.showMarkerText !== false) {
+        // Default to true if not specified
+        if (options.exitMarkerTemplate) {
+          // Use exit-specific template
+          const result = TradeTemplateProcessor.processTemplate(
+            options.exitMarkerTemplate,
+            trade // Pass entire trade object for flexible template access
+          );
+          exitMarkerText = result.content;
+        } else {
+          // Default exit marker text
+          exitMarkerText = `$${trade.exitPrice.toFixed(2)}`;
+        }
+      }
 
       const exitMarker: SeriesMarker<Time> = {
         time: adjustedExitTime,
-        position: trade.tradeType === 'long' ? 'aboveBar' : 'belowBar',
+        position:
+          (options.exitMarkerPosition as 'belowBar' | 'aboveBar') ||
+          (tradeType === 'long' ? 'aboveBar' : 'belowBar'),
         color: exitColor,
-        shape: trade.tradeType === 'long' ? 'arrowDown' : 'arrowUp',
-        text:
-          options.showPnlInMarkers && trade.text
-            ? trade.text
-            : `Exit: $${trade.exitPrice.toFixed(2)}`
-      }
-      markers.push(exitMarker)
+        shape:
+          (options.exitMarkerShape as 'arrowUp' | 'arrowDown' | 'circle' | 'square') ||
+          (tradeType === 'long' ? 'arrowDown' : 'arrowUp'),
+        text: exitMarkerText,
+        size: options.markerSize || 1,
+      };
+      markers.push(exitMarker);
     }
-  })
+  });
 
-  return markers
+  return markers;
 }
 
 // Main function to create trade visual elements
@@ -292,62 +415,62 @@ export function createTradeVisualElements(
   trades: TradeConfig[],
   options: TradeVisualizationOptions,
   chartData?: any[],
-  priceScaleId?: string
+  _priceScaleId?: string
 ): {
-  markers: SeriesMarker<Time>[]
-  rectangles: TradeRectangleData[]
-  annotations: any[]
+  markers: SeriesMarker<Time>[];
+  rectangles: TradeRectangleData[];
+  annotations: any[];
 } {
-  const markers: SeriesMarker<Time>[] = []
-  const rectangles: TradeRectangleData[] = []
-  const annotations: any[] = []
+  const markers: SeriesMarker<Time>[] = [];
+  const rectangles: TradeRectangleData[] = [];
+  const annotations: any[] = [];
 
   if (!trades || trades.length === 0) {
-    return {markers, rectangles, annotations}
+    return { markers, rectangles, annotations };
   }
 
   // Create markers if enabled
   if (options && (options.style === 'markers' || options.style === 'both')) {
-    markers.push(...createTradeMarkers(trades, options, chartData))
+    markers.push(...createTradeMarkers(trades, options, chartData));
   }
 
   // Create rectangles if enabled - these will be handled by RectanglePlugin
   if (options && (options.style === 'rectangles' || options.style === 'both')) {
-    const newRectangles = createTradeRectangles(trades, options, chartData)
-    rectangles.push(...newRectangles)
+    const newRectangles = createTradeRectangles(trades, options, chartData);
+    rectangles.push(...newRectangles);
   }
 
   // Create annotations if enabled
   if (options.showAnnotations) {
     trades.forEach(trade => {
-      const textParts: string[] = []
+      const textParts: string[] = [];
 
       if (options.showTradeId && trade.id) {
-        textParts.push(`#${trade.id}`)
+        textParts.push(`#${trade.id}`);
       }
 
       if (options.showTradeType) {
-        textParts.push(trade.tradeType.toUpperCase())
+        textParts.push(trade.tradeType.toUpperCase());
       }
 
       if (options.showQuantity) {
-        textParts.push(`Qty: ${trade.quantity}`)
+        textParts.push(`Qty: ${trade.quantity}`);
       }
 
       if (trade.pnlPercentage !== undefined) {
-        textParts.push(`P&L: ${trade.pnlPercentage.toFixed(1)}%`)
+        textParts.push(`P&L: ${trade.pnlPercentage.toFixed(1)}%`);
       }
 
       // Calculate midpoint for annotation position
-      const entryTime = parseTime(trade.entryTime)
-      const exitTime = parseTime(trade.exitTime)
+      const entryTime = parseTime(trade.entryTime);
+      const exitTime = parseTime(trade.exitTime);
 
       if (entryTime === null || exitTime === null) {
-        return
+        return;
       }
 
-      const midTime = (entryTime + exitTime) / 2
-      const midPrice = (trade.entryPrice + trade.exitPrice) / 2
+      const midTime = (entryTime + exitTime) / 2;
+      const midPrice = (trade.entryPrice + trade.exitPrice) / 2;
 
       annotations.push({
         type: 'text',
@@ -357,12 +480,12 @@ export function createTradeVisualElements(
         fontSize: options.annotationFontSize || 12,
         backgroundColor: options.annotationBackground || 'rgba(255, 255, 255, 0.8)',
         color: '#000000',
-        padding: 4
-      })
-    })
+        padding: UniversalSpacing.DEFAULT_PADDING,
+      });
+    });
   }
 
-  return {markers, rectangles, annotations}
+  return { markers, rectangles, annotations };
 }
 
 /**
@@ -375,25 +498,27 @@ export function convertTradeRectanglesToPluginFormat(
   series?: any
 ): any[] {
   if (!chart || !series) {
-    return []
+    return [];
   }
 
   // Check if chart scales are ready
-  const timeScale = chart.timeScale()
-  const timeScaleWidth = timeScale.width()
+  const timeScale = chart.timeScale();
+  const timeScaleWidth = timeScale.width();
 
   if (timeScaleWidth === 0) {
-    return []
+    return [];
   }
 
-  // Import PositioningEngine dynamically to avoid circular dependencies
-  const {PositioningEngine} = require('../services/PositioningEngine')
+  // Import ChartCoordinateService dynamically to avoid circular dependencies
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { ChartCoordinateService } = require('../services/ChartCoordinateService');
+  const coordinateService = ChartCoordinateService.getInstance();
 
   return tradeRectangles
     .map((rect, index) => {
       try {
-        // Use PositioningEngine to calculate proper overlay position
-        const boundingBox = PositioningEngine.calculateOverlayPosition(
+        // Use ChartCoordinateService to calculate proper overlay position
+        const boundingBox = coordinateService.calculateOverlayPosition(
           rect.time1,
           rect.time2,
           rect.price1,
@@ -401,10 +526,10 @@ export function convertTradeRectanglesToPluginFormat(
           chart,
           series,
           0 // paneId
-        )
+        );
 
         if (!boundingBox) {
-          return null
+          return null;
         }
 
         const pluginRect = {
@@ -423,29 +548,15 @@ export function convertTradeRectanglesToPluginFormat(
           labelFontSize: 12,
           labelBackground: 'rgba(255, 255, 255, 0.8)',
           labelPadding: 4,
-          zIndex: 10
-        }
+          zIndex: 10,
+        };
 
-        return pluginRect
-      } catch (error) {
-        return null
+        return pluginRect;
+      } catch {
+        return null;
       }
     })
-    .filter(rect => rect !== null) // Remove null entries
-}
-
-/**
- * @deprecated - This function is no longer used. Use createTradeRectanglePrimitives from TradeRectanglePrimitive instead.
- */
-export function createTradeRectanglePrimitives(
-  tradeRectangles: TradeRectangleData[],
-  chart?: any,
-  series?: any
-): any[] {
-  console.warn(
-    '[tradeVisualization] This createTradeRectanglePrimitives is deprecated. Use the one from TradeRectanglePrimitive instead.'
-  )
-  return []
+    .filter(rect => rect !== null); // Remove null entries
 }
 
 /**
@@ -457,33 +568,34 @@ export async function convertTradeRectanglesToPluginFormatWhenReady(
   series?: any
 ): Promise<any[]> {
   if (!chart || !series) {
-    return []
+    return [];
   }
 
   // Import ChartReadyDetector dynamically to avoid circular dependencies
-  const {ChartReadyDetector} = await import('../utils/chartReadyDetection')
+  const { ChartReadyDetector } = await import('../utils/chartReadyDetection');
 
   try {
     // Wait for chart to be ready with proper dimensions
-    const container = chart.chartElement()
+    const container = chart.chartElement();
     if (!container) {
-      return []
+      return [];
     }
 
     const isReady = await ChartReadyDetector.waitForChartReady(chart, container, {
       minWidth: 200,
       minHeight: 200,
       maxAttempts: 10,
-      baseDelay: 200
-    })
+      baseDelay: 200,
+    });
 
     if (!isReady) {
+      return [];
     }
 
     // Now convert coordinates
-    return convertTradeRectanglesToPluginFormat(tradeRectangles, chart, series)
-  } catch (error) {
+    return convertTradeRectanglesToPluginFormat(tradeRectangles, chart, series);
+  } catch {
     // Fallback to immediate conversion
-    return convertTradeRectanglesToPluginFormat(tradeRectangles, chart, series)
+    return convertTradeRectanglesToPluginFormat(tradeRectangles, chart, series);
   }
 }

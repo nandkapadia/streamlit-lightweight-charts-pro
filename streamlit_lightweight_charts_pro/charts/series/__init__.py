@@ -1,5 +1,4 @@
-"""
-Series module for Streamlit Lightweight Charts Pro.
+"""Series module for Streamlit Lightweight Charts Pro.
 
 This module provides all series classes for creating different types of chart visualizations.
 Each series type represents a specific way of displaying data on charts, with its own
@@ -25,12 +24,10 @@ Each series type supports:
 
 Example Usage:
     ```python
-    from streamlit_lightweight_charts_pro.charts.series import (
-        LineSeries, AreaSeries, CandlestickSeries
-    )
-    from streamlit_lightweight_charts_pro.data import (
-        SingleValueData, CandlestickData
-    )
+    from streamlit_lightweight_charts_pro.charts.series import LineSeries,
+        AreaSeries,
+        CandlestickSeries
+    from streamlit_lightweight_charts_pro.data import SingleValueData, CandlestickData
 
     # Create line series
     line_data = [SingleValueData("2024-01-01", 100), SingleValueData("2024-01-02", 105)]
@@ -66,7 +63,6 @@ from streamlit_lightweight_charts_pro.charts.series.bar_series import BarSeries
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.charts.series.baseline import BaselineSeries
 from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
-from streamlit_lightweight_charts_pro.charts.series.gradient_band import GradientBandSeries
 from streamlit_lightweight_charts_pro.charts.series.gradient_ribbon import GradientRibbonSeries
 from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
 from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
@@ -75,17 +71,16 @@ from streamlit_lightweight_charts_pro.charts.series.signal_series import SignalS
 from streamlit_lightweight_charts_pro.charts.series.trend_fill import TrendFillSeries
 
 __all__ = [
-    "Series",
     "AreaSeries",
     "BandSeries",
-    "LineSeries",
-    "CandlestickSeries",
     "BarSeries",
-    "HistogramSeries",
     "BaselineSeries",
-    "RibbonSeries",
+    "CandlestickSeries",
     "GradientRibbonSeries",
-    "GradientBandSeries",
-    "TrendFillSeries",
+    "HistogramSeries",
+    "LineSeries",
+    "RibbonSeries",
+    "Series",
     "SignalSeries",
+    "TrendFillSeries",
 ]

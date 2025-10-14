@@ -1,0 +1,624 @@
+---
+description: Performance optimization guidelines and patterns
+---
+
+# Performance Optimization
+
+## Python Performance
+
+### Data Handling
+- **Efficient Serialization**: Use efficient JSON serialization for large datasets
+- **Lazy Loading**: Load data only when needed
+- **Caching**: Cache expensive computations and data transformations
+- **Memory Management**: Proper cleanup of large data structures
+
+### Chart Rendering
+- **Batch Updates**: Batch multiple chart updates together
+- **Incremental Updates**: Only update changed data points
+- **Data Compression**: Compress data before sending to frontend
+- **Streaming**: Use streaming for real-time data updates
+
+```python
+# Efficient data handling
+@lru_cache(maxsize=128)
+def process_chart_data(data: List[SingleValueData]) -> Dict[str, Any]:
+    """Process chart data with caching for performance."""
+    return {
+        'timestamps': [point.time for point in data],
+        'values': [point.value for point in data]
+    }
+```
+
+## Frontend Performance
+
+### React Optimizations
+- **Memoization**: Use React.memo, useMemo, and useCallback
+- **Component Splitting**: Split large components into smaller ones
+- **Lazy Loading**: Load components on demand
+- **Virtual Scrolling**: Use virtual scrolling for large datasets
+
+### Chart Rendering
+- **Canvas Optimization**: Optimize canvas rendering for performance
+- **Data Virtualization**: Only render visible data points
+- **Animation Optimization**: Use efficient animation techniques
+- **Memory Cleanup**: Properly clean up chart instances
+
+```typescript
+// Performance-optimized chart component
+const ChartContainer = React.memo(({ data, options }) => {
+  const chartRef = useRef<Chart | null>(null)
+
+  useEffect(() => {
+    // Initialize chart with performance optimizations
+    chartRef.current = createChart(containerRef.current, {
+      ...options,
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
+      },
+    })
+
+    return () => {
+      // Cleanup chart instance
+      chartRef.current?.remove()
+    }
+  }, [])
+
+  // Memoize expensive calculations
+  const processedData = useMemo(() =>
+    processChartData(data), [data]
+  )
+
+  return <div ref={containerRef} />
+})
+```
+
+## Memory Management
+
+### **1. Python Memory Optimization**
+```python
+# ✅ CORRECT: Efficient memory usage
+import gc
+import weakref
+from typing import List, Dict, Any
+
+# Use generators for large datasets
+def generate_large_dataset(size: int):
+    """Generate data without loading everything into memory."""
+    for i in range(size):
+        yield SingleValueData(f"2024-01-{i:02d}", i * 100)
+
+# Use weak references for circular dependencies
+class ChartManager:
+    def __init__(self):
+        self._charts = weakref.WeakValueDictionary()
+
+    def add_chart(self, chart_id: str, chart: 'Chart'):
+        self._charts[chart_id] = chart
+
+# Explicit memory cleanup
+def cleanup_large_operation():
+    """Clean up after large operations."""
+    # Force garbage collection
+    gc.collect()
+
+    # Clear large variables
+    if 'large_data' in globals():
+        del large_data
+```
+
+### **2. Memory Profiling and Monitoring**
+```python
+# ✅ CORRECT: Memory profiling
+import psutil
+import tracemalloc
+from memory_profiler import profile
+
+# Start memory tracing
+tracemalloc.start()
+
+@profile
+def process_large_dataset(data: List[SingleValueData]) -> Dict[str, Any]:
+    """Profile memory usage of data processing."""
+    # Process data
+    result = {}
+    for item in data:
+        result[item.time] = item.value
+    return result
+
+# Monitor memory usage
+def log_memory_usage(operation: str):
+    """Log current memory usage."""
+    process = psutil.Process()
+    memory_mb = process.memory_info().rss / 1024 / 1024
+    print(f"Memory after {operation}: {memory_mb:.1f} MB")
+
+    # Get memory snapshot
+    snapshot = tracemalloc.take_snapshot()
+    top_stats = snapshot.statistics('lineno')
+
+    print("Top 10 memory allocations:")
+    for stat in top_stats[:10]:
+        print(stat)
+
+# Usage
+log_memory_usage("before processing")
+data = process_large_dataset(large_data)
+log_memory_usage("after processing")
+```
+
+### **3. Frontend Memory Management**
+```typescript
+// ✅ CORRECT: Proper memory management
+import { useEffect, useRef, useCallback } from 'react'
+
+const ChartComponent: React.FC<ChartProps> = ({ data }) => {
+  const chartRef = useRef<IChartApi | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Cleanup function
+  const cleanup = useCallback(() => {
+    if (chartRef.current) {
+      // Remove all event listeners
+      chartRef.current.remove()
+      chartRef.current = null
+    }
+
+    // Clear any timers or intervals
+    // Clear any cached data
+  }, [])
+
+  useEffect(() => {
+    // Initialize chart
+    if (containerRef.current) {
+      chartRef.current = createChart(containerRef.current, options)
+    }
+
+    // Cleanup on unmount
+    return cleanup
+  }, [cleanup])
+
+  // Prevent memory leaks from closures
+  const handleDataUpdate = useCallback((newData: LineData[]) => {
+    if (chartRef.current) {
+      chartRef.current.setData(newData)
+    }
+  }, [])
+}
+```
+
+### **4. Memory Leak Detection**
+```typescript
+// ✅ CORRECT: Memory leak detection
+class MemoryMonitor {
+  private static instance: MemoryMonitor
+  private measurements: Array<{ timestamp: number; memory: number }> = []
+
+  static getInstance(): MemoryMonitor {
+    if (!MemoryMonitor.instance) {
+      MemoryMonitor.instance = new MemoryMonitor()
+    }
+    return MemoryMonitor.instance
+  }
+
+  measure(): void {
+    if ('memory' in performance) {
+      const memory = (performance as any).memory
+      this.measurements.push({
+        timestamp: Date.now(),
+        memory: memory.usedJSHeapSize
+      })
+
+      // Keep only last 100 measurements
+      if (this.measurements.length > 100) {
+        this.measurements.shift()
+      }
+    }
+  }
+
+  detectLeaks(): boolean {
+    if (this.measurements.length < 10) return false
+
+    const recent = this.measurements.slice(-10)
+    const older = this.measurements.slice(-20, -10)
+
+    const recentAvg = recent.reduce((sum, m) => sum + m.memory, 0) / recent.length
+    const olderAvg = older.reduce((sum, m) => sum + m.memory, 0) / older.length
+
+    // If memory increased by more than 20%, potential leak
+    return (recentAvg - olderAvg) / olderAvg > 0.2
+  }
+}
+
+// Usage in components
+const ChartComponent: React.FC<ChartProps> = ({ data }) => {
+  const monitor = MemoryMonitor.getInstance()
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      monitor.measure()
+
+      if (monitor.detectLeaks()) {
+        console.warn('Potential memory leak detected')
+      }
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [monitor])
+}
+```
+
+### **5. Data Structure Optimization**
+```python
+# ✅ CORRECT: Memory-efficient data structures
+from dataclasses import dataclass
+from typing import List, Tuple
+import array
+
+# Use __slots__ for memory efficiency
+@dataclass
+class OptimizedDataPoint:
+    __slots__ = ['time', 'value', 'volume']
+
+    time: str
+    value: float
+    volume: int
+
+# Use arrays for numeric data
+def create_efficient_dataset(data: List[Tuple[str, float, int]]) -> Tuple[List[str], array.array]:
+    """Create memory-efficient dataset using arrays."""
+    times = [item[0] for item in data]
+    values = array.array('f', [item[1] for item in data])  # float array
+    volumes = array.array('I', [item[2] for item in data])  # unsigned int array
+
+    return times, values, volumes
+
+# Use generators for large datasets
+def process_data_stream(data_source):
+    """Process data as a stream to minimize memory usage."""
+    for chunk in data_source:
+        yield process_chunk(chunk)
+```
+
+### **6. Garbage Collection Optimization**
+```python
+# ✅ CORRECT: Garbage collection optimization
+import gc
+import streamlit as st
+
+# Configure garbage collection
+gc.set_threshold(700, 10, 10)  # More aggressive GC
+
+def optimize_memory_usage():
+    """Optimize memory usage for large operations."""
+    # Force garbage collection before large operation
+    gc.collect()
+
+    # Process data
+    result = process_large_dataset()
+
+    # Clean up intermediate variables
+    del intermediate_data
+
+    # Force garbage collection after operation
+    gc.collect()
+
+    return result
+
+# Memory-aware chart creation
+def create_chart_with_memory_management(data: List[SingleValueData]) -> Chart:
+    """Create chart with memory management."""
+    # Check available memory
+    import psutil
+    memory_percent = psutil.virtual_memory().percent
+
+    if memory_percent > 80:
+        st.warning("High memory usage detected. Consider reducing data size.")
+        # Sample data if memory is high
+        data = sample_data(data, max_points=1000)
+
+    chart = Chart(series=LineSeries(data))
+
+    # Register cleanup function
+    st.session_state[f"chart_cleanup_{id(chart)}"] = lambda: chart.cleanup()
+
+    return chart
+```
+
+## Performance Monitoring
+
+### Metrics to Track
+- **Rendering Time**: Time to render charts
+- **Memory Usage**: Memory consumption patterns
+- **Data Transfer**: Size of data sent between Python and frontend
+- **User Interactions**: Response time to user interactions
+
+### **1. Python Profiling Tools**
+```python
+# ✅ CORRECT: Comprehensive Python profiling
+import cProfile
+import pstats
+from memory_profiler import profile
+import py_spy
+import time
+
+# CPU profiling
+def profile_chart_creation():
+    """Profile chart creation performance."""
+    profiler = cProfile.Profile()
+
+    profiler.enable()
+    start_time = time.time()
+
+    # Chart creation code
+    chart = Chart(series=LineSeries(large_dataset))
+    chart.render(key="profiled_chart")
+
+    end_time = time.time()
+    profiler.disable()
+
+    # Display results
+    print(f"Execution time: {end_time - start_time:.2f} seconds")
+
+    # Save profile results
+    profiler.dump_stats('chart_creation.prof')
+
+    # Display top functions
+    stats = pstats.Stats(profiler)
+    stats.sort_stats('cumulative').print_stats(10)
+
+# Memory profiling
+@profile
+def memory_intensive_operation():
+    """Profile memory usage of intensive operations."""
+    # Large data processing
+    data = [SingleValueData(f"2024-01-{i:02d}", i) for i in range(100000)]
+    chart = Chart(series=LineSeries(data))
+    return chart
+
+# Line-by-line profiling
+def line_profiling_example():
+    """Example of line-by-line profiling."""
+    from line_profiler import LineProfiler
+
+    profiler = LineProfiler()
+    profiler.add_function(process_chart_data)
+    profiler.enable()
+
+    # Run the function
+    result = process_chart_data(large_dataset)
+
+    profiler.disable()
+    profiler.print_stats()
+```
+
+### **2. Frontend Profiling Tools**
+```typescript
+// ✅ CORRECT: Frontend performance profiling
+import { Profiler } from 'react'
+
+// React Profiler for component performance
+const ChartWithProfiler: React.FC<ChartProps> = ({ data }) => {
+  const onRenderCallback = (
+    id: string,
+    phase: 'mount' | 'update',
+    actualDuration: number,
+    baseDuration: number,
+    startTime: number,
+    commitTime: number
+  ) => {
+    console.log('Chart render performance:', {
+      id,
+      phase,
+      actualDuration,
+      baseDuration,
+      startTime,
+      commitTime
+    })
+  }
+
+  return (
+    <Profiler id="ChartComponent" onRender={onRenderCallback}>
+      <ChartComponent data={data} />
+    </Profiler>
+  )
+}
+
+// Performance monitoring hook
+const usePerformanceMonitor = (componentName: string) => {
+  useEffect(() => {
+    const startTime = performance.now()
+
+    return () => {
+      const endTime = performance.now()
+      const duration = endTime - startTime
+
+      console.log(`${componentName} lifecycle: ${duration.toFixed(2)}ms`)
+
+      // Send to analytics
+      if (window.gtag) {
+        window.gtag('event', 'component_performance', {
+          component_name: componentName,
+          duration: duration
+        })
+      }
+    }
+  }, [componentName])
+}
+
+// Memory usage monitoring
+const useMemoryMonitor = () => {
+  useEffect(() => {
+    const monitor = () => {
+      if ('memory' in performance) {
+        const memory = (performance as any).memory
+        console.log('Memory usage:', {
+          used: Math.round(memory.usedJSHeapSize / 1024 / 1024) + ' MB',
+          total: Math.round(memory.totalJSHeapSize / 1024 / 1024) + ' MB',
+          limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024) + ' MB'
+        })
+      }
+    }
+
+    const interval = setInterval(monitor, 5000)
+    return () => clearInterval(interval)
+  }, [])
+}
+```
+
+### **3. Chart-Specific Performance Monitoring**
+```typescript
+// ✅ CORRECT: Lightweight Charts performance monitoring
+const useChartPerformanceMonitor = (chart: IChartApi) => {
+  useEffect(() => {
+    if (!chart) return
+
+    // Monitor chart rendering performance
+    const startTime = performance.now()
+
+    // Subscribe to chart events for performance monitoring
+    const unsubscribe = chart.subscribe('timeScaleChanged', () => {
+      const endTime = performance.now()
+      const renderTime = endTime - startTime
+
+      if (renderTime > 16) { // More than one frame at 60fps
+        console.warn(`Slow chart render: ${renderTime.toFixed(2)}ms`)
+      }
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [chart])
+}
+
+// Chart data update performance
+const useDataUpdatePerformance = () => {
+  const updateData = useCallback((chart: IChartApi, newData: LineData[]) => {
+    const startTime = performance.now()
+
+    chart.setData(newData)
+
+    // Use requestAnimationFrame to measure after render
+    requestAnimationFrame(() => {
+      const endTime = performance.now()
+      const updateTime = endTime - startTime
+
+      console.log(`Data update time: ${updateTime.toFixed(2)}ms`)
+    })
+  }, [])
+
+  return { updateData }
+}
+```
+
+### **4. Real-time Performance Monitoring**
+```python
+# ✅ CORRECT: Real-time performance monitoring
+import time
+import threading
+from collections import deque
+import streamlit as st
+
+class PerformanceMonitor:
+    def __init__(self, max_samples: int = 100):
+        self.max_samples = max_samples
+        self.metrics = {
+            'render_times': deque(maxlen=max_samples),
+            'memory_usage': deque(maxlen=max_samples),
+            'data_sizes': deque(maxlen=max_samples)
+        }
+        self.lock = threading.Lock()
+
+    def record_render_time(self, duration: float):
+        """Record chart render time."""
+        with self.lock:
+            self.metrics['render_times'].append({
+                'timestamp': time.time(),
+                'duration': duration
+            })
+
+    def record_memory_usage(self, memory_mb: float):
+        """Record memory usage."""
+        with self.lock:
+            self.metrics['memory_usage'].append({
+                'timestamp': time.time(),
+                'memory_mb': memory_mb
+            })
+
+    def get_average_render_time(self) -> float:
+        """Get average render time."""
+        with self.lock:
+            if not self.metrics['render_times']:
+                return 0.0
+            return sum(m['duration'] for m in self.metrics['render_times']) / len(self.metrics['render_times'])
+
+    def get_memory_trend(self) -> str:
+        """Get memory usage trend."""
+        with self.lock:
+            if len(self.metrics['memory_usage']) < 2:
+                return "stable"
+
+            recent = list(self.metrics['memory_usage'])[-5:]
+            if len(recent) < 2:
+                return "stable"
+
+            first = recent[0]['memory_mb']
+            last = recent[-1]['memory_mb']
+
+            if last > first * 1.1:
+                return "increasing"
+            elif last < first * 0.9:
+                return "decreasing"
+            else:
+                return "stable"
+
+# Global performance monitor
+performance_monitor = PerformanceMonitor()
+
+# Usage in chart creation
+def create_chart_with_monitoring(data: List[SingleValueData]) -> Chart:
+    """Create chart with performance monitoring."""
+    start_time = time.time()
+
+    chart = Chart(series=LineSeries(data))
+    chart.render(key="monitored_chart")
+
+    end_time = time.time()
+    render_time = end_time - start_time
+
+    # Record performance metrics
+    performance_monitor.record_render_time(render_time)
+
+    # Record memory usage
+    import psutil
+    memory_mb = psutil.Process().memory_info().rss / 1024 / 1024
+    performance_monitor.record_memory_usage(memory_mb)
+
+    return chart
+```
+
+## Optimization Strategies
+
+### Data Optimization
+- **Data Sampling**: Sample large datasets for better performance
+- **Data Compression**: Compress data before transmission
+- **Incremental Loading**: Load data in chunks
+- **Caching**: Cache processed data
+
+### Rendering Optimization
+- **Canvas Optimization**: Use efficient canvas rendering techniques
+- **Animation Optimization**: Optimize animations for smooth performance
+- **Update Batching**: Batch multiple updates together
+- **Selective Rendering**: Only render visible chart elements
+
+### Network Optimization
+- **Data Compression**: Compress data for network transmission
+- **Lazy Loading**: Load data on demand
+- **Caching**: Cache data on the client side
+- **Streaming**: Use streaming for real-time updates

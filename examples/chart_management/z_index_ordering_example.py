@@ -1,5 +1,4 @@
-"""
-Z-Index Ordering Example
+"""Z-Index Ordering Example
 
 This example demonstrates how series are automatically ordered by z-index
 within each pane to ensure proper layering in the frontend.
@@ -21,14 +20,14 @@ st.title("Z-Index Ordering Example")
 
 st.markdown(
     """
-This example demonstrates how the Chart class automatically orders series by z-index 
+This example demonstrates how the Chart class automatically orders series by z-index
 within each pane to ensure proper layering in the frontend.
 
 **Key Points:**
 - Series with lower z-index values render behind series with higher z-index values
 - Each pane maintains its own z-index ordering
 - The frontend will display series in the correct layering order
-"""
+""",
 )
 
 # Create sample data
@@ -68,9 +67,9 @@ st.markdown(
 
 **Expected Order (from back to front):**
 1. Candlestick (z-index: 5)
-2. Line (z-index: 10)  
+2. Line (z-index: 10)
 3. Area (z-index: 15)
-"""
+""",
 )
 
 line_series = LineSeries(data=line_data)
@@ -96,7 +95,7 @@ with st.expander("View Frontend Configuration"):
 
     st.write("**Series Order in Frontend Config:**")
     for i, series in enumerate(series_configs):
-        st.write(f"{i+1}. {series['type']} - z-index: {series.get('zIndex', 0)}")
+        st.write(f"{i + 1}. {series['type']} - z-index: {series.get('zIndex', 0)}")
 
 st.subheader("Multiple Panes with Z-Index Ordering")
 
@@ -115,7 +114,7 @@ st.markdown(
 2. Line (pane 0, z-index: 20)
 3. Area (pane 1, z-index: 5)
 4. Histogram (pane 1, z-index: 15)
-"""
+""",
 )
 
 # Create series for multiple panes
@@ -143,7 +142,7 @@ histogram_series_pane1.z_index = 15
 
 # Create multi-pane chart
 multi_pane_chart = Chart(
-    series=[line_series_pane0, candlestick_series_pane0, area_series_pane1, histogram_series_pane1]
+    series=[line_series_pane0, candlestick_series_pane0, area_series_pane1, histogram_series_pane1],
 )
 multi_pane_chart.update_options(height=500, title="Multi-Pane Z-Index Ordering")
 
@@ -158,8 +157,8 @@ with st.expander("View Multi-Pane Frontend Configuration"):
     st.write("**Series Order in Frontend Config:**")
     for i, series in enumerate(series_configs):
         st.write(
-            f"{i+1}. {series['type']} - pane: {series.get('paneId', 0)}, z-index:"
-            f" {series.get('zIndex', 0)}"
+            f"{i + 1}. {series['type']} - pane: {series.get('paneId', 0)}, z-index:"
+            f" {series.get('zIndex', 0)}",
         )
 
 st.subheader("How It Works")
@@ -171,11 +170,11 @@ The Chart class automatically handles z-index ordering in the `to_frontend_confi
 1. **Group by Pane**: Series are grouped by their `pane_id`
 2. **Sort by Z-Index**: Within each pane, series are sorted by `z_index` (ascending)
 3. **Flatten**: Series are flattened back to a single list, maintaining pane order
-4. **Frontend Rendering**: The frontend displays series in the order they appear, 
+4. **Frontend Rendering**: The frontend displays series in the order they appear,
    with lower z-index values rendering behind higher z-index values
 
 This ensures that series are properly layered regardless of the order they were added to the chart.
-"""
+""",
 )
 
 # Show the actual implementation
@@ -186,17 +185,17 @@ with st.expander("View Implementation Details"):
 series_by_pane = {}
 for series in self.series:
     series_config = series.asdict()
-    
+
     # Handle case where asdict() returns invalid data
     if not isinstance(series_config, dict):
         # Skip z-index ordering for invalid configs
         continue
-    
+
     pane_id = series_config.get("paneId", 0)
-    
+
     if pane_id not in series_by_pane:
         series_by_pane[pane_id] = []
-    
+
     series_by_pane[pane_id].append(series_config)
 
 # Sort series within each pane by z_index (ascending)

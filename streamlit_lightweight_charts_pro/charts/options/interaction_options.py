@@ -1,5 +1,4 @@
-"""
-Interaction options configuration for streamlit-lightweight-charts.
+"""Interaction options configuration for streamlit-lightweight-charts.
 
 This module provides interaction-related option classes for configuring
 crosshair behavior, kinetic scrolling, and tracking modes.
@@ -8,10 +7,7 @@ crosshair behavior, kinetic scrolling, and tracking modes.
 from dataclasses import dataclass, field
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    CrosshairMode,
-    LineStyle,
-)
+from streamlit_lightweight_charts_pro.type_definitions.enums import CrosshairMode, LineStyle
 from streamlit_lightweight_charts_pro.utils import chainable_field
 
 

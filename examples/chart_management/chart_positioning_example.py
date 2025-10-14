@@ -1,5 +1,4 @@
-"""
-Chart Positioning Example
+"""Chart Positioning Example
 
 This example demonstrates how to position charts anywhere using ChartManager
 with different layout approaches:
@@ -19,14 +18,15 @@ import streamlit as st
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager, SyncOptions
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
-from streamlit_lightweight_charts_pro.data.line_data import LineData
+from streamlit_lightweight_charts_pro.data import LineData
 
 
 # Generate sample data
 def generate_data(base_price=100, days=30):
     """Generate sample price data."""
-    dates = np.arange("2024-01-01", f"2024-01-{days+1}", dtype="datetime64[D]")
-    prices = np.random.randn(days).cumsum() + base_price
+    rng = np.random.default_rng(42)
+    dates = np.arange("2024-01-01", f"2024-01-{days + 1}", dtype="datetime64[D]")
+    prices = rng.standard_normal(days).cumsum() + base_price
     return [LineData(time=str(d), value=float(p)) for d, p in zip(dates, prices)]
 
 
@@ -45,7 +45,7 @@ st.markdown(
 This example shows how to position charts anywhere using ChartManager.
 The ChartManager handles chart data and synchronization, while positioning
 is controlled by your layout system.
-"""
+""",
 )
 
 # Example 1: Side-by-side using Streamlit columns
@@ -62,7 +62,8 @@ with col1:
 
     # Set sync config for price group
     price_manager.set_sync_group_config(
-        "1", SyncOptions(enabled=True, crosshair=True, time_range=True)
+        "1",
+        SyncOptions(enabled=True, crosshair=True, time_range=True),
     )
 
     # Render the chart
@@ -77,7 +78,8 @@ with col2:
 
     # Set sync config for volume group
     volume_manager.set_sync_group_config(
-        "1", SyncOptions(enabled=True, crosshair=True, time_range=True)
+        "1",
+        SyncOptions(enabled=True, crosshair=True, time_range=True),
     )
 
     # Render the chart
@@ -123,7 +125,8 @@ stacked_manager.add_chart(rsi_chart2, "rsi_chart2")
 
 # Set sync config for stacked group
 stacked_manager.set_sync_group_config(
-    "2", SyncOptions(enabled=True, crosshair=True, time_range=True)
+    "2",
+    SyncOptions(enabled=True, crosshair=True, time_range=True),
 )
 
 # Render all charts in the manager
@@ -136,7 +139,7 @@ st.markdown(
     """
 You can also use custom CSS to position charts. Here's an example using
 Streamlit's `st.markdown` with custom CSS:
-"""
+""",
 )
 
 # Custom CSS for positioning
@@ -171,7 +174,8 @@ custom_manager.add_chart(custom_volume_chart, "custom_volume")
 
 # Set sync config for custom group
 custom_manager.set_sync_group_config(
-    "3", SyncOptions(enabled=True, crosshair=True, time_range=True)
+    "3",
+    SyncOptions(enabled=True, crosshair=True, time_range=True),
 )
 
 # Render with custom positioning
@@ -188,7 +192,7 @@ st.header("4. Grid Layout")
 st.markdown(
     """
 You can also use CSS Grid for more complex layouts:
-"""
+""",
 )
 
 # CSS Grid example
@@ -299,5 +303,5 @@ with col2:
 # OR render all charts at once
 manager.render()  # Renders all charts in the manager
 ```
-"""
+""",
 )

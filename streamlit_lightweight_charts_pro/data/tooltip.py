@@ -1,5 +1,4 @@
-"""
-Tooltip data structures and utilities for Lightweight Charts.
+"""Tooltip data structures and utilities for Lightweight Charts.
 
 This module provides comprehensive tooltip functionality with support for
 dynamic content using placeholders, multiple tooltip types, and flexible
@@ -16,8 +15,7 @@ from ..type_definitions.enums import TooltipPosition, TooltipType
 
 @dataclass
 class TooltipField:
-    """
-    Represents a single field in a tooltip.
+    """Represents a single field in a tooltip.
 
     Attributes:
         label: Display label for the field
@@ -64,8 +62,7 @@ class TooltipField:
 
 @dataclass
 class TooltipStyle:
-    """
-    Styling configuration for tooltips.
+    """Styling configuration for tooltips.
 
     Attributes:
         background_color: Background color of the tooltip
@@ -84,7 +81,7 @@ class TooltipStyle:
     border_color: str = "#e1e3e6"
     border_width: int = 1
     border_radius: int = 4
-    padding: int = 8
+    padding: int = 6
     font_size: int = 12
     font_family: str = "sans-serif"
     color: str = "#131722"
@@ -94,8 +91,7 @@ class TooltipStyle:
 
 @dataclass
 class TooltipConfig:
-    """
-    Configuration for tooltip functionality.
+    """Configuration for tooltip functionality.
 
     Attributes:
         enabled: Whether tooltips are enabled
@@ -166,19 +162,19 @@ class TooltipConfig:
             return str(value)
 
         if value >= 1e9:
-            return f"{value/1e9:.1f}B"
-        elif value >= 1e6:
-            return f"{value/1e6:.1f}M"
-        elif value >= 1e3:
-            return f"{value/1e3:.1f}K"
-        else:
-            return f"{value:,.0f}"
+            return f"{value / 1e9:.1f}B"
+        if value >= 1e6:
+            return f"{value / 1e6:.1f}M"
+        if value >= 1e3:
+            return f"{value / 1e3:.1f}K"
+        return f"{value:,.0f}"
 
     def format_tooltip(
-        self, data: Dict[str, Any], time_value: Optional[Union[int, str, pd.Timestamp]] = None
+        self,
+        data: Dict[str, Any],
+        time_value: Optional[Union[int, str, pd.Timestamp]] = None,
     ) -> str:
-        """
-        Format tooltip content using template or fields.
+        """Format tooltip content using template or fields.
 
         Args:
             data: Data dictionary containing values
@@ -189,11 +185,12 @@ class TooltipConfig:
         """
         if self.template:
             return self._format_with_template(data, time_value)
-        else:
-            return self._format_with_fields(data, time_value)
+        return self._format_with_fields(data, time_value)
 
     def _format_with_template(
-        self, data: Dict[str, Any], time_value: Optional[Union[int, str, pd.Timestamp]] = None
+        self,
+        data: Dict[str, Any],
+        time_value: Optional[Union[int, str, pd.Timestamp]] = None,
     ) -> str:
         """Format tooltip using template string with placeholders."""
         if not self.template:
@@ -208,10 +205,7 @@ class TooltipConfig:
             if placeholder in result:
                 # Format the value based on field configuration
                 field = next((f for f in self.fields if f.value_key == key), None)
-                if field:
-                    formatted_value = field.format_value(value)
-                else:
-                    formatted_value = str(value)
+                formatted_value = field.format_value(value) if field else str(value)
                 result = result.replace(placeholder, formatted_value)
 
         # Add date/time if configured
@@ -223,7 +217,9 @@ class TooltipConfig:
         return result
 
     def _format_with_fields(
-        self, data: Dict[str, Any], time_value: Optional[Union[int, str, pd.Timestamp]] = None
+        self,
+        data: Dict[str, Any],
+        time_value: Optional[Union[int, str, pd.Timestamp]] = None,
     ) -> str:
         """Format tooltip using field configuration."""
         lines = []
@@ -235,11 +231,11 @@ class TooltipConfig:
                 lines.append(time_str)
 
         # Add field values
-        for field in self.fields:
-            if field.value_key in data:
-                value = data[field.value_key]
-                formatted_value = field.format_value(value)
-                lines.append(f"{field.label}: {formatted_value}")
+        for tooltip_field in self.fields:
+            if tooltip_field.value_key in data:
+                value = data[tooltip_field.value_key]
+                formatted_value = tooltip_field.format_value(value)
+                lines.append(f"{tooltip_field.label}: {formatted_value}")
 
         return "\n".join(lines)
 
@@ -310,14 +306,13 @@ class TooltipConfig:
 
 
 class TooltipManager:
-    """
-    Manages tooltip functionality across multiple series and data types.
+    """Manages tooltip functionality across multiple series and data types.
 
     This class provides centralized tooltip management with support for
     different data types, dynamic content, and consistent formatting.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize tooltip manager."""
         self.configs: Dict[str, TooltipConfig] = {}
         self.custom_formatters: Dict[str, Callable[[Any], str]] = {}

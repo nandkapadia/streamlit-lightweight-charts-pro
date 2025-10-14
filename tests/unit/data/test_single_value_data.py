@@ -59,17 +59,21 @@ class TestSingleValueData:
 
     def test_validation_time(self):
         """Test validation of time parameter."""
-        # Valid integer time
+        # Valid integer time - stored as-is
         data = SingleValueData(time=1640995200, value=100.0)
         assert data.time == 1640995200
 
-        # Valid string time - will be normalized to timestamp
+        # Valid string time - stored as-is, normalized in asdict()
         data = SingleValueData(time="2022-01-01", value=100.0)
-        assert isinstance(data.time, int)  # Time is normalized to integer timestamp
+        assert data.time == "2022-01-01"  # Stored as-is
+        result = data.asdict()
+        assert isinstance(result["time"], int)  # Normalized in asdict()
 
-        # Valid float time - will be normalized to integer
+        # Valid float time - stored as-is, normalized in asdict()
         data = SingleValueData(time=1640995200.5, value=100.0)
-        assert data.time == 1640995200  # Time is normalized to integer timestamp
+        assert data.time == 1640995200.5  # Stored as-is
+        result = data.asdict()
+        assert result["time"] == 1640995200  # Normalized to int in asdict()
 
     def test_validation_value(self):
         """Test validation of value parameter."""
@@ -121,13 +125,27 @@ class TestSingleValueData:
         data = SingleValueData(time=1640995200, value=0.0001)
         assert data.value == 0.0001
 
-        # Very large time
+        # Very large time - stored as-is
         data = SingleValueData(time=9999999999, value=100.0)
         assert data.time == 9999999999
 
-        # Very small time
+        # Very small time - stored as-is
         data = SingleValueData(time=0, value=100.0)
         assert data.time == 0
+
+    def test_time_modification_after_construction(self):
+        """Test that time can be modified after construction."""
+        data = SingleValueData(time="2024-01-01", value=100.0)
+        result1 = data.asdict()
+        time1 = result1["time"]
+
+        # Modify time after construction
+        data.time = "2024-01-02"
+        result2 = data.asdict()
+        time2 = result2["time"]
+
+        # Times should be different
+        assert time1 != time2
 
     def test_serialization_consistency(self):
         """Test that serialization is consistent across multiple calls."""

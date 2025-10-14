@@ -1,0 +1,404 @@
+---
+globs: *.py,*.ts,*.tsx,*.js,*.jsx
+alwaysApply: true
+---
+
+# Code Quality Standards
+
+**CRITICAL**: All generated code MUST pass pre-commit hooks. Follow these standards to prevent violations.
+
+## Scope
+This file focuses on **tooling and enforcement** of code quality standards:
+- Pre-commit hook requirements
+- Linting and formatting tools
+- Security scanning
+- Testing requirements
+- CI/CD integration
+
+For **coding patterns and architecture**, see [python-coding-standards.mdc](mdc:.cursor/rules/python-coding-standards.mdc)
+
+## Python Code Quality (Ruff + Black + isort)
+
+### Line Length and Formatting
+- **Max line length**: 100 characters (enforced by Ruff and Black)
+- **Indentation**: 4 spaces (no tabs)
+- **String quotes**: Double quotes `"` (enforced by Ruff formatter)
+- **Trailing commas**: Required in multiline structures
+
+```python
+# ✅ CORRECT: Proper line length and formatting
+def create_chart_with_series(
+    data: List[SingleValueData],
+    chart_options: ChartOptions,
+    series_options: SeriesOptions,
+) -> Chart:
+    """Create a chart with series data and return configured chart instance."""
+    return Chart().add_series(LineSeries(data, series_options)).update_options(chart_options)
+
+# ❌ WRONG: Line too long, missing trailing comma
+def create_chart_with_series(data: List[SingleValueData], chart_options: ChartOptions, series_options: SeriesOptions) -> Chart:
+    return Chart().add_series(LineSeries(data, series_options)).update_options(chart_options)
+```
+
+### Import Organization (isort)
+```python
+# ✅ CORRECT: Proper import order and grouping
+from __future__ import annotations
+
+import json
+import logging
+from typing import List, Optional, Union
+
+import pandas as pd
+import streamlit as st
+from lightweight_charts import ChartOptions
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.data import SingleValueData
+
+from .local_module import helper_function
+
+# ❌ WRONG: Incorrect import order
+import streamlit as st
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+import pandas as pd
+from typing import List
+import json
+```
+
+### Type Hints (MyPy Compatible)
+- **All function parameters and returns** must have type hints
+- **Use modern typing syntax** (list instead of List for Python 3.9+)
+- **Import annotations from future** for forward references
+
+```python
+# ✅ CORRECT: Complete type annotations
+from __future__ import annotations
+
+from typing import Optional
+
+def process_chart_data(
+    data: list[dict[str, float | str]],
+    chart_id: Optional[str] = None
+) -> Chart:
+    """Process raw data and return configured chart."""
+    return Chart(data=data, chart_id=chart_id)
+
+# ❌ WRONG: Missing type hints
+def process_chart_data(data, chart_id=None):
+    return Chart(data=data, chart_id=chart_id)
+```
+
+### Docstrings (Google Style)
+**Note**: For comprehensive docstring standards, see [google-docstring-standards.mdc](mdc:.cursor/rules/google-docstring-standards.mdc)
+
+**Key Requirements:**
+- All functions, classes, and modules must have docstrings
+- Google style format with Args, Returns, Raises, Example sections
+- Inline comments for complex logic
+- Line length <= 100 characters
+
+### Mixin Patterns
+```python
+# ✅ CORRECT: Using SerializableMixin for consistent serialization
+from dataclasses import dataclass
+from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
+
+@dataclass
+class ChartConfig(SerializableMixin):
+    """Chart configuration with automatic serialization support."""
+    title: str = "My Chart"
+    is_visible: bool = True
+
+    def asdict(self) -> dict[str, Any]:
+        """Serialize to dictionary with camelCase keys for frontend."""
+        return self._serialize_to_dict()
+
+# ✅ CORRECT: Using chainable_property for fluent API
+from streamlit_lightweight_charts_pro.utils import chainable_property
+
+@chainable_property("color", str, validator="color")
+@chainable_property("width", int)
+class LineSeries(Series):
+    """Line series with chainable property configuration."""
+
+    def __init__(self, data, **kwargs):
+        # Initialize private attributes for chainable properties
+        self._color = "#2196F3"
+        self._width = 1
+        super().__init__(data, **kwargs)
+
+# ✅ CORRECT: Using Options mixin for configuration classes
+from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+
+@dataclass
+class LineOptions(Options):
+    """Line styling options with automatic serialization."""
+    color: str = "#2196F3"
+    width: int = 1
+    visible: bool = True
+
+    def asdict(self) -> dict[str, Any]:
+        """Serialize to dictionary with camelCase keys."""
+        return self._serialize_to_dict()
+```
+
+### Security (Bandit)
+- **No hardcoded secrets** or passwords
+- **No use of eval()** or exec()
+- **Validate all inputs** from external sources
+- **Use pathlib** instead of os.path for path operations
+
+```python
+# ✅ CORRECT: Safe file operations
+from pathlib import Path
+
+def load_chart_config(config_path: str) -> dict[str, str]:
+    """Load chart configuration from file."""
+    path = Path(config_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Config file not found: {config_path}")
+    return json.loads(path.read_text())
+
+# ❌ WRONG: Security issues
+def load_chart_config(config_path: str) -> dict[str, str]:
+    # Hardcoded secret
+    API_KEY = "sk-1234567890abcdef"  # Bandit will flag this
+
+    # Unsafe eval usage
+    with open(config_path) as f:
+        return eval(f.read())  # Bandit will flag this
+```
+
+## Frontend Code Quality (ESLint + Prettier + TypeScript)
+
+### TypeScript Strict Mode Compliance
+- **All variables must be typed** (no implicit any)
+- **Null checks required** (strictNullChecks)
+- **No unused variables** (noUnusedLocals)
+- **Function return types** must be explicit for complex functions
+
+```typescript
+// ✅ CORRECT: Proper TypeScript
+interface ChartProps {
+  data: LineData[];
+  options?: Partial<ChartOptions>;
+  onReady?: (chart: IChartApi) => void;
+}
+
+function createChart(
+  container: HTMLElement,
+  props: ChartProps
+): IChartApi | null {
+  if (!container) {
+    return null;
+  }
+
+  const chart = createChart(container, props.options ?? {});
+  props.onReady?.(chart);
+  return chart;
+}
+
+// ❌ WRONG: Type violations
+function createChart(container, props) {  // Missing types
+  if (!container) return;  // Inconsistent return type
+
+  const chart = createChart(container, props.options);  // Possible null access
+  props.onReady(chart);  // Possible undefined access
+  return chart;
+}
+```
+
+### ESLint React Rules Compliance
+```typescript
+// ✅ CORRECT: Proper React patterns
+import { useEffect, useMemo, useCallback } from 'react';
+import { MockFactory } from '../mocks/MockFactory';
+
+interface ChartComponentProps {
+  data: LineData[];
+  height: number;
+}
+
+export function ChartComponent({ data, height }: ChartComponentProps) {
+  const chartOptions = useMemo(() => ({
+    height,
+    width: 800,
+  }), [height]);
+
+  const handleChartReady = useCallback((chart: IChartApi) => {
+    // Handle chart ready
+  }, []);
+
+  useEffect(() => {
+    // Cleanup on unmount
+    return () => {
+      // Cleanup code
+    };
+  }, []);
+
+  return (
+    <div data-testid="chart-container">
+      {/* Chart content */}
+    </div>
+  );
+}
+
+// ❌ WRONG: ESLint violations
+import React from 'react';  // Unnecessary import for React 17+
+
+function ChartComponent(props) {  // Missing prop types
+  const [chart, setChart] = useState();  // Missing type
+
+  useEffect(() => {
+    // Missing dependency array or cleanup
+    const chart = createChart(container);
+    setChart(chart);
+  });
+
+  return <div>{/* content */}</div>;  // Missing key prop if in array
+}
+```
+
+### Prettier Formatting Rules
+- **Print width**: 100 characters
+- **Semi-colons**: Always required
+- **Single quotes**: For strings (except JSX attributes)
+- **Trailing commas**: ES5 compatible
+- **Arrow parentheses**: Avoid for single parameters
+
+```typescript
+// ✅ CORRECT: Prettier formatting
+const chartData = [
+  { time: '2024-01-01', value: 100 },
+  { time: '2024-01-02', value: 101 },
+  { time: '2024-01-03', value: 99 },
+];
+
+const processData = (data: LineData[]): ProcessedData[] =>
+  data.map(item => ({
+    ...item,
+    processed: true,
+  }));
+
+// ❌ WRONG: Formatting violations
+const chartData = [
+    { time: "2024-01-01", value: 100, },  // Wrong quotes, trailing comma
+    { time: "2024-01-02", value: 101, },
+]
+
+const processData = (data: LineData[]): ProcessedData[] => {
+return data.map((item) => {  // Unnecessary parentheses
+return { ...item, processed: true }  // Missing semicolon
+})
+}
+```
+
+### Testing Code Standards
+```typescript
+// ✅ CORRECT: Centralized mock usage
+import { setupTestSuite, TestConfigurationManager } from '../setup/testConfiguration';
+import { MockFactory } from '../mocks/MockFactory';
+import { TestDataFactory } from '../mocks/TestDataFactory';
+
+setupTestSuite('unit');
+
+describe('ChartComponent Tests', () => {
+  let mockChart: ReturnType<typeof MockFactory.createChart>;
+
+  beforeEach(() => {
+    MockFactory.resetAll();
+    mockChart = MockFactory.createChart();
+  });
+
+  afterEach(() => {
+    TestConfigurationManager.cleanup();
+  });
+
+  test('should render with test data', () => {
+    const testData = TestDataFactory.createLineData();
+    // Test implementation
+  });
+});
+
+// ❌ WRONG: Inline mocks (violates rules)
+describe('ChartComponent Tests', () => {
+  const mockChart = {  // Inline mock - FORBIDDEN
+    addSeries: vi.fn(),
+    remove: vi.fn(),
+  };
+
+  const testData = [  // Inline test data - FORBIDDEN
+    { time: '2024-01-01', value: 100 },
+  ];
+});
+```
+
+## Pre-commit Hook Requirements
+
+### Python Files Must Pass:
+1. **Ruff linting** (`ruff --fix --exit-non-zero-on-fix`)
+2. **Ruff formatting** (`ruff-format`)
+3. **MyPy type checking** (excluding tests)
+4. **Bandit security scanning** (on pre-push)
+5. **Line wrapping** for docstrings and comments (100 chars)
+
+### Frontend Files Must Pass:
+1. **TypeScript compilation** (`npm run type-check`)
+2. **ESLint linting** (`npm run lint:check`)
+3. **Prettier formatting** (`npm run format:check`)
+4. **Unit tests** (`npm run test:unit`)
+
+### All Files Must Pass:
+1. **No trailing whitespace**
+2. **End-of-file fixer** (newline at end)
+3. **No merge conflicts**
+4. **File size limits** (max 1MB)
+5. **Valid YAML/JSON/TOML**
+
+## Automatic Fixes
+
+### Use These Commands to Auto-Fix:
+```bash
+# Python
+ruff --fix .
+ruff format .
+
+# Frontend
+npm run format
+npm run lint
+
+# All pre-commit fixes
+pre-commit run --all-files
+```
+
+## Common Violation Prevention
+
+### Avoid These Patterns:
+```python
+# Python violations
+print("debug message")  # Use logging instead
+from module import *    # Specific imports only
+x=1                    # Space around operators
+def func( x,y ):       # No spaces inside parentheses
+```
+
+```typescript
+// TypeScript violations
+console.log('debug');  // Remove before commit
+var x = 1;            // Use const/let
+function foo( x,y )   // Consistent spacing
+any                   // Avoid any type
+```
+
+### Debugging Code Removal:
+- **Remove all console.log** statements before commit
+- **Remove all print()** statements (use logging)
+- **Remove commented-out code** blocks
+- **Remove debug imports** and temporary code
+
+## Integration with CI/CD
+- Pre-commit hooks run locally before each commit
+- Additional checks run on GitHub Actions
+- All code must pass both local and remote checks
+- Coverage requirements: 95%+ for Python, 90%+ for Frontend

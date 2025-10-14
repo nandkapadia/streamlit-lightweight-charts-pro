@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 from streamlit_lightweight_charts_pro.utils import chainable_field
 from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
@@ -25,9 +26,9 @@ from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 @chainable_field("axis_label_color", str, validator="color")
 @chainable_field("axis_label_text_color", str, validator="color")
 class PriceLineOptions(Options):
-    """
-    Encapsulates style and configuration options for a price line,
-    matching TradingView's PriceLineOptions.
+    """Encapsulates style and configuration options for a price line.
+
+    Matching TradingView's PriceLineOptions.
 
     See: https://tradingview.github.io/lightweight-charts/docs/api/interfaces/PriceLineOptions
 
@@ -50,7 +51,7 @@ class PriceLineOptions(Options):
     line_width: int = 1
     line_style: LineStyle = LineStyle.SOLID
     line_visible: bool = True
-    axis_label_visible: bool = True
+    axis_label_visible: bool = False
     title: str = ""
     axis_label_color: Optional[str] = None
     axis_label_text_color: Optional[str] = None
@@ -59,7 +60,5 @@ class PriceLineOptions(Options):
     def _validate_color_static(color: str, property_name: str) -> str:
         """Static version of color validator for decorator use."""
         if color and not is_valid_color(color):
-            raise ValueError(
-                f"Invalid color format for {property_name}: {color!r}. Must be hex or rgba."
-            )
+            raise ColorValidationError(property_name, color)
         return color

@@ -1,26 +1,21 @@
-"""
-Data Handling Example
+"""Data Handling Example
 
 This example demonstrates the data handling capabilities that all series types share.
 It shows how to work with different data formats: Data objects, DataFrames, and Series.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
-from examples.data_samples import (
-    get_dataframe_line_data,
-    get_line_data,
-)
+from examples.utilities.data_samples import get_dataframe_line_data, get_line_data
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
@@ -42,7 +37,7 @@ def main():
     st.write(f"First data point: {series_from_objects.data[0]}")
 
     chart = Chart(series=series_from_objects)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("2. DataFrame Input")
     st.write("Create series with pandas DataFrame:")
@@ -61,7 +56,7 @@ def main():
     st.write(f"Data type: {type(series_from_df.data[0])}")
 
     chart = Chart(series=series_from_df)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("3. Series Input")
     st.write("Create series with pandas Series:")
@@ -82,7 +77,7 @@ def main():
     st.write(f"Number of data points: {len(series_from_series.data)}")
 
     chart = Chart(series=series_from_series)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("4. Column Mapping Examples")
     st.write("Demonstrate different column mapping configurations:")
@@ -93,7 +88,7 @@ def main():
             "date": df_data["datetime"],
             "price": df_data["close"],
             "volume": [100, 200, 300, 400, 500] * 2,
-        }
+        },
     )
 
     st.write("**Custom DataFrame:**")
@@ -101,11 +96,12 @@ def main():
 
     # Map custom column names
     series_custom_mapping = LineSeries(
-        data=df_custom, column_mapping={"time": "date", "value": "price"}
+        data=df_custom,
+        column_mapping={"time": "date", "value": "price"},
     )
 
     chart = Chart(series=series_custom_mapping)
-    chart.render()
+    chart.render(key="chart")
 
     st.header("5. Data Validation")
     st.write("Show data validation and error handling:")
@@ -162,7 +158,7 @@ def main():
     st.write(f"Filtered data points: {len(filtered_data)}")
 
     chart = Chart(series=filtered_series)
-    chart.render()
+    chart.render(key="chart")
 
     # Sorted data
     st.subheader("Sorted Data")
@@ -172,7 +168,7 @@ def main():
     st.write(f"Sorted by value (descending): {len(sorted_data)} points")
 
     chart = Chart(series=sorted_series)
-    chart.render()
+    chart.render(key="chart")
 
 
 if __name__ == "__main__":

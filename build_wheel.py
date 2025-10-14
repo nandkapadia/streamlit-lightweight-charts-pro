@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""
-Build script to create a proper wheel with pre-built frontend assets.
+"""Build script to create a proper wheel with pre-built frontend assets.
+
 This should be run before publishing to ensure the wheel contains all assets.
 """
 
@@ -9,6 +9,8 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+from streamlit_lightweight_charts_pro.exceptions import CliNotFoundError, NpmNotFoundError
 
 
 def build_frontend():
@@ -29,17 +31,26 @@ def build_frontend():
 
         # Install dependencies
         print("📦 Installing frontend dependencies...")
-        subprocess.run(["npm", "install"], check=True)
+        npm_path = shutil.which("npm")
+        if not npm_path:
+            raise NpmNotFoundError()  # noqa: TRY301
+
+        # Validate npm_path to prevent command injection
+        def _raise_invalid_npm_path():
+            raise ValueError("Invalid npm path")  # noqa: TRY301
+
+        if not npm_path or not Path(npm_path).exists():
+            _raise_invalid_npm_path()
+        subprocess.run([npm_path, "install"], check=True, shell=False)
 
         # Build frontend
         print("🔨 Building frontend...")
-        subprocess.run(["npm", "run", "build"], check=True)
+        subprocess.run([npm_path, "run", "build"], check=True, shell=False)
 
         # Verify build output
         build_dir = frontend_dir / "build"
         if build_dir.exists() and (build_dir / "static").exists():
             print("✅ Frontend build successful!")
-            return True
         else:
             print("❌ Frontend build failed - no build output found")
             return False
@@ -68,14 +79,23 @@ def build_wheel():
         # Clean previous builds
         print("🧹 Cleaning previous builds...")
         for dir_name in ["build", "dist", "*.egg-info"]:
-            for path in Path(".").glob(dir_name):
+            for path in Path().glob(dir_name):
                 if path.is_dir():
                     shutil.rmtree(path)
                     print(f"   Removed {path}")
 
         # Build wheel
         print("📦 Building wheel...")
-        subprocess.run([sys.executable, "setup.py", "bdist_wheel"], check=True)
+
+        # Validate sys.executable to prevent command injection
+        if not sys.executable or not Path(sys.executable).exists():
+            raise ValueError("Invalid Python executable path")  # noqa: TRY301
+
+        subprocess.run(
+            [sys.executable, "setup.py", "bdist_wheel"],
+            check=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
+        )
 
         # List created files
         dist_dir = Path("dist")
@@ -84,7 +104,6 @@ def build_wheel():
             print("📁 Created files:")
             for file in dist_dir.iterdir():
                 print(f"   {file}")
-            return True
         else:
             print("❌ No wheel files created")
             return False
@@ -113,26 +132,43 @@ def test_wheel():
 
     try:
         # Install wheel in a temporary environment
+        # Validate wheel_file path to prevent command injection
+        wheel_path = Path(wheel_file)
+        if not wheel_path.exists() or not wheel_path.is_file():
+            raise ValueError(f"Invalid wheel file path: {wheel_file}")
         subprocess.run(
             [sys.executable, "-m", "pip", "install", "--force-reinstall", str(wheel_file)],
             check=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
         )
 
         # Test import
+        # Validate the command to prevent injection
+        test_command = [
+            sys.executable,
+            "-c",
+            'import streamlit_lightweight_charts_pro; print("✅ Import successful!")',
+        ]
         subprocess.run(
-            [
-                sys.executable,
-                "-c",
-                'import streamlit_lightweight_charts_pro; print("✅ Import successful!")',
-            ],
+            test_command,
             check=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
         )
 
         # Test CLI
-        subprocess.run(["streamlit-lightweight-charts-pro", "--help"], check=True)
+        cli_path = shutil.which("streamlit-lightweight-charts-pro")
+        if not cli_path:
+            raise CliNotFoundError()
+        # Validate cli_path to prevent command injection
+        if not cli_path or not Path(cli_path).exists():
+            raise ValueError("Invalid CLI path")
+        subprocess.run(
+            [cli_path, "--help"],
+            check=True,
+            shell=False,  # Explicitly disable shell to prevent command injection
+        )
 
         print("✅ Wheel test successful!")
-        return True
 
     except subprocess.CalledProcessError as e:
         print(f"❌ Wheel test failed: {e}")
@@ -142,13 +178,13 @@ def test_wheel():
 if __name__ == "__main__":
     print("🚀 Starting wheel build process...")
 
-    success = build_wheel()
+    BUILD_SUCCESS = build_wheel()
 
-    if success:
+    if BUILD_SUCCESS:
         print("\n🧪 Testing wheel...")
-        test_success = test_wheel()
+        TEST_SUCCESS = test_wheel()
 
-        if test_success:
+        if TEST_SUCCESS:
             print("\n🎉 Wheel build and test completed successfully!")
             print("\n📦 To install the wheel:")
             print("   pip install dist/*.whl")

@@ -73,13 +73,20 @@ def run_tests(
         print("  Test Types: unit, integration, performance, e2e")
         print(
             "  Unit Categories: data, series, options, frontend, type_definitions, utils,"
-            " component, logging_tests"
+            " component, logging_tests",
         )
         return 1
 
     # Run the tests
     print(f"Running tests: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=Path(__file__).parent)
+    # Validate cmd to prevent injection
+    if not cmd or not isinstance(cmd, list):
+        raise TypeError("Invalid command: must be a non-empty list")
+    for arg in cmd:
+        if not isinstance(arg, str):
+            raise TypeError(f"Invalid command argument: {arg} must be a string")
+
+    result = subprocess.run(cmd, check=False, cwd=Path(__file__).parent, shell=False)
 
     return result.returncode
 

@@ -1,6 +1,10 @@
 import pandas as pd
 
 from streamlit_lightweight_charts_pro.charts import Chart, ChartManager
+from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
+    PriceScaleMargins,
+    PriceScaleOptions,
+)
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
@@ -11,6 +15,7 @@ from streamlit_lightweight_charts_pro.data.annotation import Annotation
 from streamlit_lightweight_charts_pro.data.line_data import LineData
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
 from streamlit_lightweight_charts_pro.data.trade import TradeData
+from streamlit_lightweight_charts_pro.type_definitions.enums import PriceScaleMode
 
 
 def create_sample_ohlcv_data(n=10):
@@ -51,7 +56,7 @@ def test_multi_series_chart_with_price_scales():
 
 def test_dataframe_to_chart_pipeline():
     """Test DataFrame → Series → Chart → JSON pipeline."""
-    df = pd.DataFrame(
+    test_dataframe = pd.DataFrame(
         {
             "time": pd.date_range("2024-01-01", periods=10, freq="1h"),
             "open": range(100, 110),
@@ -59,7 +64,7 @@ def test_dataframe_to_chart_pipeline():
             "low": range(95, 105),
             "close": range(102, 112),
             "volume": range(1000, 1010),
-        }
+        },
     )
     column_mapping = {
         "time": "time",
@@ -71,7 +76,9 @@ def test_dataframe_to_chart_pipeline():
     }
     manager = ChartManager()
     chart = manager.from_price_volume_dataframe(
-        data=df, column_mapping=column_mapping, price_type="candlestick"
+        data=test_dataframe,
+        column_mapping=column_mapping,
+        price_type="candlestick",
     )
     config = chart.to_frontend_config()
     assert "charts" in config
@@ -84,7 +91,11 @@ def test_chart_with_annotations_and_trades():
     chart = Chart(series=[line_series])
     # Add annotation
     annotation = Annotation(
-        time=1640995200, price=100, position="above", text="Test", color="#ff0000"
+        time=1640995200,
+        price=100,
+        position="above",
+        text="Test",
+        color="#ff0000",
     )
     chart.add_annotation(annotation)
     # Add trade visualization
@@ -94,9 +105,10 @@ def test_chart_with_annotations_and_trades():
             entry_price=100,
             exit_time=1640998800,
             exit_price=110,
-            quantity=1,
-            trade_type="long",
-        )
+            is_profitable=True,
+            id="trade_001",
+            additional_data={"quantity": 1, "trade_type": "long"},
+        ),
     ]
     chart.options.trade_visualization = TradeVisualizationOptions()
     chart.add_trades(trades)
@@ -125,12 +137,6 @@ def test_serialization_idempotency():
 
 def test_series_with_price_scale_configuration():
     """Test series with price scale configuration."""
-    from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
-        PriceScaleMargins,
-        PriceScaleOptions,
-    )
-    from streamlit_lightweight_charts_pro.type_definitions.enums import PriceScaleMode
-
     # Create series with custom price scale
     line_series = LineSeries(data=create_sample_line_data())
 
@@ -182,11 +188,6 @@ def test_series_with_price_scale_configuration():
 
 def test_multiple_series_with_different_price_scales():
     """Test multiple series with different price scale configurations."""
-    from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
-        PriceScaleOptions,
-    )
-    from streamlit_lightweight_charts_pro.type_definitions.enums import PriceScaleMode
-
     # Create series with different price scales
     line_series = LineSeries(data=create_sample_line_data())
     candle_series = CandlestickSeries(data=create_sample_ohlcv_data())
@@ -252,10 +253,6 @@ def test_price_scale_with_none_value():
 
 def test_price_scale_and_price_scale_id_coexistence_integration():
     """Test that price_scale and price_scale_id can coexist in integration."""
-    from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
-        PriceScaleOptions,
-    )
-
     # Create series with both price_scale_id and price_scale
     line_series = LineSeries(data=create_sample_line_data(), price_scale_id="simple_id")
 

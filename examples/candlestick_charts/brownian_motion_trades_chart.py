@@ -1,5 +1,4 @@
-"""
-Brownian Motion Candlestick Chart with Trade Visualization Example.
+"""Brownian Motion Candlestick Chart with Trade Visualization Example.
 
 This example demonstrates:
 1. Generating OHLCV data using Brownian motion simulation
@@ -16,16 +15,26 @@ import pandas as pd
 import streamlit as st
 
 from streamlit_lightweight_charts_pro.charts import Chart
+from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries
 from streamlit_lightweight_charts_pro.data import OhlcvData
+from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.data.trade import TradeData
-from streamlit_lightweight_charts_pro.type_definitions.enums import TradeType
+from streamlit_lightweight_charts_pro.type_definitions.enums import (
+    MarkerPosition,
+    MarkerShape,
+    TradeType,
+)
+from streamlit_lightweight_charts_pro.utils.data_utils import to_utc_timestamp
 
 
 def generate_brownian_motion_ohlcv(
-    n_periods=180, initial_price=100.0, volatility=0.02, drift=0.0001, volume_base=1000000
+    n_periods=180,
+    initial_price=100.0,
+    volatility=0.02,
+    drift=0.0001,
+    volume_base=1000000,
 ):
-    """
-    Generate OHLCV data using Brownian motion simulation.
+    """Generate OHLCV data using Brownian motion simulation.
 
     Args:
         n_periods: Number of periods to generate
@@ -38,10 +47,10 @@ def generate_brownian_motion_ohlcv(
         List of OhlcvData objects
     """
     # Set random seed for reproducibility
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
 
     # Generate price movements using Brownian motion
-    returns = np.random.normal(drift, volatility, n_periods)
+    returns = rng.normal(drift, volatility, n_periods)
     prices = [initial_price]
 
     for i in range(1, n_periods):
@@ -58,17 +67,17 @@ def generate_brownian_motion_ohlcv(
 
         # Add some intra-period volatility
         intra_volatility = volatility * 0.5
-        open_price = price * (1 + np.random.normal(0, intra_volatility * 0.1))
-        high_price = max(open_price, price * (1 + abs(np.random.normal(0, intra_volatility))))
-        low_price = min(open_price, price * (1 - abs(np.random.normal(0, intra_volatility))))
-        close_price = price * (1 + np.random.normal(0, intra_volatility * 0.1))
+        open_price = price * (1 + rng.normal(0, intra_volatility * 0.1))
+        high_price = max(open_price, price * (1 + abs(rng.normal(0, intra_volatility))))
+        low_price = min(open_price, price * (1 - abs(rng.normal(0, intra_volatility))))
+        close_price = price * (1 + rng.normal(0, intra_volatility * 0.1))
 
         # Ensure OHLC relationships are maintained
         high_price = max(open_price, high_price, close_price)
         low_price = min(open_price, low_price, close_price)
 
         # Generate volume with some correlation to price movement
-        volume = volume_base * (1 + abs(returns[i]) * 10 + np.random.normal(0, 0.3))
+        volume = volume_base * (1 + abs(returns[i]) * 10 + rng.normal(0, 0.3))
         volume = max(volume, volume_base * 0.1)  # Minimum volume
 
         # Convert time to timestamp
@@ -82,15 +91,14 @@ def generate_brownian_motion_ohlcv(
                 low=round(low_price, 2),
                 close=round(close_price, 2),
                 volume=int(volume),
-            )
+            ),
         )
 
     return ohlcv_data
 
 
 def identify_trades(ohlcv_data, num_trades=10):
-    """
-    Identify random trades from the OHLCV data.
+    """Identify random trades from the OHLCV data.
 
     Args:
         ohlcv_data: List of OhlcvData objects
@@ -120,14 +128,29 @@ def identify_trades(ohlcv_data, num_trades=10):
         # Determine trade type based on price movement
         trade_type = TradeType.LONG if exit_price > entry_price else TradeType.SHORT
 
+        # Calculate profitability
+        is_profitable = exit_price > entry_price
+
+        # Calculate quantity and P&L
+        quantity = random.randint(100, 1000)  # Random position size
+        pnl = (exit_price - entry_price) * quantity
+        pnl_percentage = ((exit_price - entry_price) / entry_price) * 100
+
         # Create trade object
         trade = TradeData(
             entry_time=entry_data.time,
             exit_time=exit_data.time,
             entry_price=round(entry_price, 2),
             exit_price=round(exit_price, 2),
-            trade_type=trade_type,
-            quantity=random.randint(100, 1000),  # Random position size
+            is_profitable=is_profitable,
+            id=f"TRADE_{i + 1:03d}",
+            additional_data={
+                "trade_type": trade_type.value,
+                "tradeType": trade_type.value,  # Frontend compatibility
+                "quantity": quantity,
+                "pnl": round(pnl, 2),
+                "pnl_percentage": round(pnl_percentage, 2),
+            },
         )
 
         trades.append(trade)
@@ -136,8 +159,7 @@ def identify_trades(ohlcv_data, num_trades=10):
 
 
 def get_trade_visualization_options():
-    """
-    Get trade visualization options from user input.
+    """Get trade visualization options from user input.
 
     Returns:
         dict: Trade visualization configuration
@@ -166,17 +188,25 @@ def get_trade_visualization_options():
     col1, col2 = st.sidebar.columns(2)
     with col1:
         long_entry_color = st.color_picker(
-            "Long Entry", "#2196F3", help="Color for long trade entry markers"
+            "Long Entry",
+            "#2196F3",
+            help="Color for long trade entry markers",
         )
         long_exit_color = st.color_picker(
-            "Long Exit", "#4CAF50", help="Color for long trade exit markers"
+            "Long Exit",
+            "#4CAF50",
+            help="Color for long trade exit markers",
         )
     with col2:
         short_entry_color = st.color_picker(
-            "Short Entry", "#FF9800", help="Color for short trade entry markers"
+            "Short Entry",
+            "#FF9800",
+            help="Color for short trade entry markers",
         )
         short_exit_color = st.color_picker(
-            "Short Exit", "#F44336", help="Color for short trade exit markers"
+            "Short Exit",
+            "#F44336",
+            help="Color for short trade exit markers",
         )
 
     # Marker shapes
@@ -218,13 +248,19 @@ def get_trade_visualization_options():
     # Additional options
     st.sidebar.subheader("⚙️ Additional Options")
     show_trade_ids = st.sidebar.checkbox(
-        "Show Trade IDs", value=True, help="Display trade numbers on markers"
+        "Show Trade IDs",
+        value=True,
+        help="Display trade numbers on markers",
     )
     show_quantity = st.sidebar.checkbox(
-        "Show Quantity", value=False, help="Display trade quantity on markers"
+        "Show Quantity",
+        value=False,
+        help="Display trade quantity on markers",
     )
     show_duration = st.sidebar.checkbox(
-        "Show Duration", value=False, help="Display trade duration on markers"
+        "Show Duration",
+        value=False,
+        help="Display trade duration on markers",
     )
 
     return {
@@ -252,8 +288,7 @@ def get_trade_visualization_options():
 
 
 def create_custom_trade_markers(trades, options):
-    """
-    Create custom trade markers based on user options.
+    """Create custom trade markers based on user options.
 
     Args:
         trades: List of TradeData objects
@@ -262,9 +297,6 @@ def create_custom_trade_markers(trades, options):
     Returns:
         List of Marker objects
     """
-    from streamlit_lightweight_charts_pro.data.marker import BarMarker
-    from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
-
     markers = []
 
     # Shape mapping
@@ -283,8 +315,14 @@ def create_custom_trade_markers(trades, options):
     }
 
     for i, trade in enumerate(trades):
+        # Get trade type from additional_data
+        trade_type_value = (
+            trade.additional_data.get("trade_type", "long") if trade.additional_data else "long"
+        )
+        trade_type = TradeType.LONG if trade_type_value == "long" else TradeType.SHORT
+
         # Determine colors based on trade type
-        if trade.trade_type == TradeType.LONG:
+        if trade_type == TradeType.LONG:
             entry_color = options["colors"]["long_entry"]
             exit_color = options["colors"]["long_exit"]
             entry_position = position_mapping[options["positions"]["long_entry"]]
@@ -295,20 +333,23 @@ def create_custom_trade_markers(trades, options):
             entry_position = position_mapping[options["positions"]["short_entry"]]
             exit_position = position_mapping[options["positions"]["short_exit"]]
 
+        # Get quantity from additional_data
+        quantity = trade.additional_data.get("quantity", 0) if trade.additional_data else 0
+
         # Create entry marker text
         entry_text_parts = []
         if options["options"]["show_trade_ids"]:
-            entry_text_parts.append(f"#{i+1}")
+            entry_text_parts.append(f"#{i + 1}")
         entry_text_parts.append(f"Entry: ${trade.entry_price:.2f}")
         if options["options"]["show_quantity"]:
-            entry_text_parts.append(f"Qty: {trade.quantity}")
+            entry_text_parts.append(f"Qty: {quantity}")
 
         entry_text = " - ".join(entry_text_parts)
 
         # Create exit marker text
         exit_text_parts = []
         if options["options"]["show_trade_ids"]:
-            exit_text_parts.append(f"#{i+1}")
+            exit_text_parts.append(f"#{i + 1}")
         exit_text_parts.append(f"Exit: ${trade.exit_price:.2f}")
 
         # Add PnL based on display style
@@ -317,17 +358,19 @@ def create_custom_trade_markers(trades, options):
             exit_text_parts.append(f"{trade.pnl_percentage:+.1f}%")
 
         if options["options"]["show_quantity"]:
-            exit_text_parts.append(f"Qty: {trade.quantity}")
+            exit_text_parts.append(f"Qty: {quantity}")
 
         if options["options"]["show_duration"]:
-            duration_hours = trade.exit_timestamp - trade.entry_timestamp
+            duration_hours = to_utc_timestamp(trade.exit_time) - to_utc_timestamp(
+                trade.entry_time,
+            )
             exit_text_parts.append(f"Dur: {duration_hours}h")
 
         exit_text = " - ".join(exit_text_parts)
 
         # Create entry marker
         entry_marker = BarMarker(
-            time=trade.entry_timestamp,
+            time=to_utc_timestamp(trade.entry_time),
             position=entry_position,
             shape=shape_mapping[options["shapes"]["entry"]],
             color=entry_color,
@@ -337,7 +380,7 @@ def create_custom_trade_markers(trades, options):
 
         # Create exit marker
         exit_marker = BarMarker(
-            time=trade.exit_timestamp,
+            time=to_utc_timestamp(trade.exit_time),
             position=exit_position,
             shape=shape_mapping[options["shapes"]["exit"]],
             color=exit_color,
@@ -351,7 +394,9 @@ def create_custom_trade_markers(trades, options):
 def main():
     """Main function to create and display the chart."""
     st.set_page_config(
-        page_title="Brownian Motion Candlestick Chart with Trades", page_icon="📈", layout="wide"
+        page_title="Brownian Motion Candlestick Chart with Trades",
+        page_icon="📈",
+        layout="wide",
     )
 
     st.title("📈 Brownian Motion Candlestick Chart with Trade Visualization")
@@ -363,7 +408,7 @@ def main():
     - **Trade Visualization**: Trades displayed as markers on the chart
     - **Price-Volume Chart**: Candlestick chart with volume histogram
     - **Interactive Trade Display**: Customize how trades are shown on the chart
-    """
+    """,
     )
 
     # Get trade visualization options from sidebar
@@ -429,47 +474,59 @@ def main():
 
     # Display trades table
     st.subheader("📊 Identified Trades")
-    trades_df = pd.DataFrame(
+    trades_trades_data = pd.DataFrame(
         [
             {
                 "Trade #": i + 1,
-                "Type": trade.trade_type.value.upper(),
+                "Type": (
+                    trade.additional_data.get("trade_type", "long").upper()
+                    if trade.additional_data
+                    else "LONG"
+                ),
                 "Entry Time": (
-                    datetime.fromtimestamp(trade.entry_timestamp).strftime("%Y-%m-%d %H:%M")
+                    datetime.fromtimestamp(to_utc_timestamp(trade.entry_time)).strftime(
+                        "%Y-%m-%d %H:%M",
+                    )
                 ),
                 "Exit Time": (
-                    datetime.fromtimestamp(trade.exit_timestamp).strftime("%Y-%m-%d %H:%M")
+                    datetime.fromtimestamp(to_utc_timestamp(trade.exit_time)).strftime(
+                        "%Y-%m-%d %H:%M",
+                    )
                 ),
                 "Entry Price": f"${trade.entry_price:.2f}",
                 "Exit Price": f"${trade.exit_price:.2f}",
-                "Quantity": trade.quantity,
+                "Quantity": (
+                    trade.additional_data.get("quantity", 0) if trade.additional_data else 0
+                ),
                 "PnL": f"${trade.pnl:.2f}",
-                "Duration": f"{trade.exit_timestamp - trade.entry_timestamp} hours",
+                "Duration": (
+                    f"{to_utc_timestamp(trade.exit_time) - to_utc_timestamp(trade.entry_time)}"
+                    " hours"
+                ),
             }
             for i, trade in enumerate(trades)
-        ]
+        ],
     )
 
-    st.dataframe(trades_df, use_container_width=True)
+    st.dataframe(trades_trades_data, use_container_width=True)
 
     # Create chart
     st.subheader("📈 Chart Visualization")
 
     # Create DataFrame for the chart
-    df_data = []
-    for data_point in ohlcv_data:
-        df_data.append(
-            {
-                "time": datetime.fromtimestamp(data_point.time),
-                "open": data_point.open,
-                "high": data_point.high,
-                "low": data_point.low,
-                "close": data_point.close,
-                "volume": data_point.volume,
-            }
-        )
+    df_data = [
+        {
+            "time": datetime.fromtimestamp(data_point.time),
+            "open": data_point.open,
+            "high": data_point.high,
+            "low": data_point.low,
+            "close": data_point.close,
+            "volume": data_point.volume,
+        }
+        for data_point in ohlcv_data
+    ]
 
-    df = pd.DataFrame(df_data)
+    trades_data = pd.DataFrame(df_data)
     # Keep time as a column instead of index
 
     # Create chart with price-volume series
@@ -487,7 +544,7 @@ def main():
     # Add candlestick series with volume
     if show_volume:
         chart.add_price_volume_series(
-            data=df,
+            data=trades_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -501,10 +558,8 @@ def main():
         )
     else:
         # Add only candlestick series without volume
-        from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries
-
         candlestick_series = CandlestickSeries(
-            data=df,
+            data=trades_data,
             column_mapping={
                 "time": "time",
                 "open": "open",
@@ -528,6 +583,31 @@ def main():
     # Display the chart
     chart.render(key="brownian_motion_chart")
 
+    # DEBUG: Output the frontend configuration JSON
+    st.subheader("🔍 Debug: Frontend Configuration JSON")
+    with st.expander("View Frontend Configuration", expanded=False):
+        config = chart.to_frontend_config()
+        st.json(config)
+
+        # Also show series information
+        st.write("**Series Configuration:**")
+        for i, series in enumerate(chart.series):
+            st.write(f"**Series {i}:**")
+            st.write(f"- Type: {type(series).__name__}")
+            st.write(f"- Price Scale ID: {series.price_scale_id}")
+            st.write(f"- Pane ID: {series.pane_id}")
+
+        # Show overlay price scales
+        st.write("**Overlay Price Scales:**")
+        if chart.options and chart.options.overlay_price_scales:
+            for scale_id, scale_options in chart.options.overlay_price_scales.items():
+                st.write(f"**Scale ID: '{scale_id}'**")
+                st.write(f"- price_scale_id field: '{scale_options.price_scale_id}'")
+                st.write(f"- visible: {scale_options.visible}")
+                st.write(f"- auto_scale: {scale_options.auto_scale}")
+        else:
+            st.write("No overlay price scales configured")
+
     # Display trade statistics
     st.subheader("📊 Trade Statistics")
 
@@ -536,12 +616,18 @@ def main():
     with col1:
         winning_trades = [t for t in trades if t.pnl > 0]
         st.metric(
-            "Winning Trades", len(winning_trades), f"{len(winning_trades)/len(trades)*100:.1f}%"
+            "Winning Trades",
+            len(winning_trades),
+            f"{len(winning_trades) / len(trades) * 100:.1f}%",
         )
 
     with col2:
         losing_trades = [t for t in trades if t.pnl < 0]
-        st.metric("Losing Trades", len(losing_trades), f"{len(losing_trades)/len(trades)*100:.1f}%")
+        st.metric(
+            "Losing Trades",
+            len(losing_trades),
+            f"{len(losing_trades) / len(trades) * 100:.1f}%",
+        )
 
     with col3:
         total_pnl = sum(t.pnl for t in trades)
@@ -559,19 +645,19 @@ def main():
     - Uses geometric Brownian motion to simulate realistic price movements
     - Includes drift (trend) and volatility components
     - Generates realistic OHLC relationships
-    
+
     **Trade Identification:**
     - Random entry and exit points across the data
     - Entry/exit prices calculated as midpoint of open and close
     - Trade type determined by price direction (LONG/SHORT)
     - Random position sizes and realistic PnL calculations
-    
+
     **Visualization Features:**
     - Candlestick chart with volume histogram
     - Trade markers showing entry and exit points
     - Color-coded volume bars (green for up, red for down)
     - Interactive chart with zoom and pan capabilities
-    """
+    """,
     )
 
 

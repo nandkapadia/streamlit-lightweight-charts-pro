@@ -1,5 +1,4 @@
-"""
-Advanced Line Chart Example.
+"""Advanced Line Chart Example.
 
 This example demonstrates an advanced line chart with all features:
 - Custom line styling
@@ -9,18 +8,17 @@ This example demonstrates an advanced line chart with all features:
 - Advanced options
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
-from examples.data_samples import get_line_data
+from examples.utilities.data_samples import get_line_data
 from streamlit_lightweight_charts_pro import Chart
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
+from streamlit_lightweight_charts_pro.charts.options import LineOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
+from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     LineStyle,
@@ -28,7 +26,7 @@ from streamlit_lightweight_charts_pro.type_definitions.enums import (
     MarkerShape,
 )
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 # Page configuration
@@ -36,7 +34,7 @@ st.set_page_config(page_title="Advanced Line Chart", page_icon="📈", layout="w
 
 st.title("📈 Advanced Line Chart")
 st.markdown(
-    "A comprehensive line chart demonstrating all available features and customization options."
+    "A comprehensive line chart demonstrating all available features and customization options.",
 )
 
 # Get sample data
@@ -271,5 +269,5 @@ with col2:
 st.markdown("---")
 st.markdown(
     "**This example showcases the full power and flexibility of the line chart component with all"
-    " available features and customization options.**"
+    " available features and customization options.**",
 )

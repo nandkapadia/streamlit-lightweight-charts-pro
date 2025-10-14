@@ -1,0 +1,215 @@
+site_name: Streamlit Lightweight Charts Pro
+site_description: Professional-grade financial charting library for Streamlit
+site_author: Nand Kapadia
+site_url: https://nandkapadia.github.io/streamlit-lightweight-charts-pro
+
+# Source and output directories
+docs_dir: docs-src
+site_dir: docs
+
+# Generate explicit .html links instead of directory-style URLs
+use_directory_urls: false
+
+# Repository
+repo_name: nandkapadia/streamlit-lightweight-charts-pro
+repo_url: https://github.com/nandkapadia/streamlit-lightweight-charts-pro
+edit_uri: edit/main/
+
+# Configuration
+theme:
+  name: material
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - content.footnote.tooltips
+    - content.tabs.link
+    - content.tooltips
+    - header.autohide
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.instant.progress
+    - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - toc.integrate
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+# Plugins
+plugins:
+  - search:
+      lang: en
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [streamlit_lightweight_charts_pro]
+          options:
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
+            members_order: source
+            show_root_heading: true
+            show_root_toc_entry: false
+            show_source: true
+            show_signature_annotations: true
+            separate_signature: true
+            filters: ["!^_"]
+            heading_level: 2
+            merge_init_into_class: false
+            show_submodules: false
+            show_signature: true
+            signature_crossrefs: true
+            show_signature_annotations: true
+            annotations_path: brief
+            show_bases: false
+            show_root_full_path: false
+            show_object_full_path: false
+            show_category_heading: true
+            show_if_no_docstring: false
+            show_signature: true
+            show_source: true
+            show_root_heading: true
+            show_root_toc_entry: false
+            show_submodules: false
+            show_signature_annotations: true
+            signature_crossrefs: true
+            annotations_path: brief
+            show_bases: false
+            show_root_full_path: false
+            show_object_full_path: false
+            show_category_heading: true
+            show_if_no_docstring: false
+            members_order: source
+            separate_signature: true
+            filters: ["!^_"]
+            heading_level: 2
+            merge_init_into_class: false
+  - gen-files:
+      scripts:
+        - scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - section-index
+# Temporarily disabled minify plugin
+  # - minify:
+  #     minify_html: true
+  #     minify_js: true
+  #     minify_css: true
+  #     htmlmin_opts:
+  #       remove_comments: true
+
+# Markdown extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: nandkapadia
+      repo: streamlit-lightweight-charts-pro
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Extra CSS
+extra_css:
+  - stylesheets/extra.css
+
+# Extra JavaScript
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Copyright
+copyright: Copyright &copy; 2024 Nand Kapadia
+
+# Social links
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/nandkapadia
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/nandkapadia
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/nandkapadia
+    - icon: fontawesome/solid/envelope
+      link: mailto:nand.kapadia@gmail.com
+
+  version:
+    provider: mike

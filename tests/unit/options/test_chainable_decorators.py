@@ -18,6 +18,11 @@ from streamlit_lightweight_charts_pro.charts.options import (
     TimeScaleOptions,
     TradeVisualizationOptions,
 )
+from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
+    TypeValidationError,
+    ValueValidationError,
+)
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     CrosshairMode,
     LineStyle,
@@ -214,7 +219,7 @@ class TestTypeValidation:
         opts.set_color("#ff0000")
 
         # Invalid
-        with pytest.raises(TypeError, match="color must be of type"):
+        with pytest.raises(TypeValidationError):
             opts.set_color(123)
 
     def test_integer_type_validation(self):
@@ -225,7 +230,7 @@ class TestTypeValidation:
         opts.set_line_width(5)
 
         # Invalid
-        with pytest.raises(TypeError, match="line_width must be of type"):
+        with pytest.raises(TypeValidationError):
             opts.set_line_width("invalid")
 
     def test_boolean_type_validation(self):
@@ -236,7 +241,7 @@ class TestTypeValidation:
         opts.set_line_visible(False)
 
         # Invalid
-        with pytest.raises(TypeError, match="line_visible must be a boolean"):
+        with pytest.raises(TypeValidationError):
             opts.set_line_visible("invalid")
 
     def test_enum_type_validation(self):
@@ -247,7 +252,7 @@ class TestTypeValidation:
         opts.set_line_style(LineStyle.DASHED)
 
         # Invalid
-        with pytest.raises(TypeError, match="line_style must be of type"):
+        with pytest.raises(TypeValidationError):
             opts.set_line_style("invalid")
 
     def test_float_type_validation(self):
@@ -258,7 +263,7 @@ class TestTypeValidation:
         opts.set_price(100.5)
 
         # Invalid
-        with pytest.raises(TypeError, match="price must be of type"):
+        with pytest.raises(TypeValidationError):
             opts.set_price("invalid")
 
     def test_multiple_type_validation(self):
@@ -272,7 +277,7 @@ class TestTypeValidation:
         opts.set_price(100.5)
 
         # Invalid
-        with pytest.raises(TypeError, match="price must be of type"):
+        with pytest.raises(TypeValidationError):
             opts.set_price("invalid")
 
 
@@ -300,25 +305,26 @@ class TestColorValidation:
         opts = LineOptions()
 
         # Invalid formats
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             opts.set_color("notacolor")
 
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             opts.set_color("hsl(0,100%,50%)")
 
-        with pytest.raises(ValueError, match="Invalid color format"):
-            opts.set_color("red")
+        # Note: "red" is now a valid named color
+        # with pytest.raises(ColorValidationError):
+        #     opts.set_color("red")
 
         # Note: rgb(255,0,0) is now a valid color
 
         # Test hex validation
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             opts.set_color("#gggggg")
 
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             opts.set_color("#12")  # Too short
 
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             opts.set_color("#123456789")  # Too long
 
     def test_color_validation_across_classes(self):
@@ -326,19 +332,19 @@ class TestColorValidation:
         # LineOptions
         line_opts = LineOptions()
         line_opts.set_color("#ff0000")
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             line_opts.set_color("invalid")
 
         # PriceLineOptions
         price_opts = PriceLineOptions()
         price_opts.set_color("#00ff00")
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             price_opts.set_color("invalid")
 
         # LayoutOptions
         layout_opts = LayoutOptions()
         layout_opts.set_text_color("#0000ff")
-        with pytest.raises(ValueError, match="Invalid color format"):
+        with pytest.raises(ColorValidationError):
             layout_opts.set_text_color("invalid")
 
 
@@ -356,7 +362,7 @@ class TestCustomValidators:
         opts.set_type("custom")
 
         # Invalid type
-        with pytest.raises(ValueError, match="Invalid type"):
+        with pytest.raises(ValueValidationError):
             opts.set_type("invalid")
 
     def test_price_format_precision_validator(self):
@@ -369,10 +375,10 @@ class TestCustomValidators:
         opts.set_precision(10)
 
         # Invalid precision
-        with pytest.raises(ValueError, match="precision must be a non-negative integer"):
+        with pytest.raises(ValueValidationError):
             opts.set_precision(-1)
 
-        with pytest.raises(TypeError, match="precision must be of type"):
+        with pytest.raises(TypeValidationError):
             opts.set_precision("invalid")
 
     def test_price_format_min_move_validator(self):
@@ -385,13 +391,13 @@ class TestCustomValidators:
         opts.set_min_move(100)
 
         # Invalid min_move
-        with pytest.raises(ValueError, match="min_move must be a positive number"):
+        with pytest.raises(ValueValidationError):
             opts.set_min_move(0)
 
-        with pytest.raises(ValueError, match="min_move must be a positive number"):
+        with pytest.raises(ValueValidationError):
             opts.set_min_move(-1)
 
-        with pytest.raises(TypeError, match="min_move must be of type"):
+        with pytest.raises(TypeValidationError):
             opts.set_min_move("invalid")
 
 
@@ -408,7 +414,7 @@ class TestUpdateMethod:
                 "line_width": 5,
                 "line_visible": False,
                 "line_style": LineStyle.DASHED,
-            }
+            },
         )
 
         assert opts.color == "#ff0000"
@@ -426,7 +432,7 @@ class TestUpdateMethod:
                 "lineWidth": 5,
                 "lineVisible": False,
                 "pointMarkersVisible": True,
-            }
+            },
         )
 
         assert opts.line_style == LineStyle.DASHED
@@ -444,7 +450,7 @@ class TestUpdateMethod:
                 "lineStyle": LineStyle.DASHED,  # camelCase
                 "line_width": 5,  # snake_case
                 "lineVisible": False,  # camelCase
-            }
+            },
         )
 
         assert opts.color == "#ff0000"
@@ -471,9 +477,13 @@ class TestStaticValidators:
             assert cls._validate_color_static("rgba(1,2,3,0.5)", "test") == "rgba(1,2,3,0.5)"
             assert cls._validate_color_static("rgb(255,0,0)", "test") == "rgb(255,0,0)"
 
-            # Invalid colors
-            with pytest.raises(ValueError, match="Invalid color format for test"):
-                cls._validate_color_static("notacolor", "test")
+            # Invalid colors - different classes raise different exceptions
+            if cls in [LineOptions, PriceLineOptions]:
+                with pytest.raises(ColorValidationError):
+                    cls._validate_color_static("notacolor", "test")
+            else:
+                with pytest.raises(ValueValidationError):
+                    cls._validate_color_static("notacolor", "test")
 
     def test_builtin_color_validator(self):
         """Test built-in color validator via chainable_field."""
@@ -496,9 +506,9 @@ class TestStaticValidators:
                 instance.set_border_color("rgba(1,2,3,0.5)")
                 assert instance.border_color == "rgba(1,2,3,0.5)"
 
-            # Invalid colors should raise ValueError
+            # Invalid colors should raise ColorValidationError
             if hasattr(instance, "set_border_color"):
-                with pytest.raises(ValueError, match="Invalid color format"):
+                with pytest.raises(ColorValidationError):
                     instance.set_border_color("notacolor")
 
             # Test other color fields if they exist
@@ -516,13 +526,13 @@ class TestStaticValidators:
         assert PriceFormatOptions._validate_type_static("price") == "price"
         assert PriceFormatOptions._validate_type_static("volume") == "volume"
 
-        with pytest.raises(ValueError, match="Invalid type"):
+        with pytest.raises(ValueValidationError):
             PriceFormatOptions._validate_type_static("invalid")
 
         assert PriceFormatOptions._validate_precision_static(5) == 5
-        with pytest.raises(ValueError, match="precision must be a non-negative integer"):
+        with pytest.raises(ValueValidationError):
             PriceFormatOptions._validate_precision_static(-1)
 
         assert PriceFormatOptions._validate_min_move_static(0.001) == 0.001
-        with pytest.raises(ValueError, match="min_move must be a positive number"):
+        with pytest.raises(ValueValidationError):
             PriceFormatOptions._validate_min_move_static(0)

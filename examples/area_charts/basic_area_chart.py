@@ -1,29 +1,27 @@
-"""
-Basic Area Chart Example.
+"""Basic Area Chart Example.
 
 This example demonstrates the fundamental usage of AreaSeries with sample data
 from the data_samples module.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
-from examples.data_samples import get_dataframe_line_data, get_line_data
+from examples.utilities.data_samples import get_dataframe_line_data, get_line_data
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
+from streamlit_lightweight_charts_pro.charts.series import AreaSeries
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 def main():
     """Demonstrate basic AreaSeries functionality."""
     st.title("Basic Area Chart Example")
     st.write(
-        "This example shows how to create a simple area chart using AreaSeries with sample data."
+        "This example shows how to create a simple area chart using AreaSeries with sample data.",
     )
 
     # Get sample data
@@ -47,10 +45,10 @@ def main():
 
     area_series_df = AreaSeries(data=df_data, column_mapping={"time": "datetime", "value": "value"})
 
-    chart2 = Chart()
-    chart2.add_series(area_series_df)
+    dataframe_chart = Chart()
+    dataframe_chart.add_series(area_series_df)
 
-    chart2.render(key="basic_area_2")
+    dataframe_chart.render(key="basic_area_2")
 
     # Show data info
     st.subheader("Data Information")
@@ -63,9 +61,9 @@ def main():
     # Show series properties
     st.subheader("Series Properties")
     st.write(f"Chart type: {area_series.chart_type}")
-    st.write(f"Visible: {area_series._visible}")
-    st.write(f"Price scale ID: {area_series.price_scale_id}")
-    st.write(f"Pane ID: {area_series.pane_id}")
+    st.write(f"Visible: {area_series.visible}")  # pylint: disable=no-member
+    st.write(f"Price scale ID: {area_series.price_scale_id}")  # pylint: disable=no-member
+    st.write(f"Pane ID: {area_series.pane_id}")  # pylint: disable=no-member
 
     # Show data statistics
     st.subheader("Data Statistics")

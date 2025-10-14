@@ -1,0 +1,67 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": "."
+    },
+    {
+      "name": "Frontend",
+      "path": "streamlit_lightweight_charts_pro/frontend"
+    }
+  ],
+  "settings": {
+    // Python Testing Configuration
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestArgs": [
+      "tests",
+      "-v"
+    ],
+    "python.testing.cwd": "${workspaceFolder:Root}",
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "python.defaultInterpreterPath": "/opt/anaconda3/envs/VectorBTPro/bin/python",
+
+    // Vitest Configuration (projects for both unit and visual tests)
+    "vitest.enable": true,
+    "vitest.configFile": "${workspaceFolder:Frontend}/vitest.config.ts",
+    "vitest.include": [
+      "**/src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"
+    ],
+    "vitest.exclude": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/coverage/**",
+      "**/.{idea,git,cache,output,temp}/**"
+    ],
+
+    // Playwright Configuration
+    "playwright.reuseBrowser": true,
+    "playwright.showTrace": false,
+
+    // Testing UI Configuration
+    "testing.automaticallyOpenPeekView": "never",
+    "testing.followRunningTest": false,
+    "testing.defaultGutterClickAction": "run",
+    "testing.gutterEnabled": true,
+
+    // Other Settings
+    "makefile.configureOnOpen": false,
+
+    // File Associations
+    "files.associations": {
+      "*.visual.test.ts": "typescript",
+      "*.e2e.test.ts": "typescript",
+      "*.test.ts": "typescript",
+      "*.spec.ts": "typescript"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "vitest.explorer",
+      "ms-playwright.playwright",
+      "ms-python.python",
+      "ms-python.pytest"
+    ]
+  }
+}

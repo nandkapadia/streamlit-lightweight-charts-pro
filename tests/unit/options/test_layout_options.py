@@ -18,15 +18,12 @@ from streamlit_lightweight_charts_pro.charts.options.layout_options import (
     PaneOptions,
     WatermarkOptions,
 )
+from streamlit_lightweight_charts_pro.exceptions import TypeValidationError
 from streamlit_lightweight_charts_pro.type_definitions.colors import (
     BackgroundGradient,
     BackgroundSolid,
 )
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    HorzAlign,
-    LineStyle,
-    VertAlign,
-)
+from streamlit_lightweight_charts_pro.type_definitions.enums import HorzAlign, LineStyle, VertAlign
 
 
 class TestLayoutOptions:
@@ -68,7 +65,7 @@ class TestLayoutOptions:
     def test_validation_background_options(self):
         """Test validation of background_options field."""
         options = LayoutOptions()
-        with pytest.raises(TypeError, match="background_options must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_background_options("invalid")
 
     def test_validation_pane_options(self):
@@ -76,8 +73,7 @@ class TestLayoutOptions:
 
         options = LayoutOptions()
 
-        with pytest.raises(TypeError, match="pane_options must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_pane_options("invalid")
 
     def test_to_dict_basic(self):
@@ -132,8 +128,7 @@ class TestGridOptions:
 
         options = GridOptions()
 
-        with pytest.raises(TypeError, match="vert_lines must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_vert_lines("invalid")
 
     def test_validation_horz_lines(self):
@@ -141,8 +136,7 @@ class TestGridOptions:
 
         options = GridOptions()
 
-        with pytest.raises(TypeError, match="horz_lines must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_horz_lines("invalid")
 
     def test_to_dict(self):
@@ -182,7 +176,7 @@ class TestGridLineOptions:
     def test_validation_color(self):
         """Test validation of color field."""
         options = GridLineOptions()
-        with pytest.raises(TypeError, match="color must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_color(123)
 
     def test_validation_style(self):
@@ -190,8 +184,7 @@ class TestGridLineOptions:
 
         options = GridLineOptions()
 
-        with pytest.raises(TypeError, match="style must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_style("invalid")
 
     def test_validation_visible(self):
@@ -199,8 +192,7 @@ class TestGridLineOptions:
 
         options = GridLineOptions()
 
-        with pytest.raises(TypeError, match="visible must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_visible("invalid")
 
     def test_to_dict(self):
@@ -233,7 +225,9 @@ class TestPaneOptions:
     def test_custom_construction(self):
         """Test construction with custom values."""
         options = PaneOptions(
-            separator_color="#ff0000", separator_hover_color="#00ff00", enable_resize=False
+            separator_color="#ff0000",
+            separator_hover_color="#00ff00",
+            enable_resize=False,
         )
 
         assert options.separator_color == "#ff0000"
@@ -243,13 +237,13 @@ class TestPaneOptions:
     def test_validation_separator_color(self):
         """Test validation of separator_color field."""
         options = PaneOptions()
-        with pytest.raises(TypeError, match="separator_color must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_separator_color(123)
 
     def test_validation_separator_hover_color(self):
         """Test validation of separator_hover_color field."""
         options = PaneOptions()
-        with pytest.raises(TypeError, match="separator_hover_color must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_separator_hover_color(123)
 
     def test_validation_enable_resize(self):
@@ -257,14 +251,15 @@ class TestPaneOptions:
 
         options = PaneOptions()
 
-        with pytest.raises(TypeError, match="enable_resize must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_enable_resize("invalid")
 
     def test_to_dict(self):
         """Test serialization."""
         options = PaneOptions(
-            separator_color="#ff0000", separator_hover_color="#00ff00", enable_resize=False
+            separator_color="#ff0000",
+            separator_hover_color="#00ff00",
+            enable_resize=False,
         )
         result = options.asdict()
 
@@ -310,14 +305,13 @@ class TestWatermarkOptions:
 
         options = WatermarkOptions()
 
-        with pytest.raises(TypeError, match="visible must be a boolean"):
-
+        with pytest.raises(TypeValidationError):
             options.set_visible("invalid")
 
     def test_validation_text(self):
         """Test validation of text field."""
         options = WatermarkOptions()
-        with pytest.raises(TypeError, match="text must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_text(123)
 
     def test_validation_font_size(self):
@@ -325,8 +319,7 @@ class TestWatermarkOptions:
 
         options = WatermarkOptions()
 
-        with pytest.raises(TypeError, match="font_size must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_font_size("invalid")
 
     def test_validation_horz_align(self):
@@ -334,8 +327,7 @@ class TestWatermarkOptions:
 
         options = WatermarkOptions()
 
-        with pytest.raises(TypeError, match="horz_align must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_horz_align("invalid")
 
     def test_validation_vert_align(self):
@@ -343,14 +335,13 @@ class TestWatermarkOptions:
 
         options = WatermarkOptions()
 
-        with pytest.raises(TypeError, match="vert_align must be of type"):
-
+        with pytest.raises(TypeValidationError):
             options.set_vert_align("invalid")
 
     def test_validation_color(self):
         """Test validation of color field."""
         options = WatermarkOptions()
-        with pytest.raises(TypeError, match="color must be of type"):
+        with pytest.raises(TypeValidationError):
             options.set_color(123)
 
     def test_to_dict(self):
@@ -398,7 +389,9 @@ class TestLayoutOptionsIntegration:
     def test_layout_options_with_custom_pane(self):
         """Test LayoutOptions with custom pane configuration."""
         pane_options = PaneOptions(
-            separator_color="#ff0000", separator_hover_color="#00ff00", enable_resize=False
+            separator_color="#ff0000",
+            separator_hover_color="#00ff00",
+            enable_resize=False,
         )
 
         options = LayoutOptions(pane_options=pane_options)
@@ -411,7 +404,9 @@ class TestLayoutOptionsIntegration:
     def test_layout_options_with_custom_watermark(self):
         """Test LayoutOptions with custom watermark configuration."""
         watermark = WatermarkOptions(
-            text="Custom Watermark", font_size=72, color="rgba(0, 0, 0, 0.1)"
+            text="Custom Watermark",
+            font_size=72,
+            color="rgba(0, 0, 0, 0.1)",
         )
 
         # Watermark is typically part of layout options
@@ -443,7 +438,8 @@ class TestLayoutOptionsEdgeCases:
     def test_pane_options_with_special_characters(self):
         """Test PaneOptions with special characters in colors."""
         options = PaneOptions(
-            separator_color="rgba(255, 0, 0, 0.5)", separator_hover_color="hsl(120, 100%, 50%)"
+            separator_color="rgba(255, 0, 0, 0.5)",
+            separator_hover_color="hsl(120, 100%, 50%)",
         )
         result = options.asdict()
 

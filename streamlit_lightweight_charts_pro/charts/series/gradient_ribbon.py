@@ -1,10 +1,10 @@
-"""
-Gradient ribbon series for streamlit-lightweight-charts.
+"""Gradient ribbon series for streamlit-lightweight-charts.
 
 This module provides the GradientRibbonSeries class for creating ribbon charts
 that display upper and lower bands with gradient fill areas based on gradient values.
 """
 
+import math
 from typing import List, Optional, Union
 
 import pandas as pd
@@ -14,17 +14,12 @@ from streamlit_lightweight_charts_pro.data.gradient_ribbon import GradientRibbon
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.utils import chainable_property
 
-# TODO: Currently it usees ribbon series in the frontend which does not suport colors per bar.
-# We should explore if we can use gradient ribbon series in the frontend which supports
-# both color and alpha gradients. See the background shaded series example
-
 
 @chainable_property("gradient_start_color", str, validator="color")
 @chainable_property("gradient_end_color", str, validator="color")
 @chainable_property("normalize_gradients", bool)
 class GradientRibbonSeries(RibbonSeries):
-    """
-    Gradient ribbon series for lightweight charts.
+    """Gradient ribbon series for lightweight charts.
 
     This class represents a ribbon series that displays upper and lower bands
     with gradient fill areas based on gradient values. It extends RibbonSeries
@@ -32,15 +27,15 @@ class GradientRibbonSeries(RibbonSeries):
     based on data values.
 
     The GradientRibbonSeries supports various styling options including separate
-    line styling for each band via LineOptions, fill colors, and gradient effects.
+    line styling for each band via LineOptions, and gradient color effects based
+    on data values.
 
     Attributes:
         upper_line: LineOptions instance for upper band styling.
         lower_line: LineOptions instance for lower band styling.
-        fill: Default fill color for the area between upper and lower bands.
         fill_visible: Whether to display the fill area.
-        gradient_start_color: Starting color for gradient fills.
-        gradient_end_color: Ending color for gradient fills.
+        gradient_start_color: Starting color for gradient fills (minimum value).
+        gradient_end_color: Ending color for gradient fills (maximum value).
         normalize_gradients: Whether to normalize gradient values to 0-1 range.
         price_lines: List of PriceLineOptions for price lines (set after construction)
         price_format: PriceFormatOptions for price formatting (set after construction)
@@ -60,8 +55,7 @@ class GradientRibbonSeries(RibbonSeries):
         gradient_end_color: str = "#F44336",
         normalize_gradients: bool = False,
     ):
-        """
-        Initialize GradientRibbonSeries.
+        """Initialize GradientRibbonSeries.
 
         Args:
             data: List of data points or DataFrame
@@ -85,7 +79,7 @@ class GradientRibbonSeries(RibbonSeries):
         self._gradient_start_color = gradient_start_color
         self._gradient_end_color = gradient_end_color
         self._normalize_gradients = normalize_gradients
-        self._gradient_bounds = None
+        self._gradient_bounds: Optional[tuple[float, float]] = None
 
     @property
     def chart_type(self) -> ChartType:
@@ -105,21 +99,22 @@ class GradientRibbonSeries(RibbonSeries):
 
         # Single pass with inline min/max tracking - no list building
         for data_point in self.data:
-            gradient = data_point.gradient
-            if gradient is not None:
-                # Ultra-fast validation using direct comparison
-                if isinstance(gradient, (int, float)):
-                    # Fast NaN check: NaN is the only value that doesn't equal itself
-                    if gradient == gradient:  # Not NaN
-                        # Fast infinity check
-                        if gradient != float("inf") and gradient != float("-inf"):
-                            # Update min/max inline - no list operations
-                            if gradient < min_grad:
-                                min_grad = gradient
-                            if gradient > max_grad:
-                                max_grad = gradient
-                            valid_count += 1
-                            continue
+            # Type check: ensure data point has gradient attribute
+            if not hasattr(data_point, "gradient"):
+                continue
+            gradient = data_point.gradient  # type: ignore[attr-defined]
+            if (
+                gradient is not None
+                and isinstance(gradient, (int, float))
+                and not math.isnan(gradient)  # Not NaN
+                and gradient != float("inf")
+                and gradient != float("-inf")
+            ):
+                # Update min/max inline - no list operations
+                min_grad = min(min_grad, gradient)
+                max_grad = max(max_grad, gradient)
+                valid_count += 1
+                continue
 
         # Set bounds efficiently - only if we found valid values
         if valid_count > 0:
@@ -128,8 +123,11 @@ class GradientRibbonSeries(RibbonSeries):
             self._gradient_bounds = None
 
     def asdict(self):
-        """Override to include normalized gradients if requested."""
+        """Override to include normalized gradients and exclude inherited fill property."""
         data_dict = super().asdict()
+
+        # Remove inherited fill property - gradient ribbon uses gradientStartColor/gradientEndColor instead
+        data_dict.get("options", {}).pop("fill", None)
 
         if self._normalize_gradients:
             # Calculate bounds if not already calculated
@@ -155,9 +153,7 @@ class GradientRibbonSeries(RibbonSeries):
                                 normalized = (gradient - min_grad) * range_grad_inv
                                 # Fast clamping using conditional expression
                                 item["gradient"] = (
-                                    0.0
-                                    if normalized < 0.0
-                                    else (1.0 if normalized > 1.0 else normalized)
+                                    0.0 if normalized < 0.0 else (min(normalized, 1.0))
                                 )
                             except (TypeError, ValueError):
                                 item.pop("gradient", None)

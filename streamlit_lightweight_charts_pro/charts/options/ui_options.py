@@ -1,30 +1,64 @@
 """UI option classes for streamlit-lightweight-charts."""
 
 from dataclasses import dataclass, field
-from typing import List
+from enum import Enum
+from typing import List, Literal
 
 from streamlit_lightweight_charts_pro.charts.options.base_options import Options
 from streamlit_lightweight_charts_pro.utils import chainable_field
 
 
+class TimeRange(Enum):
+    """Time range constants in seconds for range switcher."""
+
+    FIVE_MINUTES = 300
+    FIFTEEN_MINUTES = 900
+    ONE_HOUR = 3600
+    FOUR_HOURS = 14400
+    ONE_DAY = 86400
+    ONE_WEEK = 604800
+    ONE_MONTH = 2592000
+    THREE_MONTHS = 7776000
+    SIX_MONTHS = 15552000
+    ONE_YEAR = 31536000
+    FIVE_YEARS = 157680000
+    ALL = None  # Special value for "all data"
+
+
 @dataclass
 @chainable_field("text", str)
 @chainable_field("tooltip", str)
+@chainable_field("range", TimeRange)
 class RangeConfig(Options):
     """Range configuration for range switcher."""
 
     text: str = ""
     tooltip: str = ""
+    range: TimeRange = TimeRange.ONE_DAY
+
+    @property
+    def seconds(self) -> int | None:
+        """Get the time range in seconds."""
+        return self.range.value if self.range else None
 
 
 @dataclass
 @chainable_field("visible", bool)
 @chainable_field("ranges", list)
+@chainable_field("position", str)
 class RangeSwitcherOptions(Options):
-    """Range switcher configuration."""
+    """Range switcher configuration.
+
+    Range switcher supports only corner positions: top-left, top-right,
+    bottom-left, bottom-right. Center positions are not supported.
+
+    Range buttons are automatically hidden when they exceed the available
+    data timespan, providing a better user experience.
+    """
 
     visible: bool = True
     ranges: List[RangeConfig] = field(default_factory=list)
+    position: Literal["top-left", "top-right", "bottom-left", "bottom-right"] = "bottom-right"
 
 
 @dataclass
@@ -44,8 +78,7 @@ class RangeSwitcherOptions(Options):
 @chainable_field("value_format", str)
 @chainable_field("update_on_crosshair", bool)
 class LegendOptions(Options):
-    """
-    Legend configuration with support for custom HTML templates and dynamic value display.
+    """Legend configuration with support for custom HTML templates and dynamic value display.
 
     The text supports a single placeholder that will be replaced by the frontend:
     - $$value$$: Current value of the series at crosshair position
@@ -74,8 +107,8 @@ class LegendOptions(Options):
     border_color: str = "#e1e3e6"
     border_width: int = 1
     border_radius: int = 4
-    padding: int = 4
-    margin: int = 4
+    padding: int = 6
+    margin: int = 0  # No margin - spacing handled by layout manager
     z_index: int = 1000
     price_format: str = ".2f"
     text: str = ""

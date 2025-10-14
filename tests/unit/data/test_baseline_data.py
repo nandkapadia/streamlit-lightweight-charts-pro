@@ -14,6 +14,7 @@ import pytest
 
 from streamlit_lightweight_charts_pro.data.baseline_data import BaselineData
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 
 
 class TestBaselineDataConstruction:
@@ -138,32 +139,41 @@ class TestBaselineDataValidation:
 
     def test_validation_invalid_top_fill_color1(self):
         """Test validation with invalid top_fill_color1."""
-        with pytest.raises(ValueError, match="Invalid color format for top_fill_color1"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_fill_color1"):
             BaselineData(time=1640995200, value=100.5, top_fill_color1="invalid_color")
 
     def test_validation_invalid_top_fill_color2(self):
         """Test validation with invalid top_fill_color2."""
-        with pytest.raises(ValueError, match="Invalid color format for top_fill_color2"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_fill_color2"):
             BaselineData(time=1640995200, value=100.5, top_fill_color2="invalid_color")
 
     def test_validation_invalid_top_line_color(self):
         """Test validation with invalid top_line_color."""
-        with pytest.raises(ValueError, match="Invalid color format for top_line_color"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_line_color"):
             BaselineData(time=1640995200, value=100.5, top_line_color="invalid_color")
 
     def test_validation_invalid_bottom_fill_color1(self):
         """Test validation with invalid bottom_fill_color1."""
-        with pytest.raises(ValueError, match="Invalid color format for bottom_fill_color1"):
+        with pytest.raises(
+            ColorValidationError,
+            match="Invalid color format for bottom_fill_color1",
+        ):
             BaselineData(time=1640995200, value=100.5, bottom_fill_color1="invalid_color")
 
     def test_validation_invalid_bottom_fill_color2(self):
         """Test validation with invalid bottom_fill_color2."""
-        with pytest.raises(ValueError, match="Invalid color format for bottom_fill_color2"):
+        with pytest.raises(
+            ColorValidationError,
+            match="Invalid color format for bottom_fill_color2",
+        ):
             BaselineData(time=1640995200, value=100.5, bottom_fill_color2="invalid_color")
 
     def test_validation_invalid_bottom_line_color(self):
         """Test validation with invalid bottom_line_color."""
-        with pytest.raises(ValueError, match="Invalid color format for bottom_line_color"):
+        with pytest.raises(
+            ColorValidationError,
+            match="Invalid color format for bottom_line_color",
+        ):
             BaselineData(time=1640995200, value=100.5, bottom_line_color="invalid_color")
 
     def test_validation_none_colors(self):
@@ -322,7 +332,10 @@ class TestBaselineDataSerialization:
     def test_to_dict_with_none_colors(self):
         """Test to_dict with None colors (should be omitted)."""
         data = BaselineData(
-            time=1640995200, value=100.5, top_fill_color1=None, bottom_fill_color1=None
+            time=1640995200,
+            value=100.5,
+            top_fill_color1=None,
+            bottom_fill_color1=None,
         )
         result = data.asdict()
         assert result == {"time": 1640995200, "value": 100.5}
@@ -392,7 +405,7 @@ class TestBaselineDataInheritance:
     def test_has_required_columns_class_attribute(self):
         """Test that REQUIRED_COLUMNS class attribute exists."""
         assert hasattr(BaselineData, "REQUIRED_COLUMNS")
-        assert BaselineData.REQUIRED_COLUMNS == set()
+        assert set() == BaselineData.REQUIRED_COLUMNS
 
     def test_has_optional_columns_class_attribute(self):
         """Test that OPTIONAL_COLUMNS class attribute exists."""
@@ -405,7 +418,7 @@ class TestBaselineDataInheritance:
             "bottom_fill_color2",
             "bottom_line_color",
         }
-        assert BaselineData.OPTIONAL_COLUMNS == expected_optional
+        assert expected_optional == BaselineData.OPTIONAL_COLUMNS
 
     def test_dataclass_fields(self):
         """Test that BaselineData has correct dataclass fields."""
@@ -470,7 +483,7 @@ class TestBaselineDataEdgeCases:
     def test_very_long_color_string(self):
         """Test with very long color string."""
         long_color = "#" + "A" * 100
-        with pytest.raises(ValueError, match="Invalid color format for top_fill_color1"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_fill_color1"):
             BaselineData(time=1640995200, value=100.5, top_fill_color1=long_color)
 
     def test_mixed_case_hex_colors(self):
@@ -490,9 +503,14 @@ class TestBaselineDataEdgeCases:
 
     def test_rgba_with_negative_alpha(self):
         """Test rgba color with negative alpha value (should be rejected)."""
-        with pytest.raises(ValueError, match="Invalid color format for bottom_fill_color1"):
+        with pytest.raises(
+            ColorValidationError,
+            match="Invalid color format for bottom_fill_color1",
+        ):
             data = BaselineData(
-                time=1640995200, value=100.5, bottom_fill_color1="rgba(33,150,243,-0.1)"
+                time=1640995200,
+                value=100.5,
+                bottom_fill_color1="rgba(33,150,243,-0.1)",
             )
 
     def test_color_serialization_consistency(self):
@@ -559,46 +577,78 @@ class TestBaselineDataTimeHandling:
     def test_time_normalization_string_date(self):
         """Test time normalization with string date."""
         data = BaselineData(time="2022-01-01", value=100.5)
-        # Should be normalized to UNIX timestamp
-        assert isinstance(data.time, int)
-        assert data.time > 0
+        # Time stored as-is
+        assert data.time == "2022-01-01"
+        # Normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] > 0
 
     def test_time_normalization_datetime_object(self):
         """Test time normalization with datetime object."""
         dt = datetime(2022, 1, 1, 12, 0, 0)
         data = BaselineData(time=dt, value=100.5)
-        # Should be normalized to UNIX timestamp
-        assert isinstance(data.time, int)
-        assert data.time > 0
+        # Time stored as-is (datetime)
+        assert data.time == dt
+        # Normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] > 0
 
     def test_time_normalization_pandas_timestamp(self):
         """Test time normalization with pandas timestamp."""
         ts = pd.Timestamp("2022-01-01 12:00:00")
         data = BaselineData(time=ts, value=100.5)
-        # Should be normalized to UNIX timestamp
-        assert isinstance(data.time, int)
-        assert data.time > 0
+        # Time stored as-is (pandas Timestamp)
+        assert data.time == ts
+        # Normalized in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] > 0
 
     def test_time_normalization_float_timestamp(self):
         """Test time normalization with float timestamp."""
         data = BaselineData(time=1640995200.5, value=100.5)
-        # Should be converted to int
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        # Time stored as-is (float)
+        assert data.time == 1640995200.5
+        # Normalized to int in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
 
     def test_time_normalization_numpy_int64(self):
         """Test time normalization with numpy int64."""
         data = BaselineData(time=np.int64(1640995200), value=100.5)
-        # Should be converted to int
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        # Time stored as-is (numpy int64)
+        assert isinstance(data.time, np.int64)
+        # Normalized to int in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
 
     def test_time_normalization_numpy_float64(self):
         """Test time normalization with numpy float64."""
         data = BaselineData(time=np.float64(1640995200.5), value=100.5)
-        # Should be converted to int
-        assert isinstance(data.time, int)
-        assert data.time == 1640995200
+        # Time stored as-is (numpy float64)
+        assert isinstance(data.time, np.float64)
+        # Normalized to int in asdict()
+        result = data.asdict()
+        assert isinstance(result["time"], int)
+        assert result["time"] == 1640995200
+
+    def test_time_modification_after_construction(self):
+        """Test that time can be modified after construction."""
+        data = BaselineData(time="2024-01-01", value=100.5)
+        result1 = data.asdict()
+        time1 = result1["time"]
+
+        # Modify time after construction
+        data.time = "2024-01-02"
+        result2 = data.asdict()
+        time2 = result2["time"]
+
+        # Times should be different
+        assert time1 != time2
 
 
 class TestBaselineDataColorHandling:
@@ -614,12 +664,12 @@ class TestBaselineDataColorHandling:
 
     def test_color_with_spaces(self):
         """Test color with spaces (should be invalid)."""
-        with pytest.raises(ValueError, match="Invalid color format for top_fill_color1"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_fill_color1"):
             BaselineData(time=1640995200, value=100.5, top_fill_color1="# 2196F3")
 
     def test_color_without_hash(self):
         """Test color without hash (should be invalid)."""
-        with pytest.raises(ValueError, match="Invalid color format for top_fill_color1"):
+        with pytest.raises(ColorValidationError, match="Invalid color format for top_fill_color1"):
             BaselineData(time=1640995200, value=100.5, top_fill_color1="2196F3")
 
     def test_rgba_with_spaces(self):
@@ -634,9 +684,14 @@ class TestBaselineDataColorHandling:
 
     def test_rgba_with_negative_alpha(self):
         """Test rgba color with negative alpha value (should be rejected)."""
-        with pytest.raises(ValueError, match="Invalid color format for bottom_fill_color1"):
+        with pytest.raises(
+            ColorValidationError,
+            match="Invalid color format for bottom_fill_color1",
+        ):
             data = BaselineData(
-                time=1640995200, value=100.5, bottom_fill_color1="rgba(33,150,243,-0.1)"
+                time=1640995200,
+                value=100.5,
+                bottom_fill_color1="rgba(33,150,243,-0.1)",
             )
 
     def test_color_serialization_consistency(self):

@@ -1,5 +1,4 @@
-"""
-Ribbon data classes for streamlit-lightweight-charts.
+"""Ribbon data classes for streamlit-lightweight-charts.
 
 This module provides data classes for ribbon data points used in
 ribbon charts that display upper and lower bands with fill areas.
@@ -7,15 +6,14 @@ ribbon charts that display upper and lower bands with fill areas.
 
 import math
 from dataclasses import dataclass
-from typing import Optional
+from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.data import Data
 
 
 @dataclass
 class RibbonData(Data):
-    """
-    Data point for ribbon charts.
+    """Data point for ribbon charts.
 
     This class represents a ribbon data point with upper and lower values,
     along with optional fill color. It's used for ribbon charts
@@ -27,11 +25,11 @@ class RibbonData(Data):
         fill: Optional color for the fill area (uses series default if not specified).
     """
 
-    REQUIRED_COLUMNS = {"upper", "lower"}
-    OPTIONAL_COLUMNS = {"fill"}
+    REQUIRED_COLUMNS: ClassVar[set] = {"upper", "lower"}
+    OPTIONAL_COLUMNS: ClassVar[set] = {"fill"}
 
-    upper: float
-    lower: float
+    upper: Optional[float]
+    lower: Optional[float]
     fill: Optional[str] = None
 
     def __post_init__(self):

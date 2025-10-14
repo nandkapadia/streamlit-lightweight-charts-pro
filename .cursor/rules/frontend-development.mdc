@@ -1,0 +1,557 @@
+---
+globs: *.ts,*.tsx,*.js,*.jsx
+description: Comprehensive frontend development standards including TypeScript/React guidelines and state management
+---
+
+# Frontend Development Standards
+
+## TypeScript/React Guidelines
+
+- **TypeScript**: Use strict TypeScript configuration from [tsconfig.strict.json](mdc:streamlit_lightweight_charts_pro/frontend/tsconfig.strict.json)
+- **React**: Use functional components with hooks, avoid class components
+- **Props**: Define proper TypeScript interfaces for all component props
+- **State Management**: Use React hooks (useState, useEffect, useMemo, useCallback)
+
+## Project Structure
+
+- **Components**: Place in [streamlit_lightweight_charts_pro/frontend/src/components/](mdc:streamlit_lightweight_charts_pro/frontend/src/components/)
+- **Services**: Business logic in [streamlit_lightweight_charts_pro/frontend/src/services/](mdc:streamlit_lightweight_charts_pro/frontend/src/services/)
+- **Types**: Type definitions in [streamlit_lightweight_charts_pro/frontend/src/types/](mdc:streamlit_lightweight_charts_pro/frontend/src/types/)
+- **Utils**: Utility functions in [streamlit_lightweight_charts_pro/frontend/src/utils/](mdc:streamlit_lightweight_charts_pro/frontend/src/utils/)
+
+## Code Quality
+
+- **ESLint**: Follow ESLint configuration in [eslint.config.js](mdc:streamlit_lightweight_charts_pro/frontend/eslint.config.js)
+- **Prettier**: Use Prettier for code formatting
+- **Testing**: Use Vitest for unit tests, place in [__tests__/](mdc:streamlit_lightweight_charts_pro/frontend/src/__tests__/)
+- **Error Boundaries**: Use ErrorBoundary component for error handling
+
+## Chart Integration
+
+- **Lightweight Charts**: Use TradingView's lightweight-charts library
+- **Performance**: Implement performance optimizations for large datasets
+- **Responsive**: Ensure charts are responsive and auto-sizing
+- **Memory Management**: Clean up chart instances and event listeners
+
+## Development Workflow
+
+- **Build**: Use Vite for development and production builds
+- **Hot Reload**: Development server with hot reloading
+- **Type Checking**: Run TypeScript compiler for type checking
+- **Linting**: Run ESLint for code quality checks
+
+## 🎯 State Management Strategy
+
+The frontend uses a **layered state management approach** with React hooks, context, and local state for different concerns.
+
+## 📊 State Layers
+
+### 1. **Component State (useState)**
+For local component state that doesn't need to be shared:
+
+```typescript
+// ✅ CORRECT: Local component state
+const ChartComponent: React.FC<ChartProps> = ({ data, options }) => {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [chartInstance, setChartInstance] = useState<IChartApi | null>(null)
+
+  // Local state for component-specific concerns
+  const handleChartReady = useCallback((chart: IChartApi) => {
+    setChartInstance(chart)
+    setIsLoading(false)
+  }, [])
+
+  return (
+    <div>
+      {isLoading && <div>Loading chart...</div>}
+      {error && <div>Error: {error}</div>}
+      <ChartContainer onReady={handleChartReady} />
+    </div>
+  )
+}
+```
+
+### 2. **Context State (useContext)**
+For state that needs to be shared across multiple components:
+
+```typescript
+// ✅ CORRECT: Context for shared state
+interface ChartContextType {
+  charts: Map<string, IChartApi>
+  addChart: (id: string, chart: IChartApi) => void
+  removeChart: (id: string) => void
+  getChart: (id: string) => IChartApi | undefined
+}
+
+const ChartContext = createContext<ChartContextType | null>(null)
+
+export const ChartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [charts, setCharts] = useState<Map<string, IChartApi>>(new Map())
+
+  const addChart = useCallback((id: string, chart: IChartApi) => {
+    setCharts(prev => new Map(prev).set(id, chart))
+  }, [])
+
+  const removeChart = useCallback((id: string) => {
+    setCharts(prev => {
+      const newMap = new Map(prev)
+      newMap.delete(id)
+      return newMap
+    })
+  }, [])
+
+  const getChart = useCallback((id: string) => {
+    return charts.get(id)
+  }, [charts])
+
+  const value = useMemo(() => ({
+    charts,
+    addChart,
+    removeChart,
+    getChart
+  }), [charts, addChart, removeChart, getChart])
+
+  return (
+    <ChartContext.Provider value={value}>
+      {children}
+    </ChartContext.Provider>
+  )
+}
+
+// Custom hook for using chart context
+export const useChartContext = () => {
+  const context = useContext(ChartContext)
+  if (!context) {
+    throw new Error('useChartContext must be used within ChartProvider')
+  }
+  return context
+}
+```
+
+### 3. **Global State (useReducer)**
+For complex state with multiple actions:
+
+```typescript
+// ✅ CORRECT: Reducer for complex state
+interface ChartState {
+  charts: Map<string, IChartApi>
+  isLoading: boolean
+  error: string | null
+  selectedChartId: string | null
+}
+
+type ChartAction =
+  | { type: 'ADD_CHART'; payload: { id: string; chart: IChartApi } }
+  | { type: 'REMOVE_CHART'; payload: { id: string } }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SELECT_CHART'; payload: string | null }
+
+const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
+  switch (action.type) {
+    case 'ADD_CHART':
+      return {
+        ...state,
+        charts: new Map(state.charts).set(action.payload.id, action.payload.chart),
+        error: null
+      }
+    case 'REMOVE_CHART':
+      const newCharts = new Map(state.charts)
+      newCharts.delete(action.payload.id)
+      return {
+        ...state,
+        charts: newCharts,
+        selectedChartId: state.selectedChartId === action.payload.id ? null : state.selectedChartId
+      }
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload }
+    case 'SET_ERROR':
+      return { ...state, error: action.payload, isLoading: false }
+    case 'SELECT_CHART':
+      return { ...state, selectedChartId: action.payload }
+    default:
+      return state
+  }
+}
+
+// Custom hook for chart state management
+export const useChartState = () => {
+  const [state, dispatch] = useReducer(chartReducer, {
+    charts: new Map(),
+    isLoading: false,
+    error: null,
+    selectedChartId: null
+  })
+
+  const addChart = useCallback((id: string, chart: IChartApi) => {
+    dispatch({ type: 'ADD_CHART', payload: { id, chart } })
+  }, [])
+
+  const removeChart = useCallback((id: string) => {
+    dispatch({ type: 'REMOVE_CHART', payload: { id } })
+  }, [])
+
+  const setLoading = useCallback((loading: boolean) => {
+    dispatch({ type: 'SET_LOADING', payload: loading })
+  }, [])
+
+  const setError = useCallback((error: string | null) => {
+    dispatch({ type: 'SET_ERROR', payload: error })
+  }, [])
+
+  const selectChart = useCallback((id: string | null) => {
+    dispatch({ type: 'SELECT_CHART', payload: id })
+  }, [])
+
+  return {
+    state,
+    actions: {
+      addChart,
+      removeChart,
+      setLoading,
+      setError,
+      selectChart
+    }
+  }
+}
+```
+
+## 🔄 State Synchronization
+
+### **Chart State Synchronization**
+For synchronizing chart state across multiple components:
+
+```typescript
+// ✅ CORRECT: Chart synchronization hook
+export const useChartSync = (chartId: string) => {
+  const { state, actions } = useChartState()
+  const [localState, setLocalState] = useState({
+    timeRange: null,
+    priceRange: null,
+    crosshairPosition: null
+  })
+
+  // Sync local state with global chart state
+  useEffect(() => {
+    const chart = state.charts.get(chartId)
+    if (chart) {
+      // Subscribe to chart events
+      const unsubscribe = chart.subscribe('timeScaleChanged', (timeRange) => {
+        setLocalState(prev => ({ ...prev, timeRange }))
+      })
+
+      return unsubscribe
+    }
+  }, [chartId, state.charts])
+
+  // Update global state when local state changes
+  const updateTimeRange = useCallback((timeRange: TimeRange) => {
+    setLocalState(prev => ({ ...prev, timeRange }))
+    // Sync with other charts if needed
+    actions.syncCharts(chartId, { timeRange })
+  }, [chartId, actions])
+
+  return {
+    localState,
+    updateTimeRange,
+    chart: state.charts.get(chartId)
+  }
+}
+```
+
+## 🎯 State Management Patterns
+
+### **1. Custom Hooks for State Logic**
+Encapsulate state logic in custom hooks:
+
+```typescript
+// ✅ CORRECT: Custom hook for chart data management
+export const useChartData = (chartId: string) => {
+  const [data, setData] = useState<LineData[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const loadData = useCallback(async (timeRange: TimeRange) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const newData = await fetchChartData(chartId, timeRange)
+      setData(newData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [chartId])
+
+  const updateData = useCallback((newData: LineData[]) => {
+    setData(prev => [...prev, ...newData])
+  }, [])
+
+  const clearData = useCallback(() => {
+    setData([])
+  }, [])
+
+  return {
+    data,
+    isLoading,
+    error,
+    loadData,
+    updateData,
+    clearData
+  }
+}
+```
+
+### **2. State Persistence**
+For persisting state across sessions:
+
+```typescript
+// ✅ CORRECT: Persistent state hook
+export const usePersistentState = <T>(
+  key: string,
+  defaultValue: T
+): [T, (value: T) => void] => {
+  const [state, setState] = useState<T>(() => {
+    try {
+      const item = localStorage.getItem(key)
+      return item ? JSON.parse(item) : defaultValue
+    } catch {
+      return defaultValue
+    }
+  })
+
+  const setPersistentState = useCallback((value: T) => {
+    setState(value)
+    try {
+      localStorage.setItem(key, JSON.stringify(value))
+    } catch {
+      // Handle storage errors gracefully
+      console.warn('Failed to persist state to localStorage')
+    }
+  }, [key])
+
+  return [state, setPersistentState]
+}
+
+// Usage
+const useChartSettings = () => {
+  const [settings, setSettings] = usePersistentState('chart-settings', {
+    theme: 'light',
+    showGrid: true,
+    showCrosshair: true
+  })
+
+  return { settings, setSettings }
+}
+```
+
+### **3. State Validation**
+Validate state changes:
+
+```typescript
+// ✅ CORRECT: State validation hook
+export const useValidatedState = <T>(
+  initialValue: T,
+  validator: (value: T) => boolean
+): [T, (value: T) => void, boolean] => {
+  const [state, setState] = useState<T>(initialValue)
+  const [isValid, setIsValid] = useState(() => validator(initialValue))
+
+  const setValidatedState = useCallback((value: T) => {
+    const valid = validator(value)
+    setIsValid(valid)
+    if (valid) {
+      setState(value)
+    }
+  }, [validator])
+
+  return [state, setValidatedState, isValid]
+}
+
+// Usage
+const useChartConfig = () => {
+  const [config, setConfig, isValid] = useValidatedState(
+    { width: 800, height: 400 },
+    (config) => config.width > 0 && config.height > 0
+  )
+
+  return { config, setConfig, isValid }
+}
+```
+
+## 🚫 Anti-Patterns to Avoid
+
+### **❌ Wrong: Prop Drilling**
+```typescript
+// Don't pass state through multiple component levels
+const App = () => {
+  const [chartState, setChartState] = useState({})
+  return <ChartContainer state={chartState} setState={setChartState} />
+}
+
+const ChartContainer = ({ state, setState }) => {
+  return <ChartComponent state={state} setState={setState} />
+}
+
+const ChartComponent = ({ state, setState }) => {
+  return <ChartSettings state={state} setState={setState} />
+}
+```
+
+### **❌ Wrong: Global State for Everything**
+```typescript
+// Don't put everything in global state
+const GlobalState = {
+  charts: new Map(),
+  isLoading: false,
+  error: null,
+  userPreferences: {},
+  theme: 'light',
+  // ... too much global state
+}
+```
+
+### **❌ Wrong: Mutating State Directly**
+```typescript
+// Don't mutate state directly
+const [charts, setCharts] = useState(new Map())
+
+// Wrong
+charts.set('chart1', newChart)
+
+// Correct
+setCharts(prev => new Map(prev).set('chart1', newChart))
+```
+
+## ✅ Best Practices
+
+### **1. State Co-location**
+Keep state close to where it's used:
+
+```typescript
+// ✅ CORRECT: State co-located with component
+const ChartComponent = () => {
+  // Local state for component-specific concerns
+  const [isVisible, setIsVisible] = useState(true)
+  const [animationState, setAnimationState] = useState('idle')
+
+  // Use context for shared state
+  const { charts, addChart } = useChartContext()
+
+  return (
+    <div>
+      {isVisible && <ChartContainer />}
+    </div>
+  )
+}
+```
+
+### **2. State Normalization**
+Normalize complex state structures:
+
+```typescript
+// ✅ CORRECT: Normalized state structure
+interface NormalizedChartState {
+  charts: {
+    byId: Record<string, IChartApi>
+    allIds: string[]
+  }
+  series: {
+    byId: Record<string, SeriesData>
+    byChartId: Record<string, string[]>
+  }
+  annotations: {
+    byId: Record<string, Annotation>
+    byChartId: Record<string, string[]>
+  }
+}
+```
+
+### **3. State Updates**
+Use functional updates for state that depends on previous state:
+
+```typescript
+// ✅ CORRECT: Functional state updates
+const [charts, setCharts] = useState<Map<string, IChartApi>>(new Map())
+
+const addChart = useCallback((id: string, chart: IChartApi) => {
+  setCharts(prev => new Map(prev).set(id, chart))
+}, [])
+
+const removeChart = useCallback((id: string) => {
+  setCharts(prev => {
+    const newMap = new Map(prev)
+    newMap.delete(id)
+    return newMap
+  })
+}, [])
+```
+
+## 🔧 Performance Considerations
+
+### **1. Memoization**
+Memoize expensive state computations:
+
+```typescript
+// ✅ CORRECT: Memoized state computations
+const useChartMetrics = (chartId: string) => {
+  const { state } = useChartState()
+  const chart = state.charts.get(chartId)
+
+  const metrics = useMemo(() => {
+    if (!chart) return null
+
+    return {
+      dataPoints: chart.getData().length,
+      timeRange: chart.getTimeScale().getVisibleRange(),
+      priceRange: chart.getPriceScale('right').getVisibleRange()
+    }
+  }, [chart, state.charts])
+
+  return metrics
+}
+```
+
+### **2. State Splitting**
+Split large state objects to prevent unnecessary re-renders:
+
+```typescript
+// ✅ CORRECT: Split state to prevent re-renders
+const useChartState = () => {
+  const [chartData, setChartData] = useState<LineData[]>([])
+  const [chartOptions, setChartOptions] = useState<ChartOptions>({})
+  const [chartEvents, setChartEvents] = useState<ChartEvents>({})
+
+  // Each state update only affects relevant components
+  return {
+    chartData,
+    chartOptions,
+    chartEvents,
+    setChartData,
+    setChartOptions,
+    setChartEvents
+  }
+}
+```
+
+## 📋 State Management Checklist
+
+- [ ] **State is co-located** with components that use it
+- [ ] **Global state** is only used for truly shared data
+- [ ] **State updates** use functional updates when needed
+- [ ] **Complex state** is normalized and structured
+- [ ] **State validation** is implemented where needed
+- [ ] **Performance optimizations** (memoization, splitting) are applied
+- [ ] **State persistence** is handled appropriately
+- [ ] **Error states** are managed and displayed
+- [ ] **Loading states** provide user feedback
+- [ ] **State cleanup** happens on component unmount
+
+---
+
+**Status**: ✅ **COMPLETE** - Comprehensive frontend development standards with state management patterns
+**Last Updated**: December 2024
+**Next Review**: Quarterly review of frontend development standards

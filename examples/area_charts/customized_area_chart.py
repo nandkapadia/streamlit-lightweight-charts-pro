@@ -1,25 +1,23 @@
-"""
-Customized Area Chart Example.
+"""Customized Area Chart Example.
 
 This example demonstrates various customization options for AreaSeries including
 colors, gradients, line options, and styling.
 """
 
-import os
-
 # Add project root to path for examples imports
 import sys
+from pathlib import Path
 
 import streamlit as st
 
-from examples.data_samples import get_line_data
+from examples.utilities.data_samples import get_line_data
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
+from streamlit_lightweight_charts_pro.charts.options import LineOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
-from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
+from streamlit_lightweight_charts_pro.charts.series import AreaSeries
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
 
 def main():
@@ -176,7 +174,7 @@ def main():
             color="#e74c3c",
             line_width=2,
             line_style=LineStyle.DASHED,
-        )
+        ),
     )
 
     area_series_price_lines.add_price_line(
@@ -185,7 +183,7 @@ def main():
             color="#27ae60",
             line_width=2,
             line_style=LineStyle.DASHED,
-        )
+        ),
     )
 
     chart7 = Chart()
@@ -202,7 +200,7 @@ def main():
     - **Line Options**: Custom line colors, widths, and styles (solid, dashed, dotted)
     - **Markers**: Added markers at specific data points
     - **Price Lines**: Horizontal reference lines at specific values
-    """
+    """,
     )
 
     # Show color palette

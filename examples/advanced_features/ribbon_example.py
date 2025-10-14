@@ -1,10 +1,8 @@
-"""
-Test script for RibbonSeries functionality.
+"""Test script for RibbonSeries functionality.
 
 This script demonstrates how to create and use the new RibbonSeries
 with sample data and configuration.
 """
-
 
 import pandas as pd
 import streamlit as st
@@ -35,7 +33,7 @@ def create_sample_data():
                     lower=lower,
                     color="#FF0000",  # Custom line color
                     fill="rgba(255, 0, 0, 0.2)",  # Custom fill color
-                )
+                ),
             )
         else:
             data.append(RibbonData(str(date.date()), upper=upper, lower=lower))
@@ -98,16 +96,16 @@ def main():
                 "Custom Fill": data[i].fill is not None,
             }
             for i in range(min(5, len(data)))
-        ]
+        ],
     )
     st.dataframe(sample_df)
 
     # Show series configuration
     st.write("### Series Configuration")
     st.write(f"Chart Type: {ribbon_series.chart_type}")
-    st.write(f"Visible: {ribbon_series.visible}")
-    st.write(f"Price Scale ID: {ribbon_series.price_scale_id}")
-    st.write(f"Pane ID: {ribbon_series.pane_id}")
+    st.write(f"Visible: {ribbon_series.visible}")  # pylint: disable=no-member
+    st.write(f"Price Scale ID: {ribbon_series.price_scale_id}")  # pylint: disable=no-member
+    st.write(f"Pane ID: {ribbon_series.pane_id}")  # pylint: disable=no-member
     st.write(f"Fill Visible: {ribbon_series.fill_visible}")
     st.write(f"Fill Color: {ribbon_series.fill}")
     st.write(f"Line Color: {ribbon_series.color}")

@@ -1,5 +1,4 @@
-"""
-Ribbon series for streamlit-lightweight-charts.
+"""Ribbon series for streamlit-lightweight-charts.
 
 This module provides the RibbonSeries class for creating ribbon charts
 that display upper and lower bands with fill areas between them.
@@ -13,6 +12,7 @@ from streamlit_lightweight_charts_pro.charts.options.line_options import LineOpt
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
+from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 from streamlit_lightweight_charts_pro.utils import chainable_property
 
 
@@ -21,8 +21,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_property
 @chainable_property("fill", str, validator="color")
 @chainable_property("fill_visible", bool)
 class RibbonSeries(Series):
-    """
-    Ribbon series for lightweight charts.
+    """Ribbon series for lightweight charts.
 
     This class represents a ribbon series that displays upper and lower bands
     with a fill area between them. It's commonly used for technical indicators
@@ -51,8 +50,7 @@ class RibbonSeries(Series):
         price_scale_id: str = "",
         pane_id: Optional[int] = 0,
     ):
-        """
-        Initialize RibbonSeries.
+        """Initialize RibbonSeries.
 
         Args:
             data: List of data points or DataFrame
@@ -70,8 +68,8 @@ class RibbonSeries(Series):
         )
 
         # Initialize line options with default values
-        self._upper_line = LineOptions(color="#4CAF50", line_width=2, line_style="solid")
-        self._lower_line = LineOptions(color="#F44336", line_width=2, line_style="solid")
+        self._upper_line = LineOptions(color="#4CAF50", line_width=2, line_style=LineStyle.SOLID)
+        self._lower_line = LineOptions(color="#F44336", line_width=2, line_style=LineStyle.SOLID)
 
         # Initialize fill color
         self._fill = "rgba(76, 175, 80, 0.1)"

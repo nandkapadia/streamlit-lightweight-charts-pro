@@ -1,5 +1,4 @@
-"""
-Bar series for streamlit-lightweight-charts.
+"""Bar series for streamlit-lightweight-charts.
 
 This module provides the BarSeries class for creating bar charts that display
 OHLC data as bars. Bar series are commonly used for price charts and volume overlays.
@@ -38,8 +37,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_property
 @chainable_property("open_visible", bool)
 @chainable_property("thin_bars", bool)
 class BarSeries(Series):
-    """
-    Bar series for lightweight charts.
+    """Bar series for lightweight charts.
 
     This class represents a bar series that displays data as bars.
     It's commonly used for price charts, volume overlays, and other
