@@ -14,11 +14,18 @@ from setuptools.command.bdist_wheel import bdist_wheel
 from setuptools.command.build_py import build_py
 from setuptools.command.sdist import sdist
 
-from streamlit_lightweight_charts_pro.exceptions import (
-    FrontendBuildFailedError,
-    NodeNotFoundError,
-    NpmNotFoundError,
-)
+
+# Define custom exceptions inline to avoid import errors during setup
+class NodeNotFoundError(Exception):
+    """Exception raised when Node.js is not found."""
+
+
+class NpmNotFoundError(Exception):
+    """Exception raised when npm is not found."""
+
+
+class FrontendBuildFailedError(Exception):
+    """Exception raised when frontend build fails."""
 
 
 def check_node_installed():

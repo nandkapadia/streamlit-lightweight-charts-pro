@@ -33,11 +33,7 @@ def build_frontend():
         print("📦 Installing frontend dependencies...")
         npm_path = shutil.which("npm")
         if not npm_path:
-
-            def _raise_npm_not_found():
-                raise NpmNotFoundError()  # noqa: TRY301
-
-            _raise_npm_not_found()
+            raise NpmNotFoundError()  # noqa: TRY301
 
         # Validate npm_path to prevent command injection
         def _raise_invalid_npm_path():
@@ -92,11 +88,9 @@ def build_wheel():
         print("📦 Building wheel...")
 
         # Validate sys.executable to prevent command injection
-        def _raise_invalid_python_path():
+        if not sys.executable or not Path(sys.executable).exists():
             raise ValueError("Invalid Python executable path")  # noqa: TRY301
 
-        if not sys.executable or not Path(sys.executable).exists():
-            _raise_invalid_python_path()
         subprocess.run(
             [sys.executable, "setup.py", "bdist_wheel"],
             check=True,
