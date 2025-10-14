@@ -136,15 +136,11 @@ describe('React19PerformanceMonitor', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
 
-      // Set logger to DEBUG level to enable debug logging
-      (logger as any).logLevel = LogLevel.DEBUG;
+      // Set logger to INFO level to enable info logging
+      (logger as any).logLevel = LogLevel.INFO;
 
-      // Logger uses console.debug for Suspense logging in development
-      // Ensure console.debug exists (Node.js doesn't have it by default)
-      if (!console.debug) {
-        console.debug = console.log;
-      }
-      const consoleSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+      // Logger uses console.info for Suspense logging in development
+      const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
 
       react19Monitor.startSuspenseLoad('SlowLazyComponent');
 
@@ -176,15 +172,11 @@ describe('React19PerformanceMonitor', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
 
-      // Set logger to DEBUG level to enable debug logging
-      (logger as any).logLevel = LogLevel.DEBUG;
+      // Set logger to INFO level to enable info logging
+      (logger as any).logLevel = LogLevel.INFO;
 
-      // Logger uses console.debug for deferred value logging in development
-      // Ensure console.debug exists (Node.js doesn't have it by default)
-      if (!console.debug) {
-        console.debug = console.log;
-      }
-      const consoleSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+      // Logger uses console.info for deferred value logging in development
+      const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
 
       react19Monitor.trackDeferredValue('SlowChartData', 80);
 
@@ -335,15 +327,11 @@ describe('logReact19Performance', () => {
     const originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'development';
 
-    // Set logger to DEBUG level to enable debug logging
-    (logger as any).logLevel = LogLevel.DEBUG;
+    // Set logger to INFO level to enable info logging
+    (logger as any).logLevel = LogLevel.INFO;
 
-    // Logger uses console.debug for performance reports
-    // Ensure console.debug exists (Node.js doesn't have it by default)
-    if (!console.debug) {
-      console.debug = console.log;
-    }
-    const consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+    // Logger uses console.info for performance reports
+    const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
 
     // Trigger some activity to generate recommendations
     const transitionId = react19Monitor.startTransition('TestComponent', 'sync');
@@ -352,11 +340,11 @@ describe('logReact19Performance', () => {
 
     logReact19Performance();
 
-    // Logger logs recommendations using console.debug
-    expect(consoleDebugSpy).toHaveBeenCalled();
+    // Logger logs recommendations using console.info
+    expect(consoleInfoSpy).toHaveBeenCalled();
 
     process.env.NODE_ENV = originalEnv;
-    consoleDebugSpy.mockRestore();
+    consoleInfoSpy.mockRestore();
   });
 
   it('should not log in production', () => {

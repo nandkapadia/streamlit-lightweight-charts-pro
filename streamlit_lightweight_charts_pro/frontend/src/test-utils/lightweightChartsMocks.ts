@@ -205,7 +205,22 @@ export const mockChart = {
 
   // Screenshot and utilities
   takeScreenshot: vi.fn().mockReturnValue({}),
-  chartElement: vi.fn().mockReturnValue({}),
+  chartElement: vi.fn().mockReturnValue({
+    getBoundingClientRect: vi.fn().mockReturnValue({
+      width: 800,
+      height: 400,
+      top: 0,
+      left: 0,
+      right: 800,
+      bottom: 400,
+      x: 0,
+      y: 0,
+    }),
+    querySelector: vi.fn().mockReturnValue(null),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    style: {},
+  }),
 
   // Pane methods
   addPane: vi.fn().mockReturnValue(mockPane),

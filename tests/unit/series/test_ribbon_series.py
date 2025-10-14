@@ -15,6 +15,7 @@ from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.charts.series.ribbon import RibbonSeries
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
+from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 
 
 class TestRibbonSeries:
@@ -94,11 +95,11 @@ class TestRibbonSeries:
         # Verify default line options
         assert series.upper_line.color == "#4CAF50"
         assert series.upper_line.line_width == 2
-        assert series.upper_line.line_style == "solid"
+        assert series.upper_line.line_style == LineStyle.SOLID
 
         assert series.lower_line.color == "#F44336"
         assert series.lower_line.line_width == 2
-        assert series.lower_line.line_style == "solid"
+        assert series.lower_line.line_style == LineStyle.SOLID
 
     def test_ribbon_series_default_colors(self):
         """Test default colors for RibbonSeries."""

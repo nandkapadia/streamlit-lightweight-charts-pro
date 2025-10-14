@@ -1,6 +1,6 @@
 {
   "name": "streamlit_lightweight_charts_pro",
-  "version": "0.1.4",
+  "version": "0.1.2",
   "type": "module",
   "private": false,
   "license": "MIT",
@@ -66,11 +66,11 @@
     "analyze:size": "npx vite-bundle-analyzer",
     "build:optimized": "vite build",
     "preview": "vite preview",
-    "test": "NODE_OPTIONS='--max-old-space-size=4096 --max-semi-space-size=128' vitest run --pool=forks --poolOptions.forks.singleFork=true",
-    "test:watch": "NODE_OPTIONS='--max-old-space-size=2048' vitest",
-    "test:ui": "NODE_OPTIONS='--max-old-space-size=2048' vitest --ui",
+    "test": "NODE_OPTIONS='--max-old-space-size=8192 --max-semi-space-size=256 --expose-gc' vitest run --pool=forks --poolOptions.forks.singleFork=true --no-coverage",
+    "test:watch": "NODE_OPTIONS='--max-old-space-size=4096' vitest",
+    "test:ui": "NODE_OPTIONS='--max-old-space-size=4096' vitest --ui",
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e-tests",
-    "test:unit": "NODE_OPTIONS='--max-old-space-size=3072 --max-semi-space-size=128' vitest run src/__tests__/components src/__tests__/config src/__tests__/helpers src/__tests__/hooks src/__tests__/mocks src/__tests__/plugins src/__tests__/primitives src/__tests__/services src/__tests__/setup src/__tests__/unit src/__tests__/utils --pool=forks",
+    "test:unit": "NODE_OPTIONS='--max-old-space-size=6144 --max-semi-space-size=256 --expose-gc' vitest run src/__tests__/components src/__tests__/config src/__tests__/helpers src/__tests__/hooks src/__tests__/mocks src/__tests__/plugins src/__tests__/primitives src/__tests__/services src/__tests__/setup src/__tests__/unit src/__tests__/utils --pool=forks --no-coverage",
     "test:services": "NODE_OPTIONS='--max-old-space-size=4096' vitest run --pool=threads src/__tests__/services",
     "test:services:batch1": "NODE_OPTIONS='--max-old-space-size=3072' vitest run --pool=threads src/__tests__/services/CornerLayoutManager.test.ts src/__tests__/services/ChartPrimitiveManager.test.ts src/__tests__/services/ChartCoordinateService.test.ts",
     "test:services:batch2": "NODE_OPTIONS='--max-old-space-size=3072' vitest run --pool=threads src/__tests__/services/PrimitiveEventManager.test.ts src/__tests__/services/PaneCollapseManager.test.ts src/__tests__/services/ChartSyncManager.test.ts",
@@ -97,7 +97,9 @@
     "lint": "eslint src --ext .ts,.tsx,.js,.jsx --fix",
     "lint:check": "eslint src --ext .ts,.tsx,.js,.jsx",
     "code-quality": "npm run format && npm run lint && npm run type-check",
-    "precommit": "npm run code-quality"
+    "precommit": "npm run code-quality",
+    "test:quick": "NODE_OPTIONS='--max-old-space-size=4096' vitest run src/__tests__/config src/__tests__/utils --pool=threads --no-coverage",
+    "test:batched": "bash run-tests-batched.sh"
   },
   "browserslist": {
     "production": [

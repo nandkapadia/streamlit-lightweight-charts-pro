@@ -112,12 +112,12 @@ except ImportError:
     # Fallback for Python < 3.8 - use backported importlib_metadata
     # This ensures compatibility with older Python versions that don't have
     # importlib.metadata in the standard library
-    from importlib_metadata import distribution
+    from importlib_metadata import distribution  # type: ignore[assignment]
 
 
 # Version information for the package
 # This version number is used for package distribution and compatibility checks
-__version__ = "0.1.4"
+__version__ = "0.1.2"
 
 
 # Check if frontend is built on import (for development mode)

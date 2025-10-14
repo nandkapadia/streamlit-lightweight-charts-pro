@@ -27,6 +27,7 @@ import pytest
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
 
 
+@pytest.mark.performance
 class TestOhlcvDataPerformance:
     """Performance tests for OhlcvData class."""
 

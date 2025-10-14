@@ -49,13 +49,18 @@ jobs:
 
     - name: Run security checks
       run: |
-        # Run Bandit for security issues
-        bandit -r streamlit_lightweight_charts_pro/ -f json -o bandit-report.json || true
+        # Run Bandit for security issues (excluding cli.py - it's a dev tool with safe subprocess usage)
+        bandit -r streamlit_lightweight_charts_pro/ --exclude streamlit_lightweight_charts_pro/cli.py -f json -o bandit-report.json || true
 
-    - name: Run unit tests
+    - name: Run unit/integration/e2e tests (parallel)
       run: |
-        # Run pytest with coverage
-        pytest tests/ -v --cov=streamlit_lightweight_charts_pro --cov-report=xml --cov-report=html
+        # Run all tests except performance tests in parallel for speed
+        pytest tests/ -v --cov=streamlit_lightweight_charts_pro --cov-report=xml --cov-report=html -m "not performance" -n auto
+
+    - name: Run performance tests (sequential)
+      run: |
+        # Run performance tests sequentially to get accurate benchmarks
+        pytest tests/performance/ -v -m "performance" --tb=short
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == '3.11'
@@ -82,7 +87,7 @@ jobs:
     - name: Install documentation dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install mkdocs mkdocs-material mkdocstrings mkdocstrings-python
+        pip install -r requirements-ci.txt
 
     - name: Build documentation
       run: |
@@ -157,7 +162,7 @@ jobs:
 
     - name: Run frontend tests
       working-directory: streamlit_lightweight_charts_pro/frontend
-      run: npm run test:unit
+      run: npm run test:batched
 
     - name: Build frontend
       working-directory: streamlit_lightweight_charts_pro/frontend

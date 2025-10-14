@@ -21,7 +21,6 @@ from streamlit_lightweight_charts_pro.data.annotation import (
     create_text_annotation,
 )
 from streamlit_lightweight_charts_pro.exceptions import (
-    RequiredFieldError,
     TypeValidationError,
     ValueValidationError,
 )

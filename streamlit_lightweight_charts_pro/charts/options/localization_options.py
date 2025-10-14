@@ -11,8 +11,8 @@ from streamlit_lightweight_charts_pro.utils import chainable_field
 @chainable_field("locale", str)
 @chainable_field("date_format", str)
 @chainable_field("time_format", str)
-@chainable_field("price_formatter", Callable)
-@chainable_field("percentage_formatter", Callable)
+@chainable_field("price_formatter", allow_none=True)
+@chainable_field("percentage_formatter", allow_none=True)
 class LocalizationOptions(Options):
     """Localization configuration for chart."""
 

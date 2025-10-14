@@ -209,8 +209,8 @@ class Series(ABC):  # noqa: B024
         self._price_scale_id = price_scale_id  # Price scale attachment ID
         self._price_scale = None  # Price scale configuration object
         self._price_format = None  # Price formatting options
-        self._price_lines = []  # List of price line markers
-        self._markers = []  # List of chart markers for annotations
+        self._price_lines: List[PriceLineOptions] = []  # List of price line markers
+        self._markers: List[MarkerBase] = []  # List of chart markers for annotations
         self._pane_id = pane_id  # Pane index for multi-pane charts
         self._column_mapping = column_mapping  # DataFrame column mapping
 
@@ -481,18 +481,18 @@ class Series(ABC):  # noqa: B024
             ```
         """
         if isinstance(self.data, dict):
-            return self.data
+            return self.data  # type: ignore[return-value]
         if isinstance(self.data, list):
             if len(self.data) == 0:
-                return self.data
+                return []
             # If already list of dicts
             if isinstance(self.data[0], dict):
-                return self.data
+                return self.data  # type: ignore[return-value]
                 # If list of objects with asdict
         if hasattr(self.data[0], "asdict"):
             return [item.asdict() for item in self.data]
         # Fallback: return as-is
-        return self.data
+        return self.data  # type: ignore[return-value]
 
     def add_marker(self, marker: MarkerBase) -> "Series":
         """Add a marker to this series.
@@ -616,13 +616,14 @@ class Series(ABC):  # noqa: B024
         if self._pane_id is None:
             self._pane_id = 0
 
-    def _get_attr_name(self, key: str) -> str:
+    def _get_attr_name(self, key: str) -> Optional[str]:
         """Get the attribute name for a given key."""
         # Convert camelCase to snake_case for attribute lookup
-        attr_name = self._camel_to_snake(key)
+        attr_name: Optional[str] = self._camel_to_snake(key)
 
         # Check if attribute exists (try multiple variations)
-        if not hasattr(self, attr_name):
+        # Need to check attr_name is not None before using hasattr
+        if attr_name is not None and not hasattr(self, attr_name):
             # Try the original key in case it's already snake_case
             if hasattr(self, key):
                 attr_name = key
@@ -811,7 +812,7 @@ class Series(ABC):  # noqa: B024
 
         # Get base configuration
         config = {
-            "type": self.chart_type.value,
+            "type": self.chart_type.value,  # type: ignore[attr-defined]
             "data": self.data_dict,
         }
 
@@ -924,7 +925,7 @@ class Series(ABC):  # noqa: B024
         """
         if self._is_chainable_property(attr_name):
             # pylint: disable=protected-access
-            return self.__class__._chainable_properties[attr_name]["allow_none"]
+            return self.__class__._chainable_properties[attr_name]["allow_none"]  # type: ignore[attr-defined]
         return False
 
     def _is_top_level(self, attr_name: str) -> bool:
@@ -938,13 +939,13 @@ class Series(ABC):  # noqa: B024
         """
         if self._is_chainable_property(attr_name):
             # pylint: disable=protected-access
-            return self.__class__._chainable_properties[attr_name]["top_level"]
+            return self.__class__._chainable_properties[attr_name]["top_level"]  # type: ignore[attr-defined]
         return False
 
     @classproperty
     def data_class(self) -> Type[Data]:  # pylint: disable=no-self-argument
         """Return the first DATA_CLASS found in the MRO (most-derived class wins)."""
-        for base in self.__mro__:
+        for base in self.__mro__:  # type: ignore[attr-defined]
             if hasattr(base, "DATA_CLASS"):
                 return base.DATA_CLASS
         raise NotImplementedError("No DATA_CLASS defined in the class hierarchy.")

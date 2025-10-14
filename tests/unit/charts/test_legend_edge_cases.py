@@ -399,8 +399,9 @@ class TestLegendMemoryAndPerformance:
             legend.asdict()
         end_time = time.time()
 
-        # Should complete in reasonable time (less than 0.1 seconds)
-        assert end_time - start_time < 0.1
+        # Should complete in reasonable time (less than 0.3 seconds)
+        # Increased from 0.1s to account for CI/CD system variance
+        assert end_time - start_time < 0.3
 
 
 if __name__ == "__main__":

@@ -26,6 +26,8 @@ Author: Streamlit Lightweight Charts Contributors
 License: MIT
 """
 
+# pylint: disable=no-member,protected-access
+
 # Standard Imports
 import inspect
 from unittest.mock import Mock, patch

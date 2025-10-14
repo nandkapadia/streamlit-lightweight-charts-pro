@@ -312,7 +312,7 @@ class TooltipManager:
     different data types, dynamic content, and consistent formatting.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize tooltip manager."""
         self.configs: Dict[str, TooltipConfig] = {}
         self.custom_formatters: Dict[str, Callable[[Any], str]] = {}

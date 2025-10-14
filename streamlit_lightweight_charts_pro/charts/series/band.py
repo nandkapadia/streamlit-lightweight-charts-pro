@@ -33,6 +33,7 @@ from streamlit_lightweight_charts_pro.charts.options.line_options import LineOpt
 from streamlit_lightweight_charts_pro.charts.series.base import Series
 from streamlit_lightweight_charts_pro.data.band import BandData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
+from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 from streamlit_lightweight_charts_pro.utils import chainable_property
 
 
@@ -94,9 +95,9 @@ class BandSeries(Series):
         )
 
         # Initialize line options with default values
-        self._upper_line = LineOptions(color="#4CAF50", line_width=2, line_style="solid")
-        self._middle_line = LineOptions(color="#2196F3", line_width=2, line_style="solid")
-        self._lower_line = LineOptions(color="#F44336", line_width=2, line_style="solid")
+        self._upper_line = LineOptions(color="#4CAF50", line_width=2, line_style=LineStyle.SOLID)
+        self._middle_line = LineOptions(color="#2196F3", line_width=2, line_style=LineStyle.SOLID)
+        self._lower_line = LineOptions(color="#F44336", line_width=2, line_style=LineStyle.SOLID)
 
         # Initialize fill colors
         self._upper_fill_color = "rgba(76, 175, 80, 0.1)"

@@ -80,7 +80,8 @@ class SeriesConfigChangesResult(Options):
     def fromdict(cls, data: dict) -> "SeriesConfigChangesResult":
         """Create from dictionary with proper change object conversion."""
         changes = [
-            SeriesConfigChange.fromdict(change_data) for change_data in data.get("changes", [])
+            SeriesConfigChange.fromdict(change_data)  # type: ignore[attr-defined]
+            for change_data in data.get("changes", [])
         ]
 
         return cls(
@@ -194,15 +195,15 @@ class SeriesConfiguration(Options):
         """Create from dictionary with proper nested object conversion."""
         style = None
         if "style" in data:
-            style = SeriesStyleConfig.fromdict(data["style"])
+            style = SeriesStyleConfig.fromdict(data["style"])  # type: ignore[attr-defined]
 
         visibility = None
         if "visibility" in data:
-            visibility = SeriesVisibilityConfig.fromdict(data["visibility"])
+            visibility = SeriesVisibilityConfig.fromdict(data["visibility"])  # type: ignore[attr-defined]
 
         inputs = None
         if "inputs" in data:
-            inputs = SeriesInputConfig.fromdict(data["inputs"])
+            inputs = SeriesInputConfig.fromdict(data["inputs"])  # type: ignore[attr-defined]
 
         return cls(
             style=style,

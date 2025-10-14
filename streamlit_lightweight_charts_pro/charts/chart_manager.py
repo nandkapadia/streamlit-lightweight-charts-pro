@@ -119,7 +119,7 @@ class ChartManager:
         - The manager handles component lifecycle and state management
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the ChartManager.
 
         Creates a new ChartManager with empty chart registry and default
@@ -408,7 +408,7 @@ class ChartManager:
         price_kwargs=None,
         volume_kwargs=None,
         pane_id: int = 0,
-    ) -> "ChartManager":
+    ) -> "Chart":
         """Create a chart from OHLCV data with price and volume series.
 
         Factory method that creates a new Chart instance with both price and volume
@@ -528,7 +528,7 @@ class ChartManager:
             if component_func is None:
                 raise ComponentNotAvailableError()
 
-        kwargs = {"config": config}
+        kwargs: Dict[str, Any] = {"config": config}
         if key is None or not isinstance(key, str) or not key.strip():
             unique_id = str(uuid.uuid4())[:8]
             key = f"chart_manager_{int(time.time() * 1000)}_{unique_id}"

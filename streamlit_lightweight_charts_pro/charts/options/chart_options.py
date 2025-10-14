@@ -190,45 +190,27 @@ class ChartOptions(Options):
 
     def __post_init__(self):
         """Validate chart options after initialization."""
+        # Validate price scale types first before accessing attributes
+        if self.right_price_scale is not None and not isinstance(
+            self.right_price_scale, PriceScaleOptions
+        ):
+            raise PriceScaleOptionsTypeError("right_price_scale", type(self.right_price_scale))
+
+        if self.left_price_scale is not None and not isinstance(
+            self.left_price_scale, PriceScaleOptions
+        ):
+            raise PriceScaleOptionsTypeError("left_price_scale", type(self.left_price_scale))
+
         # CRITICAL FIX: Ensure default price scales have their IDs set
         # Without this, the empty string price_scale_id gets filtered out during serialization
         # This causes the frontend to fail matching series to their price scales
-        if self.right_price_scale is not None and not self.right_price_scale.price_scale_id:
-            # Set the price_scale_id to "right" if it's empty or not set
+        if self.right_price_scale is not None and self.right_price_scale.price_scale_id is None:
+            # Set the price_scale_id to "right" if it's None
             self.right_price_scale.price_scale_id = "right"
 
-        if self.left_price_scale is not None and not self.left_price_scale.price_scale_id:
-            # Set the price_scale_id to "left" if it's empty or not set
+        if self.left_price_scale is not None and self.left_price_scale.price_scale_id is None:
+            # Set the price_scale_id to "left" if it's None
             self.left_price_scale.price_scale_id = "left"
-
-        # Validate price scale options
-        if self.right_price_scale is not None and not isinstance(
-            self.right_price_scale,
-            PriceScaleOptions,
-        ):
-            if isinstance(self.right_price_scale, bool):
-                raise PriceScaleOptionsTypeError(
-                    "right_price_scale",
-                    type(self.right_price_scale),
-                )
-            raise PriceScaleOptionsTypeError(
-                "right_price_scale",
-                type(self.right_price_scale),
-            )
-
-        if self.left_price_scale is not None and not isinstance(
-            self.left_price_scale,
-            PriceScaleOptions,
-        ):
-            if isinstance(self.left_price_scale, bool):
-                raise PriceScaleOptionsTypeError(
-                    "left_price_scale",
-                    type(self.left_price_scale),
-                )
-            raise PriceScaleOptionsTypeError(
-                "left_price_scale",
-                type(self.left_price_scale),
-            )
 
         # Validate price scale IDs are strings
         if (

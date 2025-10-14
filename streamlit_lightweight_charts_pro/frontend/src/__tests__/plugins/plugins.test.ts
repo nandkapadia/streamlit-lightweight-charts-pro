@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RectangleOverlayPlugin } from '../../plugins/overlay/rectanglePlugin';
 import { createSignalSeries } from '../../plugins/series/signalSeriesPlugin';
 import { createTradeVisualElements } from '../../services/tradeVisualization';
@@ -67,8 +67,17 @@ document.createElement = vi.fn(tagName => {
 }) as any;
 
 describe('Chart Plugins', () => {
+  let consoleErrorSpy: any;
+
   beforeEach(() => {
     resetMocks();
+    // Suppress expected error logs from plugin initialization with mocks
+    // These errors are expected and handled gracefully by the plugins
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   describe('RectangleOverlayPlugin', () => {
@@ -396,7 +405,7 @@ describe('Chart Plugins', () => {
 
       const rectanglePlugin = new RectangleOverlayPlugin();
 
-      // Should not throw error
+      // Should not throw error (errors are logged but handled gracefully)
       expect(() => {
         rectanglePlugin.addToChart(chart);
       }).not.toThrow();
@@ -480,6 +489,7 @@ describe('Chart Plugins', () => {
 
       const rectanglePlugin = new RectangleOverlayPlugin();
 
+      // Should not throw error (errors are logged but handled gracefully)
       expect(() => {
         rectanglePlugin.addToChart(invalidChart);
       }).not.toThrow();

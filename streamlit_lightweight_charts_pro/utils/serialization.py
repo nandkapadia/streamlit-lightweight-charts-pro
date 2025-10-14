@@ -154,11 +154,12 @@ class SerializableMixin:
             ```
         """
         # Step 1: Initialize result dictionary and process overrides
-        result = {}
+        result: dict[str, Any] = {}
         override_fields = override_fields or {}
 
         # Step 2: Iterate through all dataclass fields
-        for field in fields(self):
+        # Cast self to Any to satisfy mypy - SerializableMixin is always used with dataclasses
+        for field in fields(self):  # type: ignore[arg-type]
             field_name = field.name
 
             # Step 3: Get field value (use override if provided, otherwise get from instance)
@@ -378,7 +379,9 @@ class SimpleSerializableMixin(SerializableMixin):
         return self._serialize_to_dict()
 
 
-def create_serializable_mixin(config_override: SerializationConfig = None) -> type:
+def create_serializable_mixin(
+    config_override: SerializationConfig | None = None,
+) -> type:
     """Factory function to create a configurable SerializableMixin.
 
     Args:

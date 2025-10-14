@@ -453,6 +453,7 @@ def chainable_field(
     field_name: str,
     value_type: Optional[Union[Type, tuple]] = None,
     validator: Optional[Union[Callable[[Any], Any], str]] = None,
+    allow_none: bool = False,
 ):
     """Decorator that creates a setter method for dataclass fields with optional validation.
 
@@ -475,6 +476,8 @@ def chainable_field(
             it should take a value and return the validated/transformed value.
             If string, uses built-in validators: "color", "price_format_type",
             "precision", "min_move".
+        allow_none: Whether to allow None values. If True, None values bypass
+            type validation but still go through custom validators.
 
     Returns:
         Decorator function that modifies the class to add a setter method.
@@ -493,7 +496,7 @@ def chainable_field(
         @dataclass
         @chainable_field("color", str, validator="color")
         @chainable_field("width", int)
-        @chainable_field("line_options", LineOptions)
+        @chainable_field("line_options", LineOptions, allow_none=True)
         class MyOptions:
             color: str = "#000000"
             width: int = 800
@@ -509,6 +512,9 @@ def chainable_field(
         # Direct assignment (no validation)
         options.color = "invalid_color"  # No validation applied
         options.set_color("invalid_color")  # Raises ValueError
+
+        # With None values when allow_none=True
+        options.set_line_options(None)  # Valid due to allow_none=True
         ```
 
     Note:
@@ -538,13 +544,19 @@ def chainable_field(
             Returns:
                 Self for method chaining.
             """
-            # Step 1: Apply validation and transformation
+            # Step 1: Handle None values early if they're allowed
+            # This bypasses all validation when None is explicitly permitted
+            if value is None and allow_none:
+                setattr(self, field_name, None)
+                return self
+
+            # Step 2: Apply validation and transformation
             validated_value = _validate_value(field_name, value, value_type, validator)
 
-            # Step 2: Set the validated value directly on the dataclass field
+            # Step 3: Set the validated value directly on the dataclass field
             setattr(self, field_name, validated_value)
 
-            # Step 3: Return self to enable method chaining
+            # Step 4: Return self to enable method chaining
             return self
 
         # Step 2: Add the generated setter method to the class

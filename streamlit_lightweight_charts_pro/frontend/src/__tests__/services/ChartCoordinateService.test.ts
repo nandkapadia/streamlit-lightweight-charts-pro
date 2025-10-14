@@ -396,6 +396,9 @@ describe('ChartCoordinateService', () => {
     });
 
     it('should use default dimensions as last resort', async () => {
+      // Suppress expected error logs for cleaner test output
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
       mockChart.chartElement = vi.fn(() => {
         throw new Error('Chart error');
       });
@@ -414,6 +417,8 @@ describe('ChartCoordinateService', () => {
       expect(dimensions).toBeDefined();
       expect(dimensions.container.width).toBe(800);
       expect(dimensions.container.height).toBe(600);
+
+      consoleErrorSpy.mockRestore();
     });
   });
 

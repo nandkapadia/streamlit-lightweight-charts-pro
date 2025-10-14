@@ -230,7 +230,7 @@ class SeriesSettingsAPI:
                     logger.warning("Failed to update series instance %s: %s", series_id, e)
 
             self._update_last_modified()
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to update series settings")
             return False
         else:
@@ -275,12 +275,11 @@ class SeriesSettingsAPI:
 
                     self._update_last_modified()
                     return default_config
-            else:
-                return None
 
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to reset series to defaults")
-            return None
+
+        return None
 
     def _get_series_defaults(self, series_instance: Series) -> Dict[str, Any]:
         """Get default configuration for a series type.
@@ -294,7 +293,7 @@ class SeriesSettingsAPI:
         series_type = series_instance.__class__.__name__.lower()
 
         # Common defaults for all series types
-        defaults = {
+        defaults: Dict[str, Any] = {
             "visible": True,
             "markers": False,
             "last_value_visible": True,
@@ -371,12 +370,12 @@ class SeriesSettingsAPI:
                 if not self.update_series_settings(pane_id, series_id, config):
                     success = False
                     logger.warning("Failed to update series %s in pane %s", series_id, pane_id)
-                else:
-                    return success
 
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to update multiple settings")
             return False
+        else:
+            return success
 
     def get_all_series_info(self, pane_id: int) -> List[Dict[str, Any]]:
         """Get information about all series in a pane.

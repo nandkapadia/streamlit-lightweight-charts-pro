@@ -39,7 +39,6 @@ import pytest
 from streamlit_lightweight_charts_pro.data.line_data import LineData
 from streamlit_lightweight_charts_pro.exceptions import (
     RequiredFieldError,
-    UnsupportedTimeTypeError,
     ValueValidationError,
 )
 

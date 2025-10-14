@@ -85,8 +85,8 @@ class Annotation:
     time: Union[pd.Timestamp, datetime, str, int, float]
     price: float
     text: str
-    annotation_type: Union[AnnotationType, str] = AnnotationType.TEXT
-    position: Union[AnnotationPosition, str] = AnnotationPosition.ABOVE
+    annotation_type: AnnotationType = AnnotationType.TEXT
+    position: AnnotationPosition = AnnotationPosition.ABOVE
     color: str = "#2196F3"
     background_color: str = "rgba(255, 255, 255, 0.9)"
     font_size: int = 12
@@ -165,14 +165,14 @@ class Annotation:
         self.tooltip = tooltip
 
     @property
-    def timestamp(self) -> Union[int, str]:
+    def timestamp(self) -> int:
         """Get time as UTC timestamp (converted fresh).
 
         Converts the time value to UTC timestamp each time it's accessed.
         This allows the time to be modified after construction.
 
         Returns:
-            Union[int, str]: UTC timestamp as integer (seconds).
+            int: UTC timestamp as integer (seconds).
         """
         return to_utc_timestamp(self.time)
 
@@ -458,7 +458,7 @@ class AnnotationManager:
         layers: Dictionary mapping layer names to AnnotationLayer objects
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the annotation manager.
 
         Creates a new AnnotationManager with an empty layers dictionary.

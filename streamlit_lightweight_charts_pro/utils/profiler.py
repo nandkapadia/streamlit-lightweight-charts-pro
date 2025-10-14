@@ -366,7 +366,7 @@ class PerformanceProfiler:
 
     def generate_recommendations(self) -> List[str]:
         """Generate performance optimization recommendations."""
-        recommendations = []
+        recommendations: List[str] = []
 
         if not self.profiles:
             return recommendations
@@ -397,7 +397,7 @@ class PerformanceProfiler:
             )
 
         # Check for repeated operations
-        operation_counts = defaultdict(int)
+        operation_counts: defaultdict[str, int] = defaultdict(int)
         for profile in self.profiles:
             operation_counts[profile.operation_name] += 1
 
@@ -467,16 +467,17 @@ class PerformanceProfiler:
 class MemoryMonitor:
     """Memory usage monitoring and optimization suggestions."""
 
-    def __init__(self):
-        self.memory_history: List[Dict[str, int]] = []
+    def __init__(self) -> None:
+        """Initialize memory monitor."""
+        self.memory_history: List[Dict[str, float]] = []
         self.process = psutil.Process()
 
-    def get_memory_usage(self) -> Dict[str, int]:
+    def get_memory_usage(self) -> Dict[str, float]:
         """Get current memory usage information."""
         memory_info = self.process.memory_info()
         return {
-            "rss": memory_info.rss,  # Resident Set Size
-            "vms": memory_info.vms,  # Virtual Memory Size
+            "rss": float(memory_info.rss),  # Resident Set Size
+            "vms": float(memory_info.vms),  # Virtual Memory Size
             "percent": self.process.memory_percent(),
         }
 
@@ -514,7 +515,7 @@ class MemoryMonitor:
 
     def suggest_optimizations(self) -> List[str]:
         """Suggest memory optimizations based on usage patterns."""
-        suggestions = []
+        suggestions: List[str] = []
 
         if not self.memory_history:
             return suggestions

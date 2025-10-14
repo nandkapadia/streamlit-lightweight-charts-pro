@@ -234,7 +234,7 @@ class HistogramSeries(Series):
             updated_mapping["value"] = volume_col  # Map volume to value for HistogramSeries
 
             # Use from_dataframe factory method to create the series
-            return cls.from_dataframe(volume_dataframe, column_mapping=updated_mapping, **kwargs)
+            return cls.from_dataframe(volume_dataframe, column_mapping=updated_mapping, **kwargs)  # type: ignore[return-value]
 
         # Handle sequence of OhlcvData objects (non-DataFrame input)
         if data is None:
@@ -280,7 +280,7 @@ class HistogramSeries(Series):
         # Disable last value visibility for volume series (typically used as overlay)
         volume_series._last_value_visible = False
 
-        return volume_series
+        return volume_series  # type: ignore[return-value]
 
     def __init__(
         self,

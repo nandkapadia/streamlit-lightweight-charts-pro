@@ -274,10 +274,15 @@ class Options(SerializableMixin, ABC):
         args = getattr(field_type, "__args__", ())
 
         # Dict type
-        if origin is dict and len(args) >= 2:
-            contains_options, options_class, _ = self._analyze_type_for_options(args[1])
-            if contains_options:
-                return True, options_class, True
+        if origin is dict and args and len(args) >= 2:
+            # Safely access args[1] after explicit length check
+            if len(args) > 1:
+                contains_options, options_class, _ = self._analyze_type_for_options(args[1])
+                if contains_options:
+                    return True, options_class, True
+        elif origin is dict and len(args) == 1:
+            # Handle Dict with only one type arg
+            return False, None, False
 
         # List type
         elif origin is list and args:

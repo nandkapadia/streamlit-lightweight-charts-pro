@@ -201,11 +201,11 @@ class Chart:
 
         # Initialize storage for trade data to be processed by frontend
         # Trades include buy/sell markers and PnL calculations
-        self._trades = []
+        self._trades: List[TradeData] = []
 
         # Initialize tooltip manager for lazy loading
         # Tooltips are only loaded if requested to improve performance
-        self._tooltip_manager = None
+        self._tooltip_manager: Optional[TooltipManager] = None
 
         # Flag to track if configs have been applied in current render cycle
         # This prevents double application which can cause flicker
@@ -299,7 +299,7 @@ class Chart:
 
         # Check for custom price scale configuration needs
         # Extract price_scale_id from the series for validation
-        price_scale_id = series.price_scale_id
+        price_scale_id = series.price_scale_id  # type: ignore[attr-defined]
 
         # Handle custom price scale setup
         # Only process non-standard scale IDs (not default "left"/"right")
@@ -573,7 +573,8 @@ class Chart:
         """
         if layer_name is not None and (not layer_name or not isinstance(layer_name, str)):
             raise ValueValidationError("layer_name", "must be None or a non-empty string")
-        self.annotation_manager.clear_layer(layer_name)
+        if layer_name is not None:
+            self.annotation_manager.clear_layer(layer_name)
         return self
 
     def add_overlay_price_scale(self, scale_id: str, options: "PriceScaleOptions") -> "Chart":
@@ -709,6 +710,7 @@ class Chart:
             )
 
         # Price series (default price scale)
+        price_series: Union[CandlestickSeries, LineSeries]
         if price_type == "candlestick":
             # Filter column mapping to only include OHLC fields for candlestick series
             price_column_mapping = {
@@ -767,8 +769,8 @@ class Chart:
         )
 
         # Set volume-specific properties
-        volume_series.base = volume_base
-        volume_series.price_format = {"type": "volume", "precision": 0}
+        volume_series.base = volume_base  # type: ignore[attr-defined]
+        volume_series.price_format = {"type": "volume", "precision": 0}  # type: ignore[attr-defined]
 
         # Add both series to the chart
         self.add_series(price_series)
@@ -1086,7 +1088,7 @@ class Chart:
         # - Within each pane, series are sorted by z_index (ascending)
         # - Lower z_index values render behind higher z_index values
         # - Pane order is maintained in the final output
-        series_by_pane = {}
+        series_by_pane: Dict[int, List[Dict[str, Any]]] = {}
         for series in self.series:
             series_config = series.asdict()
 
@@ -1185,7 +1187,7 @@ class Chart:
         # Apply data-aware range filtering to remove ranges that exceed data timespan
         chart_config = self._filter_range_switcher_by_data(chart_config)
 
-        chart_obj = {
+        chart_obj: Dict[str, Any] = {
             "chartId": f"chart-{id(self)}",
             "chart": chart_config,
             "series": series_configs,
@@ -1203,15 +1205,15 @@ class Chart:
         # Add tooltip configurations if they exist
         if self._tooltip_manager:
             tooltip_configs = {}
-            for name, config in self._tooltip_manager.configs.items():
-                tooltip_configs[name] = config.asdict()
+            for name, tooltip_config in self._tooltip_manager.configs.items():
+                tooltip_configs[name] = tooltip_config.asdict()
             chart_obj["tooltipConfigs"] = tooltip_configs
 
         # Add chart group ID for synchronization
         chart_obj["chartGroupId"] = self.chart_group_id
 
         # Note: paneHeights is now accessed directly from chart.layout.paneHeights in frontend
-        config = {
+        config: Dict[str, Any] = {
             "charts": [chart_obj],
         }
 
@@ -1235,7 +1237,7 @@ class Chart:
             # Enable sync at top level if this chart's group has sync enabled
             sync_enabled = self._chart_manager.default_sync.enabled or group_sync_enabled
 
-            sync_config = {
+            sync_config: Dict[str, Any] = {
                 "enabled": sync_enabled,
                 "crosshair": self._chart_manager.default_sync.crosshair,
                 "timeRange": self._chart_manager.default_sync.time_range,
@@ -1446,7 +1448,7 @@ class Chart:
                 raise ComponentNotAvailableError()
 
         # Build component kwargs
-        kwargs = {"config": config}
+        kwargs: Dict[str, Any] = {"config": config}
 
         # Extract height and width from chart options and pass to frontend
         if self.options:
@@ -1581,7 +1583,7 @@ class Chart:
                     else:
                         logger.warning("Skipping invalid change (missing seriesId or config)")
 
-        except Exception as e:
+        except Exception:
             logger.exception("Error handling series settings response")
 
     def get_series_info_for_pane(self, _pane_id: int = 0) -> List[dict]:

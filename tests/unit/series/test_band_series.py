@@ -113,9 +113,9 @@ class TestBandSeriesConstruction:
         assert series.lower_line.line_width == 2
 
         # Check default line styles
-        assert series.upper_line.line_style == "solid"
-        assert series.middle_line.line_style == "solid"
-        assert series.lower_line.line_style == "solid"
+        assert series.upper_line.line_style == LineStyle.SOLID
+        assert series.middle_line.line_style == LineStyle.SOLID
+        assert series.lower_line.line_style == LineStyle.SOLID
 
 
 class TestBandSeriesProperties:

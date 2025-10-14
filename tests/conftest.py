@@ -6,9 +6,8 @@ It includes data generation fixtures, performance testing utilities, error handl
 helpers, and mock objects for testing chart functionality.
 """
 
-import time
-
 # Standard imports
+import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
@@ -26,15 +25,6 @@ try:
         CrosshairOptions,
         LayoutOptions,
     )
-    from streamlit_lightweight_charts_pro.charts.series import (
-        AreaSeries,
-        BandSeries,
-        BarSeries,
-        BaselineSeries,
-        CandlestickSeries,
-        HistogramSeries,
-        LineSeries,
-    )
     from streamlit_lightweight_charts_pro.data import (
         AreaData,
         BandData,
@@ -44,7 +34,6 @@ try:
         HistogramData,
         LineData,
         Marker,
-        OhlcvData,
     )
 
     # Set flag to indicate that all imports are available
@@ -62,14 +51,6 @@ except ImportError:
     BaselineData = Any
     HistogramData = Any
     Marker = Any
-    OhlcvData = Any
-    AreaSeries = Any
-    BandSeries = Any
-    BarSeries = Any
-    BaselineSeries = Any
-    CandlestickSeries = Any
-    HistogramSeries = Any
-    LineSeries = Any
     LayoutOptions = Any
     CrosshairOptions = Any
 

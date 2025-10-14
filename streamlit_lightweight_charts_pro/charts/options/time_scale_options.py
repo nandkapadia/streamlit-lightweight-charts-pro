@@ -53,7 +53,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_field
 @chainable_field("right_bar_stays_on_scroll", bool)
 @chainable_field("shift_visible_range_on_new_bar", bool)
 @chainable_field("allow_shift_visible_range_on_whitespace_access", bool)
-@chainable_field("tick_mark_formatter", Callable)
+@chainable_field("tick_mark_formatter", allow_none=True)
 @chainable_field("fit_content_on_load", bool)
 @chainable_field("handle_double_click", bool)
 @chainable_field("handle_scale", bool)

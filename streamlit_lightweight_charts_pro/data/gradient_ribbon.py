@@ -31,9 +31,7 @@ class GradientRibbonData(RibbonData):
     REQUIRED_COLUMNS: ClassVar[set] = {"upper", "lower"}
     OPTIONAL_COLUMNS: ClassVar[set] = {"fill", "gradient"}
 
-    upper: Optional[float] = None
-    lower: Optional[float] = None
-    fill: Optional[str] = None
+    # upper and lower inherited from RibbonData
     gradient: Optional[float] = None
 
     def __post_init__(self):

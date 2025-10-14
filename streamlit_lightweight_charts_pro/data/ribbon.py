@@ -28,8 +28,8 @@ class RibbonData(Data):
     REQUIRED_COLUMNS: ClassVar[set] = {"upper", "lower"}
     OPTIONAL_COLUMNS: ClassVar[set] = {"fill"}
 
-    upper: float
-    lower: float
+    upper: Optional[float]
+    lower: Optional[float]
     fill: Optional[str] = None
 
     def __post_init__(self):

@@ -82,7 +82,7 @@ def debug_component_status() -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Status information about the component
     """
-    status = {
+    status: Dict[str, Any] = {
         "component_initialized": _component_func is not None,
         "release_mode": _RELEASE,
         "frontend_dir_exists": False,

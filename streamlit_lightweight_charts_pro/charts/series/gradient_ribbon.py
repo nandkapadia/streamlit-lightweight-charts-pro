@@ -79,7 +79,7 @@ class GradientRibbonSeries(RibbonSeries):
         self._gradient_start_color = gradient_start_color
         self._gradient_end_color = gradient_end_color
         self._normalize_gradients = normalize_gradients
-        self._gradient_bounds = None
+        self._gradient_bounds: Optional[tuple[float, float]] = None
 
     @property
     def chart_type(self) -> ChartType:
@@ -99,7 +99,10 @@ class GradientRibbonSeries(RibbonSeries):
 
         # Single pass with inline min/max tracking - no list building
         for data_point in self.data:
-            gradient = data_point.gradient
+            # Type check: ensure data point has gradient attribute
+            if not hasattr(data_point, "gradient"):
+                continue
+            gradient = data_point.gradient  # type: ignore[attr-defined]
             if (
                 gradient is not None
                 and isinstance(gradient, (int, float))
