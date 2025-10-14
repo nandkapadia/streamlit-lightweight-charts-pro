@@ -38,7 +38,7 @@ from typing import Optional
 
 
 def setup_logging(
-    level: int = logging.ERROR,
+    level: int = logging.WARN,
     log_format: Optional[str] = None,
     stream: Optional[logging.StreamHandler] = None,
 ) -> logging.Logger:
@@ -104,7 +104,7 @@ def setup_logging(
     return logger
 
 
-def get_logger(name: Optional[str] = None, level: int = logging.ERROR) -> logging.Logger:
+def get_logger(name: Optional[str] = None, level: int = logging.DEBUG) -> logging.Logger:
     """Get a logger instance for the package.
 
     This function creates or retrieves a logger instance with the proper naming

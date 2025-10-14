@@ -59,12 +59,20 @@ class SeriesSettingsAPI:
         """Update the last modified timestamp."""
         st.session_state[self._session_key]["last_update"] = time.time()
 
-    def register_series(self, pane_id: int, series: Series) -> None:
+    def register_series(
+        self,
+        pane_id: int,
+        series: Series,
+        series_index: Optional[int] = None,
+    ) -> None:
         """Register a series instance with the API.
 
         Args:
             pane_id: The pane ID where the series belongs
             series: The series instance to register
+            series_index: Optional series index for generating consistent series IDs.
+                If provided, generates ID as "pane-{paneId}-series-{index}".
+                If not provided, falls back to legacy format.
         """
         chart_state = self._get_chart_state()
 
@@ -72,20 +80,43 @@ class SeriesSettingsAPI:
         if str(pane_id) not in chart_state["panes"]:
             chart_state["panes"][str(pane_id)] = {}
 
-        # Store series reference
-        series_id = getattr(series, "id", f"series_{len(chart_state['series_refs'])}")
+        # CRITICAL FIX: Generate series ID in same format as frontend expects
+        # Frontend uses: "pane-{paneId}-series-{index}"
+        # This ensures storage and retrieval keys match
+        if series_index is not None:
+            series_id = f"pane-{pane_id}-series-{series_index}"
+        else:
+            # Fallback to legacy format for backward compatibility
+            series_id = getattr(series, "id", f"series_{len(chart_state['series_refs'])}")
+
         chart_state["series_refs"][series_id] = series
 
-        # Initialize series config if it doesn't exist
-        if series_id not in chart_state["panes"][str(pane_id)]:
-            chart_state["panes"][str(pane_id)][series_id] = SeriesConfigState(
-                config=series.asdict() if hasattr(series, "asdict") else {},
+        # Check if series config already exists (from previous interaction)
+        pane_key = str(pane_id)
+        if series_id in chart_state["panes"][pane_key]:
+            # Config exists from previous interaction - apply it to the series
+            existing_config = chart_state["panes"][pane_key][series_id]
+            if isinstance(existing_config, SeriesConfigState):
+                stored_config = existing_config.config
+                # Apply stored config to series to preserve user changes
+                if hasattr(series, "update") and callable(series.update):
+                    series.update(stored_config)
+                else:
+                    # Fallback: set attributes directly
+                    for key, value in stored_config.items():
+                        if hasattr(series, key):
+                            setattr(series, key, value)
+        else:
+            # First time registration - initialize with EMPTY config
+            # We only store user changes, not the default series state
+            # This prevents conflicts between stored defaults and user modifications
+            chart_state["panes"][pane_key][series_id] = SeriesConfigState(
+                config={},  # Start empty - only store user changes
                 series_type=series.__class__.__name__.lower(),
                 last_modified=int(time.time()),
             )
 
         self._update_last_modified()
-        logger.debug("Registered series %s in pane %s", series_id, pane_id)
 
     def get_pane_state(self, pane_id: int) -> Dict[str, Any]:
         """Get current state for a specific pane.
@@ -154,12 +185,26 @@ class SeriesSettingsAPI:
             else:
                 current_config = current_state.get("config", {}).copy()
 
-            # Apply patch
-            current_config.update(config_patch)
+            # Apply patch - handle nested structures like mainLine
+            for key, value in config_patch.items():
+                if isinstance(value, dict) and key in ("mainLine", "lineOptions", "options"):
+                    # Flatten nested line options to top-level properties
+                    for nested_key, nested_value in value.items():
+                        current_config[nested_key] = nested_value
+                else:
+                    current_config[key] = value
+
+            # Clean up config: remove problematic nested structures and data
+            # We only want to store user-changeable UI properties, not data or defaults
+            cleaned_config = {
+                key: value
+                for key, value in current_config.items()
+                if key not in ("data", "options", "lineOptions", "mainLine")
+            }
 
             # Update the stored configuration
             chart_state["panes"][pane_key][series_id] = SeriesConfigState(
-                config=current_config,
+                config=cleaned_config,
                 series_type=(
                     current_state.series_type
                     if isinstance(current_state, SeriesConfigState)
@@ -172,16 +217,15 @@ class SeriesSettingsAPI:
             if series_id in chart_state["series_refs"]:
                 series_instance = chart_state["series_refs"][series_id]
                 try:
-                    # Use fromdict if available to update series
-                    if hasattr(series_instance, "fromdict"):
-                        series_instance.fromdict(config_patch)
+                    # Use update() method which all Series classes have
+                    if hasattr(series_instance, "update") and callable(series_instance.update):
+                        series_instance.update(config_patch)
                     else:
                         # Fallback to setting attributes directly
                         for key, value in config_patch.items():
                             if hasattr(series_instance, key):
                                 setattr(series_instance, key, value)
 
-                    logger.debug("Updated series %s with config: %s", series_id, config_patch)
                 except Exception as e:
                     logger.warning("Failed to update series instance %s: %s", series_id, e)
 
@@ -226,8 +270,8 @@ class SeriesSettingsAPI:
                     )
 
                     # Update the series instance
-                    if hasattr(series_instance, "fromdict"):
-                        series_instance.fromdict(default_config)
+                    if hasattr(series_instance, "update") and callable(series_instance.update):
+                        series_instance.update(default_config)
 
                     self._update_last_modified()
                     return default_config

@@ -83,7 +83,7 @@ class React19PerformanceMonitor {
     this.activeTransitions.set(transitionId, metrics);
 
     if (process.env.NODE_ENV === 'development') {
-      logger.debug(
+      logger.info(
         `Starting transition: ${componentName} (${transitionType})`,
         'React19PerformanceMonitor'
       );
@@ -107,7 +107,7 @@ class React19PerformanceMonitor {
 
     if (process.env.NODE_ENV === 'development') {
       const status = duration > 16 ? '⚠️ SLOW' : '✅ FAST';
-      logger.debug(
+      logger.info(
         `${status} React 19 Transition Completed: ${transition.componentName} (${transition.transitionType}) - ${duration.toFixed(2)}ms`,
         'React19PerformanceMonitor'
       );
@@ -131,7 +131,7 @@ class React19PerformanceMonitor {
     this.suspenseLoadTimes.set(componentName, performance.now());
 
     if (process.env.NODE_ENV === 'development') {
-      logger.debug(`Starting Suspense load: ${componentName}`, 'React19PerformanceMonitor');
+      logger.info(`Starting Suspense load: ${componentName}`, 'React19PerformanceMonitor');
     }
   }
 
@@ -147,7 +147,7 @@ class React19PerformanceMonitor {
 
     if (process.env.NODE_ENV === 'development') {
       const status = loadTime > 1000 ? '⚠️ SLOW' : '✅ FAST';
-      logger.debug(
+      logger.info(
         `${status} Suspense load: ${componentName} - ${loadTime.toFixed(2)}ms`,
         'React19PerformanceMonitor'
       );
@@ -164,7 +164,7 @@ class React19PerformanceMonitor {
     this.metrics.deferredValueDelay = Math.max(this.metrics.deferredValueDelay, processingTime);
 
     if (process.env.NODE_ENV === 'development' && processingTime > 50) {
-      logger.debug(
+      logger.info(
         `Deferred value processing: ${valueName} - ${processingTime.toFixed(2)}ms`,
         'React19PerformanceMonitor'
       );
@@ -178,7 +178,7 @@ class React19PerformanceMonitor {
     this.metrics.flushSyncCount++;
 
     if (process.env.NODE_ENV === 'development') {
-      logger.debug(`flushSync called: ${componentName} - ${reason}`, 'React19PerformanceMonitor');
+      logger.info(`flushSync called: ${componentName} - ${reason}`, 'React19PerformanceMonitor');
     }
 
     // Warn if flushSync is overused
@@ -341,7 +341,7 @@ export function logReact19Performance(options?: { skipEnvCheck?: boolean }): voi
   const report = react19Monitor.getPerformanceReport();
 
   if (report.recommendations.length > 0) {
-    logger.debug('React 19 Performance Recommendations:', 'React19PerformanceMonitor', {
+    logger.info('React 19 Performance Recommendations:', 'React19PerformanceMonitor', {
       score: report.score,
       recommendations: report.recommendations,
     });

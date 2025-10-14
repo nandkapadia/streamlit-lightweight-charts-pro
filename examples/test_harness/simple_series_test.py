@@ -260,6 +260,8 @@ def main():
         st.write("**Baseline**")
         baseline = BaselineSeries(data=data["line_data"])
         baseline.base_value = {"type": "price", "price": 100}
+        baseline.title = "NIFTY 50 - Baseline"
+        baseline.display_name = "NIFTY 50 - Baseline"
         Chart(series=baseline).render(key="baseline")
 
         st.write("**Bar**")

@@ -48,8 +48,6 @@ export class ButtonRegistry {
     } else {
       this.buttonOrder.splice(insertIndex, 0, id);
     }
-
-    logger.debug(`Registered button: ${id} with priority ${priority}`, 'ButtonRegistry');
   }
 
   /**
@@ -63,8 +61,6 @@ export class ButtonRegistry {
 
     this.buttons.delete(id);
     this.buttonOrder = this.buttonOrder.filter(buttonId => buttonId !== id);
-
-    logger.debug(`Unregistered button: ${id}`, 'ButtonRegistry');
   }
 
   /**
@@ -96,7 +92,6 @@ export class ButtonRegistry {
   public clear(): void {
     this.buttons.clear();
     this.buttonOrder = [];
-    logger.debug('Cleared all buttons from registry', 'ButtonRegistry');
   }
 
   /**
@@ -125,7 +120,6 @@ export class ButtonRegistry {
     }
 
     this.buttonOrder = order;
-    logger.debug(`Updated button order: ${order.join(', ')}`, 'ButtonRegistry');
   }
 
   /**

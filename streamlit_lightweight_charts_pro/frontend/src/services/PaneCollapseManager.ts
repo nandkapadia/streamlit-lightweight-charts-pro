@@ -260,15 +260,6 @@ export class PaneCollapseManager extends KeyedSingletonManager<PaneCollapseManag
 
       state.isCollapsed = true;
 
-      logger.debug('Collapsed pane with redistribution to expanded panes', 'PaneCollapseManager', {
-        paneId,
-        originalHeight: state.originalHeight,
-        collapsedHeight: state.collapsedHeight,
-        freedSpace,
-        expandedPanes,
-        spacePerExpandedPane,
-      });
-
       // Trigger per-pane callback
       if (state.onPaneCollapse) {
         state.onPaneCollapse(paneId, true);
@@ -365,15 +356,6 @@ export class PaneCollapseManager extends KeyedSingletonManager<PaneCollapseManag
 
       // Reset saved values so next collapse captures current state
       state.originalHeight = 0;
-
-      logger.debug('Expanded pane with redistribution from expanded panes', 'PaneCollapseManager', {
-        paneId,
-        originalHeight: state.originalHeight,
-        collapsedHeight: state.collapsedHeight,
-        spaceToReclaim,
-        expandedPanes,
-        spacePerExpandedPane,
-      });
 
       // Trigger per-pane callback
       if (state.onPaneExpand) {

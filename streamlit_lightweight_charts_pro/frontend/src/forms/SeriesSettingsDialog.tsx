@@ -15,7 +15,7 @@ import { createPortal } from 'react-dom';
 import { logger } from '../utils/logger';
 import { LineEditorDialog } from './LineEditorDialog';
 import { ColorPickerDialog } from './ColorPickerDialog';
-import { useSeriesSettingsAPI } from '../hooks/useSeriesSettingsAPI';
+// import { useSeriesSettingsAPI } from '../hooks/useSeriesSettingsAPI'; // Temporarily disabled to prevent rerenders
 import { SeriesSettingsRenderer } from '../components/SeriesSettingsRenderer';
 import { getSeriesSettings } from '../config/seriesSettingsRegistry';
 import {
@@ -116,7 +116,7 @@ export interface SeriesSettingsDialogProps {
 export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   isOpen,
   onClose,
-  paneId,
+  paneId: _paneId,
   seriesList,
   seriesConfigs,
   onConfigChange,
@@ -141,10 +141,10 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     useState<Record<string, Partial<SeriesConfig>>>(seriesConfigs);
 
   // React 19 hooks for form handling and optimistic updates
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
 
-  // API hooks for backend communication
-  const { updateMultipleSettings } = useSeriesSettingsAPI();
+  // API hooks for backend communication (currently disabled to prevent rerenders)
+  // const { updateMultipleSettings } = useSeriesSettingsAPI();
 
   // Initialize configs from props (chart state is source of truth)
   useEffect(() => {
@@ -218,7 +218,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           try {
             (previousFocusRef.current as HTMLElement).blur();
           } catch (error) {
-            logger.debug('Could not blur previous element', 'SeriesSettings', error);
+            logger.info('Could not blur previous element', 'SeriesSettings', error);
           }
         }
 
@@ -245,18 +245,9 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     };
   }, []);
 
-  // Debounced backend sync state
-  const pendingBackendUpdates = useRef<Map<string, Partial<SeriesConfig>>>(new Map());
-  const backendSyncTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  // Cleanup pending backend sync on unmount
-  useEffect(() => {
-    return () => {
-      if (backendSyncTimeout.current) {
-        clearTimeout(backendSyncTimeout.current);
-      }
-    };
-  }, []);
+  // Debounced backend sync state (currently disabled to prevent rerenders)
+  // const pendingBackendUpdates = useRef<Map<string, Partial<SeriesConfig>>>(new Map());
+  // const backendSyncTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Handle configuration changes with immediate UI updates and debounced backend sync
   const handleConfigChange = useCallback(
@@ -280,38 +271,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       if (onConfigChange) {
         onConfigChange(seriesId, flatConfigPatch);
       }
-
-      // PERFORMANCE FIX: Accumulate changes for debounced backend sync
-      const existing = pendingBackendUpdates.current.get(seriesId) || {};
-      pendingBackendUpdates.current.set(seriesId, { ...existing, ...configPatch });
-
-      // Clear previous timeout
-      if (backendSyncTimeout.current) {
-        clearTimeout(backendSyncTimeout.current);
-      }
-
-      // Debounce backend sync (batch multiple rapid changes)
-      backendSyncTimeout.current = setTimeout(() => {
-        // Batch all pending updates
-        const updates = Array.from(pendingBackendUpdates.current.entries()).map(([id, config]) => ({
-          paneId,
-          seriesId: id,
-          config,
-        }));
-
-        if (updates.length > 0) {
-          startTransition(() => {
-            updateMultipleSettings(updates).catch(error => {
-              logger.error('Failed to persist series settings to backend', 'SeriesSettings', error);
-            });
-          });
-
-          // Clear pending updates
-          pendingBackendUpdates.current.clear();
-        }
-      }, 500); // 500ms debounce - adjustable based on UX needs
     },
-    [onConfigChange, startTransition, updateMultipleSettings, paneId, seriesList]
+    [onConfigChange, seriesList]
   );
 
   // Get current series info and config
@@ -331,16 +292,6 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     () => getSeriesSettings(activeSeriesInfo?.type),
     [activeSeriesInfo?.type]
   );
-
-  // Debug logging for series type detection
-  if (process.env.NODE_ENV === 'development') {
-    logger.debug('Series selection debug info', 'SeriesSettings', {
-      activeSeriesId,
-      activeSeriesInfo,
-      type: activeSeriesInfo?.type,
-      allSeries: seriesList.map(s => ({ id: s.id, type: s.type, displayName: s.displayName })),
-    });
-  }
 
   // Close handler - just close the dialog, focus restoration handled by useEffect
   const handleCloseWithFocusRestore = useCallback(() => {

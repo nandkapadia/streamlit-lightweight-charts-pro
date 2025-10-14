@@ -33,6 +33,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 
 # Third Party Imports
 import pandas as pd
+import streamlit as st
 import streamlit.components.v1 as components
 
 # Local Imports
@@ -205,6 +206,10 @@ class Chart:
         # Initialize tooltip manager for lazy loading
         # Tooltips are only loaded if requested to improve performance
         self._tooltip_manager = None
+
+        # Flag to track if configs have been applied in current render cycle
+        # This prevents double application which can cause flicker
+        self._configs_applied = False
 
         # Process initial annotations if provided
         # This ensures annotations are added in correct order
@@ -1214,6 +1219,119 @@ class Chart:
 
         return config
 
+    def _save_series_configs_to_session(self, key: str, configs: Dict[str, Any]) -> None:
+        """Save series configurations to Streamlit session state.
+
+        Private method to persist series configurations across reruns.
+
+        Args:
+            key: Component key used to namespace the stored configs
+            configs: Dictionary of series configurations to save
+        """
+        if not key:
+            return
+
+        session_key = f"_chart_series_configs_{key}"
+        st.session_state[session_key] = configs
+
+    def _load_series_configs_from_session(self, key: str) -> Dict[str, Any]:
+        """Load series configurations from Streamlit session state.
+
+        Private method to retrieve persisted series configurations.
+
+        Args:
+            key: Component key used to namespace the stored configs
+
+        Returns:
+            Dictionary of series configurations or empty dict if none found
+        """
+        if not key:
+            return {}
+
+        session_key = f"_chart_series_configs_{key}"
+        return st.session_state.get(session_key, {})
+
+    def _apply_stored_configs_to_series(self, stored_configs: Dict[str, Any]) -> None:
+        """Apply stored configurations to series objects.
+
+        Private method to update series objects with persisted configurations.
+        Optimized to apply all configurations in a single pass to prevent flicker.
+
+        Args:
+            stored_configs: Dictionary mapping series IDs to their configurations
+        """
+        if not stored_configs:
+            return
+
+        # Check if configs have already been applied in this render cycle
+        # This prevents double application which can cause flicker
+        if hasattr(self, "_configs_applied") and self._configs_applied:
+            return
+
+        for i, series in enumerate(self.series):
+            # Generate the expected series ID
+            series_id = f"pane-0-series-{i}"
+
+            if series_id in stored_configs:
+                config = stored_configs[series_id]
+
+                try:
+                    # Separate configs for line_options vs general series properties
+                    line_options_config = {}
+                    series_config = {}
+
+                    for key, value in config.items():
+                        # Skip data and internal metadata
+                        if key in (
+                            "data",
+                            "type",
+                            "paneId",
+                            "priceScaleId",
+                            "zIndex",
+                            "_seriesType",
+                        ):
+                            continue
+
+                        # Line-specific properties go to line_options
+                        if key in (
+                            "color",
+                            "lineWidth",
+                            "lineStyle",
+                            "lineType",
+                            "lineVisible",
+                            "pointMarkersVisible",
+                            "pointMarkersRadius",
+                            "crosshairMarkerVisible",
+                            "crosshairMarkerRadius",
+                            "crosshairMarkerBorderColor",
+                            "crosshairMarkerBackgroundColor",
+                            "crosshairMarkerBorderWidth",
+                            "lastPriceAnimation",
+                        ):
+                            line_options_config[key] = value
+                        # Other properties go to the series itself
+                        else:
+                            series_config[key] = value
+
+                    # Apply all configurations in a single batch to minimize updates
+                    # Apply line options config if this is a series with line_options
+                    if (
+                        hasattr(series, "line_options")
+                        and series.line_options
+                        and line_options_config
+                    ):
+                        series.line_options.update(line_options_config)
+
+                    # Apply general series config
+                    if series_config and hasattr(series, "update") and callable(series.update):
+                        series.update(series_config)
+
+                except Exception:
+                    logger.exception("Failed to apply config to series %s", series_id)
+
+        # Mark configs as applied for this render cycle
+        self._configs_applied = True
+
     def render(self, key: Optional[str] = None) -> Any:
         """Render the chart in Streamlit.
 
@@ -1256,7 +1374,18 @@ class Chart:
             unique_id = str(uuid.uuid4())[:8]
             key = f"chart_{int(time.time() * 1000)}_{unique_id}"
 
-        # Generate chart configuration from current state
+        # STEP 1: Reset config application flag for this render cycle
+        # This allows configs to be applied fresh on each render
+        self._configs_applied = False
+
+        # STEP 2: Load and apply stored configs IMMEDIATELY before any serialization
+        # This ensures configs are applied exactly once before generating frontend config
+        stored_configs = self._load_series_configs_from_session(key)
+        if stored_configs:
+            self._apply_stored_configs_to_series(stored_configs)
+
+        # STEP 3: Generate chart configuration ONLY AFTER configs are applied
+        # This prevents any intermediate state from being rendered
         config = self.to_frontend_config()
 
         # Get component function
@@ -1282,17 +1411,33 @@ class Chart:
 
         kwargs["key"] = key
 
-        # Initialize series settings API and register series
-        series_api = get_series_settings_api(key)
+        # CRITICAL: Add default parameter for proper return value handling
+        # This allows the component to return values from frontend
+        kwargs["default"] = None
 
-        # Register all series with the API (assuming pane 0 for single-pane charts)
-        for _i, series in enumerate(self.series):
-            series_api.register_series(pane_id=0, series=series)
-
-        # Render component and handle series settings API responses
+        # STEP 4: Render component
         result = component_func(**kwargs)
 
+        # STEP 5: Handle component return value and save series configs
         if result and isinstance(result, dict):
+            # Check if we have series config changes from the frontend
+            if result.get("type") == "series_config_changes":
+                changes = result.get("changes", [])
+                if changes:
+                    # Build a dictionary of all current series configs
+                    series_configs = {}
+                    for change in changes:
+                        series_id = change.get("seriesId")
+                        config = change.get("config")
+                        if series_id and config:
+                            series_configs[series_id] = config
+
+                    # Save to session state
+                    if series_configs:
+                        self._save_series_configs_to_session(key, series_configs)
+
+            # Still handle other API responses
+            series_api = get_series_settings_api(key)
             self._handle_series_settings_response(result, series_api)
 
         return result
@@ -1305,9 +1450,6 @@ class Chart:
             series_api: SeriesSettingsAPI instance for this chart
         """
         try:
-            # Debug logging for all responses
-            logger.debug("Handling series settings response: %s", response)
-
             # Check for series settings API calls
             if response.get("type") == "get_pane_state":
                 pane_id = response.get("paneId", 0)
@@ -1354,13 +1496,6 @@ class Chart:
                     """,
                         height=0,
                     )
-                # Log the update for debugging
-                elif success:
-                    logger.debug(
-                        "Updated series settings for %s: %s",
-                        series_id,
-                        config,
-                    )
 
             elif response.get("type") == "reset_series_defaults":
                 pane_id = response.get("paneId", 0)
@@ -1383,6 +1518,22 @@ class Chart:
                     """,
                         height=0,
                     )
+
+            elif response.get("type") == "series_config_changes":
+                # Handle batched configuration changes from StreamlitSeriesConfigService
+                changes = response.get("changes", [])
+
+                for change in changes:
+                    pane_id = change.get("paneId", 0)
+                    series_id = change.get("seriesId", "")
+                    config = change.get("config", {})
+
+                    if series_id and config:
+                        success = series_api.update_series_settings(pane_id, series_id, config)
+                        if not success:
+                            logger.warning("Failed to store config for series %s", series_id)
+                    else:
+                        logger.warning("Skipping invalid change (missing seriesId or config)")
 
         except Exception as e:
             logger.exception("Error handling series settings response")

@@ -257,9 +257,9 @@ def main():
                 ),
                 "Entry Price": f"${trade.entry_price:.2f}",
                 "Exit Price": f"${trade.exit_price:.2f}",
-                "Quantity": trade.additional_data.get("quantity", 0)
-                if trade.additional_data
-                else 0,
+                "Quantity": (
+                    trade.additional_data.get("quantity", 0) if trade.additional_data else 0
+                ),
                 "PnL": f"${trade.pnl:.2f}",
                 "Duration": (
                     f"{to_utc_timestamp(trade.exit_time) - to_utc_timestamp(trade.entry_time)}"

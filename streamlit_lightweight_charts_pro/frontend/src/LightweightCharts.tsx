@@ -783,7 +783,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         try {
           resizeObserverRef.current.disconnect();
         } catch (error) {
-          logger.debug('ResizeObserver already disconnected', 'Cleanup', error);
+          logger.warn('ResizeObserver already disconnected', 'Cleanup', error);
         }
         resizeObserverRef.current = null;
       }
@@ -798,7 +798,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         try {
           resizeObserver.disconnect();
         } catch (error) {
-          logger.debug('Legend ResizeObserver already disconnected', 'Cleanup', error);
+          logger.warn('Legend ResizeObserver already disconnected', 'Cleanup', error);
         }
       });
 
@@ -814,7 +814,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   widget.destroy();
                 }
               } catch (error) {
-                logger.debug('Error destroying button panel widget', 'Cleanup', error);
+                logger.warn('Error destroying button panel widget', 'Cleanup', error);
               }
             });
           }
@@ -833,12 +833,12 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     plugin.destroy();
                   }
                 } catch (error) {
-                  logger.debug('Plugin already destroyed', 'Cleanup', error);
+                  logger.warn('Plugin already destroyed', 'Cleanup', error);
                 }
               });
             }
           } catch (error) {
-            logger.debug('Plugins already cleaned up', 'Cleanup', error);
+            logger.warn('Plugins already cleaned up', 'Cleanup', error);
           }
         });
         window.chartPlugins.clear();
@@ -850,7 +850,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           try {
             ChartPrimitiveManager.cleanup(chartId);
           } catch (error) {
-            logger.debug('Widget manager already cleaned up', 'Cleanup', error);
+            logger.warn('Widget manager already cleaned up', 'Cleanup', error);
           }
         });
       }
@@ -866,7 +866,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         try {
           CornerLayoutManager.cleanup(chartId);
         } catch (error) {
-          logger.debug('CornerLayoutManager already cleaned up', 'Cleanup', error);
+          logger.warn('CornerLayoutManager already cleaned up', 'Cleanup', error);
         }
       });
 
@@ -878,7 +878,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             chart.remove();
           }
         } catch (error) {
-          logger.debug('Chart already removed or disposed', 'Cleanup', error);
+          logger.warn('Chart already removed or disposed', 'Cleanup', error);
         }
       });
 
@@ -1072,11 +1072,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         // Additional safety check - ensure annotations is actually an array
         try {
           if (typeof annotationsArray.forEach !== 'function') {
-            logger.debug('Annotations array does not have forEach method', 'Annotations');
+            logger.info('Annotations array does not have forEach method', 'Annotations');
             return;
           }
         } catch (error) {
-          logger.debug('Error checking annotations array', 'Annotations', error);
+          logger.warn('Error checking annotations array', 'Annotations', error);
           return;
         }
 
@@ -1614,7 +1614,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             try {
               CornerLayoutManager.cleanup(chartConfig.chartId);
             } catch (error) {
-              logger.debug('Layout manager already cleaned up', 'Cleanup', error);
+              logger.warn('Layout manager already cleaned up', 'Cleanup', error);
             }
           });
         }
@@ -1713,12 +1713,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             // Use pre-processed chart options
             const chartOptions = chartConfig.chartOptions || chartConfig.chart || {};
 
-            logger.debug('Creating chart', 'ChartInit', { chartId, chartOptions });
-
             let chart: IChartApi;
             try {
               chart = createChart(container, chartOptions as any);
-              logger.debug('Chart created successfully', 'ChartInit', { chartId });
             } catch (error) {
               logger.error('Failed to create chart', 'ChartInit', error);
               return;
@@ -1872,7 +1869,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             // modifications made by the backend (e.g., scale margins for price+volume charts)
             if (chartConfig.chart?.rightPriceScale) {
               try {
-                logger.debug('Configuring right price scale', 'ChartInit');
                 const rightScale = chart.priceScale('right');
                 if (rightScale) {
                   rightScale.applyOptions(
@@ -1880,7 +1876,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       chartConfig.chart.rightPriceScale as Record<string, unknown>
                     )
                   );
-                  logger.debug('Successfully configured right price scale', 'ChartInit');
                 }
               } catch (error) {
                 logger.error('Failed to configure right price scale', 'ChartInit', error);
@@ -1889,11 +1884,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             if (chartConfig.chart?.leftPriceScale) {
               try {
-                logger.debug(
-                  'Configuring left price scale',
-                  'ChartInit',
-                  chartConfig.chart.leftPriceScale
-                );
                 const leftScale = chart.priceScale('left');
                 if (leftScale) {
                   leftScale.applyOptions(
@@ -1901,7 +1891,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       chartConfig.chart.leftPriceScale as Record<string, unknown>
                     )
                   );
-                  logger.debug('Successfully configured left price scale', 'ChartInit');
                 }
               } catch (error) {
                 logger.error('Failed to configure left price scale', 'ChartInit', error);
@@ -1910,25 +1899,17 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             // Configure overlay price scales (volume, indicators, etc.) if they exist
             if (chartConfig.chart?.overlayPriceScales) {
-              logger.debug('Configuring overlay price scales', 'ChartInit', {
-                scales: Object.keys(chartConfig.chart.overlayPriceScales),
-              });
               Object.entries(chartConfig.chart.overlayPriceScales).forEach(
                 ([scaleId, scaleConfig]) => {
                   try {
-                    logger.debug(`Attempting to configure overlay scale: ${scaleId}`, 'ChartInit');
                     // Create overlay price scale - use the scaleId directly
                     const overlayScale = chart.priceScale(scaleId);
                     if (overlayScale) {
                       overlayScale.applyOptions(
                         cleanLineStyleOptions(scaleConfig as Record<string, unknown>)
                       );
-                      logger.debug(
-                        `Successfully configured overlay scale: ${scaleId}`,
-                        'ChartInit'
-                      );
                     } else {
-                      logger.debug(
+                      logger.info(
                         `Overlay scale ${scaleId} not found, will be created when series uses it`,
                         'ChartInit'
                       );
@@ -1938,29 +1919,18 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   }
                 }
               );
-            } else {
-              logger.debug('No overlay price scales configured', 'ChartInit');
             }
 
             // Create series for this chart
             const seriesList: ISeriesApi<any>[] = [];
 
             if (chartConfig.series && Array.isArray(chartConfig.series)) {
-              logger.debug(
-                `Creating ${chartConfig.series.length} series for chart ${chartId}`,
-                'ChartInit'
-              );
               chartConfig.series.forEach((seriesConfig: SeriesConfig, seriesIndex: number) => {
                 try {
                   if (!seriesConfig || typeof seriesConfig !== 'object') {
                     logger.warn(`Series ${seriesIndex} is invalid, skipping`, 'ChartInit');
                     return;
                   }
-
-                  logger.debug(
-                    `Creating series ${seriesIndex}: type=${seriesConfig.type}, priceScaleId=${seriesConfig.priceScaleId}`,
-                    'ChartInit'
-                  );
 
                   // Pass trade data to the first series (candlestick series) for marker creation
                   if (
@@ -1980,13 +1950,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     seriesId: `${chartId || 'default'}-series-${seriesIndex}`,
                   });
                   if (series) {
-                    logger.debug(
-                      `Series ${seriesIndex} created successfully: type=${seriesConfig.type}, priceScaleId=${seriesConfig.priceScaleId}`,
-                      'ChartInit'
-                    );
                     seriesList.push(series);
-
-                    // Legend will be created after chart is ready
 
                     // Apply overlay price scale configuration if this series uses one
                     if (
@@ -2140,10 +2104,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       logger.error('Failed to set stretch factor for pane', 'ChartInit', error);
                     }
                   } else {
-                    logger.debug(
-                      `Skipping pane ${paneId} - out of range or no factor`,
-                      'ChartInit'
-                    );
+                    logger.info(`Skipping pane ${paneId} - out of range or no factor`, 'ChartInit');
                   }
                 }
               );
@@ -2524,11 +2485,25 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               // Apply the options to the series
               if (Object.keys(apiConfig).length > 0) {
                 series.applyOptions(apiConfig);
-                logger.debug('Applied series config change', 'SeriesConfig', {
-                  seriesId,
-                  seriesType,
-                  configPatch: cleanConfigPatch,
-                  apiConfig,
+
+                // CRITICAL FIX: Ensure chart rerenders after config change
+                // Use requestAnimationFrame to batch DOM updates and prevent render breaks
+                requestAnimationFrame(() => {
+                  try {
+                    // Trigger a gentle chart update by accessing time scale
+                    // This forces the chart to acknowledge the series changes
+                    const timeScale = chart.timeScale();
+                    if (timeScale) {
+                      // Simply accessing the visible range triggers internal recalculation
+                      timeScale.getVisibleRange();
+                    }
+                  } catch {
+                    // Non-critical - chart may still update on next render cycle
+                    logger.warn(
+                      'Chart update after config change failed (non-critical)',
+                      'SeriesConfig'
+                    );
+                  }
                 });
               }
             }

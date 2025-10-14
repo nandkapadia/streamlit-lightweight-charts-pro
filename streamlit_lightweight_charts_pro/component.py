@@ -121,33 +121,33 @@ def reinitialize_component() -> bool:
 
     if _RELEASE:
         frontend_dir = Path(__file__).parent / "frontend" / "build"
-        if frontend_dir.exists():
-            try:
-                _component_func = components.declare_component(
-                    "streamlit_lightweight_charts_pro",
-                    path=str(frontend_dir),
-                )
-                logger.info("Successfully reinitialized production component")
-            except Exception:
-                logger.exception("Failed to reinitialize component")
-                return False
-            else:
-                return True
-        else:
+        if not frontend_dir.exists():
             logger.error("Frontend build directory not found at %s", frontend_dir)
             return False
-    else:
+
         try:
             _component_func = components.declare_component(
                 "streamlit_lightweight_charts_pro",
-                url="http://localhost:3001",
+                path=str(frontend_dir),
             )
-            logger.info("Successfully reinitialized development component")
         except Exception:
-            logger.exception("Failed to reinitialize development component")
+            logger.exception("Failed to reinitialize component")
             return False
         else:
+            logger.info("Successfully reinitialized production component")
             return True
+
+    try:
+        _component_func = components.declare_component(
+            "streamlit_lightweight_charts_pro",
+            url="http://localhost:3001",
+        )
+    except Exception:
+        logger.exception("Failed to reinitialize development component")
+        return False
+    else:
+        logger.info("Successfully reinitialized development component")
+        return True
 
 
 def _initialize_component() -> None:

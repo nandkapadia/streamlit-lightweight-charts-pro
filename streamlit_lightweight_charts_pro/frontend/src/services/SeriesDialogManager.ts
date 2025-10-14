@@ -332,6 +332,16 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
     if (!state || !state.dialogRoot) return;
 
     try {
+      // CRITICAL FIX: Sync all pending changes to backend before closing
+      // This ensures changes are persisted without causing rerenders during live updates
+      try {
+        // Force sync any pending changes to backend
+        this.streamlitService.forceSyncToBackend();
+      } catch (syncError) {
+        // Log but don't prevent dialog close
+        handleError(syncError, 'SeriesDialogManager.close.syncToBackend', ErrorSeverity.WARNING);
+      }
+
       // Render empty dialog (closed state)
       state.dialogRoot.render(
         React.createElement(SeriesSettingsDialog, {
@@ -487,21 +497,6 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
       handleError(error, 'SeriesDialogManager.saveSeriesConfig', ErrorSeverity.WARNING);
     }
 
-    // Send to Streamlit backend for cross-session persistence
-    try {
-      const seriesType = this.inferSeriesType(paneId);
-      this.streamlitService.recordConfigChange(
-        paneId,
-        seriesId,
-        seriesType,
-        config,
-        this.config.chartId
-      );
-    } catch (error) {
-      // Log but continue - backend sync errors shouldn't prevent callback
-      handleError(error, 'SeriesDialogManager.recordConfigChange', ErrorSeverity.WARNING);
-    }
-
     // Notify external listeners if available
     try {
       if (this.config.onSeriesConfigChange) {
@@ -559,6 +554,27 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
                   try {
                     series.applyOptions(seriesOptions);
                     seriesApplied = true;
+
+                    // CRITICAL FIX: Force chart to acknowledge the update
+                    // This ensures the chart's internal state is synced after series.applyOptions()
+                    // Without this, the chart may not properly rerender the updated series
+                    requestAnimationFrame(() => {
+                      try {
+                        // Trigger a chart update by accessing the time scale
+                        // This forces the chart to recalculate and rerender
+                        const timeScale = this.chartApi.timeScale();
+                        if (timeScale) {
+                          // Get current range to trigger update without changing anything
+                          timeScale.getVisibleRange();
+                        }
+                      } catch {
+                        // Silently handle - this is just a nudge for the chart
+                        logger.warn(
+                          'Chart update nudge failed (non-critical)',
+                          'SeriesDialogManager'
+                        );
+                      }
+                    });
                   } catch (applyError) {
                     // Options application errors - log as warning, continue with other series
                     handleError(
@@ -611,15 +627,6 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
         ErrorSeverity.WARNING
       );
     }
-  }
-
-  /**
-   * Infer series type for a pane (simplified logic)
-   */
-  private inferSeriesType(_paneId: number): SeriesType {
-    // This is a simplified implementation
-    // In a real scenario, you'd inspect the actual series in the pane
-    return 'line'; // Default to line series
   }
 
   /**

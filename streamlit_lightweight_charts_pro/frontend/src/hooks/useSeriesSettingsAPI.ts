@@ -68,7 +68,7 @@ export function useSeriesSettingsAPI() {
 
         // Check if Streamlit component is ready before sending request
         if (!isStreamlitComponentReady()) {
-          logger.debug(
+          logger.warn(
             'Streamlit component not ready, skipping getPaneState request',
             'useSeriesSettingsAPI'
           );
@@ -128,10 +128,6 @@ export function useSeriesSettingsAPI() {
 
           // Check if Streamlit component is ready before sending update
           if (!isStreamlitComponentReady()) {
-            logger.debug(
-              'Streamlit component not ready, skipping updateSeriesSettings request',
-              'useSeriesSettingsAPI'
-            );
             resolve({ success: false, error: 'Streamlit not ready' });
             return;
           }
@@ -187,10 +183,6 @@ export function useSeriesSettingsAPI() {
 
         // Check if Streamlit component is ready before sending batch update
         if (!isStreamlitComponentReady()) {
-          logger.debug(
-            'Streamlit component not ready, skipping updateMultipleSettings request',
-            'useSeriesSettingsAPI'
-          );
           resolve({ success: false, error: 'Streamlit not ready' });
           return;
         }
@@ -246,10 +238,6 @@ export function useSeriesSettingsAPI() {
 
           // Check if Streamlit component is ready before sending reset request
           if (!isStreamlitComponentReady()) {
-            logger.debug(
-              'Streamlit component not ready, skipping resetSeriesToDefaults request',
-              'useSeriesSettingsAPI'
-            );
             resolve({ success: false, error: 'Streamlit not ready' });
             return;
           }

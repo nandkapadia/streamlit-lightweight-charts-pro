@@ -61,7 +61,7 @@ class Logger {
   private logLevel: LogLevel;
 
   constructor() {
-    this.logLevel = LogLevel.WARN; // Production: only warnings and errors
+    this.logLevel = LogLevel.WARN; // Production: only show warnings and errors
   }
 
   private shouldLog(level: LogLevel): boolean {

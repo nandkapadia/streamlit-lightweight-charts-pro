@@ -804,7 +804,7 @@ export class TradeRectanglePrimitive implements ISeriesPrimitive {
     } catch (error) {
       // Step 5: Handle any errors during hit testing
       // Log for debugging but don't show errors to prevent flickering
-      logger.debug('Hit test error in crosshair handler', 'TradeRectanglePrimitive', error);
+      logger.warn('Hit test error in crosshair handler', 'TradeRectanglePrimitive', error);
       TooltipManager.getInstance().hideTooltip(this._primitiveId);
     }
   }

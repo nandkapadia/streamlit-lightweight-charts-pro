@@ -458,7 +458,7 @@ class PerformanceProfiler:
         """Export profiles to a file for analysis."""
         report = self.generate_report()
 
-        with Path(filename).open("w") as f:
+        with Path(filename).open("w", encoding="utf-8") as f:
             json.dump(report.to_dict(), f, indent=2)
 
         logger.info("Performance profiles exported to %s", filename)
