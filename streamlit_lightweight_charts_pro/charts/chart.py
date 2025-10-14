@@ -227,6 +227,42 @@ class Chart:
                 # Add annotation to the chart's annotation manager
                 self.add_annotation(annotation)
 
+    def get_stored_series_config(
+        self,
+        key: str,
+        series_index: int = 0,
+        pane_id: int = 0,
+    ) -> Dict[str, Any]:
+        """Get stored configuration for a specific series.
+
+        Retrieves the stored configuration for a series from session state.
+        Useful for applying configs when creating new series instances.
+
+        Args:
+            key: Component key used to namespace the stored configs
+            series_index: Index of the series (default: 0)
+            pane_id: Pane ID for the series (default: 0)
+
+        Returns:
+            Dictionary of stored configuration or empty dict if none found
+
+        Example:
+            ```python
+            # Get stored config for series
+            config = chart.get_stored_series_config("my_chart", series_index=0)
+
+            # Apply to new series
+            if config:
+                line_series = LineSeries(data)
+                if "color" in config:
+                    line_series.line_options.color = config["color"]
+            ```
+        """
+        session_key = f"_chart_series_configs_{key}"
+        stored_configs = st.session_state.get(session_key, {})
+        series_id = f"pane-{pane_id}-series-{series_index}"
+        return stored_configs.get(series_id, {})
+
     def add_series(self, series: Series) -> "Chart":
         """Add a series to the chart.
 
@@ -1269,11 +1305,15 @@ class Chart:
             return
 
         for i, series in enumerate(self.series):
-            # Generate the expected series ID
-            series_id = f"pane-0-series-{i}"
+            # Generate the expected series ID - support both pane-0 and multi-pane
+            pane_id = getattr(series, "pane_id", 0) or 0
+            series_id = f"pane-{pane_id}-series-{i}"
 
             if series_id in stored_configs:
                 config = stored_configs[series_id]
+
+                # Log what we're applying for debugging
+                logger.debug("Applying stored config to %s: %s", series_id, config)
 
                 try:
                     # Separate configs for line_options vs general series properties
@@ -1320,10 +1360,16 @@ class Chart:
                         and series.line_options
                         and line_options_config
                     ):
+                        logger.debug(
+                            "Applying line_options config to %s: %s",
+                            series_id,
+                            line_options_config,
+                        )
                         series.line_options.update(line_options_config)
 
                     # Apply general series config
                     if series_config and hasattr(series, "update") and callable(series.update):
+                        logger.debug("Applying series config to %s: %s", series_id, series_config)
                         series.update(series_config)
 
                 except Exception:
