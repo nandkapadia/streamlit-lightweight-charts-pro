@@ -165,6 +165,7 @@ def _initialize_component() -> None:
                 logger.info("Successfully imported streamlit.components.v1")
 
                 # Declare the component with the built frontend files
+                # IMPORTANT: Use just the package name to avoid module path issues
                 _component_func = components.declare_component(
                     "streamlit_lightweight_charts_pro",
                     path=str(frontend_dir),

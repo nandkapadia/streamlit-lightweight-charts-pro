@@ -1,0 +1,752 @@
+# Python ↔ Frontend Property Consistency Rules
+
+**Version**: 1.0
+**Last Updated**: 2025-01-21
+**Purpose**: Ensure all properties sent from Python are correctly used in the Frontend
+
+---
+
+## 🎯 Core Principles
+
+### 1. Single Source of Truth
+- **Python Series Class** defines what properties are sent
+- **Frontend Descriptor** defines how properties are processed
+- **These MUST match exactly**
+
+### 2. Property Flow
+```
+Python Series (@chainable_property)
+    ↓ (Series.asdict())
+    ↓ JSON with top_level and options
+    ↓ (Streamlit Bridge)
+    ↓ Frontend LightweightCharts.tsx
+    ↓ (createSeriesWithConfig)
+    ↓ Extract top-level → Merge into options
+    ↓ (createSeries + flattenLineOptions)
+    ↓ Descriptor.create()
+    ↓ Series Created
+```
+
+### 3. Update Flow (Via Dialog)
+```
+Dialog UI Changes
+    ↓ (dialogConfigToApiOptions)
+    ↓ Loop through descriptor.properties
+    ↓ Flatten nested properties
+    ↓ (series.applyOptions)
+    ↓ Series Updated
+```
+
+---
+
+## 📋 Property Type Mappings
+
+### A. Standard Series Properties (SeriesOptionsCommon)
+
+**These are defined in base.Series and sent as top-level:**
+
+| Python Property | Python Type | Frontend Property | Frontend Type | Visible in UI |
+|----------------|-------------|-------------------|---------------|---------------|
+| `visible` | `bool` | `visible` | `boolean` | ✅ Yes |
+| `title` | `str` | `title` | `string` | ✅ Yes |
+| `display_name` | `str` | `displayName` | `string` | ✅ Yes |
+| `last_value_visible` | `bool` | `lastValueVisible` | `boolean` | ✅ Yes |
+| `price_line_visible` | `bool` | `priceLineVisible` | `boolean` | ✅ Yes |
+| `price_scale_id` | `str` | `priceScaleId` | `string` | ❌ No |
+| `z_index` | `int` | `zIndex` | `number` | ❌ No |
+| `price_line_source` | `int` | `priceLineSource` | `number` | ❌ No |
+| `price_line_width` | `int` | `priceLineWidth` | `number` | ❌ No |
+| `price_line_color` | `str` | `priceLineColor` | `string` | ❌ No |
+| `price_line_style` | `int` | `priceLineStyle` | `LineStyle` | ❌ No |
+
+**✅ Action Required**: ALL these properties MUST be in `STANDARD_SERIES_PROPERTIES`
+- Visible properties: `hidden: false` (shown in dialog)
+- Hidden properties: `hidden: true` (not shown but passed through)
+
+### B. LineOptions Properties (Nested Objects)
+
+**Python sends as nested object** (e.g., `line_options`, `upper_line`, `middle_line`):
+
+| Python Property | Python Type | Flattened Frontend | Notes |
+|----------------|-------------|-------------------|-------|
+| `color` | `str` | `{prefix}Color` | e.g., `upperLineColor` |
+| `line_width` | `int` | `{prefix}Width` | e.g., `upperLineWidth` |
+| `line_style` | `LineStyle` | `{prefix}Style` | e.g., `upperLineStyle` |
+| `line_visible` | `bool` | `{prefix}Visible` | e.g., `upperLineVisible` |
+| `line_type` | `LineType` | `{prefix}Type` | Optional |
+| `point_markers_visible` | `bool` | `{prefix}PointMarkersVisible` | Optional |
+| `point_markers_radius` | `int` | `{prefix}PointMarkersRadius` | Optional |
+| `crosshair_marker_visible` | `bool` | `{prefix}CrosshairMarkerVisible` | Optional |
+| `crosshair_marker_radius` | `int` | `{prefix}CrosshairMarkerRadius` | Optional |
+| `crosshair_marker_border_color` | `str` | `{prefix}CrosshairMarkerBorderColor` | Optional |
+| `crosshair_marker_background_color` | `str` | `{prefix}CrosshairMarkerBackgroundColor` | Optional |
+| `crosshair_marker_border_width` | `int` | `{prefix}CrosshairMarkerBorderWidth` | Optional |
+| `last_price_animation` | `LastPriceAnimationMode` | `{prefix}LastPriceAnimation` | Optional |
+
+**✅ Action Required**: `flattenLineOptions` MUST handle ALL these properties
+
+---
+
+## 🔍 Series-by-Series Verification Matrix
+
+### Built-in Series
+
+#### 1. Line Series (`ChartType.LINE`)
+
+**Python Class**: `LineSeries` in `charts/series/line.py`
+
+**Python Properties**:
+```python
+@chainable_property("line_options", LineOptions, allow_none=True)
+class LineSeries(Series):
+    # Inherits: visible, title, display_name, price_scale_id, etc.
+    # Series-specific: line_options (LineOptions object)
+```
+
+**Frontend Descriptor**: `LINE_SERIES_DESCRIPTOR` in `builtinSeriesDescriptors.ts`
+
+**Required Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  mainLine: PropertyDescriptors.line('Line', '#2962FF', 2, LineStyle.Solid, {
+    colorKey: 'color',
+    widthKey: 'lineWidth',
+    styleKey: 'lineStyle',
+  }),
+  lineVisible: PropertyDescriptors.boolean('Line Visible', true, 'Line'),
+}
+```
+
+**✅ Verification**:
+- [ ] `mainLine` maps `line_options` from Python
+- [ ] `lineVisible` maps `line_options.line_visible`
+- [ ] `flattenLineOptions` handles `line_options` → `color`, `lineWidth`, `lineStyle`, `lineVisible`
+
+---
+
+#### 2. Area Series (`ChartType.AREA`)
+
+**Python Properties**:
+```python
+@chainable_property("line_options", LineOptions, allow_none=True)
+@chainable_property("top_color", str, validator="color")
+@chainable_property("bottom_color", str, validator="color")
+@chainable_property("relative_gradient", bool)
+@chainable_property("invert_filled_area", bool)
+```
+
+**Required Frontend Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  mainLine: PropertyDescriptors.line(...),
+  lineVisible: PropertyDescriptors.boolean(...),
+  topColor: PropertyDescriptors.color(...),
+  bottomColor: PropertyDescriptors.color(...),
+  relativeGradient: PropertyDescriptors.boolean(...),
+  invertFilledArea: PropertyDescriptors.boolean(...),
+}
+```
+
+**✅ Verification Checklist**:
+- [ ] All Python properties have corresponding frontend properties
+- [ ] Naming convention: snake_case → camelCase
+- [ ] `line_options` flattened correctly
+
+---
+
+#### 3. Histogram Series (`ChartType.HISTOGRAM`)
+
+**Python Properties**:
+```python
+@chainable_property("color", str, validator="color")
+@chainable_property("base", (int, float))
+@chainable_property("scale_margins", dict)
+```
+
+**Required Frontend Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  color: PropertyDescriptors.color(...),
+  base: PropertyDescriptors.number(...),
+  // scaleMargins is handled in defaultOptions, not properties
+}
+```
+
+**✅ Verification**:
+- [ ] No nested LineOptions (direct properties only)
+- [ ] All properties mapped
+
+---
+
+#### 4. Bar Series (`ChartType.BAR`)
+
+**Python Properties**:
+```python
+@chainable_property("up_color", str, validator="color")
+@chainable_property("down_color", str, validator="color")
+@chainable_property("open_visible", bool)
+@chainable_property("thin_bars", bool)
+```
+
+**Required Frontend Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  upColor: PropertyDescriptors.color(...),
+  downColor: PropertyDescriptors.color(...),
+  openVisible: PropertyDescriptors.boolean(...),
+  thinBars: PropertyDescriptors.boolean(...),
+}
+```
+
+---
+
+#### 5. Candlestick Series (`ChartType.CANDLESTICK`)
+
+**Python Properties**:
+```python
+@chainable_property("up_color", str, validator="color")
+@chainable_property("down_color", str, validator="color")
+@chainable_property("wick_visible", bool)
+@chainable_property("border_visible", bool)
+@chainable_property("border_color", str, validator="color")
+@chainable_property("border_up_color", str, validator="color")
+@chainable_property("border_down_color", str, validator="color")
+@chainable_property("wick_color", str, validator="color")
+@chainable_property("wick_up_color", str, validator="color")
+@chainable_property("wick_down_color", str, validator="color")
+```
+
+**Required Frontend Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  upColor, downColor,
+  wickVisible, borderVisible,
+  borderColor, borderUpColor, borderDownColor,
+  wickColor, wickUpColor, wickDownColor,
+}
+```
+
+---
+
+#### 6. Baseline Series (`ChartType.BASELINE`)
+
+**Python Properties**:
+```python
+@chainable_property("line_options", LineOptions, allow_none=True)
+@chainable_property("base_value", validator=...)
+@chainable_property("relative_gradient", bool)
+@chainable_property("top_fill_color1", str, validator="color")
+@chainable_property("top_fill_color2", str, validator="color")
+@chainable_property("top_line_color", str, validator="color")
+@chainable_property("bottom_fill_color1", str, validator="color")
+@chainable_property("bottom_fill_color2", str, validator="color")
+@chainable_property("bottom_line_color", str, validator="color")
+```
+
+**Required Frontend Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  mainLine: PropertyDescriptors.line(...),
+  lineVisible: PropertyDescriptors.boolean(...),
+  baseValue: PropertyDescriptors.number(...),
+  relativeGradient: PropertyDescriptors.boolean(...),
+  topFillColor1, topFillColor2, topLineColor,
+  bottomFillColor1, bottomFillColor2, bottomLineColor,
+}
+```
+
+---
+
+### Custom Series
+
+#### 1. Band Series (`ChartType.BAND`)
+
+**Python Properties**:
+```python
+@chainable_property("upper_line", LineOptions, allow_none=True)
+@chainable_property("middle_line", LineOptions, allow_none=True)
+@chainable_property("lower_line", LineOptions, allow_none=True)
+@chainable_property("upper_fill_color", str, validator="color")
+@chainable_property("lower_fill_color", str, validator="color")
+@chainable_property("upper_fill", bool)
+@chainable_property("lower_fill", bool)
+```
+
+**Required Frontend Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  upperLine: PropertyDescriptors.line('Upper Line', ..., {
+    colorKey: 'upperLineColor',
+    widthKey: 'upperLineWidth',
+    styleKey: 'upperLineStyle',
+  }),
+  upperLineVisible: PropertyDescriptors.boolean(...),
+  middleLine: PropertyDescriptors.line('Middle Line', ..., {
+    colorKey: 'middleLineColor',
+    widthKey: 'middleLineWidth',
+    styleKey: 'middleLineStyle',
+  }),
+  middleLineVisible: PropertyDescriptors.boolean(...),
+  lowerLine: PropertyDescriptors.line('Lower Line', ..., {
+    colorKey: 'lowerLineColor',
+    widthKey: 'lowerLineWidth',
+    styleKey: 'lowerLineStyle',
+  }),
+  lowerLineVisible: PropertyDescriptors.boolean(...),
+  upperFillColor: PropertyDescriptors.color(...),
+  upperFillVisible: PropertyDescriptors.boolean(...),
+  lowerFillColor: PropertyDescriptors.color(...),
+  lowerFillVisible: PropertyDescriptors.boolean(...),
+}
+```
+
+**✅ Critical**:
+- [ ] THREE LineOptions objects: upper, middle, lower
+- [ ] Each needs separate `{name}Visible` property
+- [ ] Fill colors and visibility separate from lines
+
+---
+
+#### 2. Ribbon Series (`ChartType.RIBBON`)
+
+**Python Properties**:
+```python
+@chainable_property("upper_line", LineOptions, allow_none=True)
+@chainable_property("lower_line", LineOptions, allow_none=True)
+@chainable_property("fill", str, validator="color")  # fill COLOR
+@chainable_property("fill_visible", bool)
+```
+
+**Required Frontend Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  upperLine: PropertyDescriptors.line(..., {
+    colorKey: 'upperLineColor',
+    widthKey: 'upperLineWidth',
+    styleKey: 'upperLineStyle',
+  }),
+  upperLineVisible: PropertyDescriptors.boolean(...),
+  lowerLine: PropertyDescriptors.line(..., {
+    colorKey: 'lowerLineColor',
+    widthKey: 'lowerLineWidth',
+    styleKey: 'lowerLineStyle',
+  }),
+  lowerLineVisible: PropertyDescriptors.boolean(...),
+  fillColor: PropertyDescriptors.color(...),  // Python: "fill" → Frontend: "fillColor"
+  fillVisible: PropertyDescriptors.boolean(...),
+}
+```
+
+**⚠️ Note**: Python property `fill` (str) should map to frontend `fillColor`
+
+---
+
+#### 3. GradientRibbon Series (`ChartType.GRADIENTRIBBON`)
+
+**Python Properties** (extends Ribbon):
+```python
+# Inherits: upper_line, lower_line, fill, fill_visible
+@chainable_property("gradient_start_color", str, validator="color")
+@chainable_property("gradient_end_color", str, validator="color")
+@chainable_property("normalize_gradients", bool)
+```
+
+**Required Frontend Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  // Inherited from Ribbon
+  upperLine, upperLineVisible,
+  lowerLine, lowerLineVisible,
+  fillVisible,
+  // GradientRibbon-specific
+  gradientStartColor: PropertyDescriptors.color(...),
+  gradientEndColor: PropertyDescriptors.color(...),
+  normalizeGradients: PropertyDescriptors.boolean(..., { hidden: true }),
+}
+```
+
+---
+
+#### 4. Signal Series (`ChartType.SIGNAL`)
+
+**Python Properties**:
+```python
+@chainable_property("neutral_color", str, validator="color")
+@chainable_property("signal_color", str, validator="color")
+@chainable_property("alert_color", str, validator="color", allow_none=True)
+```
+
+**Required Frontend Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  neutralColor: PropertyDescriptors.color(...),
+  signalColor: PropertyDescriptors.color(...),
+  alertColor: PropertyDescriptors.color(...),
+}
+```
+
+**✅ Verification**:
+- [ ] No LineOptions (simple color properties only)
+- [ ] All properties mapped
+
+---
+
+#### 5. TrendFill Series (`ChartType.TRENDFILL`)
+
+**Python Properties**:
+```python
+@chainable_property("uptrend_line", LineOptions, allow_none=True)
+@chainable_property("downtrend_line", LineOptions, allow_none=True)
+@chainable_property("base_line", LineOptions, allow_none=True)
+@chainable_property("uptrend_fill_color", str, validator="color")
+@chainable_property("downtrend_fill_color", str, validator="color")
+@chainable_property("fill_visible", bool)
+```
+
+**Required Frontend Properties**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,
+  uptrendLine: PropertyDescriptors.line('Uptrend Line', ..., {
+    colorKey: 'uptrendLineColor',
+    widthKey: 'uptrendLineWidth',
+    styleKey: 'uptrendLineStyle',
+  }),
+  uptrendLineVisible: PropertyDescriptors.boolean(...),
+  downtrendLine: PropertyDescriptors.line('Downtrend Line', ..., {
+    colorKey: 'downtrendLineColor',
+    widthKey: 'downtrendLineWidth',
+    styleKey: 'downtrendLineStyle',
+  }),
+  downtrendLineVisible: PropertyDescriptors.boolean(...),
+  baseLine: PropertyDescriptors.line('Base Line', ..., {
+    colorKey: 'baseLineColor',
+    widthKey: 'baseLineWidth',
+    styleKey: 'baseLineStyle',
+  }),
+  baseLineVisible: PropertyDescriptors.boolean(...),
+  uptrendFillColor: PropertyDescriptors.color(...),
+  downtrendFillColor: PropertyDescriptors.color(...),
+  fillVisible: PropertyDescriptors.boolean(...),
+}
+```
+
+---
+
+## ✅ Implementation Checklist
+
+### When Adding a New Series
+
+1. **Python Side** (`charts/series/{series_name}.py`):
+   ```python
+   @chainable_property("property_name", PropertyType, validator=...)
+   class MyNewSeries(Series):
+       # Define all series-specific properties
+       # Use LineOptions for line styling
+   ```
+
+2. **Frontend Descriptor** (`frontend/src/series/descriptors/`):
+   ```typescript
+   export const MY_NEW_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor = {
+     type: 'MyNewSeries',
+     isCustom: true/false,
+
+     properties: {
+       ...STANDARD_SERIES_PROPERTIES,  // ALWAYS include this!
+
+       // For LineOptions properties:
+       myLine: PropertyDescriptors.line('My Line', '#color', width, style, {
+         colorKey: 'myLineColor',
+         widthKey: 'myLineWidth',
+         styleKey: 'myLineStyle',
+       }),
+       myLineVisible: PropertyDescriptors.boolean('My Line Visible', true, 'My Line'),
+
+       // For simple properties:
+       myColor: PropertyDescriptors.color('My Color', '#default'),
+       myFlag: PropertyDescriptors.boolean('My Flag', true),
+     },
+
+     defaultOptions: {
+       // Include ALL property defaults here
+       visible: true,
+       lastValueVisible: false,
+       priceLineVisible: false,
+       // ... all other properties
+     },
+
+     create: (chart, data, options, paneId) => {
+       // Use factory function to create series
+       return createMySeries(chart, { ...options, data });
+     },
+   };
+   ```
+
+3. **Register in Registry**:
+   ```typescript
+   // In UnifiedSeriesFactory.ts
+   const SERIES_REGISTRY = new Map([
+     // ...
+     ['MyNewSeries', MY_NEW_SERIES_DESCRIPTOR],
+   ]);
+   ```
+
+4. **Verify Property Flow**:
+   - [ ] Python properties match frontend properties (snake_case → camelCase)
+   - [ ] LineOptions properties have separate `{name}Visible` properties
+   - [ ] All properties in `STANDARD_SERIES_PROPERTIES`
+   - [ ] `flattenLineOptions` handles all LineOptions correctly
+   - [ ] `dialogConfigToApiOptions` processes all properties
+
+---
+
+## 🚨 Common Pitfalls
+
+### 1. ❌ Missing `lineVisible` for LineOptions
+
+**Problem**:
+```typescript
+properties: {
+  upperLine: PropertyDescriptors.line(...),
+  // ❌ MISSING upperLineVisible!
+}
+```
+
+**Solution**:
+```typescript
+properties: {
+  upperLine: PropertyDescriptors.line(...),
+  upperLineVisible: PropertyDescriptors.boolean('Upper Line Visible', true, 'Upper Line'),
+}
+```
+
+### 2. ❌ Wrong Property Names
+
+**Problem**:
+```python
+# Python
+@chainable_property("fill", str, validator="color")
+
+# Frontend
+fillColor: PropertyDescriptors.color(...)  # ❌ Name mismatch!
+```
+
+**Solution**:
+```typescript
+// Python "fill" should map to frontend "fill" OR document the mapping
+fill: PropertyDescriptors.color(...)
+```
+
+### 3. ❌ Forgetting STANDARD_SERIES_PROPERTIES
+
+**Problem**:
+```typescript
+properties: {
+  // ❌ Missing standard properties!
+  myCustomProp: PropertyDescriptors.color(...),
+}
+```
+
+**Solution**:
+```typescript
+properties: {
+  ...STANDARD_SERIES_PROPERTIES,  // ✅ Always include!
+  myCustomProp: PropertyDescriptors.color(...),
+}
+```
+
+### 4. ❌ Incomplete flattenLineOptions
+
+**Problem**: Adding new LineOptions property but not updating `flattenLineOptions`
+
+**Solution**: Update `flattenLineOptions` in `UnifiedSeriesFactory.ts` to handle ALL LineOptions properties
+
+### 5. ❌ Hidden Properties Not in Descriptor
+
+**Problem**: Property sent from Python but not in descriptor properties
+
+**Solution**: Add to `STANDARD_SERIES_PROPERTIES` with `hidden: true`:
+```typescript
+myHiddenProp: {
+  type: 'number',
+  label: 'My Hidden Prop',
+  default: 0,
+  hidden: true,  // Not shown in UI
+}
+```
+
+---
+
+## 🔍 Testing Checklist
+
+For every series, verify:
+
+### JSON Path (Python → Frontend)
+1. [ ] Create series in Python with all properties set
+2. [ ] Check JSON output (inspect browser network tab)
+3. [ ] Verify `createSeriesWithConfig` extracts top-level properties
+4. [ ] Verify `flattenLineOptions` flattens nested LineOptions
+5. [ ] Verify series created with ALL properties applied
+
+### Dialog Path (Frontend UI → Series Update)
+1. [ ] Open Series Settings Dialog
+2. [ ] Change a property (e.g., color, visibility)
+3. [ ] Verify `dialogConfigToApiOptions` processes the change
+4. [ ] Verify `series.applyOptions` receives correct options
+5. [ ] Verify series updates correctly
+6. [ ] Verify no properties lost (e.g., zIndex preserved)
+
+### Cross-Path Consistency
+1. [ ] Set property via Python JSON
+2. [ ] Update different property via Dialog
+3. [ ] Verify original property from JSON still applied
+4. [ ] No property loss between updates
+
+---
+
+## 📚 Reference
+
+### Key Files
+
+**Python**:
+- `charts/series/base.py` - Base Series class with standard properties
+- `charts/series/{series_name}.py` - Individual series implementations
+- `charts/options/line_options.py` - LineOptions class definition
+
+**Frontend**:
+- `frontend/src/series/core/UnifiedSeriesDescriptor.ts` - Descriptor types and STANDARD_SERIES_PROPERTIES
+- `frontend/src/series/descriptors/builtinSeriesDescriptors.ts` - Built-in series descriptors
+- `frontend/src/series/descriptors/customSeriesDescriptors.ts` - Custom series descriptors
+- `frontend/src/series/UnifiedSeriesFactory.ts` - Series creation and property flattening
+- `frontend/src/series/UnifiedPropertyMapper.ts` - Dialog ↔ API property mapping
+
+### Key Functions
+
+1. **createSeriesWithConfig** (`UnifiedSeriesFactory.ts`):
+   - Extracts top-level properties from config
+   - Merges into options object
+   - Calls `createSeries`
+
+2. **flattenLineOptions** (`UnifiedSeriesFactory.ts`):
+   - Flattens nested LineOptions objects
+   - Uses descriptor's `apiMapping` for property names
+   - Handles ALL LineOptions properties
+
+3. **dialogConfigToApiOptions** (`UnifiedSeriesDescriptor.ts`):
+   - Converts dialog config (nested) to API options (flat)
+   - Processes ALL descriptor properties (including hidden)
+   - Ensures consistency with JSON path
+
+---
+
+## 🎓 Best Practices
+
+1. **Always Use Descriptors**: Don't hardcode property mappings
+2. **Test Both Paths**: JSON and Dialog updates
+3. **Document Mappings**: If Python property name differs from frontend
+4. **Use Standard Properties**: Include `STANDARD_SERIES_PROPERTIES` in all descriptors
+5. **Mark Hidden Properly**: Properties not for UI should be `hidden: true`
+6. **Update flattenLineOptions**: When adding new LineOptions properties
+7. **Verify Property Flow**: Use browser devtools to check JSON and options
+
+---
+
+## 📊 Property Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Python Series                                                   │
+│                                                                 │
+│ @chainable_property("upper_line", LineOptions)                 │
+│   upper_line.color = "#FF0000"                                  │
+│   upper_line.line_width = 2                                     │
+│   upper_line.line_visible = True                                │
+└──────────────────┬──────────────────────────────────────────────┘
+                   │
+                   │ Series.asdict()
+                   ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ JSON Output                                                     │
+│                                                                 │
+│ {                                                               │
+│   "type": "Band",                                               │
+│   "visible": true,              // top-level (base.Series)      │
+│   "title": "My Band",           // top-level                    │
+│   "options": {                                                  │
+│     "upperLine": {              // nested LineOptions           │
+│       "color": "#FF0000",                                       │
+│       "lineWidth": 2,                                           │
+│       "lineVisible": true                                       │
+│     }                                                           │
+│   }                                                             │
+│ }                                                               │
+└──────────────────┬──────────────────────────────────────────────┘
+                   │
+                   │ Streamlit Bridge
+                   ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ Frontend: createSeriesWithConfig                                │
+│                                                                 │
+│ 1. Extract top-level: visible, title, displayName, etc.        │
+│ 2. Merge into options object                                   │
+│ 3. Call createSeries(chart, type, data, mergedOptions)         │
+└──────────────────┬──────────────────────────────────────────────┘
+                   │
+                   ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ Frontend: createSeries → flattenLineOptions                     │
+│                                                                 │
+│ Input: { upperLine: { color: "#FF0000", lineWidth: 2, ... } }  │
+│                                                                 │
+│ Process:                                                        │
+│   - Read descriptor.properties['upperLine']                    │
+│   - Get apiMapping: { colorKey: 'upperLineColor', ... }        │
+│   - Flatten: upperLineColor = "#FF0000"                        │
+│   - Flatten: upperLineWidth = 2                                │
+│   - Flatten: upperLineVisible = true                           │
+│                                                                 │
+│ Output: {                                                       │
+│   upperLineColor: "#FF0000",                                   │
+│   upperLineWidth: 2,                                           │
+│   upperLineVisible: true                                       │
+│ }                                                               │
+└──────────────────┬──────────────────────────────────────────────┘
+                   │
+                   ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ Frontend: descriptor.create(chart, data, flattenedOptions)     │
+│                                                                 │
+│ Series created with ALL properties correctly applied            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+**END OF DOCUMENT**
+
+
+---
+
+# Python Coding Standards
+
+[Content from python-coding-standards.mdc archived]
+
+See _archive/python-coding-standards.mdc for detailed Python patterns.
+
+---
+
+# Google Docstring Standards
+
+[Content from google-docstring-standards.mdc archived]
+
+See _archive/google-docstring-standards.mdc for comprehensive docstring guide.

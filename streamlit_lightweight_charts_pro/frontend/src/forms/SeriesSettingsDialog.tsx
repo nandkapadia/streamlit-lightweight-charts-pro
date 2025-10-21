@@ -2,12 +2,13 @@
  * @fileoverview TradingView-style Series Settings Dialog with React 19 Form Actions
  *
  * This component provides a comprehensive series configuration dialog with:
- * - Tabbed interface (one tab per series in pane)
+ * - Tabbed interface (one tab per series in pane) with scroll navigation
  * - Common settings (visible, markers, lastValueVisible, priceLineVisible)
  * - Series-specific settings (e.g., Ribbon: upperLine, lowerLine, fill)
  * - Live preview with debounced updates
  * - Streamlit backend integration for persistence
  * - React 19 Form Actions with optimistic updates
+ * - Scroll arrows and fade indicators for many tabs
  */
 
 import React, { useState, useCallback, useTransition, useMemo, useEffect, useRef } from 'react';
@@ -136,6 +137,11 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     currentOpacity?: number;
   }>({ isOpen: false });
 
+  // Tab scrolling state
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const tabContainerRef = useRef<HTMLDivElement>(null);
+
   // Optimistic configs for instant UI feedback
   const [optimisticConfigs, setOptimisticConfigs] =
     useState<Record<string, Partial<SeriesConfig>>>(seriesConfigs);
@@ -193,6 +199,63 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
   // Store previously focused element for restoration
   const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Update scroll button visibility based on scroll position
+  const updateScrollButtons = useCallback(() => {
+    const container = tabContainerRef.current;
+    if (!container) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+  }, []);
+
+  // Handle scroll button clicks
+  const scrollTabs = useCallback((direction: 'left' | 'right') => {
+    const container = tabContainerRef.current;
+    if (!container) return;
+
+    const scrollAmount = 200; // pixels to scroll
+    const newScrollLeft = container.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
+
+    container.scrollTo({
+      left: newScrollLeft,
+      behavior: 'smooth',
+    });
+  }, []);
+
+  // Update scroll buttons when tabs change or component mounts
+  useEffect(() => {
+    // Initial check after a small delay to ensure layout is complete
+    const timeoutId = setTimeout(() => {
+      updateScrollButtons();
+    }, 50);
+
+    // Also check on next animation frame
+    requestAnimationFrame(() => {
+      updateScrollButtons();
+    });
+
+    const container = tabContainerRef.current;
+    if (!container) return () => clearTimeout(timeoutId);
+
+    // Add scroll event listener
+    const handleScroll = () => updateScrollButtons();
+    container.addEventListener('scroll', handleScroll);
+
+    // Add resize observer to handle window resizing
+    const resizeObserver = new ResizeObserver(() => {
+      // Use requestAnimationFrame to ensure measurements are accurate
+      requestAnimationFrame(updateScrollButtons);
+    });
+    resizeObserver.observe(container);
+
+    return () => {
+      clearTimeout(timeoutId);
+      container.removeEventListener('scroll', handleScroll);
+      resizeObserver.disconnect();
+    };
+  }, [updateScrollButtons, seriesList]);
 
   // Handle dialog open/close lifecycle
   useEffect(() => {
@@ -541,56 +604,180 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           </button>
         </div>
 
-        {/* Series Tabs */}
+        {/* Series Tabs with Scroll Navigation */}
         <div
-          className='series-config-tabs'
           style={{
-            display: 'flex',
+            position: 'relative',
             backgroundColor: '#f8f9fa',
-            overflowX: 'auto',
-            minHeight: '36px',
             borderBottom: '1px solid #e0e0e0',
           }}
         >
-          {seriesList.map((series, index) => (
+          {/* Left scroll button */}
+          {canScrollLeft && (
             <button
-              key={series.id}
-              className={`tab ${activeSeriesId === series.id ? 'active' : ''}`}
-              onClick={() => setActiveSeriesId(series.id)}
-              aria-selected={activeSeriesId === series.id}
-              role='tab'
+              onClick={() => scrollTabs('left')}
+              aria-label='Scroll tabs left'
               style={{
-                padding: '8px 12px',
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: '32px',
                 border: 'none',
-                backgroundColor: 'transparent',
-                color: activeSeriesId === series.id ? '#131722' : '#787b86',
-                fontSize: '12px',
-                fontWeight: '500',
+                backgroundColor: '#f8f9fa',
+                color: '#787b86',
                 cursor: 'pointer',
-                borderBottom:
-                  activeSeriesId === series.id ? '2px solid #2962ff' : '2px solid transparent',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                whiteSpace: 'nowrap',
-                minHeight: '36px',
-                lineHeight: '1.4',
+                zIndex: 2,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                fontSize: '16px',
+                borderRight: '1px solid #e0e0e0',
+                transition: 'color 0.2s ease',
               }}
               onMouseEnter={e => {
-                if (activeSeriesId !== series.id) {
-                  (e.target as HTMLElement).style.color = '#131722';
-                }
+                (e.target as HTMLElement).style.color = '#131722';
               }}
               onMouseLeave={e => {
-                if (activeSeriesId !== series.id) {
-                  (e.target as HTMLElement).style.color = '#787b86';
-                }
+                (e.target as HTMLElement).style.color = '#787b86';
               }}
             >
-              {getTabTitle(series, index)}
+              ‹
             </button>
-          ))}
+          )}
+
+          {/* Left fade indicator */}
+          {canScrollLeft && (
+            <div
+              style={{
+                position: 'absolute',
+                left: canScrollLeft ? '32px' : '0',
+                top: 0,
+                bottom: 0,
+                width: '20px',
+                background: 'linear-gradient(to right, rgba(248, 249, 250, 0.9), rgba(248, 249, 250, 0))',
+                pointerEvents: 'none',
+                zIndex: 1,
+              }}
+            />
+          )}
+
+          {/* Tabs container */}
+          <div
+            ref={tabContainerRef}
+            className='series-config-tabs'
+            style={{
+              display: 'flex',
+              overflowX: 'auto',
+              minHeight: '36px',
+              scrollbarWidth: 'none', // Firefox
+              msOverflowStyle: 'none', // IE/Edge
+              paddingLeft: canScrollLeft ? '32px' : '0',
+              paddingRight: canScrollRight ? '32px' : '0',
+            }}
+          >
+            {/* Hide scrollbar for Chrome/Safari/Opera */}
+            <style>
+              {`
+                .series-config-tabs::-webkit-scrollbar {
+                  display: none;
+                }
+              `}
+            </style>
+            {seriesList.map((series, index) => {
+              const tabTitle = getTabTitle(series, index);
+              return (
+                <button
+                  key={series.id}
+                  className={`tab ${activeSeriesId === series.id ? 'active' : ''}`}
+                  onClick={() => setActiveSeriesId(series.id)}
+                  aria-selected={activeSeriesId === series.id}
+                  role='tab'
+                  title={tabTitle} // Tooltip showing full name
+                  style={{
+                    padding: '8px 12px',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: activeSeriesId === series.id ? '#131722' : '#787b86',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    borderBottom:
+                      activeSeriesId === series.id ? '2px solid #2962ff' : '2px solid transparent',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    whiteSpace: 'nowrap',
+                    minHeight: '36px',
+                    lineHeight: '1.4',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  onMouseEnter={e => {
+                    if (activeSeriesId !== series.id) {
+                      (e.target as HTMLElement).style.color = '#131722';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (activeSeriesId !== series.id) {
+                      (e.target as HTMLElement).style.color = '#787b86';
+                    }
+                  }}
+                >
+                  {tabTitle}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right fade indicator */}
+          {canScrollRight && (
+            <div
+              style={{
+                position: 'absolute',
+                right: canScrollRight ? '32px' : '0',
+                top: 0,
+                bottom: 0,
+                width: '20px',
+                background: 'linear-gradient(to left, rgba(248, 249, 250, 0.9), rgba(248, 249, 250, 0))',
+                pointerEvents: 'none',
+                zIndex: 1,
+              }}
+            />
+          )}
+
+          {/* Right scroll button */}
+          {canScrollRight && (
+            <button
+              onClick={() => scrollTabs('right')}
+              aria-label='Scroll tabs right'
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: '32px',
+                border: 'none',
+                backgroundColor: '#f8f9fa',
+                color: '#787b86',
+                cursor: 'pointer',
+                zIndex: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px',
+                borderLeft: '1px solid #e0e0e0',
+                transition: 'color 0.2s ease',
+              }}
+              onMouseEnter={e => {
+                (e.target as HTMLElement).style.color = '#131722';
+              }}
+              onMouseLeave={e => {
+                (e.target as HTMLElement).style.color = '#787b86';
+              }}
+            >
+              ›
+            </button>
+          )}
         </div>
 
         {/* Settings Content */}
@@ -686,7 +873,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           className='series-config-footer'
           style={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-end',
             alignItems: 'center',
             padding: '12px 12px',
             borderTop: '1px solid #e0e3e7',
@@ -694,54 +881,6 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
             minHeight: '28px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <button
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '6px 12px',
-                border: '1px solid #e0e3e7',
-                borderRadius: '4px',
-                backgroundColor: '#ffffff',
-                color: '#131722',
-                fontSize: '13px',
-                fontWeight: '400',
-                cursor: 'pointer',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                minHeight: '28px',
-              }}
-              onClick={() => {
-                // Reset to defaults from schema
-                // Reset to common defaults only (primitives have their own defaults)
-                const defaultConfig: SeriesConfig = {
-                  visible: true,
-                  lastValueVisible: true,
-                  priceLineVisible: true,
-                };
-
-                void handleConfigChange(activeSeriesId, defaultConfig);
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-              }}
-            >
-              <span>Defaults</span>
-              <svg
-                style={{
-                  marginLeft: '6px',
-                  width: '12px',
-                  height: '12px',
-                  fill: '#787b86',
-                }}
-                viewBox='0 0 16 16'
-              >
-                <path d='M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z' />
-              </svg>
-            </button>
-          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               style={{

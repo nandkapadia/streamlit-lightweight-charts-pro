@@ -2486,23 +2486,30 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               if (Object.keys(apiConfig).length > 0) {
                 series.applyOptions(apiConfig);
 
-                // CRITICAL FIX: Ensure chart rerenders after config change
-                // Use requestAnimationFrame to batch DOM updates and prevent render breaks
+                // CRITICAL FIX: Force primitives to redraw with new options
+                // Primitives read options from series dynamically via series.options()
+                // but need explicit update trigger to redraw
                 requestAnimationFrame(() => {
                   try {
-                    // Trigger a gentle chart update by accessing time scale
-                    // This forces the chart to acknowledge the series changes
-                    const timeScale = chart.timeScale();
-                    if (timeScale) {
-                      // Simply accessing the visible range triggers internal recalculation
-                      timeScale.getVisibleRange();
+                    // Trigger chart redraw by temporarily adjusting size
+                    // This forces all primitives to re-render with updated options
+                    const container = chart.chartElement();
+                    if (container) {
+                      // Store current size
+                      const rect = container.getBoundingClientRect();
+                      // Trigger resize event (forces complete redraw including primitives)
+                      chart.resize(rect.width, rect.height);
                     }
                   } catch {
-                    // Non-critical - chart may still update on next render cycle
-                    logger.warn(
-                      'Chart update after config change failed (non-critical)',
-                      'SeriesConfig'
-                    );
+                    // Fallback: gentle update via timeScale access
+                    try {
+                      chart.timeScale().getVisibleRange();
+                    } catch {
+                      logger.warn(
+                        'Chart update after config change failed (non-critical)',
+                        'SeriesConfig'
+                      );
+                    }
                   }
                 });
               }
