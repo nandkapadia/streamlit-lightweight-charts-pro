@@ -146,6 +146,13 @@ describe('SeriesSettingsDialog - Schema-Based Architecture', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Mock ResizeObserver for tab scroll functionality
+    global.ResizeObserver = vi.fn().mockImplementation(() => ({
+      observe: vi.fn(),
+      unobserve: vi.fn(),
+      disconnect: vi.fn(),
+    }));
   });
 
   afterEach(() => {

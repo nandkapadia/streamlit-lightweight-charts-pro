@@ -1,0 +1,79 @@
+# Cursor Rules - Quick Navigation
+
+**Version**: 2.0 (Consolidated)
+**Last Updated**: 2025-01-21
+
+---
+
+## 📋 Active Rules (6 Core Files)
+
+### **Development Rules**
+1. **[01-PYTHON-DEVELOPMENT.mdc](01-PYTHON-DEVELOPMENT.mdc)** - Python standards, docstrings, property consistency
+2. **[02-FRONTEND-DEVELOPMENT.mdc](02-FRONTEND-DEVELOPMENT.mdc)** - TypeScript, React, custom series, primitives
+3. **[03-ARCHITECTURE-QUALITY.mdc](03-ARCHITECTURE-QUALITY.mdc)** - Architecture, patterns, security, performance
+
+### **Operations Rules**
+4. **[04-TESTING-DEBUGGING.mdc](04-TESTING-DEBUGGING.mdc)** - Testing, error handling, troubleshooting
+5. **[05-DEPLOYMENT.mdc](05-DEPLOYMENT.mdc)** - CI/CD, dependencies, releases, builds
+
+### **Project Overview**
+6. **[06-PROJECT-GUIDE.mdc](06-PROJECT-GUIDE.mdc)** - Quick reference, commands, structure, workflow
+
+---
+
+## 🎯 Quick Reference
+
+| Need | File |
+|------|------|
+| **Python coding** | 01-PYTHON-DEVELOPMENT.mdc |
+| **Property mapping** | 01-PYTHON-DEVELOPMENT.mdc § Python ↔ Frontend Properties |
+| **Frontend/React** | 02-FRONTEND-DEVELOPMENT.mdc |
+| **Custom series** | 02-FRONTEND-DEVELOPMENT.mdc § Custom Series |
+| **Architecture** | 03-ARCHITECTURE-QUALITY.mdc |
+| **Performance** | 03-ARCHITECTURE-QUALITY.mdc § Performance |
+| **Testing** | 04-TESTING-DEBUGGING.mdc |
+| **Debugging** | 04-TESTING-DEBUGGING.mdc § Troubleshooting |
+| **CI/CD** | 05-DEPLOYMENT.mdc |
+| **Quick commands** | 06-PROJECT-GUIDE.mdc |
+
+---
+
+## 📝 Consolidation
+
+**Previous**: 20 separate rule files
+**Current**: 7 consolidated files (65% reduction)
+**Result**: Improved navigation and discoverability
+
+---
+
+## 📝 File Structure
+
+Each consolidated file follows this structure:
+
+```
+# {Title}
+
+## 📋 Table of Contents
+[Quick navigation within file]
+
+## 🎯 Quick Reference
+[Key patterns and examples]
+
+## 📚 Detailed Guidelines
+[Comprehensive documentation]
+
+## 🔗 Related
+[Links to related sections]
+```
+
+---
+
+## 🔄 Maintenance
+
+- **Updates**: Edit relevant consolidated file
+- **New patterns**: Add to appropriate section
+- **Questions**: Check TOC or use file search
+
+---
+
+Last Consolidation: 2025-01-21

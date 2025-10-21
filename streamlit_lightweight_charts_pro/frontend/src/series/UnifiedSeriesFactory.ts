@@ -93,12 +93,19 @@ export function isCustomSeries(seriesType: string): boolean {
 /**
  * Flatten nested line options from Python to flat API format
  *
- * Python sends: { uptrendLine: { color: '...', lineWidth: 2 } }
- * TypeScript needs: { uptrendLineColor: '...', uptrendLineWidth: 2 }
+ * Python sends nested line options like:
+ *   { upperLine: { color: "#xxx", lineWidth: 2, lineVisible: false } }
+ *
+ * Frontend expects flattened options like:
+ *   { upperLineColor: "#xxx", upperLineWidth: 2, upperLineVisible: false }
+ *
+ * This function uses the descriptor's apiMapping to determine the correct
+ * property names for flattening. It handles all LineOptions properties including
+ * color, width, style, visibility, markers, and crosshair settings.
  *
  * @param options - Options potentially containing nested line objects
  * @param descriptor - Series descriptor with property definitions
- * @returns Flattened options
+ * @returns Flattened options with nested LineOptions expanded to top level
  */
 function flattenLineOptions(
   options: Record<string, unknown>,
@@ -117,16 +124,62 @@ function flattenLineOptions(
         // Remove the nested object
         delete flattened[propName];
 
-        // Flatten to individual properties
+        // Flatten to individual properties using descriptor's apiMapping
         const lineObjTyped = lineObj as Record<string, unknown>;
+
+        // Map color
         if (lineObjTyped.color !== undefined && propDesc.apiMapping.colorKey) {
           flattened[propDesc.apiMapping.colorKey] = lineObjTyped.color;
         }
+
+        // Map line width
         if (lineObjTyped.lineWidth !== undefined && propDesc.apiMapping.widthKey) {
           flattened[propDesc.apiMapping.widthKey] = lineObjTyped.lineWidth;
         }
+
+        // Map line style
         if (lineObjTyped.lineStyle !== undefined && propDesc.apiMapping.styleKey) {
           flattened[propDesc.apiMapping.styleKey] = lineObjTyped.lineStyle;
+        }
+
+        // Map line visibility (CRITICAL: was missing before!)
+        // e.g., 'upperLine' → 'upperLineVisible', 'middleLine' → 'middleLineVisible'
+        if (lineObjTyped.lineVisible !== undefined) {
+          const visibilityKey = propName + 'Visible';
+          flattened[visibilityKey] = lineObjTyped.lineVisible;
+        }
+
+        // Map additional LineOptions properties (if present in nested object)
+        // These are typically not used by custom series but included for completeness
+        if (lineObjTyped.lineType !== undefined) {
+          flattened[propName + 'Type'] = lineObjTyped.lineType;
+        }
+        if (lineObjTyped.pointMarkersVisible !== undefined) {
+          flattened[propName + 'PointMarkersVisible'] = lineObjTyped.pointMarkersVisible;
+        }
+        if (lineObjTyped.pointMarkersRadius !== undefined) {
+          flattened[propName + 'PointMarkersRadius'] = lineObjTyped.pointMarkersRadius;
+        }
+        if (lineObjTyped.crosshairMarkerVisible !== undefined) {
+          flattened[propName + 'CrosshairMarkerVisible'] = lineObjTyped.crosshairMarkerVisible;
+        }
+        if (lineObjTyped.crosshairMarkerRadius !== undefined) {
+          flattened[propName + 'CrosshairMarkerRadius'] = lineObjTyped.crosshairMarkerRadius;
+        }
+        if (lineObjTyped.crosshairMarkerBorderColor !== undefined) {
+          flattened[propName + 'CrosshairMarkerBorderColor'] =
+            lineObjTyped.crosshairMarkerBorderColor;
+        }
+        if (lineObjTyped.crosshairMarkerBackgroundColor !== undefined) {
+          flattened[propName + 'CrosshairMarkerBackgroundColor'] =
+            lineObjTyped.crosshairMarkerBackgroundColor;
+        }
+        if (lineObjTyped.crosshairMarkerBorderWidth !== undefined) {
+          flattened[propName + 'CrosshairMarkerBorderWidth'] =
+            lineObjTyped.crosshairMarkerBorderWidth;
+        }
+        if (lineObjTyped.lastPriceAnimation !== undefined) {
+          flattened[propName + 'LastPriceAnimation'] = lineObjTyped.lastPriceAnimation;
         }
       }
     }
@@ -278,6 +331,8 @@ export interface ExtendedSeriesConfig {
   paneId?: number;
   /** Price scale configuration */
   priceScale?: Record<string, unknown>;
+  /** Price scale ID for series attachment */
+  priceScaleId?: string;
   /** Price lines to add */
   priceLines?: Array<Record<string, unknown>>;
   /** Markers to add */
@@ -292,6 +347,22 @@ export interface ExtendedSeriesConfig {
   title?: string;
   /** Display name (user-friendly name for UI elements like dialog tabs) */
   displayName?: string;
+  /** Series visibility */
+  visible?: boolean;
+  /** Z-index for rendering order */
+  zIndex?: number;
+  /** Show last value on price scale */
+  lastValueVisible?: boolean;
+  /** Show price line */
+  priceLineVisible?: boolean;
+  /** Price line source (0 = lastBar, 1 = lastVisible, or string 'lastBar'/'lastVisible') */
+  priceLineSource?: number | 'lastBar' | 'lastVisible';
+  /** Price line width */
+  priceLineWidth?: number;
+  /** Price line color */
+  priceLineColor?: string;
+  /** Price line style */
+  priceLineStyle?: number;
   /** Trade configurations for visualization */
   trades?: TradeConfig[];
   /** Trade visualization options */
@@ -333,27 +404,45 @@ export function createSeriesWithConfig(
       options = {},
       paneId = 0,
       priceScale,
-      priceScaleId, // CRITICAL FIX: Extract priceScaleId from top-level config
+      priceScaleId,
       priceLines,
       markers,
       legend,
       seriesId,
       chartId,
-      title, // Extract title from top-level config
-      displayName, // Extract displayName from top-level config
+      title,
+      displayName,
+      // Extract additional top-level SeriesOptionsCommon properties that Python sends
+      visible,
+      zIndex,
+      lastValueVisible,
+      priceLineVisible,
+      priceLineSource,
+      priceLineWidth,
+      priceLineColor,
+      priceLineStyle,
     } = config;
 
-    // CRITICAL FIX: Merge top-level properties into options
-    // Python sends these at top level, but lightweight-charts expects them in options
-    let mergedOptions = options;
-    if (title || displayName || priceScaleId) {
-      mergedOptions = { ...options } as any;
-      if (title) (mergedOptions as any).title = title;
-      if (displayName) (mergedOptions as any).displayName = displayName;
-      // CRITICAL FIX: Include priceScaleId in options passed to descriptor
-      // Without this, the series won't attach to the correct price scale!
-      if (priceScaleId) (mergedOptions as any).priceScaleId = priceScaleId;
-    }
+    // CRITICAL FIX: Merge ALL top-level properties into options
+    // Python sends these at top level (marked with @chainable_property top_level=True),
+    // but lightweight-charts expects them in the options object passed to series creation.
+    //
+    // Without this merge, properties like 'visible' are ignored, causing issues like
+    // Signal series not respecting visibility settings.
+    const mergedOptions = { ...options } as any;
+
+    // Standard series properties (SeriesOptionsCommon)
+    if (title !== undefined) mergedOptions.title = title;
+    if (displayName !== undefined) mergedOptions.displayName = displayName;
+    if (priceScaleId !== undefined) mergedOptions.priceScaleId = priceScaleId;
+    if (visible !== undefined) mergedOptions.visible = visible;
+    if (zIndex !== undefined) mergedOptions.zIndex = zIndex;
+    if (lastValueVisible !== undefined) mergedOptions.lastValueVisible = lastValueVisible;
+    if (priceLineVisible !== undefined) mergedOptions.priceLineVisible = priceLineVisible;
+    if (priceLineSource !== undefined) mergedOptions.priceLineSource = priceLineSource;
+    if (priceLineWidth !== undefined) mergedOptions.priceLineWidth = priceLineWidth;
+    if (priceLineColor !== undefined) mergedOptions.priceLineColor = priceLineColor;
+    if (priceLineStyle !== undefined) mergedOptions.priceLineStyle = priceLineStyle;
 
     // Step 1: Create the series using basic createSeries
     // Note: createSeries already handles data sorting and setting via descriptors

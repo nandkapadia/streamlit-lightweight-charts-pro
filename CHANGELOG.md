@@ -5,6 +5,54 @@ All notable changes to the Streamlit Lightweight Charts Pro project will be docu
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2025-10-21
+
+### Fixed
+- **Series Settings Dialog:**
+  - Fixed tab rendering issues in SeriesSettingsDialog
+  - Tabs now display properly as clickable buttons instead of plain text
+  - Added CSS `!important` flags to ensure proper tab styling
+  - Fixed tab colors: gray (#787b86) for inactive, dark (#131722) for active
+  - Fixed active tab indicator with blue underline (#2962ff)
+  - Improved tab hover effects and transitions
+
+- **Property Consistency:**
+  - Fixed Python ↔ Frontend property flow for all series types
+  - Ensured all SeriesOptionsCommon properties are correctly passed from Python to Frontend
+  - Fixed `visible`, `displayName`, and other standard properties for Signal series
+  - Added hidden properties (zIndex, priceLineSource, etc.) to STANDARD_SERIES_PROPERTIES
+  - Fixed property preservation during dialog updates
+
+- **Code Quality:**
+  - Fixed 10 Python linting errors with Ruff
+  - Reformatted Python codebase for consistency
+  - Fixed CSS duplicate rules in seriesConfigDialog.css
+  - Cleaned up all ESLint warnings and auto-fixed issues
+
+### Changed
+- **UI Improvements:**
+  - Removed "Defaults" button from Series Settings Dialog footer
+  - Simplified dialog footer layout (buttons now right-aligned)
+  - Cleaner, more streamlined dialog interface
+  - Reduced bundle size by 0.89 kB (804.74 kB → 218.85 kB gzipped)
+
+- **Documentation:**
+  - Consolidated `.cursor/rules` from 20 files to 7 organized files (65% reduction)
+  - All rule files now use `.mdc` extension
+  - Removed `_archive/` directory for cleaner structure
+  - Created comprehensive navigation with `00-README.mdc`
+  - Added full Python ↔ Frontend property consistency guide (26KB in `01-PYTHON-DEVELOPMENT.mdc`)
+
+- **Build & Deployment:**
+  - Production build optimized and verified
+  - All code formatted with Prettier and ESLint
+
+### Technical Details
+- **Frontend Bundle:** 804.74 kB raw, 218.85 kB gzipped
+- **Modules Transformed:** 246
+- **Code Quality:** ESLint + Prettier + Ruff formatting applied
+- **Documentation:** 7 consolidated rule files in `.cursor/rules/`
+
 ## [0.1.2] - 2025-10-15
 
 ### Added

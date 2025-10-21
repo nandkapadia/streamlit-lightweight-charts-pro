@@ -1,0 +1,32 @@
+# Testing & Debugging Guide
+
+**Consolidated from**: testing-standards.mdc, error-handling-logging.mdc, troubleshooting-guide.mdc
+
+---
+
+## 📋 Quick Reference
+
+### Test Commands
+```bash
+make test              # All tests
+make test-parallel     # Fast parallel
+pytest -m unit         # Unit tests only
+pytest --cov           # With coverage
+```
+
+### Debugging
+```python
+# Enable logging
+from streamlit_lightweight_charts_pro.logging_config import setup_logging
+setup_logging(level="DEBUG")
+```
+
+---
+
+## Content
+
+- `testing-standards.mdc` - Testing patterns
+- `error-handling-logging.mdc` - Error handling
+- `troubleshooting-guide.mdc` - Common issues
+
+---

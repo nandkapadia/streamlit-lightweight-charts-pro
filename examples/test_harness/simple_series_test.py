@@ -31,6 +31,7 @@ from streamlit_lightweight_charts_pro import (
     create_text_annotation,
 )
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
+from streamlit_lightweight_charts_pro.charts.options.layout_options import LayoutOptions
 from streamlit_lightweight_charts_pro.charts.options.sync_options import SyncOptions
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
@@ -45,6 +46,7 @@ from streamlit_lightweight_charts_pro.data import (
     TradeData,
     TrendFillData,
 )
+from streamlit_lightweight_charts_pro.type_definitions.colors import BackgroundSolid
 from streamlit_lightweight_charts_pro.type_definitions.enums import TradeVisualization
 
 
@@ -286,7 +288,14 @@ def main():
         trend_fill_chart.render(key="trend_fill")
 
         st.write("**Band**")
-        Chart(series=BandSeries(data=data["band_data"])).render(key="band")
+        try:
+            band = BandSeries(data=data["band_data"])
+            band.upper_line.line_visible = False  # pylint: disable=no-member
+            band.uppper_fill = False
+            band.lower_fill_color = "rgba(128, 0, 128, 0.2)"
+            Chart(series=band).render(key="band")
+        except Exception as e:
+            st.error(f"Error rendering band: {e}")
 
         st.write("**Ribbon**")
         Chart(series=RibbonSeries(data=data["ribbon_data"])).render(key="ribbon")
@@ -380,6 +389,58 @@ def main():
             ],
         ).render(key="multi_pane_three")
 
+    st.subheader("🎯 Multi-Series Chart (6-7 Series)")
+    st.caption("Testing dialog box with multiple series - click legend to toggle visibility")
+
+    # Create series instances and configure them
+    candlestick_series = CandlestickSeries(data=data["ohlcv_data"])
+    candlestick_series.title = "Price"
+
+    line_series = LineSeries(data=data["line_data"])
+    line_series.title = "SMA"
+    line_series.color = "blue"
+
+    trend_fill_series = TrendFillSeries(
+        data=data["trend_data"],
+        uptrend_fill_color="rgba(76, 175, 80, 0.3)",
+        downtrend_fill_color="rgba(239, 83, 80, 0.3)",
+    )
+    trend_fill_series.title = "Trend Fill"
+
+    band_series = BandSeries(data=data["band_data"])
+    band_series.title = "Bollinger Bands"
+
+    volume_series = HistogramSeries(data=data["volume_data"], pane_id=1)
+    volume_series.title = "Volume"
+
+    signal_series = SignalSeries(data=data["signal_data"])
+    signal_series.title = "Buy/Sell Signals"
+
+    gradient_ribbon_series = GradientRibbonSeries(data=data["gradient_ribbon_data"])
+    gradient_ribbon_series.title = "Gradient Ribbon"
+
+    # Create a comprehensive multi-series chart
+    multi_series_chart = Chart(
+        series=[
+            candlestick_series,
+            line_series,
+            trend_fill_series,
+            band_series,
+            volume_series,
+            signal_series,
+            gradient_ribbon_series,
+        ],
+        options=ChartOptions(
+            height=500,
+            layout=LayoutOptions(
+                background_options=BackgroundSolid(color="white"),
+                text_color="black",
+            ),
+        ),
+    )
+
+    multi_series_chart.render(key="multi_series_dialog_test")
+
     st.subheader("📊 Linked Charts (ChartManager)")
     st.caption("Two charts synced via ChartManager - scroll/zoom one to sync both")
 
@@ -431,6 +492,8 @@ def main():
             - [ ] Multi-pane aligned
             - [ ] Annotations visible
             - [ ] Trade markers show
+            - [ ] Multi-series dialog works
+            - [ ] Legend toggles work
             - [ ] Linked charts sync
             - [ ] No visual glitches
             """,
@@ -454,6 +517,7 @@ def main():
             - ✓ Trade viz (both styles)
             - ✓ Multi-pane (helper)
             - ✓ Multi-pane (manual)
+            - ✓ Multi-series dialog (7 series)
             - ✓ Linked charts (sync)
             """,
         )

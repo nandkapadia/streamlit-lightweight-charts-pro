@@ -1,0 +1,30 @@
+# Architecture, Quality & Performance
+
+**Consolidated from**: architecture-patterns.mdc, api-design-versioning.mdc, code-quality-standards.mdc, security-best-practices.mdc, performance-optimization.mdc
+
+---
+
+## 📋 Quick Reference
+
+### Architecture Principles
+- **Fluent API**: All methods return self
+- **Type Safety**: Full type hints with runtime validation
+- **Performance**: Lazy loading, caching, efficient serialization
+
+### Code Quality Tools
+- **Ruff**: Python linting/formatting
+- **MyPy**: Type checking
+- **Bandit**: Security scanning
+- **ESLint**: Frontend linting
+
+---
+
+## Content
+
+- `architecture-patterns.mdc` - Design patterns
+- `api-design-versioning.mdc` - API design
+- `code-quality-standards.mdc` - Quality tools
+- `security-best-practices.mdc` - Security
+- `performance-optimization.mdc` - Performance
+
+---

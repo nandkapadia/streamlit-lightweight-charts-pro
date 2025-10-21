@@ -34,6 +34,7 @@ export interface SeriesConfigPatch {
   color?: string;
   line_width?: number;
   line_style?: number;
+  line_visible?: boolean;
   markers?: boolean;
   title?: string;
   [key: string]: any; // Allow additional properties
@@ -123,6 +124,10 @@ export function useSeriesUpdate(options: UseSeriesUpdateOptions): UseSeriesUpdat
 
       if ('line_style' in configPatch) {
         apiConfig.lineStyle = configPatch.line_style;
+      }
+
+      if ('line_visible' in configPatch) {
+        apiConfig.lineVisible = configPatch.line_visible;
       }
 
       // Marker options

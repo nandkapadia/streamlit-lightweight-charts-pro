@@ -1,0 +1,93 @@
+# Project Guide - Quick Reference
+
+**Consolidates**: Project structure, commands, patterns, and Streamlit integration
+
+---
+
+## 🏗️ Project Structure
+
+```
+streamlit_lightweight_charts_pro/
+├── charts/              # Chart classes and series
+│   ├── chart.py        # Main Chart class
+│   ├── series/         # All series types
+│   └── options/        # Chart options
+├── data/               # Data models
+├── frontend/           # React/TypeScript
+│   └── src/
+│       ├── series/     # Series descriptors
+│       └── LightweightCharts.tsx
+└── component.py        # Streamlit bridge
+```
+
+---
+
+## ⚡ Quick Commands
+
+```bash
+# Development
+make test              # Run all tests
+make test-parallel     # Fast parallel testing
+make format            # Auto-format code
+make lint             # Check code quality
+
+# Frontend
+cd frontend
+npm run dev           # Development server
+npm run build         # Production build
+
+# Pre-commit
+make pre-commit-setup  # Initial setup
+make pre-commit-run    # Manual check
+```
+
+---
+
+## 🎯 Common Patterns
+
+### Creating a Chart
+```python
+from streamlit_lightweight_charts_pro import Chart, LineSeries
+from streamlit_lightweight_charts_pro.data import SingleValueData
+
+data = [SingleValueData("2024-01-01", 100)]
+chart = Chart(series=LineSeries(data))
+chart.render(key="chart1")
+```
+
+### Method Chaining
+```python
+chart = (Chart()
+    .add_series(LineSeries(data, color="#ff0000"))
+    .update_options(height=400)
+    .render(key="chart2"))
+```
+
+---
+
+## 🔧 Setup
+
+```bash
+# Install
+pip install -e ".[dev]"
+make pre-commit-setup
+
+# Verify
+make test
+```
+
+---
+
+## 📝 Important Notes
+
+1. **Unique Keys**: Every chart needs unique `key` parameter
+2. **Data Classes**: Use data classes, not raw dicts
+3. **Frontend Build**: Run `npm run build` after frontend changes
+4. **Test Coverage**: Maintain 95%+
+
+---
+
+---
+
+**Version**: 0.1.6
+**Status**: Consolidated quick reference guide

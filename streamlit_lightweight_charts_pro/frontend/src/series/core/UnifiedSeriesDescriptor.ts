@@ -204,6 +204,76 @@ export const PropertyDescriptors = {
 };
 
 /**
+ * Standard series properties that should be included in all series descriptors.
+ * These correspond to SeriesOptionsCommon from lightweight-charts and are sent
+ * as top-level properties from Python (marked with @chainable_property top_level=True).
+ *
+ * Including these in descriptors ensures:
+ * 1. Properties are passed through when updating via dialog
+ * 2. They have proper defaults
+ * 3. Documentation is consistent
+ *
+ * Properties marked with hidden: true are not shown in the UI but are still
+ * processed during property mapping to ensure consistency between JSON and Dialog paths.
+ */
+export const STANDARD_SERIES_PROPERTIES: Record<string, PropertyDescriptor> = {
+  // Visible properties (shown in dialog UI)
+  visible: PropertyDescriptors.boolean('Visible', true, 'General'),
+  lastValueVisible: PropertyDescriptors.boolean('Show Last Value', true, 'General'),
+  priceLineVisible: PropertyDescriptors.boolean('Show Price Line', true, 'General'),
+  title: {
+    type: 'color', // Using color type as string input (will be improved in future)
+    label: 'Title',
+    default: '',
+    group: 'General',
+    description: 'Technical name shown on chart axis/legend',
+  },
+
+  // Hidden properties (not shown in UI but passed through for consistency)
+  // These ensure dialog updates don't lose properties set via JSON from Python
+  zIndex: {
+    type: 'number',
+    label: 'Z-Index',
+    default: 0,
+    group: 'General',
+    hidden: true,
+    description: 'Rendering order (higher values render on top)',
+  },
+  priceLineSource: {
+    type: 'number',
+    label: 'Price Line Source',
+    default: 0,
+    group: 'General',
+    hidden: true,
+    description: 'Source for price line data',
+  },
+  priceLineWidth: {
+    type: 'number',
+    label: 'Price Line Width',
+    default: 1,
+    group: 'General',
+    hidden: true,
+    description: 'Width of the price line in pixels',
+  },
+  priceLineColor: {
+    type: 'color',
+    label: 'Price Line Color',
+    default: '',
+    group: 'General',
+    hidden: true,
+    description: 'Color of the price line',
+  },
+  priceLineStyle: {
+    type: 'lineStyle',
+    label: 'Price Line Style',
+    default: 2, // LineStyle.Dashed
+    group: 'General',
+    hidden: true,
+    description: 'Style of the price line',
+  },
+};
+
+/**
  * Helper to extract default options from property descriptors
  */
 export function extractDefaultOptions<T = unknown>(
@@ -234,6 +304,15 @@ export function extractDefaultOptions<T = unknown>(
 
 /**
  * Helper to convert dialog config to API options using descriptor
+ *
+ * This function processes ALL properties including:
+ * - Standard series properties (visible, title, zIndex, etc.) from STANDARD_SERIES_PROPERTIES
+ * - Series-specific properties defined in each descriptor
+ * - Hidden properties (marked with hidden: true) are still passed through
+ *
+ * This ensures consistency between:
+ * 1. JSON path (Python → createSeriesWithConfig → series creation)
+ * 2. Dialog path (UI changes → dialogConfigToApiOptions → series.applyOptions)
  */
 export function dialogConfigToApiOptions<T = unknown>(
   descriptor: UnifiedSeriesDescriptor<T>,
@@ -241,26 +320,16 @@ export function dialogConfigToApiOptions<T = unknown>(
 ): Partial<T> {
   const apiOptions: Record<string, unknown> = {};
 
-  // Common properties (always flat)
-  if (dialogConfig.visible !== undefined) apiOptions.visible = dialogConfig.visible;
-  if (dialogConfig.lastValueVisible !== undefined)
-    apiOptions.lastValueVisible = dialogConfig.lastValueVisible;
-  if (dialogConfig.priceLineVisible !== undefined)
-    apiOptions.priceLineVisible = dialogConfig.priceLineVisible;
-
-  // Title vs DisplayName:
-  // - title: Passed to TradingView API, displayed on chart axis/legend
-  // - displayName: NOT passed to TradingView API, only used for UI elements (dialog tabs, tooltips)
-  // Both are stored in dialogConfig, but only title goes to the chart API
-  if (dialogConfig.title !== undefined) apiOptions.title = dialogConfig.title;
-  if (dialogConfig.displayName !== undefined) apiOptions.displayName = dialogConfig.displayName;
-
   // Property-descriptor-driven mapping
+  // This loop processes ALL properties in the descriptor, including:
+  // - Standard properties from STANDARD_SERIES_PROPERTIES (visible, title, zIndex, etc.)
+  // - Series-specific properties (upperLine, neutralColor, etc.)
+  // - Hidden properties are processed but not shown in UI
   for (const [propName, propDesc] of Object.entries(descriptor.properties)) {
     if (dialogConfig[propName] === undefined) continue;
 
     if (propDesc.type === 'line' && propDesc.apiMapping) {
-      // Flatten line config
+      // Flatten line config (nested → flat)
       const lineConfig = dialogConfig[propName] as Record<string, unknown>;
       if (lineConfig && typeof lineConfig === 'object') {
         if (lineConfig.color !== undefined && propDesc.apiMapping.colorKey) {
@@ -274,10 +343,15 @@ export function dialogConfigToApiOptions<T = unknown>(
         }
       }
     } else {
-      // Direct copy for flat properties
+      // Direct copy for flat properties (including hidden ones)
       apiOptions[propName] = dialogConfig[propName];
     }
   }
+
+  // DisplayName is special: NOT passed to TradingView API
+  // It's only used for UI elements (dialog tabs, tooltips)
+  // Title IS passed to the API and shown on chart axis/legend
+  if (dialogConfig.displayName !== undefined) apiOptions.displayName = dialogConfig.displayName;
 
   return apiOptions as Partial<T>;
 }

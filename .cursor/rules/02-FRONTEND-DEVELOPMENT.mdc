@@ -1,0 +1,28 @@
+# Frontend Development Guide
+
+**Consolidated from**: frontend-development.mdc, react-integration-patterns.mdc, custom-series-development.mdc, pane-primitive-positioning.mdc
+
+---
+
+## 📋 Quick Reference
+
+### Key Files
+- `frontend/src/LightweightCharts.tsx` - Main component
+- `frontend/src/series/UnifiedSeriesFactory.ts` - Series creation
+- `frontend/src/series/descriptors/` - Series descriptors
+
+### Important Patterns
+- **React 19**: Use useTransition, useDeferredValue
+- **Series Descriptors**: Single source of truth for series types
+- **Property Flattening**: LineOptions nested → flat API
+
+---
+
+##Content
+
+- `frontend-development.mdc` - TypeScript/React patterns
+- `react-integration-patterns.mdc` - React hooks and patterns
+- `custom-series-development.mdc` - Custom series primitives
+- `pane-primitive-positioning.mdc` - Multi-pane positioning
+
+---

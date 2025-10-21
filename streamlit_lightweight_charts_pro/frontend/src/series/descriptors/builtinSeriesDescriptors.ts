@@ -146,12 +146,14 @@ export const LINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<LineSeriesOptions> 
         styleKey: 'lineStyle',
       }
     ),
+    lineVisible: PropertyDescriptors.boolean('Line Visible', true, 'Line'),
   },
 
   defaultOptions: {
     color: '#2962FF',
     lineWidth: 2,
     lineStyle: LineStyle.Solid,
+    lineVisible: true,
     lastValueVisible: true,
     priceLineVisible: true,
   },
@@ -356,6 +358,7 @@ export const BASELINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BaselineSeriesO
       'Bottom'
     ),
     lineWidth: PropertyDescriptors.lineWidth('Line Width', 2, 'Base'),
+    lineVisible: PropertyDescriptors.boolean('Line Visible', true, 'Base'),
     relativeGradient: PropertyDescriptors.boolean('Relative Gradient', false, 'Base'),
   },
 
@@ -368,6 +371,7 @@ export const BASELINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BaselineSeriesO
     bottomFillColor1: 'rgba(239, 83, 80, 0.05)',
     bottomFillColor2: 'rgba(239, 83, 80, 0.28)',
     lineWidth: 2,
+    lineVisible: true,
     relativeGradient: false,
     lastValueVisible: true,
     priceLineVisible: true,

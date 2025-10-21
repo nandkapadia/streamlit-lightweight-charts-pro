@@ -6,7 +6,11 @@
  */
 
 import { LineStyle, IChartApi } from 'lightweight-charts';
-import { UnifiedSeriesDescriptor, PropertyDescriptors } from '../core/UnifiedSeriesDescriptor';
+import {
+  UnifiedSeriesDescriptor,
+  PropertyDescriptors,
+  STANDARD_SERIES_PROPERTIES,
+} from '../core/UnifiedSeriesDescriptor';
 import { createBandSeries, type BandData } from '../../plugins/series/bandSeriesPlugin';
 import { createRibbonSeries, type RibbonData } from '../../plugins/series/ribbonSeriesPlugin';
 import {
@@ -27,6 +31,9 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   description: 'Three-line band with filled areas (e.g., Bollinger Bands)',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // Band-specific properties
     upperLine: PropertyDescriptors.line('Upper Line', '#2962FF', 2, LineStyle.Solid, {
       colorKey: 'upperLineColor',
       widthKey: 'upperLineWidth',
@@ -52,6 +59,12 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   },
 
   defaultOptions: {
+    // Standard defaults
+    visible: true,
+    lastValueVisible: false,
+    priceLineVisible: false,
+    title: '',
+    // Band-specific defaults
     upperLineColor: '#2962FF',
     upperLineWidth: 2,
     upperLineStyle: LineStyle.Solid,
@@ -68,8 +81,6 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
     upperFillVisible: true,
     lowerFillColor: 'rgba(41, 98, 255, 0.1)',
     lowerFillVisible: true,
-    lastValueVisible: false,
-    priceLineVisible: false,
     usePrimitive: true, // Enable primitive rendering (factory-specific option)
   } as any, // Factory accepts additional options beyond primitive options
 
@@ -89,6 +100,9 @@ export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   description: 'Two-line ribbon with filled area between lines',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // Ribbon-specific properties
     upperLine: PropertyDescriptors.line('Upper Line', '#2962FF', 2, LineStyle.Solid, {
       colorKey: 'upperLineColor',
       widthKey: 'upperLineWidth',
@@ -106,6 +120,12 @@ export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   },
 
   defaultOptions: {
+    // Standard defaults
+    visible: true,
+    lastValueVisible: false,
+    priceLineVisible: false,
+    title: '',
+    // Ribbon-specific defaults
     upperLineColor: '#2962FF',
     upperLineWidth: 2,
     upperLineStyle: LineStyle.Solid,
@@ -116,8 +136,6 @@ export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
     lowerLineVisible: true,
     fillColor: 'rgba(41, 98, 255, 0.1)',
     fillVisible: true,
-    lastValueVisible: false,
-    priceLineVisible: false,
     usePrimitive: true, // Enable primitive rendering (factory-specific option)
   } as any, // Factory accepts additional options beyond primitive options
 
@@ -137,6 +155,9 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   description: 'Two-line ribbon with gradient-filled area',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // GradientRibbon-specific properties
     upperLine: PropertyDescriptors.line('Upper Line', '#2962FF', 2, LineStyle.Solid, {
       colorKey: 'upperLineColor',
       widthKey: 'upperLineWidth',
@@ -167,6 +188,12 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   },
 
   defaultOptions: {
+    // Standard defaults
+    visible: true,
+    lastValueVisible: false,
+    priceLineVisible: false,
+    title: '',
+    // GradientRibbon-specific defaults
     upperLineColor: '#2962FF',
     upperLineWidth: 2,
     upperLineStyle: LineStyle.Solid,
@@ -179,8 +206,6 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
     gradientStartColor: 'rgba(41, 98, 255, 0.5)',
     gradientEndColor: 'rgba(239, 83, 80, 0.5)',
     normalizeGradients: false,
-    lastValueVisible: false,
-    priceLineVisible: false,
     usePrimitive: true, // Enable primitive rendering (factory-specific option)
   } as any, // Factory accepts additional options beyond primitive options
 
@@ -203,17 +228,24 @@ export const SIGNAL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   description: 'Vertical background bands for trading signals',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // Signal-specific properties
     neutralColor: PropertyDescriptors.color('Neutral Color', 'rgba(128, 128, 128, 0.3)', 'Colors'),
     signalColor: PropertyDescriptors.color('Signal Color', 'rgba(41, 98, 255, 0.3)', 'Colors'),
     alertColor: PropertyDescriptors.color('Alert Color', 'rgba(239, 83, 80, 0.3)', 'Colors'),
   },
 
   defaultOptions: {
+    // Standard defaults
+    visible: true,
+    lastValueVisible: false,
+    priceLineVisible: false,
+    title: '',
+    // Signal-specific defaults
     neutralColor: 'rgba(128, 128, 128, 0.3)',
     signalColor: 'rgba(41, 98, 255, 0.3)',
     alertColor: 'rgba(239, 83, 80, 0.3)',
-    lastValueVisible: false,
-    priceLineVisible: false,
     usePrimitive: true, // Enable primitive rendering (factory-specific option)
   } as any, // Factory accepts additional options beyond primitive options
 
@@ -233,6 +265,9 @@ export const TREND_FILL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   description: 'Filled area between trend and base lines with direction-based coloring',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // TrendFill-specific properties
     uptrendFillColor: PropertyDescriptors.color(
       'Uptrend Fill Color',
       'rgba(76, 175, 80, 0.3)',
@@ -269,6 +304,12 @@ export const TREND_FILL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
   },
 
   defaultOptions: {
+    // Standard defaults
+    visible: true,
+    lastValueVisible: false,
+    priceLineVisible: false,
+    title: '',
+    // TrendFill-specific defaults
     uptrendFillColor: 'rgba(76, 175, 80, 0.3)',
     downtrendFillColor: 'rgba(244, 67, 54, 0.3)',
     fillVisible: true,
@@ -284,8 +325,6 @@ export const TREND_FILL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
     baseLineWidth: 1,
     baseLineStyle: LineStyle.Dotted,
     baseLineVisible: false,
-    lastValueVisible: false,
-    priceLineVisible: false,
     usePrimitive: true, // Enable primitive rendering (factory-specific option)
   } as any, // Factory accepts additional options beyond primitive options
 

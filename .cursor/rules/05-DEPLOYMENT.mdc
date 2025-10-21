@@ -1,0 +1,35 @@
+# Deployment & Operations
+
+**Consolidated from**: cicd-release-practices.mdc, dependency-management.mdc
+
+---
+
+## 📋 Quick Reference
+
+### Build Commands
+```bash
+# Frontend
+cd frontend && npm run build
+
+# Python package
+python -m build
+
+# Version bump
+# Update: pyproject.toml, setup.py, __init__.py, package.json
+```
+
+### Release Checklist
+- [ ] Tests passing
+- [ ] Version updated (4 files)
+- [ ] Frontend built
+- [ ] CHANGELOG updated
+- [ ] Git tag created
+
+---
+
+## Content
+
+- `cicd-release-practices.mdc` - CI/CD pipelines
+- `dependency-management.mdc` - Dependencies
+
+---
