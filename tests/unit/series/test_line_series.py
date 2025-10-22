@@ -279,7 +279,7 @@ class TestLineSeriesExtended:
         assert len(result["data"]) == 1
         assert result["data"][0]["time"] == 1640995200
         assert result["data"][0]["value"] == 100
-        assert result["options"]["color"] == "#ff0000"
+        assert result["options"]["lineOptions"]["color"] == "#ff0000"
         assert len(result["priceLines"]) == 1
         assert len(result["markers"]) == 1
 
@@ -517,8 +517,8 @@ class TestLineSeriesJsonFormat:
         # Check options structure
         assert "options" in result
         options = result["options"]
-        assert options["color"] == "#2196f3"
-        assert options["lineWidth"] == 2
+        assert options["lineOptions"]["color"] == "#2196f3"
+        assert options["lineOptions"]["lineWidth"] == 2
 
         # Check other required fields
         assert "paneId" in result
@@ -551,19 +551,20 @@ class TestLineSeriesJsonFormat:
 
         # Check options structure
         options = result["options"]
-        assert options["color"] == "#ff0000"
-        assert options["lineStyle"] == 2  # LineStyle.DASHED.value
-        assert options["lineWidth"] == 3
-        assert options["lineType"] == 2  # LineType.CURVED.value
-        assert options["lineVisible"] is True
-        assert options["pointMarkersVisible"] is True
-        assert options["pointMarkersRadius"] == 5
-        assert options["crosshairMarkerVisible"] is True
-        assert options["crosshairMarkerRadius"] == 4
-        assert options["crosshairMarkerBorderColor"] == "#000000"
-        assert options["crosshairMarkerBackgroundColor"] == "#ffffff"
-        assert options["crosshairMarkerBorderWidth"] == 2
-        assert options["lastPriceAnimation"] == 1  # LastPriceAnimationMode.CONTINUOUS.value
+        line_opts = options["lineOptions"]
+        assert line_opts["color"] == "#ff0000"
+        assert line_opts["lineStyle"] == 2  # LineStyle.DASHED.value
+        assert line_opts["lineWidth"] == 3
+        assert line_opts["lineType"] == 2  # LineType.CURVED.value
+        assert line_opts["lineVisible"] is True
+        assert line_opts["pointMarkersVisible"] is True
+        assert line_opts["pointMarkersRadius"] == 5
+        assert line_opts["crosshairMarkerVisible"] is True
+        assert line_opts["crosshairMarkerRadius"] == 4
+        assert line_opts["crosshairMarkerBorderColor"] == "#000000"
+        assert line_opts["crosshairMarkerBackgroundColor"] == "#ffffff"
+        assert line_opts["crosshairMarkerBorderWidth"] == 2
+        assert line_opts["lastPriceAnimation"] == 1  # LastPriceAnimationMode.CONTINUOUS.value
 
     def test_line_series_with_price_lines_json_structure(self):
         """Test line series with price lines JSON structure."""
@@ -827,7 +828,10 @@ class TestLineSeriesJsonFormat:
         # Verify key structure matches
         assert result["type"] == expected_structure["type"]
         assert result["data"] == expected_structure["data"]
-        assert result["options"]["color"] == expected_structure["options"]["color"]
-        assert result["options"]["lineStyle"] == expected_structure["options"]["lineStyle"]
+        assert result["options"]["lineOptions"]["color"] == expected_structure["options"]["color"]
+        assert (
+            result["options"]["lineOptions"]["lineStyle"]
+            == expected_structure["options"]["lineStyle"]
+        )
         assert result["priceLines"][0]["price"] == expected_structure["priceLines"][0]["price"]
         assert result["paneId"] == expected_structure["pane_id"]

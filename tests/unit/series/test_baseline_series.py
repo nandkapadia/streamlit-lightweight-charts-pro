@@ -397,15 +397,17 @@ class TestBaselineSeriesSerialization:
         series = BaselineSeries(data=data)
         result = series.asdict()
 
-        # Check that LineOptions properties are included
-        assert "color" in result["options"]
-        assert "lineStyle" in result["options"]
-        assert "lineWidth" in result["options"]
-        assert "lineType" in result["options"]
-        assert "lineVisible" in result["options"]
-        assert "pointMarkersVisible" in result["options"]
-        assert "crosshairMarkerVisible" in result["options"]
-        assert "lastPriceAnimation" in result["options"]
+        # Check that LineOptions properties are included - now nested
+        assert "lineOptions" in result["options"]
+        line_opts = result["options"]["lineOptions"]
+        assert "color" in line_opts
+        assert "lineStyle" in line_opts
+        assert "lineWidth" in line_opts
+        assert "lineType" in line_opts
+        assert "lineVisible" in line_opts
+        assert "pointMarkersVisible" in line_opts
+        assert "crosshairMarkerVisible" in line_opts
+        assert "lastPriceAnimation" in line_opts
 
     def test_to_dict_with_markers(self):
         """Test to_dict with markers."""
@@ -779,5 +781,7 @@ class TestBaselineSeriesJsonStructure:
         assert "baseValue" in options
         assert "relativeGradient" in options
         assert "topFillColor1" in options
-        assert "color" in options  # From LineOptions
-        assert "lineWidth" in options  # From LineOptions
+        # Line options are now nested
+        assert "lineOptions" in options
+        assert "color" in options["lineOptions"]
+        assert "lineWidth" in options["lineOptions"]

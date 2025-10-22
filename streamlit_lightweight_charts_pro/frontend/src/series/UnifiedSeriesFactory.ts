@@ -113,7 +113,77 @@ function flattenLineOptions(
 ): Record<string, unknown> {
   const flattened: Record<string, unknown> = { ...options };
 
-  // Process each property in the descriptor
+  // SPECIAL CASE: Handle generic 'lineOptions' from Python for builtin series
+  // Python sends: {lineOptions: {color, lineWidth, ...}}
+  // We need to flatten it using the descriptor's line property (usually 'mainLine')
+  if (options.lineOptions) {
+    // Find the first line property in the descriptor (mainLine for builtin series)
+    const linePropertyEntry = Object.entries(descriptor.properties).find(
+      ([, propDesc]) => propDesc.type === 'line' && propDesc.apiMapping
+    );
+
+    if (linePropertyEntry) {
+      const [, linePropDesc] = linePropertyEntry;
+      const lineObj = options.lineOptions;
+
+      // Remove lineOptions from flattened output
+      delete flattened.lineOptions;
+
+      // Flatten using the descriptor's apiMapping
+      if (typeof lineObj === 'object' && lineObj !== null && !Array.isArray(lineObj)) {
+        const lineObjTyped = lineObj as Record<string, unknown>;
+
+        // Map color using descriptor's colorKey (e.g., 'color' for Line, 'lineColor' for Area)
+        if (lineObjTyped.color !== undefined && linePropDesc.apiMapping?.colorKey) {
+          flattened[linePropDesc.apiMapping.colorKey] = lineObjTyped.color;
+        }
+
+        // Map line width
+        if (lineObjTyped.lineWidth !== undefined && linePropDesc.apiMapping?.widthKey) {
+          flattened[linePropDesc.apiMapping.widthKey] = lineObjTyped.lineWidth;
+        }
+
+        // Map line style
+        if (lineObjTyped.lineStyle !== undefined && linePropDesc.apiMapping?.styleKey) {
+          flattened[linePropDesc.apiMapping.styleKey] = lineObjTyped.lineStyle;
+        }
+
+        // Map all other LineOptions properties directly (no prefix for builtin series)
+        if (lineObjTyped.lineVisible !== undefined) {
+          flattened.lineVisible = lineObjTyped.lineVisible;
+        }
+        if (lineObjTyped.lineType !== undefined) {
+          flattened.lineType = lineObjTyped.lineType;
+        }
+        if (lineObjTyped.pointMarkersVisible !== undefined) {
+          flattened.pointMarkersVisible = lineObjTyped.pointMarkersVisible;
+        }
+        if (lineObjTyped.pointMarkersRadius !== undefined) {
+          flattened.pointMarkersRadius = lineObjTyped.pointMarkersRadius;
+        }
+        if (lineObjTyped.crosshairMarkerVisible !== undefined) {
+          flattened.crosshairMarkerVisible = lineObjTyped.crosshairMarkerVisible;
+        }
+        if (lineObjTyped.crosshairMarkerRadius !== undefined) {
+          flattened.crosshairMarkerRadius = lineObjTyped.crosshairMarkerRadius;
+        }
+        if (lineObjTyped.crosshairMarkerBorderColor !== undefined) {
+          flattened.crosshairMarkerBorderColor = lineObjTyped.crosshairMarkerBorderColor;
+        }
+        if (lineObjTyped.crosshairMarkerBackgroundColor !== undefined) {
+          flattened.crosshairMarkerBackgroundColor = lineObjTyped.crosshairMarkerBackgroundColor;
+        }
+        if (lineObjTyped.crosshairMarkerBorderWidth !== undefined) {
+          flattened.crosshairMarkerBorderWidth = lineObjTyped.crosshairMarkerBorderWidth;
+        }
+        if (lineObjTyped.lastPriceAnimation !== undefined) {
+          flattened.lastPriceAnimation = lineObjTyped.lastPriceAnimation;
+        }
+      }
+    }
+  }
+
+  // Process each property in the descriptor (for custom series with named line properties)
   for (const [propName, propDesc] of Object.entries(descriptor.properties)) {
     // Check if this is a line property with apiMapping and the option exists
     if (propDesc.type === 'line' && propDesc.apiMapping && options[propName]) {

@@ -858,9 +858,12 @@ class Series(ABC):  # noqa: B024
 
                 if isinstance(attr_value, LineOptions):
                     line_dict = attr_value.asdict()
-                    # If property ends with _options or is named line_options, flatten without prefix
+                    # If property ends with _options or is named line_options, send nested as 'lineOptions'
                     if attr_name.endswith("_options") or attr_name == "line_options":
-                        options.update(line_dict)
+                        # Send lineOptions nested - let frontend handle flattening via descriptors
+                        # This is cleaner: frontend knows the correct property names (color vs lineColor)
+                        # based on the series type's descriptor apiMapping
+                        options["lineOptions"] = line_dict
                     else:
                         # Flatten with property name as prefix (e.g., upper_line -> upperLine*)
                         # Convert the property name to camelCase for the prefix

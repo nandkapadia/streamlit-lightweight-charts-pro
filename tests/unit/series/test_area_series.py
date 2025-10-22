@@ -170,8 +170,10 @@ class TestAreaSeriesSerialization:
         assert result["type"] == "area"
         assert "options" in result
         options = result["options"]
-        assert options["color"] == "#ff0000"
-        assert options["lineWidth"] == 2
+        # Line options are now sent nested
+        assert "lineOptions" in options
+        assert options["lineOptions"]["color"] == "#ff0000"
+        assert options["lineOptions"]["lineWidth"] == 2
 
     def test_to_dict_with_area_colors(self):
         """Test to_dict with area colors."""
@@ -213,8 +215,10 @@ class TestAreaSeriesSerialization:
         result = series.asdict()
 
         options = result["options"]
-        assert options["color"] == "#ff0000"
-        assert options["lineWidth"] == 2
+        # Line options are now sent nested
+        assert "lineOptions" in options
+        assert options["lineOptions"]["color"] == "#ff0000"
+        assert options["lineOptions"]["lineWidth"] == 2
         assert options["topColor"] == "#ff0000"
         assert options["bottomColor"] == "#00ff00"
         assert options["relativeGradient"] is True
@@ -552,11 +556,10 @@ class TestAreaSeriesJsonStructure:
         assert "options" in result
         options = result["options"]
 
-        # Line options (from LineOptions object)
-        assert "color" in options
-        assert options["color"] == "#ff0000"
-        assert "lineWidth" in options
-        assert options["lineWidth"] == 3
+        # Line options (from LineOptions object) - now nested
+        assert "lineOptions" in options
+        assert options["lineOptions"]["color"] == "#ff0000"
+        assert options["lineOptions"]["lineWidth"] == 3
 
         # Area-specific options
         assert "topColor" in options
@@ -675,8 +678,10 @@ class TestAreaSeriesJsonStructure:
 
         # Verify options
         options = result["options"]
-        assert "color" in options
-        assert "lineWidth" in options
+        # Line options are now nested
+        assert "lineOptions" in options
+        assert "color" in options["lineOptions"]
+        assert "lineWidth" in options["lineOptions"]
         assert "topColor" in options
         assert "bottomColor" in options
         assert "relativeGradient" in options
@@ -756,7 +761,9 @@ class TestAreaSeriesJsonStructure:
         # Check that essential options are present and not empty
         assert result["options"]["topColor"] != ""
         assert result["options"]["bottomColor"] != ""
-        assert result["options"]["color"] != ""
+        # Line options are now nested
+        assert "lineOptions" in result["options"]
+        assert result["options"]["lineOptions"]["color"] != ""
 
     def test_missing_optional_fields(self):
         """Test that missing optional fields are handled correctly."""
