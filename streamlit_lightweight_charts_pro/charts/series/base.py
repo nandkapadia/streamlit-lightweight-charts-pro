@@ -850,11 +850,44 @@ class Series(ABC):  # noqa: B024
                 and callable(attr_value.asdict)
                 and not isinstance(attr_value, type)
             ):
-                # Rule 3: If property ends with _options, flatten it into options
-                if attr_name.endswith("_options"):
+                # Rule 3: Flatten LineOptions with property name prefix for consistency
+                # This ensures all LineOptions are serialized the same way:
+                # upper_line -> upperLineColor, upperLineWidth, upperLineStyle
+                # line_options -> color, lineWidth, lineStyle (backward compatible)
+                from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
+
+                if isinstance(attr_value, LineOptions):
+                    line_dict = attr_value.asdict()
+                    # If property ends with _options or is named line_options, flatten without prefix
+                    if attr_name.endswith("_options") or attr_name == "line_options":
+                        options.update(line_dict)
+                    else:
+                        # Flatten with property name as prefix (e.g., upper_line -> upperLine*)
+                        # Convert the property name to camelCase for the prefix
+                        prefix = snake_to_camel(attr_name)
+                        for line_key, line_value in line_dict.items():
+                            # Capitalize first letter of line property and append to prefix
+                            # Special handling: if line_key starts with 'line' and prefix ends with 'Line',
+                            # don't duplicate 'Line' (e.g., upperLine + lineWidth -> upperLineWidth, not upperLineLineWidth)
+                            if line_key.startswith("line") and prefix.endswith("Line"):
+                                # Remove 'line' prefix from the key before appending
+                                # lineWidth -> Width, lineStyle -> Style
+                                key_without_line_prefix = line_key[4:]  # Remove 'line'
+                                flattened_key = prefix + key_without_line_prefix
+                            else:
+                                # Normal case: capitalize first letter and append
+                                # e.g., upperLine + color -> upperLineColor
+                                flattened_key = prefix + line_key[0].upper() + line_key[1:]
+
+                            if is_top_level:
+                                config[flattened_key] = line_value
+                            else:
+                                options[flattened_key] = line_value
+                elif attr_name.endswith("_options"):
+                    # Other options objects (not LineOptions) - flatten without prefix
                     options.update(attr_value.asdict())
                 else:
-                    # Convert snake_case to camelCase for the key
+                    # Other objects with asdict() - keep nested
                     key = snake_to_camel(attr_name)
                     if is_top_level:
                         config[key] = attr_value.asdict()

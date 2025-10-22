@@ -2404,7 +2404,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       if (deferredConfig && deferredConfig.charts && deferredConfig.charts.length > 0) {
         // Wrap heavy chart operations in startTransition for better UX
         startTransition(() => {
-          initializeCharts(true);
+          // Only pass isInitialRender=true on the very first initialization
+          // Subsequent renders should cleanup and re-create properly
+          initializeCharts(isInitializedRef.current === false);
         });
       }
     }, [deferredConfig, initializeCharts, startTransition]);

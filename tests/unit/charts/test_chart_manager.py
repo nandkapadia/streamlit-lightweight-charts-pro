@@ -628,7 +628,7 @@ class TestChartManagerRender:
         chart = Chart(series=[LineSeries(data=[LineData(time=1, value=100)])])
         manager.add_chart(chart, "chart1")
 
-        result = manager.render(key="test_key")
+        manager.render(key="test_key")
 
         mock_get_component_func.assert_called_once()
         mock_component.assert_called_once()

@@ -961,7 +961,7 @@ class TestMarkerIntegration:
     def test_marker_with_series_integration(self):
         """Test Marker integration with series classes."""
         # This test verifies that Marker can be used with series classes
-        line_options = LineOptions(color="#ff0000", line_width=2)
+        LineOptions(color="#ff0000", line_width=2)
         line_data = [
             LineData(time=1640995200, value=100),
             LineData(time=1640995201, value=110),

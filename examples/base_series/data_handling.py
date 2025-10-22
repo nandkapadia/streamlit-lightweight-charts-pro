@@ -119,7 +119,7 @@ def main():
     # Invalid data type
     st.subheader("Invalid Data Type")
     try:
-        invalid_series = LineSeries(data="invalid")
+        _ = LineSeries(data="invalid")
         st.write("This should not execute")
     except ValueError as e:
         st.write(f"**Error caught:** {e}")

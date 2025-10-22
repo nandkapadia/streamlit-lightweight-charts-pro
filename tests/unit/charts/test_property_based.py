@@ -379,7 +379,7 @@ class TestPerformanceProperties:
 
         # Measure creation time
         start_time = time.perf_counter()
-        series = LineSeries(data=data_list)
+        LineSeries(data=data_list)
         end_time = time.perf_counter()
 
         creation_time = (end_time - start_time) * 1000  # Convert to milliseconds
@@ -409,7 +409,7 @@ class TestPerformanceProperties:
 
         # Measure chart creation time
         start_time = time.perf_counter()
-        chart = Chart(series=series_list)
+        Chart(series=series_list)
         end_time = time.perf_counter()
 
         creation_time = (end_time - start_time) * 1000  # Convert to milliseconds

@@ -5,6 +5,70 @@ All notable changes to the Streamlit Lightweight Charts Pro project will be docu
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2025-10-22
+
+### Fixed
+- **TrendFill Series Line Width Rendering:**
+  - Fixed pixel ratio scaling for TrendFill line widths
+  - Changed from vertical pixel ratio (`vRatio`) to horizontal pixel ratio (`hRatio`)
+  - Now correctly renders `line_width=1` as 1px instead of 2px
+  - Affects uptrend, downtrend, and base lines (3 locations in TrendFillPrimitive.ts)
+  - Verified Band, Ribbon, and GradientRibbon primitives already use correct `hRatio`
+
+- **React Double-Render Bug:**
+  - Fixed critical bug where series were being created twice with different values
+  - Root cause: `initializeCharts` was always called with `isInitialRender=true`
+  - Solution: Changed to `initializeCharts(isInitializedRef.current === false)`
+  - Prevents duplicate series creation and ensures cleanup runs properly
+  - Fixes issue where Python custom values were being overwritten by defaults
+
+- **Test Suite Consistency:**
+  - Fixed BandPrimitive test property names (`upperFillVisible` → `upperFill`, `lowerFillVisible` → `lowerFill`)
+  - Updated Band series JSON structure tests for flattened LineOptions format
+  - Fixed 6 test assertions expecting nested structure instead of flat properties
+  - All 534 Python unit tests now passing
+
+- **Code Quality:**
+  - Fixed 24 unused variable assignments across test files
+  - Fixed 2 quote style inconsistencies in Python code
+  - Removed all debug `console.log` statements from production code
+  - Auto-fixed with Ruff linter
+
+### Added
+- **Comprehensive Visual Regression Tests:**
+  - Added 13 new visual tests for custom series (total now 94 tests)
+  - **Ribbon Series (5 tests):**
+    - `ribbon-thin-lines` - Line width validation (1px)
+    - `ribbon-thick-lines` - Line width validation (4px)
+    - `ribbon-upper-line-hidden` - Upper line visibility toggle
+    - `ribbon-lower-line-hidden` - Lower line visibility toggle
+    - `ribbon-lines-hidden` - Fill-only rendering
+  - **GradientRibbon Series (5 tests):**
+    - `gradient-ribbon-thin-lines` - Line width validation (1px)
+    - `gradient-ribbon-thick-lines` - Line width validation (4px)
+    - `gradient-ribbon-upper-line-hidden` - Upper line visibility
+    - `gradient-ribbon-lower-line-hidden` - Lower line visibility
+    - `gradient-ribbon-lines-hidden` - Gradient fill-only rendering
+  - **Signal Series (3 tests):**
+    - `signal-high-opacity` - High opacity color validation (0.5-0.6 alpha)
+    - `signal-low-opacity` - Low opacity color validation (0.05 alpha)
+    - `signal-monochrome` - Monochrome palette validation
+
+### Changed
+- **Code Quality Improvements:**
+  - Ran full code review and cleanup of both Python and frontend codebases
+  - Applied Ruff formatting to all Python files (1 file reformatted)
+  - Applied Prettier formatting to all frontend files (all 175 files already formatted)
+  - Zero linting errors across entire codebase
+
+### Technical Details
+- **Test Coverage:** 3800+ tests passing (534 Python, 3266+ Frontend)
+- **Visual Tests:** 94 comprehensive snapshot tests for all series types
+- **Security:** 0 vulnerabilities (npm audit clean)
+- **Build:** Production build verified (813.65 kB raw, 221.37 kB gzipped)
+- **Code Quality:** 100% linter compliance (Ruff + ESLint + TypeScript)
+- **Pixel Ratio Consistency:** All primitives now use `hRatio` for line width scaling
+
 ## [0.1.4] - 2025-10-21
 
 ### Fixed

@@ -119,9 +119,9 @@ describe('Band Series - Hybrid Implementation', () => {
 
       // Fill defaults
       expect(options.upperFillColor).toBe('rgba(76, 175, 80, 0.1)');
-      expect(options.upperFillVisible).toBe(true);
+      expect(options.upperFill).toBe(true);
       expect(options.lowerFillColor).toBe('rgba(244, 67, 54, 0.1)');
-      expect(options.lowerFillVisible).toBe(true);
+      expect(options.lowerFill).toBe(true);
     });
 
     it('should handle visibility options correctly', () => {
@@ -129,16 +129,16 @@ describe('Band Series - Hybrid Implementation', () => {
         upperLineVisible: false,
         middleLineVisible: false,
         lowerLineVisible: false,
-        upperFillVisible: false,
-        lowerFillVisible: false,
+        upperFill: false,
+        lowerFill: false,
       });
 
       const options = mockChart.addCustomSeries.mock.calls[0][1];
       expect(options.upperLineVisible).toBe(false);
       expect(options.middleLineVisible).toBe(false);
       expect(options.lowerLineVisible).toBe(false);
-      expect(options.upperFillVisible).toBe(false);
-      expect(options.lowerFillVisible).toBe(false);
+      expect(options.upperFill).toBe(false);
+      expect(options.lowerFill).toBe(false);
     });
   });
 
@@ -202,34 +202,34 @@ describe('Band Series - Hybrid Implementation', () => {
     it('should configure upper fill area (between upper and middle)', () => {
       createBandSeries(mockChart as any, {
         upperFillColor: 'rgba(0, 255, 0, 0.5)',
-        upperFillVisible: true,
+        upperFill: true,
       });
 
       const options = mockChart.addCustomSeries.mock.calls[0][1];
       expect(options.upperFillColor).toBe('rgba(0, 255, 0, 0.5)');
-      expect(options.upperFillVisible).toBe(true);
+      expect(options.upperFill).toBe(true);
     });
 
     it('should configure lower fill area (between middle and lower)', () => {
       createBandSeries(mockChart as any, {
         lowerFillColor: 'rgba(255, 0, 0, 0.5)',
-        lowerFillVisible: true,
+        lowerFill: true,
       });
 
       const options = mockChart.addCustomSeries.mock.calls[0][1];
       expect(options.lowerFillColor).toBe('rgba(255, 0, 0, 0.5)');
-      expect(options.lowerFillVisible).toBe(true);
+      expect(options.lowerFill).toBe(true);
     });
 
     it('should allow disabling individual fill areas', () => {
       createBandSeries(mockChart as any, {
-        upperFillVisible: false,
-        lowerFillVisible: true,
+        upperFill: false,
+        lowerFill: true,
       });
 
       const options = mockChart.addCustomSeries.mock.calls[0][1];
-      expect(options.upperFillVisible).toBe(false);
-      expect(options.lowerFillVisible).toBe(true);
+      expect(options.upperFill).toBe(false);
+      expect(options.lowerFill).toBe(true);
     });
   });
 
@@ -319,8 +319,8 @@ describe('Band Series - Hybrid Implementation', () => {
         upperLineColor: '#FFA726',
         middleLineColor: '#FF9800',
         lowerLineColor: '#FFA726',
-        upperFillVisible: true,
-        lowerFillVisible: true,
+        upperFill: true,
+        lowerFill: true,
       });
 
       expect(mockChart.addCustomSeries).toHaveBeenCalled();
@@ -343,9 +343,9 @@ describe('Band Series - Hybrid Implementation', () => {
         lowerLineStyle: 0,
         lowerLineVisible: true,
         upperFillColor: 'rgba(76, 175, 80, 0.1)',
-        upperFillVisible: true,
+        upperFill: true,
         lowerFillColor: 'rgba(244, 67, 54, 0.1)',
-        lowerFillVisible: true,
+        lowerFill: true,
         priceScaleId: 'right',
         usePrimitive: true,
         zIndex: -100,

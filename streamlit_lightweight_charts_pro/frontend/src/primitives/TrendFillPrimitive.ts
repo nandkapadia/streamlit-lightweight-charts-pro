@@ -568,7 +568,7 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
 
           if (lineVisible) {
             ctx.strokeStyle = lineColor;
-            ctx.lineWidth = lineWidth * vRatio;
+            ctx.lineWidth = lineWidth * hRatio;
             this._setLineStyle(ctx, lineStyle);
             ctx.stroke(currentPath);
           }
@@ -592,7 +592,7 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
 
       if (lineVisible) {
         ctx.strokeStyle = lineColor;
-        ctx.lineWidth = lineWidth * vRatio;
+        ctx.lineWidth = lineWidth * hRatio;
         this._setLineStyle(ctx, lineStyle);
         ctx.stroke(currentPath);
       }
@@ -620,7 +620,7 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
 
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.lineWidth = baseLineWidth * vRatio;
+    ctx.lineWidth = baseLineWidth * hRatio;
     ctx.strokeStyle = baseLineColor;
     this._setLineStyle(ctx, baseLineStyle);
 

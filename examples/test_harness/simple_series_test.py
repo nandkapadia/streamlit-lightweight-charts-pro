@@ -275,15 +275,17 @@ def main():
     with col1:
         st.write("**Trend Fill (HLC3 + EMA20)**")
         st.caption("Baseline: HLC3, Trend: EMA20, Green=Bullish, Red=Bearish")
+        trend_fill_series1 = TrendFillSeries(
+            data=data["trend_data"],
+            uptrend_fill_color="rgba(76, 175, 80, 0.2)",
+            downtrend_fill_color="rgba(239, 83, 80, 0.2)",
+        )
+        trend_fill_series1.uptrend_line.line_width = 1  # pylint: disable=no-member
+        trend_fill_series1.downtrend_line.line_width = 1  # pylint: disable=no-member
+        trend_fill_series1.price_scale_id = "right"
+
         trend_fill_chart = Chart(
-            series=[
-                CandlestickSeries(data=data["ohlcv_data"]),
-                TrendFillSeries(
-                    data=data["trend_data"],
-                    uptrend_fill_color="rgba(76, 175, 80, 0.2)",
-                    downtrend_fill_color="rgba(239, 83, 80, 0.2)",
-                ),
-            ],
+            series=[CandlestickSeries(data=data["ohlcv_data"]), trend_fill_series1],
         )
         trend_fill_chart.render(key="trend_fill")
 
@@ -291,8 +293,8 @@ def main():
         try:
             band = BandSeries(data=data["band_data"])
             band.upper_line.line_visible = False  # pylint: disable=no-member
-            band.uppper_fill = False
-            band.lower_fill_color = "rgba(128, 0, 128, 0.2)"
+            band.lower_fill = False
+            band.upper_fill_color = "rgba(128, 0, 128, 0.2)"
             Chart(series=band).render(key="band")
         except Exception as e:
             st.error(f"Error rendering band: {e}")
@@ -395,6 +397,7 @@ def main():
     # Create series instances and configure them
     candlestick_series = CandlestickSeries(data=data["ohlcv_data"])
     candlestick_series.title = "Price"
+    candlestick_series.price_scale_id = "right"
 
     line_series = LineSeries(data=data["line_data"])
     line_series.title = "SMA"
@@ -406,6 +409,9 @@ def main():
         downtrend_fill_color="rgba(239, 83, 80, 0.3)",
     )
     trend_fill_series.title = "Trend Fill"
+    trend_fill_series.uptrend_line.line_width = 1  # pylint: disable=no-member
+    trend_fill_series.downtrend_line.line_width = 1  # pylint: disable=no-member
+    trend_fill_series.price_scale_id = "right"
 
     band_series = BandSeries(data=data["band_data"])
     band_series.title = "Bollinger Bands"

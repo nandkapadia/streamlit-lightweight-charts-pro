@@ -41,7 +41,7 @@ class TestPerformanceBenchmarks:
         """Test LineSeries creation performance with large datasets."""
         start_time = time.perf_counter()
 
-        series = LineSeries(data=large_dataset)
+        _ = LineSeries(data=large_dataset)
 
         end_time = time.perf_counter()
         execution_time = (end_time - start_time) * 1000
@@ -59,7 +59,7 @@ class TestPerformanceBenchmarks:
         series = LineSeries(data=large_dataset)
 
         start_time = time.perf_counter()
-        chart = Chart(series=series)
+        Chart(series=series)
         end_time = time.perf_counter()
 
         execution_time = (end_time - start_time) * 1000
@@ -116,7 +116,7 @@ class TestPerformanceBenchmarks:
 
         # Create series and chart
         series = LineSeries(data=large_dataset)
-        chart = Chart(series=series)
+        Chart(series=series)
 
         memory_after = process.memory_info().rss / 1024 / 1024  # MB
         memory_used = memory_after - memory_before
@@ -138,7 +138,7 @@ class TestPerformanceBenchmarks:
         start_time = time.perf_counter()
 
         series_list = [LineSeries(data=series_data) for series_data in wide_dataset]
-        chart = Chart(series=series_list)
+        Chart(series=series_list)
 
         end_time = time.perf_counter()
         execution_time = (end_time - start_time) * 1000
@@ -168,7 +168,7 @@ class TestScalability:
 
         # Measure creation time
         start_time = time.perf_counter()
-        series = LineSeries(data=data)
+        LineSeries(data=data)
         end_time = time.perf_counter()
 
         creation_time = (end_time - start_time) * 1000
@@ -198,7 +198,7 @@ class TestScalability:
 
         # Measure chart creation time
         start_time = time.perf_counter()
-        chart = Chart(series=series_list)
+        Chart(series=series_list)
         end_time = time.perf_counter()
 
         creation_time = (end_time - start_time) * 1000

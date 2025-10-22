@@ -423,7 +423,7 @@ class TestTooltipIntegration:
         series.tooltip = tooltip_config
 
         # Create chart
-        chart = Chart(series=series)
+        Chart(series=series)
 
         # Verify tooltip is set
         assert series.tooltip == tooltip_config

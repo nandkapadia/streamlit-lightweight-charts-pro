@@ -142,7 +142,7 @@ class TestSignalData:
     def test_hash(self):
         """Test that SignalData objects are hashable."""
         signal1 = SignalData("2024-01-01", 1, color="#ff0000")
-        signal2 = SignalData("2024-01-01", 1, color="#ff0000")
+        SignalData("2024-01-01", 1, color="#ff0000")
 
         # SignalData objects are not hashable by default (dataclass with mutable fields)
         # This is expected behavior

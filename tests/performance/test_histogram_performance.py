@@ -355,7 +355,7 @@ class TestHistogramSeriesPerformance:
 
             start_time = time.time()
 
-            volume_series = HistogramSeries.create_volume_series(
+            _ = HistogramSeries.create_volume_series(
                 histogram_data,
                 column_mapping={
                     "time": "time",

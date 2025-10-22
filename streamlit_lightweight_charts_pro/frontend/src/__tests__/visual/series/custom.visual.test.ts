@@ -170,6 +170,48 @@ describe('TrendFill Series Visual Rendering', () => {
 
     expect(result.matches).toBe(true);
   });
+
+  it('renders trendfill with thin line widths (line_width=1)', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateTrendFillData(30, 100);
+      const series = createTrendFillSeries(chart, {
+        uptrendLineWidth: 1,
+        downtrendLineWidth: 1,
+        uptrendLineColor: TestColors.GREEN,
+        downtrendLineColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('trendfill-thin-lines'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders trendfill with lines hidden', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateTrendFillData(30, 100);
+      const series = createTrendFillSeries(chart, {
+        uptrendLineVisible: false,
+        downtrendLineVisible: false,
+        uptrendFillColor: 'rgba(76, 175, 80, 0.3)',
+        downtrendFillColor: 'rgba(244, 67, 54, 0.3)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('trendfill-lines-hidden'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
 });
 
 describe('Band Series Visual Rendering', () => {
@@ -227,8 +269,8 @@ describe('Band Series Visual Rendering', () => {
     renderResult = await renderChart(chart => {
       const data = generateBandData2(30, 100, 20);
       const series = createBandSeries(chart, {
-        upperFillVisible: false,
-        lowerFillVisible: false,
+        upperFill: false,
+        lowerFill: false,
         upperLineColor: TestColors.GREEN,
         middleLineColor: TestColors.BLUE,
         lowerLineColor: TestColors.RED,
@@ -283,6 +325,98 @@ describe('Band Series Visual Rendering', () => {
 
     const result = assertMatchesSnapshot(
       sanitizeTestName('band-custom-colors'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders band series with thin line widths (line_width=1)', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateBandData2(30, 100, 20);
+      const series = createBandSeries(chart, {
+        upperLineWidth: 1,
+        middleLineWidth: 1,
+        lowerLineWidth: 1,
+        upperLineColor: TestColors.GREEN,
+        middleLineColor: TestColors.BLUE,
+        lowerLineColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('band-thin-lines'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders band series with thick line widths (line_width=4)', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateBandData2(30, 100, 20);
+      const series = createBandSeries(chart, {
+        upperLineWidth: 4,
+        middleLineWidth: 4,
+        lowerLineWidth: 4,
+        upperLineColor: TestColors.GREEN,
+        middleLineColor: TestColors.BLUE,
+        lowerLineColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('band-thick-lines'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders band series with only upper fill visible', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateBandData2(30, 100, 20);
+      const series = createBandSeries(chart, {
+        upperFill: true,
+        lowerFill: false,
+        upperLineColor: TestColors.GREEN,
+        middleLineColor: TestColors.BLUE,
+        lowerLineColor: TestColors.RED,
+        upperFillColor: 'rgba(76, 175, 80, 0.2)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('band-upper-fill-only'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders band series with only lower fill visible', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateBandData2(30, 100, 20);
+      const series = createBandSeries(chart, {
+        upperFill: false,
+        lowerFill: true,
+        upperLineColor: TestColors.GREEN,
+        middleLineColor: TestColors.BLUE,
+        lowerLineColor: TestColors.RED,
+        lowerFillColor: 'rgba(244, 67, 54, 0.2)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('band-lower-fill-only'),
       renderResult.imageData,
       { threshold: 0.1, tolerance: 1.0 }
     );
@@ -380,6 +514,108 @@ describe('Ribbon Series Visual Rendering', () => {
 
     expect(result.matches).toBe(true);
   });
+
+  it('renders ribbon series with thin line widths (line_width=1)', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateRibbonData2(30, 100, 10);
+      const series = createRibbonSeries(chart, {
+        upperLineWidth: 1,
+        lowerLineWidth: 1,
+        upperLineColor: TestColors.GREEN,
+        lowerLineColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('ribbon-thin-lines'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders ribbon series with thick line widths (line_width=4)', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateRibbonData2(30, 100, 10);
+      const series = createRibbonSeries(chart, {
+        upperLineWidth: 4,
+        lowerLineWidth: 4,
+        upperLineColor: TestColors.GREEN,
+        lowerLineColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('ribbon-thick-lines'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders ribbon series with upper line hidden', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateRibbonData2(30, 100, 10);
+      const series = createRibbonSeries(chart, {
+        upperLineVisible: false,
+        lowerLineColor: TestColors.RED,
+        fillColor: 'rgba(244, 67, 54, 0.1)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('ribbon-upper-line-hidden'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders ribbon series with lower line hidden', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateRibbonData2(30, 100, 10);
+      const series = createRibbonSeries(chart, {
+        lowerLineVisible: false,
+        upperLineColor: TestColors.GREEN,
+        fillColor: 'rgba(76, 175, 80, 0.1)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('ribbon-lower-line-hidden'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders ribbon series with both lines hidden (fill only)', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateRibbonData2(30, 100, 10);
+      const series = createRibbonSeries(chart, {
+        upperLineVisible: false,
+        lowerLineVisible: false,
+        fillColor: 'rgba(76, 175, 80, 0.2)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('ribbon-lines-hidden'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
 });
 
 describe('Signal Series Visual Rendering', () => {
@@ -447,6 +683,66 @@ describe('Signal Series Visual Rendering', () => {
 
     const result = assertMatchesSnapshot(
       sanitizeTestName('signal-color-overrides'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders signal series with high opacity colors', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateSignalData(30);
+      const series = createSignalSeries(chart, {
+        neutralColor: 'rgba(128, 128, 128, 0.5)',
+        signalColor: 'rgba(76, 175, 80, 0.6)',
+        alertColor: 'rgba(244, 67, 54, 0.6)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('signal-high-opacity'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders signal series with low opacity colors', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateSignalData(30);
+      const series = createSignalSeries(chart, {
+        neutralColor: 'rgba(128, 128, 128, 0.05)',
+        signalColor: 'rgba(76, 175, 80, 0.05)',
+        alertColor: 'rgba(244, 67, 54, 0.05)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('signal-low-opacity'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders signal series with monochrome palette', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateSignalData(30);
+      const series = createSignalSeries(chart, {
+        neutralColor: 'rgba(100, 100, 100, 0.2)',
+        signalColor: 'rgba(150, 150, 150, 0.3)',
+        alertColor: 'rgba(50, 50, 50, 0.4)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('signal-monochrome'),
       renderResult.imageData,
       { threshold: 0.1, tolerance: 1.0 }
     );
@@ -567,6 +863,115 @@ describe('GradientRibbon Series Visual Rendering', () => {
 
     const result = assertMatchesSnapshot(
       sanitizeTestName('gradient-ribbon-dashed-lines'),
+      renderResult.imageData,
+      { threshold: 0.2, tolerance: 2.5 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders gradient ribbon with thin line widths (line_width=1)', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateGradientRibbonData(30, 100);
+      const series = createGradientRibbonSeries(chart, {
+        upperLineWidth: 1,
+        lowerLineWidth: 1,
+        upperLineColor: TestColors.GREEN,
+        lowerLineColor: TestColors.RED,
+        gradientStartColor: TestColors.GREEN,
+        gradientEndColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('gradient-ribbon-thin-lines'),
+      renderResult.imageData,
+      { threshold: 0.2, tolerance: 2.5 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders gradient ribbon with thick line widths (line_width=4)', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateGradientRibbonData(30, 100);
+      const series = createGradientRibbonSeries(chart, {
+        upperLineWidth: 4,
+        lowerLineWidth: 4,
+        upperLineColor: TestColors.GREEN,
+        lowerLineColor: TestColors.RED,
+        gradientStartColor: TestColors.GREEN,
+        gradientEndColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('gradient-ribbon-thick-lines'),
+      renderResult.imageData,
+      { threshold: 0.2, tolerance: 2.5 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders gradient ribbon with upper line hidden', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateGradientRibbonData(30, 100);
+      const series = createGradientRibbonSeries(chart, {
+        upperLineVisible: false,
+        lowerLineColor: TestColors.RED,
+        gradientStartColor: TestColors.GREEN,
+        gradientEndColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('gradient-ribbon-upper-line-hidden'),
+      renderResult.imageData,
+      { threshold: 0.2, tolerance: 2.5 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders gradient ribbon with lower line hidden', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateGradientRibbonData(30, 100);
+      const series = createGradientRibbonSeries(chart, {
+        lowerLineVisible: false,
+        upperLineColor: TestColors.GREEN,
+        gradientStartColor: TestColors.GREEN,
+        gradientEndColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('gradient-ribbon-lower-line-hidden'),
+      renderResult.imageData,
+      { threshold: 0.2, tolerance: 2.5 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders gradient ribbon with both lines hidden (fill only)', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateGradientRibbonData(30, 100);
+      const series = createGradientRibbonSeries(chart, {
+        upperLineVisible: false,
+        lowerLineVisible: false,
+        gradientStartColor: TestColors.GREEN,
+        gradientEndColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('gradient-ribbon-lines-hidden'),
       renderResult.imageData,
       { threshold: 0.2, tolerance: 2.5 }
     );
