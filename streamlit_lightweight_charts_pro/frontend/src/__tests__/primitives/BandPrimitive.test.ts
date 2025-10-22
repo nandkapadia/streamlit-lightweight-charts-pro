@@ -169,9 +169,9 @@ describe('BandPrimitive - Construction', () => {
       lowerLineStyle: 0,
       lowerLineVisible: true,
       upperFillColor: 'rgba(255, 0, 0, 0.3)',
-      upperFillVisible: true,
+      upperFill: true,
       lowerFillColor: 'rgba(0, 0, 255, 0.3)',
-      lowerFillVisible: true,
+      lowerFill: true,
     };
   });
 
@@ -222,9 +222,9 @@ describe('BandPrimitive - Data Processing', () => {
       lowerLineStyle: 0,
       lowerLineVisible: true,
       upperFillColor: 'rgba(255, 0, 0, 0.3)',
-      upperFillVisible: true,
+      upperFill: true,
       lowerFillColor: 'rgba(0, 0, 255, 0.3)',
-      lowerFillVisible: true,
+      lowerFill: true,
     };
 
     primitive = new BandPrimitive(mockChart, defaultOptions);
@@ -332,9 +332,9 @@ describe('BandPrimitive - Options Management', () => {
       lowerLineStyle: 0,
       lowerLineVisible: true,
       upperFillColor: 'rgba(255, 0, 0, 0.3)',
-      upperFillVisible: true,
+      upperFill: true,
       lowerFillColor: 'rgba(0, 0, 255, 0.3)',
-      lowerFillVisible: true,
+      lowerFill: true,
     };
 
     primitive = new BandPrimitive(mockChart, defaultOptions);
@@ -371,13 +371,13 @@ describe('BandPrimitive - Options Management', () => {
   it('should update fill visibility', () => {
     // @ts-expect-error - updateOptions not implemented yet
     primitive.updateOptions({
-      upperFillVisible: false,
-      lowerFillVisible: false,
+      upperFill: false,
+      lowerFill: false,
     });
 
     const options = primitive.getOptions();
-    expect(options.upperFillVisible).toBe(false);
-    expect(options.lowerFillVisible).toBe(false);
+    expect(options.upperFill).toBe(false);
+    expect(options.lowerFill).toBe(false);
   });
 
   it('should update fill colors', () => {
@@ -424,9 +424,9 @@ describe('BandPrimitive - Axis Views', () => {
       lowerLineStyle: 0,
       lowerLineVisible: true,
       upperFillColor: 'rgba(255, 0, 0, 0.3)',
-      upperFillVisible: true,
+      upperFill: true,
       lowerFillColor: 'rgba(0, 0, 255, 0.3)',
-      lowerFillVisible: true,
+      lowerFill: true,
     };
 
     primitive = new BandPrimitive(mockChart, defaultOptions);
@@ -516,9 +516,9 @@ describe('BandPrimitive - Edge Cases', () => {
       lowerLineStyle: 0,
       lowerLineVisible: true,
       upperFillColor: 'rgba(255, 0, 0, 0.3)',
-      upperFillVisible: true,
+      upperFill: true,
       lowerFillColor: 'rgba(0, 0, 255, 0.3)',
-      lowerFillVisible: true,
+      lowerFill: true,
     };
   });
 

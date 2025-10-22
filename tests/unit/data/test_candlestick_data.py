@@ -505,7 +505,7 @@ class TestCandlestickDataColorHandling:
     def test_rgba_with_negative_alpha(self):
         """Test rgba colors with negative alpha (should be rejected)."""
         with pytest.raises(ColorValidationError, match="Invalid color format for wick_color"):
-            data = CandlestickData(
+            CandlestickData(
                 time=1640995200,
                 open=100.0,
                 high=105.0,

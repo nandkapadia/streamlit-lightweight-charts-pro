@@ -282,7 +282,7 @@ class TestChartPaneHeights:
 
     def test_chart_with_different_series_types(self):
         """Test Chart with different series types in different panes."""
-        line_data = [LineData(time=1640995200, value=100)]
+        [LineData(time=1640995200, value=100)]
         candlestick_data = [CandlestickData(time=1640995200, open=100, high=110, low=90, close=105)]
         volume_data = [HistogramData(time=1640995200, value=1000)]
         area_data = [AreaData(time=1640995200, value=100)]

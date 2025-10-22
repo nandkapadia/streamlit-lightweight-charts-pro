@@ -153,7 +153,7 @@ class TestChartRendering:
         mock_get_component_func.return_value = mock_component
 
         chart = Chart()
-        result = chart.render(key="test_key")
+        chart.render(key="test_key")
 
         mock_get_component_func.assert_called_once()
         mock_component.assert_called_once()

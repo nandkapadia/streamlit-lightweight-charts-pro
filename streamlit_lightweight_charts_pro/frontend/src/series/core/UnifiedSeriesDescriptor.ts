@@ -217,16 +217,27 @@ export const PropertyDescriptors = {
  * processed during property mapping to ensure consistency between JSON and Dialog paths.
  */
 export const STANDARD_SERIES_PROPERTIES: Record<string, PropertyDescriptor> = {
-  // Visible properties (shown in dialog UI)
-  visible: PropertyDescriptors.boolean('Visible', true, 'General'),
-  lastValueVisible: PropertyDescriptors.boolean('Show Last Value', true, 'General'),
-  priceLineVisible: PropertyDescriptors.boolean('Show Price Line', true, 'General'),
+  // Common properties (hardcoded in SeriesSettingsDialog, hidden from SeriesSettingsRenderer)
+  // These are rendered in the "Common Settings" section of the dialog
+  visible: {
+    ...PropertyDescriptors.boolean('Visible', true, 'General'),
+    hidden: true, // Rendered in "Common Settings" section
+  },
+  lastValueVisible: {
+    ...PropertyDescriptors.boolean('Show Last Value', true, 'General'),
+    hidden: true, // Rendered in "Common Settings" section
+  },
+  priceLineVisible: {
+    ...PropertyDescriptors.boolean('Show Price Line', true, 'General'),
+    hidden: true, // Rendered in "Common Settings" section
+  },
   title: {
     type: 'color', // Using color type as string input (will be improved in future)
     label: 'Title',
     default: '',
     group: 'General',
     description: 'Technical name shown on chart axis/legend',
+    hidden: true, // Not shown in UI, only used internally
   },
 
   // Hidden properties (not shown in UI but passed through for consistency)
@@ -382,7 +393,8 @@ export function apiOptionsToDialogConfig<T = unknown>(
   // Property-descriptor-driven mapping
   for (const [propName, propDesc] of Object.entries(descriptor.properties)) {
     if (propDesc.type === 'line' && propDesc.apiMapping) {
-      // Unflatten line properties
+      // Python sends flattened line properties (e.g., uptrendLineColor, uptrendLineWidth, uptrendLineStyle)
+      // Unflatten them into nested dialog config (e.g., uptrendLine: {color, lineWidth, lineStyle})
       const lineConfig: Record<string, unknown> = {};
       let hasValue = false;
 

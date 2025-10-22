@@ -216,7 +216,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     if (!container) return;
 
     const scrollAmount = 200; // pixels to scroll
-    const newScrollLeft = container.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
+    const newScrollLeft =
+      container.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
 
     container.scrollTo({
       left: newScrollLeft,
@@ -655,7 +656,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                 top: 0,
                 bottom: 0,
                 width: '20px',
-                background: 'linear-gradient(to right, rgba(248, 249, 250, 0.9), rgba(248, 249, 250, 0))',
+                background:
+                  'linear-gradient(to right, rgba(248, 249, 250, 0.9), rgba(248, 249, 250, 0))',
                 pointerEvents: 'none',
                 zIndex: 1,
               }}
@@ -738,7 +740,8 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
                 top: 0,
                 bottom: 0,
                 width: '20px',
-                background: 'linear-gradient(to left, rgba(248, 249, 250, 0.9), rgba(248, 249, 250, 0))',
+                background:
+                  'linear-gradient(to left, rgba(248, 249, 250, 0.9), rgba(248, 249, 250, 0))',
                 pointerEvents: 'none',
                 zIndex: 1,
               }}

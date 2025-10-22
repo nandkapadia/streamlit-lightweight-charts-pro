@@ -507,7 +507,7 @@ class TestBaselineDataEdgeCases:
             ColorValidationError,
             match="Invalid color format for bottom_fill_color1",
         ):
-            data = BaselineData(
+            BaselineData(
                 time=1640995200,
                 value=100.5,
                 bottom_fill_color1="rgba(33,150,243,-0.1)",
@@ -688,7 +688,7 @@ class TestBaselineDataColorHandling:
             ColorValidationError,
             match="Invalid color format for bottom_fill_color1",
         ):
-            data = BaselineData(
+            BaselineData(
                 time=1640995200,
                 value=100.5,
                 bottom_fill_color1="rgba(33,150,243,-0.1)",

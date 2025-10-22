@@ -84,15 +84,15 @@ export interface BandSeriesOptions extends CustomSeriesOptions {
 
   // Fill styling
   upperFillColor: string;
+  upperFill: boolean; // Changed from upperFillVisible to match Python backend
+  lowerFillColor: string;
+  lowerFill: boolean; // Changed from lowerFillVisible to match Python backend
 
   // Series options
   lastValueVisible: boolean;
   title: string;
   visible: boolean;
   priceLineVisible: boolean;
-  upperFillVisible: boolean;
-  lowerFillColor: string;
-  lowerFillVisible: boolean;
 
   // Internal flag (set automatically by factory)
   _usePrimitive?: boolean;
@@ -117,9 +117,9 @@ const defaultBandOptions: BandSeriesOptions = {
   lowerLineStyle: LineStyle.Solid,
   lowerLineVisible: true,
   upperFillColor: 'rgba(76, 175, 80, 0.1)',
-  upperFillVisible: true,
+  upperFill: true, // Changed from upperFillVisible
   lowerFillColor: 'rgba(244, 67, 54, 0.1)',
-  lowerFillVisible: true,
+  lowerFill: true, // Changed from lowerFillVisible
 };
 
 // ============================================================================
@@ -224,7 +224,7 @@ class BandSeriesRenderer<TData extends BandData = BandData> implements ICustomSe
 
     // Draw in z-order (background to foreground)
     // Using shared rendering functions with visibleRange for optimal performance
-    if (options.upperFillVisible) {
+    if (options.upperFill) {
       drawFillArea(
         ctx,
         bars,
@@ -236,7 +236,7 @@ class BandSeriesRenderer<TData extends BandData = BandData> implements ICustomSe
       );
     }
 
-    if (options.lowerFillVisible) {
+    if (options.lowerFill) {
       drawFillArea(
         ctx,
         bars,
@@ -358,9 +358,9 @@ export function createBandSeries(
     lowerLineStyle?: LineStyle;
     lowerLineVisible?: boolean;
     upperFillColor?: string;
-    upperFillVisible?: boolean;
+    upperFill?: boolean; // Changed from upperFillVisible
     lowerFillColor?: string;
-    lowerFillVisible?: boolean;
+    lowerFill?: boolean; // Changed from lowerFillVisible
     priceScaleId?: string;
 
     // Series options
@@ -393,9 +393,9 @@ export function createBandSeries(
     lowerLineStyle: options.lowerLineStyle ?? LineStyle.Solid,
     lowerLineVisible: options.lowerLineVisible !== false,
     upperFillColor: options.upperFillColor ?? 'rgba(76, 175, 80, 0.1)',
-    upperFillVisible: options.upperFillVisible !== false,
+    upperFill: options.upperFill !== false, // Changed from upperFillVisible
     lowerFillColor: options.lowerFillColor ?? 'rgba(244, 67, 54, 0.1)',
-    lowerFillVisible: options.lowerFillVisible !== false,
+    lowerFill: options.lowerFill !== false, // Changed from lowerFillVisible
     priceScaleId: options.priceScaleId ?? 'right',
     lastValueVisible: options.lastValueVisible ?? false,
     priceLineVisible: options.priceLineVisible ?? false,
@@ -427,9 +427,9 @@ export function createBandSeries(
         lowerLineStyle: Math.min(options.lowerLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
         lowerLineVisible: options.lowerLineVisible !== false,
         upperFillColor: options.upperFillColor ?? 'rgba(76, 175, 80, 0.1)',
-        upperFillVisible: options.upperFillVisible !== false,
+        upperFill: options.upperFill !== false, // Changed from upperFillVisible
         lowerFillColor: options.lowerFillColor ?? 'rgba(244, 67, 54, 0.1)',
-        lowerFillVisible: options.lowerFillVisible !== false,
+        lowerFill: options.lowerFill !== false, // Changed from lowerFillVisible
         visible: true,
         priceScaleId: options.priceScaleId ?? 'right',
         zIndex: options.zIndex ?? 0,

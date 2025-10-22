@@ -53,9 +53,9 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
     }),
     lowerLineVisible: PropertyDescriptors.boolean('Lower Line Visible', true, 'Lower Line'),
     upperFillColor: PropertyDescriptors.color('Upper Fill Color', 'rgba(41, 98, 255, 0.1)', 'Fill'),
-    upperFillVisible: PropertyDescriptors.boolean('Upper Fill Visible', true, 'Fill'),
+    upperFill: PropertyDescriptors.boolean('Upper Fill Visible', true, 'Fill'),
     lowerFillColor: PropertyDescriptors.color('Lower Fill Color', 'rgba(41, 98, 255, 0.1)', 'Fill'),
-    lowerFillVisible: PropertyDescriptors.boolean('Lower Fill Visible', true, 'Fill'),
+    lowerFill: PropertyDescriptors.boolean('Lower Fill Visible', true, 'Fill'),
   },
 
   defaultOptions: {
@@ -78,9 +78,9 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
     lowerLineStyle: LineStyle.Solid,
     lowerLineVisible: true,
     upperFillColor: 'rgba(41, 98, 255, 0.1)',
-    upperFillVisible: true,
+    upperFill: true,
     lowerFillColor: 'rgba(41, 98, 255, 0.1)',
-    lowerFillVisible: true,
+    lowerFill: true,
     usePrimitive: true, // Enable primitive rendering (factory-specific option)
   } as any, // Factory accepts additional options beyond primitive options
 

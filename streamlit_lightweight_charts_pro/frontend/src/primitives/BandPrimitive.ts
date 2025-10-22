@@ -91,9 +91,9 @@ export interface BandPrimitiveOptions extends BaseSeriesPrimitiveOptions {
   lowerLineStyle: 0 | 1 | 2;
   lowerLineVisible: boolean;
   upperFillColor: string;
-  upperFillVisible: boolean;
+  upperFill: boolean; // Changed from upperFillVisible to match Python backend
   lowerFillColor: string;
-  lowerFillVisible: boolean;
+  lowerFill: boolean; // Changed from lowerFillVisible to match Python backend
 }
 
 /**
@@ -243,11 +243,11 @@ class BandPrimitiveRenderer implements IPrimitivePaneRenderer {
       }));
 
       // Draw fill areas (background)
-      if (options.upperFillVisible && scaledCoords.length > 1) {
+      if (options.upperFill && scaledCoords.length > 1) {
         drawFillArea(ctx, scaledCoords, 'upper', 'middle', options.upperFillColor);
       }
 
-      if (options.lowerFillVisible && scaledCoords.length > 1) {
+      if (options.lowerFill && scaledCoords.length > 1) {
         drawFillArea(ctx, scaledCoords, 'middle', 'lower', options.lowerFillColor);
       }
 
@@ -377,9 +377,9 @@ export class BandPrimitive extends BaseSeriesPrimitive<BandProcessedData, BandPr
       middleLine: 'line' as const,
       lowerLine: 'line' as const,
       upperFillColor: 'color' as const,
-      upperFillVisible: 'boolean' as const,
+      upperFill: 'boolean' as const,
       lowerFillColor: 'color' as const,
-      lowerFillVisible: 'boolean' as const,
+      lowerFill: 'boolean' as const,
     };
   }
 

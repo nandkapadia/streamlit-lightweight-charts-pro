@@ -266,25 +266,22 @@ class TestBandSeriesSerialization:
 
         result = series.asdict()
         options = result["options"]
-        # Check for the new band series structure with individual line options
-        assert "upperLine" in options
-        assert "middleLine" in options
-        assert "lowerLine" in options
+        # Check for flattened band series structure with individual line options
+        assert "upperLineColor" in options
+        assert "middleLineColor" in options
+        assert "lowerLineColor" in options
 
-        # Check upper line options
-        upper_line = options["upperLine"]
-        assert upper_line["color"] == "#FF0000"
-        assert upper_line["lineWidth"] == 3
-        assert upper_line["lineType"] == LineType.CURVED.value
+        # Check upper line options (flattened)
+        assert options["upperLineColor"] == "#FF0000"
+        assert options["upperLineWidth"] == 3
+        assert options["upperLineType"] == LineType.CURVED.value
 
-        # Check middle line options
-        middle_line = options["middleLine"]
-        assert middle_line["color"] == "#00FF00"
-        assert middle_line["lineStyle"] == LineStyle.DOTTED.value
+        # Check middle line options (flattened)
+        assert options["middleLineColor"] == "#00FF00"
+        assert options["middleLineStyle"] == LineStyle.DOTTED.value
 
-        # Check lower line options
-        lower_line = options["lowerLine"]
-        assert lower_line["color"] == "#0000FF"
+        # Check lower line options (flattened)
+        assert options["lowerLineColor"] == "#0000FF"
 
     def test_to_dict_with_fill_colors(self):
         """Test to_dict with custom fill colors."""
@@ -377,13 +374,13 @@ class TestBandSeriesSerialization:
         assert "data" in result
         assert "options" in result
         options = result["options"]
-        # Check for the new band series structure
-        assert "upperLine" in options
-        assert "middleLine" in options
-        assert "lowerLine" in options
-        assert options["upperLine"]["color"] == "#FF0000"
-        assert options["middleLine"]["color"] == "#00FF00"
-        assert options["lowerLine"]["color"] == "#0000FF"
+        # Check for flattened band series structure
+        assert "upperLineColor" in options
+        assert "middleLineColor" in options
+        assert "lowerLineColor" in options
+        assert options["upperLineColor"] == "#FF0000"
+        assert options["middleLineColor"] == "#00FF00"
+        assert options["lowerLineColor"] == "#0000FF"
         assert options["upperFillColor"] == "rgba(255, 0, 0, 0.5)"
         assert options["lowerFillColor"] == "rgba(0, 255, 0, 0.5)"
 
@@ -654,11 +651,17 @@ class TestBandSeriesJsonStructure:
         series = BandSeries(data=data)
         result = series.asdict()
         options = result["options"]
-        # Check for the new band series structure
+        # Check for the flattened band series structure (LineOptions are flattened)
         for key in [
-            "upperLine",
-            "middleLine",
-            "lowerLine",
+            "upperLineColor",
+            "upperLineWidth",
+            "upperLineVisible",
+            "middleLineColor",
+            "middleLineWidth",
+            "middleLineVisible",
+            "lowerLineColor",
+            "lowerLineWidth",
+            "lowerLineVisible",
             "upperFillColor",
             "lowerFillColor",
             "upperFill",
@@ -740,9 +743,10 @@ class TestBandSeriesJsonStructure:
         assert "markers" in result
         assert "priceLines" in result
         options = result["options"]
-        assert options["upperLine"]["color"] == "#FF0000"
-        assert options["middleLine"]["color"] == "#00FF00"
-        assert options["lowerLine"]["color"] == "#0000FF"
+        # LineOptions are flattened now
+        assert options["upperLineColor"] == "#FF0000"
+        assert options["middleLineColor"] == "#00FF00"
+        assert options["lowerLineColor"] == "#0000FF"
         assert options["upperFillColor"] == "rgba(255, 0, 0, 0.5)"
         assert options["lowerFillColor"] == "rgba(0, 255, 0, 0.5)"
         assert options["upperFill"] is False
@@ -760,7 +764,8 @@ class TestBandSeriesJsonStructure:
         series.upper_line.color = "#FF0000"
         result3 = series.asdict()
         assert result1 != result3
-        assert result3["options"]["upperLine"]["color"] == "#FF0000"
+        # Verify the change is reflected (flattened structure)
+        assert result3["options"]["upperLineColor"] == "#FF0000"
 
     def test_frontend_compatibility(self):
         """Test frontend compatibility of JSON structure."""
@@ -792,11 +797,14 @@ class TestBandSeriesJsonStructure:
         # Should not include markers or price lines if not present
         assert "markers" not in result
         assert "priceLines" not in result
-        # Should include all required options
+        # Should include all required options (flattened structure)
         for option in [
-            "upperLine",
-            "middleLine",
-            "lowerLine",
+            "upperLineColor",
+            "upperLineWidth",
+            "middleLineColor",
+            "middleLineWidth",
+            "lowerLineColor",
+            "lowerLineWidth",
             "upperFillColor",
             "lowerFillColor",
             "upperFill",

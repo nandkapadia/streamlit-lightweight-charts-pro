@@ -81,7 +81,7 @@ class TestHistogramDataValidation:
     def test_validation_invalid_hex_color(self):
         """Test validation with invalid hex color (should be rejected)."""
         with pytest.raises(ValueValidationError, match="Invalid color format"):
-            data = HistogramData(time=1640995200, value=100.5, color="#GGGGGG")
+            HistogramData(time=1640995200, value=100.5, color="#GGGGGG")
 
     def test_validation_invalid_rgba_color(self):
         """Test validation with invalid rgba color."""
@@ -366,7 +366,7 @@ class TestHistogramDataColorHandling:
     def test_rgba_with_negative_alpha(self):
         """Test rgba color with negative alpha value (should be rejected)."""
         with pytest.raises(ValueValidationError, match="Invalid color format"):
-            data = HistogramData(time=1640995200, value=100.5, color="rgba(33,150,243,-0.1)")
+            HistogramData(time=1640995200, value=100.5, color="rgba(33,150,243,-0.1)")
 
     def test_color_serialization_consistency(self):
         """Test that color serialization is consistent."""

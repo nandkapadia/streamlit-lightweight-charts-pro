@@ -381,7 +381,7 @@ class TestLineSeriesExtended:
 
     def test_complex_method_chaining(self):
         """Test complex method chaining with LineSeries."""
-        line_options = LineOptions(color="#ff0000")
+        LineOptions(color="#ff0000")
         data = [LineData(time=1640995200, value=100)]
 
         series = LineSeries(data=data)
@@ -428,7 +428,7 @@ class TestLineSeriesExtended:
 
     def test_serialization_consistency(self):
         """Test that serialization is consistent across multiple calls."""
-        line_options = LineOptions(color="#ff0000")
+        LineOptions(color="#ff0000")
         data = [LineData(time=1640995200, value=100)]
 
         series = LineSeries(data=data)
@@ -614,7 +614,7 @@ class TestLineSeriesJsonFormat:
     def test_line_series_with_markers_json_structure(self):
         """Test line series with markers JSON structure."""
         data = [LineData(time=1704067200, value=100.0)]
-        line_options = LineOptions(color="#2196f3")
+        LineOptions(color="#2196f3")
         series = LineSeries(data=data)
 
         # Add markers
@@ -665,7 +665,7 @@ class TestLineSeriesJsonFormat:
     def test_line_series_json_serialization(self):
         """Test that JSON serialization works correctly."""
         data = [LineData(time=1704067200, value=100.0)]
-        line_options = LineOptions(color="#2196f3")
+        LineOptions(color="#2196f3")
         series = LineSeries(data=data)
 
         result = series.asdict()
@@ -684,7 +684,7 @@ class TestLineSeriesJsonFormat:
     def test_line_series_frontend_compatibility(self):
         """Test that the JSON structure is compatible with frontend SeriesConfig interface."""
         data = [LineData(time=1704067200, value=100.0)]
-        line_options = LineOptions(color="#2196f3")
+        LineOptions(color="#2196f3")
         series = LineSeries(data=data)
 
         result = series.asdict()
@@ -709,7 +709,7 @@ class TestLineSeriesJsonFormat:
 
     def test_line_series_empty_data_handling(self):
         """Test that empty data is handled correctly."""
-        line_options = LineOptions(color="#2196f3")
+        LineOptions(color="#2196f3")
         series = LineSeries(data=[])
 
         result = series.asdict()
