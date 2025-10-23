@@ -737,6 +737,8 @@ class Chart:
         else:
             raise ValueValidationError("price_type", "must be 'candlestick' or 'line'")
 
+        price_series._display_name = "Price"  # pylint: disable=protected-access
+
         # Extract volume-specific kwargs
         volume_up_color = volume_kwargs.get("up_color", "rgba(38,166,154,0.5)")
         volume_down_color = volume_kwargs.get("down_color", "rgba(239,83,80,0.5)")
@@ -771,6 +773,7 @@ class Chart:
         # Set volume-specific properties
         volume_series.base = volume_base  # type: ignore[attr-defined]
         volume_series.price_format = {"type": "volume", "precision": 0}  # type: ignore[attr-defined]
+        volume_series._display_name = "Volume"  # pylint: disable=protected-access
 
         # Add both series to the chart
         self.add_series(price_series)

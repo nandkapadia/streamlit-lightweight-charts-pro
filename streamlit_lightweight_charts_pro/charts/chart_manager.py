@@ -177,7 +177,7 @@ class ChartManager:
 
         # Set the ChartManager reference on the chart for bidirectional communication
         # This allows the chart to access manager configuration and sync settings
-        chart._chart_manager = self
+        chart._chart_manager = self  # pylint: disable=protected-access
 
         # Add chart to the registry with its unique identifier
         self.charts[chart_id] = chart
@@ -463,7 +463,7 @@ class ChartManager:
         )
 
         # Set the ChartManager reference on the chart
-        chart._chart_manager = self
+        chart._chart_manager = self  # pylint: disable=protected-access
 
         # Add the chart to the manager with an ID
         self.add_chart(chart, chart_id=chart_id)

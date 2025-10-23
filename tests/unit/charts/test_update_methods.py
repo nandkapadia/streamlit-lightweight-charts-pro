@@ -237,8 +237,8 @@ class TestUpdateMethodIntegration:
 
         assert result["visible"] is False
         assert result["priceScaleId"] == "left"
-        assert result["options"]["color"] == "#ff0000"
-        assert result["options"]["lineWidth"] == 3
+        assert result["options"]["lineOptions"]["color"] == "#ff0000"
+        assert result["options"]["lineOptions"]["lineWidth"] == 3
 
     def test_update_preserves_existing_values(self):
         """Test that update doesn't overwrite unspecified values."""

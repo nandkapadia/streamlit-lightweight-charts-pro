@@ -21,7 +21,11 @@ import {
   BaselineSeries,
   IChartApi,
 } from 'lightweight-charts';
-import { UnifiedSeriesDescriptor, PropertyDescriptors } from '../core/UnifiedSeriesDescriptor';
+import {
+  UnifiedSeriesDescriptor,
+  PropertyDescriptors,
+  STANDARD_SERIES_PROPERTIES,
+} from '../core/UnifiedSeriesDescriptor';
 
 /**
  * Sort and deduplicate data by time (required by lightweight-charts)
@@ -135,6 +139,9 @@ export const LINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<LineSeriesOptions> 
   description: 'Standard line chart series',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // Line-specific properties
     mainLine: PropertyDescriptors.line(
       'Line',
       '#2962FF', // default color
@@ -146,7 +153,6 @@ export const LINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<LineSeriesOptions> 
         styleKey: 'lineStyle',
       }
     ),
-    lineVisible: PropertyDescriptors.boolean('Line Visible', true, 'Line'),
   },
 
   defaultOptions: {
@@ -178,6 +184,9 @@ export const AREA_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<AreaSeriesOptions> 
   description: 'Area chart series with fill',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // Area-specific properties
     mainLine: PropertyDescriptors.line(
       'Line',
       '#2962FF', // default color
@@ -189,7 +198,6 @@ export const AREA_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<AreaSeriesOptions> 
         styleKey: 'lineStyle',
       }
     ),
-    lineVisible: PropertyDescriptors.boolean('Line Visible', true, 'Line'),
     topColor: PropertyDescriptors.color('Top Color', 'rgba(41, 98, 255, 0.28)', 'Fill'),
     bottomColor: PropertyDescriptors.color('Bottom Color', 'rgba(41, 98, 255, 0.05)', 'Fill'),
     invertFilledArea: PropertyDescriptors.boolean('Invert Filled Area', false, 'Fill'),
@@ -229,6 +237,9 @@ export const HISTOGRAM_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<HistogramSerie
   description: 'Histogram chart series',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // Histogram-specific properties
     color: PropertyDescriptors.color('Color', '#26a69a'),
     base: PropertyDescriptors.number('Base Value', 0, undefined, true), // hidden from dialog
   },
@@ -260,6 +271,9 @@ export const BAR_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BarSeriesOptions> = 
   description: 'OHLC bar chart series',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // Bar-specific properties
     upColor: PropertyDescriptors.color('Up Color', '#26a69a', 'Colors'),
     downColor: PropertyDescriptors.color('Down Color', '#ef5350', 'Colors'),
     openVisible: PropertyDescriptors.boolean('Show Open Tick', true, 'Display'),
@@ -295,6 +309,9 @@ export const CANDLESTICK_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<CandlestickS
   description: 'Candlestick chart series',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // Candlestick-specific properties
     upColor: PropertyDescriptors.color('Up Color', '#26a69a', 'Body'),
     downColor: PropertyDescriptors.color('Down Color', '#ef5350', 'Body'),
     borderVisible: PropertyDescriptors.boolean('Border Visible', true, 'Border'),
@@ -342,6 +359,9 @@ export const BASELINE_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<BaselineSeriesO
   description: 'Baseline chart series with above/below coloring',
 
   properties: {
+    // Standard series properties
+    ...STANDARD_SERIES_PROPERTIES,
+    // Baseline-specific properties
     baseValue: PropertyDescriptors.number('Base Value', 0, 'Base', true), // hidden from dialog
     topLineColor: PropertyDescriptors.color('Top Line Color', '#26a69a', 'Top'),
     topFillColor1: PropertyDescriptors.color('Top Fill Color 1', 'rgba(38, 166, 154, 0.28)', 'Top'),

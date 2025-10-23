@@ -1,0 +1,765 @@
+# Legend Value Placeholders for Multi-Value Series
+
+**Status**: ✅ Already Implemented - Documentation Only
+**Date**: 2025-10-23
+**Category**: User Guide
+
+---
+
+## Overview
+
+The legend system supports dynamic value placeholders that are replaced with actual data values when the crosshair moves. Different series types have different available placeholders based on their data structure.
+
+---
+
+## Available Placeholders by Series Type
+
+### Single-Value Series (Line, Area, Histogram, Baseline)
+
+| Placeholder | Description | Example Value |
+|-------------|-------------|---------------|
+| `$$value$$` | Current value at crosshair position | `123.45` |
+| `$$time$$` | Timestamp of the data point | `2024-01-01` |
+| `$$title$$` | Series title | `Price` |
+
+### OHLC Series (Candlestick, Bar)
+
+| Placeholder | Description | Example Value |
+|-------------|-------------|---------------|
+| `$$open$$` | Opening price | `100.50` |
+| `$$high$$` | Highest price | `105.25` |
+| `$$low$$` | Lowest price | `99.75` |
+| `$$close$$` | Closing price | `103.80` |
+| `$$time$$` | Timestamp of the data point | `2024-01-01` |
+| `$$title$$` | Series title | `AAPL` |
+
+### Band Series
+
+| Placeholder | Description | Example Value |
+|-------------|-------------|---------------|
+| `$$upper$$` | Upper band value | `105.50` |
+| `$$middle$$` | Middle line value | `100.00` |
+| `$$lower$$` | Lower band value | `94.50` |
+| `$$time$$` | Timestamp of the data point | `2024-01-01` |
+| `$$title$$` | Series title | `Bollinger Bands` |
+
+### Ribbon Series (Ribbon, GradientRibbon)
+
+| Placeholder | Description | Example Value |
+|-------------|-------------|---------------|
+| `$$upper$$` | Upper ribbon line | `110.00` |
+| `$$lower$$` | Lower ribbon line | `90.00` |
+| `$$time$$` | Timestamp of the data point | `2024-01-01` |
+| `$$title$$` | Series title | `Keltner Channel` |
+
+### TrendFill Series
+
+| Placeholder | Description | Example Value |
+|-------------|-------------|---------------|
+| `$$baseLine$$` | Base/reference line value | `50.00` |
+| `$$trendLine$$` | Trend line value | `100.00` |
+| `$$trendDirection$$` | Trend direction (-1, 0, or 1) | `1` |
+| `$$time$$` | Timestamp of the data point | `2024-01-01` |
+| `$$title$$` | Series title | `Supertrend` |
+
+**Note**: TrendFill uses `baseLine` and `trendLine` (camelCase). The `trendDirection` indicates: `-1` (downtrend), `0` (neutral), `1` (uptrend).
+
+### Signal Series
+
+| Placeholder | Description | Example Value |
+|-------------|-------------|---------------|
+| `$$value$$` | Signal value (-1, 0, or 1) | `1` |
+| `$$time$$` | Timestamp of the data point | `2024-01-01` |
+| `$$title$$` | Series title | `Buy/Sell Signals` |
+
+### Volume/Custom Data
+
+| Placeholder | Description | Example Value |
+|-------------|-------------|---------------|
+| `$$volume$$` | Volume value (if available in data) | `1000000` |
+| `$$custom_key$$` | Any custom data field | Varies |
+
+---
+
+## Usage Examples
+
+### Line Series (Single Value)
+
+```python
+from streamlit_lightweight_charts_pro import Chart, LineSeries
+from streamlit_lightweight_charts_pro.charts.options import LegendOptions
+
+# Create line series
+line_series = LineSeries(data=data)
+line_series.title = "Price"
+line_series.line_options.set_color("#2196F3")
+
+# Set legend with $$value$$ placeholder
+line_series.legend = LegendOptions(
+    visible=True,
+    position="top-right",
+    text="<div>Price: $$value$$</div>"
+)
+
+chart = Chart(series=line_series)
+chart.render(key="line_legend")
+```
+
+**Output**: When crosshair is at a data point with value `123.45`, the legend shows:
+```
+Price: 123.45
+```
+
+---
+
+### Band Series (Multi-Value)
+
+```python
+from streamlit_lightweight_charts_pro import Chart, BandSeries
+from streamlit_lightweight_charts_pro.charts.options import LegendOptions
+from streamlit_lightweight_charts_pro.data import BandData
+
+# Create band data
+band_data = [
+    BandData(time="2024-01-01", upper=105.5, middle=100.0, lower=94.5),
+    BandData(time="2024-01-02", upper=106.2, middle=100.5, lower=94.8),
+    # ... more data
+]
+
+# Create band series
+band_series = BandSeries(data=band_data)
+band_series.title = "Bollinger Bands"
+
+# Set legend with multiple placeholders
+band_series.legend = LegendOptions(
+    visible=True,
+    position="top-right",
+    text="""
+    <div style='font-family: monospace;'>
+      <div><strong>Bollinger Bands</strong></div>
+      <div>Upper: $$upper$$</div>
+      <div>Middle: $$middle$$</div>
+      <div>Lower: $$lower$$</div>
+    </div>
+    """
+)
+
+chart = Chart(series=band_series)
+chart.render(key="band_legend")
+```
+
+**Output**: When crosshair is at the data point, the legend shows:
+```
+Bollinger Bands
+Upper: 105.50
+Middle: 100.00
+Lower: 94.50
+```
+
+---
+
+### Styled Band Legend with Colors
+
+```python
+band_series.legend = LegendOptions(
+    visible=True,
+    position="top-right",
+    background_color="rgba(0, 0, 0, 0.8)",
+    border_color="#2196F3",
+    border_width=1,
+    border_radius=4,
+    padding=8,
+    text="""
+    <div style='color: white; font-size: 12px;'>
+      <div style='margin-bottom: 4px; font-weight: bold;'>
+        Bollinger Bands
+      </div>
+      <div style='display: flex; justify-content: space-between;'>
+        <span>Upper:</span>
+        <span style='color: #4CAF50;'>$$upper$$</span>
+      </div>
+      <div style='display: flex; justify-content: space-between;'>
+        <span>Middle:</span>
+        <span style='color: #2196F3;'>$$middle$$</span>
+      </div>
+      <div style='display: flex; justify-content: space-between;'>
+        <span>Lower:</span>
+        <span style='color: #F44336;'>$$lower$$</span>
+      </div>
+    </div>
+    """
+)
+```
+
+**Output**: A styled legend with colored values matching the band line colors.
+
+---
+
+### Ribbon Series Legend
+
+```python
+from streamlit_lightweight_charts_pro import Chart, RibbonSeries
+from streamlit_lightweight_charts_pro.charts.options import LegendOptions
+
+ribbon_series = RibbonSeries(data=ribbon_data)
+ribbon_series.title = "Keltner Channel"
+
+ribbon_series.legend = LegendOptions(
+    visible=True,
+    position="top-left",
+    text="""
+    <div>
+      <strong>Keltner Channel</strong><br/>
+      Upper: $$upper$$ | Lower: $$lower$$
+    </div>
+    """
+)
+```
+
+---
+
+### Candlestick Series Legend
+
+```python
+from streamlit_lightweight_charts_pro import Chart, CandlestickSeries
+from streamlit_lightweight_charts_pro.charts.options import LegendOptions
+
+candle_series = CandlestickSeries(data=ohlc_data)
+candle_series.title = "AAPL"
+
+candle_series.legend = LegendOptions(
+    visible=True,
+    position="top-left",
+    text="""
+    <div style='font-size: 11px;'>
+      <div style='font-weight: bold; margin-bottom: 4px;'>AAPL</div>
+      <div>O: $$open$$ H: $$high$$ L: $$low$$ C: $$close$$</div>
+    </div>
+    """
+)
+```
+
+**Output**: When crosshair is at a candle:
+```
+AAPL
+O: 150.50 H: 152.00 L: 149.75 C: 151.25
+```
+
+---
+
+### GradientRibbon Series Legend
+
+```python
+from streamlit_lightweight_charts_pro import Chart, GradientRibbonSeries
+from streamlit_lightweight_charts_pro.charts.options import LegendOptions
+
+gradient_series = GradientRibbonSeries(data=ribbon_data)
+gradient_series.title = "ATR Channel"
+
+gradient_series.legend = LegendOptions(
+    visible=True,
+    position="top-right",
+    text="""
+    <div style='font-size: 12px;'>
+      <div style='font-weight: bold;'>ATR Channel</div>
+      <div>Upper: <span style='color: #4CAF50;'>$$upper$$</span></div>
+      <div>Lower: <span style='color: #F44336;'>$$lower$$</span></div>
+      <div style='font-size: 10px; color: #888;'>Spread: $$spread$$</div>
+    </div>
+    """
+)
+```
+
+**Note**: `$$spread$$` is a custom calculated value. You would need to add this to your data or calculate it in a custom field.
+
+---
+
+### TrendFill Series Legend
+
+```python
+from streamlit_lightweight_charts_pro import Chart, TrendFillSeries
+from streamlit_lightweight_charts_pro.charts.options import LegendOptions
+
+trend_series = TrendFillSeries(data=trend_data)
+trend_series.title = "Supertrend"
+
+trend_series.legend = LegendOptions(
+    visible=True,
+    position="top-left",
+    text="""
+    <div style='font-size: 12px;'>
+      <div style='font-weight: bold; margin-bottom: 4px;'>Supertrend</div>
+      <div>Trend: <span style='font-family: monospace;'>$$trendLine$$</span></div>
+      <div>Base: <span style='font-family: monospace;'>$$baseLine$$</span></div>
+      <div style='font-size: 10px; color: #888;'>
+        Direction: $$trendDirection$$
+      </div>
+    </div>
+    """
+)
+```
+
+---
+
+### Signal Series Legend
+
+```python
+from streamlit_lightweight_charts_pro import Chart, SignalSeries
+from streamlit_lightweight_charts_pro.charts.options import LegendOptions
+
+signal_series = SignalSeries(data=signal_data)
+signal_series.title = "Buy/Sell Signals"
+
+signal_series.legend = LegendOptions(
+    visible=True,
+    position="bottom-right",
+    text="""
+    <div style='font-size: 12px;'>
+      <div><strong>Signals</strong></div>
+      <div>Status: $$value$$</div>
+    </div>
+    """
+)
+```
+
+**Output**: Shows `-1` (sell), `0` (neutral), or `1` (buy).
+
+---
+
+## Advanced Techniques
+
+### Conditional Styling Based on Value
+
+While you can't use JavaScript in the template, you can prepare different templates:
+
+```python
+# Python code to create dynamic legend based on signal
+def create_signal_legend(signal_value):
+    if signal_value > 0:
+        color = "#4CAF50"
+        label = "BUY"
+    elif signal_value < 0:
+        color = "#F44336"
+        label = "SELL"
+    else:
+        color = "#FFC107"
+        label = "HOLD"
+
+    return f"""
+    <div style='padding: 4px;'>
+      <span style='color: {color}; font-weight: bold;'>{label}</span>
+      <span> ($$value$$)</span>
+    </div>
+    """
+
+# However, since legends are set once, you'd need to use CSS tricks
+# Better approach: Use color-coded text inline
+signal_series.legend = LegendOptions(
+    visible=True,
+    position="top-right",
+    text="""
+    <div>
+      Signal: <span class='signal-value'>$$value$$</span>
+    </div>
+    <style>
+      .signal-value { font-weight: bold; }
+    </style>
+    """
+)
+```
+
+### Combining Multiple Series in One Legend
+
+For a chart with multiple series, you can create a comprehensive legend on the primary series:
+
+```python
+# Create main series
+price_series = LineSeries(data=price_data)
+price_series.title = "Price"
+
+ma20_series = LineSeries(data=ma20_data)
+ma20_series.title = "MA20"
+
+ma50_series = LineSeries(data=ma50_data)
+ma50_series.title = "MA50"
+
+# Set comprehensive legend on primary series
+# Note: Each series only has access to its own data
+price_series.legend = LegendOptions(
+    visible=True,
+    position="top-left",
+    text="""
+    <div style='font-family: Arial; font-size: 12px;'>
+      <div style='margin-bottom: 8px; font-weight: bold;'>
+        Chart Legend
+      </div>
+      <div style='display: flex; gap: 16px;'>
+        <div>
+          <span style='color: #333;'>Price:</span>
+          <span style='font-weight: bold;'>$$value$$</span>
+        </div>
+      </div>
+    </div>
+    """
+)
+
+# Other series can have their own legends too
+ma20_series.legend = LegendOptions(
+    visible=True,
+    position="top-right",
+    text="<span style='color: #2196F3;'>MA20: $$value$$</span>"
+)
+```
+
+---
+
+## Value Formatting
+
+The system automatically formats numeric values based on the `value_format` setting:
+
+```python
+legend = LegendOptions(
+    visible=True,
+    position="top-right",
+    value_format=".2f",  # 2 decimal places
+    text="Price: $$value$$"
+)
+```
+
+**Supported formats**:
+- `.2f` - 2 decimal places (e.g., `123.45`)
+- `.0f` - No decimal places (e.g., `123`)
+- `.4f` - 4 decimal places (e.g., `123.4567`)
+- `.1f` - 1 decimal place (e.g., `123.5`)
+
+---
+
+## Custom Data Placeholders
+
+You can add custom fields to your data and use them as placeholders:
+
+```python
+from streamlit_lightweight_charts_pro.data import BandData
+
+# Create data with custom fields
+band_data = [
+    BandData(
+        time="2024-01-01",
+        upper=105.5,
+        middle=100.0,
+        lower=94.5,
+        # Custom data (note: this depends on dataclass support for extra fields)
+    ),
+]
+
+# Then use in legend
+legend = LegendOptions(
+    visible=True,
+    text="""
+    <div>
+      BB: U=$$upper$$ M=$$middle$$ L=$$lower$$<br/>
+      Width: $$bb_width$$
+    </div>
+    """
+)
+```
+
+**Note**: Custom fields need to be supported by the data class. Check the data class documentation for adding custom fields.
+
+---
+
+## Implementation Details
+
+### How It Works
+
+1. **Template Storage**: The legend template is stored as an HTML string with placeholders
+2. **Crosshair Tracking**: The system subscribes to crosshair move events
+3. **Data Extraction**: When crosshair moves, the system extracts data at that time point
+4. **Placeholder Replacement**: The `TemplateEngine` replaces all `$$placeholder$$` tokens with actual values
+5. **DOM Update**: The legend HTML is updated via React Portal
+
+### Source Code Reference
+
+**Frontend**:
+- `src/services/TemplateEngine.ts` - Handles placeholder replacement
+- `src/primitives/LegendPrimitive.ts` - Legend rendering
+- Lines 23-26 document available placeholders:
+  ```typescript
+  * - $$title$$, $$value$$, $$open$$, $$high$$, $$low$$, $$close$$
+  * - $$volume$$, $$time$$
+  * - $$upper$$, $$middle$$, $$lower$$ (for bands)
+  * - Custom placeholders from customData
+  ```
+
+**Python**:
+- `streamlit_lightweight_charts_pro/charts/options/ui_options.py` - LegendOptions class
+- `examples/advanced_features/legend_example.py` - Usage examples
+
+---
+
+## Troubleshooting
+
+### Placeholder Not Replaced
+
+**Problem**: `$$upper$$` shows as literal text instead of being replaced with a value.
+
+**Solution**:
+1. Check that your series type supports that placeholder (e.g., `$$upper$$` only works with Band/Ribbon series)
+2. Verify the data actually has that field
+3. Ensure the placeholder is spelled correctly (case-sensitive)
+
+### Values Not Updating
+
+**Problem**: Legend shows old values when crosshair moves.
+
+**Solution**:
+1. Check `update_on_crosshair` is `True` (default):
+   ```python
+   legend = LegendOptions(
+       update_on_crosshair=True  # Default is True
+   )
+   ```
+
+### Wrong Number Format
+
+**Problem**: Values show too many or too few decimal places.
+
+**Solution**: Set `value_format`:
+```python
+legend = LegendOptions(
+    value_format=".2f"  # 2 decimal places
+)
+```
+
+### Legend Shows "undefined"
+
+**Problem**: Legend shows "undefined" for a placeholder.
+
+**Solution**:
+1. The data point doesn't have that field
+2. The crosshair is on whitespace (no data)
+3. Use a default value:
+   ```python
+   text="Value: $$value$$ (or 'N/A' if undefined)"
+   ```
+
+---
+
+## Best Practices
+
+### 1. Use Semantic HTML
+
+```python
+# Good
+text="""
+<div class='legend'>
+  <div class='legend-title'>Bollinger Bands</div>
+  <div class='legend-values'>
+    <div>Upper: $$upper$$</div>
+    <div>Middle: $$middle$$</div>
+    <div>Lower: $$lower$$</div>
+  </div>
+</div>
+"""
+
+# Bad (no structure)
+text="BB: $$upper$$ $$middle$$ $$lower$$"
+```
+
+### 2. Style for Readability
+
+```python
+text="""
+<div style='font-family: monospace; font-size: 11px;'>
+  <div style='font-weight: bold; margin-bottom: 4px;'>
+    Band Values
+  </div>
+  <div style='line-height: 1.5;'>
+    <div>U: $$upper$$</div>
+    <div>M: $$middle$$</div>
+    <div>L: $$lower$$</div>
+  </div>
+</div>
+"""
+```
+
+### 3. Match Colors to Lines
+
+```python
+# If upper line is green, make upper value green in legend
+text="""
+<div>
+  <span style='color: #4CAF50;'>Upper: $$upper$$</span><br/>
+  <span style='color: #2196F3;'>Middle: $$middle$$</span><br/>
+  <span style='color: #F44336;'>Lower: $$lower$$</span>
+</div>
+"""
+```
+
+### 4. Keep It Concise
+
+```python
+# Good - compact and clear
+text="BB: U=$$upper$$ M=$$middle$$ L=$$lower$$"
+
+# Bad - too verbose
+text="""
+The Bollinger Bands indicator is showing the following values:
+- Upper band value is: $$upper$$
+- Middle band value is: $$middle$$
+- Lower band value is: $$lower$$
+"""
+```
+
+### 5. Use Monospace for Numbers
+
+```python
+text="""
+<div style='font-family: monospace;'>
+  U: $$upper$$<br/>
+  M: $$middle$$<br/>
+  L: $$lower$$
+</div>
+"""
+```
+
+This ensures numbers align nicely.
+
+---
+
+## Complete Example: Multi-Pane Chart with Band Series Legend
+
+```python
+import streamlit as st
+from streamlit_lightweight_charts_pro import (
+    Chart,
+    BandSeries,
+    LineSeries,
+    ChartOptions
+)
+from streamlit_lightweight_charts_pro.charts.options import (
+    LegendOptions,
+    LayoutOptions,
+    PaneHeightOptions
+)
+from streamlit_lightweight_charts_pro.data import BandData, LineData
+
+# Create band data (Bollinger Bands)
+band_data = [
+    BandData(time="2024-01-01", upper=105.5, middle=100.0, lower=94.5),
+    BandData(time="2024-01-02", upper=106.2, middle=100.5, lower=94.8),
+    BandData(time="2024-01-03", upper=107.0, middle=101.2, lower=95.4),
+]
+
+# Create volume data
+volume_data = [
+    LineData(time="2024-01-01", value=1000000),
+    LineData(time="2024-01-02", value=1200000),
+    LineData(time="2024-01-03", value=950000),
+]
+
+# Create band series
+band_series = BandSeries(data=band_data)
+band_series.title = "Bollinger Bands"
+band_series.pane_id = 0
+
+# Set styled legend for band series
+band_series.legend = LegendOptions(
+    visible=True,
+    position="top-right",
+    background_color="rgba(0, 0, 0, 0.85)",
+    border_color="#2196F3",
+    border_width=1,
+    border_radius=6,
+    padding=10,
+    value_format=".2f",
+    text="""
+    <div style='color: white; font-family: Arial; font-size: 12px;'>
+      <div style='font-weight: bold; margin-bottom: 6px; font-size: 13px;'>
+        Bollinger Bands
+      </div>
+      <div style='display: flex; justify-content: space-between; margin-bottom: 2px;'>
+        <span>Upper:</span>
+        <span style='color: #4CAF50; font-family: monospace; margin-left: 12px;'>
+          $$upper$$
+        </span>
+      </div>
+      <div style='display: flex; justify-content: space-between; margin-bottom: 2px;'>
+        <span>Middle:</span>
+        <span style='color: #2196F3; font-family: monospace; margin-left: 12px;'>
+          $$middle$$
+        </span>
+      </div>
+      <div style='display: flex; justify-content: space-between;'>
+        <span>Lower:</span>
+        <span style='color: #F44336; font-family: monospace; margin-left: 12px;'>
+          $$lower$$
+        </span>
+      </div>
+    </div>
+    """
+)
+
+# Create volume series
+volume_series = LineSeries(data=volume_data)
+volume_series.title = "Volume"
+volume_series.pane_id = 1
+
+# Set volume legend
+volume_series.legend = LegendOptions(
+    visible=True,
+    position="top-left",
+    background_color="rgba(255, 255, 255, 0.9)",
+    border_color="#4CAF50",
+    border_width=1,
+    border_radius=4,
+    padding=8,
+    value_format=".0f",
+    text="""
+    <div style='font-size: 11px;'>
+      <strong>Volume</strong>: <span style='font-family: monospace;'>$$value$$</span>
+    </div>
+    """
+)
+
+# Create chart with multi-pane layout
+chart = Chart(
+    options=ChartOptions(
+        width=1000,
+        height=600,
+        layout=LayoutOptions(
+            pane_heights={
+                0: PaneHeightOptions(factor=3.0),  # Main chart
+                1: PaneHeightOptions(factor=1.0),  # Volume
+            }
+        )
+    ),
+    series=[band_series, volume_series]
+)
+
+# Render chart
+chart.render(key="band_legend_example")
+```
+
+---
+
+## Summary
+
+**✅ The system already supports all multi-value placeholders you need!**
+
+- **Band series**: Use `$$upper$$`, `$$middle$$`, `$$lower$$`
+- **Ribbon series**: Use `$$upper$$`, `$$lower$$`
+- **GradientRibbon series**: Use `$$upper$$`, `$$lower$$`, optionally `$$fill$$` or `$$gradient$$`
+- **TrendFill**: Use `$$baseLine$$`, `$$trendLine$$`, `$$trendDirection$$`
+- **Signal**: Use `$$value$$`, optionally `$$color$$`
+- **Candlestick/Bar**: Use `$$open$$`, `$$high$$`, `$$low$$`, `$$close$$`
+- **Line/Area**: Use `$$value$$`
+- **All series**: Use `$$time$$`, `$$title$$`
+
+**Important**: Placeholder names match the camelCase property names in the TypeScript data interfaces, not the Python snake_case names. For example, Python's `base_line` becomes `$$baseLine$$` in the legend template.
+
+No code changes needed - this is purely a documentation/education issue. Users just need to know which placeholders are available for each series type!
+
+---
+
+*End of Document*
