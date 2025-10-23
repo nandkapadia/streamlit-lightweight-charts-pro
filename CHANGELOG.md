@@ -5,6 +5,23 @@ All notable changes to the Streamlit Lightweight Charts Pro project will be docu
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - 2025-10-23
+
+### Changed
+- **Version Bump:**
+  - Updated version from 0.1.5 to 0.1.6 across all configuration files
+  - Updated `pyproject.toml`, `setup.py`, and `__init__.py` version references
+  - Created Git tag `v0.1.6` for release tracking
+
+### Technical Details
+- **Package Build:** Successfully built and validated distribution packages
+  - Source distribution: `streamlit_lightweight_charts_pro-0.1.6.tar.gz` (3.9MB)
+  - Wheel distribution: `streamlit_lightweight_charts_pro-0.1.6-py3-none-any.whl` (4.4MB)
+- **Quality Assurance:** All 2,239 unit tests passing with 80% coverage
+- **Frontend Assets:** Fresh rebuild with optimized bundle (814KB JS, 221KB gzipped)
+- **Validation:** Twine package validation passed for both distributions
+- **Git Management:** Version changes committed and tagged for release
+
 ## [0.1.5] - 2025-10-22
 
 ### Fixed
@@ -262,5 +279,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Advanced height reporting with loop prevention
 - Comprehensive error boundaries and logging
 
+[0.1.6]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.1.6
 [0.1.4]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.1.4
 [0.1.0]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.1.0
