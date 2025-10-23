@@ -1,0 +1,1320 @@
+# Marker Properties Implementation Plan
+
+**Status**: Research Complete - Ready for Implementation
+**Date**: 2025-10-23
+**Priority**: High
+**Estimated Effort**: 18-20 hours
+
+---
+
+## Table of Contents
+
+1. [Executive Summary](#executive-summary)
+2. [Research Findings](#research-findings)
+3. [Current State](#current-state)
+4. [Implementation Plan](#implementation-plan)
+5. [Technical Details](#technical-details)
+6. [Testing Strategy](#testing-strategy)
+7. [Timeline and Effort](#timeline-and-effort)
+
+---
+
+## Executive Summary
+
+### Goal
+Implement point markers, crosshair markers, and last price animation for all custom series (Band, Ribbon, GradientRibbon, TrendFill, Signal).
+
+### Properties to Implement
+- `pointMarkersVisible` - Show circle markers on data points
+- `pointMarkersRadius` - Radius of point markers
+- `crosshairMarkerVisible` - Show marker at crosshair position
+- `crosshairMarkerRadius` - Radius of crosshair marker
+- `crosshairMarkerBorderColor` - Border color of crosshair marker
+- `crosshairMarkerBackgroundColor` - Background color of crosshair marker
+- `crosshairMarkerBorderWidth` - Border width of crosshair marker
+- `lastPriceAnimation` - Animation mode for last price updates
+
+### Current Status
+- ✅ Python `LineOptions` class has ALL 8 properties implemented
+- ✅ Python serialization sends nested `lineOptions` correctly
+- ✅ Frontend flattening handles property prefixing correctly
+- ❌ TypeScript interfaces don't declare these properties
+- ❌ Custom series renderers don't render markers
+- ❌ Crosshair markers have no API support for custom series in lightweight-charts core
+
+---
+
+## Research Findings
+
+### How Lightweight-Charts Handles Markers
+
+#### Point Markers (Builtin Series)
+
+**Location**: `src/renderers/draw-series-point-markers.ts`
+
+**Implementation**:
+```typescript
+export function drawSeriesPointMarkers<TItem extends LinePoint>(
+  renderingScope: BitmapCoordinatesRenderingScope,
+  items: readonly TItem[],
+  pointMarkersRadius: number,
+  visibleRange: SeriesItemsIndexesRange,
+  styleGetter: (scope, item) => fillStyle
+): void {
+  // Draws circles on data points using canvas arc()
+}
+```
+
+**Usage**: Builtin series renderers (`PaneRendererLineBase`) call this utility function.
+
+**Key Finding**: ✅ This is a **reusable utility function** we can import and use!
+
+#### Crosshair Markers (Builtin Series)
+
+**Location**: `src/model/series.ts` and `src/views/pane/crosshair-marks-pane-view.ts`
+
+**Pipeline**:
+1. **`Series.markerDataAtIndex(index)`** (series.ts:462-479):
+   - Returns `{ price, radius, borderColor, borderWidth, backgroundColor }`
+   - **CRITICAL LIMITATION**: Line 463 explicitly checks:
+     ```typescript
+     const getValue = (this._seriesType === 'Line' ||
+                       this._seriesType === 'Area' ||
+                       this._seriesType === 'Baseline') && ...
+     ```
+   - **Custom series are EXCLUDED** - always returns `null`
+
+2. **`CrosshairMarksPaneView`** (crosshair-marks-pane-view.ts:84-101):
+   - Loops through all series
+   - Calls `s.markerDataAtIndex(timePointIndex)` for each
+   - Renders markers using `PaneRendererMarks`
+
+**Key Finding**: ❌ Custom series have **NO API support** for crosshair markers in current lightweight-charts version.
+
+#### Last Price Animation
+
+**Location**: Series options (chart-level handling)
+
+**Implementation**: The chart reads `lastPriceAnimation` option from series options and handles animation automatically.
+
+**Key Finding**: ✅ Should work automatically once property is added to options.
+
+---
+
+## Current State
+
+### Python (Backend)
+
+**File**: `streamlit_lightweight_charts_pro/charts/options/line_options.py`
+
+**Status**: ✅ **COMPLETE** - All 8 properties already implemented
+
+```python
+@dataclass
+@chainable_field("color", str, validator="color")
+@chainable_field("line_style", LineStyle)
+@chainable_field("line_width", int)
+@chainable_field("line_type", LineType)
+@chainable_field("line_visible", bool)
+@chainable_field("point_markers_visible", bool)
+@chainable_field("point_markers_radius", int)
+@chainable_field("crosshair_marker_visible", bool)
+@chainable_field("crosshair_marker_radius", int)
+@chainable_field("crosshair_marker_border_color", str, validator="color")
+@chainable_field("crosshair_marker_background_color", str, validator="color")
+@chainable_field("crosshair_marker_border_width", int)
+@chainable_field("last_price_animation", LastPriceAnimationMode)
+class LineOptions(Options):
+    # All properties defined with defaults
+    point_markers_visible: bool = False
+    point_markers_radius: Optional[int] = None
+    crosshair_marker_visible: bool = False
+    crosshair_marker_radius: int = 4
+    crosshair_marker_border_color: str = ""
+    crosshair_marker_background_color: str = ""
+    crosshair_marker_border_width: int = 2
+    last_price_animation: LastPriceAnimationMode = LastPriceAnimationMode.DISABLED
+```
+
+### Python Serialization
+
+**File**: `streamlit_lightweight_charts_pro/charts/series/base.py:859-866`
+
+**Status**: ✅ **COMPLETE** - Sends nested `lineOptions`
+
+```python
+if isinstance(attr_value, LineOptions):
+    line_dict = attr_value.asdict()
+    if attr_name.endswith("_options") or attr_name == "line_options":
+        # Send lineOptions nested - let frontend handle flattening via descriptors
+        options["lineOptions"] = line_dict
+    else:
+        # Flatten with property name as prefix (e.g., upper_line -> upperLine*)
+        prefix = snake_to_camel(attr_name)
+        for line_key, line_value in line_dict.items():
+            # Prefix each property (e.g., upperLineColor, upperPointMarkersVisible)
+            flattened_key = prefix + line_key[0].upper() + line_key[1:]
+            options[flattened_key] = line_value
+```
+
+### Frontend Flattening
+
+**File**: `streamlit_lightweight_charts_pro/frontend/src/series/UnifiedSeriesFactory.ts:116-184`
+
+**Status**: ✅ **COMPLETE** - Handles nested → flattened conversion
+
+```typescript
+function flattenLineOptions(options, descriptor) {
+  // SPECIAL CASE: Handle generic 'lineOptions' from Python for builtin series
+  if (options.lineOptions) {
+    const linePropDesc = /* find line property in descriptor */;
+    // Maps using descriptor's apiMapping
+    flattened[linePropDesc.apiMapping.colorKey] = lineObj.color;
+    flattened[linePropDesc.apiMapping.widthKey] = lineObj.lineWidth;
+    // ... maps ALL LineOptions properties including markers
+  }
+
+  // Process each property in descriptor (for custom series with named line properties)
+  for (const [propName, propDesc] of descriptor.properties) {
+    if (propDesc.type === 'line' && options[propName]) {
+      // Flatten with prefix: upperLine + color → upperLineColor
+      // Flatten with prefix: upperLine + pointMarkersVisible → upperPointMarkersVisible
+    }
+  }
+}
+```
+
+### TypeScript Interfaces
+
+**Files**:
+- `bandSeriesPlugin.ts`
+- `ribbonSeriesPlugin.ts`
+- `gradientRibbonSeriesPlugin.ts`
+- `trendFillSeriesPlugin.ts`
+- `signalSeriesPlugin.ts`
+
+**Status**: ❌ **MISSING** - Properties not declared in interfaces
+
+**Example Current State** (Band series):
+```typescript
+export interface BandSeriesOptions extends CustomSeriesOptions {
+  upperLineColor: string;
+  upperLineWidth: LineWidth;
+  upperLineStyle: LineStyle;
+  upperLineVisible: boolean;
+  // ❌ MISSING: upperPointMarkersVisible, upperPointMarkersRadius, etc.
+
+  middleLineColor: string;
+  // ... middle line properties
+  // ❌ MISSING: middlePointMarkersVisible, middlePointMarkersRadius, etc.
+
+  lowerLineColor: string;
+  // ... lower line properties
+  // ❌ MISSING: lowerPointMarkersVisible, lowerPointMarkersRadius, etc.
+}
+```
+
+### Custom Series Renderers
+
+**Status**: ❌ **NOT IMPLEMENTED** - No marker rendering code
+
+**Current State**: Renderers only draw lines and fills, no marker logic.
+
+---
+
+## Implementation Plan
+
+### Phase 1: Point Markers (6-8 hours)
+
+Point markers are straightforward because lightweight-charts provides a reusable utility function.
+
+#### Step 1.1: Update TypeScript Interfaces (1 hour)
+
+**Files to modify**:
+1. `bandSeriesPlugin.ts`
+2. `ribbonSeriesPlugin.ts`
+3. `gradientRibbonSeriesPlugin.ts`
+4. `trendFillSeriesPlugin.ts`
+5. `signalSeriesPlugin.ts`
+
+**Changes**:
+
+**Multi-line series** (Band, Ribbon, GradientRibbon):
+```typescript
+export interface BandSeriesOptions extends CustomSeriesOptions {
+  // ... existing properties
+
+  // Point markers for upper line
+  upperPointMarkersVisible?: boolean;
+  upperPointMarkersRadius?: number;
+
+  // Point markers for middle line
+  middlePointMarkersVisible?: boolean;
+  middlePointMarkersRadius?: number;
+
+  // Point markers for lower line
+  lowerPointMarkersVisible?: boolean;
+  lowerPointMarkersRadius?: number;
+}
+```
+
+**Single-line series** (TrendFill base/uptrend/downtrend):
+```typescript
+export interface TrendFillSeriesOptions extends CustomSeriesOptions {
+  // ... existing properties
+
+  // Point markers for base line
+  basePointMarkersVisible?: boolean;
+  basePointMarkersRadius?: number;
+
+  // Point markers for uptrend line
+  uptrendPointMarkersVisible?: boolean;
+  uptrendPointMarkersRadius?: number;
+
+  // Point markers for downtrend line
+  downtrendPointMarkersVisible?: boolean;
+  downtrendPointMarkersRadius?: number;
+}
+```
+
+**Signal series** (single value per point):
+```typescript
+export interface SignalSeriesOptions extends CustomSeriesOptions {
+  // ... existing properties
+
+  // Point markers (no prefix needed for single-value series)
+  pointMarkersVisible?: boolean;
+  pointMarkersRadius?: number;
+}
+```
+
+#### Step 1.2: Update Default Options (30 minutes)
+
+Add defaults for all new properties:
+
+```typescript
+const defaultBandOptions: BandSeriesOptions = {
+  ...customSeriesDefaultOptions,
+  // ... existing defaults
+
+  // Point marker defaults
+  upperPointMarkersVisible: false,
+  upperPointMarkersRadius: undefined,
+  middlePointMarkersVisible: false,
+  middlePointMarkersRadius: undefined,
+  lowerPointMarkersVisible: false,
+  lowerPointMarkersRadius: undefined,
+};
+```
+
+#### Step 1.3: Import Utility Function (15 minutes)
+
+**Note**: The utility function is in the lightweight-charts source, not exposed in the public API. We need to copy it to our codebase.
+
+**Create new file**: `src/renderers/draw-series-point-markers.ts`
+
+```typescript
+import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+
+export interface LinePoint {
+  x: number;
+  y: number;
+}
+
+export function drawSeriesPointMarkers<TItem extends LinePoint>(
+  renderingScope: BitmapCoordinatesRenderingScope,
+  items: readonly TItem[],
+  pointMarkersRadius: number,
+  visibleRange: { from: number; to: number },
+  styleGetter: (renderingScope: BitmapCoordinatesRenderingScope, item: TItem) => string
+): void {
+  if (visibleRange.to - visibleRange.from <= 0) {
+    return;
+  }
+
+  const { horizontalPixelRatio, verticalPixelRatio, context } = renderingScope;
+  let prevStyle: string | null = null;
+
+  const tickWidth = Math.max(1, Math.floor(horizontalPixelRatio));
+  const correction = (tickWidth % 2) / 2;
+
+  const radius = pointMarkersRadius * verticalPixelRatio + correction;
+
+  for (let i = visibleRange.to - 1; i >= visibleRange.from; --i) {
+    const point = items[i];
+    if (point) {
+      const style = styleGetter(renderingScope, point);
+      if (style !== prevStyle) {
+        context.beginPath();
+        if (prevStyle !== null) {
+          context.fill();
+        }
+        context.fillStyle = style;
+        prevStyle = style;
+      }
+
+      const centerX = Math.round(point.x * horizontalPixelRatio) + correction;
+      const centerY = point.y * verticalPixelRatio;
+
+      context.moveTo(centerX, centerY);
+      context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    }
+  }
+
+  context.fill();
+}
+```
+
+#### Step 1.4: Implement Renderer Logic (4-5 hours)
+
+**For each custom series renderer**, add marker drawing after line drawing.
+
+**Example for Band series**:
+
+```typescript
+class BandSeriesRenderer<TData extends BandData> implements ICustomSeriesPaneRenderer {
+  private _data: PaneRendererCustomData<Time, TData> | null = null;
+  private _options: BandSeriesOptions | null = null;
+
+  draw(target: CanvasRenderingTarget2D, priceConverter: PriceToCoordinateConverter): void {
+    if (!this._data || !this._options) return;
+
+    target.useMediaCoordinateSpace(scope => {
+      // ... existing line and fill drawing code
+
+      // Draw point markers AFTER lines and fills
+      this._drawPointMarkersIfNeeded(scope, priceConverter);
+    });
+  }
+
+  private _drawPointMarkersIfNeeded(
+    scope: BitmapCoordinatesRenderingScope,
+    priceConverter: PriceToCoordinateConverter
+  ): void {
+    if (!this._data || !this._options) return;
+
+    // Upper line markers
+    if (this._options.upperPointMarkersVisible && this._options.upperPointMarkersRadius) {
+      const upperPoints = this._preparePointsForMarkers('upper', priceConverter);
+      const visibleRange = this._getVisibleRange();
+
+      drawSeriesPointMarkers(
+        scope,
+        upperPoints,
+        this._options.upperPointMarkersRadius,
+        visibleRange,
+        () => this._options.upperLineColor
+      );
+    }
+
+    // Middle line markers
+    if (this._options.middlePointMarkersVisible && this._options.middlePointMarkersRadius) {
+      const middlePoints = this._preparePointsForMarkers('middle', priceConverter);
+      const visibleRange = this._getVisibleRange();
+
+      drawSeriesPointMarkers(
+        scope,
+        middlePoints,
+        this._options.middlePointMarkersRadius,
+        visibleRange,
+        () => this._options.middleLineColor
+      );
+    }
+
+    // Lower line markers
+    if (this._options.lowerPointMarkersVisible && this._options.lowerPointMarkersRadius) {
+      const lowerPoints = this._preparePointsForMarkers('lower', priceConverter);
+      const visibleRange = this._getVisibleRange();
+
+      drawSeriesPointMarkers(
+        scope,
+        lowerPoints,
+        this._options.lowerPointMarkersRadius,
+        visibleRange,
+        () => this._options.lowerLineColor
+      );
+    }
+  }
+
+  private _preparePointsForMarkers(
+    field: 'upper' | 'middle' | 'lower',
+    priceConverter: PriceToCoordinateConverter
+  ): Array<{ x: number; y: number }> {
+    if (!this._data) return [];
+
+    return this._data.bars
+      .map(bar => {
+        const y = priceConverter(bar.originalData[field]);
+        return y !== null ? { x: bar.x, y } : null;
+      })
+      .filter((point): point is { x: number; y: number } => point !== null);
+  }
+
+  private _getVisibleRange(): { from: number; to: number } {
+    if (!this._data?.visibleRange) {
+      return { from: 0, to: 0 };
+    }
+    return {
+      from: this._data.visibleRange.from,
+      to: this._data.visibleRange.to
+    };
+  }
+}
+```
+
+**Repeat for**:
+- `ribbonSeriesPlugin.ts` (upper/lower)
+- `gradientRibbonSeriesPlugin.ts` (upper/lower)
+- `trendFillSeriesPlugin.ts` (base/uptrend/downtrend)
+- `signalSeriesPlugin.ts` (single value)
+
+---
+
+### Phase 2: Crosshair Markers (8-10 hours)
+
+Crosshair markers are more complex because lightweight-charts doesn't provide API support for custom series.
+
+#### Solution: `subscribeCrosshairMove` + HTML Overlay
+
+**Approach**:
+1. Subscribe to crosshair move events
+2. Calculate marker position for each custom series
+3. Render HTML overlay markers positioned at crosshair coordinates
+4. Style markers using provided properties
+
+#### Step 2.1: Create CrosshairMarkerOverlay Component (3 hours)
+
+**Create new file**: `src/components/CrosshairMarkerOverlay.tsx`
+
+```typescript
+import React from 'react';
+import { ISeriesApi } from 'lightweight-charts';
+
+export interface CrosshairMarkerConfig {
+  seriesId: string;
+  visible: boolean;
+  radius: number;
+  borderColor: string;
+  backgroundColor: string;
+  borderWidth: number;
+}
+
+export interface CrosshairMarkerPosition {
+  seriesId: string;
+  x: number;
+  y: number;
+}
+
+interface CrosshairMarkerOverlayProps {
+  markers: CrosshairMarkerPosition[];
+  configs: Map<string, CrosshairMarkerConfig>;
+  containerRef: React.RefObject<HTMLDivElement>;
+}
+
+export const CrosshairMarkerOverlay: React.FC<CrosshairMarkerOverlayProps> = ({
+  markers,
+  configs,
+  containerRef
+}) => {
+  if (!containerRef.current) return null;
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        pointerEvents: 'none',
+        zIndex: 10
+      }}
+    >
+      {markers.map(marker => {
+        const config = configs.get(marker.seriesId);
+        if (!config || !config.visible) return null;
+
+        return (
+          <div
+            key={marker.seriesId}
+            style={{
+              position: 'absolute',
+              left: `${marker.x}px`,
+              top: `${marker.y}px`,
+              width: `${config.radius * 2}px`,
+              height: `${config.radius * 2}px`,
+              borderRadius: '50%',
+              backgroundColor: config.backgroundColor || 'transparent',
+              border: `${config.borderWidth}px solid ${config.borderColor}`,
+              transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none'
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+```
+
+#### Step 2.2: Integrate in LightweightCharts Component (4 hours)
+
+**File**: `src/LightweightCharts.tsx`
+
+```typescript
+import { CrosshairMarkerOverlay, CrosshairMarkerPosition, CrosshairMarkerConfig } from './components/CrosshairMarkerOverlay';
+
+function LightweightCharts() {
+  const [crosshairMarkers, setCrosshairMarkers] = useState<CrosshairMarkerPosition[]>([]);
+  const crosshairMarkerConfigs = useRef<Map<string, CrosshairMarkerConfig>>(new Map());
+
+  // Build crosshair marker configs from series options
+  useEffect(() => {
+    const configs = new Map<string, CrosshairMarkerConfig>();
+
+    seriesRefs.current.forEach((seriesRef, index) => {
+      const seriesConfig = args.series[index];
+      const seriesType = seriesConfig.type;
+
+      // Check if custom series with crosshair marker properties
+      if (['Band', 'Ribbon', 'GradientRibbon', 'TrendFill', 'Signal'].includes(seriesType)) {
+        const options = seriesConfig.options || {};
+
+        // For multi-line series, we need to track multiple markers
+        if (seriesType === 'Band') {
+          // Upper line marker
+          if (options.upperCrosshairMarkerVisible) {
+            configs.set(`${seriesConfig.id}-upper`, {
+              seriesId: `${seriesConfig.id}-upper`,
+              visible: true,
+              radius: options.upperCrosshairMarkerRadius ?? 4,
+              borderColor: options.upperCrosshairMarkerBorderColor || options.upperLineColor,
+              backgroundColor: options.upperCrosshairMarkerBackgroundColor || options.upperLineColor,
+              borderWidth: options.upperCrosshairMarkerBorderWidth ?? 2
+            });
+          }
+          // Middle line marker
+          if (options.middleCrosshairMarkerVisible) {
+            configs.set(`${seriesConfig.id}-middle`, {
+              seriesId: `${seriesConfig.id}-middle`,
+              visible: true,
+              radius: options.middleCrosshairMarkerRadius ?? 4,
+              borderColor: options.middleCrosshairMarkerBorderColor || options.middleLineColor,
+              backgroundColor: options.middleCrosshairMarkerBackgroundColor || options.middleLineColor,
+              borderWidth: options.middleCrosshairMarkerBorderWidth ?? 2
+            });
+          }
+          // Lower line marker
+          if (options.lowerCrosshairMarkerVisible) {
+            configs.set(`${seriesConfig.id}-lower`, {
+              seriesId: `${seriesConfig.id}-lower`,
+              visible: true,
+              radius: options.lowerCrosshairMarkerRadius ?? 4,
+              borderColor: options.lowerCrosshairMarkerBorderColor || options.lowerLineColor,
+              backgroundColor: options.lowerCrosshairMarkerBackgroundColor || options.lowerLineColor,
+              borderWidth: options.lowerCrosshairMarkerBorderWidth ?? 2
+            });
+          }
+        }
+        // Similar logic for other custom series types...
+      }
+    });
+
+    crosshairMarkerConfigs.current = configs;
+  }, [args.series]);
+
+  // Subscribe to crosshair move
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    const handleCrosshairMove = (param: MouseEventParams) => {
+      if (!param.point || !param.time) {
+        setCrosshairMarkers([]);
+        return;
+      }
+
+      const newMarkers: CrosshairMarkerPosition[] = [];
+
+      seriesRefs.current.forEach((seriesRef, index) => {
+        const seriesConfig = args.series[index];
+        const seriesType = seriesConfig.type;
+
+        // Handle custom series
+        if (['Band', 'Ribbon', 'GradientRibbon', 'TrendFill', 'Signal'].includes(seriesType)) {
+          const data = param.seriesData.get(seriesRef);
+          if (!data) return;
+
+          // For multi-value series (Band, Ribbon, etc.)
+          if (seriesType === 'Band' && 'upper' in data && 'middle' in data && 'lower' in data) {
+            // Upper marker
+            if (crosshairMarkerConfigs.current.has(`${seriesConfig.id}-upper`)) {
+              const y = seriesRef.priceToCoordinate(data.upper);
+              if (y !== null) {
+                newMarkers.push({
+                  seriesId: `${seriesConfig.id}-upper`,
+                  x: param.point.x,
+                  y
+                });
+              }
+            }
+            // Middle marker
+            if (crosshairMarkerConfigs.current.has(`${seriesConfig.id}-middle`)) {
+              const y = seriesRef.priceToCoordinate(data.middle);
+              if (y !== null) {
+                newMarkers.push({
+                  seriesId: `${seriesConfig.id}-middle`,
+                  x: param.point.x,
+                  y
+                });
+              }
+            }
+            // Lower marker
+            if (crosshairMarkerConfigs.current.has(`${seriesConfig.id}-lower`)) {
+              const y = seriesRef.priceToCoordinate(data.lower);
+              if (y !== null) {
+                newMarkers.push({
+                  seriesId: `${seriesConfig.id}-lower`,
+                  x: param.point.x,
+                  y
+                });
+              }
+            }
+          }
+          // Similar logic for other custom series types...
+        }
+      });
+
+      setCrosshairMarkers(newMarkers);
+    };
+
+    chartRef.current.subscribeCrosshairMove(handleCrosshairMove);
+    return () => {
+      chartRef.current?.unsubscribeCrosshairMove(handleCrosshairMove);
+    };
+  }, [args.series, seriesRefs.current]);
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div ref={chartDivRef} style={{ width: '100%', height: '100%' }} />
+      <CrosshairMarkerOverlay
+        markers={crosshairMarkers}
+        configs={crosshairMarkerConfigs.current}
+        containerRef={containerRef}
+      />
+    </div>
+  );
+}
+```
+
+#### Step 2.3: Add Crosshair Marker Properties to Interfaces (1 hour)
+
+**Same pattern as point markers**, but for crosshair properties:
+
+```typescript
+export interface BandSeriesOptions extends CustomSeriesOptions {
+  // ... existing properties
+
+  // Crosshair markers for upper line
+  upperCrosshairMarkerVisible?: boolean;
+  upperCrosshairMarkerRadius?: number;
+  upperCrosshairMarkerBorderColor?: string;
+  upperCrosshairMarkerBackgroundColor?: string;
+  upperCrosshairMarkerBorderWidth?: number;
+
+  // Crosshair markers for middle line
+  middleCrosshairMarkerVisible?: boolean;
+  middleCrosshairMarkerRadius?: number;
+  middleCrosshairMarkerBorderColor?: string;
+  middleCrosshairMarkerBackgroundColor?: string;
+  middleCrosshairMarkerBorderWidth?: number;
+
+  // Crosshair markers for lower line
+  lowerCrosshairMarkerVisible?: boolean;
+  lowerCrosshairMarkerRadius?: number;
+  lowerCrosshairMarkerBorderColor?: string;
+  lowerCrosshairMarkerBackgroundColor?: string;
+  lowerCrosshairMarkerBorderWidth?: number;
+}
+```
+
+#### Step 2.4: Update Default Options (30 minutes)
+
+```typescript
+const defaultBandOptions: BandSeriesOptions = {
+  ...customSeriesDefaultOptions,
+  // ... existing defaults
+
+  // Crosshair marker defaults
+  upperCrosshairMarkerVisible: true,
+  upperCrosshairMarkerRadius: 4,
+  upperCrosshairMarkerBorderColor: '',
+  upperCrosshairMarkerBackgroundColor: '',
+  upperCrosshairMarkerBorderWidth: 2,
+
+  middleCrosshairMarkerVisible: true,
+  middleCrosshairMarkerRadius: 4,
+  middleCrosshairMarkerBorderColor: '',
+  middleCrosshairMarkerBackgroundColor: '',
+  middleCrosshairMarkerBorderWidth: 2,
+
+  lowerCrosshairMarkerVisible: true,
+  lowerCrosshairMarkerRadius: 4,
+  lowerCrosshairMarkerBorderColor: '',
+  lowerCrosshairMarkerBackgroundColor: '',
+  lowerCrosshairMarkerBorderWidth: 2,
+};
+```
+
+---
+
+### Phase 3: Last Price Animation (1 hour)
+
+This is the easiest - just add the property and it should work automatically.
+
+#### Step 3.1: Add to Interfaces (15 minutes)
+
+```typescript
+export interface BandSeriesOptions extends CustomSeriesOptions {
+  // ... existing properties
+
+  // Animation (applies to entire series)
+  lastPriceAnimation?: number; // LastPriceAnimationMode enum
+}
+```
+
+#### Step 3.2: Add to Defaults (15 minutes)
+
+```typescript
+const defaultBandOptions: BandSeriesOptions = {
+  ...customSeriesDefaultOptions,
+  // ... existing defaults
+
+  lastPriceAnimation: 0, // LastPriceAnimationMode.Disabled
+};
+```
+
+#### Step 3.3: Test (30 minutes)
+
+Verify that the chart respects the `lastPriceAnimation` setting.
+
+---
+
+## Technical Details
+
+### Property Naming Convention
+
+#### Multi-Line Series (Band, Ribbon, GradientRibbon)
+
+Each line gets its own set of prefixed properties:
+
+```typescript
+// Upper line
+upperPointMarkersVisible: boolean
+upperPointMarkersRadius: number
+upperCrosshairMarkerVisible: boolean
+upperCrosshairMarkerRadius: number
+upperCrosshairMarkerBorderColor: string
+upperCrosshairMarkerBackgroundColor: string
+upperCrosshairMarkerBorderWidth: number
+
+// Middle line (Band only)
+middlePointMarkersVisible: boolean
+middlePointMarkersRadius: number
+middleCrosshairMarkerVisible: boolean
+// ... etc
+
+// Lower line
+lowerPointMarkersVisible: boolean
+lowerPointMarkersRadius: number
+lowerCrosshairMarkerVisible: boolean
+// ... etc
+```
+
+#### Multi-Line Series with Named Lines (TrendFill)
+
+```typescript
+// Base line
+basePointMarkersVisible: boolean
+basePointMarkersRadius: number
+baseCrosshairMarkerVisible: boolean
+// ... etc
+
+// Uptrend line
+uptrendPointMarkersVisible: boolean
+uptrendPointMarkersRadius: number
+uptrendCrosshairMarkerVisible: boolean
+// ... etc
+
+// Downtrend line
+downtrendPointMarkersVisible: boolean
+downtrendPointMarkersRadius: number
+downtrendCrosshairMarkerVisible: boolean
+// ... etc
+```
+
+#### Single-Value Series (Signal)
+
+No prefix needed:
+
+```typescript
+pointMarkersVisible: boolean
+pointMarkersRadius: number
+crosshairMarkerVisible: boolean
+crosshairMarkerRadius: number
+crosshairMarkerBorderColor: string
+crosshairMarkerBackgroundColor: string
+crosshairMarkerBorderWidth: number
+```
+
+### Python to TypeScript Property Flow
+
+**Example for Band series with `upper_line` property:**
+
+1. **Python**:
+   ```python
+   upper_line = LineOptions(
+       color="#4CAF50",
+       point_markers_visible=True,
+       point_markers_radius=6,
+       crosshair_marker_visible=True,
+       crosshair_marker_radius=8
+   )
+   ```
+
+2. **Python Serialization** (base.py:867-888):
+   ```python
+   # Flattens to:
+   {
+     "upperLineColor": "#4CAF50",
+     "upperPointMarkersVisible": true,
+     "upperPointMarkersRadius": 6,
+     "upperCrosshairMarkerVisible": true,
+     "upperCrosshairMarkerRadius": 8
+   }
+   ```
+
+3. **Frontend Receives**:
+   ```json
+   {
+     "upperLineColor": "#4CAF50",
+     "upperPointMarkersVisible": true,
+     "upperPointMarkersRadius": 6,
+     "upperCrosshairMarkerVisible": true,
+     "upperCrosshairMarkerRadius": 8
+   }
+   ```
+
+4. **TypeScript Interface**:
+   ```typescript
+   interface BandSeriesOptions {
+     upperLineColor: string;
+     upperPointMarkersVisible?: boolean;
+     upperPointMarkersRadius?: number;
+     upperCrosshairMarkerVisible?: boolean;
+     upperCrosshairMarkerRadius?: number;
+   }
+   ```
+
+**The architecture is consistent and already working!** We just need to:
+1. Declare the properties in TypeScript interfaces
+2. Add rendering logic
+
+---
+
+## Testing Strategy
+
+### Unit Tests (Python)
+
+**Already passing** - No changes needed to Python code.
+
+Existing tests verify:
+- `LineOptions` serialization
+- Nested → flattened conversion
+- Property naming
+
+### Integration Tests (Frontend)
+
+**Files**:
+- `src/__tests__/series/band.test.ts`
+- `src/__tests__/series/ribbon.test.ts`
+- etc.
+
+**Tests to add**:
+```typescript
+describe('Band Series - Point Markers', () => {
+  it('should accept point marker properties', () => {
+    const options: BandSeriesOptions = {
+      ...defaultBandOptions,
+      upperPointMarkersVisible: true,
+      upperPointMarkersRadius: 6,
+    };
+    expect(options.upperPointMarkersVisible).toBe(true);
+    expect(options.upperPointMarkersRadius).toBe(6);
+  });
+});
+
+describe('Band Series - Crosshair Markers', () => {
+  it('should accept crosshair marker properties', () => {
+    const options: BandSeriesOptions = {
+      ...defaultBandOptions,
+      upperCrosshairMarkerVisible: true,
+      upperCrosshairMarkerRadius: 8,
+      upperCrosshairMarkerBorderColor: '#FF0000',
+    };
+    expect(options.upperCrosshairMarkerVisible).toBe(true);
+    expect(options.upperCrosshairMarkerRadius).toBe(8);
+    expect(options.upperCrosshairMarkerBorderColor).toBe('#FF0000');
+  });
+});
+```
+
+### Visual Tests (Frontend)
+
+**Files**:
+- `src/__tests__/visual/series/custom.visual.test.ts`
+
+**Tests to add**:
+
+```typescript
+describe('Band Series - Point Markers Visual Tests', () => {
+  test('band-point-markers-all-lines', async () => {
+    const chart = createChart(container);
+    const series = chart.addCustomSeries(new BandSeries(), {
+      upperPointMarkersVisible: true,
+      upperPointMarkersRadius: 5,
+      middlePointMarkersVisible: true,
+      middlePointMarkersRadius: 4,
+      lowerPointMarkersVisible: true,
+      lowerPointMarkersRadius: 5,
+    });
+    series.setData(testData);
+    await expectChartToMatchSnapshot();
+  });
+
+  test('band-point-markers-single-line', async () => {
+    const chart = createChart(container);
+    const series = chart.addCustomSeries(new BandSeries(), {
+      upperPointMarkersVisible: true,
+      upperPointMarkersRadius: 8,
+      middlePointMarkersVisible: false,
+      lowerPointMarkersVisible: false,
+    });
+    series.setData(testData);
+    await expectChartToMatchSnapshot();
+  });
+
+  test('band-point-markers-different-radii', async () => {
+    const chart = createChart(container);
+    const series = chart.addCustomSeries(new BandSeries(), {
+      upperPointMarkersVisible: true,
+      upperPointMarkersRadius: 2,
+      middlePointMarkersVisible: true,
+      middlePointMarkersRadius: 4,
+      lowerPointMarkersVisible: true,
+      lowerPointMarkersRadius: 6,
+    });
+    series.setData(testData);
+    await expectChartToMatchSnapshot();
+  });
+});
+
+describe('Band Series - Crosshair Markers Visual Tests', () => {
+  test('band-crosshair-markers-all-lines', async () => {
+    // Manual test - hard to automate crosshair position
+    // Test visually by hovering over chart
+  });
+});
+```
+
+### Manual Testing
+
+**Test scenarios**:
+
+1. **Point Markers**:
+   - ✅ Markers appear on all lines when enabled
+   - ✅ Markers respect radius setting
+   - ✅ Markers use line color
+   - ✅ Markers disappear when disabled
+   - ✅ Performance with 1000+ data points
+
+2. **Crosshair Markers**:
+   - ✅ Markers appear at crosshair position
+   - ✅ Markers track mouse movement
+   - ✅ Markers respect color/radius/border settings
+   - ✅ Markers disappear when crosshair leaves chart
+   - ✅ Multiple series show multiple markers
+   - ✅ No lag or jank during crosshair movement
+
+3. **Last Price Animation**:
+   - ✅ Animation plays on price update
+   - ✅ Different modes work correctly (disabled, continuous, on_data_update)
+
+**Test with Streamlit app**:
+```python
+import streamlit as st
+from streamlit_lightweight_charts_pro import Chart, BandSeries
+from streamlit_lightweight_charts_pro.charts.options import LineOptions
+
+# Test point markers
+upper_line = LineOptions(
+    color="#4CAF50",
+    point_markers_visible=True,
+    point_markers_radius=6
+)
+
+# Test crosshair markers
+middle_line = LineOptions(
+    color="#2196F3",
+    crosshair_marker_visible=True,
+    crosshair_marker_radius=8,
+    crosshair_marker_border_color="#FF0000",
+    crosshair_marker_background_color="#FFFF00"
+)
+
+band = BandSeries(
+    data=data,
+    upper_line=upper_line,
+    middle_line=middle_line
+)
+
+chart = Chart(series=band)
+chart.render(key="marker_test")
+```
+
+---
+
+## Timeline and Effort
+
+### Detailed Breakdown
+
+| Phase | Task | Effort | Complexity |
+|-------|------|--------|-----------|
+| **Phase 1: Point Markers** | | **6-8h** | **Medium** |
+| | 1.1 Update TypeScript interfaces | 1h | Low |
+| | 1.2 Update default options | 30min | Low |
+| | 1.3 Copy utility function | 15min | Low |
+| | 1.4 Implement renderer logic | 4-5h | Medium |
+| | - Band series | 1h | Medium |
+| | - Ribbon series | 45min | Medium |
+| | - GradientRibbon series | 45min | Medium |
+| | - TrendFill series | 1.5h | Medium |
+| | - Signal series | 30min | Low |
+| **Phase 2: Crosshair Markers** | | **8-10h** | **High** |
+| | 2.1 Create overlay component | 3h | High |
+| | 2.2 Integrate in LightweightCharts | 4h | High |
+| | 2.3 Add properties to interfaces | 1h | Low |
+| | 2.4 Update default options | 30min | Low |
+| **Phase 3: Last Price Animation** | | **1h** | **Low** |
+| | 3.1 Add to interfaces | 15min | Low |
+| | 3.2 Add to defaults | 15min | Low |
+| | 3.3 Test | 30min | Low |
+| **Phase 4: Testing** | | **4-6h** | **Medium** |
+| | Unit tests | 1h | Low |
+| | Integration tests | 1h | Medium |
+| | Visual tests | 2h | Medium |
+| | Manual testing | 2h | Medium |
+| **TOTAL** | | **19-25h** | |
+
+### Risk Assessment
+
+| Risk | Probability | Impact | Mitigation |
+|------|------------|---------|------------|
+| Point marker performance issues with large datasets | Medium | High | Implement visibility culling, only render visible points |
+| Crosshair overlay positioning inaccurate | Medium | High | Thorough testing, consider using canvas instead of HTML |
+| React re-renders cause crosshair jank | Low | High | Use `useCallback`, `useMemo`, throttle updates |
+| TradingView API changes break implementation | Low | Medium | Pin lightweight-charts version, monitor releases |
+| Python serialization doesn't include new properties | Very Low | Low | Already tested and working |
+
+### Timeline
+
+**Recommended approach**: Implement in phases with testing between each.
+
+**Week 1**:
+- Days 1-2: Phase 1 (Point Markers)
+- Day 3: Testing Phase 1
+- Days 4-5: Phase 2 (Crosshair Markers)
+
+**Week 2**:
+- Day 1: Continue Phase 2
+- Day 2: Testing Phase 2
+- Day 3: Phase 3 (Animation) + Final testing
+- Day 4: Manual testing, bug fixes
+- Day 5: Documentation, code review
+
+**Total**: 10 working days (2 weeks)
+
+---
+
+## Alternative Approaches Considered
+
+### Alternative 1: Fork Lightweight-Charts and Add API Support
+
+**Approach**: Modify lightweight-charts source to support `markerDataAtIndex()` for custom series.
+
+**Pros**:
+- Proper solution
+- Native performance
+- Consistent with builtin series
+
+**Cons**:
+- Requires maintaining fork
+- Long PR process with TradingView
+- Users need to wait for upstream merge
+
+**Decision**: File PR in parallel, use workaround for now.
+
+### Alternative 2: Use Primitives for Crosshair Markers
+
+**Approach**: Create a `CrosshairMarkerPrimitive` attached to each series.
+
+**Pros**:
+- No HTML overlay needed
+- Drawn on canvas (better performance)
+
+**Cons**:
+- Complex primitive implementation
+- Need to manage crosshair event listeners
+- Harder to debug
+
+**Decision**: Overlay approach is simpler for MVP.
+
+### Alternative 3: Skip Crosshair Markers
+
+**Approach**: Only implement point markers and animation.
+
+**Pros**:
+- Much faster implementation (6-8 hours vs 19-25 hours)
+- No complex overlay logic
+
+**Cons**:
+- Incomplete feature
+- Users expect crosshair markers (standard in financial charts)
+
+**Decision**: Implement full feature for best user experience.
+
+---
+
+## Implementation Notes
+
+### Code Quality
+
+- Follow existing code style (TypeScript + React)
+- Add JSDoc comments for all public interfaces
+- Use TypeScript strict mode
+- Handle all edge cases (null values, empty data, etc.)
+
+### Performance Considerations
+
+**Point Markers**:
+- Only render markers in visible range
+- Batch fill operations (same color markers in one path)
+- Consider disabling for datasets > 10,000 points
+
+**Crosshair Markers**:
+- Throttle crosshair move events (max 60fps)
+- Use `useMemo` for marker configs
+- Use `useCallback` for event handlers
+- Consider canvas rendering if HTML overlay lags
+
+### Error Handling
+
+- Validate marker radius (must be positive)
+- Validate colors (must be valid CSS color)
+- Gracefully handle missing data
+- Log errors to console (not throw)
+
+### Documentation
+
+Update the following files:
+- **API Reference**: Document all new properties
+- **Examples**: Add marker examples to documentation
+- **Changelog**: Document new feature
+- **README**: Add markers to feature list
+
+---
+
+## Future Enhancements
+
+### Short Term (Next Release)
+
+1. **Marker Shapes**:
+   - Add `pointMarkersShape` property
+   - Support: circle, square, triangle, diamond
+
+2. **Marker Colors**:
+   - Independent color control
+   - `pointMarkersColor` property
+   - Different from line color
+
+3. **Hover Effects**:
+   - Highlight markers on hover
+   - Show tooltips
+
+### Long Term (Future Versions)
+
+1. **TradingView PR**:
+   - Submit PR to add custom series marker support
+   - Migrate to native implementation when available
+
+2. **Advanced Animation**:
+   - Pulse effect on price change
+   - Custom animation curves
+
+3. **Conditional Markers**:
+   - Show markers only when condition met
+   - Data-driven marker styling
+
+---
+
+## References
+
+### Lightweight-Charts Source Files Examined
+
+- `src/renderers/draw-series-point-markers.ts` - Point marker utility
+- `src/renderers/line-renderer-base.ts` - How builtin series use point markers
+- `src/model/series.ts` - Series class with `markerDataAtIndex()`
+- `src/views/pane/crosshair-marks-pane-view.ts` - Crosshair marker rendering
+- `src/model/icustom-series.ts` - Custom series interfaces
+- `src/model/iseries.ts` - Series interface with marker methods
+
+### Documentation
+
+- TradingView API: https://tradingview.github.io/lightweight-charts/docs/api
+- LineStyleOptions: https://tradingview.github.io/lightweight-charts/docs/api/interfaces/LineStyleOptions
+- AreaStyleOptions: https://tradingview.github.io/lightweight-charts/docs/api/interfaces/AreaStyleOptions
+- CustomSeriesOptions: https://tradingview.github.io/lightweight-charts/docs/api/interfaces/CustomSeriesOptions
+
+### Internal Files Referenced
+
+- Python LineOptions: `streamlit_lightweight_charts_pro/charts/options/line_options.py`
+- Python Serialization: `streamlit_lightweight_charts_pro/charts/series/base.py:859-888`
+- Frontend Flattening: `streamlit_lightweight_charts_pro/frontend/src/series/UnifiedSeriesFactory.ts:116-256`
+- Custom Series Plugins: `streamlit_lightweight_charts_pro/frontend/src/plugins/series/*.ts`
+
+---
+
+## Approval and Sign-off
+
+**Prepared by**: Claude Code
+**Date**: 2025-10-23
+**Status**: Awaiting User Approval
+
+**Approved by**: _________________
+**Date**: _________________
+
+---
+
+**Next Steps After Approval**:
+1. Create feature branch: `feature/marker-properties`
+2. Implement Phase 1 (Point Markers)
+3. Test and review
+4. Implement Phase 2 (Crosshair Markers)
+5. Test and review
+6. Implement Phase 3 (Animation)
+7. Final testing and documentation
+8. Create PR for review
+9. Merge to main
+
+---
+
+*End of Document*

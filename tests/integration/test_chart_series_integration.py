@@ -303,9 +303,9 @@ class TestChartSeriesIntegration:
 
         assert series_config["priceScaleId"] == "custom_scale"
         assert series_config["visible"] is False
-        assert series_config["options"]["color"] == "rgba(255,0,0,1)"
-        assert series_config["options"]["lineWidth"] == 3
-        assert series_config["options"]["lineStyle"] == 2  # Dashed
+        assert series_config["options"]["lineOptions"]["color"] == "rgba(255,0,0,1)"
+        assert series_config["options"]["lineOptions"]["lineWidth"] == 3
+        assert series_config["options"]["lineOptions"]["lineStyle"] == 2  # Dashed
 
     def test_chart_with_annotations_and_series(self):
         """Test chart with annotations and series."""
