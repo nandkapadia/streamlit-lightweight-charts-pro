@@ -37,7 +37,7 @@ import {
   ICustomSeriesPaneRenderer,
   ICustomSeriesPaneView,
 } from 'lightweight-charts';
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { isWhitespaceDataMultiField } from './base/commonRendering';
 import { LineStyle } from '../../utils/renderingUtils';
 import { TrendFillPrimitive } from '../../primitives/TrendFillPrimitive';
@@ -155,7 +155,7 @@ class TrendFillSeriesRenderer<TData extends TrendFillData> implements ICustomSer
   _data: PaneRendererCustomData<Time, TData> | null = null;
   _options: TrendFillSeriesOptions | null = null;
 
-  draw(target: any, priceConverter: PriceToCoordinateConverter): void {
+  draw(target: CanvasRenderingTarget2D, priceConverter: PriceToCoordinateConverter): void {
     target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) =>
       this._drawImpl(scope, priceConverter)
     );

@@ -27,14 +27,23 @@ import { useCallback, useEffect } from 'react';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
 import { logger } from '../utils/logger';
 
+/**
+ * Series configuration patch from Python backend.
+ *
+ * IMPORTANT: This interface uses snake_case to match Python property names.
+ * Properties are converted to camelCase via mapDialogConfigToAPI() before
+ * being applied to the LightweightCharts API.
+ *
+ * See NAMING_CONVENTIONS.md for details on Python ↔ TypeScript conversion.
+ */
 export interface SeriesConfigPatch {
   visible?: boolean;
-  last_value_visible?: boolean;
-  price_line?: boolean;
+  last_value_visible?: boolean; // Converts to: lastValueVisible
+  price_line?: boolean; // Converts to: priceLine
   color?: string;
-  line_width?: number;
-  line_style?: number;
-  line_visible?: boolean;
+  line_width?: number; // Converts to: lineWidth
+  line_style?: number; // Converts to: lineStyle
+  line_visible?: boolean; // Converts to: lineVisible
   markers?: boolean;
   title?: string;
   [key: string]: any; // Allow additional properties

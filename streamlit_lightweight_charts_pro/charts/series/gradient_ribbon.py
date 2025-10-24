@@ -123,11 +123,11 @@ class GradientRibbonSeries(RibbonSeries):
             self._gradient_bounds = None
 
     def asdict(self):
-        """Override to include normalized gradients and exclude inherited fill property."""
+        """Override to include normalized gradients and exclude inherited fill_color property."""
         data_dict = super().asdict()
 
-        # Remove inherited fill property - gradient ribbon uses gradientStartColor/gradientEndColor instead
-        data_dict.get("options", {}).pop("fill", None)
+        # Remove inherited fill_color property - gradient ribbon uses gradientStartColor/gradientEndColor instead
+        data_dict.get("options", {}).pop("fillColor", None)
 
         if self._normalize_gradients:
             # Calculate bounds if not already calculated

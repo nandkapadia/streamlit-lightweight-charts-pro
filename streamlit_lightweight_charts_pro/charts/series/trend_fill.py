@@ -19,9 +19,14 @@ import pandas as pd
 # Local Imports
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series.base import Series
+from streamlit_lightweight_charts_pro.charts.series.defaults import (
+    create_base_line,
+    create_downtrend_line,
+    create_uptrend_line,
+)
 from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData
 from streamlit_lightweight_charts_pro.type_definitions.enums import ChartType, LineStyle
-from streamlit_lightweight_charts_pro.utils import chainable_property
+from streamlit_lightweight_charts_pro.utils import add_opacity, chainable_property
 
 logger = logging.getLogger(__name__)
 
@@ -100,34 +105,13 @@ class TrendFillSeries(Series):
         )
 
         # Convert colors to rgba with default opacity
-        def _add_opacity(color: str, opacity: float = 0.3) -> str:
-            if not color.startswith("#"):
-                return color
-            r = int(color[1:3], 16)
-            g = int(color[3:5], 16)
-            b = int(color[5:7], 16)
-            return f"rgba({r}, {g}, {b}, {opacity})"
-
-        self._uptrend_fill_color = _add_opacity(uptrend_fill_color)
-        self._downtrend_fill_color = _add_opacity(downtrend_fill_color)
+        self._uptrend_fill_color = add_opacity(uptrend_fill_color)
+        self._downtrend_fill_color = add_opacity(downtrend_fill_color)
 
         # Initialize line options for uptrend line, downtrend line, and base line
-        self._uptrend_line = LineOptions(
-            color="#4CAF50",  # Green for uptrend
-            line_width=2,
-            line_style=LineStyle.SOLID,
-        )
-        self._downtrend_line = LineOptions(
-            color="#F44336",  # Red for downtrend
-            line_width=2,
-            line_style=LineStyle.SOLID,
-        )
-        self._base_line = LineOptions(
-            color="#666666",
-            line_width=1,
-            line_style=LineStyle.DOTTED,
-            line_visible=False,
-        )
+        self._uptrend_line = create_uptrend_line()
+        self._downtrend_line = create_downtrend_line()
+        self._base_line = create_base_line()
         self._fill_visible = True
 
     @property

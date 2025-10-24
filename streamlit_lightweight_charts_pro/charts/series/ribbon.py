@@ -10,6 +10,10 @@ import pandas as pd
 
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series.base import Series
+from streamlit_lightweight_charts_pro.charts.series.defaults import (
+    create_lower_line,
+    create_upper_line,
+)
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
@@ -18,7 +22,7 @@ from streamlit_lightweight_charts_pro.utils import chainable_property
 
 @chainable_property("upper_line", LineOptions, allow_none=True)
 @chainable_property("lower_line", LineOptions, allow_none=True)
-@chainable_property("fill", str, validator="color")
+@chainable_property("fill_color", str, validator="color")
 @chainable_property("fill_visible", bool)
 class RibbonSeries(Series):
     """Ribbon series for lightweight charts.
@@ -33,7 +37,7 @@ class RibbonSeries(Series):
     Attributes:
         upper_line: LineOptions instance for upper band styling.
         lower_line: LineOptions instance for lower band styling.
-        fill: Fill color for the area between upper and lower bands.
+        fill_color: Fill color for the area between upper and lower bands.
         fill_visible: Whether to display the fill area.
         price_lines: List of PriceLineOptions for price lines (set after construction)
         price_format: PriceFormatOptions for price formatting (set after construction)
@@ -68,11 +72,11 @@ class RibbonSeries(Series):
         )
 
         # Initialize line options with default values
-        self._upper_line = LineOptions(color="#4CAF50", line_width=2, line_style=LineStyle.SOLID)
-        self._lower_line = LineOptions(color="#F44336", line_width=2, line_style=LineStyle.SOLID)
+        self._upper_line = create_upper_line()
+        self._lower_line = create_lower_line()
 
         # Initialize fill color
-        self._fill = "rgba(76, 175, 80, 0.1)"
+        self._fill_color = "rgba(76, 175, 80, 0.1)"
 
         # Initialize fill visibility (default to True)
         self._fill_visible = True

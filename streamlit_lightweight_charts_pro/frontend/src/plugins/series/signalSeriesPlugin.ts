@@ -31,8 +31,9 @@ import {
   ICustomSeriesPaneView,
   IChartApi,
 } from 'lightweight-charts';
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { isTransparent } from '../../utils/colorUtils';
+import { SignalColorCalculator } from '../../utils/signalColorUtils';
 
 // ============================================================================
 // Data Interface
@@ -87,12 +88,13 @@ export interface SignalSeriesOptions extends CustomSeriesOptions {
  * Default options for Signal series
  * Note: lastValueVisible and priceLineVisible are false by default
  * since signals are background indicators
+ * Note: alertColor is undefined by default - only used when explicitly set
  */
 const defaultSignalOptions: SignalSeriesOptions = {
   ...customSeriesDefaultOptions,
   neutralColor: 'rgba(128, 128, 128, 0.1)',
   signalColor: 'rgba(76, 175, 80, 0.2)',
-  alertColor: 'rgba(244, 67, 54, 0.2)',
+  alertColor: undefined,
   lastValueVisible: false,
   title: 'Signal',
   visible: true,
@@ -115,13 +117,28 @@ const defaultSignalOptions: SignalSeriesOptions = {
 class SignalSeriesRenderer<TData extends SignalData> implements ICustomSeriesPaneRenderer {
   private _data: PaneRendererCustomData<Time, TData> | null = null;
   private _options: SignalSeriesOptions | null = null;
+  private _hasNonBooleanValues: boolean = false;
 
   update(data: PaneRendererCustomData<Time, TData>, options: SignalSeriesOptions): void {
     this._data = data;
     this._options = options;
+    // Check if data contains non-boolean values (values other than 0 or 1)
+    this._hasNonBooleanValues = this._checkForNonBooleanValues(data);
   }
 
-  draw(target: any): void {
+  /**
+   * Check if data contains any values that are not 0 or 1
+   * This determines whether alertColor should be used
+   * Handles both boolean (true/false) and numeric (0/1) values
+   */
+  private _checkForNonBooleanValues(data: PaneRendererCustomData<Time, TData>): boolean {
+    if (!data || !data.bars) return false;
+
+    const values = data.bars.map(bar => (bar.originalData as TData).value);
+    return SignalColorCalculator.checkForNonBooleanValues(values);
+  }
+
+  draw(target: CanvasRenderingTarget2D): void {
     target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
       this._drawImpl(scope);
     });
@@ -178,13 +195,7 @@ class SignalSeriesRenderer<TData extends SignalData> implements ICustomSeriesPan
   }
 
   private getColorForValue(value: number, options: SignalSeriesOptions): string {
-    if (value === 0) {
-      return options.neutralColor || 'transparent';
-    } else if (value > 0) {
-      return options.signalColor || 'transparent';
-    } else {
-      return options.alertColor || options.signalColor || 'transparent';
-    }
+    return SignalColorCalculator.getColorForValue(value, options, this._hasNonBooleanValues);
   }
 }
 
@@ -315,7 +326,7 @@ export function createSignalSeries(
     _seriesType: 'Signal', // Internal property for series type identification
     neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
     signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
-    alertColor: options.alertColor ?? 'rgba(244, 67, 54, 0.2)',
+    alertColor: options.alertColor, // No default - only use if explicitly provided
     priceScaleId: options.priceScaleId ?? 'right',
     lastValueVisible: options.lastValueVisible ?? false,
     title: options.title ?? 'Signal',
@@ -335,7 +346,7 @@ export function createSignalSeries(
       const primitive = new SignalPrimitive(chart, {
         neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
         signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
-        alertColor: options.alertColor ?? 'rgba(244, 67, 54, 0.2)',
+        alertColor: options.alertColor, // No default - only use if explicitly provided
         visible: options.visible !== false,
         zIndex: options.zIndex ?? -100,
       });

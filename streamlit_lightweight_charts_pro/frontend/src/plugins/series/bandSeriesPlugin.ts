@@ -32,7 +32,7 @@ import {
   IChartApi,
   PriceToCoordinateConverter,
 } from 'lightweight-charts';
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { isWhitespaceDataMultiField } from './base/commonRendering';
 import { LineStyle } from '../../utils/renderingUtils';
 import { drawMultiLine, drawFillArea } from './base/commonRendering';
@@ -176,7 +176,7 @@ class BandSeriesRenderer<TData extends BandData = BandData> implements ICustomSe
     this._options = options;
   }
 
-  draw(target: any, priceConverter: PriceToCoordinateConverter): void {
+  draw(target: CanvasRenderingTarget2D, priceConverter: PriceToCoordinateConverter): void {
     target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
       this._drawImpl(scope, priceConverter);
     });

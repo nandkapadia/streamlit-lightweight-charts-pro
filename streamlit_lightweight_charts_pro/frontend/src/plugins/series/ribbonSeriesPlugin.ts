@@ -33,7 +33,7 @@ import {
   IChartApi,
   PriceToCoordinateConverter,
 } from 'lightweight-charts';
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { isWhitespaceDataMultiField } from './base/commonRendering';
 import { LineStyle } from '../../utils/renderingUtils';
 import { drawFillArea, drawMultiLine } from './base/commonRendering';
@@ -163,7 +163,7 @@ class RibbonSeriesRenderer<TData extends RibbonData = RibbonData>
     this._options = options;
   }
 
-  draw(target: any, priceConverter: PriceToCoordinateConverter): void {
+  draw(target: CanvasRenderingTarget2D, priceConverter: PriceToCoordinateConverter): void {
     target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
       this._drawImpl(scope, priceConverter);
     });
