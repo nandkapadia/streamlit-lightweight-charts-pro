@@ -1,0 +1,329 @@
+# Rendering Utilities Guide
+
+**⚠️ CRITICAL**: Always read this before implementing any custom rendering!
+
+---
+
+## Overview
+
+All custom rendering (primitives, series, plugins) must use bar-width-aware functions from `renderingUtils.ts` to ensure proper visual representation at all zoom levels.
+
+---
+
+## File Locations
+
+### Primary (Use These)
+- **`frontend/src/utils/renderingUtils.ts`** - Bar-width-aware drawing functions
+  - Modern, supports bar-width extensions
+  - Used by TrendFill, Signal, and all new series
+
+### Legacy (Avoid for New Code)
+- **`frontend/src/plugins/series/base/commonRendering.ts`** - Basic drawing functions
+  - `drawLine()`, `drawMultiLine()`, `drawFillArea()` - NO bar-width support
+  - Only use if maintaining existing code
+
+---
+
+## Key Concepts
+
+### Bar Width / Bar Spacing
+Each data point in a chart represents a **bar with width** (horizontal space between bars).
+
+**Problem**: When you style a single point (e.g., cyan highlight at point 45):
+- ❌ **Wrong**: Draw line from point[45] to point[46] → barely visible
+- ✅ **Correct**: Draw from `point[45].x - halfBarWidth` to `point[45].x + halfBarWidth`
+
+**Why**: At high zoom levels, each bar becomes visually spaced out. A styled point should cover the full bar width, not just the infinitesimal point.
+
+### Getting Bar Spacing
+```typescript
+import { getBarSpacing } from '../plugins/series/base/commonRendering';
+
+const barSpacing = getBarSpacing(chart); // e.g., 6 pixels
+const halfBarWidth = (barSpacing * hRatio) / 2;
+```
+
+---
+
+## Bar-Width-Aware Functions
+
+### 1. `drawContinuousLine()` - Single Line with Extensions
+
+```typescript
+import { drawContinuousLine, LineStyleConfig, RenderPoint } from '../utils/renderingUtils';
+
+// Convert coordinates to RenderPoint format
+const points: RenderPoint[] = coordinates.map(coord => ({
+  x: coord.x !== null ? coord.x * hRatio : null,
+  y: coord.y !== null ? coord.y * vRatio : null,
+}));
+
+// Calculate bar-width extension
+const barSpacing = getBarSpacing(chart);
+const halfBarWidth = (barSpacing * hRatio) / 2;
+
+// Draw with bar-width extensions
+drawContinuousLine(ctx, points, {
+  color: '#2196F3',
+  width: 2 * hRatio,
+  style: 0, // 0=solid, 1=dotted, 2=dashed
+}, {
+  extendStart: halfBarWidth,  // Extend left edge
+  extendEnd: halfBarWidth,    // Extend right edge
+  skipInvalid: true,          // Skip null points
+});
+```
+
+**Use for**: Single continuous line that needs bar-width coverage
+
+---
+
+### 2. `drawSegmentedLine()` - Multiple Segments with Different Styles
+
+```typescript
+import { drawSegmentedLine, LineStyleConfig, RenderPoint } from '../utils/renderingUtils';
+
+// Prepare segments with different styles
+const segments = [
+  {
+    points: defaultPoints,
+    style: { color: '#4CAF50', width: 2 * hRatio, style: 0 }
+  },
+  {
+    points: highlightedPoints,
+    style: { color: '#FF0000', width: 4 * hRatio, style: 0 }
+  }
+];
+
+// Draw all segments (each with proper bar-width handling)
+drawSegmentedLine(ctx, segments);
+```
+
+**Use for**: Per-point styling where different points have different colors/widths
+
+---
+
+### 3. `fillBetweenLines()` - Fill Area with Extensions
+
+```typescript
+import { fillBetweenLines, FillAreaConfig, RenderPoint } from '../utils/renderingUtils';
+
+// Upper and lower boundaries
+const upperPoints: RenderPoint[] = /* ... */;
+const lowerPoints: RenderPoint[] = /* ... */;
+
+// Calculate bar-width extensions
+const barSpacing = getBarSpacing(chart);
+const halfBarWidth = (barSpacing * hRatio) / 2;
+
+// Draw fill with edge extensions
+fillBetweenLines(ctx, upperPoints, lowerPoints, {
+  fillStyle: 'rgba(33, 150, 243, 0.1)',
+  opacity: 0.5,
+  edgeExtension: {
+    start: halfBarWidth,  // Extend left edge
+    end: halfBarWidth,    // Extend right edge
+  }
+});
+```
+
+**Use for**: Filled areas between two lines (Band, Ribbon, TrendFill)
+
+---
+
+## Complete Example: Ribbon Primitive with Bar-Width Support
+
+```typescript
+import { getBarSpacing } from '../plugins/series/base/commonRendering';
+import { drawSegmentedLine, fillBetweenLines, RenderPoint } from '../utils/renderingUtils';
+
+class RibbonPrimitiveRenderer {
+  draw(target: any) {
+    target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
+      const ctx = scope.context;
+      const hRatio = scope.horizontalPixelRatio;
+      const vRatio = scope.verticalPixelRatio;
+
+      // Get bar spacing for width calculations
+      const chart = this._source.getChart();
+      const barSpacing = getBarSpacing(chart);
+      const halfBarWidth = (barSpacing * hRatio) / 2;
+
+      // Convert to RenderPoint format
+      const upperPoints: RenderPoint[] = data.map(item => ({
+        x: item.x !== null ? item.x * hRatio : null,
+        y: item.upper !== null ? item.upper * vRatio : null,
+      }));
+
+      const lowerPoints: RenderPoint[] = data.map(item => ({
+        x: item.x !== null ? item.x * hRatio : null,
+        y: item.lower !== null ? item.lower * vRatio : null,
+      }));
+
+      ctx.save();
+
+      // Draw lines with bar-width extensions
+      const upperSegments = this._buildSegments(upperPoints, 'upperLine');
+      drawSegmentedLine(ctx, upperSegments);
+
+      const lowerSegments = this._buildSegments(lowerPoints, 'lowerLine');
+      drawSegmentedLine(ctx, lowerSegments);
+
+      ctx.restore();
+    });
+  }
+
+  drawBackground(target: any) {
+    target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
+      // ... similar setup ...
+
+      // Draw fill with edge extensions
+      fillBetweenLines(ctx, upperPoints, lowerPoints, {
+        fillStyle: options.fillColor,
+        edgeExtension: {
+          start: halfBarWidth,
+          end: halfBarWidth,
+        }
+      });
+    });
+  }
+
+  private _buildSegments(points: RenderPoint[], field: string) {
+    // Group consecutive points with same styling
+    // Each segment gets proper bar-width extensions via drawSegmentedLine
+    return segments;
+  }
+}
+```
+
+---
+
+## Per-Point Styling with Bar-Width
+
+When implementing per-point styling:
+
+1. **Group consecutive points** with same style into segments
+2. **Use `drawSegmentedLine`** which handles bar-width internally
+3. **For segment boundaries**, ensure smooth transitions:
+   - First segment: extend start edge by `halfBarWidth`
+   - Last segment: extend end edge by `halfBarWidth`
+   - Middle segments: no extensions needed (connected by adjacent segments)
+
+```typescript
+// Example: Building segments for per-point styling
+private _buildSegments(data: ProcessedData[], points: RenderPoint[]) {
+  const segments = groupLineSegments(data, 'upperLine'); // Groups by style
+  const barSpacing = getBarSpacing(this._chart);
+  const halfBarWidth = (barSpacing * hRatio) / 2;
+
+  return segments.map((segment, idx) => {
+    const segmentPoints = points.slice(segment.startIdx, segment.endIdx + 1);
+    const style = resolveLineStyle(segment.style, globalOptions);
+
+    // Only extend edges at segment boundaries
+    const extendStart = idx === 0 ? halfBarWidth : 0;
+    const extendEnd = idx === segments.length - 1 ? halfBarWidth : 0;
+
+    return {
+      points: segmentPoints,
+      style: style,
+      options: { extendStart, extendEnd }
+    };
+  });
+}
+```
+
+---
+
+## Reference Implementations
+
+### ✅ Correct Examples (Use as Templates)
+1. **TrendFillPrimitive** (`primitives/TrendFillPrimitive.ts`)
+   - Manual bar-width handling with `halfBarWidth`
+   - Shows transition point interpolation
+
+2. **SignalPrimitive** (`primitives/SignalPrimitive.ts`)
+   - Uses `getBarSpacing()` and `halfBarSpacing`
+   - Renders full-width vertical bands
+
+3. **SignalSeriesPlugin** (`plugins/series/signalSeriesPlugin.ts`)
+   - ICustomSeries implementation with bar-width
+
+### ❌ Legacy Examples (Avoid Pattern)
+1. **RibbonPrimitive** (before refactor)
+   - Used `drawMultiLine` without bar-width
+   - Single-point highlights barely visible
+
+2. **BandPrimitive** (before refactor)
+   - Used `drawFillArea` without edge extension
+   - Gaps at segment boundaries
+
+---
+
+## Migration Checklist
+
+When refactoring primitives to use bar-width-aware rendering:
+
+- [ ] Import functions from `renderingUtils.ts`
+- [ ] Get `barSpacing` from `getBarSpacing(chart)`
+- [ ] Calculate `halfBarWidth = (barSpacing * hRatio) / 2`
+- [ ] Convert coordinates to `RenderPoint[]` format
+- [ ] Use `drawSegmentedLine` for lines with `extendStart`/`extendEnd`
+- [ ] Use `fillBetweenLines` for fills with `edgeExtension`
+- [ ] Test at different zoom levels (especially high zoom)
+- [ ] Verify single-point highlights are visible
+- [ ] Check segment boundaries have no gaps
+
+---
+
+## Common Pitfalls
+
+### ❌ Drawing without bar-width extensions
+```typescript
+// BAD: No bar-width support
+drawMultiLine(ctx, coords, 'upper', color, width, style, segment.startIdx, segment.endIdx + 1);
+```
+
+### ✅ Drawing with bar-width extensions
+```typescript
+// GOOD: Bar-width aware
+const halfBarWidth = (getBarSpacing(chart) * hRatio) / 2;
+drawContinuousLine(ctx, points, style, { extendStart: halfBarWidth, extendEnd: halfBarWidth });
+```
+
+### ❌ Segment boundaries without overlap
+```typescript
+// BAD: Gaps at transitions
+for (const segment of segments) {
+  drawLine(ctx, coords, segment.startIdx, segment.endIdx); // No connection
+}
+```
+
+### ✅ Segment boundaries with proper connection
+```typescript
+// GOOD: Use drawSegmentedLine which handles transitions
+drawSegmentedLine(ctx, segments); // Automatically connects segments
+```
+
+---
+
+## Testing Bar-Width Rendering
+
+1. **Zoom In**: Increase zoom until bars are visually spaced
+2. **Single-Point Highlights**: Verify styled points cover full bar width
+3. **Segment Transitions**: Check no gaps between different styles
+4. **Edge Cases**: Test first/last bars extend properly
+
+---
+
+## Additional Resources
+
+- **TradingView Docs**: https://tradingview.github.io/lightweight-charts/docs/plugins/pixel-perfect-rendering
+- **Example Primitives**: `primitives/TrendFillPrimitive.ts`, `primitives/SignalPrimitive.ts`
+- **Common Rendering**: `plugins/series/base/commonRendering.ts` (for `getBarSpacing`)
+- **Rendering Utils**: `utils/renderingUtils.ts` (for all drawing functions)
+
+---
+
+**Last Updated**: 2025-01-24
+**Version**: 0.1.6+

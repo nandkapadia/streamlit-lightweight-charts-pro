@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.data import Data
+from streamlit_lightweight_charts_pro.data.styles import PerPointStyles
 
 
 @dataclass
@@ -23,14 +24,36 @@ class RibbonData(Data):
         upper: The upper band value.
         lower: The lower band value.
         fill: Optional color for the fill area (uses series default if not specified).
+        styles: Optional per-point style overrides for lines and fill.
+
+    Example:
+        ```python
+        from streamlit_lightweight_charts_pro.data import RibbonData
+        from streamlit_lightweight_charts_pro.data.styles import PerPointStyles, LineStyle, FillStyle
+
+        # Basic data point
+        data = RibbonData(time="2024-01-01", upper=110, lower=100)
+
+        # Data point with custom styling
+        data = RibbonData(
+            time="2024-01-01",
+            upper=110,
+            lower=100,
+            styles=PerPointStyles(
+                upper_line=LineStyle(color="#ff0000", width=3),
+                fill=FillStyle(color="rgba(255,0,0,0.2)", visible=True),
+            ),
+        )
+        ```
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = {"upper", "lower"}
-    OPTIONAL_COLUMNS: ClassVar[set] = {"fill"}
+    OPTIONAL_COLUMNS: ClassVar[set] = {"fill", "styles"}
 
     upper: Optional[float]
     lower: Optional[float]
     fill: Optional[str] = None
+    styles: Optional[PerPointStyles] = None
 
     def __post_init__(self):
         # Normalize time
@@ -45,3 +68,19 @@ class RibbonData(Data):
         if isinstance(self.lower, float) and math.isnan(self.lower):
             self.lower = None
         # Allow None for missing data (no validation error)
+
+    def asdict(self):
+        """Serialize to dictionary with proper styles handling.
+
+        Returns:
+            Dictionary with camelCase keys for JSON serialization.
+            The styles field is converted using PerPointStyles.asdict() if present.
+        """
+        # Get base serialization from parent
+        result = super().asdict()
+
+        # Handle styles field specially - convert to dict if present
+        if self.styles is not None:
+            result["styles"] = self.styles.asdict()
+
+        return result

@@ -15,6 +15,19 @@
 - **React 19**: Use useTransition, useDeferredValue
 - **Series Descriptors**: Single source of truth for series types
 - **Property Flattening**: LineOptions nested → flat API
+- **Rendering**: Always use `renderingUtils.ts` for bar-width-aware drawing
+
+### Rendering Utilities (⚠️ CRITICAL - READ FIRST)
+When implementing ANY custom rendering (primitives, series, plugins):
+- **Location**: `frontend/src/utils/renderingUtils.ts`
+- **Bar-Width-Aware Functions**:
+  - `drawContinuousLine()` - Line drawing with `extendStart`/`extendEnd` for bar-width
+  - `drawSegmentedLine()` - Multi-segment lines with different styles
+  - `fillBetweenLines()` - Fill areas with `edgeExtension` for bar-width
+  - `getBarSpacing()` - Available in `commonRendering.ts`
+- **Common Rendering**: `frontend/src/plugins/series/base/commonRendering.ts`
+  - `drawLine()`, `drawMultiLine()`, `drawFillArea()` - Legacy, NO bar-width support
+  - Use `renderingUtils.ts` instead for new code
 
 ---
 

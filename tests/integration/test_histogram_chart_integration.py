@@ -16,6 +16,10 @@ from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
 from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
+from streamlit_lightweight_charts_pro.constants import (
+    HISTOGRAM_DOWN_COLOR_DEFAULT,
+    HISTOGRAM_UP_COLOR_DEFAULT,
+)
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
 
@@ -66,10 +70,10 @@ class TestHistogramChartIntegration:
 
         # Verify volume colors are assigned correctly
         bullish_volumes = sum(
-            1 for data in volume_series.data if data.color == "rgba(38,166,154,0.5)"
+            1 for data in volume_series.data if data.color == HISTOGRAM_UP_COLOR_DEFAULT
         )
         bearish_volumes = sum(
-            1 for data in volume_series.data if data.color == "rgba(239,83,80,0.5)"
+            1 for data in volume_series.data if data.color == HISTOGRAM_DOWN_COLOR_DEFAULT
         )
         assert bullish_volumes + bearish_volumes == 10
 

@@ -980,6 +980,283 @@ describe('GradientRibbon Series Visual Rendering', () => {
   });
 });
 
+describe('Band Series Per-Point Styling Visual Tests', () => {
+  let renderResult: ChartRenderResult | null = null;
+
+  afterEach(() => {
+    if (renderResult) {
+      cleanupChartRender(renderResult);
+      renderResult = null;
+    }
+  });
+
+  it('renders band series with per-point upper line color override', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateBandData2(30, 100, 20).map((point, i) => ({
+        ...point,
+        ...(i === 15 ? { styles: { upperLine: { color: '#FF0000', width: 4 } } } : {}),
+      }));
+      const series = createBandSeries(chart, {
+        upperLineColor: TestColors.GREEN,
+        middleLineColor: TestColors.BLUE,
+        lowerLineColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('band-per-point-upper-line'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders band series with per-point fill color override', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateBandData2(30, 100, 20).map((point, i) => ({
+        ...point,
+        ...(i >= 10 && i <= 15
+          ? {
+              styles: {
+                upperFill: { color: 'rgba(255, 0, 0, 0.3)', visible: true },
+                lowerFill: { color: 'rgba(0, 0, 255, 0.3)', visible: true },
+              },
+            }
+          : {}),
+      }));
+      const series = createBandSeries(chart, {
+        upperLineColor: TestColors.GREEN,
+        middleLineColor: TestColors.BLUE,
+        lowerLineColor: TestColors.RED,
+        upperFillColor: 'rgba(76, 175, 80, 0.1)',
+        lowerFillColor: 'rgba(244, 67, 54, 0.1)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('band-per-point-fills'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders band series with per-point line style override (dotted/dashed)', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateBandData2(30, 100, 20).map((point, i) => ({
+        ...point,
+        ...(i >= 10 && i <= 15
+          ? {
+              styles: {
+                upperLine: { style: 1, width: 3 }, // Dotted
+                middleLine: { style: 2, width: 3 }, // Dashed
+                lowerLine: { style: 1, width: 3 }, // Dotted
+              },
+            }
+          : {}),
+      }));
+      const series = createBandSeries(chart, {
+        upperLineColor: TestColors.GREEN,
+        middleLineColor: TestColors.BLUE,
+        lowerLineColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('band-per-point-line-styles'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders band series with complete per-point styling', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateBandData2(30, 100, 20).map((point, i) => ({
+        ...point,
+        ...(i === 15
+          ? {
+              styles: {
+                upperLine: { color: '#FF00FF', width: 4, style: 2 },
+                middleLine: { color: '#00FFFF', width: 4, style: 0 },
+                lowerLine: { color: '#FFFF00', width: 4, style: 1 },
+                upperFill: { color: 'rgba(255, 0, 255, 0.4)', visible: true },
+                lowerFill: { color: 'rgba(255, 255, 0, 0.4)', visible: true },
+              },
+            }
+          : {}),
+      }));
+      const series = createBandSeries(chart, {
+        upperLineColor: TestColors.GREEN,
+        middleLineColor: TestColors.BLUE,
+        lowerLineColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('band-per-point-complete'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+});
+
+describe('Ribbon Series Per-Point Styling Visual Tests', () => {
+  let renderResult: ChartRenderResult | null = null;
+
+  afterEach(() => {
+    if (renderResult) {
+      cleanupChartRender(renderResult);
+      renderResult = null;
+    }
+  });
+
+  it('renders ribbon series with per-point line color override', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateRibbonData2(30, 100, 10).map((point, i) => ({
+        ...point,
+        ...(i === 15
+          ? { styles: { upperLine: { color: '#FF0000', width: 4 }, lowerLine: { color: '#0000FF', width: 4 } } }
+          : {}),
+      }));
+      const series = createRibbonSeries(chart, {
+        upperLineColor: TestColors.GREEN,
+        lowerLineColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('ribbon-per-point-lines'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders ribbon series with per-point fill color override', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateRibbonData2(30, 100, 10).map((point, i) => ({
+        ...point,
+        ...(i >= 10 && i <= 15 ? { styles: { fill: { color: 'rgba(255, 0, 255, 0.4)', visible: true } } } : {}),
+      }));
+      const series = createRibbonSeries(chart, {
+        upperLineColor: TestColors.GREEN,
+        lowerLineColor: TestColors.RED,
+        fillColor: 'rgba(76, 175, 80, 0.1)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('ribbon-per-point-fill'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders ribbon series with per-point line style override', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateRibbonData2(30, 100, 10).map((point, i) => ({
+        ...point,
+        ...(i >= 10 && i <= 15
+          ? {
+              styles: {
+                upperLine: { style: 1, width: 3 }, // Dotted
+                lowerLine: { style: 2, width: 3 }, // Dashed
+              },
+            }
+          : {}),
+      }));
+      const series = createRibbonSeries(chart, {
+        upperLineColor: TestColors.GREEN,
+        lowerLineColor: TestColors.RED,
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('ribbon-per-point-line-styles'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders ribbon series with complete per-point styling', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateRibbonData2(30, 100, 10).map((point, i) => ({
+        ...point,
+        ...(i === 15
+          ? {
+              styles: {
+                upperLine: { color: '#FF00FF', width: 4, style: 2 },
+                lowerLine: { color: '#FFFF00', width: 4, style: 1 },
+                fill: { color: 'rgba(0, 255, 255, 0.4)', visible: true },
+              },
+            }
+          : {}),
+      }));
+      const series = createRibbonSeries(chart, {
+        upperLineColor: TestColors.GREEN,
+        lowerLineColor: TestColors.RED,
+        fillColor: 'rgba(76, 175, 80, 0.1)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('ribbon-per-point-complete'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+
+  it('renders ribbon series with mixed per-point styling', async () => {
+    renderResult = await renderChart(chart => {
+      const data = generateRibbonData2(30, 100, 10).map((point, i) => ({
+        ...point,
+        ...(i % 5 === 0
+          ? {
+              styles: {
+                upperLine: { color: '#FF0000' },
+                lowerLine: { color: '#0000FF' },
+              },
+            }
+          : {}),
+      }));
+      const series = createRibbonSeries(chart, {
+        upperLineColor: TestColors.GREEN,
+        lowerLineColor: TestColors.RED,
+        fillColor: 'rgba(76, 175, 80, 0.1)',
+      });
+      series.setData(data);
+    });
+
+    const result = assertMatchesSnapshot(
+      sanitizeTestName('ribbon-per-point-mixed'),
+      renderResult.imageData,
+      { threshold: 0.1, tolerance: 1.0 }
+    );
+
+    expect(result.matches).toBe(true);
+  });
+});
 describe('Custom Series Data Validation', () => {
   it('validates TrendFill data generator', () => {
     const data = generateTrendFillData(10, 100);

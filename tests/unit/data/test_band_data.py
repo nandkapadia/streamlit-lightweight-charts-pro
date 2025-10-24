@@ -302,3 +302,191 @@ class TestBandDataIntegration:
         assert data_list[0].upper == 110.0
         assert data_list[1].upper == 112.0
         assert data_list[2].upper == 108.0
+
+
+class TestBandDataPerPointStyling:
+    """Test cases for BandData per-point styling."""
+
+    def test_band_data_without_styles(self, valid_time):
+        """Test BandData without per-point styling."""
+        from streamlit_lightweight_charts_pro.data.band import BandData
+
+        data = BandData(time=valid_time, upper=110.0, middle=105.0, lower=100.0)
+        assert data.styles is None
+
+        serialized = data.asdict()
+        assert "styles" not in serialized
+
+    def test_band_data_with_upper_line_style(self, valid_time):
+        """Test BandData with upper line styling."""
+        from streamlit_lightweight_charts_pro.data.band import BandData
+        from streamlit_lightweight_charts_pro.data.styles import LineStyle, PerPointStyles
+
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            styles=PerPointStyles(upper_line=LineStyle(color="#ff0000", width=3)),
+        )
+
+        assert data.styles is not None
+        assert data.styles.upper_line is not None
+        assert data.styles.upper_line.color == "#ff0000"
+        assert data.styles.upper_line.width == 3
+
+    def test_band_data_with_fill_styles(self, valid_time):
+        """Test BandData with fill styling."""
+        from streamlit_lightweight_charts_pro.data.band import BandData
+        from streamlit_lightweight_charts_pro.data.styles import FillStyle, PerPointStyles
+
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            styles=PerPointStyles(
+                upper_fill=FillStyle(color="rgba(255, 0, 0, 0.2)", visible=True),
+                lower_fill=FillStyle(color="rgba(0, 0, 255, 0.2)", visible=True),
+            ),
+        )
+
+        assert data.styles is not None
+        assert data.styles.upper_fill is not None
+        assert data.styles.lower_fill is not None
+
+    def test_band_data_with_complete_styles(self, valid_time):
+        """Test BandData with complete per-point styling."""
+        from streamlit_lightweight_charts_pro.data.band import BandData
+        from streamlit_lightweight_charts_pro.data.styles import (
+            FillStyle,
+            LineStyle,
+            PerPointStyles,
+        )
+
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            styles=PerPointStyles(
+                upper_line=LineStyle(color="#ff0000", width=3, style=2),
+                middle_line=LineStyle(color="#00ff00", width=2, style=1),
+                lower_line=LineStyle(color="#0000ff", width=1, style=0),
+                upper_fill=FillStyle(color="rgba(255, 0, 0, 0.2)"),
+                lower_fill=FillStyle(color="rgba(0, 0, 255, 0.2)"),
+            ),
+        )
+
+        assert data.styles.upper_line.color == "#ff0000"
+        assert data.styles.middle_line.color == "#00ff00"
+        assert data.styles.lower_line.color == "#0000ff"
+
+    def test_band_data_styles_serialization(self, valid_time):
+        """Test BandData styles serialization to camelCase JSON."""
+        from streamlit_lightweight_charts_pro.data.band import BandData
+        from streamlit_lightweight_charts_pro.data.styles import LineStyle, PerPointStyles
+
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            styles=PerPointStyles(upper_line=LineStyle(color="#ff0000", width=3)),
+        )
+
+        serialized = data.asdict()
+
+        # Check styles field exists
+        assert "styles" in serialized
+
+        # Check camelCase conversion
+        assert "upperLine" in serialized["styles"]
+        assert serialized["styles"]["upperLine"]["color"] == "#ff0000"
+        assert serialized["styles"]["upperLine"]["width"] == 3
+
+        # Check snake_case not present
+        assert "upper_line" not in serialized["styles"]
+
+    def test_band_data_styles_serialization_complete(self, valid_time):
+        """Test complete BandData styles serialization."""
+        from streamlit_lightweight_charts_pro.data.band import BandData
+        from streamlit_lightweight_charts_pro.data.styles import (
+            FillStyle,
+            LineStyle,
+            PerPointStyles,
+        )
+
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            styles=PerPointStyles(
+                upper_line=LineStyle(color="#ff0000", width=3),
+                middle_line=LineStyle(color="#00ff00", width=2),
+                lower_line=LineStyle(color="#0000ff", width=1),
+                upper_fill=FillStyle(color="rgba(255, 0, 0, 0.2)", visible=True),
+                lower_fill=FillStyle(color="rgba(0, 0, 255, 0.2)", visible=True),
+            ),
+        )
+
+        serialized = data.asdict()
+
+        # Check all style fields present
+        assert "upperLine" in serialized["styles"]
+        assert "middleLine" in serialized["styles"]
+        assert "lowerLine" in serialized["styles"]
+        assert "upperFill" in serialized["styles"]
+        assert "lowerFill" in serialized["styles"]
+
+        # Check ribbon-specific field not present
+        assert "fill" not in serialized["styles"]
+
+    def test_band_data_styles_only_visible_false(self, valid_time):
+        """Test BandData with only visible=False styling."""
+        from streamlit_lightweight_charts_pro.data.band import BandData
+        from streamlit_lightweight_charts_pro.data.styles import LineStyle, PerPointStyles
+
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            styles=PerPointStyles(upper_line=LineStyle(visible=False)),
+        )
+
+        serialized = data.asdict()
+        assert serialized["styles"]["upperLine"] == {"visible": False}
+
+    def test_band_data_styles_mixed_overrides(self, valid_time):
+        """Test BandData with mixed style overrides."""
+        from streamlit_lightweight_charts_pro.data.band import BandData
+        from streamlit_lightweight_charts_pro.data.styles import (
+            FillStyle,
+            LineStyle,
+            PerPointStyles,
+        )
+
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            styles=PerPointStyles(
+                upper_line=LineStyle(color="#ff0000"),  # Only color
+                middle_line=LineStyle(width=2),  # Only width
+                lower_fill=FillStyle(visible=False),  # Only visible
+            ),
+        )
+
+        serialized = data.asdict()
+
+        # Check partial overrides
+        assert serialized["styles"]["upperLine"] == {"color": "#ff0000"}
+        assert serialized["styles"]["middleLine"] == {"width": 2}
+        assert serialized["styles"]["lowerFill"] == {"visible": False}
+
+        # Check missing fields not in serialization
+        assert "lowerLine" not in serialized["styles"]
+        assert "upperFill" not in serialized["styles"]
