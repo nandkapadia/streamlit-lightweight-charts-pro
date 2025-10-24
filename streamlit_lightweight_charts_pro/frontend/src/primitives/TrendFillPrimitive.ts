@@ -60,6 +60,7 @@ import {
   BaseSeriesPrimitiveOptions,
   BaseSeriesPrimitivePaneView,
 } from './BaseSeriesPrimitive';
+import { interpolateY } from '../utils/renderingUtils';
 
 // ============================================================================
 // Data Interfaces
@@ -343,8 +344,14 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
       this._viewData.options.downtrendFillColor ||
       'rgba(244, 67, 54, 0.3)';
 
-    // Calculate half bar width if enabled
-    const halfBarWidth = useHalfBarWidth ? (barSpacing * hRatio) / 2 : 0;
+    // Calculate pixel-perfect bar-width extension
+    // Uses TradingView's pixel-perfect formula instead of naive (barSpacing * hRatio) / 2
+    const halfBarSpacing = barSpacing / 2; // Media coordinates
+    const calculateExtension = (xBitmap: number): number => {
+      if (!useHalfBarWidth) return 0;
+      const xMedia = xBitmap / hRatio;
+      return xBitmap - Math.round((xMedia - halfBarSpacing) * hRatio);
+    };
 
     // Group consecutive bars with same trend direction
     let currentGroup: TrendFillRenderData[] = [];
@@ -368,7 +375,7 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
       const firstTransitionData = (firstBar as any).transitionData;
       const lastTransitionData = (lastBar as any).transitionData;
 
-      // Start position: if first bar is after transition, use interpolated point, else half-bar before
+      // Start position: if first bar is after transition, use interpolated point, else extend by bar-width
       let startX, startTrendY, startBaseY;
       if (firstTransitionData) {
         // Start at midpoint between previous and current bar
@@ -376,7 +383,8 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
         startTrendY = firstTransitionData.trendLineY * vRatio;
         startBaseY = firstTransitionData.baseLineY * vRatio;
       } else {
-        startX = (firstBar.x ?? 0) * hRatio - halfBarWidth;
+        const firstBarX = (firstBar.x ?? 0) * hRatio;
+        startX = firstBarX - calculateExtension(firstBarX);
         startTrendY = (firstBar.trendLineY ?? 0) * vRatio;
         startBaseY = (firstBar.baseLineY ?? 0) * vRatio;
       }
@@ -391,15 +399,16 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
         ctx.lineTo(x, y);
       }
 
-      // End position: if last bar is transition, use interpolated point, else half-bar after
+      // End position: if last bar is transition, use interpolated point, else extend by bar-width
       let endX, endTrendY, endBaseY;
       if (lastTransitionData) {
         endX = lastTransitionData.x * hRatio;
         endTrendY = lastTransitionData.trendLineY * vRatio;
         endBaseY = lastTransitionData.baseLineY * vRatio;
       } else {
-        const lastX = (lastBar.x ?? 0) * hRatio;
-        endX = lastX + halfBarWidth;
+        const lastBarX = (lastBar.x ?? 0) * hRatio;
+        const lastXMedia = lastBarX / hRatio;
+        endX = Math.round((lastXMedia + halfBarSpacing) * hRatio);
         endTrendY = (lastBar.trendLineY ?? 0) * vRatio;
         endBaseY = (lastBar.baseLineY ?? 0) * vRatio;
       }
@@ -466,16 +475,24 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
         currentGroup.push(bar);
       }
 
-      // If direction changes at next bar, use next bar's coordinates as transition
+      // If direction changes at next bar, calculate interpolated transition point
       if (isDirectionChange && nextBar && currentGroup.length > 0) {
-        // Use next bar's X position and current bar's Y values for transition
-        // This extends the current trend to the start of the next bar
-        const transitionX = nextBar.x ?? 0;
-        const transitionTrendY = bar.trendLineY ?? 0;
-        const transitionBaseY = bar.baseLineY ?? 0;
+        // Calculate midpoint X between current and next bar
+        const currentX = bar.x ?? 0;
+        const nextX = nextBar.x ?? 0;
+        const transitionX = (currentX + nextX) / 2;
+
+        // Interpolate Y values at the midpoint
+        const currentTrendY = bar.trendLineY ?? 0;
+        const nextTrendY = nextBar.trendLineY ?? 0;
+        const transitionTrendY = interpolateY(transitionX, currentX, currentTrendY, nextX, nextTrendY);
+
+        const currentBaseY = bar.baseLineY ?? 0;
+        const nextBaseY = nextBar.baseLineY ?? 0;
+        const transitionBaseY = interpolateY(transitionX, currentX, currentBaseY, nextX, nextBaseY);
 
         // Store transition data for ending current group
-        // Extend current trend to next bar's X position
+        // Extend current trend to interpolated midpoint
         currentGroup[currentGroup.length - 1] = {
           ...currentGroup[currentGroup.length - 1],
           transitionData: {
@@ -486,11 +503,11 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
         } as any;
 
         // Store transition data for starting next group
-        // Next group starts at same X with its own trend values
+        // Next group starts at same interpolated midpoint
         transitionData = {
           x: transitionX,
-          trendLineY: nextBar.trendLineY ?? 0,
-          baseLineY: nextBar.baseLineY ?? 0,
+          trendLineY: transitionTrendY,
+          baseLineY: transitionBaseY,
         };
       }
     }

@@ -590,6 +590,8 @@ export function drawContinuousLine(
     extendStart?: number;
     extendEnd?: number;
     skipInvalid?: boolean;
+    prevPoint?: RenderPoint; // Previous point for Y interpolation at start
+    nextPoint?: RenderPoint; // Next point for Y interpolation at end
   }
 ): void {
   const validPoints = options?.skipInvalid ? filterValidRenderPoints(points) : points;
@@ -604,11 +606,25 @@ export function drawContinuousLine(
   const lastPoint = validPoints[validPoints.length - 1];
 
   // Calculate start position with optional extension
-  const startX = options?.extendStart
-    ? (firstPoint.x as number) - options.extendStart
-    : (firstPoint.x as number);
+  let startX = firstPoint.x as number;
+  let startY = firstPoint.y as number;
 
-  ctx.moveTo(startX, firstPoint.y as number);
+  if (options?.extendStart) {
+    startX = (firstPoint.x as number) - options.extendStart;
+
+    // Interpolate Y if previous point is provided
+    if (options.prevPoint && options.prevPoint.x !== null && options.prevPoint.y !== null) {
+      startY = interpolateY(
+        startX,
+        options.prevPoint.x as number,
+        options.prevPoint.y as number,
+        firstPoint.x as number,
+        firstPoint.y as number
+      );
+    }
+  }
+
+  ctx.moveTo(startX, startY);
 
   // Draw through all points
   for (let i = 0; i < validPoints.length; i++) {
@@ -620,11 +636,75 @@ export function drawContinuousLine(
 
   // Extend end if requested
   if (options?.extendEnd && lastPoint.x !== null && lastPoint.y !== null) {
-    ctx.lineTo((lastPoint.x as number) + options.extendEnd, lastPoint.y);
+    const endX = (lastPoint.x as number) + options.extendEnd;
+    let endY = lastPoint.y as number;
+
+    // Interpolate Y if next point is provided
+    if (options.nextPoint && options.nextPoint.x !== null && options.nextPoint.y !== null) {
+      endY = interpolateY(
+        endX,
+        lastPoint.x as number,
+        lastPoint.y as number,
+        options.nextPoint.x as number,
+        options.nextPoint.y as number
+      );
+    }
+
+    ctx.lineTo(endX, endY);
   }
 
   ctx.stroke();
   ctx.restore();
+}
+
+/**
+ * Calculate pixel-perfect bar-width extensions for a segment
+ * Uses the TradingView formula: Math.round((xMedia ± halfBarSpacing) * hRatio)
+ *
+ * @param firstPoint - First valid point in the segment
+ * @param lastPoint - Last valid point in the segment
+ * @param barSpacing - Bar spacing from chart (in media coordinates)
+ * @param hRatio - Horizontal pixel ratio for scaling
+ * @returns Object with extendStart and extendEnd values in pixels
+ */
+export function calculateBarWidthExtensions(
+  firstPoint: RenderPoint,
+  lastPoint: RenderPoint,
+  barSpacing: number,
+  hRatio: number
+): { extendStart: number; extendEnd: number } {
+  const halfBarSpacing = barSpacing / 2;
+
+  // Calculate start extension
+  const firstXMedia = (firstPoint.x as number) / hRatio;
+  const extendStart = (firstPoint.x as number) - Math.round((firstXMedia - halfBarSpacing) * hRatio);
+
+  // Calculate end extension
+  const lastXMedia = (lastPoint.x as number) / hRatio;
+  const extendEnd = Math.round((lastXMedia + halfBarSpacing) * hRatio) - (lastPoint.x as number);
+
+  return { extendStart, extendEnd };
+}
+
+/**
+ * Interpolate Y coordinate at a given X position between two points
+ * Uses linear interpolation: y = y1 + (y2 - y1) * (x - x1) / (x2 - x1)
+ *
+ * @param x - Target X coordinate
+ * @param x1 - X coordinate of first point
+ * @param y1 - Y coordinate of first point
+ * @param x2 - X coordinate of second point
+ * @param y2 - Y coordinate of second point
+ * @returns Interpolated Y coordinate
+ */
+export function interpolateY(
+  x: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+): number {
+  return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
 }
 
 /**
