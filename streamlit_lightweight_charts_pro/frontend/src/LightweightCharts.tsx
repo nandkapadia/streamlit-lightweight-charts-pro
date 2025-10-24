@@ -64,9 +64,11 @@ import { logger } from './utils/logger';
 import {
   createChart,
   IChartApi,
-  ISeriesApi,
+  IPaneApi,
   createSeriesMarkers,
   UTCTimestamp,
+  MouseEventParams as LWCMouseEventParams,
+  Time,
 } from 'lightweight-charts';
 import {
   ComponentConfig,
@@ -79,8 +81,16 @@ import {
   LegendConfig,
   SyncConfig,
   PaneHeightOptions,
+  RangeSwitcherConfig,
 } from './types';
-import { ExtendedSeriesApi, ExtendedChartApi, SeriesDataPoint } from './types/ChartInterfaces';
+import {
+  ExtendedSeriesApi,
+  ExtendedChartApi,
+  SeriesDataPoint,
+  AnnotationLayers,
+  MarkerData,
+  Destroyable,
+} from './types/ChartInterfaces';
 import { createAnnotationVisualElements } from './services/annotationSystem';
 import { SignalSeries } from './plugins/series/signalSeriesPlugin';
 import { TradeRectanglePrimitive } from './primitives/TradeRectanglePrimitive';
@@ -116,7 +126,7 @@ import { dialogConfigToApiOptions } from './series/UnifiedPropertyMapper';
  * }
  * ```
  */
-const findNearestTime = (targetTime: number, chartData: any[]): number | null => {
+const findNearestTime = (targetTime: number, chartData: SeriesDataPoint[]): number | null => {
   if (!chartData || chartData.length === 0) {
     return null;
   }
@@ -175,10 +185,10 @@ const findNearestTime = (targetTime: number, chartData: any[]): number | null =>
  * ```
  */
 const retryWithBackoff = async (
-  operation: () => Promise<any>,
+  operation: () => Promise<unknown>,
   maxRetries: number = 5,
   baseDelay: number = 100
-): Promise<any> => {
+): Promise<unknown> => {
   let lastError: Error | undefined;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -232,7 +242,7 @@ interface LightweightChartsProps {
     /** Series identifier (e.g., 'pane-0-series-0') */
     seriesId: string;
     /** Partial configuration to apply */
-    configPatch: any;
+    configPatch: Record<string, unknown>;
     /** Timestamp to prevent duplicate processing */
     timestamp: number;
   } | null;
@@ -292,7 +302,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
     // Component initialization
     const chartRefs = useRef<{ [key: string]: IChartApi }>({});
-    const seriesRefs = useRef<{ [key: string]: ISeriesApi<any>[] }>({});
+    const seriesRefs = useRef<{ [key: string]: ExtendedSeriesApi[] }>({});
     const signalPluginRefs = useRef<{ [key: string]: SignalSeries }>({});
     const chartConfigs = useRef<{ [key: string]: ChartConfig }>({});
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
@@ -307,18 +317,38 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
     // Store function references to avoid dependency issues
     const functionRefs = useRef<{
-      addTradeVisualization: any;
-      addAnnotations: any;
-      addModularTooltip: any;
-      addAnnotationLayers: any;
-      addRangeSwitcher: any;
-      addLegend: any;
-      updateLegendPositions: any;
-      setupAutoSizing: any;
-      setupChartSynchronization: any;
-      setupFitContent: any;
-      setupPaneCollapseSupport: any;
-      cleanupCharts: any;
+      addTradeVisualization:
+        | ((
+            chart: IChartApi,
+            series: ExtendedSeriesApi,
+            trades: TradeConfig[],
+            options: TradeVisualizationOptions,
+            chartData?: SeriesDataPoint[]
+          ) => Promise<void>)
+        | null;
+      addAnnotations: ((chart: IChartApi, annotations: Annotation[] | AnnotationLayers) => void) | null;
+      addModularTooltip:
+        | ((chart: IChartApi, container: HTMLElement, seriesList: ExtendedSeriesApi[], chartConfig: ChartConfig) => void)
+        | null;
+      addAnnotationLayers: ((chart: IChartApi, layers: AnnotationLayer[] | AnnotationLayers) => void) | null;
+      addRangeSwitcher: ((chart: IChartApi, rangeConfig: RangeSwitcherConfig) => Promise<void>) | null;
+      addLegend:
+        | ((
+            chart: IChartApi,
+            legendsConfig: { [legendKey: string]: { paneId: number; config: LegendConfig } },
+            seriesList: ExtendedSeriesApi[]
+          ) => Promise<void>)
+        | null;
+      updateLegendPositions:
+        | ((chart: IChartApi, legendsConfig: { [paneId: string]: LegendConfig }) => Promise<void>)
+        | null;
+      setupAutoSizing: ((chart: IChartApi, container: HTMLElement, chartConfig: ChartConfig) => void) | null;
+      setupChartSynchronization:
+        | ((chart: IChartApi, chartId: string, syncConfig: SyncConfig, chartGroupId?: number) => void)
+        | null;
+      setupFitContent: ((chart: IChartApi, chartConfig: ChartConfig) => void) | null;
+      setupPaneCollapseSupport: ((chart: IChartApi, chartId: string) => void) | null;
+      cleanupCharts: (() => void) | null;
     }>({
       addTradeVisualization: null,
       addAnnotations: null,
@@ -406,7 +436,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         }
 
         // Helper function to get crosshair data point from series data
-        const getCrosshairDataPoint = (series: ISeriesApi<any>, param: any) => {
+        const getCrosshairDataPoint = (series: ExtendedSeriesApi, param: LWCMouseEventParams) => {
           if (!param.time) {
             return null;
           }
@@ -417,10 +447,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         // Helper function to sync crosshair between charts (TradingView's official approach)
         const syncCrosshair = (
           targetChart: IChartApi,
-          targetSeries: ISeriesApi<any>,
-          dataPoint: any
+          targetSeries: ExtendedSeriesApi,
+          dataPoint: SeriesDataPoint | null
         ) => {
-          if (dataPoint) {
+          if (dataPoint && 'value' in dataPoint && dataPoint.value !== undefined) {
             targetChart.setCrosshairPosition(dataPoint.value, dataPoint.time, targetSeries);
             return;
           }
@@ -515,7 +545,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               const dataPoint = getCrosshairDataPoint(currentSeries[0], param);
               const syncData = {
                 time: param.time,
-                value: dataPoint ? dataPoint.value : null,
+                value: dataPoint && 'value' in dataPoint ? dataPoint.value : null,
                 chartId: chartId,
                 groupId: chartGroupId,
                 timestamp: Date.now(),
@@ -806,9 +836,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
       // Clean up pane button panel widgets (new widget-based approach)
       if (window.paneButtonPanelWidgets) {
-        Object.entries(window.paneButtonPanelWidgets).forEach(([, widgets]: [string, any]) => {
+        Object.entries(window.paneButtonPanelWidgets).forEach(([, widgets]: [string, unknown]) => {
           if (Array.isArray(widgets)) {
-            widgets.forEach((widget: any) => {
+            widgets.forEach((widget: Destroyable) => {
               try {
                 if (widget && typeof widget.destroy === 'function') {
                   widget.destroy();
@@ -827,7 +857,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         window.chartPlugins.forEach(plugins => {
           try {
             if (Array.isArray(plugins)) {
-              plugins.forEach((plugin: any) => {
+              plugins.forEach((plugin: Destroyable) => {
                 try {
                   if (plugin && typeof plugin.destroy === 'function') {
                     plugin.destroy();
@@ -897,10 +927,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     const addTradeVisualization = useCallback(
       async (
         _chart: IChartApi,
-        series: ISeriesApi<any>,
+        series: ExtendedSeriesApi,
         trades: TradeConfig[],
         options: TradeVisualizationOptions,
-        chartData?: any[]
+        chartData?: SeriesDataPoint[]
       ) => {
         if (!trades || trades.length === 0) {
           return;
@@ -909,7 +939,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         try {
           // Use the new unified trade visualization system
           const visualElements = createTradeVisualElements(trades, options, chartData);
-          const primitives: any[] = [];
+          const primitives: unknown[] = [];
 
           // Convert rectangles to primitives
           if (visualElements.rectangles.length > 0) {
@@ -924,7 +954,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           if (primitives.length > 0) {
             primitives.forEach(primitive => {
               try {
-                series.attachPrimitive(primitive);
+                series.attachPrimitive(primitive as Parameters<typeof series.attachPrimitive>[0]);
               } catch (error) {
                 logger.error('Error attaching trade visualization primitive', 'TradeViz', error);
               }
@@ -933,7 +963,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
           // Add entry/exit markers if style includes markers
           if (options.style === 'markers' || options.style === 'both') {
-            const markers: any[] = [];
+            const markers: MarkerData[] = [];
 
             trades.forEach(trade => {
               // Parse and adjust timestamps using findNearestTime (same logic as rectangles)
@@ -1007,7 +1037,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             if (markers.length > 0) {
               try {
                 // Use createSeriesMarkers instead of setMarkers for compatibility
-                createSeriesMarkers(series, markers);
+                createSeriesMarkers(
+                  series as Parameters<typeof createSeriesMarkers>[0],
+                  markers as Parameters<typeof createSeriesMarkers>[1]
+                );
               } catch {
                 logger.error('An error occurred', 'LightweightCharts');
               }
@@ -1033,7 +1066,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     // No need for addTradeVisualizationWhenReady anymore
 
     const addAnnotations = useCallback(
-      (_chart: IChartApi, annotations: Annotation[] | { layers: any }) => {
+      (_chart: IChartApi, annotations: Annotation[] | AnnotationLayers) => {
         // Handle annotation manager structure from Python side
         let annotationsArray: Annotation[] = [];
 
@@ -1042,16 +1075,17 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           if ('layers' in annotations && annotations.layers) {
             // Extract annotations from all visible layers
             try {
-              const layersArray = Object.values(annotations.layers);
+              const layersArray = Object.values(annotations.layers) as unknown[];
               if (Array.isArray(layersArray)) {
-                layersArray.forEach((layer: any) => {
+                layersArray.forEach((layer: unknown) => {
+                  const annotationLayer = layer as AnnotationLayer;
                   if (
-                    layer &&
-                    layer.visible !== false &&
-                    layer.annotations &&
-                    Array.isArray(layer.annotations)
+                    annotationLayer &&
+                    annotationLayer.visible !== false &&
+                    annotationLayer.annotations &&
+                    Array.isArray(annotationLayer.annotations)
                   ) {
-                    annotationsArray.push(...layer.annotations);
+                    annotationsArray.push(...annotationLayer.annotations);
                   }
                 });
               }
@@ -1127,7 +1161,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     );
 
     const addAnnotationLayers = useCallback(
-      (chart: IChartApi, layers: AnnotationLayer[] | { layers: any }) => {
+      (chart: IChartApi, layers: AnnotationLayer[] | AnnotationLayers) => {
         // Handle annotation manager structure from Python side
         let layersArray: AnnotationLayer[] = [];
 
@@ -1138,7 +1172,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             try {
               const layersValues = Object.values(layers.layers);
               if (Array.isArray(layersValues)) {
-                layersArray = layersValues as AnnotationLayer[];
+                layersArray = layersValues as unknown as AnnotationLayer[];
               }
             } catch (error) {
               logger.warn('Error processing annotation layers object', 'Annotations', error);
@@ -1161,7 +1195,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             }
 
             if (layer.visible !== false && layer.annotations) {
-              functionRefs.current.addAnnotations(chart, layer.annotations);
+              functionRefs.current.addAnnotations?.(chart, layer.annotations);
             }
           } catch (error) {
             logger.warn('Error processing annotation layer', 'Annotations', error);
@@ -1179,7 +1213,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       (
         _chart: IChartApi,
         container: HTMLElement,
-        _seriesList: ISeriesApi<any>[],
+        _seriesList: ExtendedSeriesApi[],
         chartConfig: ChartConfig
       ) => {
         try {
@@ -1204,7 +1238,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       []
     );
 
-    const addRangeSwitcher = useCallback(async (chart: IChartApi, rangeConfig: any) => {
+    const addRangeSwitcher = useCallback(async (chart: IChartApi, rangeConfig: RangeSwitcherConfig) => {
       try {
         const chartElement = chart.chartElement();
         if (!chartElement) return;
@@ -1222,9 +1256,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
         // Ensure we always get an array, even if the stored value is corrupted
         const storedPlugins = window.chartPlugins.get(chartId);
-        const existingPlugins: any[] = Array.isArray(storedPlugins) ? storedPlugins : [];
+        const existingPlugins: Destroyable[] = Array.isArray(storedPlugins) ? storedPlugins as Destroyable[] : [];
 
-        existingPlugins.push(rangeSwitcherWidget);
+        existingPlugins.push(rangeSwitcherWidget as Destroyable);
         window.chartPlugins.set(chartId, existingPlugins);
       } catch (error) {
         logger.error('Failed to store chart instance', 'LightweightCharts', error);
@@ -1272,7 +1306,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       Map<
         string,
         {
-          series: ISeriesApi<any>;
+          series: ExtendedSeriesApi;
           legendConfig: LegendConfig;
           paneId: number;
           seriesName: string;
@@ -1285,7 +1319,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       async (
         chart: IChartApi,
         legendsConfig: { [legendKey: string]: { paneId: number; config: LegendConfig } },
-        seriesList: ISeriesApi<any>[]
+        seriesList: ExtendedSeriesApi[]
       ) => {
         try {
           // Use new ChartPrimitiveManager system for creating legends
@@ -1359,7 +1393,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
               // Check if chart has panes available via API
               try {
-                let panes: any[] = [];
+                let panes: IPaneApi<Time>[] = [];
                 if (chart && typeof chart.panes === 'function') {
                   try {
                     panes = chart.panes();
@@ -1397,7 +1431,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         // Get chart ID for storing legend references
         const chartId = chart.chartElement().id || 'default';
         const legendSeriesData: {
-          series: ISeriesApi<any>;
+          series: ExtendedSeriesApi;
           legendConfig: LegendConfig;
           paneId: number;
           seriesName: string;
@@ -1436,18 +1470,18 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         }
 
         // Group series by pane
-        const seriesByPane = new Map<number, ISeriesApi<any>[]>();
+        const seriesByPane = new Map<number, ExtendedSeriesApi[]>();
         seriesList.forEach(series => {
           // Try to get paneId from series options or fallback to index-based assignment
           let paneId = 0;
 
           // Safely get series options
-          let seriesOptions: any = {};
+          let seriesOptions: Record<string, unknown> = {};
           try {
             if (typeof series.options === 'function') {
-              seriesOptions = series.options();
+              seriesOptions = series.options() as unknown as Record<string, unknown>;
             } else if (series.options) {
-              seriesOptions = series.options;
+              seriesOptions = series.options as unknown as Record<string, unknown>;
             }
           } catch {
             logger.error('An error occurred', 'LightweightCharts');
@@ -1464,9 +1498,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           // Then check if paneId is in the options
           else if (
             seriesOptions &&
-            (seriesOptions as SeriesConfig & { paneId?: number }).paneId !== undefined
+            (seriesOptions as unknown as SeriesConfig & { paneId?: number }).paneId !== undefined
           ) {
-            seriesPaneId = (seriesOptions as SeriesConfig & { paneId?: number }).paneId;
+            seriesPaneId = (seriesOptions as unknown as SeriesConfig & { paneId?: number }).paneId;
           }
 
           if (seriesPaneId !== undefined) {
@@ -1626,7 +1660,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
         // Only clean up existing charts if this is not the initial render
         if (!isInitialRender) {
-          functionRefs.current.cleanupCharts();
+          functionRefs.current.cleanupCharts?.();
         }
 
         if (!processedChartConfigs || processedChartConfigs.length === 0) {
@@ -1817,7 +1851,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             // Create panes if needed for multi-pane charts
             const paneMap = new Map<number, any>();
-            let existingPanes: any[] = [];
+            let existingPanes: IPaneApi<Time>[] = [];
 
             // Safety check for chart.panes() method
             if (chart && typeof chart.panes === 'function') {
@@ -1922,7 +1956,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             }
 
             // Create series for this chart
-            const seriesList: ISeriesApi<any>[] = [];
+            const seriesList: ExtendedSeriesApi[] = [];
 
             if (chartConfig.series && Array.isArray(chartConfig.series)) {
               chartConfig.series.forEach((seriesConfig: SeriesConfig, seriesIndex: number) => {
@@ -2057,7 +2091,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
                     // Add series-level annotations
                     if (seriesConfig.annotations) {
-                      functionRefs.current.addAnnotations(chart, seriesConfig.annotations);
+                      functionRefs.current.addAnnotations?.(chart, seriesConfig.annotations);
                     }
                   } else {
                     logger.error(
@@ -2082,7 +2116,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             // Apply pane heights configuration AFTER series creation to ensure all panes exist
             if (chartConfig.chart?.layout?.paneHeights) {
               // Get all panes after series creation
-              let allPanes: any[] = [];
+              let allPanes: IPaneApi<Time>[] = [];
               if (chart && typeof chart.panes === 'function') {
                 try {
                   allPanes = chart.panes();
@@ -2111,38 +2145,39 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             }
 
             // Add modular tooltip system
-            functionRefs.current.addModularTooltip(chart, container, seriesList, chartConfig);
+            functionRefs.current.addModularTooltip?.(chart, container, seriesList, chartConfig);
 
             // Store chart config for trade visualization when chart is ready
             chartConfigs.current[chartId] = chartConfig;
 
             // Add chart-level annotations
             if (chartConfig.annotations) {
-              functionRefs.current.addAnnotations(chart, chartConfig.annotations);
+              functionRefs.current.addAnnotations?.(chart, chartConfig.annotations);
             }
 
             // Add annotation layers
             if (chartConfig.annotationLayers) {
-              functionRefs.current.addAnnotationLayers(chart, chartConfig.annotationLayers);
+              functionRefs.current.addAnnotationLayers?.(chart, chartConfig.annotationLayers);
             }
 
             // Add price lines
             if (chartConfig.priceLines && seriesList.length > 0) {
-              chartConfig.priceLines.forEach((priceLine: any) => {
-                seriesList[0].createPriceLine(priceLine);
+              chartConfig.priceLines.forEach((priceLine: Record<string, unknown>) => {
+                seriesList[0].createPriceLine(priceLine as unknown as Parameters<typeof seriesList[0]['createPriceLine']>[0]);
               });
             }
 
             // Add range switcher if configured
             if (chartConfig.chart?.rangeSwitcher && chartConfig.chart.rangeSwitcher.visible) {
+              const rangeSwitcherConfig = chartConfig.chart.rangeSwitcher;
               // Wait for chart to be ready before adding range switcher
-              ChartReadyDetector.waitForChartReady(chart, chart.chartElement(), {
+              void ChartReadyDetector.waitForChartReady(chart, chart.chartElement(), {
                 minWidth: 200,
                 minHeight: 100,
               })
                 .then(isReady => {
                   if (isReady) {
-                    functionRefs.current.addRangeSwitcher(chart, chartConfig.chart.rangeSwitcher);
+                    void functionRefs.current.addRangeSwitcher?.(chart, rangeSwitcherConfig);
                   }
                 })
                 .catch(error => {
@@ -2214,7 +2249,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               });
 
             // Setup auto-sizing for the chart
-            functionRefs.current.setupAutoSizing(chart, container, chartConfig);
+            functionRefs.current.setupAutoSizing?.(chart, container, chartConfig);
 
             // Setup chart synchronization if enabled (throttling already applied)
             if (config.syncConfig && config.syncConfig.enabled) {
@@ -2237,7 +2272,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 syncConfig = config.syncConfig.groups[chartGroupId];
               }
 
-              functionRefs.current.setupChartSynchronization(
+              functionRefs.current.setupChartSynchronization?.(
                 chart,
                 chartId,
                 syncConfig,
@@ -2246,7 +2281,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             }
 
             // Setup fitContent functionality
-            functionRefs.current.setupFitContent(chart, chartConfig);
+            functionRefs.current.setupFitContent?.(chart, chartConfig);
 
             // Create individual pane containers and add collapse functionality (synchronous like working version)
             const paneCollapseConfig = chartConfig.paneCollapse || { enabled: true };
@@ -2260,7 +2295,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             if (paneCollapseConfig.enabled !== false) {
               try {
                 // Get all panes and wrap each in its own collapsible container
-                let allPanes: any[] = [];
+                let allPanes: IPaneApi<Time>[] = [];
                 if (chart && typeof chart.panes === 'function') {
                   try {
                     allPanes = chart.panes();
@@ -2371,7 +2406,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     useEffect(() => {
       functionRefs.current = {
         addTradeVisualization,
-        // addTradeVisualizationWhenReady,  // Removed - no longer needed
         addAnnotations,
         addModularTooltip,
         addAnnotationLayers,

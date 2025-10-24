@@ -462,8 +462,6 @@ describe('ChartCoordinateService', () => {
       const position = service.getRangeSwitcherPosition(mockChart, 'bottom-right');
 
       expect(position).toBeDefined();
-      // expect(position?.right).toBeGreaterThanOrEqual(0);
-      // expect(position?.top).toBeGreaterThan(0);
     });
 
     it('should calculate range switcher position for top-left', () => {
@@ -850,8 +848,6 @@ describe('ChartCoordinateService', () => {
       );
 
       expect(position).toBeDefined();
-      // expect(position?.right).toBeGreaterThanOrEqual(0);
-      // expect(position?.top).toBeGreaterThan(0);
     });
   });
 

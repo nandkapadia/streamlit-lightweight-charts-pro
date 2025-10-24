@@ -373,27 +373,6 @@ describe('SeriesSettingsDialog - Schema-Based Architecture', () => {
     // Reason: Conditional UI rendering and color picker interactions better tested in real browser
   });
 
-  describe('Defaults Button', () => {
-    it('should reset series to schema defaults', async () => {
-      const user = userEvent.setup();
-      render(<SeriesSettingsDialog {...defaultProps} />);
-
-      const defaultsButton = screen.getByText('Defaults');
-      await user.click(defaultsButton);
-
-      await waitFor(() => {
-        expect(defaultProps.onConfigChange).toHaveBeenCalledWith(
-          'series1',
-          expect.objectContaining({
-            visible: true,
-            lastValueVisible: true,
-            priceLineVisible: true,
-          })
-        );
-      });
-    });
-  });
-
   describe('Dialog Controls', () => {
     it('should call onClose when close button is clicked', async () => {
       const user = userEvent.setup();

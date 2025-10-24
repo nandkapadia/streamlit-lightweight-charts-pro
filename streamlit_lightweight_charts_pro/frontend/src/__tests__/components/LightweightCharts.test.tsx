@@ -220,7 +220,7 @@ describe('LightweightCharts Component', () => {
               {
                 type: 'Line',
                 data: Array.from({ length: 10000 }, (_, i) => ({
-                  time: Date.now() + i * 60000,
+                  time: (Date.now() + i * 60000) as any,
                   value: Math.random() * 100,
                 })),
               },

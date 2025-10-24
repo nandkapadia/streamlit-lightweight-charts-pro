@@ -27,11 +27,42 @@
  * ```
  */
 
-import { IChartApi, ISeriesApi, UTCTimestamp, SeriesOptionsMap } from 'lightweight-charts';
+import {
+  IChartApi,
+  ISeriesApi,
+  UTCTimestamp,
+  SeriesOptionsMap,
+  Time,
+  CustomData,
+  BarData,
+  LineData,
+  HistogramData,
+  CandlestickData,
+  AreaData,
+  BaselineData,
+} from 'lightweight-charts';
 
 // =============================================================================
 // CHART API INTERFACES
 // =============================================================================
+
+/**
+ * Pending trade rectangle entry
+ */
+export interface PendingTradeRectangle {
+  series: ExtendedSeriesApi;
+  trade: TradeData;
+  rectangleConfig: RectangleConfig;
+}
+
+/**
+ * Pending rectangle batch entry
+ */
+export interface PendingRectangleBatch {
+  rectangles: RectangleConfig[];
+  series: ExtendedSeriesApi;
+  chartId: string;
+}
 
 /**
  * Extended chart API with commonly used properties
@@ -41,18 +72,7 @@ export interface ExtendedChartApi extends IChartApi {
   _timeRangeStorageListenerAdded?: boolean;
   _isExternalSync?: boolean;
   _isExternalTimeRangeSync?: boolean;
-  _pendingTradeRectangles?: Array<
-    | {
-        series: ISeriesApi<any>;
-        trade: TradeData;
-        rectangleConfig: RectangleConfig;
-      }
-    | {
-        rectangles: any[];
-        series: ISeriesApi<any>;
-        chartId: string;
-      }
-  >;
+  _pendingTradeRectangles?: Array<PendingTradeRectangle | PendingRectangleBatch>;
   _userHasInteracted?: boolean;
   _model?: {
     timeScale?: {
@@ -83,7 +103,7 @@ export interface ExtendedSeriesApi<TData extends keyof SeriesOptionsMap = keyof 
  * Base data point interface
  */
 export interface BaseDataPoint {
-  time: UTCTimestamp | string | number;
+  time: Time;
   value?: number;
   color?: string;
 }
@@ -142,7 +162,14 @@ export type SeriesDataPoint =
   | LineDataPoint
   | HistogramDataPoint
   | BaselineDataPoint
-  | BandDataPoint;
+  | BandDataPoint
+  | CustomData<Time>
+  | BarData<Time>
+  | LineData<Time>
+  | HistogramData<Time>
+  | CandlestickData<Time>
+  | AreaData<Time>
+  | BaselineData<Time>;
 
 // =============================================================================
 // TRADE AND VISUALIZATION INTERFACES
@@ -153,8 +180,8 @@ export type SeriesDataPoint =
  */
 export interface TradeData {
   id?: string;
-  entryTime: UTCTimestamp | string | number;
-  exitTime: UTCTimestamp | string | number;
+  entryTime: Time;
+  exitTime: Time;
   entryPrice: number;
   exitPrice: number;
   quantity?: number;
@@ -188,7 +215,7 @@ export interface RectangleConfig {
  */
 export interface ShapeData {
   type: 'rectangle' | 'line' | 'arrow' | 'circle';
-  points: Array<{ time: UTCTimestamp; price: number }>;
+  points: Array<{ time: Time; price: number }>;
   color?: string;
   fillColor?: string;
   borderWidth?: number;
@@ -238,7 +265,7 @@ export interface TemplateContext {
   low?: number;
   close?: number;
   volume?: number;
-  time?: UTCTimestamp | string | number;
+  time?: Time;
   value?: number;
   change?: number;
   changePercent?: number;
@@ -363,8 +390,110 @@ export interface PaneCoordinates {
 }
 
 // =============================================================================
+// ANNOTATION AND MARKER INTERFACES
+// =============================================================================
+
+/**
+ * Annotation data structure
+ */
+export interface Annotation {
+  id?: string;
+  time: Time;
+  price?: number;
+  text?: string;
+  color?: string;
+  backgroundColor?: string;
+  borderColor?: string;
+  textColor?: string;
+  shape?: 'circle' | 'square' | 'diamond' | 'arrow_up' | 'arrow_down' | 'flag';
+  position?: 'aboveBar' | 'belowBar' | 'inBar';
+  size?: number;
+  layer?: number;
+  visible?: boolean;
+  customData?: Record<string, unknown>;
+}
+
+/**
+ * Annotation layers structure
+ */
+export interface AnnotationLayers {
+  layers: Annotation[][];
+  config?: {
+    layerOrder?: number[];
+    defaultLayer?: number;
+  };
+}
+
+/**
+ * Marker data structure for series
+ */
+export interface MarkerData {
+  time: Time;
+  position: 'aboveBar' | 'belowBar' | 'inBar';
+  color?: string;
+  shape?: 'circle' | 'square' | 'arrowUp' | 'arrowDown';
+  text?: string;
+  size?: number;
+  id?: string;
+}
+
+/**
+ * Primitive data structure
+ */
+export interface PrimitiveData {
+  type: string;
+  options?: Record<string, unknown>;
+  data?: unknown[];
+  zIndex?: number;
+  visible?: boolean;
+}
+
+/**
+ * Destroyable object interface for widgets and plugins
+ */
+export interface Destroyable {
+  destroy: () => void;
+}
+
+/**
+ * Plugin configuration
+ */
+export interface PluginConfig {
+  id: string;
+  type: string;
+  options?: Record<string, unknown>;
+  enabled?: boolean;
+  priority?: number;
+}
+
+/**
+ * Widget configuration
+ */
+export interface WidgetConfig {
+  id: string;
+  type: string;
+  paneId?: number;
+  position?: CornerPosition;
+  options?: Record<string, unknown>;
+  visible?: boolean;
+  zIndex?: number;
+}
+
+// =============================================================================
 // EVENT AND CALLBACK INTERFACES
 // =============================================================================
+
+/**
+ * Mouse event parameter for crosshair move events
+ */
+export interface MouseEventParams {
+  time?: Time;
+  point?: CoordinatePoint;
+  seriesData: Map<ExtendedSeriesApi, SeriesDataPoint | null>;
+  hoveredSeries?: ExtendedSeriesApi;
+  hoveredMarkerId?: string;
+  sourceEvent?: MouseEvent | TouchEvent;
+}
 
 /**
  * Crosshair event data
@@ -554,12 +683,12 @@ export type DeepPartial<T> = {
 /**
  * Extract function parameter types
  */
-export type ParameterType<T> = T extends (..._args: infer P) => any ? P : never;
+export type ParameterType<T> = T extends (..._args: infer P) => unknown ? P : never;
 
 /**
  * Extract function return type
  */
-export type ReturnType<T> = T extends (..._args: any[]) => infer R ? R : never;
+export type FunctionReturnType<T> = T extends (..._args: never[]) => infer R ? R : never;
 
 /**
  * Non-nullable type utility

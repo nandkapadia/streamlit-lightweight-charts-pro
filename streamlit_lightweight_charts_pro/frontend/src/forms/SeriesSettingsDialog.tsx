@@ -16,7 +16,6 @@ import { createPortal } from 'react-dom';
 import { logger } from '../utils/logger';
 import { LineEditorDialog } from './LineEditorDialog';
 import { ColorPickerDialog } from './ColorPickerDialog';
-// import { useSeriesSettingsAPI } from '../hooks/useSeriesSettingsAPI'; // Temporarily disabled to prevent rerenders
 import { SeriesSettingsRenderer } from '../components/SeriesSettingsRenderer';
 import { getSeriesSettings } from '../config/seriesSettingsRegistry';
 import {
@@ -148,9 +147,6 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
   // React 19 hooks for form handling and optimistic updates
   const [isPending] = useTransition();
-
-  // API hooks for backend communication (currently disabled to prevent rerenders)
-  // const { updateMultipleSettings } = useSeriesSettingsAPI();
 
   // Initialize configs from props (chart state is source of truth)
   useEffect(() => {
@@ -308,10 +304,6 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       document.body.style.pointerEvents = '';
     };
   }, []);
-
-  // Debounced backend sync state (currently disabled to prevent rerenders)
-  // const pendingBackendUpdates = useRef<Map<string, Partial<SeriesConfig>>>(new Map());
-  // const backendSyncTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Handle configuration changes with immediate UI updates and debounced backend sync
   const handleConfigChange = useCallback(
