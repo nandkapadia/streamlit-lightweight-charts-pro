@@ -36,7 +36,6 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Local Imports
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
     PriceScaleMargins,
@@ -54,6 +53,12 @@ from streamlit_lightweight_charts_pro.charts.series_settings_api import (
 from streamlit_lightweight_charts_pro.component import (  # pylint: disable=import-outside-toplevel
     get_component_func,
     reinitialize_component,
+)
+
+# Local Imports
+from streamlit_lightweight_charts_pro.constants import (
+    HISTOGRAM_DOWN_COLOR_DEFAULT,
+    HISTOGRAM_UP_COLOR_DEFAULT,
 )
 from streamlit_lightweight_charts_pro.data.annotation import Annotation, AnnotationManager
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
@@ -740,8 +745,8 @@ class Chart:
         price_series._display_name = "Price"  # pylint: disable=protected-access
 
         # Extract volume-specific kwargs
-        volume_up_color = volume_kwargs.get("up_color", "rgba(38,166,154,0.5)")
-        volume_down_color = volume_kwargs.get("down_color", "rgba(239,83,80,0.5)")
+        volume_up_color = volume_kwargs.get("up_color", HISTOGRAM_UP_COLOR_DEFAULT)
+        volume_down_color = volume_kwargs.get("down_color", HISTOGRAM_DOWN_COLOR_DEFAULT)
         volume_base = volume_kwargs.get("base", 0)
 
         # Add overlay price scale for volume

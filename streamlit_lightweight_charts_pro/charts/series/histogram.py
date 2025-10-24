@@ -53,6 +53,12 @@ import pandas as pd
 
 # Local Imports
 from streamlit_lightweight_charts_pro.charts.series.base import Series
+
+# Local Imports (Constants)
+from streamlit_lightweight_charts_pro.constants import (
+    HISTOGRAM_DOWN_COLOR_DEFAULT,
+    HISTOGRAM_UP_COLOR_DEFAULT,
+)
 from streamlit_lightweight_charts_pro.data import Data
 from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
@@ -152,8 +158,8 @@ class HistogramSeries(Series):
         cls,
         data: Union[Sequence[OhlcvData], pd.DataFrame],
         column_mapping: dict,
-        up_color: str = "rgba(38,166,154,0.5)",
-        down_color: str = "rgba(239,83,80,0.5)",
+        up_color: str = HISTOGRAM_UP_COLOR_DEFAULT,
+        down_color: str = HISTOGRAM_DOWN_COLOR_DEFAULT,
         **kwargs,
     ) -> "HistogramSeries":
         """Create a histogram series for volume data with colors based on price movement.
@@ -169,9 +175,9 @@ class HistogramSeries(Series):
             column_mapping (dict): Mapping of required fields to column names.
                 Must include "open", "close", and "volume" mappings.
             up_color (str, optional): Color for bullish candles (close >= open).
-                Defaults to "rgba(38,166,154,0.5)" (teal with transparency).
+                Defaults to HISTOGRAM_UP_COLOR_DEFAULT (teal with transparency).
             down_color (str, optional): Color for bearish candles (close < open).
-                Defaults to "rgba(239,83,80,0.5)" (red with transparency).
+                Defaults to HISTOGRAM_DOWN_COLOR_DEFAULT (red with transparency).
             **kwargs: Additional arguments for HistogramSeries constructor.
 
         Returns:

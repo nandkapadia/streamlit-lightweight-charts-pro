@@ -30,6 +30,14 @@ import pandas as pd
 
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series.base import Series
+from streamlit_lightweight_charts_pro.constants import (
+    BASELINE_BOTTOM_FILL_COLOR1,
+    BASELINE_BOTTOM_FILL_COLOR2,
+    BASELINE_BOTTOM_LINE_COLOR,
+    BASELINE_TOP_FILL_COLOR1,
+    BASELINE_TOP_FILL_COLOR2,
+    BASELINE_TOP_LINE_COLOR,
+)
 from streamlit_lightweight_charts_pro.data.baseline_data import BaselineData
 from streamlit_lightweight_charts_pro.exceptions import BaseValueFormatError, ColorValidationError
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
@@ -84,12 +92,12 @@ class BaselineSeries(Series):
         # Baseline-specific properties (not in LineOptions) - set default values internally
         self._base_value = self._validate_base_value({"type": "price", "price": 0})
         self._relative_gradient = False
-        self._top_fill_color1 = "rgba(38, 166, 154, 0.28)"
-        self._top_fill_color2 = "rgba(38, 166, 154, 0.05)"
-        self._top_line_color = "rgba(38, 166, 154, 1)"
-        self._bottom_fill_color1 = "rgba(239, 83, 80, 0.05)"
-        self._bottom_fill_color2 = "rgba(239, 83, 80, 0.28)"
-        self._bottom_line_color = "rgba(239, 83, 80, 1)"
+        self._top_fill_color1 = BASELINE_TOP_FILL_COLOR1
+        self._top_fill_color2 = BASELINE_TOP_FILL_COLOR2
+        self._top_line_color = BASELINE_TOP_LINE_COLOR
+        self._bottom_fill_color1 = BASELINE_BOTTOM_FILL_COLOR1
+        self._bottom_fill_color2 = BASELINE_BOTTOM_FILL_COLOR2
+        self._bottom_line_color = BASELINE_BOTTOM_LINE_COLOR
 
     def _validate_base_value(self, base_value: Union[int, float, Dict[str, Any]]) -> Dict[str, Any]:
         """Validate and normalize base_value."""

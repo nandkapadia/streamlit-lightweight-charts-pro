@@ -15,6 +15,7 @@ import psutil
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
+from streamlit_lightweight_charts_pro.constants import HISTOGRAM_UP_COLOR_DEFAULT
 from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
 from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
@@ -150,7 +151,7 @@ class TestHistogramSeriesCreateVolumeSeries:
 
         assert isinstance(volume_series, HistogramSeries)
         assert len(volume_series.data) == 1
-        assert volume_series.data[0].color == "rgba(38,166,154,0.5)"  # Default up color
+        assert volume_series.data[0].color == HISTOGRAM_UP_COLOR_DEFAULT  # Default up color
 
     def test_equal_open_close(self):
         """Test when open equals close (should be treated as bullish)."""

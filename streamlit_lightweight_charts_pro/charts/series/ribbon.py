@@ -10,6 +10,7 @@ import pandas as pd
 
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series.base import Series
+from streamlit_lightweight_charts_pro.constants import RIBBON_FILL_COLOR
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
@@ -72,7 +73,7 @@ class RibbonSeries(Series):
         self._lower_line = LineOptions(color="#F44336", line_width=2, line_style=LineStyle.SOLID)
 
         # Initialize fill color
-        self._fill = "rgba(76, 175, 80, 0.1)"
+        self._fill = RIBBON_FILL_COLOR
 
         # Initialize fill visibility (default to True)
         self._fill_visible = True
