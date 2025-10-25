@@ -45,7 +45,6 @@ import {
   PrimitivePaneViewZOrder,
 } from 'lightweight-charts';
 import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
-import { getSolidColorFromFill } from '../utils/colorUtils';
 import {
   convertToCoordinates,
   MultiCoordinatePoint,

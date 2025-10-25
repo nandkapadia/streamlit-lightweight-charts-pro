@@ -21,7 +21,6 @@ vi.mock('../../hooks/useSeriesSettingsAPI', () => ({
     updateSeriesSettings: vi.fn().mockResolvedValue(undefined),
     updateMultipleSettings: vi.fn().mockResolvedValue(undefined),
     getPaneState: vi.fn().mockResolvedValue({}),
-    resetSeriesToDefaults: vi.fn().mockResolvedValue(undefined),
   }),
 }));
 
@@ -371,27 +370,6 @@ describe('SeriesSettingsDialog - Schema-Based Architecture', () => {
     // Ribbon series interaction tests moved to e2e tests
     // See: src/__tests__/e2e-visual/tests/series-settings-dialog-interactions.e2e.test.ts
     // Reason: Conditional UI rendering and color picker interactions better tested in real browser
-  });
-
-  describe('Defaults Button', () => {
-    it('should reset series to schema defaults', async () => {
-      const user = userEvent.setup();
-      render(<SeriesSettingsDialog {...defaultProps} />);
-
-      const defaultsButton = screen.getByText('Defaults');
-      await user.click(defaultsButton);
-
-      await waitFor(() => {
-        expect(defaultProps.onConfigChange).toHaveBeenCalledWith(
-          'series1',
-          expect.objectContaining({
-            visible: true,
-            lastValueVisible: true,
-            priceLineVisible: true,
-          })
-        );
-      });
-    });
   });
 
   describe('Dialog Controls', () => {

@@ -92,7 +92,7 @@ export interface SignalSeriesOptions extends CustomSeriesOptions {
 const defaultSignalOptions: SignalSeriesOptions = {
   ...customSeriesDefaultOptions,
   neutralColor: 'rgba(128, 128, 128, 0.3)', // Match descriptor default (30% opacity for visibility)
-  signalColor: 'rgba(41, 98, 255, 0.3)',    // Match descriptor default (30% opacity for visibility)
+  signalColor: 'rgba(41, 98, 255, 0.3)', // Match descriptor default (30% opacity for visibility)
   alertColor: undefined, // Default to undefined to allow proper None handling from Python
   lastValueVisible: false,
   title: 'Signal',
@@ -324,7 +324,7 @@ export function createSignalSeries(
   const series = (chart as any).addCustomSeries(SignalSeriesPlugin(), {
     _seriesType: 'Signal', // Internal property for series type identification
     neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.3)', // Match descriptor default (30% opacity)
-    signalColor: options.signalColor ?? 'rgba(41, 98, 255, 0.3)',     // Match descriptor default (30% opacity)
+    signalColor: options.signalColor ?? 'rgba(41, 98, 255, 0.3)', // Match descriptor default (30% opacity)
     alertColor: options.alertColor, // Don't provide default - let it be undefined if not specified
     priceScaleId: options.priceScaleId ?? 'right',
     lastValueVisible: options.lastValueVisible ?? false,
@@ -344,7 +344,7 @@ export function createSignalSeries(
     void import('../../primitives/SignalPrimitive').then(({ SignalPrimitive }) => {
       const primitive = new SignalPrimitive(chart, {
         neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.3)', // Match descriptor default
-        signalColor: options.signalColor ?? 'rgba(41, 98, 255, 0.3)',     // Match descriptor default
+        signalColor: options.signalColor ?? 'rgba(41, 98, 255, 0.3)', // Match descriptor default
         alertColor: options.alertColor, // Don't provide default - let it be undefined if not specified
         visible: options.visible !== false,
         zIndex: options.zIndex ?? -100,
