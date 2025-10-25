@@ -43,7 +43,10 @@ from enum import Enum
 from typing import Any
 
 # Local Imports
-from streamlit_lightweight_charts_pro.utils.data_utils import snake_to_camel
+from streamlit_lightweight_charts_pro.utils.case_converter import CaseConverter
+
+# For backward compatibility, use the centralized implementation
+snake_to_camel = CaseConverter.snake_to_camel
 
 
 class SerializationConfig:

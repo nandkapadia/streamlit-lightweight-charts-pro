@@ -24,26 +24,36 @@ class SignalData(SingleValueData):
     Attributes:
         time (Union[str, datetime]): Time point for the signal. Can be a string
             in ISO format (YYYY-MM-DD) or a datetime object.
-        value (int): Signal value that determines background color.
-            0: First color (typically neutral/white)
-            1: Second color (typically highlight color)
-            2: Third color (optional, for ternary signals)
+        value (Union[int, bool]): Signal value that determines background color.
+            Accepts both integers and booleans (converted to int automatically):
+            - 0 or False: First color (typically neutral/gray)
+            - 1 or True: Second color (typically signal/blue)
+            - 2: Third color (optional, for ternary signals/alerts)
 
     Example:
         ```python
         # Create signal data for background coloring
-        signal_data = [
-            SignalData("2024-01-01", 0),  # Uses series-level color for value=0
-            SignalData("2024-01-02", 1),  # Uses series-level color for value=1
-            SignalData("2024-01-03", 0, color="#e8f5e8"),  # Individual light green color
-            SignalData("2024-01-04", 1, color="#ffe8e8"),  # Individual light red color
+        # Using integers (0, 1, 2)
+        signal_data_int = [
+            SignalData("2024-01-01", 0),  # Neutral (uses neutral_color)
+            SignalData("2024-01-02", 1),  # Signal (uses signal_color)
+            SignalData("2024-01-03", 0, color="#e8f5e8"),  # Custom light green
+            SignalData("2024-01-04", 1, color="#ffe8e8"),  # Custom light red
+        ]
+
+        # Using booleans (False, True) - more natural for binary signals
+        signal_data_bool = [
+            SignalData("2024-01-01", False),  # Neutral (False → 0)
+            SignalData("2024-01-02", True),  # Signal (True → 1)
+            SignalData("2024-01-03", False),  # Neutral
+            SignalData("2024-01-04", True),  # Signal
         ]
 
         # Use with SignalSeries
         signal_series = SignalSeries(
-            data=signal_data,
-            neutral_color="#ffffff",  # White for value=0 (when no individual color)
-            signal_color="#ff0000",  # Red for value=1 (when no individual color)
+            data=signal_data_bool,  # Works with both int and bool values
+            neutral_color="#808080",  # Gray for False/0 (neutral)
+            signal_color="#2962FF",  # Blue for True/1 (signal)
         )
         ```
     """

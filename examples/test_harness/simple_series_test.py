@@ -218,9 +218,9 @@ def generate_sample_data(points: int = 100) -> dict:
     ]
 
     # Signal data (buy/sell markers)
-    signal_data = [
-        SignalData(time=times[i], value=0 if i % 8 == 0 else 1) for i in range(0, points, 8)
-    ]
+    # Create alternating signal values: False (neutral) and True (signal)
+    # Both bool and int (0, 1, 2) are supported - frontend converts bool to int automatically
+    signal_data = [SignalData(time=times[i], value=bool((i // 8) % 2)) for i in range(0, points, 8)]
 
     # Trade data
     trades = [

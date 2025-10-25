@@ -91,8 +91,8 @@ export interface SignalSeriesOptions extends CustomSeriesOptions {
  */
 const defaultSignalOptions: SignalSeriesOptions = {
   ...customSeriesDefaultOptions,
-  neutralColor: 'rgba(128, 128, 128, 0.1)',
-  signalColor: 'rgba(76, 175, 80, 0.2)',
+  neutralColor: 'rgba(128, 128, 128, 0.3)', // Match descriptor default (30% opacity for visibility)
+  signalColor: 'rgba(41, 98, 255, 0.3)',    // Match descriptor default (30% opacity for visibility)
   alertColor: undefined, // Default to undefined to allow proper None handling from Python
   lastValueVisible: false,
   title: 'Signal',
@@ -153,10 +153,17 @@ class SignalSeriesRenderer<TData extends SignalData> implements ICustomSeriesPan
     for (const bar of this._data.bars) {
       const signalData = bar.originalData as TData;
 
+      // Convert boolean to number if needed (true -> 1, false -> 0)
+      // This allows Python users to use bool values naturally
+      let value = signalData.value;
+      if (typeof value === 'boolean') {
+        value = value ? 1 : 0;
+      }
+
       // Determine color for this signal
       let color = signalData.color;
       if (!color) {
-        color = this.getColorForValue(signalData.value, this._options);
+        color = this.getColorForValue(value, this._options);
       }
 
       // Skip transparent colors
@@ -316,8 +323,8 @@ export function createSignalSeries(
   // Create ICustomSeries (always created for autoscaling)
   const series = (chart as any).addCustomSeries(SignalSeriesPlugin(), {
     _seriesType: 'Signal', // Internal property for series type identification
-    neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
-    signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
+    neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.3)', // Match descriptor default (30% opacity)
+    signalColor: options.signalColor ?? 'rgba(41, 98, 255, 0.3)',     // Match descriptor default (30% opacity)
     alertColor: options.alertColor, // Don't provide default - let it be undefined if not specified
     priceScaleId: options.priceScaleId ?? 'right',
     lastValueVisible: options.lastValueVisible ?? false,
@@ -336,8 +343,8 @@ export function createSignalSeries(
   if (usePrimitive) {
     void import('../../primitives/SignalPrimitive').then(({ SignalPrimitive }) => {
       const primitive = new SignalPrimitive(chart, {
-        neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
-        signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
+        neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.3)', // Match descriptor default
+        signalColor: options.signalColor ?? 'rgba(41, 98, 255, 0.3)',     // Match descriptor default
         alertColor: options.alertColor, // Don't provide default - let it be undefined if not specified
         visible: options.visible !== false,
         zIndex: options.zIndex ?? -100,

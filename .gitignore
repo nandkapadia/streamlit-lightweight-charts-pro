@@ -182,4 +182,3 @@ test_*.py.bak
 .env.development
 .env.test
 .env.production
-streamlit_lightweight_charts_pro/frontend/*

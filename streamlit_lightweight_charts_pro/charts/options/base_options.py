@@ -48,6 +48,7 @@ from typing import Any, Dict
 
 # Local Imports
 from streamlit_lightweight_charts_pro.logging_config import get_logger
+from streamlit_lightweight_charts_pro.utils.case_converter import CaseConverter
 from streamlit_lightweight_charts_pro.utils.data_utils import snake_to_camel
 from streamlit_lightweight_charts_pro.utils.serialization import SerializableMixin
 
@@ -215,15 +216,19 @@ class Options(SerializableMixin, ABC):
     def _camel_to_snake(self, camel_case: str) -> str:
         """Convert camelCase to snake_case.
 
+        This is a convenience wrapper around CaseConverter.camel_to_snake()
+        for backward compatibility with existing code.
+
         Args:
             camel_case: String in camelCase format.
 
         Returns:
             String in snake_case format.
-        """
-        import re  # pylint: disable=import-outside-toplevel
 
-        return re.sub(r"(?<!^)(?=[A-Z])", "_", camel_case).lower()
+        See Also:
+            CaseConverter.camel_to_snake: The main implementation in case_converter.py.
+        """
+        return CaseConverter.camel_to_snake(camel_case)
 
     def _process_dict_recursively(self, data: Any) -> Any:
         """Recursively process data structures to handle Options objects.
