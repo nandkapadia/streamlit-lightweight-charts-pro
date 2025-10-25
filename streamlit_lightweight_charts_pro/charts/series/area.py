@@ -55,7 +55,6 @@ from streamlit_lightweight_charts_pro.charts.series.base import Series
 # Local Imports (Constants)
 from streamlit_lightweight_charts_pro.constants import (
     AREA_BOTTOM_COLOR_DEFAULT,
-    AREA_TOP_COLOR_DEFAULT,
     COLOR_BLUE_MATERIAL,
 )
 from streamlit_lightweight_charts_pro.data.area_data import AreaData

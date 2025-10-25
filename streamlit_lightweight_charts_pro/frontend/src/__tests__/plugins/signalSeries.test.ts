@@ -23,7 +23,7 @@ describe('SignalSeries Plugin', () => {
       options: vi.fn(() => ({
         neutralColor: 'rgba(128, 128, 128, 0.1)',
         signalColor: 'rgba(76, 175, 80, 0.2)',
-        alertColor: 'rgba(244, 67, 54, 0.2)',
+        alertColor: undefined, // Default to undefined to match new behavior
       })),
       applyOptions: vi.fn(),
       attachPrimitive: vi.fn(),
@@ -45,7 +45,22 @@ describe('SignalSeries Plugin', () => {
       expect(series).toBeDefined();
     });
 
-    it('should apply custom colors', () => {
+    it('should handle undefined alertColor correctly', () => {
+      createSignalSeries(mockChart, {
+        neutralColor: 'rgba(100, 100, 100, 0.1)',
+        signalColor: 'rgba(0, 255, 0, 0.2)',
+        // alertColor not specified - should be undefined
+      });
+
+      const call = mockChart.addCustomSeries.mock.calls[0];
+      const options = call[1];
+
+      expect(options.neutralColor).toBe('rgba(100, 100, 100, 0.1)');
+      expect(options.signalColor).toBe('rgba(0, 255, 0, 0.2)');
+      expect(options.alertColor).toBeUndefined();
+    });
+
+    it('should apply custom colors including alertColor', () => {
       createSignalSeries(mockChart, {
         neutralColor: 'rgba(100, 100, 100, 0.1)',
         signalColor: 'rgba(0, 255, 0, 0.2)',
@@ -337,7 +352,8 @@ describe('SignalSeries Plugin', () => {
       expect(options).toBeDefined();
       expect(options.neutralColor).toBeDefined();
       expect(options.signalColor).toBeDefined();
-      expect(options.alertColor).toBeDefined();
+      // alertColor can be undefined when not specified
+      expect(options.alertColor).toBeUndefined();
     });
   });
 });

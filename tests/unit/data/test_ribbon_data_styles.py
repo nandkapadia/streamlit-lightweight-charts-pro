@@ -1,12 +1,12 @@
-"""Unit tests for RibbonData per-point styling.
+"""Unit tests for RibbonData per-point color properties.
 
-This module tests the RibbonData class with per-point styling functionality.
+This module tests the RibbonData class with per-point color override functionality.
 """
 
 import pytest
 
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
-from streamlit_lightweight_charts_pro.data.styles import FillStyle, LineStyle, PerPointStyles
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 
 
 @pytest.fixture
@@ -14,253 +14,303 @@ def valid_time() -> int:
     return 1704067200  # 2024-01-01 00:00:00 UTC
 
 
-class TestRibbonDataPerPointStyling:
-    """Test cases for RibbonData per-point styling."""
+class TestRibbonDataPerPointColors:
+    """Test cases for RibbonData per-point color properties."""
 
-    def test_ribbon_data_without_styles(self, valid_time):
-        """Test RibbonData without per-point styling."""
+    def test_ribbon_data_without_color_overrides(self, valid_time):
+        """Test RibbonData without per-point color overrides."""
         data = RibbonData(time=valid_time, upper=110.0, lower=100.0)
-        assert data.styles is None
+        assert data.upper_line_color is None
+        assert data.lower_line_color is None
+        assert data.fill is None
 
         serialized = data.asdict()
-        assert "styles" not in serialized
+        assert "upperLineColor" not in serialized
+        assert "lowerLineColor" not in serialized
+        assert "fill" not in serialized
 
-    def test_ribbon_data_with_upper_line_style(self, valid_time):
-        """Test RibbonData with upper line styling."""
+    def test_ribbon_data_with_upper_line_color(self, valid_time):
+        """Test RibbonData with upper line color override."""
         data = RibbonData(
             time=valid_time,
             upper=110.0,
             lower=100.0,
-            styles=PerPointStyles(upper_line=LineStyle(color="#ff0000", width=3)),
+            upper_line_color="#ff0000",
         )
 
-        assert data.styles is not None
-        assert data.styles.upper_line is not None
-        assert data.styles.upper_line.color == "#ff0000"
-        assert data.styles.upper_line.width == 3
+        assert data.upper_line_color == "#ff0000"
+        assert data.lower_line_color is None
+        assert data.fill is None
 
-    def test_ribbon_data_with_lower_line_style(self, valid_time):
-        """Test RibbonData with lower line styling."""
+        serialized = data.asdict()
+        assert serialized["upperLineColor"] == "#ff0000"
+        assert "lowerLineColor" not in serialized
+        assert "fill" not in serialized
+
+    def test_ribbon_data_with_lower_line_color(self, valid_time):
+        """Test RibbonData with lower line color override."""
         data = RibbonData(
             time=valid_time,
             upper=110.0,
             lower=100.0,
-            styles=PerPointStyles(lower_line=LineStyle(color="#0000ff", width=2, style=1)),
+            lower_line_color="#0000ff",
         )
 
-        assert data.styles is not None
-        assert data.styles.lower_line is not None
-        assert data.styles.lower_line.color == "#0000ff"
-        assert data.styles.lower_line.width == 2
-        assert data.styles.lower_line.style == 1
+        assert data.lower_line_color == "#0000ff"
+        assert data.upper_line_color is None
+        assert data.fill is None
 
-    def test_ribbon_data_with_fill_style(self, valid_time):
-        """Test RibbonData with fill styling."""
+        serialized = data.asdict()
+        assert serialized["lowerLineColor"] == "#0000ff"
+        assert "upperLineColor" not in serialized
+        assert "fill" not in serialized
+
+    def test_ribbon_data_with_fill_color(self, valid_time):
+        """Test RibbonData with fill color override."""
         data = RibbonData(
             time=valid_time,
             upper=110.0,
             lower=100.0,
-            styles=PerPointStyles(fill=FillStyle(color="rgba(128, 128, 128, 0.3)", visible=True)),
+            fill="rgba(128, 128, 128, 0.3)",
         )
 
-        assert data.styles is not None
-        assert data.styles.fill is not None
-        assert data.styles.fill.color == "rgba(128, 128, 128, 0.3)"
-        assert data.styles.fill.visible is True
+        assert data.fill == "rgba(128, 128, 128, 0.3)"
+        assert data.upper_line_color is None
+        assert data.lower_line_color is None
 
-    def test_ribbon_data_with_complete_styles(self, valid_time):
-        """Test RibbonData with complete per-point styling."""
+        serialized = data.asdict()
+        assert serialized["fill"] == "rgba(128, 128, 128, 0.3)"
+        assert "upperLineColor" not in serialized
+        assert "lowerLineColor" not in serialized
+
+    def test_ribbon_data_with_all_color_overrides(self, valid_time):
+        """Test RibbonData with all per-point color overrides."""
         data = RibbonData(
             time=valid_time,
             upper=110.0,
             lower=100.0,
-            styles=PerPointStyles(
-                upper_line=LineStyle(color="#ff0000", width=3, style=2),
-                lower_line=LineStyle(color="#0000ff", width=2, style=1),
-                fill=FillStyle(color="rgba(128, 128, 128, 0.3)", visible=True),
-            ),
+            upper_line_color="#ff0000",
+            lower_line_color="#0000ff",
+            fill="rgba(128, 128, 128, 0.3)",
         )
 
-        assert data.styles.upper_line.color == "#ff0000"
-        assert data.styles.lower_line.color == "#0000ff"
-        assert data.styles.fill.color == "rgba(128, 128, 128, 0.3)"
+        assert data.upper_line_color == "#ff0000"
+        assert data.lower_line_color == "#0000ff"
+        assert data.fill == "rgba(128, 128, 128, 0.3)"
 
-    def test_ribbon_data_styles_serialization(self, valid_time):
-        """Test RibbonData styles serialization to camelCase JSON."""
+        serialized = data.asdict()
+        assert serialized["upperLineColor"] == "#ff0000"
+        assert serialized["lowerLineColor"] == "#0000ff"
+        assert serialized["fill"] == "rgba(128, 128, 128, 0.3)"
+
+    def test_ribbon_data_color_serialization(self, valid_time):
+        """Test RibbonData color serialization to camelCase JSON."""
         data = RibbonData(
             time=valid_time,
             upper=110.0,
             lower=100.0,
-            styles=PerPointStyles(upper_line=LineStyle(color="#ff0000", width=3)),
+            upper_line_color="#ff0000",
         )
 
         serialized = data.asdict()
-
-        # Check styles field exists
-        assert "styles" in serialized
 
         # Check camelCase conversion
-        assert "upperLine" in serialized["styles"]
-        assert serialized["styles"]["upperLine"]["color"] == "#ff0000"
-        assert serialized["styles"]["upperLine"]["width"] == 3
+        assert "upperLineColor" in serialized
+        assert serialized["upperLineColor"] == "#ff0000"
 
         # Check snake_case not present
-        assert "upper_line" not in serialized["styles"]
+        assert "upper_line_color" not in serialized
 
-    def test_ribbon_data_styles_serialization_complete(self, valid_time):
-        """Test complete RibbonData styles serialization."""
+    def test_ribbon_data_complete_serialization(self, valid_time):
+        """Test complete RibbonData color serialization."""
         data = RibbonData(
             time=valid_time,
             upper=110.0,
             lower=100.0,
-            styles=PerPointStyles(
-                upper_line=LineStyle(color="#ff0000", width=3),
-                lower_line=LineStyle(color="#0000ff", width=2),
-                fill=FillStyle(color="rgba(128, 128, 128, 0.3)", visible=True),
-            ),
+            upper_line_color="#ff0000",
+            lower_line_color="#0000ff",
+            fill="rgba(128, 128, 128, 0.3)",
         )
 
         serialized = data.asdict()
 
-        # Check all style fields present
-        assert "upperLine" in serialized["styles"]
-        assert "lowerLine" in serialized["styles"]
-        assert "fill" in serialized["styles"]
+        # Check all color fields present in camelCase
+        assert "upperLineColor" in serialized
+        assert "lowerLineColor" in serialized
+        assert "fill" in serialized
 
         # Check band-specific fields not present
-        assert "middleLine" not in serialized["styles"]
-        assert "upperFill" not in serialized["styles"]
-        assert "lowerFill" not in serialized["styles"]
+        assert "middleLineColor" not in serialized
+        assert "upperFillColor" not in serialized
+        assert "lowerFillColor" not in serialized
 
-    def test_ribbon_data_styles_only_visible_false(self, valid_time):
-        """Test RibbonData with only visible=False styling."""
+    def test_ribbon_data_valid_hex_colors(self, valid_time):
+        """Test RibbonData with valid hex colors."""
         data = RibbonData(
             time=valid_time,
             upper=110.0,
             lower=100.0,
-            styles=PerPointStyles(fill=FillStyle(visible=False)),
+            upper_line_color="#2196F3",
+            lower_line_color="#4CAF50",
         )
 
-        serialized = data.asdict()
-        assert serialized["styles"]["fill"] == {"visible": False}
+        assert data.upper_line_color == "#2196F3"
+        assert data.lower_line_color == "#4CAF50"
 
-    def test_ribbon_data_styles_mixed_overrides(self, valid_time):
-        """Test RibbonData with mixed style overrides."""
+    def test_ribbon_data_valid_rgba_colors(self, valid_time):
+        """Test RibbonData with valid rgba colors."""
         data = RibbonData(
             time=valid_time,
             upper=110.0,
             lower=100.0,
-            styles=PerPointStyles(
-                upper_line=LineStyle(color="#ff0000"),  # Only color
-                lower_line=LineStyle(width=2),  # Only width
-            ),
+            upper_line_color="rgba(33, 150, 243, 0.5)",
+            lower_line_color="rgba(76, 175, 80, 1.0)",
+            fill="rgba(128, 128, 128, 0.2)",
         )
 
-        serialized = data.asdict()
+        assert data.upper_line_color == "rgba(33, 150, 243, 0.5)"
+        assert data.lower_line_color == "rgba(76, 175, 80, 1.0)"
+        assert data.fill == "rgba(128, 128, 128, 0.2)"
 
-        # Check partial overrides
-        assert serialized["styles"]["upperLine"] == {"color": "#ff0000"}
-        assert serialized["styles"]["lowerLine"] == {"width": 2}
+    def test_ribbon_data_invalid_upper_line_color(self, valid_time):
+        """Test RibbonData with invalid upper line color raises error."""
+        with pytest.raises(ValueValidationError):
+            RibbonData(
+                time=valid_time,
+                upper=110.0,
+                lower=100.0,
+                upper_line_color="invalid-color",
+            )
 
-        # Check missing fields not in serialization
-        assert "fill" not in serialized["styles"]
+    def test_ribbon_data_invalid_lower_line_color(self, valid_time):
+        """Test RibbonData with invalid lower line color raises error."""
+        with pytest.raises(ValueValidationError):
+            RibbonData(
+                time=valid_time,
+                upper=110.0,
+                lower=100.0,
+                lower_line_color="not-a-color",
+            )
 
-    def test_ribbon_data_with_legacy_fill_and_styles(self, valid_time):
-        """Test RibbonData with both legacy fill and new styles."""
-        data = RibbonData(
-            time=valid_time,
-            upper=110.0,
-            lower=100.0,
-            fill="rgba(255, 0, 0, 0.1)",  # Legacy fill field
-            styles=PerPointStyles(
-                upper_line=LineStyle(color="#ff0000", width=3),
-                fill=FillStyle(color="rgba(128, 128, 128, 0.3)", visible=True),
-            ),
-        )
+    def test_ribbon_data_invalid_fill_color(self, valid_time):
+        """Test RibbonData with invalid fill color raises error."""
+        with pytest.raises(ValueValidationError):
+            RibbonData(
+                time=valid_time,
+                upper=110.0,
+                lower=100.0,
+                fill="bad-color-format",
+            )
 
-        serialized = data.asdict()
-
-        # Both fields should be present
-        assert "fill" in serialized  # Legacy field at top level
-        assert "styles" in serialized
-        assert "fill" in serialized["styles"]  # New per-point override
-
-    def test_ribbon_data_styles_dotted_line(self, valid_time):
-        """Test RibbonData with dotted line style."""
-        data = RibbonData(
-            time=valid_time,
-            upper=110.0,
-            lower=100.0,
-            styles=PerPointStyles(
-                upper_line=LineStyle(color="#ff0000", width=2, style=1)  # Dotted
-            ),
-        )
-
-        serialized = data.asdict()
-        assert serialized["styles"]["upperLine"]["style"] == 1
-
-    def test_ribbon_data_styles_dashed_line(self, valid_time):
-        """Test RibbonData with dashed line style."""
-        data = RibbonData(
-            time=valid_time,
-            upper=110.0,
-            lower=100.0,
-            styles=PerPointStyles(
-                lower_line=LineStyle(color="#0000ff", width=3, style=2)  # Dashed
-            ),
-        )
-
-        serialized = data.asdict()
-        assert serialized["styles"]["lowerLine"]["style"] == 2
-
-    def test_ribbon_data_series_with_mixed_styling(self, valid_time):
-        """Test a series of RibbonData points with mixed styling."""
+    def test_ribbon_data_series_with_mixed_colors(self, valid_time):
+        """Test a series of RibbonData points with mixed color overrides."""
         data_series = [
-            # Point 1: No custom styling
+            # Point 1: No custom colors
             RibbonData(time=valid_time, upper=110.0, lower=100.0),
-            # Point 2: Custom upper line only
+            # Point 2: Custom upper line color only
             RibbonData(
                 time=valid_time + 86400,
                 upper=112.0,
                 lower=102.0,
-                styles=PerPointStyles(upper_line=LineStyle(color="#ff0000", width=3)),
+                upper_line_color="#ff0000",
             ),
             # Point 3: Custom fill only
             RibbonData(
                 time=valid_time + 172800,
                 upper=115.0,
                 lower=105.0,
-                styles=PerPointStyles(fill=FillStyle(color="rgba(0, 255, 0, 0.2)")),
+                fill="rgba(0, 255, 0, 0.2)",
             ),
-            # Point 4: Complete custom styling
+            # Point 4: Complete custom colors
             RibbonData(
                 time=valid_time + 259200,
                 upper=118.0,
                 lower=108.0,
-                styles=PerPointStyles(
-                    upper_line=LineStyle(color="#ff00ff", width=2),
-                    lower_line=LineStyle(color="#00ffff", width=1),
-                    fill=FillStyle(color="rgba(128, 0, 128, 0.4)", visible=True),
-                ),
+                upper_line_color="#ff00ff",
+                lower_line_color="#00ffff",
+                fill="rgba(128, 0, 128, 0.4)",
             ),
         ]
 
         # Serialize all points
         serialized_series = [data.asdict() for data in data_series]
 
-        # Point 1 should not have styles
-        assert "styles" not in serialized_series[0]
+        # Point 1 should not have color overrides
+        assert "upperLineColor" not in serialized_series[0]
+        assert "lowerLineColor" not in serialized_series[0]
+        assert "fill" not in serialized_series[0]
 
-        # Point 2 should have upperLine only
-        assert "upperLine" in serialized_series[1]["styles"]
-        assert "lowerLine" not in serialized_series[1]["styles"]
-        assert "fill" not in serialized_series[1]["styles"]
+        # Point 2 should have upperLineColor only
+        assert "upperLineColor" in serialized_series[1]
+        assert "lowerLineColor" not in serialized_series[1]
+        assert "fill" not in serialized_series[1]
 
         # Point 3 should have fill only
-        assert "fill" in serialized_series[2]["styles"]
-        assert "upperLine" not in serialized_series[2]["styles"]
+        assert "fill" in serialized_series[2]
+        assert "upperLineColor" not in serialized_series[2]
+        assert "lowerLineColor" not in serialized_series[2]
 
         # Point 4 should have all fields
-        assert "upperLine" in serialized_series[3]["styles"]
-        assert "lowerLine" in serialized_series[3]["styles"]
-        assert "fill" in serialized_series[3]["styles"]
+        assert "upperLineColor" in serialized_series[3]
+        assert "lowerLineColor" in serialized_series[3]
+        assert "fill" in serialized_series[3]
+
+    def test_ribbon_data_partial_color_overrides(self, valid_time):
+        """Test RibbonData with partial color overrides."""
+        # Only upper line color
+        data1 = RibbonData(
+            time=valid_time,
+            upper=110.0,
+            lower=100.0,
+            upper_line_color="#ff0000",
+        )
+        serialized1 = data1.asdict()
+        assert serialized1["upperLineColor"] == "#ff0000"
+        assert "lowerLineColor" not in serialized1
+        assert "fill" not in serialized1
+
+        # Only lower line color
+        data2 = RibbonData(
+            time=valid_time,
+            upper=110.0,
+            lower=100.0,
+            lower_line_color="#00ff00",
+        )
+        serialized2 = data2.asdict()
+        assert serialized2["lowerLineColor"] == "#00ff00"
+        assert "upperLineColor" not in serialized2
+        assert "fill" not in serialized2
+
+    def test_ribbon_data_color_consistency(self, valid_time):
+        """Test that colors are preserved through serialization."""
+        original_data = RibbonData(
+            time=valid_time,
+            upper=110.0,
+            lower=100.0,
+            upper_line_color="#ff0000",
+            lower_line_color="#0000ff",
+            fill="rgba(128, 128, 128, 0.3)",
+        )
+
+        serialized = original_data.asdict()
+
+        # Verify all colors match
+        assert serialized["upperLineColor"] == "#ff0000"
+        assert serialized["lowerLineColor"] == "#0000ff"
+        assert serialized["fill"] == "rgba(128, 128, 128, 0.3)"
+
+    def test_ribbon_data_empty_string_colors(self, valid_time):
+        """Test RibbonData with empty string colors (should be allowed)."""
+        data = RibbonData(
+            time=valid_time,
+            upper=110.0,
+            lower=100.0,
+            upper_line_color="",
+            lower_line_color="",
+            fill="",
+        )
+
+        # Empty strings should be preserved
+        assert data.upper_line_color == ""
+        assert data.lower_line_color == ""
+        assert data.fill == ""

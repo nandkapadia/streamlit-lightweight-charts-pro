@@ -87,12 +87,13 @@ export interface SignalSeriesOptions extends CustomSeriesOptions {
  * Default options for Signal series
  * Note: lastValueVisible and priceLineVisible are false by default
  * since signals are background indicators
+ * alertColor is undefined by default to allow proper None handling from Python
  */
 const defaultSignalOptions: SignalSeriesOptions = {
   ...customSeriesDefaultOptions,
   neutralColor: 'rgba(128, 128, 128, 0.1)',
   signalColor: 'rgba(76, 175, 80, 0.2)',
-  alertColor: 'rgba(244, 67, 54, 0.2)',
+  alertColor: undefined, // Default to undefined to allow proper None handling from Python
   lastValueVisible: false,
   title: 'Signal',
   visible: true,
@@ -183,6 +184,8 @@ class SignalSeriesRenderer<TData extends SignalData> implements ICustomSeriesPan
     } else if (value > 0) {
       return options.signalColor || 'transparent';
     } else {
+      // For negative values, only use alertColor if it's defined
+      // If alertColor is undefined, fall back to signalColor or transparent
       return options.alertColor || options.signalColor || 'transparent';
     }
   }
@@ -315,7 +318,7 @@ export function createSignalSeries(
     _seriesType: 'Signal', // Internal property for series type identification
     neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
     signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
-    alertColor: options.alertColor ?? 'rgba(244, 67, 54, 0.2)',
+    alertColor: options.alertColor, // Don't provide default - let it be undefined if not specified
     priceScaleId: options.priceScaleId ?? 'right',
     lastValueVisible: options.lastValueVisible ?? false,
     title: options.title ?? 'Signal',
@@ -335,7 +338,7 @@ export function createSignalSeries(
       const primitive = new SignalPrimitive(chart, {
         neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
         signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
-        alertColor: options.alertColor ?? 'rgba(244, 67, 54, 0.2)',
+        alertColor: options.alertColor, // Don't provide default - let it be undefined if not specified
         visible: options.visible !== false,
         zIndex: options.zIndex ?? -100,
       });

@@ -485,7 +485,13 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
         // Interpolate Y values at the midpoint
         const currentTrendY = bar.trendLineY ?? 0;
         const nextTrendY = nextBar.trendLineY ?? 0;
-        const transitionTrendY = interpolateY(transitionX, currentX, currentTrendY, nextX, nextTrendY);
+        const transitionTrendY = interpolateY(
+          transitionX,
+          currentX,
+          currentTrendY,
+          nextX,
+          nextTrendY
+        );
 
         const currentBaseY = bar.baseLineY ?? 0;
         const nextBaseY = nextBar.baseLineY ?? 0;

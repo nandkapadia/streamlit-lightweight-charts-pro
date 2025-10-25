@@ -1,15 +1,13 @@
-"""Band Series Per-Point Styling Example.
+"""Band Series Per-Point Color Styling Example.
 
-This example demonstrates how to use per-point style overrides for Band series
-to customize individual data points with different line colors, widths, styles,
-and fill colors.
+This example demonstrates how to use per-point color overrides for Band series
+to customize individual data points with different line and fill colors.
 
 Features demonstrated:
-- Basic per-point styling with LineStyle and FillStyle
+- Basic per-point color styling
 - Highlighting specific data points (anomalies, signals)
 - Dynamic styling based on data conditions
-- Mixed styling (some points with custom styles, others using global options)
-- Complete style override examples showing all available options
+- Mixed styling (some points with custom colors, others using global options)
 """
 
 import pandas as pd
@@ -18,7 +16,6 @@ import streamlit as st
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import BandSeries
 from streamlit_lightweight_charts_pro.data import BandData
-from streamlit_lightweight_charts_pro.data.styles import FillStyle, LineStyle, PerPointStyles
 
 
 def create_bollinger_bands_data():
@@ -41,7 +38,6 @@ def create_bollinger_bands_data():
 
         # Simulate price breakouts
         if i in [15, 16, 17]:  # Breakout above upper band
-            actual_price = upper + 2
             # Highlight these points with red styling
             data.append(
                 BandData(
@@ -49,14 +45,11 @@ def create_bollinger_bands_data():
                     upper=upper,
                     middle=middle,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#ff0000", width=3),
-                        upper_fill=FillStyle(color="rgba(255, 0, 0, 0.3)", visible=True),
-                    ),
+                    upper_line_color="#ff0000",
+                    upper_fill_color="rgba(255, 0, 0, 0.3)",
                 )
             )
         elif i in [35, 36, 37]:  # Breakout below lower band
-            actual_price = lower - 2
             # Highlight these points with green styling
             data.append(
                 BandData(
@@ -64,10 +57,8 @@ def create_bollinger_bands_data():
                     upper=upper,
                     middle=middle,
                     lower=lower,
-                    styles=PerPointStyles(
-                        lower_line=LineStyle(color="#00ff00", width=3),
-                        lower_fill=FillStyle(color="rgba(0, 255, 0, 0.3)", visible=True),
-                    ),
+                    lower_line_color="#00ff00",
+                    lower_fill_color="rgba(0, 255, 0, 0.3)",
                 )
             )
         else:
@@ -81,8 +72,8 @@ def create_dynamic_volatility_bands():
     """Create bands with dynamic styling based on volatility.
 
     This example demonstrates:
-    - Wider lines during high volatility periods
-    - Dotted lines during low volatility
+    - Different colors during high volatility periods
+    - Different colors during low volatility
     - Color transitions based on market conditions
     """
     dates = pd.date_range("2024-01-01", periods=40, freq="D")
@@ -104,13 +95,11 @@ def create_dynamic_volatility_bands():
                     upper=upper,
                     middle=middle,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#ff6b6b", width=3, style=0),
-                        middle_line=LineStyle(color="#4ecdc4", width=2, style=0),
-                        lower_line=LineStyle(color="#ff6b6b", width=3, style=0),
-                        upper_fill=FillStyle(color="rgba(255, 107, 107, 0.2)"),
-                        lower_fill=FillStyle(color="rgba(255, 107, 107, 0.2)"),
-                    ),
+                    upper_line_color="#ff6b6b",
+                    middle_line_color="#4ecdc4",
+                    lower_line_color="#ff6b6b",
+                    upper_fill_color="rgba(255, 107, 107, 0.2)",
+                    lower_fill_color="rgba(255, 107, 107, 0.2)",
                 )
             )
         # Low volatility periods (volatility < 3)
@@ -121,11 +110,9 @@ def create_dynamic_volatility_bands():
                     upper=upper,
                     middle=middle,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#95e1d3", width=1, style=1),
-                        middle_line=LineStyle(color="#38ada9", width=1, style=1),
-                        lower_line=LineStyle(color="#95e1d3", width=1, style=1),
-                    ),
+                    upper_line_color="#95e1d3",
+                    middle_line_color="#38ada9",
+                    lower_line_color="#95e1d3",
                 )
             )
         else:
@@ -160,11 +147,9 @@ def create_signal_bands():
                     upper=upper,
                     middle=middle,
                     lower=lower,
-                    styles=PerPointStyles(
-                        middle_line=LineStyle(color="#00ff00", width=4, style=0),
-                        upper_fill=FillStyle(color="rgba(0, 255, 0, 0.15)", visible=True),
-                        lower_fill=FillStyle(color="rgba(0, 255, 0, 0.15)", visible=True),
-                    ),
+                    middle_line_color="#00ff00",
+                    upper_fill_color="rgba(0, 255, 0, 0.15)",
+                    lower_fill_color="rgba(0, 255, 0, 0.15)",
                 )
             )
         # Sell signal
@@ -175,11 +160,9 @@ def create_signal_bands():
                     upper=upper,
                     middle=middle,
                     lower=lower,
-                    styles=PerPointStyles(
-                        middle_line=LineStyle(color="#ff0000", width=4, style=0),
-                        upper_fill=FillStyle(color="rgba(255, 0, 0, 0.15)", visible=True),
-                        lower_fill=FillStyle(color="rgba(255, 0, 0, 0.15)", visible=True),
-                    ),
+                    middle_line_color="#ff0000",
+                    upper_fill_color="rgba(255, 0, 0, 0.15)",
+                    lower_fill_color="rgba(255, 0, 0, 0.15)",
                 )
             )
         else:
@@ -190,12 +173,12 @@ def create_signal_bands():
 
 
 def create_complete_styling_example():
-    """Create bands demonstrating all available styling options.
+    """Create bands demonstrating all available color options.
 
     This example shows:
-    - All LineStyle options (color, width, style, visible)
-    - All FillStyle options (color, visible)
-    - Complete per-point style overrides
+    - All line color options
+    - All fill color options
+    - Complete per-point color overrides
     """
     dates = pd.date_range("2024-01-01", periods=20, freq="D")
 
@@ -206,53 +189,33 @@ def create_complete_styling_example():
         middle = price
         lower = price - 5
 
-        # Show different line styles
+        # Show different styling at specific points
         if i == 5:
-            # Solid lines
+            # All lines with different colors
             data.append(
                 BandData(
                     time=str(date.date()),
                     upper=upper,
                     middle=middle,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#2196f3", width=2, style=0),
-                        middle_line=LineStyle(color="#4caf50", width=2, style=0),
-                        lower_line=LineStyle(color="#ff9800", width=2, style=0),
-                    ),
+                    upper_line_color="#2196f3",
+                    middle_line_color="#4caf50",
+                    lower_line_color="#ff9800",
                 )
             )
         elif i == 10:
-            # Dotted lines
+            # Only fill colors
             data.append(
                 BandData(
                     time=str(date.date()),
                     upper=upper,
                     middle=middle,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#2196f3", width=2, style=1),
-                        middle_line=LineStyle(color="#4caf50", width=2, style=1),
-                        lower_line=LineStyle(color="#ff9800", width=2, style=1),
-                    ),
+                    upper_fill_color="rgba(33, 150, 243, 0.3)",
+                    lower_fill_color="rgba(255, 152, 0, 0.3)",
                 )
             )
         elif i == 15:
-            # Dashed lines
-            data.append(
-                BandData(
-                    time=str(date.date()),
-                    upper=upper,
-                    middle=middle,
-                    lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#2196f3", width=2, style=2),
-                        middle_line=LineStyle(color="#4caf50", width=2, style=2),
-                        lower_line=LineStyle(color="#ff9800", width=2, style=2),
-                    ),
-                )
-            )
-        elif i == 18:
             # Complete styling example
             data.append(
                 BandData(
@@ -260,13 +223,11 @@ def create_complete_styling_example():
                     upper=upper,
                     middle=middle,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#e91e63", width=3, style=0, visible=True),
-                        middle_line=LineStyle(color="#9c27b0", width=4, style=0, visible=True),
-                        lower_line=LineStyle(color="#673ab7", width=3, style=0, visible=True),
-                        upper_fill=FillStyle(color="rgba(233, 30, 99, 0.3)", visible=True),
-                        lower_fill=FillStyle(color="rgba(103, 58, 183, 0.3)", visible=True),
-                    ),
+                    upper_line_color="#e91e63",
+                    middle_line_color="#9c27b0",
+                    lower_line_color="#673ab7",
+                    upper_fill_color="rgba(233, 30, 99, 0.3)",
+                    lower_fill_color="rgba(103, 58, 183, 0.3)",
                 )
             )
         else:
@@ -277,13 +238,12 @@ def create_complete_styling_example():
 
 
 def main():
-    """Main function to demonstrate Band per-point styling."""
-    st.title("Band Series Per-Point Styling Examples")
+    """Main function to demonstrate Band per-point color styling."""
+    st.title("Band Series Per-Point Color Styling Examples")
     st.write(
         """
-        This example demonstrates how to use per-point style overrides for Band series.
-        You can customize individual data points with different colors, line widths,
-        line styles (solid, dotted, dashed), and fill colors.
+        This example demonstrates how to use per-point color overrides for Band series.
+        You can customize individual data points with different line and fill colors.
         """
     )
 
@@ -320,8 +280,8 @@ def main():
     st.write(
         """
         This example adapts styling based on market volatility:
-        - **High volatility**: Wider red lines (width=3, solid)
-        - **Low volatility**: Thin dotted teal lines (width=1, dotted)
+        - **High volatility**: Red lines and fills
+        - **Low volatility**: Teal lines
         - **Medium volatility**: Default styling
         """
     )
@@ -367,11 +327,10 @@ def main():
     st.header("4. Complete Styling Options Reference")
     st.write(
         """
-        This example demonstrates all available styling options:
-        - **Day 5**: Solid lines (style=0) with different colors
-        - **Day 10**: Dotted lines (style=1)
-        - **Day 15**: Dashed lines (style=2)
-        - **Day 18**: Complete styling with all options
+        This example demonstrates all available color options:
+        - **Day 5**: All line colors customized
+        - **Day 10**: Only fill colors customized
+        - **Day 15**: Complete styling with all options
         """
     )
 
@@ -390,21 +349,18 @@ def main():
     # Code examples
     st.header("Code Examples")
 
-    st.subheader("Basic Per-Point Styling")
+    st.subheader("Basic Per-Point Color Styling")
     st.code(
         """
 from streamlit_lightweight_charts_pro.data import BandData
-from streamlit_lightweight_charts_pro.data.styles import (
-    PerPointStyles, LineStyle, FillStyle
-)
 
-# Create a data point with custom red upper line
+# Create a data point with custom upper line color
 data = BandData(
     time='2024-01-01',
-    upper=110, middle=105, lower=100,
-    styles=PerPointStyles(
-        upper_line=LineStyle(color='#ff0000', width=3)
-    )
+    upper=110,
+    middle=105,
+    lower=100,
+    upper_line_color='#ff0000'
 )
 """,
         language="python",
@@ -413,34 +369,52 @@ data = BandData(
     st.subheader("Complete Styling Example")
     st.code(
         """
-# Create a data point with all styling options
+# Create a data point with all color options
 data = BandData(
     time='2024-01-01',
-    upper=110, middle=105, lower=100,
-    styles=PerPointStyles(
-        upper_line=LineStyle(color='#ff0000', width=3, style=2, visible=True),
-        middle_line=LineStyle(color='#00ff00', width=4, style=0, visible=True),
-        lower_line=LineStyle(color='#0000ff', width=3, style=1, visible=True),
-        upper_fill=FillStyle(color='rgba(255, 0, 0, 0.2)', visible=True),
-        lower_fill=FillStyle(color='rgba(0, 0, 255, 0.2)', visible=True)
-    )
+    upper=110,
+    middle=105,
+    lower=100,
+    upper_line_color='#ff0000',
+    middle_line_color='#00ff00',
+    lower_line_color='#0000ff',
+    upper_fill_color='rgba(255, 0, 0, 0.2)',
+    lower_fill_color='rgba(0, 0, 255, 0.2)'
 )
 """,
         language="python",
     )
 
-    st.subheader("Line Style Options")
+    st.subheader("Color Format Options")
     st.markdown(
         """
-        **LineStyle parameters:**
-        - `color`: Hex color (e.g., '#ff0000') or rgba (e.g., 'rgba(255,0,0,0.5)')
-        - `width`: Integer from 1-4 (line width in pixels)
-        - `style`: 0=solid, 1=dotted, 2=dashed
-        - `visible`: Boolean to show/hide the line
+        **Supported color formats:**
+        - Hex colors: `'#ff0000'`, `'#2196F3'`
+        - RGBA colors: `'rgba(255, 0, 0, 0.5)'`, `'rgba(33, 150, 243, 0.2)'`
 
-        **FillStyle parameters:**
-        - `color`: Hex color or rgba format
-        - `visible`: Boolean to show/hide the fill
+        **Available properties:**
+        - `upper_line_color`: Color for the upper line
+        - `middle_line_color`: Color for the middle line
+        - `lower_line_color`: Color for the lower line
+        - `upper_fill_color`: Color for the upper fill area (between middle and upper)
+        - `lower_fill_color`: Color for the lower fill area (between middle and lower)
+
+        **Note:** Width, style (dotted/dashed), and visible properties are no longer
+        supported per-point. Use series-level options for these settings.
+        """
+    )
+
+    st.subheader("Practical Use Cases")
+    st.markdown(
+        """
+        **Common scenarios for per-point color styling:**
+
+        1. **Breakout Detection**: Highlight when price breaks band boundaries
+        2. **Volatility Visualization**: Change colors based on band width
+        3. **Signal Highlighting**: Mark entry/exit points with distinct colors
+        4. **Anomaly Detection**: Highlight unusual market behavior
+        5. **Trend Strength**: Use color intensity to show trend strength
+        6. **Multiple Timeframe Analysis**: Different colors for different timeframes
         """
     )
 

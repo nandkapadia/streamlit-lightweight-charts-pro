@@ -1125,7 +1125,12 @@ describe('Ribbon Series Per-Point Styling Visual Tests', () => {
       const data = generateRibbonData2(30, 100, 10).map((point, i) => ({
         ...point,
         ...(i === 15
-          ? { styles: { upperLine: { color: '#FF0000', width: 4 }, lowerLine: { color: '#0000FF', width: 4 } } }
+          ? {
+              styles: {
+                upperLine: { color: '#FF0000', width: 4 },
+                lowerLine: { color: '#0000FF', width: 4 },
+              },
+            }
           : {}),
       }));
       const series = createRibbonSeries(chart, {
@@ -1148,7 +1153,9 @@ describe('Ribbon Series Per-Point Styling Visual Tests', () => {
     renderResult = await renderChart(chart => {
       const data = generateRibbonData2(30, 100, 10).map((point, i) => ({
         ...point,
-        ...(i >= 10 && i <= 15 ? { styles: { fill: { color: 'rgba(255, 0, 255, 0.4)', visible: true } } } : {}),
+        ...(i >= 10 && i <= 15
+          ? { styles: { fill: { color: 'rgba(255, 0, 255, 0.4)', visible: true } } }
+          : {}),
       }));
       const series = createRibbonSeries(chart, {
         upperLineColor: TestColors.GREEN,

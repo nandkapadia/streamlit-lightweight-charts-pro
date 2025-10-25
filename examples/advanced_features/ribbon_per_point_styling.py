@@ -1,16 +1,14 @@
-"""Ribbon Series Per-Point Styling Example.
+"""Ribbon Series Per-Point Color Styling Example.
 
-This example demonstrates how to use per-point style overrides for Ribbon series
-to customize individual data points with different line colors, widths, styles,
-and fill colors.
+This example demonstrates how to use per-point color overrides for Ribbon series
+to customize individual data points with different line and fill colors.
 
 Features demonstrated:
-- Basic per-point styling with LineStyle and FillStyle
+- Basic per-point color styling
 - Highlighting specific data points (trend changes, volatility spikes)
 - Dynamic styling based on data conditions
-- Mixed styling (some points with custom styles, others using global options)
-- Line style variations (solid, dotted, dashed)
-- Fill color transitions for visual effect
+- Mixed styling (some points with custom colors, others using global options)
+- Color transitions for visual effect
 """
 
 import pandas as pd
@@ -19,7 +17,6 @@ import streamlit as st
 from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import RibbonSeries
 from streamlit_lightweight_charts_pro.data import RibbonData
-from streamlit_lightweight_charts_pro.data.styles import FillStyle, LineStyle, PerPointStyles
 
 
 def create_volatility_ribbon_data():
@@ -47,11 +44,9 @@ def create_volatility_ribbon_data():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#ff4444", width=3),
-                        lower_line=LineStyle(color="#ff4444", width=3),
-                        fill=FillStyle(color="rgba(255, 68, 68, 0.3)", visible=True),
-                    ),
+                    upper_line_color="#ff4444",
+                    lower_line_color="#ff4444",
+                    fill="rgba(255, 68, 68, 0.3)",
                 )
             )
         # Low volatility periods (volatility < 3)
@@ -61,11 +56,9 @@ def create_volatility_ribbon_data():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#44ff44", width=2),
-                        lower_line=LineStyle(color="#44ff44", width=2),
-                        fill=FillStyle(color="rgba(68, 255, 68, 0.2)", visible=True),
-                    ),
+                    upper_line_color="#44ff44",
+                    lower_line_color="#44ff44",
+                    fill="rgba(68, 255, 68, 0.2)",
                 )
             )
         else:
@@ -79,8 +72,8 @@ def create_trend_ribbon_data():
     """Create ribbon with trend change highlighting.
 
     This example demonstrates:
-    - Uptrend periods (green with thick lines)
-    - Downtrend periods (red with thick lines)
+    - Uptrend periods (green)
+    - Downtrend periods (red)
     - Sideways periods (default styling)
     """
     dates = pd.date_range("2024-01-01", periods=60, freq="D")
@@ -110,11 +103,9 @@ def create_trend_ribbon_data():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#00c853", width=2, style=0),
-                        lower_line=LineStyle(color="#00c853", width=2, style=0),
-                        fill=FillStyle(color="rgba(0, 200, 83, 0.15)", visible=True),
-                    ),
+                    upper_line_color="#00c853",
+                    lower_line_color="#00c853",
+                    fill="rgba(0, 200, 83, 0.15)",
                 )
             )
         elif trend == "down":
@@ -123,11 +114,9 @@ def create_trend_ribbon_data():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#ff1744", width=2, style=0),
-                        lower_line=LineStyle(color="#ff1744", width=2, style=0),
-                        fill=FillStyle(color="rgba(255, 23, 68, 0.15)", visible=True),
-                    ),
+                    upper_line_color="#ff1744",
+                    lower_line_color="#ff1744",
+                    fill="rgba(255, 23, 68, 0.15)",
                 )
             )
         else:
@@ -165,10 +154,8 @@ def create_support_resistance_ribbon():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        lower_line=LineStyle(color="#4caf50", width=4, style=0),
-                        fill=FillStyle(color="rgba(76, 175, 80, 0.25)", visible=True),
-                    ),
+                    lower_line_color="#4caf50",
+                    fill="rgba(76, 175, 80, 0.25)",
                 )
             )
         elif i in resistance_tests:
@@ -178,76 +165,13 @@ def create_support_resistance_ribbon():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#f44336", width=4, style=0),
-                        fill=FillStyle(color="rgba(244, 67, 54, 0.25)", visible=True),
-                    ),
+                    upper_line_color="#f44336",
+                    fill="rgba(244, 67, 54, 0.25)",
                 )
             )
         else:
             # Normal period
             data.append(RibbonData(time=str(date.date()), upper=upper, lower=lower))
-
-    return data
-
-
-def create_line_style_variations():
-    """Create ribbon demonstrating different line styles.
-
-    This example shows:
-    - Solid lines (style=0)
-    - Dotted lines (style=1)
-    - Dashed lines (style=2)
-    - Mixed line styles
-    """
-    dates = pd.date_range("2024-01-01", periods=30, freq="D")
-
-    data = []
-    for i, date in enumerate(dates):
-        price = 100 + i * 0.3
-        upper = price + 5
-        lower = price - 5
-
-        # Different line styles every 7 days
-        if i % 21 < 7:
-            # Solid lines
-            data.append(
-                RibbonData(
-                    time=str(date.date()),
-                    upper=upper,
-                    lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#2196f3", width=2, style=0),
-                        lower_line=LineStyle(color="#2196f3", width=2, style=0),
-                    ),
-                )
-            )
-        elif i % 21 < 14:
-            # Dotted lines
-            data.append(
-                RibbonData(
-                    time=str(date.date()),
-                    upper=upper,
-                    lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#ff9800", width=2, style=1),
-                        lower_line=LineStyle(color="#ff9800", width=2, style=1),
-                    ),
-                )
-            )
-        else:
-            # Dashed lines
-            data.append(
-                RibbonData(
-                    time=str(date.date()),
-                    upper=upper,
-                    lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#4caf50", width=2, style=2),
-                        lower_line=LineStyle(color="#4caf50", width=2, style=2),
-                    ),
-                )
-            )
 
     return data
 
@@ -280,11 +204,9 @@ def create_gradient_transition_ribbon():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color=line_color, width=2),
-                        lower_line=LineStyle(color=line_color, width=2),
-                        fill=FillStyle(color=color, visible=True),
-                    ),
+                    upper_line_color=line_color,
+                    lower_line_color=line_color,
+                    fill=color,
                 )
             )
         elif i < 20:
@@ -299,11 +221,9 @@ def create_gradient_transition_ribbon():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color=line_color, width=2),
-                        lower_line=LineStyle(color=line_color, width=2),
-                        fill=FillStyle(color=color, visible=True),
-                    ),
+                    upper_line_color=line_color,
+                    lower_line_color=line_color,
+                    fill=color,
                 )
             )
         else:
@@ -313,11 +233,9 @@ def create_gradient_transition_ribbon():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#00ff00", width=2),
-                        lower_line=LineStyle(color="#00ff00", width=2),
-                        fill=FillStyle(color="rgba(0, 255, 0, 0.2)", visible=True),
-                    ),
+                    upper_line_color="#00ff00",
+                    lower_line_color="#00ff00",
+                    fill="rgba(0, 255, 0, 0.2)",
                 )
             )
 
@@ -328,8 +246,7 @@ def create_complete_styling_example():
     """Create ribbon demonstrating all styling options.
 
     This example shows:
-    - All LineStyle parameters
-    - All FillStyle parameters
+    - All color override options
     - Complete per-point override
     """
     dates = pd.date_range("2024-01-01", periods=25, freq="D")
@@ -348,7 +265,7 @@ def create_complete_styling_example():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(upper_line=LineStyle(color="#e91e63", width=3, style=0)),
+                    upper_line_color="#e91e63",
                 )
             )
         elif i == 10:
@@ -358,7 +275,7 @@ def create_complete_styling_example():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(lower_line=LineStyle(color="#9c27b0", width=3, style=1)),
+                    lower_line_color="#9c27b0",
                 )
             )
         elif i == 15:
@@ -368,9 +285,7 @@ def create_complete_styling_example():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        fill=FillStyle(color="rgba(63, 81, 181, 0.4)", visible=True)
-                    ),
+                    fill="rgba(63, 81, 181, 0.4)",
                 )
             )
         elif i == 20:
@@ -380,11 +295,9 @@ def create_complete_styling_example():
                     time=str(date.date()),
                     upper=upper,
                     lower=lower,
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#ff5722", width=4, style=2, visible=True),
-                        lower_line=LineStyle(color="#ff5722", width=4, style=2, visible=True),
-                        fill=FillStyle(color="rgba(255, 87, 34, 0.3)", visible=True),
-                    ),
+                    upper_line_color="#ff5722",
+                    lower_line_color="#ff5722",
+                    fill="rgba(255, 87, 34, 0.3)",
                 )
             )
         else:
@@ -395,13 +308,12 @@ def create_complete_styling_example():
 
 
 def main():
-    """Main function to demonstrate Ribbon per-point styling."""
-    st.title("Ribbon Series Per-Point Styling Examples")
+    """Main function to demonstrate Ribbon per-point color styling."""
+    st.title("Ribbon Series Per-Point Color Styling Examples")
     st.write(
         """
-        This example demonstrates how to use per-point style overrides for Ribbon series.
-        You can customize individual data points with different colors, line widths,
-        line styles (solid, dotted, dashed), and fill colors.
+        This example demonstrates how to use per-point color overrides for Ribbon series.
+        You can customize individual data points with different line and fill colors.
         """
     )
 
@@ -410,8 +322,8 @@ def main():
     st.write(
         """
         This example highlights different volatility regimes:
-        - **Red styling**: High volatility periods (thick lines)
-        - **Green styling**: Low volatility periods (medium lines)
+        - **Red styling**: High volatility periods
+        - **Green styling**: Low volatility periods
         - **Default styling**: Normal volatility
         """
     )
@@ -478,30 +390,8 @@ def main():
     sr_chart.add_series(sr_series)
     st.components.v1.html(sr_chart.to_html(), height=400)
 
-    # Example 4: Line Style Variations
-    st.header("4. Line Style Variations")
-    st.write(
-        """
-        This example demonstrates different line styles:
-        - **Blue solid lines**: Days 1-7, 22-28
-        - **Orange dotted lines**: Days 8-14
-        - **Green dashed lines**: Days 15-21
-        """
-    )
-
-    style_data = create_line_style_variations()
-    style_chart = Chart()
-    style_series = RibbonSeries(data=style_data, visible=True, price_scale_id="right")
-
-    # Set global styling
-    style_series.upper_line.color = "#ccc"
-    style_series.lower_line.color = "#ccc"
-
-    style_chart.add_series(style_series)
-    st.components.v1.html(style_chart.to_html(), height=400)
-
-    # Example 5: Color Gradient Transitions
-    st.header("5. Color Gradient Transitions")
+    # Example 4: Color Gradient Transitions
+    st.header("4. Color Gradient Transitions")
     st.write(
         """
         This example creates a visual gradient effect:
@@ -518,15 +408,15 @@ def main():
     gradient_chart.add_series(gradient_series)
     st.components.v1.html(gradient_chart.to_html(), height=400)
 
-    # Example 6: Complete Styling Options
-    st.header("6. Complete Styling Options Reference")
+    # Example 5: Complete Styling Options
+    st.header("5. Complete Styling Options Reference")
     st.write(
         """
         This example demonstrates all available styling options:
         - **Day 5**: Only upper line styled
-        - **Day 10**: Only lower line styled (dotted)
+        - **Day 10**: Only lower line styled
         - **Day 15**: Only fill styled
-        - **Day 20**: Complete styling with all options (dashed)
+        - **Day 20**: Complete styling with all options
         """
     )
 
@@ -545,23 +435,19 @@ def main():
     # Code examples
     st.header("Code Examples")
 
-    st.subheader("Basic Per-Point Styling")
+    st.subheader("Basic Per-Point Color Styling")
     st.code(
         """
 from streamlit_lightweight_charts_pro.data import RibbonData
-from streamlit_lightweight_charts_pro.data.styles import (
-    PerPointStyles, LineStyle, FillStyle
-)
 
-# Create a data point with custom styling
+# Create a data point with custom colors
 data = RibbonData(
     time='2024-01-01',
-    upper=110, lower=100,
-    styles=PerPointStyles(
-        upper_line=LineStyle(color='#ff0000', width=3),
-        lower_line=LineStyle(color='#ff0000', width=3),
-        fill=FillStyle(color='rgba(255, 0, 0, 0.2)', visible=True)
-    )
+    upper=110,
+    lower=100,
+    upper_line_color='#ff0000',
+    lower_line_color='#ff0000',
+    fill='rgba(255, 0, 0, 0.2)'
 )
 """,
         language="python",
@@ -573,19 +459,19 @@ data = RibbonData(
 # Highlight only the lower line (e.g., support test)
 data = RibbonData(
     time='2024-01-01',
-    upper=110, lower=100,
-    styles=PerPointStyles(
-        lower_line=LineStyle(color='#00ff00', width=4, style=0)
-    )
+    upper=110,
+    lower=100,
+    lower_line_color='#00ff00',
+    fill='rgba(0, 255, 0, 0.25)'
 )
 
 # Highlight only the upper line (e.g., resistance test)
 data = RibbonData(
     time='2024-01-02',
-    upper=112, lower=102,
-    styles=PerPointStyles(
-        upper_line=LineStyle(color='#ff0000', width=4, style=0)
-    )
+    upper=112,
+    lower=102,
+    upper_line_color='#ff0000',
+    fill='rgba(255, 0, 0, 0.25)'
 )
 """,
         language="python",
@@ -594,58 +480,42 @@ data = RibbonData(
     st.subheader("Complete Styling Example")
     st.code(
         """
-# Create a data point with all styling options
+# Create a data point with all color options
 data = RibbonData(
     time='2024-01-01',
-    upper=110, lower=100,
-    styles=PerPointStyles(
-        upper_line=LineStyle(
-            color='#ff0000',
-            width=3,
-            style=2,  # Dashed
-            visible=True
-        ),
-        lower_line=LineStyle(
-            color='#0000ff',
-            width=3,
-            style=1,  # Dotted
-            visible=True
-        ),
-        fill=FillStyle(
-            color='rgba(128, 0, 128, 0.3)',
-            visible=True
-        )
-    )
+    upper=110,
+    lower=100,
+    upper_line_color='#ff0000',
+    lower_line_color='#0000ff',
+    fill='rgba(128, 0, 128, 0.3)'
 )
 """,
         language="python",
     )
 
-    st.subheader("Line Style Options")
+    st.subheader("Color Format Options")
     st.markdown(
         """
-        **LineStyle parameters:**
-        - `color`: Hex color (e.g., '#ff0000') or rgba (e.g., 'rgba(255,0,0,0.5)')
-        - `width`: Integer from 1-4 (line width in pixels)
-        - `style`: 0=solid, 1=dotted, 2=dashed
-        - `visible`: Boolean to show/hide the line
+        **Supported color formats:**
+        - Hex colors: `'#ff0000'`, `'#2196F3'`
+        - RGBA colors: `'rgba(255, 0, 0, 0.5)'`, `'rgba(33, 150, 243, 0.2)'`
 
-        **FillStyle parameters:**
-        - `color`: Hex color or rgba format
-        - `visible`: Boolean to show/hide the fill
+        **Available properties:**
+        - `upper_line_color`: Color for the upper line
+        - `lower_line_color`: Color for the lower line
+        - `fill`: Color for the fill area between lines
 
-        **Ribbon-specific notes:**
-        - Ribbon has single `fill` (not `upper_fill`/`lower_fill` like Band)
-        - Ribbon has `upper_line` and `lower_line` (no `middle_line`)
+        **Note:** Width, style (dotted/dashed), and visible properties are no longer
+        supported per-point. Use series-level options for these settings.
         """
     )
 
     st.subheader("Practical Use Cases")
     st.markdown(
         """
-        **Common scenarios for per-point styling:**
+        **Common scenarios for per-point color styling:**
 
-        1. **Volatility Visualization**: Change colors/widths based on volatility
+        1. **Volatility Visualization**: Change colors based on volatility
         2. **Trend Highlighting**: Use green for uptrends, red for downtrends
         3. **Support/Resistance**: Emphasize boundary tests
         4. **Signal Highlighting**: Mark entry/exit points

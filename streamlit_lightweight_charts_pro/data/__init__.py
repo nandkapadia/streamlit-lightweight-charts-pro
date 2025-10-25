@@ -89,13 +89,6 @@ from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
 from streamlit_lightweight_charts_pro.data.signal_data import SignalData
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
 
-# Import style classes for per-point styling
-from streamlit_lightweight_charts_pro.data.styles import (
-    FillStyle,
-    LineStyle,
-    PerPointStyles,
-)
-
 # Import tooltip classes
 from streamlit_lightweight_charts_pro.data.tooltip import (
     TooltipConfig,
@@ -140,17 +133,13 @@ __all__ = [
     "CandlestickData",
     # Base data classes
     "Data",
-    # Style classes for per-point styling
-    "FillStyle",
     "GradientRibbonData",
     "HistogramData",
     "LineData",
-    "LineStyle",
     "Marker",
     # Marker classes
     "MarkerBase",
     "OhlcvData",
-    "PerPointStyles",
     "PriceMarker",
     "RibbonData",
     # Signal data classes

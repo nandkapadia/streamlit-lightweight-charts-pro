@@ -9,7 +9,8 @@ from dataclasses import dataclass
 from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.data import Data
-from streamlit_lightweight_charts_pro.data.styles import PerPointStyles
+from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
+from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
 
 
 @dataclass
@@ -17,43 +18,43 @@ class RibbonData(Data):
     """Data point for ribbon charts.
 
     This class represents a ribbon data point with upper and lower values,
-    along with optional fill color. It's used for ribbon charts
+    along with optional per-point color overrides. It's used for ribbon charts
     that show upper and lower bands with fill areas between them.
 
     Attributes:
         upper: The upper band value.
         lower: The lower band value.
-        fill: Optional color for the fill area (uses series default if not specified).
-        styles: Optional per-point style overrides for lines and fill.
+        fill: Optional color for the fill area (hex or rgba format).
+        upper_line_color: Optional color override for upper line (hex or rgba format).
+        lower_line_color: Optional color override for lower line (hex or rgba format).
 
     Example:
         ```python
         from streamlit_lightweight_charts_pro.data import RibbonData
-        from streamlit_lightweight_charts_pro.data.styles import PerPointStyles, LineStyle, FillStyle
 
         # Basic data point
         data = RibbonData(time="2024-01-01", upper=110, lower=100)
 
-        # Data point with custom styling
+        # Data point with custom per-point colors
         data = RibbonData(
             time="2024-01-01",
             upper=110,
             lower=100,
-            styles=PerPointStyles(
-                upper_line=LineStyle(color="#ff0000", width=3),
-                fill=FillStyle(color="rgba(255,0,0,0.2)", visible=True),
-            ),
+            fill="rgba(255,0,0,0.2)",
+            upper_line_color="#ff0000",
+            lower_line_color="#00ff00",
         )
         ```
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = {"upper", "lower"}
-    OPTIONAL_COLUMNS: ClassVar[set] = {"fill", "styles"}
+    OPTIONAL_COLUMNS: ClassVar[set] = {"fill", "upper_line_color", "lower_line_color"}
 
     upper: Optional[float]
     lower: Optional[float]
     fill: Optional[str] = None
-    styles: Optional[PerPointStyles] = None
+    upper_line_color: Optional[str] = None
+    lower_line_color: Optional[str] = None
 
     def __post_init__(self):
         # Normalize time
@@ -69,18 +70,18 @@ class RibbonData(Data):
             self.lower = None
         # Allow None for missing data (no validation error)
 
-    def asdict(self):
-        """Serialize to dictionary with proper styles handling.
-
-        Returns:
-            Dictionary with camelCase keys for JSON serialization.
-            The styles field is converted using PerPointStyles.asdict() if present.
-        """
-        # Get base serialization from parent
-        result = super().asdict()
-
-        # Handle styles field specially - convert to dict if present
-        if self.styles is not None:
-            result["styles"] = self.styles.asdict()
-
-        return result
+        # Validate color fields if provided
+        if self.fill is not None and self.fill != "" and not is_valid_color(self.fill):
+            raise ValueValidationError("fill", "Invalid color format")
+        if (
+            self.upper_line_color is not None
+            and self.upper_line_color != ""
+            and not is_valid_color(self.upper_line_color)
+        ):
+            raise ValueValidationError("upper_line_color", "Invalid color format")
+        if (
+            self.lower_line_color is not None
+            and self.lower_line_color != ""
+            and not is_valid_color(self.lower_line_color)
+        ):
+            raise ValueValidationError("lower_line_color", "Invalid color format")

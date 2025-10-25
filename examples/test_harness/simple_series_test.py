@@ -38,11 +38,8 @@ from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options
 )
 from streamlit_lightweight_charts_pro.data import (
     BandData,
-    FillStyle,
     GradientRibbonData,
-    LineStyle,
     OhlcvData,
-    PerPointStyles,
     RibbonData,
     SignalData,
     SingleValueData,
@@ -146,10 +143,10 @@ def generate_sample_data(points: int = 100) -> dict:
             ),
         )
 
-    # Band data (Bollinger-style) with per-point styling highlights
+    # Band data (Bollinger-style) with per-point color highlights
     band_data = []
     for i in range(points):
-        # Highlight every 20th point with custom styling
+        # Highlight every 20th point with custom colors
         if i % 20 == 0 and i > 0:
             band_data.append(
                 BandData(
@@ -157,13 +154,11 @@ def generate_sample_data(points: int = 100) -> dict:
                     upper=round(ohlcv_data[i].close + 10, 2),
                     middle=round(ohlcv_data[i].close, 2),
                     lower=round(ohlcv_data[i].close - 10, 2),
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#FF0000", width=3),
-                        middle_line=LineStyle(color="#FF9800", width=3),
-                        lower_line=LineStyle(color="#FF0000", width=3),
-                        upper_fill=FillStyle(color="rgba(255, 0, 0, 0.3)", visible=True),
-                        lower_fill=FillStyle(color="rgba(255, 152, 0, 0.3)", visible=True),
-                    ),
+                    upper_line_color="#FF0000",
+                    middle_line_color="#FF9800",
+                    lower_line_color="#FF0000",
+                    upper_fill_color="rgba(255, 0, 0, 0.3)",
+                    lower_fill_color="rgba(255, 152, 0, 0.3)",
                 ),
             )
         else:
@@ -176,36 +171,30 @@ def generate_sample_data(points: int = 100) -> dict:
                 ),
             )
 
-    # Ribbon data with per-point styling highlights
+    # Ribbon data with per-point color highlights
     ribbon_data = []
     for i in range(points):
-        # Highlight points in a specific range with custom styling
+        # Highlight points in a specific range with custom colors
         if 30 <= i < 40:
             ribbon_data.append(
                 RibbonData(
                     time=times[i],
                     upper=round(ohlcv_data[i].close + 8, 2),
                     lower=round(ohlcv_data[i].close - 8, 2),
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(
-                            color="#9C27B0", width=3, style=0
-                        ),  # Solid purple (changed from dashed)
-                        lower_line=LineStyle(color="#9C27B0", width=3, style=0),
-                        fill=FillStyle(color="rgba(156, 39, 176, 0.3)", visible=True),
-                    ),
+                    upper_line_color="#9C27B0",
+                    lower_line_color="#9C27B0",
+                    fill="rgba(156, 39, 176, 0.3)",
                 ),
             )
         elif i % 15 == 0 and i > 0:
-            # Different style for periodic points
+            # Different color for periodic points
             ribbon_data.append(
                 RibbonData(
                     time=times[i],
                     upper=round(ohlcv_data[i].close + 8, 2),
                     lower=round(ohlcv_data[i].close - 8, 2),
-                    styles=PerPointStyles(
-                        upper_line=LineStyle(color="#00BCD4", width=4),
-                        lower_line=LineStyle(color="#00BCD4", width=4),
-                    ),
+                    upper_line_color="#00BCD4",
+                    lower_line_color="#00BCD4",
                 ),
             )
         else:
@@ -342,8 +331,8 @@ def main():
         )
         trend_fill_chart.render(key="trend_fill")
 
-        st.write("**Band (with per-point styling)**")
-        st.caption("Red highlights every 20th point")
+        st.write("**Band (with per-point color styling)**")
+        st.caption("Red colors every 20th point")
         try:
             band = BandSeries(data=data["band_data"])
             band.upper_line.color = "#2196F3"  # pylint: disable=no-member
@@ -355,8 +344,8 @@ def main():
         except Exception as e:
             st.error(f"Error rendering band: {e}")
 
-        st.write("**Ribbon (with per-point styling)**")
-        st.caption("Purple solid lines for points 30-40, cyan every 15th point")
+        st.write("**Ribbon (with per-point color styling)**")
+        st.caption("Purple colors for points 30-40, cyan every 15th point")
         ribbon = RibbonSeries(data=data["ribbon_data"])
         ribbon.upper_line.color = "#4CAF50"  # pylint: disable=no-member
         ribbon.lower_line.color = "#F44336"  # pylint: disable=no-member

@@ -677,7 +677,8 @@ export function calculateBarWidthExtensions(
 
   // Calculate start extension
   const firstXMedia = (firstPoint.x as number) / hRatio;
-  const extendStart = (firstPoint.x as number) - Math.round((firstXMedia - halfBarSpacing) * hRatio);
+  const extendStart =
+    (firstPoint.x as number) - Math.round((firstXMedia - halfBarSpacing) * hRatio);
 
   // Calculate end extension
   const lastXMedia = (lastPoint.x as number) / hRatio;
@@ -697,14 +698,8 @@ export function calculateBarWidthExtensions(
  * @param y2 - Y coordinate of second point
  * @returns Interpolated Y coordinate
  */
-export function interpolateY(
-  x: number,
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number
-): number {
-  return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+export function interpolateY(x: number, x1: number, y1: number, x2: number, y2: number): number {
+  return y1 + ((y2 - y1) * (x - x1)) / (x2 - x1);
 }
 
 /**

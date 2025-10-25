@@ -66,7 +66,7 @@ export interface SignalPrimitiveData {
 export interface SignalPrimitiveOptions extends BaseSeriesPrimitiveOptions {
   neutralColor: string;
   signalColor: string;
-  alertColor: string;
+  alertColor?: string; // Optional to allow undefined from Python None
 }
 
 /**
@@ -174,12 +174,18 @@ class SignalPrimitiveRenderer implements IPrimitivePaneRenderer {
   }
 
   private getColorForValue(value: number, options: SignalPrimitiveOptions): string {
-    if (value === 0) {
-      return options.neutralColor || 'transparent';
-    } else if (value > 0) {
+    // Check for explicit signal value (true/1)
+    if (value === 1) {
       return options.signalColor || 'transparent';
-    } else {
-      return options.alertColor || options.signalColor || 'transparent';
+    }
+    // Check for alert value (negative numbers)
+    else if (value < 0) {
+      // Only use alertColor if explicitly defined, otherwise fall back to neutralColor
+      return options.alertColor || options.neutralColor || 'transparent';
+    }
+    // Default to neutral for 0 or any other value
+    else {
+      return options.neutralColor || 'transparent';
     }
   }
 }

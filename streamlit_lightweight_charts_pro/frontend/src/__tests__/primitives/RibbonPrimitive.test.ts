@@ -501,7 +501,7 @@ describe('RibbonPrimitive - Edge Cases', () => {
   });
 });
 
-describe('RibbonPrimitive - Per-Point Styling', () => {
+describe('RibbonPrimitive - Per-Point Color Overrides', () => {
   let mockChart: any;
   let defaultOptions: RibbonPrimitiveOptions;
 
@@ -526,16 +526,14 @@ describe('RibbonPrimitive - Per-Point Styling', () => {
     };
   });
 
-  it('should accept data with per-point style overrides', () => {
+  it('should accept data with per-point color overrides', () => {
     const primitive = new RibbonPrimitive(mockChart, defaultOptions);
     const data: RibbonPrimitiveData[] = [
       {
         time: 1000,
         upper: 110,
         lower: 90,
-        styles: {
-          upperLine: { color: '#FFFF00', width: 4 },
-        },
+        upperLineColor: '#FFFF00',
       },
     ];
 
@@ -543,201 +541,118 @@ describe('RibbonPrimitive - Per-Point Styling', () => {
     const processed = primitive.getProcessedData();
 
     expect(processed).toHaveLength(1);
-    expect(processed[0].styles).toBeDefined();
-    expect(processed[0].styles?.upperLine?.color).toBe('#FFFF00');
-    expect(processed[0].styles?.upperLine?.width).toBe(4);
+    expect(processed[0].upperLineColor).toBe('#FFFF00');
   });
 
-  it('should handle mixed data (some with styles, some without)', () => {
+  it('should handle mixed data (some with color overrides, some without)', () => {
     const primitive = new RibbonPrimitive(mockChart, defaultOptions);
     const data: RibbonPrimitiveData[] = [
-      { time: 1000, upper: 110, lower: 90 }, // No styles
+      { time: 1000, upper: 110, lower: 90 }, // No overrides
       {
         time: 2000,
         upper: 115,
         lower: 95,
-        styles: {
-          upperLine: { color: '#FF00FF' },
-        },
+        upperLineColor: '#FF00FF',
       },
-      { time: 3000, upper: 120, lower: 100 }, // No styles
+      { time: 3000, upper: 120, lower: 100 }, // No overrides
     ];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();
 
     expect(processed).toHaveLength(3);
-    expect(processed[0].styles).toBeUndefined();
-    expect(processed[1].styles).toBeDefined();
-    expect(processed[1].styles?.upperLine?.color).toBe('#FF00FF');
-    expect(processed[2].styles).toBeUndefined();
+    expect(processed[0].upperLineColor).toBeUndefined();
+    expect(processed[1].upperLineColor).toBe('#FF00FF');
+    expect(processed[2].upperLineColor).toBeUndefined();
   });
 
-  it('should handle complete per-point style overrides', () => {
+  it('should handle complete per-point color overrides', () => {
     const primitive = new RibbonPrimitive(mockChart, defaultOptions);
     const data: RibbonPrimitiveData[] = [
       {
         time: 1000,
         upper: 110,
         lower: 90,
-        styles: {
-          upperLine: { color: '#AA0000', width: 3, style: 2, visible: true },
-          lowerLine: { color: '#0000AA', width: 3, style: 1, visible: true },
-          fill: { color: 'rgba(170, 0, 0, 0.4)', visible: true },
-        },
+        upperLineColor: '#AA0000',
+        lowerLineColor: '#0000AA',
+        fill: 'rgba(170, 0, 0, 0.4)',
       },
     ];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();
 
-    expect(processed[0].styles?.upperLine?.color).toBe('#AA0000');
-    expect(processed[0].styles?.upperLine?.width).toBe(3);
-    expect(processed[0].styles?.upperLine?.style).toBe(2);
-    expect(processed[0].styles?.lowerLine?.color).toBe('#0000AA');
-    expect(processed[0].styles?.lowerLine?.width).toBe(3);
-    expect(processed[0].styles?.lowerLine?.style).toBe(1);
-    expect(processed[0].styles?.fill?.color).toBe('rgba(170, 0, 0, 0.4)');
-    expect(processed[0].styles?.fill?.visible).toBe(true);
+    expect(processed[0].upperLineColor).toBe('#AA0000');
+    expect(processed[0].lowerLineColor).toBe('#0000AA');
+    expect(processed[0].fill).toBe('rgba(170, 0, 0, 0.4)');
   });
 
-  it('should handle partial per-point style overrides', () => {
+  it('should handle partial per-point color overrides', () => {
     const primitive = new RibbonPrimitive(mockChart, defaultOptions);
     const data: RibbonPrimitiveData[] = [
       {
         time: 1000,
         upper: 110,
         lower: 90,
-        styles: {
-          upperLine: { color: '#FFFF00' }, // Only color
-          lowerLine: { width: 4 }, // Only width
-        },
+        upperLineColor: '#FFFF00', // Only upper line color
       },
     ];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();
 
-    expect(processed[0].styles?.upperLine?.color).toBe('#FFFF00');
-    expect(processed[0].styles?.upperLine?.width).toBeUndefined();
-    expect(processed[0].styles?.lowerLine?.width).toBe(4);
-    expect(processed[0].styles?.lowerLine?.color).toBeUndefined();
+    expect(processed[0].upperLineColor).toBe('#FFFF00');
+    expect(processed[0].lowerLineColor).toBeUndefined();
+    expect(processed[0].fill).toBeUndefined();
   });
 
-  it('should handle only fill style overrides', () => {
+  it('should handle only fill color overrides', () => {
     const primitive = new RibbonPrimitive(mockChart, defaultOptions);
     const data: RibbonPrimitiveData[] = [
       {
         time: 1000,
         upper: 110,
         lower: 90,
-        styles: {
-          fill: { color: 'rgba(255, 255, 0, 0.5)', visible: true },
-        },
+        fill: 'rgba(255, 255, 0, 0.5)',
       },
     ];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();
 
-    expect(processed[0].styles?.fill?.color).toBe('rgba(255, 255, 0, 0.5)');
-    expect(processed[0].styles?.fill?.visible).toBe(true);
-    expect(processed[0].styles?.upperLine).toBeUndefined();
-    expect(processed[0].styles?.lowerLine).toBeUndefined();
+    expect(processed[0].fill).toBe('rgba(255, 255, 0, 0.5)');
+    expect(processed[0].upperLineColor).toBeUndefined();
+    expect(processed[0].lowerLineColor).toBeUndefined();
   });
 
-  it('should handle only line style overrides', () => {
+  it('should handle only line color overrides', () => {
     const primitive = new RibbonPrimitive(mockChart, defaultOptions);
     const data: RibbonPrimitiveData[] = [
       {
         time: 1000,
         upper: 110,
         lower: 90,
-        styles: {
-          upperLine: { color: '#FFFF00', width: 4 },
-          lowerLine: { color: '#00FFFF', width: 4 },
-        },
+        upperLineColor: '#FFFF00',
+        lowerLineColor: '#00FFFF',
       },
     ];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();
 
-    expect(processed[0].styles?.upperLine?.color).toBe('#FFFF00');
-    expect(processed[0].styles?.lowerLine?.color).toBe('#00FFFF');
-    expect(processed[0].styles?.fill).toBeUndefined();
+    expect(processed[0].upperLineColor).toBe('#FFFF00');
+    expect(processed[0].lowerLineColor).toBe('#00FFFF');
+    expect(processed[0].fill).toBeUndefined();
   });
 
-  it('should handle visibility overrides', () => {
-    const primitive = new RibbonPrimitive(mockChart, defaultOptions);
-    const data: RibbonPrimitiveData[] = [
-      {
-        time: 1000,
-        upper: 110,
-        lower: 90,
-        styles: {
-          upperLine: { visible: false },
-          fill: { visible: false },
-        },
-      },
-    ];
-
-    primitive.setData(data);
-    const processed = primitive.getProcessedData();
-
-    expect(processed[0].styles?.upperLine?.visible).toBe(false);
-    expect(processed[0].styles?.fill?.visible).toBe(false);
-  });
-
-  it('should handle different line styles (solid, dotted, dashed)', () => {
-    const primitive = new RibbonPrimitive(mockChart, defaultOptions);
-    const data: RibbonPrimitiveData[] = [
-      {
-        time: 1000,
-        upper: 110,
-        lower: 90,
-        styles: {
-          upperLine: { style: 0 }, // Solid
-        },
-      },
-      {
-        time: 2000,
-        upper: 115,
-        lower: 95,
-        styles: {
-          upperLine: { style: 1 }, // Dotted
-          lowerLine: { style: 1 }, // Dotted
-        },
-      },
-      {
-        time: 3000,
-        upper: 120,
-        lower: 100,
-        styles: {
-          upperLine: { style: 2 }, // Dashed
-          lowerLine: { style: 2 }, // Dashed
-        },
-      },
-    ];
-
-    primitive.setData(data);
-    const processed = primitive.getProcessedData();
-
-    expect(processed[0].styles?.upperLine?.style).toBe(0);
-    expect(processed[1].styles?.upperLine?.style).toBe(1);
-    expect(processed[1].styles?.lowerLine?.style).toBe(1);
-    expect(processed[2].styles?.upperLine?.style).toBe(2);
-    expect(processed[2].styles?.lowerLine?.style).toBe(2);
-  });
-
-  it('should preserve per-point styles through data updates', () => {
+  it('should preserve per-point colors through data updates', () => {
     const primitive = new RibbonPrimitive(mockChart, defaultOptions);
     const data1: RibbonPrimitiveData[] = [
       {
         time: 1000,
         upper: 110,
         lower: 90,
-        styles: { upperLine: { color: '#FF0000' } },
+        upperLineColor: '#FF0000',
       },
     ];
     const data2: RibbonPrimitiveData[] = [
@@ -745,41 +660,67 @@ describe('RibbonPrimitive - Per-Point Styling', () => {
         time: 1000,
         upper: 110,
         lower: 90,
-        styles: { upperLine: { color: '#00FF00' } },
+        upperLineColor: '#00FF00',
       },
     ];
 
     primitive.setData(data1);
     let processed = primitive.getProcessedData();
-    expect(processed[0].styles?.upperLine?.color).toBe('#FF0000');
+    expect(processed[0].upperLineColor).toBe('#FF0000');
 
     primitive.setData(data2);
     processed = primitive.getProcessedData();
-    expect(processed[0].styles?.upperLine?.color).toBe('#00FF00');
+    expect(processed[0].upperLineColor).toBe('#00FF00');
   });
 
-  it('should handle upper and lower line with different styling', () => {
+  it('should handle upper and lower line with different colors', () => {
     const primitive = new RibbonPrimitive(mockChart, defaultOptions);
     const data: RibbonPrimitiveData[] = [
       {
         time: 1000,
         upper: 110,
         lower: 90,
-        styles: {
-          upperLine: { color: '#FF0000', width: 4, style: 0 },
-          lowerLine: { color: '#0000FF', width: 2, style: 1 },
-        },
+        upperLineColor: '#FF0000',
+        lowerLineColor: '#0000FF',
       },
     ];
 
     primitive.setData(data);
     const processed = primitive.getProcessedData();
 
-    expect(processed[0].styles?.upperLine?.color).toBe('#FF0000');
-    expect(processed[0].styles?.upperLine?.width).toBe(4);
-    expect(processed[0].styles?.upperLine?.style).toBe(0);
-    expect(processed[0].styles?.lowerLine?.color).toBe('#0000FF');
-    expect(processed[0].styles?.lowerLine?.width).toBe(2);
-    expect(processed[0].styles?.lowerLine?.style).toBe(1);
+    expect(processed[0].upperLineColor).toBe('#FF0000');
+    expect(processed[0].lowerLineColor).toBe('#0000FF');
+  });
+
+  it('should handle all color properties together', () => {
+    const primitive = new RibbonPrimitive(mockChart, defaultOptions);
+    const data: RibbonPrimitiveData[] = [
+      {
+        time: 1000,
+        upper: 110,
+        lower: 90,
+        upperLineColor: '#AA0000',
+        lowerLineColor: '#0000AA',
+        fill: 'rgba(170, 170, 0, 0.4)',
+      },
+      {
+        time: 2000,
+        upper: 115,
+        lower: 95,
+        upperLineColor: '#00AA00',
+        lowerLineColor: '#AA00AA',
+        fill: 'rgba(0, 170, 170, 0.4)',
+      },
+    ];
+
+    primitive.setData(data);
+    const processed = primitive.getProcessedData();
+
+    expect(processed[0].upperLineColor).toBe('#AA0000');
+    expect(processed[0].lowerLineColor).toBe('#0000AA');
+    expect(processed[0].fill).toBe('rgba(170, 170, 0, 0.4)');
+    expect(processed[1].upperLineColor).toBe('#00AA00');
+    expect(processed[1].lowerLineColor).toBe('#AA00AA');
+    expect(processed[1].fill).toBe('rgba(0, 170, 170, 0.4)');
   });
 });
