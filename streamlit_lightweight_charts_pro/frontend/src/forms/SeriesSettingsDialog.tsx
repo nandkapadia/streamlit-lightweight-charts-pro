@@ -134,6 +134,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
     colorType?: string;
     currentColor?: string;
     currentOpacity?: number;
+    wasUndefined?: boolean; // Track if the original value was undefined
   }>({ isOpen: false });
 
   // Tab scrolling state
@@ -440,16 +441,22 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   const openColorPicker = useCallback(
     (colorType: string) => {
       // Schema-aware: read color from the property specified in the schema
-      const colorValue = (activeSeriesConfig as any)[colorType] || '#2196F3';
+      const colorValue = (activeSeriesConfig as any)[colorType];
+      const wasUndefined = colorValue === undefined;
+
+      // If undefined, show as transparent (0% opacity) in the dialog
+      // Otherwise use the actual color value
+      const displayValue = wasUndefined ? 'rgba(0,0,0,0)' : colorValue;
 
       // Extract hex color and opacity from the color value (supports both hex and rgba)
-      const { color: currentColor, opacity: currentOpacity } = extractColorAndOpacity(colorValue);
+      const { color: currentColor, opacity: currentOpacity } = extractColorAndOpacity(displayValue);
 
       setColorPickerOpen({
         isOpen: true,
         colorType,
         currentColor,
         currentOpacity,
+        wasUndefined,
       });
     },
     [activeSeriesConfig]
@@ -458,19 +465,21 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   const handleColorPickerSave = useCallback(
     async (color: string, opacity: number) => {
       if (colorPickerOpen.colorType) {
-        // Convert color and opacity to rgba format
-        const finalColor = toCss(color, opacity);
+        // If it was originally undefined and the user leaves it as transparent (0% opacity),
+        // save it back as undefined to preserve the original state
+        const finalValue =
+          colorPickerOpen.wasUndefined && opacity === 0 ? undefined : toCss(color, opacity);
 
         // Schema-aware: save to the property specified in the schema
         const configPatch: any = {
-          [colorPickerOpen.colorType]: finalColor,
+          [colorPickerOpen.colorType]: finalValue,
         };
 
         await handleConfigChange(activeSeriesId, configPatch);
       }
       setColorPickerOpen({ isOpen: false });
     },
-    [activeSeriesId, colorPickerOpen.colorType, handleConfigChange]
+    [activeSeriesId, colorPickerOpen.colorType, colorPickerOpen.wasUndefined, handleConfigChange]
   );
 
   if (!isOpen) return null;
