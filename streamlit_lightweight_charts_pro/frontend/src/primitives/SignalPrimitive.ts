@@ -37,8 +37,9 @@
  */
 
 import { IChartApi, IPrimitivePaneRenderer, PrimitivePaneViewZOrder } from 'lightweight-charts';
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { isTransparent } from '../utils/colorUtils';
+import { SignalColorCalculator } from '../utils/signalColorUtils';
 import { timeToCoordinate, getBarSpacing } from '../plugins/series/base/commonRendering';
 import {
   BaseSeriesPrimitive,
@@ -66,7 +67,7 @@ export interface SignalPrimitiveData {
 export interface SignalPrimitiveOptions extends BaseSeriesPrimitiveOptions {
   neutralColor: string;
   signalColor: string;
-  alertColor?: string; // Optional to allow undefined from Python None
+  alertColor?: string;
 }
 
 /**
@@ -105,9 +106,20 @@ class SignalPrimitivePaneView extends BaseSeriesPrimitivePaneView<
  */
 class SignalPrimitiveRenderer implements IPrimitivePaneRenderer {
   private _source: SignalPrimitive;
+  private _hasNonBooleanValues: boolean = false;
 
   constructor(source: SignalPrimitive) {
     this._source = source;
+  }
+
+  /**
+   * Check if data contains any values that are not 0 or 1
+   * This determines whether alertColor should be used
+   * Handles both boolean (true/false) and numeric (0/1) values
+   */
+  private _checkForNonBooleanValues(data: SignalProcessedData[]): boolean {
+    const values = data.map(item => item.value);
+    return SignalColorCalculator.checkForNonBooleanValues(values);
   }
 
   /**
@@ -123,7 +135,7 @@ class SignalPrimitiveRenderer implements IPrimitivePaneRenderer {
    * This method renders vertical bands spanning full chart height
    * that should appear behind all other series
    */
-  drawBackground(target: any): void {
+  drawBackground(target: CanvasRenderingTarget2D): void {
     target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
       const data = this._source.getProcessedData();
       const series = this._source.getAttachedSeries();
@@ -133,6 +145,9 @@ class SignalPrimitiveRenderer implements IPrimitivePaneRenderer {
       // Read options from attached series (single source of truth)
       const options = (series as any).options();
       if (!options || options.visible === false) return;
+
+      // Check if data contains non-boolean values (values other than 0 or 1)
+      this._hasNonBooleanValues = this._checkForNonBooleanValues(data);
 
       const chart = this._source.getChart();
       const barSpacing = getBarSpacing(chart);
@@ -180,19 +195,7 @@ class SignalPrimitiveRenderer implements IPrimitivePaneRenderer {
   }
 
   private getColorForValue(value: number, options: SignalPrimitiveOptions): string {
-    // Check for explicit signal value (true/1)
-    if (value === 1) {
-      return options.signalColor || 'transparent';
-    }
-    // Check for alert value (negative numbers)
-    else if (value < 0) {
-      // Only use alertColor if explicitly defined, otherwise fall back to neutralColor
-      return options.alertColor || options.neutralColor || 'transparent';
-    }
-    // Default to neutral for 0 or any other value
-    else {
-      return options.neutralColor || 'transparent';
-    }
+    return SignalColorCalculator.getColorForValue(value, options, this._hasNonBooleanValues);
   }
 }
 
@@ -247,6 +250,7 @@ export class SignalPrimitive extends BaseSeriesPrimitive<
 
       // Validate data
       if (isNaN(value)) {
+        console.warn(`[SignalPrimitive] Invalid signal value at time ${item.time}:`, item.value);
         return [];
       }
 

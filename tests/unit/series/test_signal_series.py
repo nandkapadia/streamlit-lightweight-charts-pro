@@ -26,8 +26,8 @@ class TestSignalSeries:
         series = SignalSeries(data=data)
 
         assert len(series.data) == 2
-        assert series._neutral_color == "#f0f0f0"
-        assert series._signal_color == "#ff0000"
+        assert series._neutral_color == "rgba(128, 128, 128, 0.1)"
+        assert series._signal_color == "rgba(76, 175, 80, 0.2)"
         assert series._alert_color is None
         assert series.visible is True
         assert series.price_scale_id == "right"
@@ -86,7 +86,7 @@ class TestSignalSeries:
         series = SignalSeries(data=data)
 
         # Test getter
-        assert series.neutral_color == "#f0f0f0"
+        assert series.neutral_color == "rgba(128, 128, 128, 0.1)"
 
         # Test setter
         series.neutral_color = "#ffffff"
@@ -99,7 +99,7 @@ class TestSignalSeries:
         series = SignalSeries(data=data)
 
         # Test getter
-        assert series.signal_color == "#ff0000"
+        assert series.signal_color == "rgba(76, 175, 80, 0.2)"
 
         # Test setter
         series.signal_color = "#00ff00"
@@ -111,7 +111,7 @@ class TestSignalSeries:
         data = [SignalData("2024-01-01", 0)]
         series = SignalSeries(data=data)
 
-        # Test getter (should be None by default)
+        # Test getter (default value is None)
         assert series.alert_color is None
 
         # Test setter
@@ -354,3 +354,73 @@ class TestSignalSeries:
         data = [SignalData("2024-01-01", 1, color=special_color)]
         series = SignalSeries(data=data)
         assert series.data[0].color == special_color
+
+    def test_alert_color_always_serialized(self):
+        """Test that alertColor is serialized when explicitly set.
+
+        Note: The frontend (TypeScript) intelligently decides whether to use alertColor
+        based on the actual data values. Python just sends the configuration when set.
+        """
+        # Create series with boolean values only (0 and 1) and explicit alertColor
+        data = [
+            SignalData("2024-01-01", 0),
+            SignalData("2024-01-02", 1),
+        ]
+        series = SignalSeries(data=data, alert_color="rgba(244, 67, 54, 0.2)")
+
+        result = series.asdict()
+        options = result.get("options", {})
+
+        # All colors should be serialized when set
+        assert "neutralColor" in options
+        assert "signalColor" in options
+        assert "alertColor" in options  # Sent to frontend when explicitly set
+        assert options["alertColor"] == "rgba(244, 67, 54, 0.2)"
+
+    def test_alert_color_with_non_boolean_data(self):
+        """Test that alertColor is serialized when set for non-boolean data.
+
+        Frontend will use alertColor for values < 0 when data contains non-boolean values.
+        """
+        # Create series with negative values and explicit alertColor
+        data = [
+            SignalData("2024-01-01", 0),
+            SignalData("2024-01-02", 1),
+            SignalData("2024-01-03", -1),  # Negative value
+        ]
+        series = SignalSeries(data=data, alert_color="rgba(244, 67, 54, 0.2)")
+
+        result = series.asdict()
+        options = result.get("options", {})
+
+        # All colors should be present when set
+        assert "neutralColor" in options
+        assert "signalColor" in options
+        assert "alertColor" in options
+        assert options["alertColor"] == "rgba(244, 67, 54, 0.2)"
+
+    def test_alert_color_default_not_serialized(self):
+        """Test that alertColor is NOT serialized by default (None)."""
+        data = [SignalData("2024-01-01", 0)]
+        series = SignalSeries(data=data)  # No alert_color specified
+
+        result = series.asdict()
+        options = result.get("options", {})
+
+        # alertColor should NOT be in serialized output by default
+        assert "neutralColor" in options
+        assert "signalColor" in options
+        assert "alertColor" not in options  # Default None is excluded
+
+    def test_alert_color_can_be_none(self):
+        """Test that alertColor can be set to None."""
+        data = [SignalData("2024-01-01", 0)]
+        series = SignalSeries(data=data, alert_color=None)
+
+        result = series.asdict()
+        options = result.get("options", {})
+
+        # When None, alertColor should not be in serialized output
+        assert "neutralColor" in options
+        assert "signalColor" in options
+        assert "alertColor" not in options  # None values are excluded

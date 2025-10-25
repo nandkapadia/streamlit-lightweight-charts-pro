@@ -54,6 +54,7 @@ import {
   PrimitivePaneViewZOrder,
   ISeriesPrimitiveAxisView,
 } from 'lightweight-charts';
+import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { getSolidColorFromFill } from '../utils/colorUtils';
 import {
   BaseSeriesPrimitive,
@@ -246,8 +247,8 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
    * This method renders lines, markers, and other foreground elements
    * that should appear on top of fills and other series
    */
-  draw(target: any) {
-    target.useBitmapCoordinateSpace((scope: any) => {
+  draw(target: CanvasRenderingTarget2D): void {
+    target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
       const ctx = scope.context;
 
       // Check if primitive should be visible based on series options
@@ -291,8 +292,8 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
    * This method renders fills, areas, and other background elements
    * that should appear behind lines and other series
    */
-  drawBackground(target: any) {
-    target.useBitmapCoordinateSpace((scope: any) => {
+  drawBackground(target: CanvasRenderingTarget2D): void {
+    target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
       const ctx = scope.context;
 
       // Check if primitive should be visible based on series options

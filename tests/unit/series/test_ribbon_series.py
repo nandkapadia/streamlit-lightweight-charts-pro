@@ -107,7 +107,7 @@ class TestRibbonSeries:
         series = RibbonSeries(data=data)
 
         # Verify default colors
-        assert series.fill == "rgba(76, 175, 80, 0.1)"
+        assert series.fill_color == "rgba(76, 175, 80, 0.1)"
         assert series.fill_visible is True
 
     def test_ribbon_series_custom_line_options(self):
@@ -139,11 +139,11 @@ class TestRibbonSeries:
         series = RibbonSeries(data=data)
 
         # Customize colors
-        series.fill = "rgba(255, 0, 0, 0.5)"
+        series.fill_color = "rgba(255, 0, 0, 0.5)"
         series.fill_visible = False
 
         # Verify custom colors
-        assert series.fill == "rgba(255, 0, 0, 0.5)"
+        assert series.fill_color == "rgba(255, 0, 0, 0.5)"
         assert series.fill_visible is False
 
     def test_ribbon_series_property_setting(self):
@@ -155,14 +155,14 @@ class TestRibbonSeries:
         series.upper_line.color = "#FF0000"
         series.upper_line.line_width = 3
         series.lower_line.color = "#00FF00"
-        series.fill = "rgba(0, 255, 0, 0.3)"
+        series.fill_color = "rgba(0, 255, 0, 0.3)"
         series.visible = False
 
         # Verify changes were applied
         assert series.upper_line.color == "#FF0000"
         assert series.upper_line.line_width == 3
         assert series.lower_line.color == "#00FF00"
-        assert series.fill == "rgba(0, 255, 0, 0.3)"
+        assert series.fill_color == "rgba(0, 255, 0, 0.3)"
         assert series.visible is False
 
     def test_ribbon_series_data_validation(self):

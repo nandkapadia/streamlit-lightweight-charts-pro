@@ -38,6 +38,7 @@ License: MIT
 """
 
 from .chainable import chainable_field, chainable_property, validated_field
+from .color_utils import add_opacity, hex_to_rgba, is_hex_color
 from .serialization import (
     DEFAULT_CONFIG,
     SerializableMixin,
@@ -53,8 +54,11 @@ __all__ = [
     "SerializableMixin",
     "SerializationConfig",
     "SimpleSerializableMixin",
+    "add_opacity",
     "chainable_field",
     "chainable_property",
+    "hex_to_rgba",
+    "is_hex_color",
     "validated_field",
     # Trade visualization functions are available directly from the module
     # when needed, avoiding circular imports

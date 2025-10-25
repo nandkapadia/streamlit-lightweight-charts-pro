@@ -42,7 +42,7 @@ import {
   Time,
   PrimitivePaneViewZOrder,
 } from 'lightweight-charts';
-import { BitmapCoordinatesRenderingScope } from 'fancy-canvas';
+import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { getSolidColorFromFill } from '../utils/colorUtils';
 import {
   convertToCoordinates,
@@ -172,7 +172,7 @@ class RibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
    * This method renders upper and lower boundary lines
    * that should appear on top of fills and other series
    */
-  draw(target: any): void {
+  draw(target: CanvasRenderingTarget2D): void {
     target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
       const ctx = scope.context;
       const hRatio = scope.horizontalPixelRatio;
@@ -355,7 +355,7 @@ class RibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
    * This method renders the filled area between upper and lower lines
    * that should appear behind lines and other series
    */
-  drawBackground(target: any): void {
+  drawBackground(target: CanvasRenderingTarget2D): void {
     target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
       const ctx = scope.context;
       const hRatio = scope.horizontalPixelRatio;
@@ -721,6 +721,10 @@ export class RibbonPrimitive extends BaseSeriesPrimitive<
           lower === undefined ||
           isNaN(lower)
         ) {
+          console.warn(
+            `[RibbonPrimitive] Invalid ribbon data at time ${item.time}:`,
+            `upper=${upper}, lower=${lower}`
+          );
           return null;
         }
 

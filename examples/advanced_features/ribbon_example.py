@@ -64,7 +64,7 @@ def main():
     ribbon_series.lower_line.line_width = 2
     ribbon_series.lower_line.line_style = "solid"
 
-    ribbon_series.fill = "rgba(76, 175, 80, 0.1)"
+    ribbon_series.fill_color = "rgba(76, 175, 80, 0.1)"
     ribbon_series.color = "#2196F3"
     ribbon_series.fill_visible = True
 
@@ -107,7 +107,7 @@ def main():
     st.write(f"Price Scale ID: {ribbon_series.price_scale_id}")  # pylint: disable=no-member
     st.write(f"Pane ID: {ribbon_series.pane_id}")  # pylint: disable=no-member
     st.write(f"Fill Visible: {ribbon_series.fill_visible}")
-    st.write(f"Fill Color: {ribbon_series.fill}")
+    st.write(f"Fill Color: {ribbon_series.fill_color}")
     st.write(f"Line Color: {ribbon_series.color}")
 
 

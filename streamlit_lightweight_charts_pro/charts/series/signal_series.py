@@ -31,10 +31,15 @@ class SignalSeries(Series):
     to background colors for specific time periods. The background bands
     appear across all chart panes and provide visual context for the data.
 
+    Signal data can be:
+    - Binary (0, 1): Only uses neutral_color and signal_color
+    - Ternary (0, 1, negative): Uses all three colors including alert_color
+
     Attributes:
-        neutral_color: Background color for signal value=0 (default: "#ffffff")
-        signal_color: Background color for signal value=1 (default: "#ff0000")
-        alert_color: Background color for signal value=2 (optional, default: None)
+        neutral_color: Background color for signal value=0 (default: "rgba(128, 128, 128, 0.1)")
+        signal_color: Background color for signal value>0 (positive, default: "rgba(76, 175, 80, 0.2)")
+        alert_color: Background color for signal value<0 (negative, optional, default: None)
+            Frontend intelligently uses this only when data contains non-boolean values
 
     Example:
         ```python
@@ -73,8 +78,8 @@ class SignalSeries(Series):
         self,
         data: Union[List[SignalData], pd.DataFrame, pd.Series],
         column_mapping: Optional[dict] = None,
-        neutral_color: str = "#f0f0f0",
-        signal_color: str = "#ff0000",
+        neutral_color: str = "rgba(128, 128, 128, 0.1)",
+        signal_color: str = "rgba(76, 175, 80, 0.2)",
         alert_color: Optional[str] = None,
         visible: bool = True,
         price_scale_id: str = "right",
@@ -85,9 +90,10 @@ class SignalSeries(Series):
         Args:
             data: List of SignalData objects, DataFrame, or Series.
             column_mapping: Optional column mapping for DataFrame input.
-            neutral_color: Background color for value=0. Defaults to "#ffffff".
-            signal_color: Background color for value=1. Defaults to "#ff0000".
-            alert_color: Background color for value=2. Defaults to None.
+            neutral_color: Background color for value=0. Defaults to "rgba(128, 128, 128, 0.1)".
+            signal_color: Background color for value>0 (positive). Defaults to "rgba(76, 175, 80, 0.2)".
+            alert_color: Background color for value<0 (negative). Defaults to None.
+                Frontend intelligently uses this only when needed based on data values.
             visible: Whether the signal series should be visible. Defaults to True.
             price_scale_id: Price scale ID. Defaults to "right".
             pane_id: Pane ID for multi-pane charts. Defaults to 0.

@@ -164,7 +164,7 @@ def main():
 
         regular_ribbon_series.upper_line.color = "#666666"  # pylint: disable=no-member
         regular_ribbon_series.lower_line.color = "#666666"  # pylint: disable=no-member
-        regular_ribbon_series.fill = "rgba(102, 102, 102, 0.2)"
+        regular_ribbon_series.fill_color = "rgba(102, 102, 102, 0.2)"
         regular_ribbon_series.fill_visible = True
 
         comparison_chart.add_series(gradient_series)
