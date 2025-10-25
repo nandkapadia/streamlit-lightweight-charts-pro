@@ -38,7 +38,9 @@ from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options
 )
 from streamlit_lightweight_charts_pro.charts.options.ui_options import (
     LegendOptions,
+    RangeConfig,
     RangeSwitcherOptions,
+    TimeRange,
 )
 from streamlit_lightweight_charts_pro.data import (
     BandData,
@@ -306,15 +308,58 @@ def main():
         Chart(series=HistogramSeries(data=data["volume_data"])).render(key="histogram")
 
         st.write("**Baseline (with RangeSwitcher + Legend)**")
-        baseline = BaselineSeries(data=data["line_data"])
-        baseline.base_value = {"type": "price", "price": 100}
+
+        # Define legend template
+        default_legend_text = (
+            "<span style='"
+            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; '
+            "font-size: 11px; "
+            "font-weight: 300; "
+            "color: #131722; "
+            "background: rgba(255, 255, 255, 0.15); "
+            "padding: 4px 8px; "
+            "display: inline-block; "
+            "line-height: 1.1; "
+            "white-space: nowrap; "
+            "width: auto; "
+            "border-radius: 4px; "
+            "box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);'>"
+            "<strong>{legendTitle}</strong>: $$value$$</span>"
+        )
+
+        # Create baseline data from OHLCV close prices
+        baseline_data = [
+            SingleValueData(time=candle.time, value=candle.close) for candle in data["ohlcv_data"]
+        ]
+        baseline = BaselineSeries(data=baseline_data)
+        baseline.base_value = {"type": "price", "price": 110}
         baseline.title = "NIFTY 50"
         baseline.display_name = "NIFTY 50"
+        baseline.top_fill_color1 = "rgba(76, 175, 80, 0.28)"
+        baseline.top_fill_color2 = "rgba(76, 175, 80, 0.05)"
+        baseline.bottom_fill_color1 = "rgba(239, 83, 80, 0.05)"
+        baseline.bottom_fill_color2 = "rgba(239, 83, 80, 0.28)"
+        baseline.top_line_color = "rgba(76, 175, 80, 1)"
+        baseline.bottom_line_color = "rgba(239, 83, 80, 1)"
+        baseline.legend = LegendOptions(
+            visible=True,
+            position="top-left",
+            text=default_legend_text.format(legendTitle="NIFTY 50"),
+        )
+
         Chart(
             series=baseline,
             options=ChartOptions(
-                range_switcher=RangeSwitcherOptions(visible=True, position="bottom-right"),
-                legend=LegendOptions(visible=True, font_size=14),
+                range_switcher=RangeSwitcherOptions(
+                    visible=True,
+                    position="bottom-right",
+                    ranges=[
+                        RangeConfig(text="1D", tooltip="1 Day", range=TimeRange.ONE_DAY),
+                        RangeConfig(text="1W", tooltip="1 Week", range=TimeRange.ONE_WEEK),
+                        RangeConfig(text="1M", tooltip="1 Month", range=TimeRange.ONE_MONTH),
+                        RangeConfig(text="ALL", tooltip="All Data", range=TimeRange.ALL),
+                    ],
+                ),
             ),
         ).render(key="baseline")
 
@@ -340,12 +385,10 @@ def main():
         trend_fill_series1.uptrend_line.line_width = 1  # pylint: disable=no-member
         trend_fill_series1.downtrend_line.line_width = 1  # pylint: disable=no-member
         trend_fill_series1.price_scale_id = "right"
+        trend_fill_series1.legend = LegendOptions(visible=True)
 
         trend_fill_chart = Chart(
             series=[candlestick_tf, trend_fill_series1],
-            options=ChartOptions(
-                legend=LegendOptions(visible=True, font_size=12),
-            ),
         )
         trend_fill_chart.render(key="trend_fill")
 
@@ -470,6 +513,7 @@ def main():
     line_series = LineSeries(data=data["line_data"])
     line_series.title = "SMA"
     line_series.color = "blue"
+    line_series.legend = LegendOptions(visible=True)
 
     trend_fill_series = TrendFillSeries(
         data=data["trend_data"],
@@ -510,7 +554,6 @@ def main():
                 background_options=BackgroundSolid(color="white"),
                 text_color="black",
             ),
-            legend=LegendOptions(visible=True, font_size=13),
             range_switcher=RangeSwitcherOptions(visible=True, position="bottom-right"),
         ),
     )
