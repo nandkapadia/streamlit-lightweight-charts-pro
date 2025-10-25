@@ -357,10 +357,10 @@ export abstract class BaseSeriesPrimitiveAxisView<
     if (series) {
       const seriesOptions = (series as any).options();
       if (seriesOptions) {
-        return seriesOptions.lastValueVisible ?? false;
+        return seriesOptions.lastValueVisible ?? true;
       }
     }
-    return false;
+    return true;
   }
 
   /**
