@@ -116,6 +116,51 @@ vi.mock('../../primitives/BaseSeriesPrimitive', () => ({
       return '#000000';
     }
   },
+  // Factory function for creating axis view classes (added for refactoring)
+  createPrimitiveAxisView: (field: string, colorField: string) => {
+    return class {
+      protected _source: any;
+      private _field: string;
+      private _colorField: string;
+
+      constructor(source: any) {
+        this._source = source;
+        this._field = field;
+        this._colorField = colorField;
+      }
+
+      protected _getLastVisibleItem(): any {
+        const data = this._source.getProcessedData();
+        return data.length > 0 ? data[data.length - 1] : null;
+      }
+
+      coordinate(): number {
+        const lastItem = this._getLastVisibleItem();
+        if (!lastItem) return 0;
+        const fieldValue = lastItem[this._field];
+        if (fieldValue === null || fieldValue === undefined) return 0;
+        // Mock coordinate calculation
+        return fieldValue * 2;
+      }
+
+      text(): string {
+        const lastItem = this._getLastVisibleItem();
+        if (!lastItem) return '';
+        const fieldValue = lastItem[this._field];
+        if (fieldValue === null || fieldValue === undefined) return '';
+        return fieldValue.toFixed(2);
+      }
+
+      textColor(): string {
+        return '#FFFFFF';
+      }
+
+      backColor(): string {
+        const options = this._source.getOptions();
+        return options[this._colorField] || '#000000';
+      }
+    };
+  },
 }));
 
 // Mock color utils

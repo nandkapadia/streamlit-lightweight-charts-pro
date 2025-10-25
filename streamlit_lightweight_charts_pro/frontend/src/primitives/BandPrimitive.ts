@@ -65,7 +65,7 @@ import {
   BaseSeriesPrimitiveOptions,
   BaseProcessedData,
   BaseSeriesPrimitivePaneView,
-  BaseSeriesPrimitiveAxisView,
+  createPrimitiveAxisView,
 } from './BaseSeriesPrimitive';
 
 // ============================================================================
@@ -666,98 +666,30 @@ class BandPrimitiveRenderer implements IPrimitivePaneRenderer {
 }
 
 // ============================================================================
-// Axis Views
+// Axis Views (using factory to eliminate duplication)
 // ============================================================================
 
 /**
- * Price axis view for upper line
+ * Price axis views for Band primitive
+ * Generated using createPrimitiveAxisView factory to eliminate code duplication
+ *
+ * Before: 90 lines of duplicate code (3 classes × 30 lines each)
+ * After: 3 lines using factory pattern
  */
-class BandUpperAxisView extends BaseSeriesPrimitiveAxisView<
-  BandProcessedData,
-  BandPrimitiveOptions
-> {
-  coordinate(): number {
-    const lastItem = this._getLastVisibleItem();
-    if (!lastItem) return 0;
+const BandUpperAxisView = createPrimitiveAxisView<BandProcessedData, BandPrimitiveOptions>(
+  'upper',
+  'upperLineColor'
+);
 
-    const series = this._source.getAttachedSeries();
-    if (!series) return 0;
+const BandMiddleAxisView = createPrimitiveAxisView<BandProcessedData, BandPrimitiveOptions>(
+  'middle',
+  'middleLineColor'
+);
 
-    const coordinate = series.priceToCoordinate(lastItem.upper);
-    return coordinate ?? 0;
-  }
-
-  text(): string {
-    const lastItem = this._getLastVisibleItem();
-    if (!lastItem) return '';
-    return lastItem.upper.toFixed(2);
-  }
-
-  backColor(): string {
-    const options = this._source.getOptions();
-    return getSolidColorFromFill(options.upperLineColor);
-  }
-}
-
-/**
- * Price axis view for middle line
- */
-class BandMiddleAxisView extends BaseSeriesPrimitiveAxisView<
-  BandProcessedData,
-  BandPrimitiveOptions
-> {
-  coordinate(): number {
-    const lastItem = this._getLastVisibleItem();
-    if (!lastItem) return 0;
-
-    const series = this._source.getAttachedSeries();
-    if (!series) return 0;
-
-    const coordinate = series.priceToCoordinate(lastItem.middle);
-    return coordinate ?? 0;
-  }
-
-  text(): string {
-    const lastItem = this._getLastVisibleItem();
-    if (!lastItem) return '';
-    return lastItem.middle.toFixed(2);
-  }
-
-  backColor(): string {
-    const options = this._source.getOptions();
-    return getSolidColorFromFill(options.middleLineColor);
-  }
-}
-
-/**
- * Price axis view for lower line
- */
-class BandLowerAxisView extends BaseSeriesPrimitiveAxisView<
-  BandProcessedData,
-  BandPrimitiveOptions
-> {
-  coordinate(): number {
-    const lastItem = this._getLastVisibleItem();
-    if (!lastItem) return 0;
-
-    const series = this._source.getAttachedSeries();
-    if (!series) return 0;
-
-    const coordinate = series.priceToCoordinate(lastItem.lower);
-    return coordinate ?? 0;
-  }
-
-  text(): string {
-    const lastItem = this._getLastVisibleItem();
-    if (!lastItem) return '';
-    return lastItem.lower.toFixed(2);
-  }
-
-  backColor(): string {
-    const options = this._source.getOptions();
-    return getSolidColorFromFill(options.lowerLineColor);
-  }
-}
+const BandLowerAxisView = createPrimitiveAxisView<BandProcessedData, BandPrimitiveOptions>(
+  'lower',
+  'lowerLineColor'
+);
 
 // ============================================================================
 // Primitive Implementation

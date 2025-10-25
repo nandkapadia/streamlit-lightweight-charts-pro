@@ -26,6 +26,7 @@ import {
   Time,
   PrimitivePaneViewZOrder,
 } from 'lightweight-charts';
+import { getSolidColorFromFill } from '../utils/colorUtils';
 
 /**
  * Base interface for series primitive options
@@ -406,4 +407,112 @@ export abstract class BaseSeriesPrimitiveAxisView<
     // Fallback to first item if nothing found
     return items[0];
   }
+}
+
+// ============================================================================
+// Axis View Factory
+// ============================================================================
+
+/**
+ * Factory function for creating primitive axis view classes with identical structure.
+ *
+ * This factory eliminates code duplication across primitive axis views (Band, Ribbon, GradientRibbon)
+ * by generating axis view classes with consistent implementation patterns.
+ *
+ * Before this factory, each primitive had 2-3 axis view classes with ~25 lines each (175 lines total).
+ * Now we generate these classes dynamically, reducing code by ~150 lines.
+ *
+ * @template TData - The processed data type for the primitive
+ * @template TOptions - The options type for the primitive
+ *
+ * @param field - The field name to access in the data (e.g., 'upper', 'middle', 'lower')
+ * @param colorField - The color field name in options (e.g., 'upperLineColor', 'middleLineColor')
+ *
+ * @returns A class extending BaseSeriesPrimitiveAxisView with the specified field and color mappings
+ *
+ * @example
+ * ```typescript
+ * // Before: 75 lines of duplicate code for 3 axis views
+ * class BandUpperAxisView extends BaseSeriesPrimitiveAxisView<BandProcessedData, BandPrimitiveOptions> {
+ *   coordinate(): number {
+ *     const lastItem = this._getLastVisibleItem();
+ *     if (!lastItem) return 0;
+ *     const series = this._source.getAttachedSeries();
+ *     if (!series) return 0;
+ *     const coordinate = series.priceToCoordinate(lastItem.upper);
+ *     return coordinate ?? 0;
+ *   }
+ *   text(): string {
+ *     const lastItem = this._getLastVisibleItem();
+ *     if (!lastItem) return '';
+ *     return lastItem.upper.toFixed(2);
+ *   }
+ *   backColor(): string {
+ *     const options = this._source.getOptions();
+ *     return getSolidColorFromFill(options.upperLineColor);
+ *   }
+ * }
+ * // ... repeat for middle and lower (50 more lines)
+ *
+ * // After: 3 lines using factory
+ * const BandUpperAxisView = createPrimitiveAxisView<BandProcessedData, BandPrimitiveOptions>('upper', 'upperLineColor');
+ * const BandMiddleAxisView = createPrimitiveAxisView<BandProcessedData, BandPrimitiveOptions>('middle', 'middleLineColor');
+ * const BandLowerAxisView = createPrimitiveAxisView<BandProcessedData, BandPrimitiveOptions>('lower', 'lowerLineColor');
+ * ```
+ */
+export function createPrimitiveAxisView<
+  TData extends BaseProcessedData,
+  TOptions extends BaseSeriesPrimitiveOptions,
+>(
+  field: string,
+  colorField: string
+): new (source: BaseSeriesPrimitive<TData, TOptions>) => BaseSeriesPrimitiveAxisView<TData, TOptions> {
+  // Return an anonymous class that extends BaseSeriesPrimitiveAxisView
+  return class extends BaseSeriesPrimitiveAxisView<TData, TOptions> {
+    /**
+     * Get the Y-coordinate for this axis view by converting the field value to screen coordinates
+     */
+    coordinate(): number {
+      const lastItem = this._getLastVisibleItem();
+      if (!lastItem) return 0;
+
+      const series = this._source.getAttachedSeries();
+      if (!series) return 0;
+
+      // Access the field value from the data item (e.g., lastItem.upper, lastItem.lower)
+      const fieldValue = (lastItem as any)[field];
+      if (fieldValue === null || fieldValue === undefined) return 0;
+
+      const coordinate = series.priceToCoordinate(fieldValue);
+      return coordinate ?? 0;
+    }
+
+    /**
+     * Get the text to display on the price axis (formatted to 2 decimal places)
+     */
+    text(): string {
+      const lastItem = this._getLastVisibleItem();
+      if (!lastItem) return '';
+
+      // Access the field value from the data item
+      const fieldValue = (lastItem as any)[field];
+      if (fieldValue === null || fieldValue === undefined) return '';
+
+      return fieldValue.toFixed(2);
+    }
+
+    /**
+     * Get the background color for this axis label from the options
+     * Uses getSolidColorFromFill to extract solid color from rgba/hex strings
+     */
+    backColor(): string {
+      const options = this._source.getOptions() as any;
+
+      // Access the color field from options (e.g., options.upperLineColor)
+      const color = options[colorField];
+
+      // Extract solid color from fill string (handles rgba, hex, etc.)
+      return getSolidColorFromFill(color);
+    }
+  };
 }
