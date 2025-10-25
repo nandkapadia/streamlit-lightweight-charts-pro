@@ -36,6 +36,10 @@ from streamlit_lightweight_charts_pro.charts.options.sync_options import SyncOpt
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
+from streamlit_lightweight_charts_pro.charts.options.ui_options import (
+    LegendOptions,
+    RangeSwitcherOptions,
+)
 from streamlit_lightweight_charts_pro.data import (
     BandData,
     GradientRibbonData,
@@ -301,12 +305,18 @@ def main():
         st.write("**Histogram**")
         Chart(series=HistogramSeries(data=data["volume_data"])).render(key="histogram")
 
-        st.write("**Baseline**")
+        st.write("**Baseline (with RangeSwitcher + Legend)**")
         baseline = BaselineSeries(data=data["line_data"])
         baseline.base_value = {"type": "price", "price": 100}
-        baseline.title = "NIFTY 50 - Baseline"
-        baseline.display_name = "NIFTY 50 - Baseline"
-        Chart(series=baseline).render(key="baseline")
+        baseline.title = "NIFTY 50"
+        baseline.display_name = "NIFTY 50"
+        Chart(
+            series=baseline,
+            options=ChartOptions(
+                range_switcher=RangeSwitcherOptions(visible=True, position="bottom-right"),
+                legend=LegendOptions(visible=True, font_size=14),
+            ),
+        ).render(key="baseline")
 
         st.write("**Bar**")
         Chart(series=BarSeries(data=data["ohlcv_data"])).render(key="bar")
@@ -315,19 +325,27 @@ def main():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.write("**Trend Fill (HLC3 + EMA20)**")
+        st.write("**Trend Fill (HLC3 + EMA20) + Legend**")
         st.caption("Baseline: HLC3, Trend: EMA20, Green=Bullish, Red=Bearish")
+
+        candlestick_tf = CandlestickSeries(data=data["ohlcv_data"])
+        candlestick_tf.title = "Price"
+
         trend_fill_series1 = TrendFillSeries(
             data=data["trend_data"],
             uptrend_fill_color="rgba(76, 175, 80, 0.2)",
             downtrend_fill_color="rgba(239, 83, 80, 0.2)",
         )
+        trend_fill_series1.title = "Trend (HLC3/EMA20)"
         trend_fill_series1.uptrend_line.line_width = 1  # pylint: disable=no-member
         trend_fill_series1.downtrend_line.line_width = 1  # pylint: disable=no-member
         trend_fill_series1.price_scale_id = "right"
 
         trend_fill_chart = Chart(
-            series=[CandlestickSeries(data=data["ohlcv_data"]), trend_fill_series1],
+            series=[candlestick_tf, trend_fill_series1],
+            options=ChartOptions(
+                legend=LegendOptions(visible=True, font_size=12),
+            ),
         )
         trend_fill_chart.render(key="trend_fill")
 
@@ -492,6 +510,8 @@ def main():
                 background_options=BackgroundSolid(color="white"),
                 text_color="black",
             ),
+            legend=LegendOptions(visible=True, font_size=13),
+            range_switcher=RangeSwitcherOptions(visible=True, position="bottom-right"),
         ),
     )
 
