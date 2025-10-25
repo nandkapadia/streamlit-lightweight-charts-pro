@@ -641,3 +641,127 @@ def _validate_value(field_name: str, value, value_type=None, validator=None):
 
     # Return the validated (and possibly transformed) value
     return value
+
+
+def validated_field(
+    field_name: str,
+    value_type: Optional[Union[Type, tuple]] = None,
+    validator: Optional[Union[Callable[[Any], Any], str]] = None,
+    allow_none: bool = False,
+):
+    """Decorator that validates dataclass fields on initialization and provides setter methods.
+
+    This decorator extends chainable_field by adding validation during __post_init__.
+    It ensures that field values are validated both when constructed and when using
+    setter methods, providing consistent validation across the entire lifecycle.
+
+    The decorator creates both a setter method (like chainable_field) and hooks into
+    the dataclass __post_init__ to validate the field value after initialization.
+
+    Args:
+        field_name: The name of the dataclass field to validate.
+            The method will be named `set_{field_name}`.
+        value_type: Optional type or tuple of types for validation. If provided,
+            the value will be checked against this type.
+            Common types: str, int, float, bool, or custom classes.
+        validator: Optional validation function or string identifier. If callable,
+            it should take a value and return the validated/transformed value.
+            If string, uses built-in validators: "color", "price_format_type",
+            "precision", "min_move".
+        allow_none: Whether to allow None values. If True, None values bypass
+            type validation but still go through custom validators.
+
+    Returns:
+        Decorator function that modifies the class to add validation and setter.
+
+    Raises:
+        TypeError: If the value doesn't match the specified type.
+        ValueError: If the value fails custom validation.
+
+    Example:
+        ```python
+        from dataclasses import dataclass
+        from streamlit_lightweight_charts_pro.utils import validated_field
+
+
+        @dataclass
+        @validated_field("color", str, validator="color", allow_none=True)
+        @validated_field("width", int)
+        class MyData:
+            color: Optional[str] = None
+            width: int = 100
+
+
+        # Valid usage
+        data = MyData(color="#ff0000", width=200)  # Validated on init
+        data.set_color("#00ff00")  # Validated on setter
+
+        # Invalid usage - validation catches errors
+        data = MyData(color="invalid_color")  # Raises ColorValidationError
+        data = MyData(width="not_a_number")  # Raises TypeValidationError
+        ```
+
+    Note:
+        This decorator should be applied BEFORE the @dataclass decorator in the
+        decorator stack. It works by wrapping the __post_init__ method to add
+        validation logic after dataclass initialization.
+    """
+
+    def decorator(cls):
+        """Inner decorator function that modifies the dataclass.
+
+        Args:
+            cls: The dataclass to be decorated.
+
+        Returns:
+            The modified class with validation and setter method.
+        """
+        # Step 1: First apply chainable_field to get the setter method
+        cls = chainable_field(field_name, value_type, validator, allow_none)(cls)
+
+        # Step 2: Store the original __post_init__ if it exists
+        original_post_init = getattr(cls, "__post_init__", None)
+
+        # Step 3: Create new __post_init__ that adds validation
+        def new_post_init(self):
+            """Enhanced __post_init__ that validates fields after initialization.
+
+            This method runs after the dataclass __init__ completes, validating
+            the field value and applying any necessary transformations.
+
+            Args:
+                self: The dataclass instance being initialized.
+            """
+            # First, call the original __post_init__ if it exists
+            if original_post_init is not None:
+                original_post_init(self)
+
+            # Get the current field value
+            value = getattr(self, field_name)
+
+            # Skip validation if None and allow_none is True
+            if value is None and allow_none:
+                return
+
+            # Apply validation using the same logic as the setter
+            try:
+                validated_value = _validate_value(field_name, value, value_type, validator)
+                # Set the validated (and possibly transformed) value back
+                setattr(self, field_name, validated_value)
+            except (TypeError, ValueError) as e:
+                # Re-raise with more context about initialization
+                raise type(e)(
+                    f"Validation error during initialization of '{field_name}': {e}"
+                ) from e
+
+        # Step 4: Replace the __post_init__ method
+        cls.__post_init__ = new_post_init
+
+        # Step 5: Track which fields have validation for debugging
+        if not hasattr(cls, "_validated_fields"):
+            cls._validated_fields = []
+        cls._validated_fields.append(field_name)
+
+        return cls
+
+    return decorator

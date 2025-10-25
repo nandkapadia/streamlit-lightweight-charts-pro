@@ -79,7 +79,6 @@ def create_trend_ribbon_data():
     dates = pd.date_range("2024-01-01", periods=60, freq="D")
 
     data = []
-    prev_middle = 100
 
     for i, date in enumerate(dates):
         # Create trending price data
@@ -122,8 +121,6 @@ def create_trend_ribbon_data():
         else:
             # Sideways - use default styling
             data.append(RibbonData(time=str(date.date()), upper=upper, lower=lower))
-
-        prev_middle = middle
 
     return data
 

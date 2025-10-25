@@ -30,11 +30,11 @@ from typing import ClassVar, Optional
 
 # Local Imports
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
-from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
-from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
+from streamlit_lightweight_charts_pro.utils import validated_field
 
 
 @dataclass
+@validated_field("color", str, validator="color", allow_none=True)
 class BarData(OhlcData):
     """Data class for a single value (line/area/histogram) chart point.
 
@@ -56,20 +56,3 @@ class BarData(OhlcData):
     OPTIONAL_COLUMNS: ClassVar[set] = {"color"}
 
     color: Optional[str] = None
-
-    def __post_init__(self):
-        """Post-initialization processing to validate bar data.
-
-        This method is automatically called after the dataclass is initialized.
-        It validates the color field if provided.
-
-        Raises:
-            ValueValidationError: If the color format is invalid.
-        """
-        # Call parent class post_init to validate OHLC data
-        super().__post_init__()
-
-        # Validate color if provided
-        # Empty strings are allowed (meaning use default color)
-        if self.color is not None and self.color != "" and not is_valid_color(self.color):
-            raise ValueValidationError("color", "Invalid color format")

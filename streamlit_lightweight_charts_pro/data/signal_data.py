@@ -9,11 +9,11 @@ from dataclasses import dataclass
 from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
-from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
-from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
+from streamlit_lightweight_charts_pro.utils import validated_field
 
 
 @dataclass
+@validated_field("color", str, validator="color", allow_none=True)
 class SignalData(SingleValueData):
     """Signal data point for background coloring.
 
@@ -62,8 +62,3 @@ class SignalData(SingleValueData):
     OPTIONAL_COLUMNS: ClassVar[set] = {"color"}
 
     color: Optional[str] = None
-
-    def __post_init__(self):
-        super().__post_init__()
-        if self.color is not None and self.color != "" and not is_valid_color(self.color):
-            raise ValueValidationError("color", "Invalid color format")

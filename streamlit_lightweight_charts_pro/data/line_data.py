@@ -40,11 +40,11 @@ from typing import ClassVar, Optional
 # (None in this module)
 # Local Imports
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
-from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
-from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
+from streamlit_lightweight_charts_pro.utils import validated_field
 
 
 @dataclass
+@validated_field("color", str, validator="color", allow_none=True)
 class LineData(SingleValueData):
     """Data class for line chart data points with optional color styling.
 
@@ -100,24 +100,3 @@ class LineData(SingleValueData):
 
     # Optional color field for styling this data point
     color: Optional[str] = None
-
-    def __post_init__(self):
-        """Post-initialization processing to validate color format.
-
-        This method is automatically called after the dataclass is initialized.
-        It performs the following operations:
-        1. Calls the parent class __post_init__ to validate time and value
-        2. Validates the color format if a color is provided
-
-        The method ensures that if a color is specified, it follows valid
-        hex or rgba format standards for frontend compatibility.
-
-        Raises:
-            ValueValidationError: If the color format is invalid.
-        """
-        # Call parent's __post_init__ to validate time and value fields
-        super().__post_init__()
-
-        # Validate color format if color is provided and not empty
-        if self.color is not None and self.color != "" and not is_valid_color(self.color):
-            raise ValueValidationError("color", "Invalid color format")

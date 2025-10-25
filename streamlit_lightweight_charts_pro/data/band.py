@@ -10,10 +10,15 @@ from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.data import Data
 from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
-from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
+from streamlit_lightweight_charts_pro.utils import validated_field
 
 
 @dataclass
+@validated_field("upper_line_color", str, validator="color", allow_none=True)
+@validated_field("middle_line_color", str, validator="color", allow_none=True)
+@validated_field("lower_line_color", str, validator="color", allow_none=True)
+@validated_field("upper_fill_color", str, validator="color", allow_none=True)
+@validated_field("lower_fill_color", str, validator="color", allow_none=True)
 class BandData(Data):
     """Data point for band charts (e.g., Bollinger Bands).
 
@@ -89,34 +94,4 @@ class BandData(Data):
         elif self.lower is None:
             raise ValueValidationError("lower", "must not be None")
 
-        # Validate color fields if provided
-        if (
-            self.upper_line_color is not None
-            and self.upper_line_color != ""
-            and not is_valid_color(self.upper_line_color)
-        ):
-            raise ValueValidationError("upper_line_color", "Invalid color format")
-        if (
-            self.middle_line_color is not None
-            and self.middle_line_color != ""
-            and not is_valid_color(self.middle_line_color)
-        ):
-            raise ValueValidationError("middle_line_color", "Invalid color format")
-        if (
-            self.lower_line_color is not None
-            and self.lower_line_color != ""
-            and not is_valid_color(self.lower_line_color)
-        ):
-            raise ValueValidationError("lower_line_color", "Invalid color format")
-        if (
-            self.upper_fill_color is not None
-            and self.upper_fill_color != ""
-            and not is_valid_color(self.upper_fill_color)
-        ):
-            raise ValueValidationError("upper_fill_color", "Invalid color format")
-        if (
-            self.lower_fill_color is not None
-            and self.lower_fill_color != ""
-            and not is_valid_color(self.lower_fill_color)
-        ):
-            raise ValueValidationError("lower_fill_color", "Invalid color format")
+        # Color validation is now handled by @validated_field decorators

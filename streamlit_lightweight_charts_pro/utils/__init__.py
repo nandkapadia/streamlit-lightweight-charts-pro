@@ -37,7 +37,7 @@ Author: Streamlit Lightweight Charts Contributors
 License: MIT
 """
 
-from .chainable import chainable_field, chainable_property
+from .chainable import chainable_field, chainable_property, validated_field
 from .serialization import (
     DEFAULT_CONFIG,
     SerializableMixin,
@@ -55,6 +55,7 @@ __all__ = [
     "SimpleSerializableMixin",
     "chainable_field",
     "chainable_property",
+    "validated_field",
     # Trade visualization functions are available directly from the module
     # when needed, avoiding circular imports
 ]

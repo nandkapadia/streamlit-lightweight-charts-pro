@@ -10,10 +10,13 @@ from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.data import Data
 from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
-from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
+from streamlit_lightweight_charts_pro.utils import validated_field
 
 
 @dataclass
+@validated_field("fill", str, validator="color", allow_none=True)
+@validated_field("upper_line_color", str, validator="color", allow_none=True)
+@validated_field("lower_line_color", str, validator="color", allow_none=True)
 class RibbonData(Data):
     """Data point for ribbon charts.
 
@@ -70,18 +73,4 @@ class RibbonData(Data):
             self.lower = None
         # Allow None for missing data (no validation error)
 
-        # Validate color fields if provided
-        if self.fill is not None and self.fill != "" and not is_valid_color(self.fill):
-            raise ValueValidationError("fill", "Invalid color format")
-        if (
-            self.upper_line_color is not None
-            and self.upper_line_color != ""
-            and not is_valid_color(self.upper_line_color)
-        ):
-            raise ValueValidationError("upper_line_color", "Invalid color format")
-        if (
-            self.lower_line_color is not None
-            and self.lower_line_color != ""
-            and not is_valid_color(self.lower_line_color)
-        ):
-            raise ValueValidationError("lower_line_color", "Invalid color format")
+        # Color validation is now handled by @validated_field decorators

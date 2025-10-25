@@ -240,9 +240,10 @@ class TestCandlestickDataValidation:
             wick_color="",
         )
 
-        assert data.color == ""
-        assert data.border_color == ""
-        assert data.wick_color == ""
+        # Empty color strings are converted to None by centralized validation
+        assert data.color is None
+        assert data.border_color is None
+        assert data.wick_color is None
 
 
 class TestCandlestickDataSerialization:

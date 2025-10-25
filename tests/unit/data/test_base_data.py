@@ -47,6 +47,7 @@ import pytest
 # Local Imports
 from streamlit_lightweight_charts_pro.data.line_data import LineData
 from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
     RequiredFieldError,
     TimeValidationError,
     ValueValidationError,
@@ -282,7 +283,8 @@ class TestDataValidation:
 
     def test_line_data_with_invalid_color(self):
         """Test LineData with invalid color."""
-        with pytest.raises(ValueValidationError):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError):
             LineData(time=1640995200, value=100, color="invalid_color")
 
 

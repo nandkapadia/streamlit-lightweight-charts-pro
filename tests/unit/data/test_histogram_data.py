@@ -14,7 +14,7 @@ import pytest
 
 from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
-from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 
 
 class TestHistogramDataConstruction:
@@ -46,7 +46,8 @@ class TestHistogramDataConstruction:
         data = HistogramData(time=1640995200, value=100.5, color="")
         assert data.time == 1640995200
         assert data.value == 100.5
-        assert data.color == ""
+        # Empty color string is converted to None by centralized validation
+        assert data.color is None
 
     def test_construction_with_zero_value(self):
         """Test HistogramData construction with zero value."""
@@ -75,12 +76,14 @@ class TestHistogramDataValidation:
 
     def test_validation_invalid_color_format(self):
         """Test validation with invalid color format."""
-        with pytest.raises(ValueValidationError, match="Invalid color format"):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError, match="Invalid color format"):
             HistogramData(time=1640995200, value=100.5, color="invalid_color")
 
     def test_validation_invalid_hex_color(self):
         """Test validation with invalid hex color (should be rejected)."""
-        with pytest.raises(ValueValidationError, match="Invalid color format"):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError, match="Invalid color format"):
             HistogramData(time=1640995200, value=100.5, color="#GGGGGG")
 
     def test_validation_invalid_rgba_color(self):
@@ -97,7 +100,8 @@ class TestHistogramDataValidation:
     def test_validation_empty_color_string(self):
         """Test validation with empty color string (should be allowed)."""
         data = HistogramData(time=1640995200, value=100.5, color="")
-        assert data.color == ""
+        # Empty color string is converted to None by centralized validation
+        assert data.color is None
 
     def test_validation_valid_hex_colors(self):
         """Test validation with various valid hex colors."""
@@ -256,7 +260,8 @@ class TestHistogramDataEdgeCases:
     def test_very_long_color_string(self):
         """Test with very long color string."""
         long_color = "#" + "A" * 100
-        with pytest.raises(ValueValidationError, match="Invalid color format"):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError, match="Invalid color format"):
             HistogramData(time=1640995200, value=100.5, color=long_color)
 
 
@@ -343,12 +348,14 @@ class TestHistogramDataColorHandling:
 
     def test_color_with_spaces(self):
         """Test color with spaces (should be invalid)."""
-        with pytest.raises(ValueValidationError, match="Invalid color format"):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError, match="Invalid color format"):
             HistogramData(time=1640995200, value=100.5, color="# 2196F3")
 
     def test_color_without_hash(self):
         """Test color without hash (should be invalid)."""
-        with pytest.raises(ValueValidationError, match="Invalid color format"):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError, match="Invalid color format"):
             HistogramData(time=1640995200, value=100.5, color="2196F3")
 
     def test_rgba_with_spaces(self):
@@ -365,7 +372,8 @@ class TestHistogramDataColorHandling:
 
     def test_rgba_with_negative_alpha(self):
         """Test rgba color with negative alpha value (should be rejected)."""
-        with pytest.raises(ValueValidationError, match="Invalid color format"):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError, match="Invalid color format"):
             HistogramData(time=1640995200, value=100.5, color="rgba(33,150,243,-0.1)")
 
     def test_color_serialization_consistency(self):

@@ -38,8 +38,8 @@ import pytest
 # Local Imports
 from streamlit_lightweight_charts_pro.data.line_data import LineData
 from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
     RequiredFieldError,
-    ValueValidationError,
 )
 
 
@@ -111,7 +111,8 @@ def test_color_validation_rgba(valid_time):
 
 
 def test_color_invalid(valid_time):
-    with pytest.raises(ValueValidationError):
+    # Centralized validation raises ColorValidationError (more specific than ValueValidationError)
+    with pytest.raises(ColorValidationError):
         LineData(time=valid_time, value=1.0, color="notacolor")
 
 
@@ -119,7 +120,9 @@ def test_color_omitted_in_dict(valid_time):
     data = LineData(time=valid_time, value=1.0)
     d = data.asdict()
     assert "color" not in d
+    # Empty color string is converted to None by centralized validation
     data2 = LineData(time=valid_time, value=1.0, color="")
+    assert data2.color is None
     d2 = data2.asdict()
     assert "color" not in d2
 

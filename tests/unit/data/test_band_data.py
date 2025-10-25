@@ -14,6 +14,7 @@ import pytest
 from streamlit_lightweight_charts_pro.data.band import BandData
 from streamlit_lightweight_charts_pro.data.data import Data
 from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
     UnsupportedTimeTypeError,
     ValueValidationError,
 )
@@ -460,7 +461,8 @@ class TestBandDataPerPointColors:
 
     def test_band_data_invalid_color(self, valid_time):
         """Test BandData with invalid color raises error."""
-        with pytest.raises(ValueValidationError):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError):
             BandData(
                 time=valid_time,
                 upper=110.0,

@@ -4,8 +4,6 @@ This test module provides thorough coverage of all case conversion functionality
 including edge cases and error conditions.
 """
 
-import pytest
-
 from streamlit_lightweight_charts_pro.utils.case_converter import (
     CaseConverter,
     camel_to_snake,

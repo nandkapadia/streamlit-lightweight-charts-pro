@@ -6,7 +6,7 @@ This module tests the RibbonData class with per-point color override functionali
 import pytest
 
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
-from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 
 
 @pytest.fixture
@@ -174,7 +174,8 @@ class TestRibbonDataPerPointColors:
 
     def test_ribbon_data_invalid_upper_line_color(self, valid_time):
         """Test RibbonData with invalid upper line color raises error."""
-        with pytest.raises(ValueValidationError):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError):
             RibbonData(
                 time=valid_time,
                 upper=110.0,
@@ -184,7 +185,8 @@ class TestRibbonDataPerPointColors:
 
     def test_ribbon_data_invalid_lower_line_color(self, valid_time):
         """Test RibbonData with invalid lower line color raises error."""
-        with pytest.raises(ValueValidationError):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError):
             RibbonData(
                 time=valid_time,
                 upper=110.0,
@@ -194,7 +196,8 @@ class TestRibbonDataPerPointColors:
 
     def test_ribbon_data_invalid_fill_color(self, valid_time):
         """Test RibbonData with invalid fill color raises error."""
-        with pytest.raises(ValueValidationError):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError):
             RibbonData(
                 time=valid_time,
                 upper=110.0,
@@ -310,7 +313,7 @@ class TestRibbonDataPerPointColors:
             fill="",
         )
 
-        # Empty strings should be preserved
-        assert data.upper_line_color == ""
-        assert data.lower_line_color == ""
-        assert data.fill == ""
+        # Empty color strings are converted to None by centralized validation
+        assert data.upper_line_color is None
+        assert data.lower_line_color is None
+        assert data.fill is None

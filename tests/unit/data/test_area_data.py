@@ -202,6 +202,7 @@ class TestAreaDataSerialization:
 
     def test_to_dict_with_empty_colors(self):
         """Test AreaData to_dict with empty color strings."""
+        # Empty color strings are converted to None by centralized validation
         data = AreaData(time=1640995200, value=100, line_color="", top_color="", bottom_color="")
         data_dict = data.asdict()
 
@@ -213,6 +214,7 @@ class TestAreaDataSerialization:
 
     def test_to_dict_with_whitespace_colors(self):
         """Test AreaData to_dict with whitespace-only color strings."""
+        # Whitespace-only strings are stripped to empty, then converted to None by centralized validation
         data = AreaData(
             time=1640995200,
             value=100,
