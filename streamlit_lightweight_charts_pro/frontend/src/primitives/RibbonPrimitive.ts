@@ -259,7 +259,7 @@ class RibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
         points,
         {
           color: options[globalColorField] as string,
-          lineWidth: (options[globalWidthField] as number) * hRatio,
+          lineWidth: options[globalWidthField] as number,
           lineStyle: options[globalStyleField] as number as LineStyle,
         },
         {
@@ -335,7 +335,7 @@ class RibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
           segmentPoints,
           {
             color: segment.color,
-            lineWidth: (options[globalWidthField] as number) * hRatio,
+            lineWidth: options[globalWidthField] as number,
             lineStyle: options[globalStyleField] as number as LineStyle,
           },
           {
