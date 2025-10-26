@@ -593,7 +593,7 @@ class TestChartFrontendConfigurationEdgeCases:
 class TestChartRenderingEdgeCases:
     """Test edge cases for chart rendering."""
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
     def test_render_with_none_key(self, mock_get_component_func):
         """Test render with None key."""
         chart = Chart()
@@ -608,7 +608,7 @@ class TestChartRenderingEdgeCases:
         assert "key" in call_args
         assert call_args["key"].startswith("chart_")
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
     def test_render_with_empty_key(self, mock_get_component_func):
         """Test render with empty key."""
         chart = Chart()
@@ -623,7 +623,7 @@ class TestChartRenderingEdgeCases:
         assert "key" in call_args
         assert call_args["key"].startswith("chart_")
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
     def test_render_with_invalid_key_type(self, mock_get_component_func):
         """Test render with invalid key type."""
         chart = Chart()
@@ -638,7 +638,7 @@ class TestChartRenderingEdgeCases:
         assert "key" in call_args
         assert call_args["key"].startswith("chart_")
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
     def test_render_with_component_func_error(self, mock_get_component_func):
         """Test render when component function raises error."""
         chart = Chart()
@@ -647,7 +647,7 @@ class TestChartRenderingEdgeCases:
         with pytest.raises(Exception, match="Component error"):
             chart.render()
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
     def test_render_with_to_frontend_config_error(self, mock_get_component_func):
         """Test render when to_frontend_config raises error."""
         chart = Chart()

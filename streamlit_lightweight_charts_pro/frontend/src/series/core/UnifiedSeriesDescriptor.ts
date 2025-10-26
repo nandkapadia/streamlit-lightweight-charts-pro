@@ -234,7 +234,7 @@ export const STANDARD_SERIES_PROPERTIES: Record<string, PropertyDescriptor> = {
   title: {
     type: 'color', // Using color type as string input (will be improved in future)
     label: 'Title',
-    default: '',
+    default: undefined,
     group: 'General',
     description: 'Technical name shown on chart axis/legend',
     hidden: true, // Not shown in UI, only used internally
@@ -305,7 +305,8 @@ export function extractDefaultOptions<T = unknown>(
       if (propDesc.apiMapping.styleKey) {
         options[propDesc.apiMapping.styleKey] = lineDefault.lineStyle;
       }
-    } else {
+    } else if (propDesc.default !== undefined) {
+      // Only add to options if default is not undefined
       options[propName] = propDesc.default;
     }
   }

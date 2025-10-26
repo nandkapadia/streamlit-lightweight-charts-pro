@@ -81,10 +81,51 @@ class GradientRibbonSeries(RibbonSeries):
         self._normalize_gradients = normalize_gradients
         self._gradient_bounds: Optional[tuple[float, float]] = None
 
+        # Performance optimization: cache normalized results
+        self._normalized_cache: Optional[dict] = None
+
     @property
     def chart_type(self) -> ChartType:
         """Get the chart type for this series."""
         return ChartType.GRADIENT_RIBBON
+
+    def _invalidate_cache(self) -> None:
+        """Invalidate the normalized data cache.
+
+        This method should be called whenever the data changes to ensure
+        the cached normalized results are recalculated on the next asdict() call.
+        """
+        self._normalized_cache = None
+        self._gradient_bounds = None
+
+    def update(self, updates: dict):
+        """Override update to invalidate cache when data changes.
+
+        Args:
+            updates: Dictionary of updates to apply.
+
+        Returns:
+            Self for method chaining.
+        """
+        # Invalidate cache before updating
+        self._invalidate_cache()
+        # Call parent update
+        return super().update(updates)
+
+    @property
+    def data(self):
+        """Get the series data."""
+        return self._data if hasattr(self, "_data") else []
+
+    @data.setter
+    def data(self, value):
+        """Set the series data and invalidate cache.
+
+        Args:
+            value: New data to set.
+        """
+        self._data = value
+        self._invalidate_cache()
 
     def _calculate_gradient_bounds(self) -> None:
         """Calculate min/max gradient values for normalization with optimized performance."""
@@ -122,8 +163,15 @@ class GradientRibbonSeries(RibbonSeries):
         else:
             self._gradient_bounds = None
 
-    def asdict(self):
-        """Override to include normalized gradients and exclude inherited fill_color property."""
+    def _compute_normalized_dict(self) -> dict:
+        """Compute the normalized dictionary (expensive operation).
+
+        This method performs the actual gradient normalization computation.
+        It's called only when the cache is invalid.
+
+        Returns:
+            dict: The serialized dictionary with normalized gradients.
+        """
         data_dict = super().asdict()
 
         # Remove inherited fill_color property - gradient ribbon uses gradientStartColor/gradientEndColor instead
@@ -159,3 +207,20 @@ class GradientRibbonSeries(RibbonSeries):
                                 item.pop("gradient", None)
 
         return data_dict
+
+    def asdict(self):
+        """Override to include normalized gradients with caching for performance.
+
+        Returns cached normalized results if available, otherwise computes and caches them.
+        This optimization prevents O(2n) iterations on every serialization call.
+
+        Returns:
+            dict: The serialized dictionary with normalized gradients.
+        """
+        # Return cached result if available
+        if self._normalized_cache is not None:
+            return self._normalized_cache
+
+        # Compute and cache the result
+        self._normalized_cache = self._compute_normalized_dict()
+        return self._normalized_cache

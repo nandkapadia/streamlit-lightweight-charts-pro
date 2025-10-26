@@ -311,12 +311,6 @@ class TestColorValidation:
         with pytest.raises(ColorValidationError):
             opts.set_color("hsl(0,100%,50%)")
 
-        # Note: "red" is now a valid named color
-        # with pytest.raises(ColorValidationError):
-        #     opts.set_color("red")
-
-        # Note: rgb(255,0,0) is now a valid color
-
         # Test hex validation
         with pytest.raises(ColorValidationError):
             opts.set_color("#gggggg")

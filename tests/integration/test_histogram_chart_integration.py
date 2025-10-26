@@ -16,6 +16,10 @@ from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
 from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
+from streamlit_lightweight_charts_pro.constants import (
+    HISTOGRAM_DOWN_COLOR_DEFAULT,
+    HISTOGRAM_UP_COLOR_DEFAULT,
+)
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
 
@@ -66,10 +70,10 @@ class TestHistogramChartIntegration:
 
         # Verify volume colors are assigned correctly
         bullish_volumes = sum(
-            1 for data in volume_series.data if data.color == "rgba(38,166,154,0.5)"
+            1 for data in volume_series.data if data.color == HISTOGRAM_UP_COLOR_DEFAULT
         )
         bearish_volumes = sum(
-            1 for data in volume_series.data if data.color == "rgba(239,83,80,0.5)"
+            1 for data in volume_series.data if data.color == HISTOGRAM_DOWN_COLOR_DEFAULT
         )
         assert bullish_volumes + bearish_volumes == 10
 
@@ -125,9 +129,10 @@ class TestHistogramChartIntegration:
         assert len(volume_series["data"]) == 5
 
         # Verify volume data has colors
+        # Centralized validation normalizes color format (adds spaces after commas)
         for data_point in volume_series["data"]:
             assert "color" in data_point
-            assert data_point["color"] in ["rgba(38,166,154,0.5)", "rgba(239,83,80,0.5)"]
+            assert data_point["color"] in ["rgba(38, 166, 154, 0.5)", "rgba(239, 83, 80, 0.5)"]
 
     def test_manual_series_addition(self):
         """Test manually adding histogram series to a chart."""
@@ -432,10 +437,11 @@ class TestHistogramChartIntegration:
         assert candlestick_times == volume_times
 
         # Verify volume colors are assigned
+        # Centralized validation normalizes color format (adds spaces after commas)
         volume_series = chart.series[1]
         colors_used = {data.color for data in volume_series.data}
-        assert "rgba(38,166,154,0.5)" in colors_used  # Up color
-        assert "rgba(239,83,80,0.5)" in colors_used  # Down color
+        assert "rgba(38, 166, 154, 0.5)" in colors_used  # Up color
+        assert "rgba(239, 83, 80, 0.5)" in colors_used  # Down color
 
         # Test JSON serialization
         chart_config = chart.to_frontend_config()

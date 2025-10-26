@@ -36,6 +36,10 @@ from streamlit_lightweight_charts_pro.charts.series.defaults import (
     create_middle_line,
     create_upper_line,
 )
+from streamlit_lightweight_charts_pro.constants import (
+    BAND_LOWER_FILL_COLOR,
+    BAND_UPPER_FILL_COLOR,
+)
 from streamlit_lightweight_charts_pro.data.band import BandData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
@@ -105,8 +109,8 @@ class BandSeries(Series):
         self._lower_line = create_lower_line()
 
         # Initialize fill colors
-        self._upper_fill_color = "rgba(76, 175, 80, 0.1)"
-        self._lower_fill_color = "rgba(244, 67, 54, 0.1)"
+        self._upper_fill_color = BAND_UPPER_FILL_COLOR
+        self._lower_fill_color = BAND_LOWER_FILL_COLOR
 
         # Initialize fill visibility (default to True)
         self._upper_fill = True

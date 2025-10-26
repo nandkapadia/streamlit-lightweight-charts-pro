@@ -14,6 +14,7 @@ import pytest
 from streamlit_lightweight_charts_pro.data.band import BandData
 from streamlit_lightweight_charts_pro.data.data import Data
 from streamlit_lightweight_charts_pro.exceptions import (
+    ColorValidationError,
     UnsupportedTimeTypeError,
     ValueValidationError,
 )
@@ -302,3 +303,237 @@ class TestBandDataIntegration:
         assert data_list[0].upper == 110.0
         assert data_list[1].upper == 112.0
         assert data_list[2].upper == 108.0
+
+
+class TestBandDataPerPointColors:
+    """Test cases for BandData per-point color properties."""
+
+    def test_band_data_without_color_overrides(self, valid_time):
+        """Test BandData without per-point color overrides."""
+        data = BandData(time=valid_time, upper=110.0, middle=105.0, lower=100.0)
+        assert data.upper_line_color is None
+        assert data.middle_line_color is None
+        assert data.lower_line_color is None
+        assert data.upper_fill_color is None
+        assert data.lower_fill_color is None
+
+        serialized = data.asdict()
+        assert "upperLineColor" not in serialized
+        assert "middleLineColor" not in serialized
+        assert "lowerLineColor" not in serialized
+        assert "upperFillColor" not in serialized
+        assert "lowerFillColor" not in serialized
+
+    def test_band_data_with_upper_line_color(self, valid_time):
+        """Test BandData with upper line color override."""
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            upper_line_color="#ff0000",
+        )
+
+        assert data.upper_line_color == "#ff0000"
+        assert data.middle_line_color is None
+        assert data.lower_line_color is None
+
+        serialized = data.asdict()
+        assert serialized["upperLineColor"] == "#ff0000"
+        assert "middleLineColor" not in serialized
+        assert "lowerLineColor" not in serialized
+
+    def test_band_data_with_fill_colors(self, valid_time):
+        """Test BandData with fill color overrides."""
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            upper_fill_color="rgba(255, 0, 0, 0.2)",
+            lower_fill_color="rgba(0, 0, 255, 0.2)",
+        )
+
+        assert data.upper_fill_color == "rgba(255, 0, 0, 0.2)"
+        assert data.lower_fill_color == "rgba(0, 0, 255, 0.2)"
+
+        serialized = data.asdict()
+        assert serialized["upperFillColor"] == "rgba(255, 0, 0, 0.2)"
+        assert serialized["lowerFillColor"] == "rgba(0, 0, 255, 0.2)"
+
+    def test_band_data_with_all_color_overrides(self, valid_time):
+        """Test BandData with all per-point color overrides."""
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            upper_line_color="#ff0000",
+            middle_line_color="#00ff00",
+            lower_line_color="#0000ff",
+            upper_fill_color="rgba(255, 0, 0, 0.2)",
+            lower_fill_color="rgba(0, 0, 255, 0.2)",
+        )
+
+        assert data.upper_line_color == "#ff0000"
+        assert data.middle_line_color == "#00ff00"
+        assert data.lower_line_color == "#0000ff"
+        assert data.upper_fill_color == "rgba(255, 0, 0, 0.2)"
+        assert data.lower_fill_color == "rgba(0, 0, 255, 0.2)"
+
+    def test_band_data_color_serialization(self, valid_time):
+        """Test BandData color serialization to camelCase JSON."""
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            upper_line_color="#ff0000",
+        )
+
+        serialized = data.asdict()
+
+        # Check camelCase conversion
+        assert "upperLineColor" in serialized
+        assert serialized["upperLineColor"] == "#ff0000"
+
+        # Check snake_case not present
+        assert "upper_line_color" not in serialized
+
+    def test_band_data_complete_color_serialization(self, valid_time):
+        """Test complete BandData color serialization."""
+        data = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            upper_line_color="#ff0000",
+            middle_line_color="#00ff00",
+            lower_line_color="#0000ff",
+            upper_fill_color="rgba(255, 0, 0, 0.2)",
+            lower_fill_color="rgba(0, 0, 255, 0.2)",
+        )
+
+        serialized = data.asdict()
+
+        # Check all color fields present in camelCase
+        assert "upperLineColor" in serialized
+        assert "middleLineColor" in serialized
+        assert "lowerLineColor" in serialized
+        assert "upperFillColor" in serialized
+        assert "lowerFillColor" in serialized
+
+        # Check ribbon-specific field not present
+        assert "fill" not in serialized
+
+    def test_band_data_partial_color_overrides(self, valid_time):
+        """Test BandData with partial color overrides."""
+        # Only line colors
+        data1 = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            upper_line_color="#ff0000",
+            middle_line_color="#00ff00",
+        )
+        serialized1 = data1.asdict()
+        assert serialized1["upperLineColor"] == "#ff0000"
+        assert serialized1["middleLineColor"] == "#00ff00"
+        assert "lowerLineColor" not in serialized1
+        assert "upperFillColor" not in serialized1
+        assert "lowerFillColor" not in serialized1
+
+        # Only fill colors
+        data2 = BandData(
+            time=valid_time,
+            upper=110.0,
+            middle=105.0,
+            lower=100.0,
+            lower_fill_color="rgba(0, 0, 255, 0.2)",
+        )
+        serialized2 = data2.asdict()
+        assert serialized2["lowerFillColor"] == "rgba(0, 0, 255, 0.2)"
+        assert "upperLineColor" not in serialized2
+        assert "middleLineColor" not in serialized2
+        assert "lowerLineColor" not in serialized2
+        assert "upperFillColor" not in serialized2
+
+    def test_band_data_invalid_color(self, valid_time):
+        """Test BandData with invalid color raises error."""
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError):
+            BandData(
+                time=valid_time,
+                upper=110.0,
+                middle=105.0,
+                lower=100.0,
+                upper_line_color="invalid-color",
+            )
+
+    def test_band_data_series_with_mixed_colors(self, valid_time):
+        """Test a series of BandData points with mixed color overrides."""
+        data_series = [
+            # Point 1: No custom colors
+            BandData(time=valid_time, upper=110.0, middle=105.0, lower=100.0),
+            # Point 2: Custom upper line color only
+            BandData(
+                time=valid_time + 86400,
+                upper=112.0,
+                middle=106.0,
+                lower=102.0,
+                upper_line_color="#ff0000",
+            ),
+            # Point 3: Custom fill colors only
+            BandData(
+                time=valid_time + 172800,
+                upper=115.0,
+                middle=108.0,
+                lower=105.0,
+                upper_fill_color="rgba(255, 0, 0, 0.2)",
+                lower_fill_color="rgba(0, 255, 0, 0.2)",
+            ),
+            # Point 4: Complete custom colors
+            BandData(
+                time=valid_time + 259200,
+                upper=118.0,
+                middle=110.0,
+                lower=108.0,
+                upper_line_color="#ff00ff",
+                middle_line_color="#ffff00",
+                lower_line_color="#00ffff",
+                upper_fill_color="rgba(255, 0, 255, 0.3)",
+                lower_fill_color="rgba(0, 255, 255, 0.3)",
+            ),
+        ]
+
+        # Serialize all points
+        serialized_series = [data.asdict() for data in data_series]
+
+        # Point 1 should not have color overrides
+        assert "upperLineColor" not in serialized_series[0]
+        assert "middleLineColor" not in serialized_series[0]
+        assert "lowerLineColor" not in serialized_series[0]
+        assert "upperFillColor" not in serialized_series[0]
+        assert "lowerFillColor" not in serialized_series[0]
+
+        # Point 2 should have upperLineColor only
+        assert "upperLineColor" in serialized_series[1]
+        assert "middleLineColor" not in serialized_series[1]
+        assert "lowerLineColor" not in serialized_series[1]
+        assert "upperFillColor" not in serialized_series[1]
+        assert "lowerFillColor" not in serialized_series[1]
+
+        # Point 3 should have fill colors only
+        assert "upperFillColor" in serialized_series[2]
+        assert "lowerFillColor" in serialized_series[2]
+        assert "upperLineColor" not in serialized_series[2]
+        assert "middleLineColor" not in serialized_series[2]
+        assert "lowerLineColor" not in serialized_series[2]
+
+        # Point 4 should have all fields
+        assert "upperLineColor" in serialized_series[3]
+        assert "middleLineColor" in serialized_series[3]
+        assert "lowerLineColor" in serialized_series[3]
+        assert "upperFillColor" in serialized_series[3]
+        assert "lowerFillColor" in serialized_series[3]

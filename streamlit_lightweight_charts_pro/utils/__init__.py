@@ -37,7 +37,7 @@ Author: Streamlit Lightweight Charts Contributors
 License: MIT
 """
 
-from .chainable import chainable_field, chainable_property
+from .chainable import chainable_field, chainable_property, validated_field
 from .color_utils import add_opacity, hex_to_rgba, is_hex_color
 from .serialization import (
     DEFAULT_CONFIG,
@@ -59,6 +59,7 @@ __all__ = [
     "chainable_property",
     "hex_to_rgba",
     "is_hex_color",
+    "validated_field",
     # Trade visualization functions are available directly from the module
     # when needed, avoiding circular imports
 ]

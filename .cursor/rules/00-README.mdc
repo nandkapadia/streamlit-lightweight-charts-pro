@@ -5,7 +5,7 @@
 
 ---
 
-## 📋 Active Rules (6 Core Files)
+## 📋 Active Rules (7 Core Files)
 
 ### **Development Rules**
 1. **[01-PYTHON-DEVELOPMENT.mdc](01-PYTHON-DEVELOPMENT.mdc)** - Python standards, docstrings, property consistency
@@ -19,6 +19,9 @@
 ### **Project Overview**
 6. **[06-PROJECT-GUIDE.mdc](06-PROJECT-GUIDE.mdc)** - Quick reference, commands, structure, workflow
 
+### **Specialized Guides**
+7. **[11-RENDERING-UTILITIES-GUIDE.mdc](11-RENDERING-UTILITIES-GUIDE.mdc)** - ⚠️ Bar-width-aware rendering (READ BEFORE implementing ANY custom rendering)
+
 ---
 
 ## 🎯 Quick Reference
@@ -29,6 +32,7 @@
 | **Property mapping** | 01-PYTHON-DEVELOPMENT.mdc § Python ↔ Frontend Properties |
 | **Frontend/React** | 02-FRONTEND-DEVELOPMENT.mdc |
 | **Custom series** | 02-FRONTEND-DEVELOPMENT.mdc § Custom Series |
+| **⚠️ Custom rendering** | **11-RENDERING-UTILITIES-GUIDE.mdc** (READ FIRST!) |
 | **Architecture** | 03-ARCHITECTURE-QUALITY.mdc |
 | **Performance** | 03-ARCHITECTURE-QUALITY.mdc § Performance |
 | **Testing** | 04-TESTING-DEBUGGING.mdc |

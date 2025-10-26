@@ -15,7 +15,7 @@ import pytest
 from streamlit_lightweight_charts_pro.charts.series.bar_series import BarSeries
 from streamlit_lightweight_charts_pro.data.bar_data import BarData
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
-from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError, ValueValidationError
 
 
 class TestBarDataConstruction:
@@ -210,7 +210,8 @@ class TestBarDataValidation:
         assert data.color == "rgba(255, 0, 0, 0.5)"
 
         # Invalid color format
-        with pytest.raises(ValueValidationError, match="color Invalid color format"):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError, match="Invalid color format"):
             BarData(
                 time=1640995200,
                 open=100.0,
@@ -224,7 +225,8 @@ class TestBarDataValidation:
         """Test validation of empty color."""
         # Empty string color should be allowed
         data = BarData(time=1640995200, open=100.0, high=110.0, low=95.0, close=105.0, color="")
-        assert data.color == ""
+        # Empty color string is converted to None by centralized validation
+        assert data.color is None
 
 
 class TestBarDataSerialization:

@@ -51,6 +51,12 @@ import pandas as pd
 # Local Imports
 from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series.base import Series
+
+# Local Imports (Constants)
+from streamlit_lightweight_charts_pro.constants import (
+    AREA_BOTTOM_COLOR_DEFAULT,
+    COLOR_BLUE_MATERIAL,
+)
 from streamlit_lightweight_charts_pro.data.area_data import AreaData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.utils import chainable_property
@@ -186,8 +192,8 @@ class AreaSeries(Series):
 
         # Initialize area-specific properties with default values
         self._line_options = LineOptions()  # Line styling configuration
-        self._top_color = "#2196F3"  # Top area color (blue)
-        self._bottom_color = "rgba(33, 150, 243, 0.0)"  # Bottom area color (transparent)
+        self._top_color = COLOR_BLUE_MATERIAL  # Top area color (blue)
+        self._bottom_color = AREA_BOTTOM_COLOR_DEFAULT  # Bottom area color (transparent)
         self._relative_gradient = False  # Absolute gradient positioning
         self._invert_filled_area = False  # Normal area filling direction
 

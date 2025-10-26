@@ -48,11 +48,13 @@ from typing import ClassVar, Optional
 # (None in this module)
 # Local Imports
 from streamlit_lightweight_charts_pro.data.ohlc_data import OhlcData
-from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
-from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
+from streamlit_lightweight_charts_pro.utils import validated_field
 
 
 @dataclass
+@validated_field("color", str, validator="color", allow_none=True)
+@validated_field("border_color", str, validator="color", allow_none=True)
+@validated_field("wick_color", str, validator="color", allow_none=True)
 class CandlestickData(OhlcData):
     """Data class for candlestick chart data points with optional color styling.
 
@@ -125,33 +127,3 @@ class CandlestickData(OhlcData):
     border_color: Optional[str] = None
     # Optional color field for the candlestick wick
     wick_color: Optional[str] = None
-
-    def __post_init__(self):
-        """Post-initialization processing to validate OHLC data and color formats.
-
-        This method is automatically called after the dataclass is initialized.
-        It performs the following operations:
-        1. Calls the parent class __post_init__ to validate OHLC data and time
-        2. Validates all color format fields if colors are provided
-
-        The method ensures that all OHLC data points have valid relationships
-        and that any provided colors follow valid hex or rgba format standards
-        for frontend compatibility.
-
-        Raises:
-            ColorValidationError: If any color format is invalid.
-            ValueValidationError: If high < low (invalid OHLC relationship).
-            NonNegativeValueError: If any OHLC value is negative.
-            RequiredFieldError: If any required OHLC field is None or missing.
-        """
-        # Call parent's __post_init__ to validate OHLC data and time normalization
-        super().__post_init__()
-
-        # Validate all color properties if provided - iterate through all color fields
-        color_properties = ["color", "border_color", "wick_color"]
-
-        for prop_name in color_properties:
-            color_value = getattr(self, prop_name)
-            # Check if color is provided and not empty, then validate format
-            if color_value is not None and color_value != "" and not is_valid_color(color_value):
-                raise ColorValidationError(prop_name, color_value)

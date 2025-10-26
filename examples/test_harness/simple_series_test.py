@@ -36,6 +36,12 @@ from streamlit_lightweight_charts_pro.charts.options.sync_options import SyncOpt
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
+from streamlit_lightweight_charts_pro.charts.options.ui_options import (
+    LegendOptions,
+    RangeConfig,
+    RangeSwitcherOptions,
+    TimeRange,
+)
 from streamlit_lightweight_charts_pro.data import (
     BandData,
     GradientRibbonData,
@@ -143,26 +149,68 @@ def generate_sample_data(points: int = 100) -> dict:
             ),
         )
 
-    # Band data (Bollinger-style)
-    band_data = [
-        BandData(
-            time=times[i],
-            upper=round(ohlcv_data[i].close + 10, 2),
-            middle=round(ohlcv_data[i].close, 2),
-            lower=round(ohlcv_data[i].close - 10, 2),
-        )
-        for i in range(points)
-    ]
+    # Band data (Bollinger-style) with per-point color highlights
+    band_data = []
+    for i in range(points):
+        # Highlight every 20th point with custom colors
+        if i % 20 == 0 and i > 0:
+            band_data.append(
+                BandData(
+                    time=times[i],
+                    upper=round(ohlcv_data[i].close + 10, 2),
+                    middle=round(ohlcv_data[i].close, 2),
+                    lower=round(ohlcv_data[i].close - 10, 2),
+                    upper_line_color="#FF0000",
+                    middle_line_color="#FF9800",
+                    lower_line_color="#FF0000",
+                    upper_fill_color="rgba(255, 0, 0, 0.3)",
+                    lower_fill_color="rgba(255, 152, 0, 0.3)",
+                ),
+            )
+        else:
+            band_data.append(
+                BandData(
+                    time=times[i],
+                    upper=round(ohlcv_data[i].close + 10, 2),
+                    middle=round(ohlcv_data[i].close, 2),
+                    lower=round(ohlcv_data[i].close - 10, 2),
+                ),
+            )
 
-    # Ribbon data
-    ribbon_data = [
-        RibbonData(
-            time=times[i],
-            upper=round(ohlcv_data[i].close + 8, 2),
-            lower=round(ohlcv_data[i].close - 8, 2),
-        )
-        for i in range(points)
-    ]
+    # Ribbon data with per-point color highlights
+    ribbon_data = []
+    for i in range(points):
+        # Highlight points in a specific range with custom colors
+        if 30 <= i < 40:
+            ribbon_data.append(
+                RibbonData(
+                    time=times[i],
+                    upper=round(ohlcv_data[i].close + 8, 2),
+                    lower=round(ohlcv_data[i].close - 8, 2),
+                    upper_line_color="#9C27B0",
+                    lower_line_color="#9C27B0",
+                    fill="rgba(156, 39, 176, 0.3)",
+                ),
+            )
+        elif i % 15 == 0 and i > 0:
+            # Different color for periodic points
+            ribbon_data.append(
+                RibbonData(
+                    time=times[i],
+                    upper=round(ohlcv_data[i].close + 8, 2),
+                    lower=round(ohlcv_data[i].close - 8, 2),
+                    upper_line_color="#00BCD4",
+                    lower_line_color="#00BCD4",
+                ),
+            )
+        else:
+            ribbon_data.append(
+                RibbonData(
+                    time=times[i],
+                    upper=round(ohlcv_data[i].close + 8, 2),
+                    lower=round(ohlcv_data[i].close - 8, 2),
+                ),
+            )
 
     # Gradient ribbon data
     gradient_ribbon_data = [
@@ -176,9 +224,9 @@ def generate_sample_data(points: int = 100) -> dict:
     ]
 
     # Signal data (buy/sell markers)
-    signal_data = [
-        SignalData(time=times[i], value=0 if i % 8 == 0 else 1) for i in range(0, points, 8)
-    ]
+    # Create alternating signal values: False (neutral) and True (signal)
+    # Both bool and int (0, 1, 2) are supported - frontend converts bool to int automatically
+    signal_data = [SignalData(time=times[i], value=bool((i // 8) % 2)) for i in range(0, points, 8)]
 
     # Trade data
     trades = [
@@ -259,12 +307,61 @@ def main():
         st.write("**Histogram**")
         Chart(series=HistogramSeries(data=data["volume_data"])).render(key="histogram")
 
-        st.write("**Baseline**")
-        baseline = BaselineSeries(data=data["line_data"])
-        baseline.base_value = {"type": "price", "price": 100}
-        baseline.title = "NIFTY 50 - Baseline"
-        baseline.display_name = "NIFTY 50 - Baseline"
-        Chart(series=baseline).render(key="baseline")
+        st.write("**Baseline (with RangeSwitcher + Legend)**")
+
+        # Define legend template
+        default_legend_text = (
+            "<span style='"
+            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; '
+            "font-size: 11px; "
+            "font-weight: 300; "
+            "color: #131722; "
+            "background: rgba(255, 255, 255, 0.15); "
+            "padding: 4px 8px; "
+            "display: inline-block; "
+            "line-height: 1.1; "
+            "white-space: nowrap; "
+            "width: auto; "
+            "border-radius: 4px; "
+            "box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);'>"
+            "<strong>{legendTitle}</strong>: $$value$$</span>"
+        )
+
+        # Create baseline data from OHLCV close prices
+        baseline_data = [
+            SingleValueData(time=candle.time, value=candle.close) for candle in data["ohlcv_data"]
+        ]
+        baseline = BaselineSeries(data=baseline_data)
+        baseline.base_value = {"type": "price", "price": 110}
+        baseline.title = "NIFTY 50"
+        baseline.display_name = "NIFTY 50"
+        baseline.top_fill_color1 = "rgba(76, 175, 80, 0.28)"
+        baseline.top_fill_color2 = "rgba(76, 175, 80, 0.05)"
+        baseline.bottom_fill_color1 = "rgba(239, 83, 80, 0.05)"
+        baseline.bottom_fill_color2 = "rgba(239, 83, 80, 0.28)"
+        baseline.top_line_color = "rgba(76, 175, 80, 1)"
+        baseline.bottom_line_color = "rgba(239, 83, 80, 1)"
+        baseline.legend = LegendOptions(
+            visible=True,
+            position="top-left",
+            text=default_legend_text.format(legendTitle="NIFTY 50"),
+        )
+
+        Chart(
+            series=baseline,
+            options=ChartOptions(
+                range_switcher=RangeSwitcherOptions(
+                    visible=True,
+                    position="bottom-right",
+                    ranges=[
+                        RangeConfig(text="1D", tooltip="1 Day", range=TimeRange.ONE_DAY),
+                        RangeConfig(text="1W", tooltip="1 Week", range=TimeRange.ONE_WEEK),
+                        RangeConfig(text="1M", tooltip="1 Month", range=TimeRange.ONE_MONTH),
+                        RangeConfig(text="ALL", tooltip="All Data", range=TimeRange.ALL),
+                    ],
+                ),
+            ),
+        ).render(key="baseline")
 
         st.write("**Bar**")
         Chart(series=BarSeries(data=data["ohlcv_data"])).render(key="bar")
@@ -273,34 +370,48 @@ def main():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.write("**Trend Fill (HLC3 + EMA20)**")
+        st.write("**Trend Fill (HLC3 + EMA20) + Legend**")
         st.caption("Baseline: HLC3, Trend: EMA20, Green=Bullish, Red=Bearish")
+
+        candlestick_tf = CandlestickSeries(data=data["ohlcv_data"])
+        candlestick_tf.title = "Price"
+
         trend_fill_series1 = TrendFillSeries(
             data=data["trend_data"],
             uptrend_fill_color="rgba(76, 175, 80, 0.2)",
             downtrend_fill_color="rgba(239, 83, 80, 0.2)",
         )
+        trend_fill_series1.title = "Trend (HLC3/EMA20)"
         trend_fill_series1.uptrend_line.line_width = 1  # pylint: disable=no-member
         trend_fill_series1.downtrend_line.line_width = 1  # pylint: disable=no-member
         trend_fill_series1.price_scale_id = "right"
+        trend_fill_series1.legend = LegendOptions(visible=True)
 
         trend_fill_chart = Chart(
-            series=[CandlestickSeries(data=data["ohlcv_data"]), trend_fill_series1],
+            series=[candlestick_tf, trend_fill_series1],
         )
         trend_fill_chart.render(key="trend_fill")
 
-        st.write("**Band**")
+        st.write("**Band (with per-point color styling)**")
+        st.caption("Red colors every 20th point")
         try:
             band = BandSeries(data=data["band_data"])
-            band.upper_line.line_visible = False  # pylint: disable=no-member
-            band.lower_fill = False
-            band.upper_fill_color = "rgba(128, 0, 128, 0.2)"
+            band.upper_line.color = "#2196F3"  # pylint: disable=no-member
+            band.middle_line.color = "#4CAF50"  # pylint: disable=no-member
+            band.lower_line.color = "#2196F3"  # pylint: disable=no-member
+            band.upper_fill_color = "rgba(33, 150, 243, 0.1)"
+            band.lower_fill_color = "rgba(76, 175, 80, 0.1)"
             Chart(series=band).render(key="band")
         except Exception as e:
             st.error(f"Error rendering band: {e}")
 
-        st.write("**Ribbon**")
-        Chart(series=RibbonSeries(data=data["ribbon_data"])).render(key="ribbon")
+        st.write("**Ribbon (with per-point color styling)**")
+        st.caption("Purple colors for points 30-40, cyan every 15th point")
+        ribbon = RibbonSeries(data=data["ribbon_data"])
+        ribbon.upper_line.color = "#4CAF50"  # pylint: disable=no-member
+        ribbon.lower_line.color = "#F44336"  # pylint: disable=no-member
+        ribbon.fill_color = "rgba(76, 175, 80, 0.1)"
+        Chart(series=ribbon).render(key="ribbon")
 
     with col2:
         st.write("**Gradient Ribbon**")
@@ -402,6 +513,7 @@ def main():
     line_series = LineSeries(data=data["line_data"])
     line_series.title = "SMA"
     line_series.color = "blue"
+    line_series.legend = LegendOptions(visible=True)
 
     trend_fill_series = TrendFillSeries(
         data=data["trend_data"],
@@ -442,6 +554,7 @@ def main():
                 background_options=BackgroundSolid(color="white"),
                 text_color="black",
             ),
+            range_switcher=RangeSwitcherOptions(visible=True, position="bottom-right"),
         ),
     )
 

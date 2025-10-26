@@ -8,11 +8,16 @@ from dataclasses import dataclass
 from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
-from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
-from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
+from streamlit_lightweight_charts_pro.utils import validated_field
 
 
 @dataclass
+@validated_field("top_fill_color1", str, validator="color", allow_none=True)
+@validated_field("top_fill_color2", str, validator="color", allow_none=True)
+@validated_field("top_line_color", str, validator="color", allow_none=True)
+@validated_field("bottom_fill_color1", str, validator="color", allow_none=True)
+@validated_field("bottom_fill_color2", str, validator="color", allow_none=True)
+@validated_field("bottom_line_color", str, validator="color", allow_none=True)
 class BaselineData(SingleValueData):
     """Data class for a baseline chart point.
 
@@ -57,22 +62,3 @@ class BaselineData(SingleValueData):
     bottom_fill_color1: Optional[str] = None
     bottom_fill_color2: Optional[str] = None
     bottom_line_color: Optional[str] = None
-
-    def __post_init__(self):
-        """Validate color properties after initialization."""
-        super().__post_init__()
-
-        # Validate all color properties if provided
-        color_properties = [
-            "top_fill_color1",
-            "top_fill_color2",
-            "top_line_color",
-            "bottom_fill_color1",
-            "bottom_fill_color2",
-            "bottom_line_color",
-        ]
-
-        for prop_name in color_properties:
-            color_value = getattr(self, prop_name)
-            if color_value is not None and color_value != "" and not is_valid_color(color_value):
-                raise ColorValidationError(prop_name, color_value)

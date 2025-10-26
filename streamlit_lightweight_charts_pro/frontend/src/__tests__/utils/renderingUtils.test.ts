@@ -41,6 +41,8 @@ import {
   isValidCoordinateWithBounds,
   filterPointsByBounds,
   calculateExtendedRange,
+  interpolateY,
+  calculateBarWidthExtensions,
   type RendererDataPoint,
   type RenderPoint,
   type ColoredRenderPoint,
@@ -1120,6 +1122,178 @@ describe('Edge Extension Utilities', () => {
 
       expect(result.startX).toBe(45); // 100 - 5 - 50 (default extension)
       expect(result.endX).toBe(255); // 200 + 5 + 50 (default extension)
+    });
+  });
+
+  // ============================================================================
+  // NEW: Pixel-Perfect Bar-Width and Interpolation Tests
+  // ============================================================================
+
+  describe('interpolateY', () => {
+    it('should interpolate Y value at midpoint', () => {
+      const result = interpolateY(5, 0, 0, 10, 100);
+      expect(result).toBe(50); // Midpoint: (0 + 100) / 2
+    });
+
+    it('should interpolate Y value at 1/4 point', () => {
+      const result = interpolateY(2.5, 0, 0, 10, 100);
+      expect(result).toBe(25); // 1/4 point: 100 * 0.25
+    });
+
+    it('should interpolate Y value at 3/4 point', () => {
+      const result = interpolateY(7.5, 0, 0, 10, 100);
+      expect(result).toBe(75); // 3/4 point: 100 * 0.75
+    });
+
+    it('should return start Y when X equals start X', () => {
+      const result = interpolateY(0, 0, 50, 10, 100);
+      expect(result).toBe(50);
+    });
+
+    it('should return end Y when X equals end X', () => {
+      const result = interpolateY(10, 0, 50, 10, 100);
+      expect(result).toBe(100);
+    });
+
+    it('should handle negative Y values', () => {
+      const result = interpolateY(5, 0, -100, 10, 100);
+      expect(result).toBe(0); // Midpoint between -100 and 100
+    });
+
+    it('should handle decreasing Y values', () => {
+      const result = interpolateY(5, 0, 100, 10, 0);
+      expect(result).toBe(50); // Midpoint going down
+    });
+
+    it('should handle non-zero X start', () => {
+      const result = interpolateY(15, 10, 0, 20, 100);
+      expect(result).toBe(50); // Midpoint between 10 and 20
+    });
+
+    it('should handle fractional coordinates', () => {
+      const result = interpolateY(5.5, 0, 0, 10, 100);
+      expect(result).toBe(55);
+    });
+
+    it('should be linear', () => {
+      // Test linearity: interpolate(x1 + x2) = interpolate(x1) + interpolate(x2)
+      const x1 = 2;
+      const x2 = 3;
+      const combined = interpolateY(x1 + x2, 0, 0, 10, 100);
+      const separate1 = interpolateY(x1, 0, 0, 10, 100);
+      const separate2 = interpolateY(x2, 0, 0, 10, 100);
+      expect(combined).toBe(50);
+      expect(separate1 + separate2).toBe(50);
+    });
+  });
+
+  describe('calculateBarWidthExtensions', () => {
+    it('should calculate pixel-perfect extensions for standard bar spacing', () => {
+      const firstPoint: RenderPoint = { x: 100, y: 10 };
+      const lastPoint: RenderPoint = { x: 200, y: 20 };
+      const barSpacing = 6; // Standard bar spacing
+      const hRatio = 2; // Retina display
+
+      const result = calculateBarWidthExtensions(firstPoint, lastPoint, barSpacing, hRatio);
+
+      // Formula: firstXMedia = 100 / 2 = 50
+      // extendStart = 100 - Math.round((50 - 3) * 2) = 100 - Math.round(94) = 100 - 94 = 6
+      expect(result.extendStart).toBe(6);
+
+      // Formula: lastXMedia = 200 / 2 = 100
+      // extendEnd = Math.round((100 + 3) * 2) - 200 = Math.round(206) - 200 = 206 - 200 = 6
+      expect(result.extendEnd).toBe(6);
+    });
+
+    it('should handle hRatio = 1 (non-retina)', () => {
+      const firstPoint: RenderPoint = { x: 100, y: 10 };
+      const lastPoint: RenderPoint = { x: 200, y: 20 };
+      const barSpacing = 6;
+      const hRatio = 1;
+
+      const result = calculateBarWidthExtensions(firstPoint, lastPoint, barSpacing, hRatio);
+
+      // extendStart = 100 - Math.round((100 - 3) * 1) = 100 - 97 = 3
+      expect(result.extendStart).toBe(3);
+      // extendEnd = Math.round((200 + 3) * 1) - 200 = 203 - 200 = 3
+      expect(result.extendEnd).toBe(3);
+    });
+
+    it('should handle different bar spacings', () => {
+      const firstPoint: RenderPoint = { x: 100, y: 10 };
+      const lastPoint: RenderPoint = { x: 200, y: 20 };
+      const barSpacing = 10;
+      const hRatio = 1;
+
+      const result = calculateBarWidthExtensions(firstPoint, lastPoint, barSpacing, hRatio);
+
+      // halfBarSpacing = 5
+      // extendStart = 100 - Math.round((100 - 5) * 1) = 100 - 95 = 5
+      expect(result.extendStart).toBe(5);
+      // extendEnd = Math.round((200 + 5) * 1) - 200 = 205 - 200 = 5
+      expect(result.extendEnd).toBe(5);
+    });
+
+    it('should handle odd bar spacing (rounding test)', () => {
+      const firstPoint: RenderPoint = { x: 100, y: 10 };
+      const lastPoint: RenderPoint = { x: 200, y: 20 };
+      const barSpacing = 7;
+      const hRatio = 1;
+
+      const result = calculateBarWidthExtensions(firstPoint, lastPoint, barSpacing, hRatio);
+
+      // halfBarSpacing = 3.5
+      // extendStart = 100 - Math.round((100 - 3.5) * 1) = 100 - Math.round(96.5) = 100 - 97 = 3
+      expect(result.extendStart).toBe(3);
+      // extendEnd = Math.round((200 + 3.5) * 1) - 200 = Math.round(203.5) - 200 = 204 - 200 = 4
+      expect(result.extendEnd).toBe(4);
+    });
+
+    it('should be symmetric for centered point', () => {
+      // When point is at whole pixel boundary, extensions should be symmetric
+      const firstPoint: RenderPoint = { x: 100, y: 10 };
+      const lastPoint: RenderPoint = { x: 100, y: 20 }; // Same X
+      const barSpacing = 6;
+      const hRatio = 1;
+
+      const result = calculateBarWidthExtensions(firstPoint, lastPoint, barSpacing, hRatio);
+
+      // Both should be 3 (half of bar spacing)
+      expect(result.extendStart).toBe(3);
+      expect(result.extendEnd).toBe(3);
+    });
+
+    it('should handle high DPI displays', () => {
+      const firstPoint: RenderPoint = { x: 300, y: 10 };
+      const lastPoint: RenderPoint = { x: 600, y: 20 };
+      const barSpacing = 6;
+      const hRatio = 3; // 3x display
+
+      const result = calculateBarWidthExtensions(firstPoint, lastPoint, barSpacing, hRatio);
+
+      // firstXMedia = 300 / 3 = 100
+      // extendStart = 300 - Math.round((100 - 3) * 3) = 300 - Math.round(291) = 300 - 291 = 9
+      expect(result.extendStart).toBe(9);
+
+      // lastXMedia = 600 / 3 = 200
+      // extendEnd = Math.round((200 + 3) * 3) - 600 = Math.round(609) - 600 = 609 - 600 = 9
+      expect(result.extendEnd).toBe(9);
+    });
+
+    it('should work with fractional inputs (but may produce fractional outputs)', () => {
+      const firstPoint: RenderPoint = { x: 123.7, y: 10 };
+      const lastPoint: RenderPoint = { x: 234.3, y: 20 };
+      const barSpacing = 6.5;
+      const hRatio = 2.5;
+
+      const result = calculateBarWidthExtensions(firstPoint, lastPoint, barSpacing, hRatio);
+
+      // When inputs are fractional, outputs may also be fractional
+      // The important thing is the function doesn't crash and produces valid numbers
+      expect(typeof result.extendStart).toBe('number');
+      expect(typeof result.extendEnd).toBe('number');
+      expect(Number.isFinite(result.extendStart)).toBe(true);
+      expect(Number.isFinite(result.extendEnd)).toBe(true);
     });
   });
 });

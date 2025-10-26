@@ -46,11 +46,13 @@ from typing import ClassVar, Optional
 # (None in this module)
 # Local Imports
 from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
-from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
-from streamlit_lightweight_charts_pro.utils.data_utils import is_valid_color
+from streamlit_lightweight_charts_pro.utils import validated_field
 
 
 @dataclass
+@validated_field("line_color", str, validator="color", allow_none=True)
+@validated_field("top_color", str, validator="color", allow_none=True)
+@validated_field("bottom_color", str, validator="color", allow_none=True)
 class AreaData(SingleValueData):
     """Data class for area chart data points with optional color styling.
 
@@ -121,31 +123,24 @@ class AreaData(SingleValueData):
     bottom_color: Optional[str] = None
 
     def __post_init__(self):
-        """Post-initialization processing to validate color formats.
+        """Post-initialization processing to strip whitespace from color values.
 
         This method is automatically called after the dataclass is initialized.
         It performs the following operations:
         1. Calls the parent class __post_init__ to validate time and value
-        2. Validates all color format fields if colors are provided
-        3. Cleans up empty or whitespace-only color values
+        2. Strips whitespace from color strings if provided
+        3. Sets empty/whitespace-only values to None to avoid serialization
 
-        The method ensures that if colors are specified, they follow valid
-        hex or rgba format standards for frontend compatibility.
-
-        Raises:
-            ColorValidationError: If any color format is invalid.
+        Color validation is handled by @validated_field decorators.
         """
         # Call parent's __post_init__ to validate time and value fields
         super().__post_init__()
 
-        # Clean up and validate all area-specific color properties
+        # Strip whitespace from color strings and clean up empty values
         for color_attr in ["line_color", "top_color", "bottom_color"]:
             color_value = getattr(self, color_attr)
-            # Check if color is provided and not empty/whitespace
-            if color_value is not None and color_value.strip():
-                # Validate color format if color is provided
-                if not is_valid_color(color_value):
-                    raise ColorValidationError(color_attr, color_value)
-            else:
-                # Set to None if empty/whitespace to avoid serialization
-                setattr(self, color_attr, None)
+            if color_value is not None:
+                # Strip whitespace
+                stripped_value = color_value.strip()
+                # Set to None if empty after stripping to avoid serialization
+                setattr(self, color_attr, stripped_value if stripped_value else None)

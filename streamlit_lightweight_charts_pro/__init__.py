@@ -117,7 +117,7 @@ except ImportError:
 
 # Version information for the package
 # This version number is used for package distribution and compatibility checks
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 
 
 # Check if frontend is built on import (for development mode)

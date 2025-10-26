@@ -46,10 +46,18 @@ import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-
 import { getSolidColorFromFill } from '../utils/colorUtils';
 import {
   convertToCoordinates,
-  drawMultiLine,
-  drawFillArea,
   MultiCoordinatePoint,
+  getBarSpacing,
 } from '../plugins/series/base/commonRendering';
+import {
+  drawContinuousLine,
+  fillBetweenLines,
+  calculateBarWidthExtensions,
+  interpolateY,
+  RenderPoint,
+  LineStyle,
+  isValidRenderPoint,
+} from '../utils/renderingUtils';
 import {
   BaseSeriesPrimitive,
   BaseSeriesPrimitiveOptions,
@@ -63,12 +71,42 @@ import {
 // ============================================================================
 
 /**
- * Data structure for ribbon primitive
+ * Data structure for ribbon primitive with optional per-point color overrides
+ *
+ * @example
+ * ```typescript
+ * // Basic data point (uses global options)
+ * { time: '2024-01-01', upper: 110, lower: 100 }
+ *
+ * // Per-point color overrides
+ * {
+ *   time: '2024-01-02',
+ *   upper: 112, lower: 102,
+ *   upperLineColor: '#ff0000',
+ *   lowerLineColor: '#00ff00',
+ *   fill: 'rgba(255,0,0,0.2)'
+ * }
+ * ```
  */
 export interface RibbonPrimitiveData {
   time: number | string;
   upper?: number | null;
   lower?: number | null;
+  /**
+   * Optional per-point color override for the fill area.
+   * If not specified, global fillColor option is used.
+   */
+  fill?: string;
+  /**
+   * Optional per-point color override for upper line.
+   * If not specified, global upperLineColor option is used.
+   */
+  upperLineColor?: string;
+  /**
+   * Optional per-point color override for lower line.
+   * If not specified, global lowerLineColor option is used.
+   */
+  lowerLineColor?: string;
 }
 
 /**
@@ -88,12 +126,15 @@ export interface RibbonPrimitiveOptions extends BaseSeriesPrimitiveOptions {
 }
 
 /**
- * Internal processed data structure
+ * Internal processed data structure with optional per-point color overrides
  */
 interface RibbonProcessedData extends BaseProcessedData {
   time: Time;
   upper: number;
   lower: number;
+  fill?: string; // Per-point fill color override
+  upperLineColor?: string; // Per-point upper line color override
+  lowerLineColor?: string; // Per-point lower line color override
 }
 
 // ============================================================================
@@ -159,31 +200,154 @@ class RibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
         lower: coord.lower !== null ? coord.lower * vRatio : null,
       }));
 
-      // Draw lines (foreground)
-      if (options.upperLineVisible) {
-        drawMultiLine(
-          ctx,
-          scaledCoords,
-          'upper',
-          options.upperLineColor,
-          options.upperLineWidth * hRatio,
-          options.upperLineStyle
-        );
-      }
-
-      if (options.lowerLineVisible) {
-        drawMultiLine(
-          ctx,
-          scaledCoords,
-          'lower',
-          options.lowerLineColor,
-          options.lowerLineWidth * hRatio,
-          options.lowerLineStyle
-        );
-      }
+      // Draw lines (foreground) with per-point color support
+      this._drawLineWithStyles(ctx, scaledCoords, data, 'upper', 'upperLineColor', options, hRatio);
+      this._drawLineWithStyles(ctx, scaledCoords, data, 'lower', 'lowerLineColor', options, hRatio);
 
       ctx.restore();
     });
+  }
+
+  /**
+   * Draw a single line with per-point color support
+   * Uses bar-width-aware rendering from renderingUtils.ts
+   *
+   * @param ctx - Canvas rendering context
+   * @param scaledCoords - Scaled screen coordinates
+   * @param data - Processed data with optional per-point colors
+   * @param coordField - Which coordinate to draw ('upper' or 'lower')
+   * @param colorField - Which color property to check ('upperLineColor' or 'lowerLineColor')
+   * @param options - Global options from attached series
+   * @param hRatio - Horizontal pixel ratio for line width scaling
+   */
+  private _drawLineWithStyles(
+    ctx: CanvasRenderingContext2D,
+    scaledCoords: MultiCoordinatePoint[],
+    data: RibbonProcessedData[],
+    coordField: 'upper' | 'lower',
+    colorField: 'upperLineColor' | 'lowerLineColor',
+    options: RibbonPrimitiveOptions,
+    hRatio: number
+  ): void {
+    // Build field names for global options
+    const globalVisibleField = `${coordField}LineVisible` as keyof RibbonPrimitiveOptions;
+    const globalColorField = `${coordField}LineColor` as keyof RibbonPrimitiveOptions;
+    const globalWidthField = `${coordField}LineWidth` as keyof RibbonPrimitiveOptions;
+    const globalStyleField = `${coordField}LineStyle` as keyof RibbonPrimitiveOptions;
+
+    // Check global visibility first
+    if (!options[globalVisibleField]) return;
+
+    // Convert to RenderPoint format
+    const points: RenderPoint[] = scaledCoords.map(coord => ({
+      x: coord.x,
+      y: coord[coordField] as number | null,
+    }));
+
+    // Calculate bar-width extension for proper rendering
+    const chart = this._source.getChart();
+    const barSpacing = getBarSpacing(chart);
+    const halfBarWidth = (barSpacing * hRatio) / 2;
+
+    // Detect if any points have per-point colors
+    const hasPerPointColors = data.some(point => point[colorField] !== undefined);
+
+    if (!hasPerPointColors) {
+      // Fast path: no per-point colors, draw entire line at once
+      drawContinuousLine(
+        ctx,
+        points,
+        {
+          color: options[globalColorField] as string,
+          lineWidth: options[globalWidthField] as number,
+          lineStyle: options[globalStyleField] as number as LineStyle,
+        },
+        {
+          extendStart: halfBarWidth,
+          extendEnd: halfBarWidth,
+          skipInvalid: true,
+        }
+      );
+    } else {
+      // Slow path: segment-based rendering for per-point colors
+      // Group consecutive points with the same color
+      interface ColorSegment {
+        startIdx: number;
+        endIdx: number;
+        color: string;
+      }
+
+      const segments: ColorSegment[] = [];
+      let currentColor = data[0][colorField] ?? (options[globalColorField] as string);
+      let segmentStart = 0;
+
+      for (let i = 1; i < data.length; i++) {
+        const pointColor = data[i][colorField] ?? (options[globalColorField] as string);
+
+        if (pointColor !== currentColor) {
+          // Color changed, save current segment
+          segments.push({
+            startIdx: segmentStart,
+            endIdx: i - 1,
+            color: currentColor,
+          });
+
+          // Start new segment
+          currentColor = pointColor;
+          segmentStart = i;
+        }
+      }
+
+      // Add final segment
+      segments.push({
+        startIdx: segmentStart,
+        endIdx: data.length - 1,
+        color: currentColor,
+      });
+
+      // Draw each segment
+      for (const segment of segments) {
+        // Extract points for this segment
+        const segmentPoints = points.slice(segment.startIdx, segment.endIdx + 1);
+
+        // Get first and last valid points from segment
+        const validSegmentPoints = segmentPoints.filter(isValidRenderPoint);
+        if (validSegmentPoints.length === 0) continue;
+
+        const firstPoint = validSegmentPoints[0];
+        const lastPoint = validSegmentPoints[validSegmentPoints.length - 1];
+
+        // Calculate pixel-perfect bar-width extensions
+        const { extendStart, extendEnd } = calculateBarWidthExtensions(
+          firstPoint,
+          lastPoint,
+          barSpacing,
+          hRatio
+        );
+
+        // Get previous and next points for Y interpolation
+        const prevPoint = segment.startIdx > 0 ? points[segment.startIdx - 1] : undefined;
+        const nextPoint =
+          segment.endIdx + 1 < points.length ? points[segment.endIdx + 1] : undefined;
+
+        drawContinuousLine(
+          ctx,
+          segmentPoints,
+          {
+            color: segment.color,
+            lineWidth: options[globalWidthField] as number,
+            lineStyle: options[globalStyleField] as number as LineStyle,
+          },
+          {
+            extendStart,
+            extendEnd,
+            skipInvalid: true,
+            prevPoint,
+            nextPoint,
+          }
+        );
+      }
+    }
   }
 
   /**
@@ -219,13 +383,221 @@ class RibbonPrimitiveRenderer implements IPrimitivePaneRenderer {
         lower: coord.lower !== null ? coord.lower * vRatio : null,
       }));
 
-      // Draw fill area (background)
-      if (options.fillVisible && scaledCoords.length > 1) {
-        drawFillArea(ctx, scaledCoords, 'upper', 'lower', options.fillColor);
-      }
+      // Draw fill area (background) with per-point color support
+      this._drawFillWithStyles(ctx, scaledCoords, data, options, hRatio);
 
       ctx.restore();
     });
+  }
+
+  /**
+   * Draw a filled area with per-point color support
+   * Uses bar-width-aware rendering from renderingUtils.ts
+   *
+   * @param ctx - Canvas rendering context
+   * @param scaledCoords - Scaled screen coordinates (already multiplied by hRatio/vRatio)
+   * @param data - Processed data with optional per-point fill colors
+   * @param options - Global options from attached series
+   * @param hRatio - Horizontal pixel ratio (used for calculating halfBarWidth)
+   */
+  private _drawFillWithStyles(
+    ctx: CanvasRenderingContext2D,
+    scaledCoords: MultiCoordinatePoint[],
+    data: RibbonProcessedData[],
+    options: RibbonPrimitiveOptions,
+    hRatio: number
+  ): void {
+    if (scaledCoords.length < 2) return;
+
+    // Convert to RenderPoint format (coordinates are already scaled)
+    const upperPoints: RenderPoint[] = scaledCoords.map(coord => ({
+      x: coord.x,
+      y: coord.upper as number | null,
+    }));
+
+    const lowerPoints: RenderPoint[] = scaledCoords.map(coord => ({
+      x: coord.x,
+      y: coord.lower as number | null,
+    }));
+
+    // Calculate bar-width extension using pixel-perfect rendering formula
+    const chart = this._source.getChart();
+    const barSpacing = getBarSpacing(chart);
+    const halfBarSpacing = barSpacing / 2; // Half spacing in media coordinates
+
+    // Detect if any points have per-point fill colors
+    const hasPerPointColors = data.some(point => point.fill !== undefined);
+
+    if (!hasPerPointColors) {
+      // Fast path: no per-point colors, check global visibility
+      if (!options.fillVisible) return;
+
+      // Calculate pixel-perfect edge extensions
+      const firstXMedia = (upperPoints[0].x as number) / hRatio;
+      const lastXMedia = (upperPoints[upperPoints.length - 1].x as number) / hRatio;
+      const startExtension =
+        (upperPoints[0].x as number) - Math.round((firstXMedia - halfBarSpacing) * hRatio);
+      const endExtension =
+        Math.round((lastXMedia + halfBarSpacing) * hRatio) -
+        (upperPoints[upperPoints.length - 1].x as number);
+
+      fillBetweenLines(ctx, upperPoints, lowerPoints, {
+        fillStyle: options.fillColor,
+        edgeExtension: {
+          start: startExtension,
+          end: endExtension,
+        },
+      });
+    } else {
+      // Slow path: segment-based rendering for per-point colors
+      // Group consecutive points with the same fill color
+      interface FillSegment {
+        startIdx: number;
+        endIdx: number;
+        color: string;
+      }
+
+      const segments: FillSegment[] = [];
+      let currentColor = data[0].fill ?? options.fillColor;
+      let segmentStart = 0;
+
+      for (let i = 1; i < data.length; i++) {
+        const pointColor = data[i].fill ?? options.fillColor;
+
+        if (pointColor !== currentColor) {
+          // Color changed, save current segment
+          segments.push({
+            startIdx: segmentStart,
+            endIdx: i - 1,
+            color: currentColor,
+          });
+
+          // Start new segment
+          currentColor = pointColor;
+          segmentStart = i;
+        }
+      }
+
+      // Add final segment
+      segments.push({
+        startIdx: segmentStart,
+        endIdx: data.length - 1,
+        color: currentColor,
+      });
+
+      // Draw each segment
+      for (const segment of segments) {
+        const startIdx = segment.startIdx;
+        const endIdx = segment.endIdx;
+
+        // Filter valid points for this segment
+        const validUpper = upperPoints.slice(startIdx, endIdx + 1).filter(isValidRenderPoint);
+        const validLower = lowerPoints.slice(startIdx, endIdx + 1).filter(isValidRenderPoint);
+
+        if (validUpper.length === 0 || validLower.length === 0) continue;
+
+        ctx.save();
+        ctx.fillStyle = segment.color;
+        ctx.beginPath();
+
+        const firstUpper = validUpper[0];
+        const lastUpper = validUpper[validUpper.length - 1];
+        const firstLower = validLower[0];
+        const lastLower = validLower[validLower.length - 1];
+
+        // Pixel-perfect full bar width calculation
+        // Convert scaled coordinates back to media, apply half-spacing, then scale with rounding
+        const firstXMedia = (firstUpper.x as number) / hRatio;
+        const lastXMedia = (lastUpper.x as number) / hRatio;
+
+        const startX = Math.round((firstXMedia - halfBarSpacing) * hRatio);
+        const endX = Math.round((lastXMedia + halfBarSpacing) * hRatio);
+
+        // Calculate Y coordinates for extended edges (interpolate if next point exists)
+        let startUpperY = firstUpper.y as number;
+        let startLowerY = firstLower.y as number;
+        let endUpperY = lastUpper.y as number;
+        let endLowerY = lastLower.y as number;
+
+        // Interpolate end Y if there's a next point
+        if (endIdx + 1 < upperPoints.length) {
+          const nextUpper = upperPoints[endIdx + 1];
+          const nextLower = lowerPoints[endIdx + 1];
+
+          if (isValidRenderPoint(nextUpper)) {
+            endUpperY = interpolateY(
+              endX,
+              lastUpper.x as number,
+              lastUpper.y as number,
+              nextUpper.x as number,
+              nextUpper.y as number
+            );
+          }
+
+          if (isValidRenderPoint(nextLower)) {
+            endLowerY = interpolateY(
+              endX,
+              lastLower.x as number,
+              lastLower.y as number,
+              nextLower.x as number,
+              nextLower.y as number
+            );
+          }
+        }
+
+        // Interpolate start Y if there's a previous point
+        if (startIdx > 0) {
+          const prevUpper = upperPoints[startIdx - 1];
+          const prevLower = lowerPoints[startIdx - 1];
+
+          if (isValidRenderPoint(prevUpper)) {
+            startUpperY = interpolateY(
+              startX,
+              prevUpper.x as number,
+              prevUpper.y as number,
+              firstUpper.x as number,
+              firstUpper.y as number
+            );
+          }
+
+          if (isValidRenderPoint(prevLower)) {
+            startLowerY = interpolateY(
+              startX,
+              prevLower.x as number,
+              prevLower.y as number,
+              firstLower.x as number,
+              firstLower.y as number
+            );
+          }
+        }
+
+        // Start at extended upper left
+        ctx.moveTo(startX, startUpperY);
+
+        // Draw upper line through all points
+        for (const point of validUpper) {
+          ctx.lineTo(point.x as number, point.y as number);
+        }
+
+        // Always extend to endX (which includes halfBarWidth for last segment)
+        ctx.lineTo(endX, endUpperY);
+
+        // Draw lower line backwards (right to left), starting from endX
+        ctx.lineTo(endX, endLowerY);
+
+        for (let j = validLower.length - 1; j >= 0; j--) {
+          const point = validLower[j];
+          ctx.lineTo(point.x as number, point.y as number);
+        }
+
+        // Return to start position on lower line
+        ctx.lineTo(startX, startLowerY);
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    }
   }
 }
 
@@ -356,11 +728,24 @@ export class RibbonPrimitive extends BaseSeriesPrimitive<
           return null;
         }
 
-        return {
+        const result: RibbonProcessedData = {
           time: item.time,
           upper,
           lower,
         };
+
+        // Include per-point color overrides if present
+        if (item.upperLineColor !== undefined) {
+          result.upperLineColor = item.upperLineColor;
+        }
+        if (item.lowerLineColor !== undefined) {
+          result.lowerLineColor = item.lowerLineColor;
+        }
+        if (item.fill !== undefined) {
+          result.fill = item.fill;
+        }
+
+        return result;
       })
       .filter((item): item is RibbonProcessedData => item !== null);
   }

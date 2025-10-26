@@ -146,7 +146,7 @@ class TestFrontendConfigGeneration:
 class TestChartRendering:
     """Test chart rendering in Streamlit."""
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
     def test_render(self, mock_get_component_func):
         """Test chart rendering."""
         mock_component = Mock()
@@ -162,7 +162,7 @@ class TestChartRendering:
         assert "key" in call_args.kwargs
         assert call_args.kwargs["key"] == "test_key"
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
     def test_render_without_key(self, mock_get_component_func):
         """Test chart rendering without key."""
         mock_component = Mock()
@@ -178,8 +178,8 @@ class TestChartRendering:
         # When no key is provided, a unique key should be generated
         assert call_args.kwargs["key"].startswith("chart_")
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
-    @patch("streamlit_lightweight_charts_pro.charts.chart.reinitialize_component")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.reinitialize_component")
     def test_render_component_none_reinitialize(self, mock_reinitialize, mock_get_component_func):
         """Test render when component is None and reinitialize succeeds."""
         mock_get_component_func.side_effect = [None, Mock()]
@@ -191,8 +191,8 @@ class TestChartRendering:
         mock_reinitialize.assert_called_once()
         assert mock_get_component_func.call_count == 2
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
-    @patch("streamlit_lightweight_charts_pro.charts.chart.reinitialize_component")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.reinitialize_component")
     def test_render_component_none_reinitialize_fails(
         self, mock_reinitialize, mock_get_component_func
     ):
@@ -205,7 +205,7 @@ class TestChartRendering:
         with pytest.raises(ComponentNotAvailableError):
             chart.render()
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
     def test_render_with_custom_key(self, mock_get_component_func):
         """Test render with custom key."""
         mock_component = Mock()
@@ -217,7 +217,7 @@ class TestChartRendering:
         call_args = mock_component.call_args
         assert call_args.kwargs["key"] == "custom_key_123"
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
     def test_render_with_none_key(self, mock_get_component_func):
         """Test render with None key."""
         chart = Chart()
@@ -232,7 +232,7 @@ class TestChartRendering:
         assert "key" in call_args
         assert call_args["key"].startswith("chart_")
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart.get_component_func")
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.get_component_func")
     def test_render_with_empty_key(self, mock_get_component_func):
         """Test render with empty key."""
         chart = Chart()

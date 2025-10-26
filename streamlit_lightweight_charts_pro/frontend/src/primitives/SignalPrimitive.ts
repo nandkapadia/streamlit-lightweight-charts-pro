@@ -163,10 +163,16 @@ class SignalPrimitiveRenderer implements IPrimitivePaneRenderer {
         const x = timeToCoordinate(item.time, chart);
         if (x === null) continue;
 
+        // Convert boolean to number if needed (handled in _processData, but double-check)
+        let value = item.value;
+        if (typeof value === 'boolean') {
+          value = value ? 1 : 0;
+        }
+
         // Determine color
         let color = item.color;
         if (!color) {
-          color = this.getColorForValue(item.value, options);
+          color = this.getColorForValue(value, options);
         }
 
         // Skip transparent colors
@@ -234,7 +240,13 @@ export class SignalPrimitive extends BaseSeriesPrimitive<
   // Required: Process raw data
   protected _processData(rawData: any[]): SignalProcessedData[] {
     return rawData.flatMap(item => {
-      const value = item.value ?? 0;
+      let value = item.value ?? 0;
+
+      // Convert boolean to number (true -> 1, false -> 0)
+      // This allows Python users to use bool values naturally
+      if (typeof value === 'boolean') {
+        value = value ? 1 : 0;
+      }
 
       // Validate data
       if (isNaN(value)) {

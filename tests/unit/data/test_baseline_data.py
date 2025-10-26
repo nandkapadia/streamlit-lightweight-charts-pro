@@ -94,8 +94,9 @@ class TestBaselineDataConstruction:
         data = BaselineData(time=1640995200, value=100.5, top_fill_color1="", bottom_fill_color1="")
         assert data.time == 1640995200
         assert data.value == 100.5
-        assert data.top_fill_color1 == ""
-        assert data.bottom_fill_color1 == ""
+        # Empty color strings are converted to None by centralized validation
+        assert data.top_fill_color1 is None
+        assert data.bottom_fill_color1 is None
 
     def test_construction_with_zero_value(self):
         """Test BaselineData construction with zero value."""
@@ -207,12 +208,13 @@ class TestBaselineDataValidation:
             bottom_fill_color2="",
             bottom_line_color="",
         )
-        assert data.top_fill_color1 == ""
-        assert data.top_fill_color2 == ""
-        assert data.top_line_color == ""
-        assert data.bottom_fill_color1 == ""
-        assert data.bottom_fill_color2 == ""
-        assert data.bottom_line_color == ""
+        # Empty color strings are converted to None by centralized validation
+        assert data.top_fill_color1 is None
+        assert data.top_fill_color2 is None
+        assert data.top_line_color is None
+        assert data.bottom_fill_color1 is None
+        assert data.bottom_fill_color2 is None
+        assert data.bottom_line_color is None
 
     def test_validation_valid_hex_colors(self):
         """Test validation with various valid hex colors."""
@@ -553,6 +555,7 @@ class TestBaselineDataEdgeCases:
 
     def test_color_omission_in_serialization(self):
         """Test that None and empty color values are omitted from serialization."""
+        # Note: Empty strings are converted to None by centralized validation
         data = BaselineData(
             time=1640995200,
             value=100.5,
@@ -734,6 +737,7 @@ class TestBaselineDataColorHandling:
 
     def test_color_omission_in_serialization(self):
         """Test that None and empty color values are omitted from serialization."""
+        # Note: Empty strings are converted to None by centralized validation
         data = BaselineData(
             time=1640995200,
             value=100.5,

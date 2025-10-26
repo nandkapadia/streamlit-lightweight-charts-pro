@@ -14,6 +14,7 @@ from streamlit_lightweight_charts_pro.charts.series.defaults import (
     create_lower_line,
     create_upper_line,
 )
+from streamlit_lightweight_charts_pro.constants import RIBBON_FILL_COLOR
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
@@ -76,7 +77,7 @@ class RibbonSeries(Series):
         self._lower_line = create_lower_line()
 
         # Initialize fill color
-        self._fill_color = "rgba(76, 175, 80, 0.1)"
+        self._fill_color = RIBBON_FILL_COLOR
 
         # Initialize fill visibility (default to True)
         self._fill_visible = True

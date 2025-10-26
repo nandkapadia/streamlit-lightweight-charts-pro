@@ -10,7 +10,7 @@ from datetime import datetime
 import pytest
 
 from streamlit_lightweight_charts_pro.data.signal_data import SignalData
-from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError, ValueValidationError
 
 
 class TestSignalData:
@@ -51,8 +51,8 @@ class TestSignalData:
     def test_construction_with_empty_color(self):
         """Test SignalData construction with empty color string."""
         signal = SignalData("2024-01-01", 1, color="")
-        # Empty color string should be preserved, not converted to None
-        assert signal.color == ""
+        # Empty color string is converted to None by centralized validation
+        assert signal.color is None
 
     def test_construction_with_none_color(self):
         """Test SignalData construction with None color."""
@@ -61,14 +61,14 @@ class TestSignalData:
 
     def test_invalid_color_hex(self):
         """Test SignalData construction with invalid hex color."""
-        with pytest.raises(ValueValidationError):
+        # Centralized validation raises ColorValidationError (more specific than ValueValidationError)
+        with pytest.raises(ColorValidationError):
             SignalData("2024-01-01", 1, color="#invalid")
 
     def test_invalid_color_rgba(self):
         """Test SignalData construction with invalid rgba color."""
-        # The color validation might not catch this specific case
-        # Let's test with a definitely invalid color
-        with pytest.raises(ValueValidationError):
+        # Centralized validation raises ColorValidationError (more specific than ValueValidationError)
+        with pytest.raises(ColorValidationError):
             SignalData("2024-01-01", 1, color="not_a_color_at_all")
 
     def test_valid_hex_colors(self):

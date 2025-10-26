@@ -16,8 +16,9 @@ export default defineConfig({
           'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
           '!src/__tests__/visual/**',
           '!src/__tests__/e2e-visual/**',
+          '!src/**/*.e2e.test.ts',  // Exclude Playwright E2E tests
         ],
-        exclude: ['node_modules', 'build', 'dist'],
+        exclude: ['node_modules', 'build', 'dist', '**/*.e2e.test.ts'],
         name: 'unit',
         // Ensure jsdom is available before tests run
         environmentOptions: {
@@ -39,6 +40,7 @@ export default defineConfig({
           'dist',
           'src/__tests__/visual/__snapshots__',
           'src/__tests__/visual/utils',
+          '**/*.e2e.test.ts',  // Exclude Playwright E2E tests
         ],
         name: 'visual',
         testTimeout: 30000,
@@ -67,8 +69,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/setupTests.ts'],
-    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    exclude: ['node_modules', 'build', 'dist'],
+    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', '!src/**/*.e2e.test.ts'],
+    exclude: ['node_modules', 'build', 'dist', '**/*.e2e.test.ts'],
     // Suppress expected console output from performance monitor tests
     silent: false,
     reporters: ['verbose'],

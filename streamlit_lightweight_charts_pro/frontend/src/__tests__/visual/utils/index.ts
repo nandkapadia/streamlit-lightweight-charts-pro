@@ -69,3 +69,26 @@ export {
   type ComparisonResult,
   type ComparisonOptions,
 } from './imageComparison';
+
+// Widget helper utilities
+export {
+  createLegend,
+  createRangeSwitcher,
+  attachLegendToSeries,
+  attachRangeSwitcherToSeries,
+  PredefinedRanges,
+  type CornerPosition,
+  type CreateLegendConfig,
+  type CreateRangeSwitcherConfig,
+} from './widgetHelpers';
+
+// Multi-pane helper utilities
+export {
+  setupMultiPaneChart,
+  addSeriesToPane,
+  getSeriesForPane,
+  getAllSeriesForPane,
+  type PaneConfig,
+  type SeriesConfig,
+  type MultiPaneChartResult,
+} from './multipaneHelpers';

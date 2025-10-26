@@ -15,9 +15,10 @@ import psutil
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
+from streamlit_lightweight_charts_pro.constants import HISTOGRAM_UP_COLOR_DEFAULT
 from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
-from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 
 
 class TestHistogramSeriesCreateVolumeSeries:
@@ -150,7 +151,7 @@ class TestHistogramSeriesCreateVolumeSeries:
 
         assert isinstance(volume_series, HistogramSeries)
         assert len(volume_series.data) == 1
-        assert volume_series.data[0].color == "rgba(38,166,154,0.5)"  # Default up color
+        assert volume_series.data[0].color == HISTOGRAM_UP_COLOR_DEFAULT  # Default up color
 
     def test_equal_open_close(self):
         """Test when open equals close (should be treated as bullish)."""
@@ -338,8 +339,9 @@ class TestHistogramSeriesCreateVolumeSeries:
             },
         )
 
+        # Centralized validation raises ColorValidationError (more specific)
         # Test with invalid up_color
-        with pytest.raises(ValueValidationError):
+        with pytest.raises(ColorValidationError):
             HistogramSeries.create_volume_series(
                 df_bullish,
                 column_mapping={
@@ -362,7 +364,8 @@ class TestHistogramSeriesCreateVolumeSeries:
             },
         )
 
-        with pytest.raises(ValueValidationError):
+        # Centralized validation raises ColorValidationError (more specific)
+        with pytest.raises(ColorValidationError):
             HistogramSeries.create_volume_series(
                 df_bearish,
                 column_mapping={

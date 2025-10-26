@@ -169,10 +169,17 @@ class SignalSeriesRenderer<TData extends SignalData> implements ICustomSeriesPan
     for (const bar of this._data.bars) {
       const signalData = bar.originalData as TData;
 
+      // Convert boolean to number if needed (true -> 1, false -> 0)
+      // This allows Python users to use bool values naturally
+      let value = signalData.value;
+      if (typeof value === 'boolean') {
+        value = value ? 1 : 0;
+      }
+
       // Determine color for this signal
       let color = signalData.color;
       if (!color) {
-        color = this.getColorForValue(signalData.value, this._options);
+        color = this.getColorForValue(value, this._options);
       }
 
       // Skip transparent colors

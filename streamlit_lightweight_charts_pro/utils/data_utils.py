@@ -65,6 +65,7 @@ from streamlit_lightweight_charts_pro.exceptions import (
     UnsupportedTimeTypeError,
     ValueValidationError,
 )
+from streamlit_lightweight_charts_pro.utils.case_converter import CaseConverter
 
 
 def normalize_time(time_value: Any) -> int:
@@ -198,6 +199,9 @@ def snake_to_camel(snake_str: str) -> str:
     to camelCase format (e.g., "priceScaleId"). It's commonly used for
     converting Python property names to JavaScript property names.
 
+    This is a convenience wrapper around CaseConverter.snake_to_camel() for
+    backward compatibility with existing code.
+
     Args:
         snake_str: String in snake_case format (e.g., "price_scale_id").
 
@@ -215,9 +219,11 @@ def snake_to_camel(snake_str: str) -> str:
     Note:
         The function assumes the input string is in valid snake_case format.
         If the input contains no underscores, it returns the string as-is.
+
+    See Also:
+        CaseConverter.snake_to_camel: The main implementation in case_converter.py.
     """
-    components = snake_str.split("_")
-    return components[0] + "".join(word.capitalize() for word in components[1:])
+    return CaseConverter.snake_to_camel(snake_str)
 
 
 def is_valid_color(color: str) -> bool:

@@ -21,7 +21,6 @@ vi.mock('../../hooks/useSeriesSettingsAPI', () => ({
     updateSeriesSettings: vi.fn().mockResolvedValue(undefined),
     updateMultipleSettings: vi.fn().mockResolvedValue(undefined),
     getPaneState: vi.fn().mockResolvedValue({}),
-    resetSeriesToDefaults: vi.fn().mockResolvedValue(undefined),
   }),
 }));
 
