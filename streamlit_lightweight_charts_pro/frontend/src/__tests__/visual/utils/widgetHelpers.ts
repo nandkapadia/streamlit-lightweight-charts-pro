@@ -308,10 +308,7 @@ export function createRangeSwitcher(
  * attachLegendToSeries(legend, series);
  * ```
  */
-export function attachLegendToSeries(
-  legend: LegendPrimitive,
-  series: ISeriesApi<any>
-): void {
+export function attachLegendToSeries(legend: LegendPrimitive, series: ISeriesApi<any>): void {
   series.attachPrimitive(legend);
 }
 

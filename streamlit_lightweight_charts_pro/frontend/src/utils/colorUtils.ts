@@ -33,35 +33,55 @@ export interface RgbaColor {
 
 /**
  * Parse hex color to RGBA components
+ * Supports 3, 4, 6, and 8 digit hex formats with alpha
  *
- * @param hex - Hex color string (e.g., '#FF0000' or '#F00')
+ * @param hex - Hex color string
+ *   - 3-digit: '#RGB' (e.g., '#F00')
+ *   - 4-digit: '#RGBA' (e.g., '#F008')
+ *   - 6-digit: '#RRGGBB' (e.g., '#FF0000')
+ *   - 8-digit: '#RRGGBBAA' (e.g., '#FF000080')
  * @returns RGBA color object or null if invalid
  */
 export function parseHexColor(hex: string): RgbaColor | null {
   // Remove # if present
   const cleanHex = hex.replace('#', '');
 
-  // Support both 3-digit and 6-digit hex
-  let r: number, g: number, b: number;
+  let r: number, g: number, b: number, a: number;
 
   if (cleanHex.length === 3) {
+    // 3-digit hex: #RGB
     r = parseInt(cleanHex[0] + cleanHex[0], 16);
     g = parseInt(cleanHex[1] + cleanHex[1], 16);
     b = parseInt(cleanHex[2] + cleanHex[2], 16);
+    a = 1;
+  } else if (cleanHex.length === 4) {
+    // 4-digit hex: #RGBA
+    r = parseInt(cleanHex[0] + cleanHex[0], 16);
+    g = parseInt(cleanHex[1] + cleanHex[1], 16);
+    b = parseInt(cleanHex[2] + cleanHex[2], 16);
+    a = parseInt(cleanHex[3] + cleanHex[3], 16) / 255;
   } else if (cleanHex.length === 6) {
+    // 6-digit hex: #RRGGBB
     r = parseInt(cleanHex.substring(0, 2), 16);
     g = parseInt(cleanHex.substring(2, 4), 16);
     b = parseInt(cleanHex.substring(4, 6), 16);
+    a = 1;
+  } else if (cleanHex.length === 8) {
+    // 8-digit hex: #RRGGBBAA
+    r = parseInt(cleanHex.substring(0, 2), 16);
+    g = parseInt(cleanHex.substring(2, 4), 16);
+    b = parseInt(cleanHex.substring(4, 6), 16);
+    a = parseInt(cleanHex.substring(6, 8), 16) / 255;
   } else {
     return null; // Invalid hex format
   }
 
   // Validate parsed values
-  if (isNaN(r) || isNaN(g) || isNaN(b)) {
+  if (isNaN(r) || isNaN(g) || isNaN(b) || isNaN(a)) {
     return null;
   }
 
-  return { r, g, b, a: 1 };
+  return { r, g, b, a };
 }
 
 /**
@@ -86,7 +106,7 @@ export function parseCssColor(cssColor: string): RgbaColor | null {
         r: values[0],
         g: values[1],
         b: values[2],
-        a: values[3] || 1,
+        a: values[3] !== undefined ? values[3] : 1,
       };
     }
   }

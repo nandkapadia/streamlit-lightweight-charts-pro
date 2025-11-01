@@ -616,45 +616,57 @@ class TestChartManagerIterators:
 class TestChartManagerRender:
     """Test render method."""
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart_manager.get_component_func")
-    def test_render_with_charts(self, mock_get_component_func):
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.ChartRenderer.render")
+    @patch(
+        "streamlit_lightweight_charts_pro.charts.managers.chart_renderer.ChartRenderer.handle_response"
+    )
+    def test_render_with_charts(self, mock_handle_response, mock_render):
         """Test rendering manager with charts."""
-        from unittest.mock import Mock
-
-        mock_component = Mock()
-        mock_get_component_func.return_value = mock_component
+        mock_render.return_value = {"type": "rendered"}
 
         manager = ChartManager()
         chart = Chart(series=[LineSeries(data=[LineData(time=1, value=100)])])
         manager.add_chart(chart, "chart1")
 
-        manager.render(key="test_key")
+        result = manager.render(key="test_key")
 
-        mock_get_component_func.assert_called_once()
-        mock_component.assert_called_once()
-        call_args = mock_component.call_args
-        assert "config" in call_args.kwargs
-        assert "key" in call_args.kwargs
-        assert call_args.kwargs["key"] == "test_key"
+        # Verify ChartRenderer.render was called
+        mock_render.assert_called_once()
+        call_args = mock_render.call_args
+        assert call_args.args[1] == "test_key"  # key argument
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart_manager.get_component_func")
-    def test_render_without_key(self, mock_get_component_func):
+        # Verify ChartRenderer.handle_response was called with result
+        mock_handle_response.assert_called_once()
+        assert mock_handle_response.call_args.args[0] == {"type": "rendered"}
+
+        # Verify result is returned
+        assert result == {"type": "rendered"}
+
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.ChartRenderer.render")
+    @patch(
+        "streamlit_lightweight_charts_pro.charts.managers.chart_renderer.ChartRenderer.handle_response"
+    )
+    def test_render_without_key(self, mock_handle_response, mock_render):
         """Test rendering without explicit key."""
-        from unittest.mock import Mock
-
-        mock_component = Mock()
-        mock_get_component_func.return_value = mock_component
+        mock_render.return_value = {"type": "rendered"}
 
         manager = ChartManager()
         chart = Chart(series=[LineSeries(data=[LineData(time=1, value=100)])])
         manager.add_chart(chart, "chart1")
 
-        manager.render()
+        result = manager.render()
 
-        call_args = mock_component.call_args
-        assert "key" in call_args.kwargs
+        # Verify ChartRenderer.render was called
+        mock_render.assert_called_once()
+        call_args = mock_render.call_args
         # Auto-generated key should start with chart_manager_
-        assert call_args.kwargs["key"].startswith("chart_manager_")
+        assert call_args.args[1].startswith("chart_manager_")
+
+        # Verify ChartRenderer.handle_response was called
+        mock_handle_response.assert_called_once()
+
+        # Verify result is returned
+        assert result == {"type": "rendered"}
 
     def test_render_empty_charts_raises_error(self):
         """Test rendering with no charts raises error."""
@@ -663,36 +675,41 @@ class TestChartManagerRender:
         with pytest.raises(RuntimeError):
             manager.render()
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart_manager.get_component_func")
-    @patch("streamlit_lightweight_charts_pro.charts.chart_manager.reinitialize_component")
-    def test_render_component_none_reinitialize(self, mock_reinitialize, mock_get_component_func):
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.ChartRenderer.render")
+    @patch(
+        "streamlit_lightweight_charts_pro.charts.managers.chart_renderer.ChartRenderer.handle_response"
+    )
+    def test_render_component_none_reinitialize(self, _mock_handle_response, mock_render):
         """Test render when component is None and needs reinitialization."""
-        from unittest.mock import Mock
+        from streamlit_lightweight_charts_pro.exceptions import (
+            ComponentNotAvailableError,
+        )
 
-        mock_get_component_func.side_effect = [None, Mock()]
-        mock_reinitialize.return_value = True
+        # Simulate component not available by raising error
+        mock_render.side_effect = ComponentNotAvailableError()
 
         manager = ChartManager()
         chart = Chart(series=[LineSeries(data=[LineData(time=1, value=100)])])
         manager.add_chart(chart, "chart1")
 
-        manager.render()
+        with pytest.raises(ComponentNotAvailableError):
+            manager.render()
 
-        mock_reinitialize.assert_called_once()
-        assert mock_get_component_func.call_count == 2
+        # Verify ChartRenderer.render was called
+        mock_render.assert_called_once()
 
-    @patch("streamlit_lightweight_charts_pro.charts.chart_manager.get_component_func")
-    @patch("streamlit_lightweight_charts_pro.charts.chart_manager.reinitialize_component")
-    def test_render_component_none_reinitialize_fails(
-        self, mock_reinitialize, mock_get_component_func
-    ):
+    @patch("streamlit_lightweight_charts_pro.charts.managers.chart_renderer.ChartRenderer.render")
+    @patch(
+        "streamlit_lightweight_charts_pro.charts.managers.chart_renderer.ChartRenderer.handle_response"
+    )
+    def test_render_component_none_reinitialize_fails(self, _mock_handle_response, mock_render):
         """Test render when reinitialize fails."""
         from streamlit_lightweight_charts_pro.exceptions import (
             ComponentNotAvailableError,
         )
 
-        mock_get_component_func.return_value = None
-        mock_reinitialize.return_value = False
+        # Simulate component not available
+        mock_render.side_effect = ComponentNotAvailableError()
 
         manager = ChartManager()
         chart = Chart(series=[LineSeries(data=[LineData(time=1, value=100)])])

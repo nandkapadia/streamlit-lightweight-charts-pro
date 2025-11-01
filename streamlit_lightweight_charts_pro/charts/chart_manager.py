@@ -135,6 +135,14 @@ class ChartManager:
         # Set default sync options for new charts without specific group assignment
         self.default_sync: SyncOptions = SyncOptions()
 
+        # Flag to force frontend re-initialization (for indicator/parameter changes)
+        self.force_reinit: bool = False
+
+        # Metadata for change detection (symbol/interval)
+        # These are used by frontend to detect when data context changes
+        self.symbol: Optional[str] = None
+        self.display_interval: Optional[str] = None
+
     def add_chart(self, chart: Chart, chart_id: Optional[str] = None) -> "ChartManager":
         """Add a chart to the manager.
 
@@ -502,38 +510,200 @@ class ChartManager:
             for group_id, group_sync in self.sync_groups.items():
                 sync_config["groups"][group_id] = group_sync.asdict()
 
-        return {
+        config = {
             "charts": chart_configs,
             "syncConfig": sync_config,
         }
 
-    def render(self, key: Optional[str] = None) -> Any:
-        """Render the chart manager.
+        # Add force_reinit flag if set
+        if self.force_reinit:
+            config["forceReinit"] = True
+
+        # Add metadata for frontend change detection
+        # This allows frontend to detect symbol/interval changes
+        if self.symbol is not None:
+            config["symbol"] = self.symbol
+        if self.display_interval is not None:
+            config["displayInterval"] = str(self.display_interval)
+
+        return config
+
+    def _auto_detect_changes(self, key: str) -> None:
+        """
+        Automatically detect changes and set force_reinit if needed.
+
+        This is internal library logic - the user should never call this.
+        It compares current state with previous render to detect changes.
+
+        Args:
+            key: Component key for state storage
+        """
+        import hashlib  # pylint: disable=import-outside-toplevel
+        import json  # pylint: disable=import-outside-toplevel
+
+        import streamlit as st  # pylint: disable=import-outside-toplevel
+
+        # Build state key for this chart
+        state_key = f"_lwc_chart_state_{key}"
+
+        # Get previous state
+        prev_state = st.session_state.get(state_key)
+
+        # Build current state signature
+        # Include: symbol, interval, chart count, series structure
+        current_state = {
+            "symbol": self.symbol,
+            "interval": self.display_interval,
+            "chart_count": len(self.charts),
+            "series_structure": [],
+        }
+
+        # Add series structure fingerprint (types, data length, and full data hash)
+        for chart in self.charts.values():
+            for _idx, series in enumerate(chart.series):
+                # Calculate hash of entire data array for 100% accurate change detection
+                # This is cheap (~1ms for 10K points) and catches ALL data changes
+                data_hash = None
+                if hasattr(series, "data") and series.data:
+                    try:
+                        # Hash the entire data array
+                        data_str = str(series.data)
+                        data_hash = hashlib.md5(data_str.encode()).hexdigest()[:8]  # noqa: S324
+                    except Exception:
+                        # Fallback to None if serialization fails
+                        data_hash = None
+
+                series_info = {
+                    "type": type(series).__name__,
+                    "data_length": len(series.data)
+                    if hasattr(series, "data") and series.data
+                    else 0,
+                    "data_hash": data_hash,  # Full data hash - catches ALL changes!
+                }
+                current_state["series_structure"].append(series_info)
+
+        # Calculate hash for comparison
+        current_hash = hashlib.md5(  # noqa: S324
+            json.dumps(current_state, sort_keys=True, default=str).encode()
+        ).hexdigest()[:8]
+
+        # AUTO-DETECT if reinit needed
+        # Check if there's a pending reinit from previous run (handles Streamlit multiple reruns)
+        pending_reinit_key = f"{state_key}_pending_reinit"
+        pending_reinit = st.session_state.get(pending_reinit_key, False)
+
+        if prev_state is None:
+            # First render - no reinit needed
+            self.force_reinit = False
+            st.session_state[pending_reinit_key] = False
+        elif prev_state != current_hash:
+            # State changed - force reinit and mark as pending for next rerun
+            self.force_reinit = True
+            st.session_state[pending_reinit_key] = True
+        elif pending_reinit:
+            # Hash is same but there's a pending reinit from previous run
+            # This handles Streamlit's multiple reruns after a change
+            self.force_reinit = True
+            st.session_state[pending_reinit_key] = False  # Clear the flag
+        else:
+            # Same hash, no pending reinit - no changes detected
+            self.force_reinit = False
+
+        # Store current state for next render
+        st.session_state[state_key] = current_hash
+
+    def render(
+        self,
+        key: Optional[str] = None,
+        symbol: Optional[str] = None,
+        interval: Optional[str] = None,
+    ) -> Any:
+        """Render the chart manager with automatic change detection.
+
+        The library automatically detects changes in symbol, interval, series structure,
+        and data, and reinitializes the chart only when needed while preserving
+        customizations.
 
         Args:
             key: Optional key for the Streamlit component
+            symbol: Optional symbol name for automatic change detection and metadata
+            interval: Optional interval for automatic change detection and metadata
 
         Returns:
             The rendered component
+
+        Raises:
+            RuntimeError: If no charts have been added to the manager
+
+        Note:
+            The library handles change detection internally. You don't need to:
+            - Calculate hashes
+            - Track previous values
+            - Set force_reinit manually
+            - Clear caches
+
+            Just call render() with current symbol/interval and the library
+            handles the rest!
         """
         if not self.charts:
-            raise RuntimeError()
+            raise RuntimeError("Cannot render ChartManager with no charts")
 
-        config = self.to_frontend_config()
-        component_func = get_component_func()
+        # STEP 0: Set metadata if provided (before change detection)
+        if symbol is not None:
+            self.symbol = symbol
+        if interval is not None:
+            self.display_interval = interval
 
-        if component_func is None:
-            if reinitialize_component():
-                component_func = get_component_func()
-            if component_func is None:
-                raise ComponentNotAvailableError()
-
-        kwargs: Dict[str, Any] = {"config": config}
+        # STEP 1: Generate/validate key (same as Chart.render())
         if key is None or not isinstance(key, str) or not key.strip():
             unique_id = str(uuid.uuid4())[:8]
             key = f"chart_manager_{int(time.time() * 1000)}_{unique_id}"
-        kwargs["key"] = key
-        return component_func(**kwargs)
+
+        # STEP 1.5: AUTO-DETECT changes (internal logic - transparent to user)
+        # This makes the library handle change detection instead of the user
+        self._auto_detect_changes(key)
+
+        # STEP 2: For each chart, reset config flag and load/apply stored configs
+        # This ensures user changes from series dialog persist across reruns
+        # Use the same key for loading/saving so customizations persist
+        for chart in self.charts.values():
+            # Reset config application flag for this render cycle
+            chart._session_state_manager.reset_config_applied_flag()  # pylint: disable=protected-access
+
+            # Load stored configs from session state using the component key
+            stored_configs = chart._session_state_manager.load_series_configs(key)  # pylint: disable=protected-access
+
+            # Apply configs to series objects BEFORE serialization
+            if stored_configs:
+                chart._session_state_manager.apply_stored_configs_to_series(  # pylint: disable=protected-access
+                    stored_configs,
+                    chart.series,
+                )
+
+        # STEP 3: Generate frontend configuration AFTER configs are applied
+        config = self.to_frontend_config()
+
+        # STEP 4: Render using ChartRenderer (DRY - reuse existing code)
+        # Get the first chart's renderer since they all use the same implementation
+        first_chart = next(iter(self.charts.values()))
+        result = first_chart._chart_renderer.render(  # pylint: disable=protected-access
+            config,
+            key,
+            None,  # ChartManager doesn't have global chart_options
+        )
+
+        # STEP 5: Handle component return value and save series configs
+        # This ensures changes from frontend are saved to session state
+        # Use same key for saving so configs persist
+        if result:
+            for chart in self.charts.values():
+                chart._chart_renderer.handle_response(  # pylint: disable=protected-access
+                    result,
+                    key,  # Use same key for consistency
+                    chart._session_state_manager,  # pylint: disable=protected-access
+                )
+
+        return result
 
     def __len__(self) -> int:
         """Return the number of charts in the manager."""

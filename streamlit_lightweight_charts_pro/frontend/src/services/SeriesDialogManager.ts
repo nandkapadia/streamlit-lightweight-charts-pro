@@ -156,11 +156,16 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
     config: SeriesDialogConfig = {}
   ): SeriesDialogManager {
     const key = chartId || 'default';
-    return KeyedSingletonManager.getOrCreateInstance(
-      'SeriesDialogManager',
-      key,
-      () => new SeriesDialogManager(chartApi, streamlitService, config)
+    console.log('[SeriesDialogManager] getInstance called for chartId:', key);
+    const instance = KeyedSingletonManager.getOrCreateInstance('SeriesDialogManager', key, () => {
+      console.log('[SeriesDialogManager] Creating NEW instance for chartId:', key);
+      return new SeriesDialogManager(chartApi, streamlitService, config);
+    });
+    console.log(
+      '[SeriesDialogManager] Returning instance, dialogStates size:',
+      instance.dialogStates.size
     );
+    return instance;
   }
 
   /**
@@ -168,17 +173,101 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
    */
   public static destroyInstance(chartId?: string): void {
     const key = chartId || 'default';
+    console.log('[SeriesDialogManager] destroyInstance called for chartId:', key);
     KeyedSingletonManager.destroyInstanceByKey('SeriesDialogManager', key);
+    console.log('[SeriesDialogManager] Instance destroyed for chartId:', key);
   }
 
   /**
    * Initialize dialog state for a pane
    */
   public initializePane(paneId: number): void {
+    console.log(
+      '[SeriesDialogManager] initializePane called for paneId:',
+      paneId,
+      'Current dialogStates size:',
+      this.dialogStates.size
+    );
     if (!this.dialogStates.has(paneId)) {
       this.dialogStates.set(paneId, {
         seriesConfigs: new Map(),
       });
+      console.log(
+        '[SeriesDialogManager] Created new dialog state for paneId:',
+        paneId,
+        'New size:',
+        this.dialogStates.size
+      );
+
+      // CRITICAL: Restore saved customizations from sessionStorage immediately after initialization
+      // This ensures customizations persist across reinitialization (e.g., when changing indicator params)
+      // within the current browser session only
+      this.restoreSeriesConfigsFromStorage(paneId);
+    } else {
+      console.log('[SeriesDialogManager] Dialog state already exists for paneId:', paneId);
+    }
+  }
+
+  /**
+   * Restore series configurations from sessionStorage for a pane
+   * Called during pane initialization to restore customizations after reinit
+   * Only restores within current browser session (cleared when tab closes)
+   */
+  private restoreSeriesConfigsFromStorage(paneId: number): void {
+    try {
+      console.log(
+        '[SeriesDialogManager] Restoring configs from sessionStorage for paneId:',
+        paneId
+      );
+
+      // Get all series in this pane
+      const panes = this.chartApi.panes();
+      if (paneId < 0 || paneId >= panes.length) {
+        console.log('[SeriesDialogManager] Pane not found, skipping restore');
+        return;
+      }
+
+      const pane = panes[paneId];
+      const paneSeries = pane.getSeries();
+
+      console.log('[SeriesDialogManager] Found', paneSeries.length, 'series in pane', paneId);
+
+      // Try to restore config for each series
+      paneSeries.forEach((series: ISeriesApi<any>, index: number) => {
+        const seriesId = `pane-${paneId}-series-${index}`;
+        const savedConfig = this.loadSeriesConfig(seriesId);
+
+        if (savedConfig) {
+          console.log('[SeriesDialogManager] Restoring saved config for:', seriesId);
+
+          // Store in memory
+          const state = this.dialogStates.get(paneId);
+          if (state) {
+            state.seriesConfigs.set(seriesId, savedConfig);
+          }
+
+          // Apply to chart immediately
+          try {
+            this.applyConfigToChartSeries(paneId, seriesId, savedConfig);
+            console.log('[SeriesDialogManager] Successfully restored config for:', seriesId);
+          } catch (error) {
+            console.warn(
+              '[SeriesDialogManager] Failed to apply restored config for:',
+              seriesId,
+              error
+            );
+          }
+        } else {
+          console.log('[SeriesDialogManager] No saved config found for:', seriesId);
+        }
+      });
+    } catch (error) {
+      console.error('[SeriesDialogManager] Error restoring configs:', error);
+      handleError(
+        error,
+        'SeriesDialogManager.restoreSeriesConfigsFromStorage',
+        ErrorSeverity.WARNING
+      );
     }
   }
 
@@ -232,11 +321,23 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
    * all rendering within it (standard portal pattern).
    */
   public open(paneId: number): void {
+    console.log('[SeriesDialogManager] open() called for paneId:', paneId);
+    console.log(
+      '[SeriesDialogManager] Current dialogStates:',
+      Array.from(this.dialogStates.keys())
+    );
     const state = this.dialogStates.get(paneId);
     if (!state) {
+      console.error(
+        '[SeriesDialogManager] Dialog state NOT found for paneId:',
+        paneId,
+        'Available panes:',
+        Array.from(this.dialogStates.keys())
+      );
       logger.error('Dialog state not initialized', 'SeriesDialogManager', { paneId });
       return;
     }
+    console.log('[SeriesDialogManager] Dialog state found for paneId:', paneId);
 
     try {
       // Get ALL series for this pane
@@ -390,9 +491,47 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
 
           // Get existing config or create default
           let seriesConfig = state.seriesConfigs.get(seriesId);
+          let wasLoadedFromStorage = false;
+
           if (!seriesConfig) {
-            seriesConfig = this.getDefaultSeriesConfig(seriesInfo.type);
+            console.log(
+              '[SeriesDialogManager] No in-memory config for:',
+              seriesId,
+              'Checking sessionStorage...'
+            );
+
+            // CRITICAL: Try to load from sessionStorage first (restores customizations after reinit)
+            seriesConfig = this.loadSeriesConfig(seriesId) || undefined;
+
+            if (seriesConfig) {
+              wasLoadedFromStorage = true;
+            } else {
+              // Fall back to defaults if not in sessionStorage
+              console.log(
+                '[SeriesDialogManager] No sessionStorage config for:',
+                seriesId,
+                'Using defaults'
+              );
+              seriesConfig = this.getDefaultSeriesConfig(seriesInfo.type);
+            }
+
             state.seriesConfigs.set(seriesId, seriesConfig);
+
+            // CRITICAL: Apply loaded config to chart series immediately
+            // This restores customizations (colors, line width, etc.) after reinitialization
+            if (wasLoadedFromStorage) {
+              console.log(
+                '[SeriesDialogManager] Applying loaded config to chart series:',
+                seriesId
+              );
+              try {
+                this.applyConfigToChartSeries(paneId, seriesId, seriesConfig);
+              } catch (error) {
+                console.warn('[SeriesDialogManager] Failed to apply loaded config:', error);
+              }
+            }
+          } else {
+            console.log('[SeriesDialogManager] Using in-memory config for:', seriesId);
           }
 
           seriesList.push({
@@ -431,14 +570,17 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
     try {
       // Get all panes from the chart
       const panes = this.chartApi.panes();
+      console.log('[SeriesDialog] Detecting series in pane', paneId, 'Total panes:', panes.length);
 
       if (paneId >= 0 && paneId < panes.length) {
         // Get actual series from the pane
         const pane = panes[paneId];
         const paneSeries = pane.getSeries();
+        console.log('[SeriesDialog] Pane', paneId, 'has', paneSeries.length, 'series');
 
         // Detect type, title, and displayName from each series
-        paneSeries.forEach((series: ISeriesApi<any>) => {
+        paneSeries.forEach((series: ISeriesApi<any>, index: number) => {
+          console.log('[SeriesDialog] Detecting series', index, series);
           try {
             const options = series.options() as any;
 
@@ -489,7 +631,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
       handleError(error, 'SeriesDialogManager.applyConfigToChartSeries', ErrorSeverity.WARNING);
     }
 
-    // Save to localStorage for immediate persistence
+    // Save to sessionStorage for persistence within current session
     try {
       this.saveSeriesConfig(seriesId, config);
     } catch (error) {
@@ -613,20 +755,46 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
   }
 
   /**
-   * Save series configuration to localStorage
+   * Save series configuration to sessionStorage (current session only)
+   * Customizations persist within the current browser tab but are cleared when tab closes
    */
   private saveSeriesConfig(seriesId: string, config: SeriesConfiguration): void {
     try {
       const storageKey = `series-config-${seriesId}`;
-      localStorage.setItem(storageKey, JSON.stringify(config));
+      sessionStorage.setItem(storageKey, JSON.stringify(config));
+      console.log('[SeriesDialogManager] Saved config to sessionStorage for:', seriesId);
     } catch (error) {
-      // localStorage save failures are non-critical - log as warning
+      // sessionStorage save failures are non-critical - log as warning
       handleError(
         error,
-        'SeriesDialogManager.saveSeriesConfigToLocalStorage',
+        'SeriesDialogManager.saveSeriesConfigToSessionStorage',
         ErrorSeverity.WARNING
       );
     }
+  }
+
+  /**
+   * Load series configuration from sessionStorage (current session only)
+   * Returns null if not found or parsing fails
+   */
+  private loadSeriesConfig(seriesId: string): SeriesConfiguration | null {
+    try {
+      const storageKey = `series-config-${seriesId}`;
+      const stored = sessionStorage.getItem(storageKey);
+      if (stored) {
+        const config = JSON.parse(stored) as SeriesConfiguration;
+        console.log('[SeriesDialogManager] Loaded config from sessionStorage for:', seriesId);
+        return config;
+      }
+    } catch (error) {
+      // sessionStorage load failures are non-critical - log as warning
+      handleError(
+        error,
+        'SeriesDialogManager.loadSeriesConfigFromSessionStorage',
+        ErrorSeverity.WARNING
+      );
+    }
+    return null;
   }
 
   /**
