@@ -192,10 +192,7 @@ export function addSeriesToPane<T extends keyof SeriesOptionsMap>(
  * });
  * ```
  */
-export function setupMultiPaneChart(
-  chart: IChartApi,
-  panes: PaneConfig[]
-): MultiPaneChartResult {
+export function setupMultiPaneChart(chart: IChartApi, panes: PaneConfig[]): MultiPaneChartResult {
   const seriesByPane = new Map<number, ISeriesApi<keyof SeriesOptionsMap>[]>();
   const allSeries: ISeriesApi<keyof SeriesOptionsMap>[] = [];
 
@@ -244,7 +241,9 @@ export function setupMultiPaneChart(
         if (paneConfig.height !== undefined) {
           const paneApi = chartPanes[paneConfig.paneId];
           if (paneApi) {
-            console.log(`[setupMultiPaneChart] Setting pane ${paneConfig.paneId} height to ${paneConfig.height}`);
+            console.log(
+              `[setupMultiPaneChart] Setting pane ${paneConfig.paneId} height to ${paneConfig.height}`
+            );
             paneApi.setHeight(paneConfig.height);
           }
         }
@@ -279,14 +278,20 @@ export function setupMultiPaneChart(
       chart.resize(chartSize.width, chartHeight, true);
       console.log('[setupMultiPaneChart] After resize():');
       for (let i = 0; i < chartPanes.length; i++) {
-        console.log(`[setupMultiPaneChart] Pane ${i} height after resize:`, chartPanes[i].getHeight());
+        console.log(
+          `[setupMultiPaneChart] Pane ${i} height after resize:`,
+          chartPanes[i].getHeight()
+        );
       }
 
       // Also try fitContent
       chart.timeScale().fitContent();
       console.log('[setupMultiPaneChart] After fitContent():');
       for (let i = 0; i < chartPanes.length; i++) {
-        console.log(`[setupMultiPaneChart] Pane ${i} height after fitContent:`, chartPanes[i].getHeight());
+        console.log(
+          `[setupMultiPaneChart] Pane ${i} height after fitContent:`,
+          chartPanes[i].getHeight()
+        );
       }
     }
   }

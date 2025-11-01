@@ -51,6 +51,8 @@ import { LegendPrimitive } from '../primitives/LegendPrimitive';
 import { RangeSwitcherPrimitive, DefaultRangeConfigs } from '../primitives/RangeSwitcherPrimitive';
 import { PrimitiveEventManager } from './PrimitiveEventManager';
 import { CornerLayoutManager } from './CornerLayoutManager';
+import { SeriesDialogManager } from './SeriesDialogManager';
+import { PaneCollapseManager } from './PaneCollapseManager';
 import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types';
 import { ExtendedSeriesApi, CrosshairEventData } from '../types/ChartInterfaces';
 import { PrimitivePriority } from '../primitives/BasePanePrimitive';
@@ -109,6 +111,17 @@ export class ChartPrimitiveManager {
       instance.destroy();
       ChartPrimitiveManager.instances.delete(chartId);
     }
+
+    // CRITICAL: Cleanup all singleton managers for this chart
+    // SeriesDialogManager and PaneCollapseManager are singletons that persist
+    // across reinitialization. We must destroy them to clear their state.
+    console.log('[ChartPrimitiveManager] Cleaning up singletons for chartId:', chartId);
+
+    console.log('[ChartPrimitiveManager] Destroying SeriesDialogManager for:', chartId);
+    SeriesDialogManager.destroyInstance(chartId);
+    console.log('[ChartPrimitiveManager] Destroying PaneCollapseManager for:', chartId);
+    PaneCollapseManager.destroyInstance(chartId);
+    console.log('[ChartPrimitiveManager] Singleton cleanup complete');
 
     // Also cleanup the layout manager and event manager for this chart
     CornerLayoutManager.cleanup(chartId);

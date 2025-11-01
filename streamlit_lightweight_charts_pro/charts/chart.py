@@ -204,6 +204,9 @@ class Chart:
         self._chart_group_id = chart_group_id
         self._chart_manager = chart_manager
 
+        # Flag to force frontend re-initialization (for indicator/parameter changes)
+        self.force_reinit: bool = False
+
         # Expose series list for backward compatibility
         self.series = self._series_manager.series
 
@@ -830,7 +833,7 @@ class Chart:
                 tooltip_configs[name] = tooltip_config.asdict()
 
         # Generate complete frontend configuration using ChartRenderer
-        return self._chart_renderer.generate_frontend_config(
+        config = self._chart_renderer.generate_frontend_config(
             chart_id=f"chart-{id(self)}",
             chart_options=self.options,
             series_configs=series_configs,
@@ -840,6 +843,12 @@ class Chart:
             chart_group_id=self.chart_group_id,
             price_scale_config=price_scale_config,
         )
+
+        # Add force_reinit flag if set
+        if self.force_reinit:
+            config["forceReinit"] = True
+
+        return config
 
     def render(self, key: Optional[str] = None) -> Any:
         """Render the chart in Streamlit.
@@ -941,8 +950,12 @@ class Chart:
         Returns:
             Timespan in seconds or None if unable to calculate.
         """
-        series_configs = self._series_manager.to_frontend_configs()
-        return self._chart_renderer._calculate_data_timespan(series_configs)
+        try:
+            series_configs = self._series_manager.to_frontend_configs()
+            return self._chart_renderer._calculate_data_timespan(series_configs)
+        except Exception:  # Catch TimeValidationError or any other error
+            # Return None if unable to serialize data (e.g., invalid time values)
+            return None
 
     def _get_range_seconds(self, range_config: Dict[str, Any]) -> Optional[float]:
         """Extract seconds from range configuration.

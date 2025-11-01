@@ -58,8 +58,9 @@ describe('Color Parsing Functions', () => {
     });
 
     it('should return null for invalid hex format (wrong length)', () => {
-      const result = parseHexColor('#FF00');
-      expect(result).toBeNull();
+      // 5 or 7 digits are invalid (valid: 3, 4, 6, 8)
+      expect(parseHexColor('#FF000')).toBeNull(); // 5 digits
+      expect(parseHexColor('#FF00000')).toBeNull(); // 7 digits
     });
 
     it('should return null for invalid hex characters', () => {

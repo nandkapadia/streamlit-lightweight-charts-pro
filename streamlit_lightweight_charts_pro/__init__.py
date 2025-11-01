@@ -72,6 +72,13 @@ from streamlit_lightweight_charts_pro.charts.series import (
     SignalSeries,
     TrendFillSeries,
 )
+
+# Import chart utilities and validators
+from streamlit_lightweight_charts_pro.charts.utils import PriceScaleConfig
+from streamlit_lightweight_charts_pro.charts.validators import (
+    PriceScaleValidationError,
+    PriceScaleValidator,
+)
 from streamlit_lightweight_charts_pro.data import (
     Annotation,
     AreaData,
@@ -117,7 +124,7 @@ except ImportError:
 
 # Version information for the package
 # This version number is used for package distribution and compatibility checks
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 
 
 # Check if frontend is built on import (for development mode)
@@ -221,6 +228,10 @@ __all__ = [
     "MarkerShape",
     "OhlcvData",
     "PaneHeightOptions",
+    # Price scale utilities
+    "PriceScaleConfig",
+    "PriceScaleValidationError",
+    "PriceScaleValidator",
     "RibbonSeries",
     "Series",
     "SignalData",

@@ -31,9 +31,28 @@ class TestIsValidColor:
         for color in valid_colors:
             assert is_valid_color(color) is True
 
+    def test_valid_hex_colors_4_digits(self):
+        """Test valid 4-digit hex colors with alpha channel (#RGBA)."""
+        valid_colors = ["#ffff", "#0000", "#abcd", "#ABCD", "#1234", "#5678", "#f00a"]
+        for color in valid_colors:
+            assert is_valid_color(color) is True
+
+    def test_valid_hex_colors_8_digits(self):
+        """Test valid 8-digit hex colors with alpha channel (#RRGGBBAA)."""
+        valid_colors = [
+            "#ffffff00",
+            "#00000000",
+            "#abcdef80",
+            "#ABCDEF80",
+            "#12345678",
+            "#00ff0033",
+        ]
+        for color in valid_colors:
+            assert is_valid_color(color) is True
+
     def test_invalid_hex_colors(self):
         """Test invalid hex colors."""
-        invalid_colors = ["#ff", "#ffff", "#fffffff", "#ggg", "#123g", "#", "#abcde"]
+        invalid_colors = ["#ff", "#fffffff", "#ggg", "#123g", "#", "#abcde"]
         for color in invalid_colors:
             assert is_valid_color(color) is False
 

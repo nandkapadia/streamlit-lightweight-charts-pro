@@ -282,7 +282,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     // React 19 concurrent features with optional performance monitoring
     // useTransition: Marks state updates as transitions for non-blocking UI
     // useDeferredValue: Defers non-urgent config updates to maintain responsiveness
-    const [isPending, startTransition] = useTransition();
+    const [isPending, _startTransition] = useTransition();
     const deferredConfig = useDeferredValue(config);
 
     // React 19 Performance Monitoring
@@ -309,9 +309,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     const legendResizeObserverRefs = useRef<{ [key: string]: ResizeObserver }>({});
     const isInitializedRef = useRef<boolean>(false);
     const isDisposingRef = useRef<boolean>(false);
-    const fitContentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const initializationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const prevConfigRef = useRef<ComponentConfig | null>(null);
     const chartContainersRef = useRef<{ [key: string]: HTMLElement }>({});
     const debounceTimersRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
@@ -326,12 +323,23 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             chartData?: SeriesDataPoint[]
           ) => Promise<void>)
         | null;
-      addAnnotations: ((chart: IChartApi, annotations: Annotation[] | AnnotationLayers) => void) | null;
-      addModularTooltip:
-        | ((chart: IChartApi, container: HTMLElement, seriesList: ExtendedSeriesApi[], chartConfig: ChartConfig) => void)
+      addAnnotations:
+        | ((chart: IChartApi, annotations: Annotation[] | AnnotationLayers) => void)
         | null;
-      addAnnotationLayers: ((chart: IChartApi, layers: AnnotationLayer[] | AnnotationLayers) => void) | null;
-      addRangeSwitcher: ((chart: IChartApi, rangeConfig: RangeSwitcherConfig) => Promise<void>) | null;
+      addModularTooltip:
+        | ((
+            chart: IChartApi,
+            container: HTMLElement,
+            seriesList: ExtendedSeriesApi[],
+            chartConfig: ChartConfig
+          ) => void)
+        | null;
+      addAnnotationLayers:
+        | ((chart: IChartApi, layers: AnnotationLayer[] | AnnotationLayers) => void)
+        | null;
+      addRangeSwitcher:
+        | ((chart: IChartApi, rangeConfig: RangeSwitcherConfig) => Promise<void>)
+        | null;
       addLegend:
         | ((
             chart: IChartApi,
@@ -342,9 +350,16 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       updateLegendPositions:
         | ((chart: IChartApi, legendsConfig: { [paneId: string]: LegendConfig }) => Promise<void>)
         | null;
-      setupAutoSizing: ((chart: IChartApi, container: HTMLElement, chartConfig: ChartConfig) => void) | null;
+      setupAutoSizing:
+        | ((chart: IChartApi, container: HTMLElement, chartConfig: ChartConfig) => void)
+        | null;
       setupChartSynchronization:
-        | ((chart: IChartApi, chartId: string, syncConfig: SyncConfig, chartGroupId?: number) => void)
+        | ((
+            chart: IChartApi,
+            chartId: string,
+            syncConfig: SyncConfig,
+            chartGroupId?: number
+          ) => void)
         | null;
       setupFitContent: ((chart: IChartApi, chartConfig: ChartConfig) => void) | null;
       setupPaneCollapseSupport: ((chart: IChartApi, chartId: string) => void) | null;
@@ -723,11 +738,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         chartConfig.chart?.fitContentOnLoad !== false;
 
       if (shouldFitContentOnLoad) {
-        // Clear any existing timeout
-        if (fitContentTimeoutRef.current) {
-          clearTimeout(fitContentTimeoutRef.current);
-        }
-
         // Wait for chart to be ready before calling fitContent
         ChartReadyDetector.waitForChartReady(chart, chart.chartElement(), {
           minWidth: 200,
@@ -785,9 +795,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     const cleanupCharts = useCallback(() => {
       // Cleanup charts
 
-      // Set disposing flag to prevent async operations
-      // But don't set it if this is the initial render
-      if (prevConfigRef.current !== null) {
+      // Set disposing flag to prevent async operations during cleanup
+      // (isInitializedRef tracks whether we've rendered before)
+      if (isInitializedRef.current) {
         isDisposingRef.current = true;
       }
 
@@ -796,17 +806,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         if (timer) clearTimeout(timer);
       });
       debounceTimersRef.current = {};
-
-      // Clear any pending timeouts
-      if (fitContentTimeoutRef.current) {
-        clearTimeout(fitContentTimeoutRef.current);
-        fitContentTimeoutRef.current = null;
-      }
-
-      if (initializationTimeoutRef.current) {
-        clearTimeout(initializationTimeoutRef.current);
-        initializationTimeoutRef.current = null;
-      }
 
       // Disconnect resize observer
       if (resizeObserverRef.current) {
@@ -922,6 +921,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
       // Reset initialization flag
       isInitializedRef.current = false;
+
+      // CRITICAL: Reset disposing flag after cleanup completes
+      // This allows subsequent reinitializations to proceed
+      isDisposingRef.current = false;
     }, []);
 
     const addTradeVisualization = useCallback(
@@ -1238,32 +1241,37 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       []
     );
 
-    const addRangeSwitcher = useCallback(async (chart: IChartApi, rangeConfig: RangeSwitcherConfig) => {
-      try {
-        const chartElement = chart.chartElement();
-        if (!chartElement) return;
+    const addRangeSwitcher = useCallback(
+      async (chart: IChartApi, rangeConfig: RangeSwitcherConfig) => {
+        try {
+          const chartElement = chart.chartElement();
+          if (!chartElement) return;
 
-        const chartId = chartElement.id || `chart-${Date.now()}`;
-        const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId);
+          const chartId = chartElement.id || `chart-${Date.now()}`;
+          const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId);
 
-        // Add range switcher using new primitive manager
-        const rangeSwitcherWidget = primitiveManager.addRangeSwitcher(rangeConfig);
+          // Add range switcher using new primitive manager
+          const rangeSwitcherWidget = primitiveManager.addRangeSwitcher(rangeConfig);
 
-        // Register cleanup for this plugin
-        if (!window.chartPlugins) {
-          window.chartPlugins = new Map();
+          // Register cleanup for this plugin
+          if (!window.chartPlugins) {
+            window.chartPlugins = new Map();
+          }
+
+          // Ensure we always get an array, even if the stored value is corrupted
+          const storedPlugins = window.chartPlugins.get(chartId);
+          const existingPlugins: Destroyable[] = Array.isArray(storedPlugins)
+            ? (storedPlugins as Destroyable[])
+            : [];
+
+          existingPlugins.push(rangeSwitcherWidget as Destroyable);
+          window.chartPlugins.set(chartId, existingPlugins);
+        } catch (error) {
+          logger.error('Failed to store chart instance', 'LightweightCharts', error);
         }
-
-        // Ensure we always get an array, even if the stored value is corrupted
-        const storedPlugins = window.chartPlugins.get(chartId);
-        const existingPlugins: Destroyable[] = Array.isArray(storedPlugins) ? storedPlugins as Destroyable[] : [];
-
-        existingPlugins.push(rangeSwitcherWidget as Destroyable);
-        window.chartPlugins.set(chartId, existingPlugins);
-      } catch (error) {
-        logger.error('Failed to store chart instance', 'LightweightCharts', error);
-      }
-    }, []);
+      },
+      []
+    );
 
     // Function to update legend positions when pane heights change - now handled by plugins
     const updateLegendPositions = useCallback(
@@ -2163,7 +2171,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             // Add price lines
             if (chartConfig.priceLines && seriesList.length > 0) {
               chartConfig.priceLines.forEach((priceLine: Record<string, unknown>) => {
-                seriesList[0].createPriceLine(priceLine as unknown as Parameters<typeof seriesList[0]['createPriceLine']>[0]);
+                seriesList[0].createPriceLine(
+                  priceLine as unknown as Parameters<(typeof seriesList)[0]['createPriceLine']>[0]
+                );
               });
             }
 
@@ -2433,17 +2443,22 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       cleanupCharts,
     ]);
 
-    // React 18: Use deferredConfig for non-urgent updates
+    // Python-side change detection: Simply trust the forceReinit flag
+    // Python handles ALL change detection - frontend just obeys the flag
     useEffect(() => {
       if (deferredConfig && deferredConfig.charts && deferredConfig.charts.length > 0) {
-        // Wrap heavy chart operations in startTransition for better UX
-        startTransition(() => {
-          // Only pass isInitialRender=true on the very first initialization
-          // Subsequent renders should cleanup and re-create properly
-          initializeCharts(isInitializedRef.current === false);
-        });
+        const forceReinit = (deferredConfig as any).forceReinit === true;
+        const isFirstRender = !isInitializedRef.current;
+
+        if (isFirstRender) {
+          initializeCharts(true);
+        } else if (forceReinit) {
+          cleanupCharts();
+          isInitializedRef.current = false;
+          initializeCharts(true);
+        }
       }
-    }, [deferredConfig, initializeCharts, startTransition]);
+    }, [deferredConfig, initializeCharts, cleanupCharts]);
 
     // Cleanup on unmount
     useEffect(() => {

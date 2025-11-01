@@ -235,7 +235,7 @@ def is_valid_color(color: str) -> bool:
 
     Args:
         color: Color string to validate. Supported formats:
-            - Hex colors: "#FF0000", "#F00", "#FF0000AA"
+            - Hex colors: "#FF0000" (6-digit), "#F00" (3-digit), "#FF0000AA" (8-digit with alpha), "#F00A" (4-digit with alpha)
             - RGB colors: "rgb(255, 0, 0)"
             - RGBA colors: "rgba(255, 0, 0, 1)"
             - Named colors: "red", "blue", "white", etc.
@@ -268,9 +268,12 @@ def is_valid_color(color: str) -> bool:
     if color == "":
         return False
 
-    # Check hex color pattern: matches #RRGGBB (6 hex digits) or #RGB (3 hex digits)
-    # Also supports #RRGGBBAA format for alpha channel
-    hex_pattern = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$"
+    # Check hex color pattern: supports 3, 4, 6, and 8 digit hex formats
+    # - #RGB (3 digits): short form, e.g., #F00
+    # - #RGBA (4 digits): short form with alpha, e.g., #F008
+    # - #RRGGBB (6 digits): standard form, e.g., #FF0000
+    # - #RRGGBBAA (8 digits): standard form with alpha, e.g., #FF000080
+    hex_pattern = r"^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{4}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$"
     if re.match(hex_pattern, color):
         return True
 

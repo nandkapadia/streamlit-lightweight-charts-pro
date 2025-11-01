@@ -466,7 +466,9 @@ export function createPrimitiveAxisView<
 >(
   field: string,
   colorField: string
-): new (source: BaseSeriesPrimitive<TData, TOptions>) => BaseSeriesPrimitiveAxisView<TData, TOptions> {
+): new (
+  source: BaseSeriesPrimitive<TData, TOptions>
+) => BaseSeriesPrimitiveAxisView<TData, TOptions> {
   // Return an anonymous class that extends BaseSeriesPrimitiveAxisView
   return class extends BaseSeriesPrimitiveAxisView<TData, TOptions> {
     /**
