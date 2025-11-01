@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.8] - 2025-11-01
 
+### Added
+- **Price Scale Auto-Creation (TradingView API Alignment):**
+  - Price scales now auto-create when series reference them (matches TradingView's official API behavior)
+  - Smart defaults based on context:
+    - **Overlays** (same pane as built-in scale): `visible=False`, top margin `0.8`, bottom `0.0`
+    - **Separate panes**: `visible=True`, top margin `0.1`, bottom `0.1`
+  - Auto-creation enabled by default, can be disabled via `auto_create_price_scales=False`
+  - Built-in scales (`"left"`, `"right"`, `""`) do NOT trigger auto-creation
+  - Reduces boilerplate code by **66%** for multi-pane charts (14 lines → 5 lines)
+  - Implementation: `streamlit_lightweight_charts_pro/charts/managers/series_manager.py:119-201`
+
+- **PriceScaleConfig Builder Utilities:**
+  - Factory methods for common price scale configurations
+  - Available builders:
+    - `for_overlay()` - Hidden axis, large top margin (0.8)
+    - `for_separate_pane()` - Visible axis, balanced margins (0.1/0.1)
+    - `for_volume()` - Volume-specific configuration
+    - `for_indicator()` - For bounded indicators (RSI, Stochastic)
+    - `for_percentage()` - Percentage mode
+    - `for_logarithmic()` - Logarithmic scale
+  - Implementation: `streamlit_lightweight_charts_pro/charts/utils/price_scale_config.py`
+
+- **PriceScaleValidator:**
+  - Helpful error messages when price scales are missing
+  - Configuration suggestions based on context (overlay vs separate pane)
+  - Lists available scales in error messages
+  - Implementation: `streamlit_lightweight_charts_pro/charts/validators/price_scale_validator.py`
+
+- **Comprehensive Price Scale Example:**
+  - `examples/price_scales/comprehensive_price_scales.py` - Full demonstration of new features
+  - Shows 66% code reduction (before/after comparison)
+  - Three examples: auto-creation, builder utilities, multi-series in same pane
+  - Documents series-based architecture (clean and simple)
+
+- **Price Scale Test Coverage:**
+  - 46 new tests for price scale features (all passing ✅)
+  - `test_price_scale_auto_creation.py` - 11 tests for auto-creation logic
+  - `test_price_scale_config.py` - 17 tests for builder utilities
+  - `test_price_scale_validator.py` - 11 tests for validation
+  - `test_price_scale_edge_cases.py` - 9 tests for edge cases
+  - Edge cases covered:
+    - Default `price_scale_id` behavior (defaults to `"right"`)
+    - Built-in scales (`"left"`, `"right"`, `""`) behavior
+    - Custom scale ID auto-creation
+    - Overlay vs separate pane detection
+    - Context-aware smart defaults
+
 ### Fixed
 - **Color Handling - Alpha/Opacity Support:**
   - Fixed critical bug where `alpha=0` (fully transparent) was treated as `alpha=1` (100% opacity)
