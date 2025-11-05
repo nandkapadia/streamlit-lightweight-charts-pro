@@ -324,8 +324,14 @@ export function createSignalSeries(
     // Primitive-specific options
     zIndex?: number;
     data?: SignalData[];
+
+    // Pane control
+    paneId?: number;
   } = {}
 ): any {
+  // Extract paneId (must be passed as third parameter to addCustomSeries)
+  const paneId = options.paneId ?? 0;
+
   const usePrimitive = options.usePrimitive ?? false;
 
   // Create ICustomSeries (always created for autoscaling)
@@ -340,7 +346,7 @@ export function createSignalSeries(
     visible: options.visible !== false,
     priceLineVisible: options.priceLineVisible ?? false,
     _usePrimitive: usePrimitive, // Internal flag to disable rendering
-  });
+  }, paneId);
 
   // Set data on series
   if (options.data && options.data.length > 0) {

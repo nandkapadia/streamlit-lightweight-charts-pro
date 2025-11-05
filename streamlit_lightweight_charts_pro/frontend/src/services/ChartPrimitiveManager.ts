@@ -115,13 +115,8 @@ export class ChartPrimitiveManager {
     // CRITICAL: Cleanup all singleton managers for this chart
     // SeriesDialogManager and PaneCollapseManager are singletons that persist
     // across reinitialization. We must destroy them to clear their state.
-    console.log('[ChartPrimitiveManager] Cleaning up singletons for chartId:', chartId);
-
-    console.log('[ChartPrimitiveManager] Destroying SeriesDialogManager for:', chartId);
     SeriesDialogManager.destroyInstance(chartId);
-    console.log('[ChartPrimitiveManager] Destroying PaneCollapseManager for:', chartId);
     PaneCollapseManager.destroyInstance(chartId);
-    console.log('[ChartPrimitiveManager] Singleton cleanup complete');
 
     // Also cleanup the layout manager and event manager for this chart
     CornerLayoutManager.cleanup(chartId);
