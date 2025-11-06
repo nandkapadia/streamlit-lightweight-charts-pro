@@ -68,7 +68,6 @@ from streamlit_lightweight_charts_pro.utils import chainable_property
 
 @chainable_property("color", str, validator="color")
 @chainable_property("base", (int, float))
-@chainable_property("scale_margins", dict)
 class HistogramSeries(Series):
     """Histogram series for creating bar-based charts in financial visualization.
 
@@ -89,9 +88,6 @@ class HistogramSeries(Series):
             Can be hex or rgba format.
         base (Union[int, float]): Base value for the histogram bars. Defaults to 0.
             This determines the baseline from which bars extend.
-        scale_margins (dict): Scale margins for the histogram series. Controls
-            the top and bottom margins of the price scale. Defaults to
-            {"top": 0.75, "bottom": 0}. Values are between 0 and 1.
         column_mapping (Optional[dict]): Optional mapping for DataFrame columns
             to data fields. Used when data is provided as a DataFrame.
         visible (bool): Whether the series is visible on the chart. Defaults to True.
@@ -343,4 +339,3 @@ class HistogramSeries(Series):
         # Initialize histogram-specific properties with default values
         self._color = "#26a69a"  # Default teal color for histogram bars
         self._base = 0  # Default base value (baseline for bars)
-        self._scale_margins = {"top": 0.75, "bottom": 0}  # Default scale margins

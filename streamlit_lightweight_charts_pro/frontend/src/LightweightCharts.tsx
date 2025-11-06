@@ -1947,9 +1947,12 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     // Create overlay price scale - use the scaleId directly
                     const overlayScale = chart.priceScale(scaleId);
                     if (overlayScale) {
-                      overlayScale.applyOptions(
-                        cleanLineStyleOptions(scaleConfig as Record<string, unknown>)
-                      );
+                      // Strip priceScaleId - it's metadata (the key), not a valid PriceScaleOptions property
+                      const { priceScaleId, ...cleanScaleConfig } = scaleConfig as any;
+                      const cleanedOptions = cleanLineStyleOptions(cleanScaleConfig as Record<string, unknown>);
+                      console.log(`[OVERLAY-SCALE-INIT] Applying options to scale "${scaleId}":`, JSON.stringify(cleanedOptions, null, 2));
+                      overlayScale.applyOptions(cleanedOptions);
+                      console.log(`[OVERLAY-SCALE-INIT] Successfully applied options to scale "${scaleId}"`);
                     } else {
                       logger.info(
                         `Overlay scale ${scaleId} not found, will be created when series uses it`,
@@ -1994,21 +1997,42 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                   if (series) {
                     seriesList.push(series);
 
+                    // DEBUG: Diagnose why overlay scale options might not be applied
+                    console.log('[DEBUG-CONDITION] Series created:', {
+                      seriesType: seriesConfig.type,
+                      priceScaleId: seriesConfig.priceScaleId,
+                      priceScaleIdFromOptions: seriesConfig.options?.priceScaleId,
+                      hasOverlayScales: !!chartConfig.chart?.overlayPriceScales,
+                      overlayScalesKeys: chartConfig.chart?.overlayPriceScales ? Object.keys(chartConfig.chart.overlayPriceScales) : [],
+                      conditionChecks: {
+                        hasPriceScaleId: !!seriesConfig.priceScaleId,
+                        notRight: seriesConfig.priceScaleId !== 'right',
+                        notLeft: seriesConfig.priceScaleId !== 'left',
+                        scaleExists: !!chartConfig.chart?.overlayPriceScales?.[seriesConfig.priceScaleId],
+                        scaleExistsFromOptions: !!chartConfig.chart?.overlayPriceScales?.[seriesConfig.options?.priceScaleId as string]
+                      }
+                    });
+
                     // Apply overlay price scale configuration if this series uses one
+                    // NOTE: priceScaleId is in seriesConfig.options, not at top level
+                    const priceScaleId = seriesConfig.options?.priceScaleId as string | undefined;
                     if (
-                      seriesConfig.priceScaleId &&
-                      seriesConfig.priceScaleId !== 'right' &&
-                      seriesConfig.priceScaleId !== 'left' &&
-                      chartConfig.chart?.overlayPriceScales?.[seriesConfig.priceScaleId]
+                      priceScaleId &&
+                      priceScaleId !== 'right' &&
+                      priceScaleId !== 'left' &&
+                      chartConfig.chart?.overlayPriceScales?.[priceScaleId]
                     ) {
                       const scaleConfig =
-                        chartConfig.chart.overlayPriceScales[seriesConfig.priceScaleId];
+                        chartConfig.chart.overlayPriceScales[priceScaleId];
                       try {
                         const priceScale = series.priceScale();
                         if (priceScale) {
-                          priceScale.applyOptions(
-                            cleanLineStyleOptions(scaleConfig as Record<string, unknown>)
-                          );
+                          // Strip priceScaleId - it's metadata (the key), not a valid PriceScaleOptions property
+                          const { priceScaleId: _, ...cleanScaleConfig } = scaleConfig as any;
+                          const cleanedOptions = cleanLineStyleOptions(cleanScaleConfig as Record<string, unknown>);
+                          console.log(`[OVERLAY-SCALE-SERIES] Applying options to scale "${priceScaleId}" for series:`, JSON.stringify(cleanedOptions, null, 2));
+                          priceScale.applyOptions(cleanedOptions);
+                          console.log(`[OVERLAY-SCALE-SERIES] Successfully applied options to scale "${priceScaleId}"`);
                         }
                       } catch (error) {
                         logger.error(
