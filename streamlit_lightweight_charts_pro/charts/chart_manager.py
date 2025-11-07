@@ -186,6 +186,11 @@ class ChartManager:
         # This allows the chart to access manager configuration and sync settings
         chart._chart_manager = self  # pylint: disable=protected-access
 
+        # CRITICAL: Update the ChartRenderer's manager reference for sync config access
+        # When a chart is added to a manager, its renderer needs the manager reference
+        # to include sync configuration when rendering individual charts
+        chart._chart_renderer.chart_manager_ref = self  # pylint: disable=protected-access
+
         # Add chart to the registry with its unique identifier
         self.charts[chart_id] = chart
         return self

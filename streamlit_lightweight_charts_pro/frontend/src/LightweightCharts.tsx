@@ -69,6 +69,7 @@ import {
   UTCTimestamp,
   MouseEventParams as LWCMouseEventParams,
   Time,
+  LogicalRange,
 } from 'lightweight-charts';
 import {
   ComponentConfig,
@@ -523,61 +524,89 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             (chart as ExtendedChartApi)._storageListenerAdded = true;
           }
 
+          // PERFORMANCE: Use RAF (requestAnimationFrame) for smooth 60fps crosshair sync
+          let rafId: number | null = null;
+          let pendingCrosshairSync: LWCMouseEventParams | null = null;
+
           chart.subscribeCrosshairMove(param => {
             // Skip if this is an external sync to prevent feedback loops
             if ((chart as ExtendedChartApi)._isExternalSync) {
               return;
             }
 
-            // Get all series from the current chart using stored references
-            const currentSeries = seriesRefs.current[chartId] || [];
+            // Store the latest param for batched processing
+            pendingCrosshairSync = param;
 
-            // Method 1: Same-component synchronization (direct object references)
-            Object.entries(window.chartApiMap || {}).forEach(([id, otherChart]) => {
-              if (id !== chartId && otherChart) {
-                try {
-                  // Get the other chart's group ID from global registry
-                  const otherChartGroupId = window.chartGroupMap?.[id] || 0;
+            // If RAF already scheduled, just update the pending sync data
+            if (rafId !== null) {
+              return;
+            }
 
-                  // Only sync charts in the same group
-                  if (otherChartGroupId === chartGroupId && param.time) {
-                    const otherSeries = window.seriesRefsMap?.[id] || [];
+            // Schedule sync for next animation frame (60fps max, smooth performance)
+            rafId = requestAnimationFrame(() => {
+              rafId = null;
 
-                    // Sync using TradingView's approach - sync first series to first series
-                    if (currentSeries.length > 0 && otherSeries.length > 0) {
-                      const dataPoint = getCrosshairDataPoint(currentSeries[0], param);
-                      syncCrosshair(otherChart as IChartApi, otherSeries[0], dataPoint);
+              if (!pendingCrosshairSync) return;
+
+              const currentParam = pendingCrosshairSync;
+              pendingCrosshairSync = null;
+
+              // Get all series from the current chart using stored references
+              const currentSeries = seriesRefs.current[chartId] || [];
+
+              // Method 1: Same-component synchronization (direct object references)
+              // PERFORMANCE: Only loop if we have time data (avoid unnecessary work)
+              if (currentParam.time && currentSeries.length > 0) {
+                const dataPoint = getCrosshairDataPoint(currentSeries[0], currentParam);
+
+                Object.entries(window.chartApiMap || {}).forEach(([id, otherChart]) => {
+                  if (id !== chartId && otherChart) {
+                    try {
+                      // Get the other chart's group ID from global registry
+                      const otherChartGroupId = window.chartGroupMap?.[id] || 0;
+
+                      // Only sync charts in the same group
+                      if (otherChartGroupId === chartGroupId) {
+                        const otherSeries = window.seriesRefsMap?.[id] || [];
+
+                        // Sync using TradingView's approach - sync first series to first series
+                        if (otherSeries.length > 0) {
+                          syncCrosshair(otherChart as IChartApi, otherSeries[0], dataPoint);
+                        }
+                      }
+                    } catch (error) {
+                      logger.warn('Error syncing crosshair to other chart', 'ChartSync', error);
                     }
                   }
+                });
+
+                // Method 2: Cross-component synchronization using localStorage
+                // PERFORMANCE: Batch localStorage writes using RAF
+                const syncData = {
+                  time: currentParam.time,
+                  value: dataPoint && 'value' in dataPoint ? dataPoint.value : null,
+                  chartId: chartId,
+                  groupId: chartGroupId,
+                  timestamp: Date.now(),
+                  type: 'crosshair',
+                };
+
+                // Store in localStorage for cross-component communication
+                // Use try-catch to handle quota exceeded errors gracefully
+                try {
+                  localStorage.setItem('chart_sync_data', JSON.stringify(syncData));
                 } catch (error) {
-                  logger.warn('Error syncing crosshair to other chart', 'ChartSync', error);
+                  // Silently fail on quota exceeded (don't spam console)
+                  if ((error as DOMException)?.name !== 'QuotaExceededError') {
+                    logger.warn(
+                      'Failed to store crosshair sync data in localStorage',
+                      'ChartSync',
+                      error
+                    );
+                  }
                 }
               }
             });
-
-            // Method 2: Cross-component synchronization using localStorage
-            if (param.time && currentSeries.length > 0) {
-              const dataPoint = getCrosshairDataPoint(currentSeries[0], param);
-              const syncData = {
-                time: param.time,
-                value: dataPoint && 'value' in dataPoint ? dataPoint.value : null,
-                chartId: chartId,
-                groupId: chartGroupId,
-                timestamp: Date.now(),
-                type: 'crosshair',
-              };
-
-              // Store in localStorage for cross-component communication
-              try {
-                localStorage.setItem('chart_sync_data', JSON.stringify(syncData));
-              } catch (error) {
-                logger.warn(
-                  'Failed to store crosshair sync data in localStorage',
-                  'ChartSync',
-                  error
-                );
-              }
-            }
           });
         }
 
@@ -635,63 +664,79 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               (chart as ExtendedChartApi)._timeRangeStorageListenerAdded = true;
             }
 
-            // Throttle timeScale range changes to prevent X-axis lag during pan/zoom
-            let lastTimeRangeSync = 0;
-            const timeRangeSyncThrottle = 16; // ~60fps max for smooth performance
-            timeScale.subscribeVisibleLogicalRangeChange(timeRange => {
-              // Throttle to prevent performance issues during X-axis interactions
-              const now = Date.now();
-              if (now - lastTimeRangeSync < timeRangeSyncThrottle) {
-                return;
-              }
-              lastTimeRangeSync = now;
+            // PERFORMANCE: Use RAF for smooth time range sync without blocking
+            let timeRangeRafId: number | null = null;
+            let pendingTimeRangeSync: LogicalRange | null = null;
 
+            timeScale.subscribeVisibleLogicalRangeChange(timeRange => {
               // Skip if this is an external sync to prevent feedback loops
               if ((chart as ExtendedChartApi)._isExternalTimeRangeSync) {
                 return;
               }
 
-              // Method 1: Same-component synchronization (direct object references)
-              Object.entries(window.chartApiMap || {}).forEach(([id, otherChart]) => {
-                if (id !== chartId && otherChart) {
-                  try {
-                    // Get the other chart's group ID from global registry
-                    const otherChartGroupId = window.chartGroupMap?.[id] || 0;
+              // Store the latest time range for batched processing
+              pendingTimeRangeSync = timeRange;
 
-                    // Only sync charts in the same group
-                    if (otherChartGroupId === chartGroupId) {
-                      const otherTimeScale = otherChart.timeScale();
-                      if (otherTimeScale && timeRange) {
-                        otherTimeScale.setVisibleLogicalRange(timeRange);
+              // If RAF already scheduled, just update the pending sync data
+              if (timeRangeRafId !== null) {
+                return;
+              }
+
+              // Schedule sync for next animation frame (smooth 60fps)
+              timeRangeRafId = requestAnimationFrame(() => {
+                timeRangeRafId = null;
+
+                if (!pendingTimeRangeSync) return;
+
+                const currentTimeRange = pendingTimeRangeSync;
+                pendingTimeRangeSync = null;
+
+                // Method 1: Same-component synchronization (direct object references)
+                Object.entries(window.chartApiMap || {}).forEach(([id, otherChart]) => {
+                  if (id !== chartId && otherChart) {
+                    try {
+                      // Get the other chart's group ID from global registry
+                      const otherChartGroupId = window.chartGroupMap?.[id] || 0;
+
+                      // Only sync charts in the same group
+                      if (otherChartGroupId === chartGroupId) {
+                        const otherTimeScale = otherChart.timeScale();
+                        if (otherTimeScale && currentTimeRange) {
+                          otherTimeScale.setVisibleLogicalRange(currentTimeRange);
+                        }
                       }
+                    } catch (error) {
+                      logger.warn('Error syncing time range to other chart', 'ChartSync', error);
                     }
+                  }
+                });
+
+                // Method 2: Cross-component synchronization using localStorage
+                // PERFORMANCE: Batch localStorage writes using RAF
+                if (currentTimeRange) {
+                  const syncData = {
+                    timeRange: currentTimeRange,
+                    chartId: chartId,
+                    groupId: chartGroupId,
+                    timestamp: Date.now(),
+                    type: 'timeRange',
+                  };
+
+                  // Store in localStorage for cross-component communication
+                  try {
+                    localStorage.setItem('chart_time_range_sync', JSON.stringify(syncData));
                   } catch (error) {
-                    logger.warn('Error syncing time range to other chart', 'ChartSync', error);
+                    // Silently fail on quota exceeded (don't spam console)
+                    if ((error as DOMException)?.name !== 'QuotaExceededError') {
+                      logger.warn(
+                        'Failed to store time range sync data in localStorage',
+                        'ChartSync',
+                        error
+                      );
+                    }
                   }
                 }
               });
-
-              // Method 2: Cross-component synchronization using localStorage
-              if (timeRange) {
-                const syncData = {
-                  timeRange: timeRange,
-                  chartId: chartId,
-                  groupId: chartGroupId,
-                  timestamp: Date.now(),
-                  type: 'timeRange',
-                };
-
-                // Store in localStorage for cross-component communication
-                try {
-                  localStorage.setItem('chart_time_range_sync', JSON.stringify(syncData));
-                } catch (error) {
-                  logger.warn(
-                    'Failed to store time range sync data in localStorage',
-                    'ChartSync',
-                    error
-                  );
-                }
-              }
             });
           }
         }
