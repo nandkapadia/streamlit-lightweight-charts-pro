@@ -192,5 +192,5 @@ class TestPriceScaleEdgeCases:
 
             # Verify it has expected properties
             scale = chart._price_scale_manager.overlay_price_scales[scale_id]
-            assert scale.price_scale_id == scale_id
+            # Note: price_scale_id is the dict key, not an attribute of PriceScaleOptions
             assert scale.auto_scale is True

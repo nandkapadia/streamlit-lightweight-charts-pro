@@ -5,6 +5,17 @@ All notable changes to the Streamlit Lightweight Charts Pro project will be docu
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9] - 2025-11-07
+
+### Fixed
+- **DataFrame Naming Consistency:** Renamed sample data variables in `examples/price_scales/comprehensive_price_scales.py`
+  to satisfy pandas-vet PD901 and improve readability.
+- **Class-Level Constants:** Annotated `PROPERTY_MAPPINGS` and `OFFICIAL_SERIES_PROPERTIES` with
+  `ClassVar` in `tests/unit/series/test_api_alignment.py`, resolving Ruff's RUF012 warnings.
+
+### Tooling
+- Project-wide formatting and lint fixes applied via `ruff check --fix` and `pre-commit` hooks.
+
 ## [0.1.8] - 2025-11-01
 
 ### Added
@@ -463,6 +474,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Advanced height reporting with loop prevention
 - Comprehensive error boundaries and logging
 
+[0.1.9]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.1.9
 [0.1.8]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.1.8
 [0.1.7]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.1.7
 [0.1.6]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.1.6

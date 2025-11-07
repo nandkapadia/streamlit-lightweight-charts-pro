@@ -26,8 +26,9 @@ from streamlit_lightweight_charts_pro import (
 st.set_page_config(page_title="Price Scale Examples", layout="wide")
 st.title("🎯 Comprehensive Price Scale Examples")
 
-st.markdown("""
-This example demonstrates the **new price scale auto-creation** feature in v0.1.8:
+st.markdown(
+    """
+This example demonstrates the **new price scale auto-creation** feature in v0.1.9:
 
 ### Key Improvements
 1. ⭐ **Auto-Creation** - Price scales auto-created like TradingView's official API
@@ -36,7 +37,8 @@ This example demonstrates the **new price scale auto-creation** feature in v0.1.
 4. ✅ **66% Less Code** - Reduced boilerplate for multi-pane charts
 
 ---
-""")
+"""
+)
 
 
 # Generate sample data
@@ -44,7 +46,7 @@ This example demonstrates the **new price scale auto-creation** feature in v0.1.
 def generate_sample_data():
     """Generate sample OHLCV data for demonstration."""
     dates = pd.date_range("2024-01-01", periods=100, freq="D")
-    df = pd.DataFrame(
+    price_dataframe = pd.DataFrame(
         {
             "time": dates,
             "open": 100
@@ -64,20 +66,21 @@ def generate_sample_data():
     )
 
     # RSI indicator (0-100 range)
-    df["rsi"] = 50 + 20 * pd.Series([(-1) ** i for i in range(100)])
+    price_dataframe["rsi"] = 50 + 20 * pd.Series([(-1) ** i for i in range(100)])
 
     # MACD indicator
-    df["macd"] = pd.Series(range(100)).apply(lambda x: 5 * (x % 20 - 10))
-    df["macd_signal"] = df["macd"].rolling(9, min_periods=1).mean()
+    price_dataframe["macd"] = pd.Series(range(100)).apply(lambda x: 5 * (x % 20 - 10))
+    price_dataframe["macd_signal"] = price_dataframe["macd"].rolling(9, min_periods=1).mean()
 
-    return df
+    return price_dataframe
 
 
-df = generate_sample_data()
+market_data = generate_sample_data()
 
 # Example 1: Auto-Creation (Simplest - Aligns with TradingView API)
 st.header("1️⃣ Auto-Creation (Recommended)")
-st.markdown("""
+st.markdown(
+    """
 **Before (v0.1.7 - Manual Pre-Registration):**
 ```python
 # 14 lines of boilerplate
@@ -94,7 +97,7 @@ chart.add_series(volume_series)
 chart.add_series(rsi_series)
 ```
 
-**After (v0.1.8 - Auto-Creation):**
+**After (v0.1.9 - Auto-Creation):**
 ```python
 # 5 lines - 66% reduction!
 chart = Chart()
@@ -105,14 +108,15 @@ chart.add_series(LineSeries(data=rsi_data, pane_id=2, price_scale_id="rsi"))
 
 Price scales are **auto-created with smart defaults** based on context (overlay vs separate pane).
 This matches TradingView's official API behavior!
-""")
+"""
+)
 
 chart1 = Chart()
 
 # Price series (pane 0, uses built-in 'right' scale)
 chart1.add_series(
     CandlestickSeries(
-        data=df,
+        data=market_data,
         column_mapping={
             "time": "time",
             "open": "open",
@@ -127,7 +131,7 @@ chart1.add_series(
 # Volume series (pane 1, auto-creates 'volume' scale with visible=True)
 chart1.add_series(
     HistogramSeries(
-        data=df,
+        data=market_data,
         column_mapping={"time": "time", "value": "volume"},
         pane_id=1,
         price_scale_id="volume",
@@ -139,7 +143,7 @@ chart1.add_series(
 # RSI series (pane 2, auto-creates 'rsi' scale with visible=True)
 chart1.add_series(
     LineSeries(
-        data=df,
+        data=market_data,
         column_mapping={"time": "time", "value": "rsi"},
         pane_id=2,
         price_scale_id="rsi",
@@ -151,7 +155,8 @@ chart1.render(key="auto_creation_chart")
 
 # Example 2: PriceScaleConfig Builder Utilities
 st.header("2️⃣ PriceScaleConfig Builder Utilities (Advanced)")
-st.markdown("""
+st.markdown(
+    """
 Use `PriceScaleConfig` factory methods for advanced price scale configurations:
 
 ```python
@@ -177,14 +182,15 @@ Available builders:
 - `for_indicator()` - Bounded indicators (RSI, Stochastic)
 - `for_percentage()` - Percentage mode
 - `for_logarithmic()` - Logarithmic scale
-""")
+"""
+)
 
 chart3 = Chart()
 
 # Price series
 chart3.add_series(
     CandlestickSeries(
-        data=df,
+        data=market_data,
         column_mapping={
             "time": "time",
             "open": "open",
@@ -201,7 +207,7 @@ volume_config = PriceScaleConfig.for_separate_pane("volume")
 chart3.add_overlay_price_scale("volume", volume_config)
 chart3.add_series(
     HistogramSeries(
-        data=df,
+        data=market_data,
         column_mapping={"time": "time", "value": "volume"},
         pane_id=1,
         price_scale_id="volume",
@@ -215,7 +221,7 @@ rsi_config = PriceScaleConfig.for_indicator("rsi", min_value=0, max_value=100)
 chart3.add_overlay_price_scale("rsi", rsi_config)
 chart3.add_series(
     LineSeries(
-        data=df,
+        data=market_data,
         column_mapping={"time": "time", "value": "rsi"},
         pane_id=2,
         price_scale_id="rsi",
@@ -227,7 +233,8 @@ chart3.render(key="builder_config_chart")
 
 # Example 3: Multi-Series in Same Pane
 st.header("3️⃣ Multi-Series in Same Pane (MACD Example)")
-st.markdown("""
+st.markdown(
+    """
 Multiple series can share the same pane and price scale. Each series declares its pane and scale:
 
 ```python
@@ -239,14 +246,15 @@ chart.add_series(macd_signal)
 ```
 
 The "macd" price scale is auto-created when the first series references it.
-""")
+"""
+)
 
 chart4 = Chart()
 
 # Price series
 chart4.add_series(
     CandlestickSeries(
-        data=df,
+        data=market_data,
         column_mapping={
             "time": "time",
             "open": "open",
@@ -261,7 +269,7 @@ chart4.add_series(
 # Volume series
 chart4.add_series(
     HistogramSeries(
-        data=df,
+        data=market_data,
         column_mapping={"time": "time", "value": "volume"},
         pane_id=1,
         price_scale_id="volume",
@@ -273,7 +281,7 @@ chart4.add_series(
 # MACD pane with two series sharing same scale
 chart4.add_series(
     LineSeries(
-        data=df,
+        data=market_data,
         column_mapping={"time": "time", "value": "macd"},
         pane_id=2,
         price_scale_id="macd",
@@ -283,7 +291,7 @@ chart4.add_series(
 
 chart4.add_series(
     LineSeries(
-        data=df,
+        data=market_data,
         column_mapping={"time": "time", "value": "macd_signal"},
         pane_id=2,
         price_scale_id="macd",
@@ -295,10 +303,11 @@ chart4.render(key="multi_series_chart")
 
 # Summary
 st.header("📊 Summary")
-st.markdown("""
+st.markdown(
+    """
 ### Code Reduction Metrics
 
-| Feature | Before (v0.1.7) | After (v0.1.8) | Reduction |
+| Feature | Before (v0.1.7) | After (v0.1.9) | Reduction |
 |---------|-----------------|----------------|-----------|
 | **3-Pane Chart** | 14 lines | 5 lines | **66%** |
 | **Price Scale Setup** | Manual pre-registration | Auto-created | **3x simpler** |
@@ -317,4 +326,5 @@ st.markdown("""
 - **For multi-pane layouts**: Each series declares its pane_id (clean and direct)
 - **For advanced configs**: Use `PriceScaleConfig` builder methods
 - **For manual control**: Still supported via `add_overlay_price_scale()`
-""")
+"""
+)

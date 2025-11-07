@@ -2008,8 +2008,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                         hasPriceScaleId: !!seriesConfig.priceScaleId,
                         notRight: seriesConfig.priceScaleId !== 'right',
                         notLeft: seriesConfig.priceScaleId !== 'left',
-                        scaleExists: !!chartConfig.chart?.overlayPriceScales?.[seriesConfig.priceScaleId],
-                        scaleExistsFromOptions: !!chartConfig.chart?.overlayPriceScales?.[seriesConfig.options?.priceScaleId as string]
+                        scaleExists: seriesConfig.priceScaleId ? !!chartConfig.chart?.overlayPriceScales?.[seriesConfig.priceScaleId] : false,
+                        scaleExistsFromOptions: seriesConfig.options?.priceScaleId ? !!chartConfig.chart?.overlayPriceScales?.[seriesConfig.options.priceScaleId] : false
                       }
                     });
 

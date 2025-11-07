@@ -65,7 +65,6 @@ from streamlit_lightweight_charts_pro.component import (  # pylint: disable=impo
 )
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
 from streamlit_lightweight_charts_pro.exceptions import (
-    ComponentNotAvailableError,
     DuplicateError,
     NotFoundError,
     TypeValidationError,
@@ -575,9 +574,9 @@ class ChartManager:
 
                 series_info = {
                     "type": type(series).__name__,
-                    "data_length": len(series.data)
-                    if hasattr(series, "data") and series.data
-                    else 0,
+                    "data_length": (
+                        len(series.data) if hasattr(series, "data") and series.data else 0
+                    ),
                     "data_hash": data_hash,  # Full data hash - catches ALL changes!
                 }
                 current_state["series_structure"].append(series_info)

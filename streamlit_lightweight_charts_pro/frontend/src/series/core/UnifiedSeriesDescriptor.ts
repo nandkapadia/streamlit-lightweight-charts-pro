@@ -248,7 +248,9 @@ export const STANDARD_SERIES_PROPERTIES: Record<string, PropertyDescriptor> = {
     default: 0,
     group: 'General',
     hidden: true,
-    description: 'Rendering order (higher values render on top)',
+    description:
+      'Rendering order (higher values render on top). ' +
+      'Official Lightweight Charts API property.',
   },
   priceLineSource: {
     type: 'number',
@@ -280,7 +282,11 @@ export const STANDARD_SERIES_PROPERTIES: Record<string, PropertyDescriptor> = {
     default: 'right',
     group: 'General',
     hidden: true,
-    description: 'ID of the price scale for this series',
+    description:
+      'ID of the price scale for this series (e.g., "left", "right", or custom ID). ' +
+      'Official Lightweight Charts API property. ' +
+      'NOTE: To configure price scale properties (margins, mode, etc.), use the ' +
+      'priceScale object at the top level of series config.',
   },
   priceLineStyle: {
     type: 'lineStyle',

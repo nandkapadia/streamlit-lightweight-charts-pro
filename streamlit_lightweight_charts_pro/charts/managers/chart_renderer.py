@@ -5,8 +5,6 @@ of chart components in Streamlit.
 """
 
 import json
-import time
-import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 

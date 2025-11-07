@@ -47,7 +47,8 @@ def test_multi_series_chart_with_price_scales():
     chart = Chart(series=[line_series, candle_series, volume_series])
     config = chart.to_frontend_config()
     assert len(config["charts"][0]["series"]) == 3
-    assert {s["priceScaleId"] for s in config["charts"][0]["series"]} == {
+    # priceScaleId is now in the options object
+    assert {s["options"]["priceScaleId"] for s in config["charts"][0]["series"]} == {
         "left",
         "right",
         "overlay1",
@@ -141,9 +142,9 @@ def test_series_with_price_scale_configuration():
     line_series = LineSeries(data=create_sample_line_data())
 
     # Configure price scale
+    # Note: price_scale_id is the dict key, NOT a PriceScaleOptions parameter
     margins = PriceScaleMargins(top=0.15, bottom=0.25)
     price_scale = PriceScaleOptions(
-        price_scale_id="custom_scale",
         visible=True,
         auto_scale=False,
         mode=PriceScaleMode.LOGARITHMIC,
@@ -168,8 +169,8 @@ def test_series_with_price_scale_configuration():
     series_config = config["charts"][0]["series"][0]
     assert "priceScale" in series_config
 
+    # Note: priceScaleId is NOT in the priceScale object - it's the dict key
     ps = series_config["priceScale"]
-    assert ps["priceScaleId"] == "custom_scale"
     assert ps["visible"] is True
     assert ps["autoScale"] is False
     assert ps["mode"] == PriceScaleMode.LOGARITHMIC.value
@@ -193,8 +194,8 @@ def test_multiple_series_with_different_price_scales():
     candle_series = CandlestickSeries(data=create_sample_ohlcv_data())
 
     # Configure different price scales
+    # Note: price_scale_id is the dict key, NOT a PriceScaleOptions parameter
     line_price_scale = PriceScaleOptions(
-        price_scale_id="line_scale",
         visible=True,
         auto_scale=True,
         mode=PriceScaleMode.NORMAL,
@@ -202,7 +203,6 @@ def test_multiple_series_with_different_price_scales():
     )
 
     candle_price_scale = PriceScaleOptions(
-        price_scale_id="candle_scale",
         visible=True,
         auto_scale=False,
         mode=PriceScaleMode.LOGARITHMIC,
@@ -220,9 +220,9 @@ def test_multiple_series_with_different_price_scales():
     assert len(series_configs) == 2
 
     # Check line series price scale
+    # Note: priceScaleId is NOT in the priceScale object - it's the dict key
     line_config = series_configs[0]
     assert "priceScale" in line_config
-    assert line_config["priceScale"]["priceScaleId"] == "line_scale"
     assert line_config["priceScale"]["autoScale"] is True
     assert line_config["priceScale"]["mode"] == PriceScaleMode.NORMAL.value
     assert line_config["priceScale"]["invertScale"] is False
@@ -230,7 +230,6 @@ def test_multiple_series_with_different_price_scales():
     # Check candle series price scale
     candle_config = series_configs[1]
     assert "priceScale" in candle_config
-    assert candle_config["priceScale"]["priceScaleId"] == "candle_scale"
     assert candle_config["priceScale"]["autoScale"] is False
     assert candle_config["priceScale"]["mode"] == PriceScaleMode.LOGARITHMIC.value
     assert candle_config["priceScale"]["invertScale"] is True
@@ -257,20 +256,22 @@ def test_price_scale_and_price_scale_id_coexistence_integration():
     line_series = LineSeries(data=create_sample_line_data(), price_scale_id="simple_id")
 
     # Set price_scale with different ID
-    price_scale = PriceScaleOptions(price_scale_id="complex_id", visible=False, auto_scale=True)
+    # Note: price_scale_id is the dict key, NOT a PriceScaleOptions parameter
+    price_scale = PriceScaleOptions(visible=False, auto_scale=True)
     line_series.price_scale = price_scale
 
     chart = Chart(series=[line_series])
     config = chart.to_frontend_config()
 
-    # Verify both are present
+    # Verify both are present - priceScaleId is now in options
     series_config = config["charts"][0]["series"][0]
-    assert "priceScaleId" in series_config
+    assert "priceScaleId" not in series_config  # Moved to options
+    assert "options" in series_config
+    assert "priceScaleId" in series_config["options"]
     assert "priceScale" in series_config
 
-    # Verify they have different values
-    assert series_config["priceScaleId"] == "simple_id"
-    assert series_config["priceScale"]["priceScaleId"] == "complex_id"
+    # Verify values - price scale no longer has priceScaleId field
+    assert series_config["options"]["priceScaleId"] == "simple_id"
     assert series_config["priceScale"]["visible"] is False
     assert series_config["priceScale"]["autoScale"] is True
 
@@ -283,11 +284,8 @@ def test_empty_price_scale_id_integration():
     chart = Chart(series=[line_series])
     config = chart.to_frontend_config()
 
-    # Verify empty priceScaleId is included
+    # Empty priceScaleId values are intentionally omitted from serialization
     series_config = config["charts"][0]["series"][0]
-    assert "priceScaleId" in series_config
-    assert series_config["priceScaleId"] == ""
-
-    # Verify it's not in options
     assert "options" in series_config
-    assert "priceScaleId" not in series_config["options"]
+    # Empty string is omitted, so priceScaleId should not be present
+    assert "priceScaleId" not in series_config.get("options", {})

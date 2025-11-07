@@ -42,7 +42,6 @@ from streamlit_lightweight_charts_pro.constants import (
 )
 from streamlit_lightweight_charts_pro.data.band import BandData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
-from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 from streamlit_lightweight_charts_pro.utils import chainable_property
 
 

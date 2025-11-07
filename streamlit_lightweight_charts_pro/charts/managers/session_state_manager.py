@@ -4,7 +4,7 @@ This module handles session state persistence for series configurations,
 allowing chart state to be maintained across Streamlit reruns.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import streamlit as st
 

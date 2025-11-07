@@ -307,10 +307,14 @@ export function createSeries(
     // Flatten nested line objects from Python (if any)
     const flattenedUserOptions = flattenLineOptions(userOptions, descriptor);
 
+    // Extract custom properties that are NOT part of the official Lightweight Charts API
+    // These properties are used for UI/metadata purposes only
+    const { displayName, ...apiOptions } = flattenedUserOptions as any;
+
     // Merge user options with defaults and add _seriesType metadata
     const options = {
       ...defaultOptions,
-      ...flattenedUserOptions,
+      ...apiOptions, // Use apiOptions (with custom properties filtered out)
       // Add _seriesType property so we can identify series type later via series.options()
       _seriesType: mappedType,
     };
@@ -531,7 +535,14 @@ export function createSeriesWithConfig(
     if (legend) {
       series.legendConfig = legend;
     }
-    // Store displayName and title for UI (lightweight-charts doesn't preserve these in options)
+
+    // Store custom properties for UI/metadata purposes
+    // NOTE: These properties serve different purposes:
+    //   - displayName: Custom UI property (NOT part of Lightweight Charts API)
+    //                  Used in dialog tabs, tooltips, and other UI elements
+    //                  Filtered out before passing to API (see createSeries function)
+    //   - title: Official Lightweight Charts API property
+    //            Already passed in options to addSeries(), stored here for quick access
     const optionsAny = options as any;
     if (optionsAny.displayName) {
       series.displayName = optionsAny.displayName;

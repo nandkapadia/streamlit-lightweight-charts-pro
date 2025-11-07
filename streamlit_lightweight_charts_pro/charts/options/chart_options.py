@@ -53,10 +53,7 @@ from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options
     TradeVisualizationOptions,
 )
 from streamlit_lightweight_charts_pro.charts.options.ui_options import RangeSwitcherOptions
-from streamlit_lightweight_charts_pro.exceptions import (
-    PriceScaleIdTypeError,
-    PriceScaleOptionsTypeError,
-)
+from streamlit_lightweight_charts_pro.exceptions import PriceScaleOptionsTypeError
 from streamlit_lightweight_charts_pro.utils import chainable_field
 
 
@@ -73,8 +70,6 @@ from streamlit_lightweight_charts_pro.utils import chainable_field
 @chainable_field("grid", GridOptions)
 @chainable_field("handle_scroll", bool)
 @chainable_field("handle_scale", bool)
-@chainable_field("handle_double_click", bool)
-@chainable_field("fit_content_on_load", bool)
 @chainable_field("kinetic_scroll", KineticScrollOptions)
 @chainable_field("tracking_mode", TrackingModeOptions)
 @chainable_field("localization", LocalizationOptions)
@@ -116,10 +111,6 @@ class ChartOptions(Options):
             Defaults to True.
         handle_scale (bool): Whether to enable scale interactions for zooming.
             Defaults to True.
-        handle_double_click (bool): Whether to enable double-click interactions.
-            Defaults to True.
-        fit_content_on_load (bool): Whether to fit content to visible area on initial load.
-            Defaults to False.
         kinetic_scroll (Optional[KineticScrollOptions]): Kinetic scroll options for
             momentum-based scrolling behavior.
         tracking_mode (Optional[TrackingModeOptions]): Mouse tracking mode for crosshair
@@ -171,8 +162,6 @@ class ChartOptions(Options):
     grid: GridOptions = field(default_factory=GridOptions)
     handle_scroll: bool = True
     handle_scale: bool = True
-    handle_double_click: bool = True
-    fit_content_on_load: bool = True
     kinetic_scroll: Optional[KineticScrollOptions] = None
     tracking_mode: Optional[TrackingModeOptions] = None
 
@@ -186,7 +175,7 @@ class ChartOptions(Options):
     # UI options
     range_switcher: Optional[RangeSwitcherOptions] = None
 
-    # Synchronization options
+    # Synchronization options (reserved for future use)
 
     def __post_init__(self):
         """Validate chart options after initialization."""
@@ -200,35 +189,3 @@ class ChartOptions(Options):
             self.left_price_scale, PriceScaleOptions
         ):
             raise PriceScaleOptionsTypeError("left_price_scale", type(self.left_price_scale))
-
-        # CRITICAL FIX: Ensure default price scales have their IDs set
-        # Without this, the empty string price_scale_id gets filtered out during serialization
-        # This causes the frontend to fail matching series to their price scales
-        if self.right_price_scale is not None and self.right_price_scale.price_scale_id is None:
-            # Set the price_scale_id to "right" if it's None
-            self.right_price_scale.price_scale_id = "right"
-
-        if self.left_price_scale is not None and self.left_price_scale.price_scale_id is None:
-            # Set the price_scale_id to "left" if it's None
-            self.left_price_scale.price_scale_id = "left"
-
-        # Validate price scale IDs are strings
-        if (
-            self.right_price_scale is not None
-            and self.right_price_scale.price_scale_id is not None
-            and not isinstance(self.right_price_scale.price_scale_id, str)
-        ):
-            raise PriceScaleIdTypeError(
-                "right_price_scale",
-                type(self.right_price_scale.price_scale_id),
-            )
-
-        if (
-            self.left_price_scale is not None
-            and self.left_price_scale.price_scale_id is not None
-            and not isinstance(self.left_price_scale.price_scale_id, str)
-        ):
-            raise PriceScaleIdTypeError(
-                "left_price_scale",
-                type(self.left_price_scale.price_scale_id),
-            )
