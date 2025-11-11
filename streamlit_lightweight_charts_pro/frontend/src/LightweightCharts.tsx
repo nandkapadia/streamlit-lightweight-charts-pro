@@ -2217,7 +2217,13 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     seriesList.forEach((series, index) => {
                       const seriesConfig = chartConfig.series[index];
 
-                      if (seriesConfig?.legend && seriesConfig.legend.visible) {
+                      // Only show legend if both the legend is visible AND the series is visible
+                      const isSeriesVisible = seriesConfig.options?.visible !== false;
+                      if (
+                        seriesConfig?.legend &&
+                        seriesConfig.legend.visible &&
+                        isSeriesVisible
+                      ) {
                         const paneId = seriesConfig.paneId || 0;
 
                         // Create legend after chart is ready - ensures proper positioning
