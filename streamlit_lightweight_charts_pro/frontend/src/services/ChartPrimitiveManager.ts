@@ -164,7 +164,7 @@ export class ChartPrimitiveManager {
     isPanePrimitive: boolean = false,
     paneId: number = 0,
     seriesReference?: ExtendedSeriesApi
-  ): { destroy: () => void } {
+  ): { destroy: () => void; primitiveId: string } {
     const primitiveId = `legend-${this.chartId}-${++this.legendCounter}`;
 
     try {
@@ -175,6 +175,7 @@ export class ChartPrimitiveManager {
         valueFormat: config.valueFormat || '.2f',
         isPanePrimitive,
         paneId,
+        visible: config.visible !== false, // Pass visible from config
         style: {
           backgroundColor: config.backgroundColor || 'rgba(0, 0, 0, 0.8)',
           color: config.textColor || 'white',
@@ -198,9 +199,10 @@ export class ChartPrimitiveManager {
 
       return {
         destroy: () => this.destroyPrimitive(primitiveId),
+        primitiveId, // Return primitiveId so caller can access the primitive later
       };
     } catch {
-      return { destroy: () => {} };
+      return { destroy: () => {}, primitiveId: '' };
     }
   }
 
