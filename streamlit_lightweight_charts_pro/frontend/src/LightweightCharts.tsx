@@ -2277,13 +2277,24 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
                         // Create legend after chart is ready - ensures proper positioning
                         // Pass series reference for crosshair value updates
+                        // IMPORTANT: Set legend visibility based on series visibility
                         try {
-                          primitiveManager.addLegend(
-                            seriesConfig.legend,
+                          const legendConfig = {
+                            ...seriesConfig.legend,
+                            // Hide legend if series is not visible
+                            visible: seriesConfig.visible !== false,
+                          };
+
+                          const legendWidget = primitiveManager.addLegend(
+                            legendConfig,
                             paneId > 0,
                             paneId,
                             series
                           );
+
+                          // Store legend primitive ID and chart ID on series for later visibility updates
+                          (series as any)._legendPrimitiveId = legendWidget.primitiveId;
+                          (series as any)._chartId = currentChartId;
                         } catch {
                           logger.error('An error occurred', 'LightweightCharts');
                         }
@@ -2591,6 +2602,28 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               // Apply the options to the series
               if (Object.keys(apiConfig).length > 0) {
                 series.applyOptions(apiConfig);
+
+                // Update legend visibility if series visibility changed
+                if ('visible' in apiConfig && (series as any)._legendPrimitiveId) {
+                  try {
+                    const legendChartId = (series as any)._chartId;
+                    const legendPrimitiveId = (series as any)._legendPrimitiveId;
+
+                    if (legendChartId && legendPrimitiveId) {
+                      const primitiveManager = ChartPrimitiveManager.getInstance(
+                        chart,
+                        legendChartId
+                      );
+                      const legendPrimitive = primitiveManager.getPrimitive(legendPrimitiveId);
+
+                      if (legendPrimitive && typeof (legendPrimitive as any).setVisible === 'function') {
+                        (legendPrimitive as any).setVisible(apiConfig.visible === true);
+                      }
+                    }
+                  } catch (error) {
+                    logger.warn('Failed to update legend visibility', 'SeriesConfig', error);
+                  }
+                }
 
                 // CRITICAL FIX: Force primitives to redraw with new options
                 // Primitives read options from series dynamically via series.options()
