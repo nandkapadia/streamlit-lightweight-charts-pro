@@ -549,10 +549,18 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
                       // Set flag to prevent this update from triggering a sync back
                       (otherChart as ExtendedChartApi)._isExternalSync = true;
+
+                      // Clear any existing timeout to prevent premature flag clearing
+                      if ((otherChart as ExtendedChartApi)._externalSyncTimeout) {
+                        clearTimeout((otherChart as ExtendedChartApi)._externalSyncTimeout);
+                      }
+
                       syncCrosshair(otherChart as IChartApi, otherSeries[0], dataPoint);
-                      // Clear flag after a short delay
-                      setTimeout(() => {
+
+                      // Clear flag after a short delay, storing timeout ID
+                      (otherChart as ExtendedChartApi)._externalSyncTimeout = setTimeout(() => {
                         (otherChart as ExtendedChartApi)._isExternalSync = false;
+                        (otherChart as ExtendedChartApi)._externalSyncTimeout = undefined;
                       }, 100);
                     }
                   }
@@ -671,10 +679,18 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       if (otherTimeScale && timeRange) {
                         // Set flag to prevent this update from triggering a sync back
                         (otherChart as ExtendedChartApi)._isExternalTimeRangeSync = true;
+
+                        // Clear any existing timeout to prevent premature flag clearing
+                        if ((otherChart as ExtendedChartApi)._externalTimeRangeSyncTimeout) {
+                          clearTimeout((otherChart as ExtendedChartApi)._externalTimeRangeSyncTimeout);
+                        }
+
                         otherTimeScale.setVisibleLogicalRange(timeRange);
-                        // Clear flag after a short delay
-                        setTimeout(() => {
+
+                        // Clear flag after a short delay, storing timeout ID
+                        (otherChart as ExtendedChartApi)._externalTimeRangeSyncTimeout = setTimeout(() => {
                           (otherChart as ExtendedChartApi)._isExternalTimeRangeSync = false;
+                          (otherChart as ExtendedChartApi)._externalTimeRangeSyncTimeout = undefined;
                         }, 150);
                       }
                     }
