@@ -285,12 +285,42 @@ class ChartManager:
     ) -> "ChartManager":
         """Set synchronization configuration for a specific group.
 
+        This method allows you to configure synchronization options for a
+        specific group of charts. Groups enable you to have multiple independent
+        sets of synchronized charts within the same ChartManager.
+
+        For example, you might want to:
+        - Synchronize price and volume charts in one group
+        - Synchronize indicator charts in another group
+        - Keep some charts completely independent
+
         Args:
-            group_id: The sync group ID (int or str)
-            sync_options: The sync configuration for this group
+            group_id: The sync group ID (int or str). Charts with the same
+                group_id will be synchronized according to these options.
+            sync_options: The SyncOptions configuration object for this group,
+                specifying which synchronization features to enable.
 
         Returns:
-            Self for method chaining
+            ChartManager: Self for method chaining.
+
+        Example:
+            ```python
+            from streamlit_lightweight_charts_pro.charts.options import SyncOptions
+
+            manager = ChartManager()
+
+            # Configure group "price_charts" with full sync
+            price_sync = SyncOptions(enabled=True, crosshair=True, time_range=True)
+            manager.set_sync_group_config("price_charts", price_sync)
+
+            # Configure group "indicators" with crosshair only
+            indicator_sync = SyncOptions(enabled=True, crosshair=True, time_range=False)
+            manager.set_sync_group_config("indicators", indicator_sync)
+
+            # Add charts to different groups
+            manager.add_chart(price_chart, "price")  # Will use "price_charts" group
+            manager.add_chart(indicator_chart, "ind")  # Will use "indicators" group
+            ```
         """
         self.sync_groups[str(group_id)] = sync_options
         return self
@@ -298,22 +328,60 @@ class ChartManager:
     def get_sync_group_config(self, group_id: Union[int, str]) -> Optional[SyncOptions]:
         """Get synchronization configuration for a specific group.
 
+        Retrieves the current synchronization options for a specified group.
+        This is useful for inspecting or modifying existing group configurations.
+
         Args:
-            group_id: The sync group ID (int or str)
+            group_id: The sync group ID (int or str) to retrieve configuration for.
 
         Returns:
-            The sync configuration for the group, or None if not found
+            SyncOptions: The sync configuration for the group, or None if the
+                group hasn't been configured yet.
+
+        Example:
+            ```python
+            # Get configuration for a group
+            config = manager.get_sync_group_config("price_charts")
+            if config:
+                print(f"Crosshair sync: {config.crosshair}")
+                print(f"Time range sync: {config.time_range}")
+
+            # Check if group exists before modifying
+            if manager.get_sync_group_config("indicators") is None:
+                manager.set_sync_group_config("indicators", SyncOptions(...))
+            ```
         """
         return self.sync_groups.get(str(group_id))
 
     def enable_crosshair_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """Enable crosshair synchronization.
+        """Enable crosshair synchronization for linked charts.
+
+        When enabled, moving the crosshair on one chart will synchronize the
+        crosshair position across all charts in the same synchronization group.
+        This creates a coordinated viewing experience where users can see
+        corresponding data points across multiple charts simultaneously.
+
+        The synchronization uses a robust implementation with debouncing and
+        flag-based protection to prevent race conditions and feedback loops,
+        even during rapid user interactions.
 
         Args:
-            group_id: Optional group ID. If None, applies to default sync
+            group_id: Optional group ID to enable crosshair sync for a specific
+                group. If None, applies to the default synchronization group.
+                Groups allow you to have multiple independent sets of
+                synchronized charts.
 
         Returns:
-            Self for method chaining
+            ChartManager: Self for method chaining.
+
+        Example:
+            ```python
+            # Enable for default group (all charts)
+            manager.enable_crosshair_sync()
+
+            # Enable for specific group
+            manager.enable_crosshair_sync(group_id="price_charts")
+            ```
         """
         if group_id:
             group_key = str(group_id)
@@ -325,13 +393,27 @@ class ChartManager:
         return self
 
     def disable_crosshair_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """Disable crosshair synchronization.
+        """Disable crosshair synchronization for linked charts.
+
+        When disabled, crosshair movements will not be synchronized across
+        charts. Each chart will have an independent crosshair that only
+        responds to mouse movements over that specific chart.
 
         Args:
-            group_id: Optional group ID. If None, applies to default sync
+            group_id: Optional group ID to disable crosshair sync for a specific
+                group. If None, applies to the default synchronization group.
 
         Returns:
-            Self for method chaining
+            ChartManager: Self for method chaining.
+
+        Example:
+            ```python
+            # Disable for default group
+            manager.disable_crosshair_sync()
+
+            # Disable for specific group
+            manager.disable_crosshair_sync(group_id="price_charts")
+            ```
         """
         if group_id:
             group_key = str(group_id)
@@ -342,13 +424,39 @@ class ChartManager:
         return self
 
     def enable_time_range_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """Enable time range synchronization.
+        """Enable time range (zoom/scroll) synchronization for linked charts.
+
+        When enabled, zooming or panning the time range on one chart will
+        synchronize the visible time range across all charts in the same
+        synchronization group. This allows users to maintain consistent
+        time alignment while analyzing multiple charts.
+
+        The synchronization includes:
+        - Zoom operations (pinch, scroll wheel, double-click)
+        - Pan/scroll operations (drag, arrow keys)
+        - Programmatic range changes
+
+        Implementation uses throttling (16ms ~60fps) to ensure smooth
+        performance and prevent race conditions during rapid interactions.
 
         Args:
-            group_id: Optional group ID. If None, applies to default sync
+            group_id: Optional group ID to enable time range sync for a specific
+                group. If None, applies to the default synchronization group.
 
         Returns:
-            Self for method chaining
+            ChartManager: Self for method chaining.
+
+        Example:
+            ```python
+            # Enable for default group (all charts)
+            manager.enable_time_range_sync()
+
+            # Enable for specific group
+            manager.enable_time_range_sync(group_id="indicators")
+
+            # Enable both crosshair and time range
+            manager.enable_crosshair_sync().enable_time_range_sync()
+            ```
         """
         if group_id:
             group_key = str(group_id)
@@ -360,13 +468,26 @@ class ChartManager:
         return self
 
     def disable_time_range_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """Disable time range synchronization.
+        """Disable time range (zoom/scroll) synchronization for linked charts.
+
+        When disabled, zoom and pan operations will not be synchronized across
+        charts. Each chart can be zoomed and panned independently.
 
         Args:
-            group_id: Optional group ID. If None, applies to default sync
+            group_id: Optional group ID to disable time range sync for a specific
+                group. If None, applies to the default synchronization group.
 
         Returns:
-            Self for method chaining
+            ChartManager: Self for method chaining.
+
+        Example:
+            ```python
+            # Disable for default group
+            manager.disable_time_range_sync()
+
+            # Disable for specific group
+            manager.disable_time_range_sync(group_id="indicators")
+            ```
         """
         if group_id:
             group_key = str(group_id)
@@ -377,13 +498,40 @@ class ChartManager:
         return self
 
     def enable_all_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """Enable all synchronization features.
+        """Enable all synchronization features for linked charts.
+
+        This is a convenience method that enables both crosshair and time range
+        synchronization in a single call. It's the most common configuration for
+        creating fully synchronized multi-chart dashboards.
+
+        When all synchronization is enabled:
+        - Crosshair movements are synchronized across all charts
+        - Zoom/pan operations are synchronized across all charts
+        - Users get a fully coordinated viewing experience
 
         Args:
-            group_id: Optional group ID. If None, applies to default sync
+            group_id: Optional group ID to enable all sync for a specific group.
+                If None, applies to the default synchronization group.
 
         Returns:
-            Self for method chaining
+            ChartManager: Self for method chaining.
+
+        Example:
+            ```python
+            # Enable all sync for default group
+            manager.enable_all_sync()
+
+            # Enable all sync for specific group
+            manager.enable_all_sync(group_id="main_charts")
+
+            # Create fully synchronized dashboard
+            manager = ChartManager()
+            manager.add_chart(price_chart, "price")
+            manager.add_chart(volume_chart, "volume")
+            manager.add_chart(indicator_chart, "indicator")
+            manager.enable_all_sync()
+            manager.render()
+            ```
         """
         if group_id:
             group_key = str(group_id)
@@ -395,13 +543,32 @@ class ChartManager:
         return self
 
     def disable_all_sync(self, group_id: Optional[Union[int, str]] = None) -> "ChartManager":
-        """Disable all synchronization features.
+        """Disable all synchronization features for linked charts.
+
+        This is a convenience method that disables both crosshair and time range
+        synchronization in a single call. Use this when you want charts to
+        operate completely independently.
+
+        When all synchronization is disabled:
+        - Each chart has its own independent crosshair
+        - Each chart can be zoomed/panned independently
+        - No coordination between charts
 
         Args:
-            group_id: Optional group ID. If None, applies to default sync
+            group_id: Optional group ID to disable all sync for a specific group.
+                If None, applies to the default synchronization group.
 
         Returns:
-            Self for method chaining
+            ChartManager: Self for method chaining.
+
+        Example:
+            ```python
+            # Disable all sync for default group
+            manager.disable_all_sync()
+
+            # Disable all sync for specific group
+            manager.disable_all_sync(group_id="main_charts")
+            ```
         """
         if group_id:
             group_key = str(group_id)
