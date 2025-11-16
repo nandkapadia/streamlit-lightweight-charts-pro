@@ -72,6 +72,8 @@ export interface ExtendedChartApi extends IChartApi {
   _timeRangeStorageListenerAdded?: boolean;
   _isExternalSync?: boolean;
   _isExternalTimeRangeSync?: boolean;
+  _externalSyncTimeout?: NodeJS.Timeout;
+  _externalTimeRangeSyncTimeout?: NodeJS.Timeout;
   _pendingTradeRectangles?: Array<PendingTradeRectangle | PendingRectangleBatch>;
   _userHasInteracted?: boolean;
   _model?: {
