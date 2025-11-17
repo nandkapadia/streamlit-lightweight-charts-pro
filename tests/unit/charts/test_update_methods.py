@@ -235,8 +235,9 @@ class TestUpdateMethodIntegration:
 
         result = series.asdict()
 
-        assert result["visible"] is False
-        assert result["priceScaleId"] == "left"
+        # Series options are now in the options object
+        assert result["options"]["visible"] is False
+        assert result["options"]["priceScaleId"] == "left"
         assert result["options"]["lineOptions"]["color"] == "#ff0000"
         assert result["options"]["lineOptions"]["lineWidth"] == 3
 

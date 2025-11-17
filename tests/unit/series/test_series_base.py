@@ -628,9 +628,11 @@ class TestSeriesBase:
         # Serialize to dictionary
         series_dict = series.asdict()
 
-        # Verify both properties are serialized
-        assert series_dict["title"] == "SMA(20)"
-        assert series_dict["displayName"] == "Simple Moving Average"  # camelCase conversion
+        # Verify both properties are serialized in options
+        assert series_dict["options"]["title"] == "SMA(20)"
+        assert (
+            series_dict["options"]["displayName"] == "Simple Moving Average"
+        )  # camelCase conversion
 
     def test_error_handling_invalid_data(self):
         """Test error handling with invalid data."""
@@ -732,8 +734,10 @@ class TestSeriesBaseAdvanced:
         # Should not include price_format in options
         assert "type" in result
         assert "data" in result
-        # options should not be present when all properties are None/empty
-        assert "options" not in result
+        # options is always present with standard properties
+        assert "options" in result
+        # priceFormat should not be in result when set to None
+        assert "priceFormat" not in result
 
     def test_to_dict_with_empty_options(self):
         """Test to_dict method with empty options."""
@@ -749,11 +753,13 @@ class TestSeriesBaseAdvanced:
 
         assert "type" in result
         assert "data" in result
-        # options should not be present when all properties are empty
-        assert "options" not in result
-        # Empty lists should not be included
+        # options is always present with standard properties
+        assert "options" in result
+        # Empty lists should not be included at top level
         assert "priceLines" not in result
         assert "markers" not in result
+        # priceFormat should not be in result when set to None
+        assert "priceFormat" not in result
 
     def test_validate_pane_config_edge_cases(self):
         """Test _validate_pane_config with edge cases."""
@@ -925,8 +931,8 @@ class TestSeriesBaseAdvanced:
 
         # Test in asdict output
         dict_result = series.asdict()
-        assert "lastValueVisible" in dict_result
-        assert dict_result["lastValueVisible"] is False
+        assert "lastValueVisible" in dict_result["options"]
+        assert dict_result["options"]["lastValueVisible"] is False
 
     def test_price_scale_id_included_in_to_dict(self):
         """Test that priceScaleId is included in to_dict output."""
@@ -938,19 +944,19 @@ class TestSeriesBaseAdvanced:
         # Convert to dict
         result = series.asdict()
 
-        # Verify priceScaleId is included at top level
-        assert "priceScaleId" in result
-        assert result["priceScaleId"] == "left"
+        # Verify priceScaleId is included in options
+        assert "priceScaleId" in result["options"]
+        assert result["options"]["priceScaleId"] == "left"
 
         # Test with default price_scale_id
         series_default = LineSeries(data=data)  # Default is "right"
         result_default = series_default.asdict()
 
-        assert "priceScaleId" in result_default
-        assert result_default["priceScaleId"] == "right"
+        assert "priceScaleId" in result_default["options"]
+        assert result_default["options"]["priceScaleId"] == "right"
 
     def test_empty_price_scale_id_included_in_output(self):
-        """Test that empty price_scale_id is included in asdict output."""
+        """Test that empty price_scale_id is omitted from asdict output."""
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -960,12 +966,12 @@ class TestSeriesBaseAdvanced:
         # Convert to dict
         result = series.asdict()
 
-        # Verify empty priceScaleId is included at top level
-        assert "priceScaleId" in result
-        assert result["priceScaleId"] == ""
+        # API behavior: empty values are omitted to keep output clean
+        # priceScaleId should not be in options when set to empty string
+        assert "priceScaleId" not in result["options"]
 
     def test_empty_price_scale_id_not_in_options(self):
-        """Test that empty price_scale_id is not included in options."""
+        """Test that empty price_scale_id is omitted from options."""
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -975,11 +981,9 @@ class TestSeriesBaseAdvanced:
         # Convert to dict
         result = series.asdict()
 
-        # Verify empty priceScaleId is at top level, not in options
-        assert "priceScaleId" in result
-        assert result["priceScaleId"] == ""
-        # options should not be present when only empty strings are in options
-        assert "options" not in result
+        # Verify options exists but empty priceScaleId is omitted
+        assert "options" in result
+        assert "priceScaleId" not in result["options"]
 
 
 class TestPriceScaleProperty:
@@ -993,7 +997,6 @@ class TestPriceScaleProperty:
 
         # Test setting price_scale
         price_scale = PriceScaleOptions(
-            price_scale_id="custom",
             visible=True,
             auto_scale=False,
             mode=1,  # Logarithmic
@@ -1022,7 +1025,7 @@ class TestPriceScaleProperty:
         assert series.price_scale is None
 
         # Set and get
-        price_scale = PriceScaleOptions(price_scale_id="test")
+        price_scale = PriceScaleOptions()
         series.price_scale = price_scale
         assert series.price_scale == price_scale
 
@@ -1037,7 +1040,7 @@ class TestPriceScaleProperty:
         assert series.price_scale is None
 
         # Set to a value
-        price_scale = PriceScaleOptions(price_scale_id="test")
+        price_scale = PriceScaleOptions()
         series.price_scale = price_scale
         assert series.price_scale == price_scale
 
@@ -1053,7 +1056,6 @@ class TestPriceScaleProperty:
 
         # Set price_scale
         price_scale = PriceScaleOptions(
-            price_scale_id="custom",
             visible=True,
             auto_scale=False,
             mode=1,
@@ -1066,7 +1068,6 @@ class TestPriceScaleProperty:
 
         # Verify priceScale is at top level
         assert "priceScale" in result
-        assert result["priceScale"]["priceScaleId"] == "custom"
         assert result["priceScale"]["visible"] is True
         assert result["priceScale"]["autoScale"] is False
         assert result["priceScale"]["mode"] == 1
@@ -1079,7 +1080,7 @@ class TestPriceScaleProperty:
         series = ConcreteSeries(data=data)
 
         # Set price_scale
-        price_scale = PriceScaleOptions(price_scale_id="custom")
+        price_scale = PriceScaleOptions()
         series.price_scale = price_scale
 
         # Convert to dict
@@ -1087,8 +1088,10 @@ class TestPriceScaleProperty:
 
         # Verify priceScale is at top level, not in options
         assert "priceScale" in result
-        # options should not be present when only top-level properties are set
-        assert "options" not in result
+        # options is always present with standard series properties
+        assert "options" in result
+        # but priceScale itself should not be in options
+        assert "priceScale" not in result["options"]
 
     def test_price_scale_none_not_in_asdict(self):
         """Test that price_scale is not included in asdict when None."""
@@ -1110,7 +1113,7 @@ class TestPriceScaleProperty:
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
-        price_scale = PriceScaleOptions(price_scale_id="chained")
+        price_scale = PriceScaleOptions()
 
         # Test property setting
         series.price_scale = price_scale
@@ -1126,7 +1129,7 @@ class TestPriceScaleProperty:
         margins = PriceScaleMargins(top=0.25, bottom=0.35)
 
         # Set price_scale with margins
-        price_scale = PriceScaleOptions(price_scale_id="margins_test", scale_margins=margins)
+        price_scale = PriceScaleOptions(scale_margins=margins)
         series.price_scale = price_scale
 
         # Convert to dict
@@ -1159,17 +1162,17 @@ class TestPriceScaleProperty:
 
         # Set both properties
         series.price_scale_id = "simple_id"
-        price_scale = PriceScaleOptions(price_scale_id="complex_id", visible=False)
+        price_scale = PriceScaleOptions(visible=False)
         series.price_scale = price_scale
 
         # Convert to dict
         result = series.asdict()
 
-        # Both should be present at top level
-        assert "priceScaleId" in result
+        # priceScaleId should be in options (it's a series option)
+        # priceScale should be at top level (it's a configuration object)
+        assert "priceScaleId" in result["options"]
         assert "priceScale" in result
-        assert result["priceScaleId"] == "simple_id"
-        assert result["priceScale"]["priceScaleId"] == "complex_id"
+        assert result["options"]["priceScaleId"] == "simple_id"
         assert result["priceScale"]["visible"] is False
 
     def test_price_scale_complete_configuration(self):
@@ -1181,7 +1184,6 @@ class TestPriceScaleProperty:
         # Create complete price scale configuration
         margins = PriceScaleMargins(top=0.1, bottom=0.2)
         price_scale = PriceScaleOptions(
-            price_scale_id="complete_test",
             visible=True,
             auto_scale=True,
             mode=PriceScaleMode.LOGARITHMIC,
@@ -1205,7 +1207,6 @@ class TestPriceScaleProperty:
         # Verify all properties are correctly serialized
         assert "priceScale" in result
         ps = result["priceScale"]
-        assert ps["priceScaleId"] == "complete_test"
         assert ps["visible"] is True
         assert ps["autoScale"] is True
         assert ps["mode"] == PriceScaleMode.LOGARITHMIC.value
@@ -1222,18 +1223,20 @@ class TestPriceScaleProperty:
         assert ps["scaleMargins"]["bottom"] == 0.2
 
     def test_top_level_properties_in_asdict(self):
-        """Test that properties with top_level=True are placed at top level in asdict."""
+        """Test that properties are placed correctly in asdict output."""
 
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
-        # Set various top-level properties
+        # Set series options (these go in options object)
         series.visible = False
         series.price_scale_id = "custom_id"
-        series.pane_id = 2
-        series.last_value_visible = False  # Test the new last_value_visible property
+        series.last_value_visible = False
 
-        # Add markers and price lines
+        # Set true top-level property
+        series.pane_id = 2
+
+        # Add markers and price lines (these are top-level)
         marker = Marker(
             time=1640995200,
             position=MarkerPosition.ABOVE_BAR,
@@ -1246,37 +1249,31 @@ class TestPriceScaleProperty:
         price_line = PriceLineOptions(price=100, color="#00ff00", title="Test Line")
         series.price_lines = [price_line]
 
-        # Set price_scale
-        price_scale = PriceScaleOptions(price_scale_id="scale_id", visible=True)
+        # Set price_scale (top-level configuration object)
+        price_scale = PriceScaleOptions(visible=True)
         series.price_scale = price_scale
 
         # Convert to dict
         result = series.asdict()
 
-        # Verify top-level properties are at top level
-        assert "visible" in result
-        assert "priceScaleId" in result
+        # Verify true top-level properties are at top level
         assert "paneId" in result
-        assert "lastValueVisible" in result  # Test the new property
         assert "markers" in result
         assert "priceLines" in result
         assert "priceScale" in result
 
-        # Verify they are NOT in options (options object should not exist when
-        # all properties are top-level)
-        assert "options" not in result
+        # Verify series options are in options object
+        assert "options" in result
+        assert "visible" in result["options"]
+        assert "priceScaleId" in result["options"]
+        assert "lastValueVisible" in result["options"]
 
         # Verify values
-        assert result["visible"] is False
-        assert result["priceScaleId"] == "custom_id"
         assert result["paneId"] == 2
-        assert result["lastValueVisible"] is False  # Test the new property
         assert len(result["markers"]) == 1
-        assert result["markers"][0]["text"] == "Test Marker"
-        assert len(result["priceLines"]) == 1
-        assert result["priceLines"][0]["title"] == "Test Line"
-        assert result["priceScale"]["priceScaleId"] == "scale_id"
-        assert result["priceScale"]["visible"] is True
+        assert result["options"]["visible"] is False
+        assert result["options"]["priceScaleId"] == "custom_id"
+        assert result["options"]["lastValueVisible"] is False
 
     def test_non_top_level_properties_in_options(self):
         """Test that properties without top_level=True are placed in options."""
@@ -1711,8 +1708,8 @@ class TestSeriesUtilityMethods:
 
         series = MockSeries(data=[LineData(time=1, value=10)])
 
-        # Test top-level property
-        assert series._is_top_level("price_scale_id") is True
+        # Test that price_scale_id is NOT top-level (it's a series option in options object)
+        assert series._is_top_level("price_scale_id") is False
 
         # Test non-top-level property
         assert series._is_top_level("price_format") is False

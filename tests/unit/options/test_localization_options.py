@@ -17,7 +17,6 @@ class TestLocalizationOptions:
 
         assert options.locale == "en-US"
         assert options.date_format == "yyyy-MM-dd"
-        assert options.time_format == "HH:mm:ss"
         assert options.price_formatter is None
         assert options.percentage_formatter is None
 
@@ -45,7 +44,6 @@ class TestLocalizationOptions:
         # Should contain default values
         assert result["locale"] == "en-US"
         assert result["dateFormat"] == "yyyy-MM-dd"
-        assert result["timeFormat"] == "HH:mm:ss"
         assert "priceFormatter" not in result
         assert "percentageFormatter" not in result
 
@@ -117,7 +115,6 @@ class TestLocalizationOptions:
         copied = LocalizationOptions(
             locale=original.locale,
             date_format=original.date_format,
-            time_format=original.time_format,
             price_formatter=original.price_formatter,
             percentage_formatter=original.percentage_formatter,
         )
@@ -125,7 +122,6 @@ class TestLocalizationOptions:
         assert copied is not original
         assert copied.locale == original.locale
         assert copied.date_format == original.date_format
-        assert copied.time_format == original.time_format
         assert copied.price_formatter == original.price_formatter
         assert copied.percentage_formatter == original.percentage_formatter
 
@@ -176,17 +172,13 @@ class TestLocalizationOptions:
         result = options.asdict()
         assert "locale" in result
         assert "dateFormat" in result  # Default value
-        assert "timeFormat" in result  # Default value
         assert result["locale"] == "fr-FR"
         assert result["dateFormat"] == "yyyy-MM-dd"  # Default
-        assert result["timeFormat"] == "HH:mm:ss"  # Default
 
         # Only date format (other values will be defaults)
         options = LocalizationOptions(date_format="MM/dd/yyyy")
         result = options.asdict()
         assert "dateFormat" in result
         assert "locale" in result  # Default value
-        assert "timeFormat" in result  # Default value
         assert result["dateFormat"] == "MM/dd/yyyy"
         assert result["locale"] == "en-US"  # Default
-        assert result["timeFormat"] == "HH:mm:ss"  # Default

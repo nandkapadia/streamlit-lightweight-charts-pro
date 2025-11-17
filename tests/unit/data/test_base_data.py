@@ -50,7 +50,6 @@ from streamlit_lightweight_charts_pro.exceptions import (
     ColorValidationError,
     RequiredFieldError,
     TimeValidationError,
-    ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.utils.data_utils import from_utc_timestamp, to_utc_timestamp
 

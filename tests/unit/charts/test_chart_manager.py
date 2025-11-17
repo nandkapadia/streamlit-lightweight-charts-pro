@@ -876,3 +876,16 @@ class TestChartManagerEdgeCases:
         manager.add_chart(chart, "chart1")
 
         assert chart._chart_manager is manager
+
+    def test_chart_renderer_manager_reference_propagation(self):
+        """Test that chart renderer's manager reference is set when chart is added."""
+        manager = ChartManager()
+        chart = Chart(series=[LineSeries(data=[LineData(time=1, value=100)])])
+
+        # Initially, chart_renderer should have no manager reference
+        assert chart._chart_renderer.chart_manager_ref is None
+
+        # After adding to manager, chart_renderer should have manager reference
+        manager.add_chart(chart, "chart1")
+
+        assert chart._chart_renderer.chart_manager_ref is manager

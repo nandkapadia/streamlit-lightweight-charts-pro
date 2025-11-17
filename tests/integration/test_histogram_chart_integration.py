@@ -345,11 +345,12 @@ class TestHistogramChartIntegration:
         # Verify visibility setting
         assert volume_series._visible is False
 
-        # Verify JSON serialization reflects visibility
+        # Verify JSON serialization reflects visibility - visible is now in options
         chart_config = chart.to_frontend_config()
         volume_series_config = chart_config["charts"][0]["series"][1]
-        assert "visible" in volume_series_config
-        assert volume_series_config["visible"] is False
+        assert "options" in volume_series_config
+        assert "visible" in volume_series_config["options"]
+        assert volume_series_config["options"]["visible"] is False
 
     def test_volume_series_price_scale_configuration(self):
         """Test volume series with custom price scale configuration."""

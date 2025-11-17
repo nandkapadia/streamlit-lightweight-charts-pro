@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from typing import ClassVar, Optional
 
 from streamlit_lightweight_charts_pro.data.data import Data
-from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
 from streamlit_lightweight_charts_pro.utils import validated_field
 
 

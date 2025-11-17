@@ -9,6 +9,7 @@ This module tests all serialization functionality including:
 - Background options flattening
 - Edge cases with None, empty strings, and zero values
 """
+
 # pylint: disable=no-member,protected-access
 
 # Standard Imports
