@@ -619,18 +619,6 @@ class Chart:
             price_scale_manager=self._price_scale_manager,
         )
 
-        # Configure pane heights: price pane gets 85%, volume pane gets 15%
-        from streamlit_lightweight_charts_pro.charts.options.layout_options import (
-            PaneHeightOptions,
-        )
-
-        if self._chart_options.pane_heights is None:
-            self._chart_options.pane_heights = {}
-        # Price pane height factor
-        self._chart_options.pane_heights[pane_id] = PaneHeightOptions(factor=5.67)  # 85%
-        # Volume pane height factor
-        self._chart_options.pane_heights[pane_id + 1] = PaneHeightOptions(factor=1.0)  # 15%
-
         return self
 
     def add_trades(self, trades: List[TradeData]) -> "Chart":

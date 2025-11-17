@@ -299,14 +299,12 @@ class SeriesManager:
             column_mapping["value"] = column_mapping["volume"]
 
         # Create histogram series for volume
-        # Use pane_id + 1 to place volume in a separate pane below the price chart
-        volume_pane_id = pane_id + 1
         volume_series = HistogramSeries.create_volume_series(
             data=data,
             column_mapping=column_mapping,
             up_color=volume_up_color,
             down_color=volume_down_color,
-            pane_id=volume_pane_id,
+            pane_id=pane_id,
             price_scale_id=ColumnNames.VOLUME.value,
         )
 
