@@ -290,7 +290,7 @@ class SeriesManager:
                 auto_scale=True,
                 border_visible=False,
                 mode=PriceScaleMode.NORMAL,
-                scale_margins=PriceScaleMargins(top=0.9, bottom=0.0),
+                scale_margins=PriceScaleMargins(top=0.85, bottom=0.0),
             )
             price_scale_manager.add_overlay_scale(ColumnNames.VOLUME.value, volume_price_scale)
 

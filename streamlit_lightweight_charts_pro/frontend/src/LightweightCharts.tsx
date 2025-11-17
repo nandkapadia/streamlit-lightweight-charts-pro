@@ -1968,29 +1968,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               }
             }
 
-            // Configure overlay price scales (volume, indicators, etc.) if they exist
-            if (chartConfig.chart?.overlayPriceScales) {
-              Object.entries(chartConfig.chart.overlayPriceScales).forEach(
-                ([scaleId, scaleConfig]) => {
-                  try {
-                    // Create overlay price scale - use the scaleId directly
-                    const overlayScale = chart.priceScale(scaleId);
-                    if (overlayScale) {
-                      overlayScale.applyOptions(
-                        cleanLineStyleOptions(scaleConfig as Record<string, unknown>)
-                      );
-                    } else {
-                      logger.info(
-                        `Overlay scale ${scaleId} not found, will be created when series uses it`,
-                        'ChartInit'
-                      );
-                    }
-                  } catch (error) {
-                    logger.error('Failed to configure overlay price scale', 'ChartInit', error);
-                  }
-                }
-              );
-            }
+            // Note: Overlay price scales are configured after series creation (see lines 2026-2050)
+            // This ensures the price scale exists before we try to configure it
 
             // Create series for this chart
             const seriesList: ExtendedSeriesApi[] = [];
@@ -2024,14 +2003,15 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     seriesList.push(series);
 
                     // Apply overlay price scale configuration if this series uses one
+                    // Note: priceScaleId is inside options object after API restructuring
+                    const priceScaleId = seriesConfig.options?.priceScaleId;
                     if (
-                      seriesConfig.priceScaleId &&
-                      seriesConfig.priceScaleId !== 'right' &&
-                      seriesConfig.priceScaleId !== 'left' &&
-                      chartConfig.chart?.overlayPriceScales?.[seriesConfig.priceScaleId]
+                      priceScaleId &&
+                      priceScaleId !== 'right' &&
+                      priceScaleId !== 'left' &&
+                      chartConfig.chart?.overlayPriceScales?.[priceScaleId]
                     ) {
-                      const scaleConfig =
-                        chartConfig.chart.overlayPriceScales[seriesConfig.priceScaleId];
+                      const scaleConfig = chartConfig.chart.overlayPriceScales[priceScaleId];
                       try {
                         const priceScale = series.priceScale();
                         if (priceScale) {
@@ -2041,7 +2021,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                         }
                       } catch (error) {
                         logger.error(
-                          'Failed to apply price scale configuration for series',
+                          `Failed to apply overlay price scale configuration for '${priceScaleId}'`,
                           'LightweightCharts',
                           error
                         );
