@@ -4,13 +4,14 @@ This module handles price scale configuration and overlay price scales
 for chart series.
 """
 
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
     PriceScaleMargins,
     PriceScaleOptions,
 )
 from streamlit_lightweight_charts_pro.exceptions import (
+    PriceScaleIdTypeError,
     PriceScaleOptionsTypeError,
     TypeValidationError,
     ValueValidationError,
@@ -50,7 +51,7 @@ class PriceScaleManager:
         """
         self.left_price_scale = left_price_scale
         self.right_price_scale = right_price_scale
-        self.overlay_price_scales = overlay_price_scales if overlay_price_scales is not None else {}
+        self.overlay_price_scales = overlay_price_scales or {}
 
     def add_overlay_scale(
         self,
@@ -74,7 +75,10 @@ class PriceScaleManager:
         if not isinstance(options, PriceScaleOptions):
             raise ValueValidationError("options", "must be a PriceScaleOptions instance")
 
-        # Update or add the overlay price scale (scale_id is used as dict key, not as property)
+        # Ensure the price_scale_id field matches the scale_id parameter
+        options.price_scale_id = scale_id
+
+        # Update or add the overlay price scale
         self.overlay_price_scales[scale_id] = options
 
     def has_overlay_scale(self, scale_id: str) -> bool:
@@ -102,13 +106,14 @@ class PriceScaleManager:
                 bottom=0.25,  # 25% margin at bottom (leaves room for volume overlay)
             )
 
-    def validate_and_serialize(self) -> Dict[str, Any]:
+    def validate_and_serialize(self) -> Dict[str, any]:
         """Validate and serialize price scale configurations.
 
         Returns:
             Dictionary of serialized price scale configurations.
 
         Raises:
+            PriceScaleIdTypeError: If price_scale_id is not a string.
             PriceScaleOptionsTypeError: If price scale is not a valid type.
         """
         result = {}
@@ -117,6 +122,15 @@ class PriceScaleManager:
         if self.right_price_scale is not None:
             try:
                 result["rightPriceScale"] = self.right_price_scale.asdict()
+                # Validate price scale ID is a string if provided
+                if self.right_price_scale.price_scale_id is not None and not isinstance(
+                    self.right_price_scale.price_scale_id,
+                    str,
+                ):
+                    raise PriceScaleIdTypeError(
+                        "right_price_scale",
+                        type(self.right_price_scale.price_scale_id),
+                    )
             except AttributeError as e:
                 if isinstance(self.right_price_scale, bool):
                     raise PriceScaleOptionsTypeError(
@@ -132,6 +146,15 @@ class PriceScaleManager:
         if self.left_price_scale is not None:
             try:
                 result["leftPriceScale"] = self.left_price_scale.asdict()
+                # Validate price scale ID is a string if provided
+                if self.left_price_scale.price_scale_id is not None and not isinstance(
+                    self.left_price_scale.price_scale_id,
+                    str,
+                ):
+                    raise PriceScaleIdTypeError(
+                        "left_price_scale",
+                        type(self.left_price_scale.price_scale_id),
+                    )
             except AttributeError as e:
                 if isinstance(self.left_price_scale, bool):
                     raise PriceScaleOptionsTypeError(

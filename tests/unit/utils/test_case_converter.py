@@ -282,7 +282,11 @@ class TestConvertDictKeys:
         """Test non-recursive conversion explicitly."""
         data = {"outer_key": {"inner_key": "value"}}
         result = CaseConverter.convert_dict_keys(data, recursive=False)
-        assert result == {"outerKey": {"inner_key": "value"}}  # Inner key not converted
+        assert result == {
+            "outerKey": {
+                "inner_key": "value"  # Inner key not converted
+            }
+        }
 
     def test_preserve_values(self):
         """Test that values are preserved during conversion."""

@@ -122,10 +122,10 @@ class TestChartSeriesIntegration:
         config = chart.to_frontend_config()
         assert len(config["charts"][0]["series"]) == 2
 
-        # Verify price scales are configured correctly - priceScaleId is now in options
+        # Verify price scales are configured correctly
         series_configs = config["charts"][0]["series"]
-        assert series_configs[0]["options"]["priceScaleId"] == "left"
-        assert series_configs[1]["options"]["priceScaleId"] == "right"
+        assert series_configs[0]["priceScaleId"] == "left"
+        assert series_configs[1]["priceScaleId"] == "right"
 
     def test_series_visibility_toggling(self):
         """Test toggling series visibility."""
@@ -138,23 +138,23 @@ class TestChartSeriesIntegration:
 
         chart = Chart(series=[line_series, candlestick_series])
 
-        # Initially both series should be visible - visible is now in options
+        # Initially both series should be visible
         config = chart.to_frontend_config()
         assert len(config["charts"][0]["series"]) == 2
-        assert config["charts"][0]["series"][0]["options"]["visible"] is True
-        assert config["charts"][0]["series"][1]["options"]["visible"] is True
+        assert config["charts"][0]["series"][0]["visible"] is True
+        assert config["charts"][0]["series"][1]["visible"] is True
 
         # Hide first series
         line_series._visible = False
         config = chart.to_frontend_config()
-        assert config["charts"][0]["series"][0]["options"]["visible"] is False
-        assert config["charts"][0]["series"][1]["options"]["visible"] is True
+        assert config["charts"][0]["series"][0]["visible"] is False
+        assert config["charts"][0]["series"][1]["visible"] is True
 
         # Show first series again
         line_series._visible = True
         config = chart.to_frontend_config()
-        assert config["charts"][0]["series"][0]["options"]["visible"] is True
-        assert config["charts"][0]["series"][1]["options"]["visible"] is True
+        assert config["charts"][0]["series"][0]["visible"] is True
+        assert config["charts"][0]["series"][1]["visible"] is True
 
     def test_series_ordering_and_layering(self):
         """Test series ordering and layering."""
@@ -191,15 +191,15 @@ class TestChartSeriesIntegration:
 
         chart = Chart(series=[line_series, candlestick_series, area_series])
 
-        # Verify series are ordered by z-index (ascending) - zIndex is now in options
+        # Verify series are ordered by z-index (ascending)
         config = chart.to_frontend_config()
         series_configs = config["charts"][0]["series"]
         assert len(series_configs) == 3
 
         # Should be ordered by z-index: candlestick(5), line(10), area(15)
-        assert series_configs[0]["options"]["zIndex"] == 5
-        assert series_configs[1]["options"]["zIndex"] == 10
-        assert series_configs[2]["options"]["zIndex"] == 15
+        assert series_configs[0]["zIndex"] == 5
+        assert series_configs[1]["zIndex"] == 10
+        assert series_configs[2]["zIndex"] == 15
 
     def test_series_z_index_ordering_multiple_panes(self):
         """Test series ordering by z-index across multiple panes."""
@@ -240,12 +240,6 @@ class TestChartSeriesIntegration:
         line_idx = next(i for i, s in enumerate(series_configs) if s["type"] == "line")
         area_idx = next(i for i, s in enumerate(series_configs) if s["type"] == "area")
         histogram_idx = next(i for i, s in enumerate(series_configs) if s["type"] == "histogram")
-
-        # Verify z-index values are correct (now in options)
-        assert series_configs[candlestick_idx]["options"]["zIndex"] == 10
-        assert series_configs[line_idx]["options"]["zIndex"] == 20
-        assert series_configs[area_idx]["options"]["zIndex"] == 5
-        assert series_configs[histogram_idx]["options"]["zIndex"] == 15
 
         # Within pane 0: candlestick should come before line
         assert candlestick_idx < line_idx
@@ -303,12 +297,12 @@ class TestChartSeriesIntegration:
 
         chart = Chart(series=line_series)
 
-        # Verify custom options are applied - properties moved to options object
+        # Verify custom options are applied
         config = chart.to_frontend_config()
         series_config = config["charts"][0]["series"][0]
 
-        assert series_config["options"]["priceScaleId"] == "custom_scale"
-        assert series_config["options"]["visible"] is False
+        assert series_config["priceScaleId"] == "custom_scale"
+        assert series_config["visible"] is False
         assert series_config["options"]["lineOptions"]["color"] == "rgba(255,0,0,1)"
         assert series_config["options"]["lineOptions"]["lineWidth"] == 3
         assert series_config["options"]["lineOptions"]["lineStyle"] == 2  # Dashed
@@ -548,12 +542,12 @@ class TestChartSeriesIntegration:
 
         chart = Chart(series=line_series)
 
-        # Verify series properties are preserved - properties moved to options object
+        # Verify series properties are preserved
         config = chart.to_frontend_config()
         series_config = config["charts"][0]["series"][0]
 
-        assert series_config["options"]["priceScaleId"] == "custom_scale"
-        assert series_config["options"]["visible"] is False
+        assert series_config["priceScaleId"] == "custom_scale"
+        assert series_config["visible"] is False
 
         # Change properties and verify they're updated
         line_series._visible = True
@@ -562,8 +556,8 @@ class TestChartSeriesIntegration:
         config = chart.to_frontend_config()
         series_config = config["charts"][0]["series"][0]
 
-        assert series_config["options"]["priceScaleId"] == "new_scale"
-        assert series_config["options"]["visible"] is True
+        assert series_config["priceScaleId"] == "new_scale"
+        assert series_config["visible"] is True
 
 
 class TestChartSeriesDataFlowIntegration:

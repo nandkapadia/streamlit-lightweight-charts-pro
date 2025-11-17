@@ -31,6 +31,10 @@ class TestTimeScaleOptions:
         assert options.shift_visible_range_on_new_bar is False
         assert options.allow_shift_visible_range_on_whitespace_access is False
         assert options.tick_mark_formatter is None
+        assert options.fit_content_on_load is True
+        assert options.handle_double_click is True
+        assert options.handle_scale is True
+        assert options.handle_scroll is True
 
     def test_construction_with_parameters(self):
         """Test TimeScaleOptions construction with custom parameters."""
@@ -50,6 +54,10 @@ class TestTimeScaleOptions:
             right_bar_stays_on_scroll=True,
             shift_visible_range_on_new_bar=True,
             allow_shift_visible_range_on_whitespace_access=True,
+            fit_content_on_load=False,
+            handle_double_click=False,
+            handle_scale=False,
+            handle_scroll=False,
         )
 
         assert options.visible is False
@@ -67,6 +75,10 @@ class TestTimeScaleOptions:
         assert options.right_bar_stays_on_scroll is True
         assert options.shift_visible_range_on_new_bar is True
         assert options.allow_shift_visible_range_on_whitespace_access is True
+        assert options.fit_content_on_load is False
+        assert options.handle_double_click is False
+        assert options.handle_scale is False
+        assert options.handle_scroll is False
 
     def test_asdict_method(self):
         """Test the asdict method returns correct structure."""

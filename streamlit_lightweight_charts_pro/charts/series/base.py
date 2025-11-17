@@ -54,26 +54,22 @@ logger = get_logger(__name__)
 
 
 # pylint: disable=no-member, invalid-name
-@chainable_property("title")
-@chainable_property("display_name")
-@chainable_property("visible")
-@chainable_property("z_index", allow_none=True)
-@chainable_property("price_scale_id")
+@chainable_property("title", top_level=True)
+@chainable_property("display_name", top_level=True)
+@chainable_property("visible", top_level=True)
+@chainable_property("z_index", allow_none=True, top_level=True)
+@chainable_property("price_scale_id", top_level=True)
 @chainable_property("price_scale", allow_none=True, top_level=True)
 @chainable_property("price_format")
 @chainable_property("price_lines", top_level=True)
 @chainable_property("markers", List[MarkerBase], allow_none=True, top_level=True)
 @chainable_property("pane_id", top_level=True)
-@chainable_property("last_value_visible")
-@chainable_property("price_line_visible")
-@chainable_property("price_line_source")
-@chainable_property("price_line_width")
-@chainable_property("price_line_color")
-@chainable_property("price_line_style")
-@chainable_property("base_line_visible")
-@chainable_property("base_line_color", str, validator="color")
-@chainable_property("base_line_width")
-@chainable_property("base_line_style")
+@chainable_property("last_value_visible", top_level=True)
+@chainable_property("price_line_visible", top_level=True)
+@chainable_property("price_line_source", top_level=True)
+@chainable_property("price_line_width", top_level=True)
+@chainable_property("price_line_color", top_level=True)
+@chainable_property("price_line_style", top_level=True)
 @chainable_property("tooltip", allow_none=True, top_level=True)
 @chainable_property("legend", allow_none=True, top_level=True)
 class Series(ABC):  # noqa: B024
@@ -112,10 +108,6 @@ class Series(ABC):  # noqa: B024
         markers (List[MarkerBase]): List of markers to display on this series.
         pane_id (Optional[int]): The pane index this series belongs to for multi-pane charts.
         z_index (int): Z-index for controlling series rendering order.
-        base_line_visible (bool): Whether to show the base line (reference line in indexed/percentage modes).
-        base_line_color (str): Color of the base line. Defaults to '#B2B5BE'.
-        base_line_width (int): Width of the base line in pixels. Defaults to 1.
-        base_line_style (LineStyle): Visual style of the base line. Defaults to LineStyle.SOLID.
 
     Class Attributes:
         DATA_CLASS (Type[Data]): The data class type used for this series.
@@ -229,12 +221,6 @@ class Series(ABC):  # noqa: B024
         self._price_line_width = 1  # Price line width in pixels
         self._price_line_color = ""  # Price line color (empty for default)
         self._price_line_style = LineStyle.DASHED  # Price line style
-
-        # Initialize base line properties (reference line in indexed/percentage modes)
-        self._base_line_visible = True  # Show base line by default
-        self._base_line_color = "#B2B5BE"  # Base line color (official default)
-        self._base_line_width = 1  # Base line width in pixels
-        self._base_line_style = LineStyle.SOLID  # Base line style
 
         # Initialize optional UI components
         self._tooltip = None  # Custom tooltip configuration

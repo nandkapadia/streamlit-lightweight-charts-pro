@@ -2024,16 +2024,14 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     seriesList.push(series);
 
                     // Apply overlay price scale configuration if this series uses one
-                    // Note: priceScaleId is in options after API restructuring
-                    const priceScaleId = seriesConfig.options?.priceScaleId || seriesConfig.priceScaleId;
                     if (
-                      priceScaleId &&
-                      priceScaleId !== 'right' &&
-                      priceScaleId !== 'left' &&
-                      chartConfig.chart?.overlayPriceScales?.[priceScaleId]
+                      seriesConfig.priceScaleId &&
+                      seriesConfig.priceScaleId !== 'right' &&
+                      seriesConfig.priceScaleId !== 'left' &&
+                      chartConfig.chart?.overlayPriceScales?.[seriesConfig.priceScaleId]
                     ) {
                       const scaleConfig =
-                        chartConfig.chart.overlayPriceScales[priceScaleId];
+                        chartConfig.chart.overlayPriceScales[seriesConfig.priceScaleId];
                       try {
                         const priceScale = series.priceScale();
                         if (priceScale) {

@@ -10,7 +10,7 @@ from datetime import datetime
 import pytest
 
 from streamlit_lightweight_charts_pro.data.signal_data import SignalData
-from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError, ValueValidationError
 
 
 class TestSignalData:

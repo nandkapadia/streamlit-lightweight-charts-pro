@@ -54,6 +54,10 @@ from streamlit_lightweight_charts_pro.utils import chainable_field
 @chainable_field("shift_visible_range_on_new_bar", bool)
 @chainable_field("allow_shift_visible_range_on_whitespace_access", bool)
 @chainable_field("tick_mark_formatter", allow_none=True)
+@chainable_field("fit_content_on_load", bool)
+@chainable_field("handle_double_click", bool)
+@chainable_field("handle_scale", bool)
+@chainable_field("handle_scroll", bool)
 class TimeScaleOptions(Options):
     """Comprehensive configuration options for time scales in financial charts.
 
@@ -85,6 +89,12 @@ class TimeScaleOptions(Options):
             the visible range when accessing whitespace. Defaults to False.
         tick_mark_formatter (Optional[Callable]): Custom formatter function for tick marks.
             Defaults to None (uses default formatting).
+        fit_content_on_load (bool): Whether to fit content to visible area on initial load.
+            Defaults to True.
+        handle_double_click (bool): Whether to handle double-click interactions.
+            Defaults to True.
+        handle_scale (bool): Whether to handle scale interactions. Defaults to True.
+        handle_scroll (bool): Whether to handle scroll interactions. Defaults to True.
 
     Example:
         ```python
@@ -132,8 +142,12 @@ class TimeScaleOptions(Options):
     shift_visible_range_on_new_bar: bool = False  # Shift range when new bar is added
     allow_shift_visible_range_on_whitespace_access: bool = False  # Allow shifting on whitespace
 
-    # Formatting settings
+    # Formatting and interaction settings
     tick_mark_formatter: Optional[Callable] = None  # Custom formatter for tick marks
+    fit_content_on_load: bool = True  # Fit content to visible area on load
+    handle_double_click: bool = True  # Handle double-click interactions
+    handle_scale: bool = True  # Handle scale interactions
+    handle_scroll: bool = True  # Handle scroll interactions
 
     def __getitem__(self, key):
         """Get option value by key for dictionary-like access.

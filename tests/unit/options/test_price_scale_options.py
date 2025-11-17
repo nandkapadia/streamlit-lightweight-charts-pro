@@ -201,6 +201,12 @@ class TestPriceScaleOptions:
         with pytest.raises(TypeValidationError):
             options.set_scale_margins("invalid")
 
+    def test_validation_price_scale_id(self):
+        """Test validation of price_scale_id field."""
+        options = PriceScaleOptions()
+        with pytest.raises(TypeValidationError):
+            options.set_price_scale_id(123)
+
     def test_to_dict_basic(self):
         """Test basic serialization."""
         options = PriceScaleOptions()
@@ -275,6 +281,7 @@ class TestPriceScaleOptions:
             entire_text_only=True,
             minimum_width=100,
             scale_margins=scale_margins,
+            price_scale_id="custom_scale",
         )
         result = options.asdict()
 
@@ -292,6 +299,7 @@ class TestPriceScaleOptions:
         assert result["minimumWidth"] == 100
         assert result["scaleMargins"]["top"] == 0.15
         assert result["scaleMargins"]["bottom"] == 0.25
+        assert result["priceScaleId"] == "custom_scale"
 
 
 class TestPriceScaleOptionsIntegration:
@@ -376,6 +384,30 @@ class TestPriceScaleOptionsEdgeCases:
         result = options.asdict()
 
         assert result["borderColor"] == "rgba(255, 0, 0, 0.5)"
+
+    def test_price_scale_options_with_empty_string_id(self):
+        """Test PriceScaleOptions with empty string price_scale_id."""
+        options = PriceScaleOptions(price_scale_id="")
+        result = options.asdict()
+
+        # Empty strings should be omitted from to_dict() output
+        assert "priceScaleId" not in result
+
+    def test_price_scale_options_with_long_string_id(self):
+        """Test PriceScaleOptions with long string price_scale_id."""
+        long_id = "a" * 1000
+        options = PriceScaleOptions(price_scale_id=long_id)
+        result = options.asdict()
+
+        assert result["priceScaleId"] == long_id
+
+    def test_price_scale_options_with_special_characters_in_id(self):
+        """Test PriceScaleOptions with special characters in price_scale_id."""
+        special_id = "scale_123!@#$%^&*()"
+        options = PriceScaleOptions(price_scale_id=special_id)
+        result = options.asdict()
+
+        assert result["priceScaleId"] == special_id
 
     def test_price_scale_options_with_zero_minimum_width(self):
         """Test PriceScaleOptions with zero minimum_width."""

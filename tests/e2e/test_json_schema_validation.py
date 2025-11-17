@@ -347,19 +347,23 @@ class TestJSONSchemaValidation:
 
     def test_empty_string_values_validation(self):
         """Test that empty string values are handled correctly."""
-        # Note: price_scale_id is NOT a valid PriceScaleOptions parameter
-        # It's the dict key when used in chart.price_scales, not an option parameter
-
-        # Create a basic price scale to verify empty string handling
-        price_scale = PriceScaleOptions(
-            visible=True,
-            auto_scale=True,
-        )
+        # Test price_scale_id with empty string (should be skipped by asdict)
+        price_scale = PriceScaleOptions(price_scale_id="")
         price_scale_dict = price_scale.asdict()
 
         validate(instance=price_scale_dict, schema=FrontendJSONSchemas.PRICE_SCALE_OPTIONS_SCHEMA)
-        # priceScaleId is not a PriceScaleOptions parameter, so it won't be in the dict
-        assert "priceScaleId" not in price_scale_dict
+        assert "priceScaleId" not in price_scale_dict  # Empty strings are skipped
+
+        # Test price_scale_id with actual value (should be included)
+        price_scale_valid = PriceScaleOptions(price_scale_id="valid_id")
+        price_scale_valid_dict = price_scale_valid.asdict()
+
+        validate(
+            instance=price_scale_valid_dict,
+            schema=FrontendJSONSchemas.PRICE_SCALE_OPTIONS_SCHEMA,
+        )
+        assert "priceScaleId" in price_scale_valid_dict
+        assert price_scale_valid_dict["priceScaleId"] == "valid_id"
 
     def test_falsy_values_validation(self):
         """Test that falsy values (0, False, 0.0) are included in serialization."""
@@ -375,25 +379,24 @@ class TestJSONSchemaValidation:
         assert "base" in series_dict["options"]
         assert series_dict["options"]["base"] == 0
 
-        # Test boolean options - now in options object
-        assert "visible" in series_dict["options"]
-        assert "priceLineVisible" in series_dict["options"]
-        assert "lastValueVisible" in series_dict["options"]
+        # Test boolean options
+        assert "visible" in series_dict
+        assert "priceLineVisible" in series_dict
+        assert "lastValueVisible" in series_dict
 
     def test_enum_values_validation(self):
         """Test that enum values are correctly serialized."""
-        # Test price line source enum - now in options object
+        # Test price line source enum
         data = [LineData(time=1640995200, value=100.0)]
         series = LineSeries(data=data)
         series_dict = series.asdict()
 
         validate(instance=series_dict, schema=FrontendJSONSchemas.SERIES_CONFIG_SCHEMA)
 
-        # Verify enum values are strings, not enum objects - check in options
-        assert "options" in series_dict
-        assert "priceLineSource" in series_dict["options"]
-        assert isinstance(series_dict["options"]["priceLineSource"], str)
-        assert series_dict["options"]["priceLineSource"] in ["lastBar", "lastVisible"]
+        # Verify enum values are strings, not enum objects
+        assert "priceLineSource" in series_dict
+        assert isinstance(series_dict["priceLineSource"], str)
+        assert series_dict["priceLineSource"] in ["lastBar", "lastVisible"]
 
     def test_nested_structures_validation(self):
         """Test that nested structures are properly validated."""
@@ -527,18 +530,24 @@ class TestContractValidation:
 
     def test_empty_string_serialization_contract(self):
         """Test that empty strings are handled according to contract."""
-        # Note: price_scale_id is NOT a valid PriceScaleOptions parameter
-        # It's the dict key when used in chart.price_scales, not an option parameter
-
-        # Create a basic price scale to verify empty string handling
-        price_scale = PriceScaleOptions(
-            visible=True,
-            auto_scale=True,
-        )
+        # Test price_scale_id with empty string (should be skipped by asdict)
+        price_scale = PriceScaleOptions(price_scale_id="")
         price_scale_dict = price_scale.asdict()
 
-        # priceScaleId is not a PriceScaleOptions parameter, so it won't be in the dict
-        assert "priceScaleId" not in price_scale_dict
+        assert "priceScaleId" not in price_scale_dict  # Empty strings are skipped
+
+        # Test price_scale_id with None (should be skipped by asdict)
+        price_scale_none = PriceScaleOptions(price_scale_id=None)
+        price_scale_none_dict = price_scale_none.asdict()
+
+        assert "priceScaleId" not in price_scale_none_dict  # None values are skipped
+
+        # Test price_scale_id with actual value (should be included)
+        price_scale_valid = PriceScaleOptions(price_scale_id="valid_id")
+        price_scale_valid_dict = price_scale_valid.asdict()
+
+        assert "priceScaleId" in price_scale_valid_dict
+        assert price_scale_valid_dict["priceScaleId"] == "valid_id"
 
     def test_nan_handling_contract(self):
         """Test that NaN values are correctly handled."""

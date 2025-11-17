@@ -87,6 +87,7 @@ class PriceScaleMargins(Options):
 @chainable_field("entire_text_only", bool)
 @chainable_field("minimum_width", int)
 @chainable_field("scale_margins", PriceScaleMargins)
+@chainable_field("price_scale_id", str)
 class PriceScaleOptions(Options):
     """Comprehensive configuration options for price scales in financial charts.
 
@@ -119,6 +120,7 @@ class PriceScaleOptions(Options):
             Defaults to 72 pixels.
         scale_margins (PriceScaleMargins): Margin configuration for the price scale.
             Defaults to 10% margins on top and bottom.
+        price_scale_id (str): Unique identifier for the price scale. Defaults to "".
 
     Example:
         ```python
@@ -136,7 +138,7 @@ class PriceScaleOptions(Options):
         )
 
         # Create right price scale for overlay series
-        right_scale = PriceScaleOptions(visible=True, auto_scale=False)
+        right_scale = PriceScaleOptions(visible=True, auto_scale=False, price_scale_id="overlay_scale")
         ```
 
     See also:
@@ -166,3 +168,6 @@ class PriceScaleOptions(Options):
     scale_margins: PriceScaleMargins = field(
         default_factory=PriceScaleMargins,
     )  # Margin configuration
+
+    # Price scale identification
+    price_scale_id: str = ""  # Unique identifier for the price scale
