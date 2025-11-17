@@ -50,7 +50,7 @@ class PriceScaleManager:
         """
         self.left_price_scale = left_price_scale
         self.right_price_scale = right_price_scale
-        self.overlay_price_scales = overlay_price_scales or {}
+        self.overlay_price_scales = overlay_price_scales if overlay_price_scales is not None else {}
 
     def add_overlay_scale(
         self,
