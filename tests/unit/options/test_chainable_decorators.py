@@ -177,11 +177,12 @@ class TestChainableDecorators:
         """Test LocalizationOptions chainable properties."""
         opts = LocalizationOptions()
 
-        result = opts.set_locale("en-GB").set_date_format("dd/MM/yyyy")
+        result = opts.set_locale("en-GB").set_date_format("dd/MM/yyyy").set_time_format("HH:mm")
 
         assert result is opts
         assert opts.locale == "en-GB"
         assert opts.date_format == "dd/MM/yyyy"
+        assert opts.time_format == "HH:mm"
 
     def test_ui_options_chainable(self):
         """Test UI Options chainable properties."""

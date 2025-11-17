@@ -4,6 +4,8 @@ This module tests the auto-creation of price scales to ensure alignment
 with TradingView's official API behavior.
 """
 
+import pytest
+
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.managers.series_manager import SeriesManager
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
@@ -73,8 +75,8 @@ class TestPriceScaleAutoCreation:
         chart = Chart()
 
         # Manually add price scale with specific configuration
-        # Note: price_scale_id is the key in add_overlay_price_scale, not a PriceScaleOptions parameter
         manual_config = PriceScaleOptions(
+            price_scale_id="rsi",
             visible=True,
             auto_scale=True,
             mode=PriceScaleMode.PERCENTAGE,  # Use distinctive mode
@@ -89,7 +91,7 @@ class TestPriceScaleAutoCreation:
 
         # Check that manual configuration wasn't overridden
         scale = chart._price_scale_manager.overlay_price_scales["rsi"]
-        # Note: price_scale_id is the dict key, not an attribute of PriceScaleOptions
+        assert scale.price_scale_id == "rsi"
         assert scale.mode == PriceScaleMode.PERCENTAGE  # Should preserve our custom mode
 
     def test_auto_creation_with_built_in_scales(self):
@@ -132,8 +134,8 @@ class TestPriceScaleAutoCreation:
         # Should still create an empty scale (old behavior)
         assert "custom" in price_scale_manager.overlay_price_scales
         # But it should be an empty scale (no smart defaults)
-        price_scale_manager.overlay_price_scales["custom"]
-        # Note: price_scale_id is the dict key, not an attribute of PriceScaleOptions
+        scale = price_scale_manager.overlay_price_scales["custom"]
+        assert scale.price_scale_id == "custom"
 
     def test_multiple_series_same_pane_same_scale(self):
         """Test multiple series in same pane sharing same auto-created scale."""
@@ -209,8 +211,8 @@ class TestPriceScaleAutoCreation:
         chart = Chart()
 
         # Old way: Manual pre-registration
-        # Note: price_scale_id is the key in add_overlay_price_scale, not a PriceScaleOptions parameter
         rsi_scale = PriceScaleOptions(
+            price_scale_id="rsi",
             visible=True,
             auto_scale=True,
             mode=PriceScaleMode.NORMAL,

@@ -42,10 +42,8 @@ class TestPriceScaleValidator:
         data = [SingleValueData("2024-01-01", 100)]
         series = LineSeries(data=data, price_scale_id="rsi")
 
-        # Note: price_scale_id is the key in available_scales dict,
-        # NOT a parameter to PriceScaleOptions
         available_scales = {
-            "rsi": PriceScaleOptions(),
+            "rsi": PriceScaleOptions(price_scale_id="rsi"),
         }
 
         # Should not raise error
@@ -96,11 +94,9 @@ class TestPriceScaleValidator:
         data = [SingleValueData("2024-01-01", 100)]
         series = LineSeries(data=data, price_scale_id="missing")
 
-        # Note: price_scale_id is the key in available_scales dict,
-        # NOT a parameter to PriceScaleOptions
         available_scales = {
-            "rsi": PriceScaleOptions(),
-            "macd": PriceScaleOptions(),
+            "rsi": PriceScaleOptions(price_scale_id="rsi"),
+            "macd": PriceScaleOptions(price_scale_id="macd"),
         }
 
         with pytest.raises(PriceScaleValidationError) as exc_info:

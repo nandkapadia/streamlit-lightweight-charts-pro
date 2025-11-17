@@ -17,6 +17,7 @@ from streamlit_lightweight_charts_pro.charts.series.defaults import (
 from streamlit_lightweight_charts_pro.constants import RIBBON_FILL_COLOR
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
 from streamlit_lightweight_charts_pro.type_definitions import ChartType
+from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 from streamlit_lightweight_charts_pro.utils import chainable_property
 
 

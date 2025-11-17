@@ -132,8 +132,7 @@ class SeriesManager:
                     "overlay price scale configuration. Creating empty price scale object.",
                     price_scale_id,
                 )
-                # Create empty price scale (price_scale_id is used as dict key, not as property)
-                empty_scale = PriceScaleOptions()
+                empty_scale = PriceScaleOptions(price_scale_id=price_scale_id)
                 price_scale_manager.add_overlay_scale(price_scale_id, empty_scale)
 
         self.series.append(series)
@@ -141,7 +140,7 @@ class SeriesManager:
     def _create_auto_price_scale(
         self,
         series: Series,
-        _scale_id: str,
+        scale_id: str,
     ) -> PriceScaleOptions:
         """Create price scale with smart defaults based on series type and pane.
 
@@ -159,8 +158,8 @@ class SeriesManager:
         is_overlay = self._is_overlay_series(series)
 
         # Create price scale with context-aware defaults
-        # Note: price_scale_id is used as dict key, not as property of PriceScaleOptions
         return PriceScaleOptions(
+            price_scale_id=scale_id,
             visible=not is_overlay,  # Hide for overlays, show for separate panes
             auto_scale=True,
             mode=PriceScaleMode.NORMAL,
@@ -284,13 +283,13 @@ class SeriesManager:
 
         # Configure volume price scale through manager if provided
         if price_scale_manager is not None:
-            # Create volume price scale (price_scale_id is used as dict key, not as property)
             volume_price_scale = PriceScaleOptions(
                 visible=False,
                 auto_scale=True,
                 border_visible=False,
                 mode=PriceScaleMode.NORMAL,
                 scale_margins=PriceScaleMargins(top=0.8, bottom=0.0),
+                price_scale_id=ColumnNames.VOLUME.value,
             )
             price_scale_manager.add_overlay_scale(ColumnNames.VOLUME.value, volume_price_scale)
 
@@ -310,10 +309,7 @@ class SeriesManager:
 
         # Set volume-specific properties
         volume_series.base = volume_base  # type: ignore[attr-defined]
-        volume_series.price_format = {
-            "type": "volume",
-            "precision": 0,
-        }  # type: ignore[attr-defined]
+        volume_series.price_format = {"type": "volume", "precision": 0}  # type: ignore[attr-defined]
         volume_series._display_name = "Volume"  # pylint: disable=protected-access
 
         # Add both series
@@ -383,8 +379,7 @@ class SeriesManager:
                 series_by_pane[0].append(series_config)
                 continue
 
-            # Note: paneId is now in the options object after API restructuring
-            pane_id = series_config.get("options", {}).get("paneId", 0)
+            pane_id = series_config.get("paneId", 0)
 
             if pane_id not in series_by_pane:
                 series_by_pane[pane_id] = []
@@ -392,11 +387,8 @@ class SeriesManager:
             series_by_pane[pane_id].append(series_config)
 
         # Sort series within each pane by z_index
-        # Note: zIndex is now in the options object after API restructuring
         for series_list in series_by_pane.values():
-            series_list.sort(
-                key=lambda x: x.get("options", {}).get("zIndex", 0) if isinstance(x, dict) else 0
-            )
+            series_list.sort(key=lambda x: x.get("zIndex", 0) if isinstance(x, dict) else 0)
 
         # Flatten sorted series back to a single list, maintaining pane order
         series_configs = []

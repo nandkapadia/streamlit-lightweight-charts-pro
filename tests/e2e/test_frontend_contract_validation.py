@@ -195,8 +195,6 @@ class TestFrontendContractValidation:
 
     def test_price_scale_field_contracts(self):
         """Test that price scale serialization matches frontend field contracts."""
-        # Note: price_scale_id is NOT a valid PriceScaleOptions parameter
-        # It's the dict key when used in chart.price_scales, not an option parameter
         price_scale = PriceScaleOptions(
             visible=True,
             auto_scale=False,
@@ -206,6 +204,7 @@ class TestFrontendContractValidation:
             align_labels=False,
             entire_text_only=False,
             mode=PriceScaleMode.LOGARITHMIC,
+            price_scale_id="custom_scale",
         )
         price_scale_dict = price_scale.asdict()
 
@@ -238,6 +237,7 @@ class TestFrontendContractValidation:
         assert price_scale_dict["ticksVisible"] is False
         assert price_scale_dict["alignLabels"] is False
         assert price_scale_dict["entireTextOnly"] is False
+        assert price_scale_dict["priceScaleId"] == "custom_scale"
 
         # Verify mode is serialized as integer (enum value)
         assert isinstance(price_scale_dict["mode"], int)
@@ -276,14 +276,13 @@ class TestFrontendContractValidation:
         assert series_dict["type"] == "line"
         assert isinstance(series_dict["data"], list)
 
-        # Verify default values - properties are now in options object
-        assert "options" in series_dict
-        assert series_dict["options"]["visible"] is True
-        assert series_dict["options"]["priceScaleId"] == "right"
+        # Verify default values
+        assert series_dict["visible"] is True
+        assert series_dict["priceScaleId"] == "right"
         assert series_dict["paneId"] == 0
-        assert series_dict["options"]["lastValueVisible"] is True
-        assert series_dict["options"]["priceLineVisible"] is True
-        assert series_dict["options"]["zIndex"] == 100
+        assert series_dict["lastValueVisible"] is True
+        assert series_dict["priceLineVisible"] is True
+        assert series_dict["zIndex"] == 100
 
     def test_data_point_field_contracts(self):
         """Test that data point serialization matches frontend field contracts."""
@@ -376,8 +375,6 @@ class TestFrontendContractValidation:
             )
 
         # Test price scale options
-        # Note: price_scale_id is NOT a valid PriceScaleOptions parameter
-        # It's the dict key when used in chart.price_scales, not an option parameter
         price_scale = PriceScaleOptions(
             auto_scale=False,
             border_visible=False,
@@ -386,6 +383,7 @@ class TestFrontendContractValidation:
             entire_text_only=False,
             ensure_edge_tick_marks_visible=False,
             minimum_width=100,
+            price_scale_id="test",
         )
         price_scale_dict = price_scale.asdict()
 
@@ -397,6 +395,7 @@ class TestFrontendContractValidation:
             "entire_text_only": "entireTextOnly",
             "ensure_edge_tick_marks_visible": "ensureEdgeTickMarksVisible",
             "minimum_width": "minimumWidth",
+            "price_scale_id": "priceScaleId",
         }
 
         for snake_case, camel_case in price_scale_mappings.items():
@@ -487,32 +486,36 @@ class TestFrontendContractValidation:
         assert isinstance(price_scale_dict["mode"], int)
         assert price_scale_dict["mode"] == PriceScaleMode.LOGARITHMIC.value
 
-        # Test price line source enum - now in options object
+        # Test price line source enum
         data = [LineData(time=1640995200, value=100.0)]
         series = LineSeries(data=data)
         series_dict = series.asdict()
 
-        assert "options" in series_dict
-        assert "priceLineSource" in series_dict["options"]
-        assert isinstance(series_dict["options"]["priceLineSource"], str)
-        assert series_dict["options"]["priceLineSource"] in ["lastBar", "lastVisible"]
+        assert "priceLineSource" in series_dict
+        assert isinstance(series_dict["priceLineSource"], str)
+        assert series_dict["priceLineSource"] in ["lastBar", "lastVisible"]
 
     def test_empty_string_handling_contract(self):
         """Test that empty strings are handled according to contract."""
-        # Note: price_scale_id is NOT a valid PriceScaleOptions parameter
-        # It's the dict key when used in chart.price_scales, not an option parameter
-        # This test validates that empty priceScaleId values may be omitted from serialization
-
-        # Create a basic price scale to verify empty string handling for other properties
-        price_scale = PriceScaleOptions(
-            visible=True,
-            auto_scale=True,
-        )
+        # Test price_scale_id with empty string (should be skipped by asdict)
+        price_scale = PriceScaleOptions(price_scale_id="")
         price_scale_dict = price_scale.asdict()
 
-        # Verify that empty priceScaleId is not included by default (it's not a parameter)
-        # The priceScaleId comes from the series, not from PriceScaleOptions
-        assert "priceScaleId" not in price_scale_dict  # Not a PriceScaleOptions parameter
+        assert "priceScaleId" not in price_scale_dict  # Empty strings are skipped
+
+        # Test price_scale_id with None (should be skipped by asdict)
+        price_scale_none = PriceScaleOptions(price_scale_id=None)
+        price_scale_none_dict = price_scale_none.asdict()
+
+        assert "priceScaleId" not in price_scale_none_dict  # None values are skipped
+
+        # Test price_scale_id with actual value (should be included)
+        price_scale_valid = PriceScaleOptions(price_scale_id="valid_id")
+        price_scale_valid_dict = price_scale_valid.asdict()
+
+        assert "priceScaleId" in price_scale_valid_dict
+        assert price_scale_valid_dict["priceScaleId"] == "valid_id"
+        assert isinstance(price_scale_valid_dict["priceScaleId"], str)
 
     def test_nan_handling_contract(self):
         """Test that NaN values are handled according to contract."""

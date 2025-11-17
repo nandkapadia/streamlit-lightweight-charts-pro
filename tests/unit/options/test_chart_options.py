@@ -151,9 +151,10 @@ class TestChartOptionsValidation:
 
     def test_valid_handle_options(self):
         """Test valid handle option values are accepted."""
-        options = ChartOptions(handle_scroll=False, handle_scale=False)
+        options = ChartOptions(handle_scroll=False, handle_scale=False, handle_double_click=False)
         assert options.handle_scroll is False
         assert options.handle_scale is False
+        assert options.handle_double_click is False
 
     def test_valid_kinetic_scroll(self):
         """Test valid kinetic scroll values are accepted."""
@@ -567,3 +568,36 @@ class TestChartOptionsPriceScaleValidation:
 
         assert options.left_price_scale is None
         assert options.right_price_scale is None
+
+    def test_right_price_scale_id_must_be_string(self):
+        """Test that right_price_scale.price_scale_id must be a string."""
+        with pytest.raises(TypeValidationError):
+            ChartOptions(right_price_scale=PriceScaleOptions(price_scale_id=123))
+
+    def test_left_price_scale_id_must_be_string(self):
+        """Test that left_price_scale.price_scale_id must be a string."""
+        with pytest.raises(TypeValidationError):
+            ChartOptions(left_price_scale=PriceScaleOptions(price_scale_id=456))
+
+    def test_valid_price_scale_id_strings_accepted(self):
+        """Test that valid string price scale IDs are accepted."""
+        left_scale = PriceScaleOptions(price_scale_id="left-scale")
+        right_scale = PriceScaleOptions(price_scale_id="right-scale")
+
+        # Should not raise any errors
+        options = ChartOptions(left_price_scale=left_scale, right_price_scale=right_scale)
+
+        assert options.left_price_scale.price_scale_id == "left-scale"
+        assert options.right_price_scale.price_scale_id == "right-scale"
+
+    def test_none_price_scale_id_accepted(self):
+        """Test that None price scale IDs are auto-assigned default values."""
+        left_scale = PriceScaleOptions(price_scale_id=None)
+        right_scale = PriceScaleOptions(price_scale_id=None)
+
+        # Should not raise any errors
+        options = ChartOptions(left_price_scale=left_scale, right_price_scale=right_scale)
+
+        # None price_scale_id values are automatically set to default IDs
+        assert options.left_price_scale.price_scale_id == "left"
+        assert options.right_price_scale.price_scale_id == "right"
