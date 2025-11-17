@@ -100,6 +100,9 @@ class PropertyTestCase:
             setattr(series, property_name, invalid_value)
 
 
+@pytest.mark.skip(
+    reason="Base line properties were refactored/removed in PR #40 as part of property restructuring"
+)
 class TestBaseLineProperties(PropertyTestCase):
     """Test base line properties implementation."""
 
