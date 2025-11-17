@@ -99,7 +99,7 @@ class PriceScaleManager:
             self.right_price_scale.visible = True
             self.right_price_scale.scale_margins = PriceScaleMargins(
                 top=0.0,  # No margin at top
-                bottom=0.15,  # 15% margin at bottom (leaves room for volume overlay)
+                bottom=0.1,  # 10% margin at bottom (leaves room for volume overlay)
             )
 
     def validate_and_serialize(self) -> Dict[str, Any]:
