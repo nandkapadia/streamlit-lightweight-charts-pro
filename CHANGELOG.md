@@ -5,6 +5,76 @@ All notable changes to the Streamlit Lightweight Charts Pro project will be docu
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-11-19
+
+### Fixed
+- **Overlay Price Scale Configuration:**
+  - Fixed critical bug where overlay price scale configurations were not being applied correctly
+  - Overlay series now properly use their configured price scale settings
+  - Resolved issue in `price_scale_manager.py` and `series_manager.py` affecting overlay behavior
+  - Impact: Overlays like volume histograms now render correctly with proper scaling
+
+- **Volume Histogram Positioning:**
+  - Fixed volume histogram overlay price scale bugs causing incorrect positioning
+  - Resolved conflicts between price series and volume overlay on shared panes
+  - Improved scale margin calculations for proper separation of price and volume data
+
+- **Price-Volume Chart Layout:**
+  - Fixed scale margins for optimal price-volume chart positioning
+  - Multiple iterations of margin adjustments to achieve proper visual separation
+  - Volume series now correctly positioned below price action without overlap
+
+- **Chart Synchronization:**
+  - Fixed chart synchronization issues affecting multi-chart coordination
+  - Improved frontend performance and stability during chart updates
+  - Resolved race conditions in chart initialization and updates
+
+- **Legend Visibility:**
+  - Fixed legend display for invisible series (PR #37, #35)
+  - Legends now properly hidden when series visibility is set to false
+  - Improved session state management for legend configuration
+
+### Changed
+- **Price Scale Handling Refactoring:**
+  - Refactored price scale handling for better maintainability and reliability
+  - Simplified logic in `LightweightCharts.tsx` (reduced complexity by ~20 lines)
+  - Enhanced series configuration with improved price scale assignment
+
+- **Frontend Performance:**
+  - Optimized frontend chart rendering and update cycles
+  - Improved React component lifecycle management
+  - Reduced unnecessary re-renders during chart updates
+
+- **Code Quality:**
+  - Removed debug `console.log` statements from production code
+  - Enhanced documentation and code comments
+  - Improved error handling and validation messages
+
+### Technical Details
+- **PR #40 Integration:**
+  - Merged enhanced documentation and utilities from PR #40
+  - Reverted portions of PR #40 that caused test failures
+  - Restored `price_line` and `visible` properties to correct nested options location
+  - Comprehensive testing to ensure backward compatibility
+
+- **Files Modified:**
+  - `streamlit_lightweight_charts_pro/charts/managers/price_scale_manager.py`
+  - `streamlit_lightweight_charts_pro/charts/managers/series_manager.py`
+  - `streamlit_lightweight_charts_pro/frontend/src/LightweightCharts.tsx`
+  - Multiple test files updated for new property locations
+
+- **Session Description:**
+  - Completed session description implementation for better state management
+  - Enhanced session state persistence across chart reloads
+
+### Breaking Changes
+- None - This release maintains full backward compatibility with v0.1.9
+
+### Upgrade Notes
+- All existing code should work without modifications
+- Overlay price scales will now behave more predictably
+- Volume overlays will position correctly without manual margin adjustments
+
 ## [0.1.9] - 2025-11-07
 
 ### Fixed
@@ -474,6 +544,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Advanced height reporting with loop prevention
 - Comprehensive error boundaries and logging
 
+[0.2.0]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.2.0
 [0.1.9]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.1.9
 [0.1.8]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.1.8
 [0.1.7]: https://github.com/nandkapadia/streamlit-lightweight-charts-pro/releases/tag/v0.1.7
