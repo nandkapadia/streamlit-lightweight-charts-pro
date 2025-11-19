@@ -25,7 +25,7 @@ from streamlit_lightweight_charts_pro.charts.series.defaults import (
     create_uptrend_line,
 )
 from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData
-from streamlit_lightweight_charts_pro.type_definitions.enums import ChartType, LineStyle
+from streamlit_lightweight_charts_pro.type_definitions.enums import ChartType
 from streamlit_lightweight_charts_pro.utils import add_opacity, chainable_property
 
 logger = logging.getLogger(__name__)

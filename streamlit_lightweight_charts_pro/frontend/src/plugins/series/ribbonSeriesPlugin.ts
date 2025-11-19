@@ -328,8 +328,14 @@ export function createRibbonSeries(
     // Primitive-specific options
     zIndex?: number;
     data?: RibbonData[];
+
+    // Pane control
+    paneId?: number;
   } = {}
 ): any {
+  // Extract paneId (must be passed as third parameter to addCustomSeries)
+  const paneId = options.paneId ?? 0;
+
   // Create ICustomSeries (always created for autoscaling)
   const series = chart.addCustomSeries(new RibbonSeries(), {
     _seriesType: 'Ribbon', // Internal property for series type identification
@@ -349,7 +355,7 @@ export function createRibbonSeries(
     visible: options.visible ?? true,
     title: options.title,
     _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
-  } as any);
+  } as any, paneId);
 
   // Set data on series (for autoscaling)
   if (options.data && options.data.length > 0) {

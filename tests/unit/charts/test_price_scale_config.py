@@ -4,8 +4,6 @@ This module tests the PriceScaleConfig factory methods for creating
 common price scale configurations.
 """
 
-import pytest
-
 from streamlit_lightweight_charts_pro.charts.utils import PriceScaleConfig
 from streamlit_lightweight_charts_pro.type_definitions.enums import PriceScaleMode
 
@@ -17,7 +15,8 @@ class TestPriceScaleConfig:
         """Test for_overlay creates correct configuration."""
         config = PriceScaleConfig.for_overlay("volume")
 
-        assert config.price_scale_id == "volume"
+        # Note: price_scale_id is NOT a PriceScaleOptions property
+        # It's a series option that must be set on the series itself
         assert config.visible is False  # Hidden for overlays
         assert config.auto_scale is True
         assert config.mode == PriceScaleMode.NORMAL
@@ -37,13 +36,11 @@ class TestPriceScaleConfig:
 
         assert config.visible is True  # Overridden
         assert config.auto_scale is False  # Overridden
-        assert config.price_scale_id == "volume"
 
     def test_for_separate_pane(self):
         """Test for_separate_pane creates correct configuration."""
         config = PriceScaleConfig.for_separate_pane("rsi")
 
-        assert config.price_scale_id == "rsi"
         assert config.visible is True  # Visible for separate panes
         assert config.auto_scale is True
         assert config.mode == PriceScaleMode.NORMAL
@@ -61,7 +58,6 @@ class TestPriceScaleConfig:
         """Test for_volume as overlay configuration."""
         config = PriceScaleConfig.for_volume(as_overlay=True)
 
-        assert config.price_scale_id == "volume"
         assert config.visible is False  # Hidden for overlay
         assert config.auto_scale is True
         assert config.scale_margins.top == 0.8
@@ -71,23 +67,24 @@ class TestPriceScaleConfig:
         """Test for_volume as separate pane configuration."""
         config = PriceScaleConfig.for_volume(as_overlay=False)
 
-        assert config.price_scale_id == "volume"
         assert config.visible is True  # Visible for separate pane
         assert config.auto_scale is True
         assert config.scale_margins.top == 0.1
         assert config.scale_margins.bottom == 0.1
 
     def test_for_volume_custom_scale_id(self):
-        """Test for_volume with custom scale ID."""
+        """Test for_volume accepts custom scale ID parameter."""
+        # scale_id parameter is accepted but not used in PriceScaleOptions
+        # (it's used when setting up the series, not the price scale)
         config = PriceScaleConfig.for_volume(scale_id="vol_custom", as_overlay=True)
 
-        assert config.price_scale_id == "vol_custom"
+        assert config.visible is False  # Still an overlay
+        assert config.auto_scale is True
 
     def test_for_indicator_with_bounds(self):
         """Test for_indicator with min/max values (e.g., RSI 0-100)."""
         config = PriceScaleConfig.for_indicator("rsi", min_value=0, max_value=100)
 
-        assert config.price_scale_id == "rsi"
         assert config.visible is True
         # Note: min/max values are accepted but not stored in PriceScaleOptions
         assert config.auto_scale is True
@@ -97,7 +94,6 @@ class TestPriceScaleConfig:
         """Test for_indicator without bounds (auto-scaling)."""
         config = PriceScaleConfig.for_indicator("macd")
 
-        assert config.price_scale_id == "macd"
         assert config.visible is True
         assert config.auto_scale is True  # Enabled when no bounds
         assert config.mode == PriceScaleMode.NORMAL
@@ -107,7 +103,6 @@ class TestPriceScaleConfig:
         config = PriceScaleConfig.for_indicator("stoch", min_value=0)
 
         # Note: min/max values are accepted but not stored in PriceScaleOptions
-        assert config.price_scale_id == "stoch"
         assert config.auto_scale is True
 
     def test_for_indicator_with_only_max(self):
@@ -115,14 +110,12 @@ class TestPriceScaleConfig:
         config = PriceScaleConfig.for_indicator("custom", max_value=100)
 
         # Note: min/max values are accepted but not stored in PriceScaleOptions
-        assert config.price_scale_id == "custom"
         assert config.auto_scale is True
 
     def test_for_percentage(self):
         """Test for_percentage creates percentage mode configuration."""
         config = PriceScaleConfig.for_percentage("pct_change")
 
-        assert config.price_scale_id == "pct_change"
         assert config.visible is True
         assert config.auto_scale is True
         assert config.mode == PriceScaleMode.PERCENTAGE  # Percentage mode
@@ -133,7 +126,6 @@ class TestPriceScaleConfig:
         """Test for_logarithmic creates logarithmic mode configuration."""
         config = PriceScaleConfig.for_logarithmic("price_log")
 
-        assert config.price_scale_id == "price_log"
         assert config.visible is True
         assert config.auto_scale is True
         assert config.mode == PriceScaleMode.LOGARITHMIC  # Logarithmic mode
@@ -165,12 +157,10 @@ class TestPriceScaleConfig:
         """Test common real-world use cases."""
         # RSI (0-100) - min/max accepted but not stored
         rsi = PriceScaleConfig.for_indicator("rsi", min_value=0, max_value=100)
-        assert rsi.price_scale_id == "rsi"
         assert rsi.auto_scale is True
 
         # Stochastic (0-100) - min/max accepted but not stored
         stoch = PriceScaleConfig.for_indicator("stoch", min_value=0, max_value=100)
-        assert stoch.price_scale_id == "stoch"
         assert stoch.auto_scale is True
 
         # MACD (unbounded)

@@ -83,13 +83,14 @@ class TestCompleteChartValidation:
             assert data_point["time"] == expected_times[i]
             assert data_point["value"] == expected_values[i]
 
-        # Validate series properties
-        assert series_config["visible"] is True
-        assert series_config["priceScaleId"] == "right"
+        # Validate series properties - some are now in options object
+        assert "options" in series_config
+        assert series_config["options"]["visible"] is True
+        assert series_config["options"]["priceScaleId"] == "right"
         assert series_config["paneId"] == 0
-        assert series_config["lastValueVisible"] is True
-        assert series_config["priceLineVisible"] is True
-        assert series_config["zIndex"] == 100
+        assert series_config["options"]["lastValueVisible"] is True
+        assert series_config["options"]["priceLineVisible"] is True
+        assert series_config["options"]["zIndex"] == 100
 
     def test_candlestick_chart_validation(self):
         """Test candlestick chart configuration end-to-end."""
@@ -430,9 +431,10 @@ class TestPriceScaleIntegrationValidation:
         chart = Chart(series=[series])
         config = chart.to_frontend_config()
 
-        # Validate price scale in series
+        # Validate price scale in series - priceScaleId is now in options object
         series_config = config["charts"][0]["series"][0]
-        assert series_config["priceScaleId"] == "custom_scale"
+        assert "options" in series_config
+        assert series_config["options"]["priceScaleId"] == "custom_scale"
 
     def test_chart_with_price_scale_options_validation(self):
         """Test chart with price scale options configuration."""

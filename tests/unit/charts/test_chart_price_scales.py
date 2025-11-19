@@ -95,6 +95,28 @@ class TestOverlayPriceScales:
         chart.add_overlay_price_scale("test_scale", options2)
         assert chart.options.overlay_price_scales["test_scale"].visible is False
 
+    def test_overlay_price_scales_reference_preservation(self):
+        """Test that overlay_price_scales maintains reference between Chart and PriceScaleManager.
+
+        This is a regression test for the bug where empty dicts were replaced
+        by the expression `overlay_price_scales or {}`, breaking the reference.
+        """
+        chart = Chart()
+
+        # Verify the reference is the same object (not a copy)
+        assert chart.options.overlay_price_scales is chart._price_scale_manager.overlay_price_scales
+
+        # Verify changes to one are reflected in the other
+        chart._price_scale_manager.add_overlay_scale("test", PriceScaleOptions(visible=False))
+
+        # Should be visible in both
+        assert "test" in chart.options.overlay_price_scales
+        assert "test" in chart._price_scale_manager.overlay_price_scales
+        assert (
+            chart.options.overlay_price_scales["test"]
+            is chart._price_scale_manager.overlay_price_scales["test"]
+        )
+
 
 class TestPriceVolumeSeries:
     """Test price-volume series creation."""

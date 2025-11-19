@@ -206,7 +206,7 @@ export const PropertyDescriptors = {
 /**
  * Standard series properties that should be included in all series descriptors.
  * These correspond to SeriesOptionsCommon from lightweight-charts and are sent
- * as top-level properties from Python (marked with @chainable_property top_level=True).
+ * in the options object from Python backend (properties without top_level=True).
  *
  * Including these in descriptors ensures:
  * 1. Properties are passed through when updating via dialog
@@ -248,7 +248,9 @@ export const STANDARD_SERIES_PROPERTIES: Record<string, PropertyDescriptor> = {
     default: 0,
     group: 'General',
     hidden: true,
-    description: 'Rendering order (higher values render on top)',
+    description:
+      'Rendering order (higher values render on top). ' +
+      'Official Lightweight Charts API property.',
   },
   priceLineSource: {
     type: 'number',
@@ -273,6 +275,18 @@ export const STANDARD_SERIES_PROPERTIES: Record<string, PropertyDescriptor> = {
     group: 'General',
     hidden: true,
     description: 'Color of the price line',
+  },
+  priceScaleId: {
+    type: 'color', // Using color type as string input (will be improved in future)
+    label: 'Price Scale ID',
+    default: 'right',
+    group: 'General',
+    hidden: true,
+    description:
+      'ID of the price scale for this series (e.g., "left", "right", or custom ID). ' +
+      'Official Lightweight Charts API property. ' +
+      'NOTE: To configure price scale properties (margins, mode, etc.), use the ' +
+      'priceScale object at the top level of series config.',
   },
   priceLineStyle: {
     type: 'lineStyle',

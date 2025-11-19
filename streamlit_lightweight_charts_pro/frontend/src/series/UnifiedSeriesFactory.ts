@@ -307,10 +307,14 @@ export function createSeries(
     // Flatten nested line objects from Python (if any)
     const flattenedUserOptions = flattenLineOptions(userOptions, descriptor);
 
+    // Extract custom properties that are NOT part of the official Lightweight Charts API
+    // These properties are used for UI/metadata purposes only
+    const { displayName, ...apiOptions } = flattenedUserOptions as any;
+
     // Merge user options with defaults and add _seriesType metadata
     const options = {
       ...defaultOptions,
-      ...flattenedUserOptions,
+      ...apiOptions, // Use apiOptions (with custom properties filtered out)
       // Add _seriesType property so we can identify series type later via series.options()
       _seriesType: mappedType,
     };
@@ -474,49 +478,20 @@ export function createSeriesWithConfig(
       options = {},
       paneId = 0,
       priceScale,
-      priceScaleId,
       priceLines,
       markers,
       legend,
       seriesId,
       chartId,
-      title,
-      displayName,
-      // Extract additional top-level SeriesOptionsCommon properties that Python sends
-      visible,
-      zIndex,
-      lastValueVisible,
-      priceLineVisible,
-      priceLineSource,
-      priceLineWidth,
-      priceLineColor,
-      priceLineStyle,
     } = config;
 
-    // CRITICAL FIX: Merge ALL top-level properties into options
-    // Python sends these at top level (marked with @chainable_property top_level=True),
-    // but lightweight-charts expects them in the options object passed to series creation.
-    //
-    // Without this merge, properties like 'visible' are ignored, causing issues like
-    // Signal series not respecting visibility settings.
-    const mergedOptions = { ...options } as any;
-
-    // Standard series properties (SeriesOptionsCommon)
-    if (title !== undefined) mergedOptions.title = title;
-    if (displayName !== undefined) mergedOptions.displayName = displayName;
-    if (priceScaleId !== undefined) mergedOptions.priceScaleId = priceScaleId;
-    if (visible !== undefined) mergedOptions.visible = visible;
-    if (zIndex !== undefined) mergedOptions.zIndex = zIndex;
-    if (lastValueVisible !== undefined) mergedOptions.lastValueVisible = lastValueVisible;
-    if (priceLineVisible !== undefined) mergedOptions.priceLineVisible = priceLineVisible;
-    if (priceLineSource !== undefined) mergedOptions.priceLineSource = priceLineSource;
-    if (priceLineWidth !== undefined) mergedOptions.priceLineWidth = priceLineWidth;
-    if (priceLineColor !== undefined) mergedOptions.priceLineColor = priceLineColor;
-    if (priceLineStyle !== undefined) mergedOptions.priceLineStyle = priceLineStyle;
+    // Backend now sends all series configuration properties in the options object.
+    // Framework metadata (type, data, paneId) and post-creation objects (priceScale,
+    // priceLines, markers, legend) remain at top-level for proper handling.
 
     // Step 1: Create the series using basic createSeries
     // Note: createSeries already handles data sorting and setting via descriptors
-    const series = createSeries(chart, type, data, mergedOptions, paneId) as ExtendedSeriesApi;
+    const series = createSeries(chart, type, data, options, paneId) as ExtendedSeriesApi;
 
     // Step 2: Data is already set by descriptor's create method (with sorting/deduplication)
     // No need to set data again here - descriptor handles it properly
@@ -560,12 +535,20 @@ export function createSeriesWithConfig(
     if (legend) {
       series.legendConfig = legend;
     }
-    // Store displayName and title for UI (lightweight-charts doesn't preserve these in options)
-    if (displayName) {
-      series.displayName = displayName;
+
+    // Store custom properties for UI/metadata purposes
+    // NOTE: These properties serve different purposes:
+    //   - displayName: Custom UI property (NOT part of Lightweight Charts API)
+    //                  Used in dialog tabs, tooltips, and other UI elements
+    //                  Filtered out before passing to API (see createSeries function)
+    //   - title: Official Lightweight Charts API property
+    //            Already passed in options to addSeries(), stored here for quick access
+    const optionsAny = options as any;
+    if (optionsAny.displayName) {
+      series.displayName = optionsAny.displayName;
     }
-    if (title) {
-      series.title = title;
+    if (optionsAny.title) {
+      series.title = optionsAny.title;
     }
 
     // Step 7: Handle legend registration

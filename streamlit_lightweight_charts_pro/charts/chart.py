@@ -25,16 +25,12 @@ Example:
 """
 
 # Standard Imports
-import json
 import time
 import uuid
-from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Union
 
 # Third Party Imports
 import pandas as pd
-import streamlit as st
-import streamlit.components.v1 as components
 
 from streamlit_lightweight_charts_pro.charts.managers import (
     ChartRenderer,
@@ -44,17 +40,8 @@ from streamlit_lightweight_charts_pro.charts.managers import (
     TradeManager,
 )
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
-    PriceScaleMargins,
-)
 from streamlit_lightweight_charts_pro.charts.series import (
-    CandlestickSeries,
-    HistogramSeries,
-    LineSeries,
     Series,
-)
-from streamlit_lightweight_charts_pro.charts.series_settings_api import (
-    get_series_settings_api,
 )
 from streamlit_lightweight_charts_pro.component import (  # pylint: disable=import-outside-toplevel
     get_component_func,
@@ -62,28 +49,16 @@ from streamlit_lightweight_charts_pro.component import (  # pylint: disable=impo
 )
 
 # Local Imports
-from streamlit_lightweight_charts_pro.constants import (
-    HISTOGRAM_DOWN_COLOR_DEFAULT,
-    HISTOGRAM_UP_COLOR_DEFAULT,
-)
 from streamlit_lightweight_charts_pro.data.annotation import Annotation, AnnotationManager
 from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
 from streamlit_lightweight_charts_pro.data.tooltip import TooltipConfig, TooltipManager
 from streamlit_lightweight_charts_pro.data.trade import TradeData
 from streamlit_lightweight_charts_pro.exceptions import (
     AnnotationItemsTypeError,
-    ComponentNotAvailableError,
-    PriceScaleIdTypeError,
-    PriceScaleOptionsTypeError,
-    SeriesItemsTypeError,
     TypeValidationError,
     ValueValidationError,
 )
 from streamlit_lightweight_charts_pro.logging_config import get_logger
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    ColumnNames,
-    PriceScaleMode,
-)
 
 if TYPE_CHECKING:
     from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (

@@ -369,6 +369,9 @@ export function createBandSeries(
     visible?: boolean;
     priceLineVisible?: boolean;
 
+    // Pane control
+    paneId?: number;
+
     // Rendering control
     usePrimitive?: boolean;
 
@@ -377,6 +380,9 @@ export function createBandSeries(
     data?: BandData[];
   } = {}
 ): any {
+  // Extract paneId (must be passed as third parameter to addCustomSeries)
+  const paneId = options.paneId ?? 0;
+
   // Create ICustomSeries (always created for autoscaling)
   const series = chart.addCustomSeries(new BandSeries(), {
     _seriesType: 'Band', // Internal property for series type identification
@@ -402,7 +408,7 @@ export function createBandSeries(
     visible: options.visible ?? true,
     title: options.title,
     _usePrimitive: options.usePrimitive ?? false, // Internal flag to disable rendering
-  } as any);
+  } as any, paneId);
 
   // Set data on series (for autoscaling)
   if (options.data && options.data.length > 0) {

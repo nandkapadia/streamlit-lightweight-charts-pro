@@ -58,12 +58,7 @@ class SyncOptions(Options):
         sync_options = SyncOptions(enabled=True, crosshair=True, time_range=False)
 
         # Use with group synchronization
-        sync_options = SyncOptions(
-            enabled=True,
-            crosshair=True,
-            time_range=True,
-            group_id="price_charts"
-        )
+        sync_options = SyncOptions(enabled=True, crosshair=True, time_range=True, group_id="price_charts")
         ```
 
     Note:

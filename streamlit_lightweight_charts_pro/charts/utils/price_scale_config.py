@@ -46,8 +46,8 @@ class PriceScaleConfig:
             >>> config = PriceScaleConfig.for_overlay("volume")
             >>> chart.add_overlay_price_scale("volume", config)
         """
+        del scale_id
         defaults = {
-            "price_scale_id": scale_id,
             "visible": False,  # Hide axis labels for overlays
             "auto_scale": True,
             "mode": PriceScaleMode.NORMAL,
@@ -82,8 +82,8 @@ class PriceScaleConfig:
             >>> config = PriceScaleConfig.for_separate_pane("rsi")
             >>> chart.add_overlay_price_scale("rsi", config)
         """
+        del scale_id
         defaults = {
-            "price_scale_id": scale_id,
             "visible": True,  # Show axis labels for separate panes
             "auto_scale": True,
             "mode": PriceScaleMode.NORMAL,
@@ -115,10 +115,10 @@ class PriceScaleConfig:
             >>> config = PriceScaleConfig.for_volume(as_overlay=True)
             >>> chart.add_overlay_price_scale("volume", config)
         """
+        del scale_id
         if as_overlay:
             # Volume as overlay: large top margin, hidden axis
             defaults = {
-                "price_scale_id": scale_id,
                 "visible": False,
                 "auto_scale": True,
                 "mode": PriceScaleMode.NORMAL,
@@ -127,7 +127,6 @@ class PriceScaleConfig:
         else:
             # Volume as separate pane: visible axis, balanced margins
             defaults = {
-                "price_scale_id": scale_id,
                 "visible": True,
                 "auto_scale": True,
                 "mode": PriceScaleMode.NORMAL,
@@ -166,8 +165,8 @@ class PriceScaleConfig:
             >>> config = PriceScaleConfig.for_indicator("rsi", min_value=0, max_value=100)
             >>> chart.add_overlay_price_scale("rsi", config)
         """
+        del scale_id
         defaults = {
-            "price_scale_id": scale_id,
             "visible": True,
             "auto_scale": True,  # Always auto-scale for now
             "mode": PriceScaleMode.NORMAL,
@@ -201,8 +200,8 @@ class PriceScaleConfig:
             >>> config = PriceScaleConfig.for_percentage("pct_change")
             >>> chart.add_overlay_price_scale("pct_change", config)
         """
+        del scale_id
         defaults = {
-            "price_scale_id": scale_id,
             "visible": True,
             "auto_scale": True,
             "mode": PriceScaleMode.PERCENTAGE,
@@ -232,8 +231,8 @@ class PriceScaleConfig:
             >>> config = PriceScaleConfig.for_logarithmic("price_log")
             >>> chart.add_overlay_price_scale("price_log", config)
         """
+        del scale_id
         defaults = {
-            "price_scale_id": scale_id,
             "visible": True,
             "auto_scale": True,
             "mode": PriceScaleMode.LOGARITHMIC,

@@ -84,8 +84,8 @@ export const BAND_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
     usePrimitive: true, // Enable primitive rendering (factory-specific option)
   } as any, // Factory accepts additional options beyond primitive options
 
-  create: (chart, data, options, _paneId = 0) => {
-    return createBandSeries(chart as IChartApi, { ...options, data: data as BandData[] });
+  create: (chart, data, options, paneId = 0) => {
+    return createBandSeries(chart as IChartApi, { ...options, data: data as BandData[], paneId });
   },
 };
 
@@ -139,8 +139,8 @@ export const RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
     usePrimitive: true, // Enable primitive rendering (factory-specific option)
   } as any, // Factory accepts additional options beyond primitive options
 
-  create: (chart, data, options, _paneId = 0) => {
-    return createRibbonSeries(chart as IChartApi, { ...options, data: data as RibbonData[] });
+  create: (chart, data, options, paneId = 0) => {
+    return createRibbonSeries(chart as IChartApi, { ...options, data: data as RibbonData[], paneId });
   },
 };
 
@@ -209,10 +209,11 @@ export const GRADIENT_RIBBON_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
     usePrimitive: true, // Enable primitive rendering (factory-specific option)
   } as any, // Factory accepts additional options beyond primitive options
 
-  create: (chart, data, options, _paneId = 0) => {
+  create: (chart, data, options, paneId = 0) => {
     return createGradientRibbonSeries(chart as IChartApi, {
       ...options,
       data: data as GradientRibbonData[],
+      paneId,
     });
   },
 };
@@ -249,8 +250,8 @@ export const SIGNAL_SERIES_DESCRIPTOR: UnifiedSeriesDescriptor<any> = {
     usePrimitive: true, // Enable primitive rendering (factory-specific option)
   } as any, // Factory accepts additional options beyond primitive options
 
-  create: (chart, data, options, _paneId = 0) => {
-    return createSignalSeries(chart as IChartApi, { ...options, data: data as SignalData[] });
+  create: (chart, data, options, paneId = 0) => {
+    return createSignalSeries(chart as IChartApi, { ...options, data: data as SignalData[], paneId });
   },
 };
 

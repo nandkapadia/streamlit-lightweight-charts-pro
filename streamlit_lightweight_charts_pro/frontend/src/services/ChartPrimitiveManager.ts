@@ -115,13 +115,8 @@ export class ChartPrimitiveManager {
     // CRITICAL: Cleanup all singleton managers for this chart
     // SeriesDialogManager and PaneCollapseManager are singletons that persist
     // across reinitialization. We must destroy them to clear their state.
-    console.log('[ChartPrimitiveManager] Cleaning up singletons for chartId:', chartId);
-
-    console.log('[ChartPrimitiveManager] Destroying SeriesDialogManager for:', chartId);
     SeriesDialogManager.destroyInstance(chartId);
-    console.log('[ChartPrimitiveManager] Destroying PaneCollapseManager for:', chartId);
     PaneCollapseManager.destroyInstance(chartId);
-    console.log('[ChartPrimitiveManager] Singleton cleanup complete');
 
     // Also cleanup the layout manager and event manager for this chart
     CornerLayoutManager.cleanup(chartId);
@@ -164,7 +159,7 @@ export class ChartPrimitiveManager {
     isPanePrimitive: boolean = false,
     paneId: number = 0,
     seriesReference?: ExtendedSeriesApi
-  ): { destroy: () => void } {
+  ): { destroy: () => void; primitiveId: string } {
     const primitiveId = `legend-${this.chartId}-${++this.legendCounter}`;
 
     try {
@@ -175,6 +170,7 @@ export class ChartPrimitiveManager {
         valueFormat: config.valueFormat || '.2f',
         isPanePrimitive,
         paneId,
+        visible: config.visible !== false, // Pass visible from config
         style: {
           backgroundColor: config.backgroundColor || 'rgba(0, 0, 0, 0.8)',
           color: config.textColor || 'white',
@@ -198,9 +194,10 @@ export class ChartPrimitiveManager {
 
       return {
         destroy: () => this.destroyPrimitive(primitiveId),
+        primitiveId, // Return primitiveId so caller can access the primitive later
       };
     } catch {
-      return { destroy: () => {} };
+      return { destroy: () => {}, primitiveId: '' };
     }
   }
 
