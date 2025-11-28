@@ -1,0 +1,91 @@
+{
+  "name": "lightweight-charts-pro-core",
+  "version": "1.0.0",
+  "description": "Framework-agnostic core library for lightweight-charts-pro - custom series, primitives, and services",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins/index.d.ts",
+      "import": "./dist/plugins/index.js"
+    },
+    "./plugins/*": {
+      "types": "./dist/plugins/*/index.d.ts",
+      "import": "./dist/plugins/*/index.js"
+    },
+    "./primitives": {
+      "types": "./dist/primitives/index.d.ts",
+      "import": "./dist/primitives/index.js"
+    },
+    "./services": {
+      "types": "./dist/services/index.d.ts",
+      "import": "./dist/services/index.js"
+    },
+    "./sync": {
+      "types": "./dist/sync/index.d.ts",
+      "import": "./dist/sync/index.js"
+    },
+    "./data": {
+      "types": "./dist/data/index.d.ts",
+      "import": "./dist/data/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nandkapadia/lightweight-charts-pro-core.git"
+  },
+  "keywords": [
+    "lightweight-charts",
+    "trading",
+    "charts",
+    "financial",
+    "candlestick",
+    "bollinger-bands",
+    "technical-analysis",
+    "typescript"
+  ],
+  "author": "Nand Kapadia",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nandkapadia/lightweight-charts-pro-core/issues"
+  },
+  "homepage": "https://github.com/nandkapadia/lightweight-charts-pro-core#readme",
+  "peerDependencies": {
+    "lightweight-charts": "^4.0.0"
+  },
+  "dependencies": {
+    "fancy-canvas": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "lightweight-charts": "^4.1.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.7.0",
+    "vitest": "^1.0.0"
+  }
+}
