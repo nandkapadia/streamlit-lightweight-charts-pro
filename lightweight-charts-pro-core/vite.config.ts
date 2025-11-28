@@ -7,7 +7,8 @@ export default defineConfig({
     dts({
       include: ['src/**/*.ts'],
       outDir: 'dist',
-      rollupTypes: true,
+      // Disable rollupTypes to preserve proper module exports
+      rollupTypes: false,
     }),
   ],
   build: {
