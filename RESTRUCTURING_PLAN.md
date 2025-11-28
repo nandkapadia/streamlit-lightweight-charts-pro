@@ -6,7 +6,7 @@ This plan outlines the migration from a single repository to three separate repo
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         @nasha/charts-core                          │
+│                      lightweight-charts-pro-core                    │
 │                    (npm package - framework agnostic)               │
 │                                                                     │
 │  • Custom series plugins (Band, Ribbon, Signal, etc.)               │
@@ -32,13 +32,13 @@ This plan outlines the migration from a single repository to three separate repo
 
 ## Repository Definitions
 
-### 1. `nandkapadia/charts-core`
+### 1. `nandkapadia/lightweight-charts-pro-core`
 
-**Package name**: `@nasha/charts-core`
+**Package name**: `lightweight-charts-pro-core`
 **Purpose**: Framework-agnostic TypeScript library for charting primitives
 
 ```
-charts-core/
+lightweight-charts-pro-core/
 ├── src/
 │   ├── index.ts                    # Main exports
 │   │
@@ -143,7 +143,7 @@ charts-core/
 **package.json**:
 ```json
 {
-  "name": "@nasha/charts-core",
+  "name": "lightweight-charts-pro-core",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -230,7 +230,7 @@ svelte-lightweight-charts-pro/
 │   │   │   │   ├── HistogramSeries.svelte
 │   │   │   │   ├── BaselineSeries.svelte
 │   │   │   │   ├── BarSeries.svelte
-│   │   │   │   ├── BandSeries.svelte       # Uses @nasha/charts-core
+│   │   │   │   ├── BandSeries.svelte       # Uses lightweight-charts-pro-core
 │   │   │   │   ├── RibbonSeries.svelte
 │   │   │   │   ├── GradientRibbonSeries.svelte
 │   │   │   │   ├── SignalSeries.svelte
@@ -318,7 +318,7 @@ svelte-lightweight-charts-pro/
     "lightweight-charts": "^4.0.0"
   },
   "dependencies": {
-    "@nasha/charts-core": "^1.0.0"
+    "lightweight-charts-pro-core": "^1.0.0"
   },
   "devDependencies": {
     "@sveltejs/kit": "^2.0.0",
@@ -355,12 +355,12 @@ streamlit-lightweight-charts-pro/
 │   ├── data/
 │   ├── frontend/
 │   │   ├── src/
-│   │   │   ├── LightweightCharts.tsx   # Uses @nasha/charts-core
+│   │   │   ├── LightweightCharts.tsx   # Uses lightweight-charts-pro-core
 │   │   │   ├── components/
 │   │   │   ├── hooks/
-│   │   │   ├── types/                  # Re-exports from @nasha/charts-core
+│   │   │   ├── types/                  # Re-exports from lightweight-charts-pro-core
 │   │   │   └── utils/
-│   │   ├── package.json                # Depends on @nasha/charts-core
+│   │   ├── package.json                # Depends on lightweight-charts-pro-core
 │   │   └── ...
 │   └── ...
 ├── tests/
@@ -376,7 +376,7 @@ streamlit-lightweight-charts-pro/
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@nasha/charts-core": "^1.0.0",
+    "lightweight-charts-pro-core": "^1.0.0",
     "lightweight-charts": "^4.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -389,7 +389,7 @@ streamlit-lightweight-charts-pro/
 
 ## Code Extraction Map
 
-### From Current Frontend → @nasha/charts-core
+### From Current Frontend → lightweight-charts-pro-core
 
 | Current Path | New Path in Core | Notes |
 |-------------|------------------|-------|
@@ -443,10 +443,10 @@ streamlit-lightweight-charts-pro/
 
 ```bash
 # 1. Create new repository
-gh repo create nandkapadia/charts-core --public
+gh repo create nandkapadia/lightweight-charts-pro-core --public
 
 # 2. Clone and setup
-git clone https://github.com/nandkapadia/charts-core.git
+git clone https://github.com/nandkapadia/lightweight-charts-pro-core.git
 cd charts-core
 
 # 3. Initialize package
@@ -465,7 +465,7 @@ npm install -D lightweight-charts fancy-canvas
 - [ ] Create proper exports
 - [ ] Add unit tests
 - [ ] Setup CI/CD
-- [ ] Publish to npm as `@nasha/charts-core`
+- [ ] Publish to npm as `lightweight-charts-pro-core`
 
 ### Phase 2: Create svelte-lightweight-charts-pro Repository
 
@@ -479,7 +479,7 @@ cd svelte-lightweight-charts-pro
 
 # 3. Initialize SvelteKit library
 npm create svelte@latest . -- --template skeleton --typescript
-npm install @nasha/charts-core lightweight-charts
+npm install lightweight-charts-pro-core lightweight-charts
 ```
 
 **Tasks**:
@@ -494,9 +494,9 @@ npm install @nasha/charts-core lightweight-charts
 ### Phase 3: Refactor streamlit-lightweight-charts-pro
 
 **Tasks**:
-- [ ] Add `@nasha/charts-core` as dependency
+- [ ] Add `lightweight-charts-pro-core` as dependency
 - [ ] Remove extracted code (plugins, primitives, services)
-- [ ] Update imports to use `@nasha/charts-core`
+- [ ] Update imports to use `lightweight-charts-pro-core`
 - [ ] Update tests
 - [ ] Verify all functionality works
 - [ ] Release new version
@@ -509,7 +509,7 @@ npm install @nasha/charts-core lightweight-charts
 lightweight-charts (TradingView)
        │
        ▼
-@nasha/charts-core
+lightweight-charts-pro-core
        │
        ├──────────────────────────┐
        ▼                          ▼
@@ -521,7 +521,7 @@ svelte-lightweight-charts-pro    streamlit-lightweight-charts-pro
 
 ### Version Compatibility Matrix
 
-| @nasha/charts-core | lightweight-charts | svelte | streamlit-lw-charts-pro |
+| lightweight-charts-pro-core | lightweight-charts | svelte | streamlit-lw-charts-pro |
 |-------------------|-------------------|--------|------------------------|
 | 1.0.x | ^4.0.0 | ^4.0.0 \|\| ^5.0.0 | 1.0.x |
 | 1.1.x | ^4.1.0 | ^4.0.0 \|\| ^5.0.0 | 1.1.x |
@@ -533,7 +533,7 @@ svelte-lightweight-charts-pro    streamlit-lightweight-charts-pro
 ### Core Package Exports
 
 ```typescript
-// @nasha/charts-core
+// lightweight-charts-pro-core
 
 // Plugins
 export { BandSeries, createBandSeries } from './plugins/band';
@@ -588,7 +588,7 @@ export type {
   TradeData,
   TradeVisualizationOptions,
   SyncConfig,
-} from '@nasha/charts-core';
+} from 'lightweight-charts-pro-core';
 ```
 
 ---

@@ -96,7 +96,7 @@ streamlit_lightweight_charts_pro/
 ### 3.1 Package Structure
 
 ```
-@nasha/charts/
+lightweight-charts-pro-core/
 ├── src/
 │   ├── index.ts                       # Main exports
 │   │
@@ -1439,7 +1439,7 @@ Each feature must have tests verifying parity with the original implementation:
 // tests/parity/series-parity.test.ts
 
 import { describe, it, expect } from 'vitest';
-import { createBandSeries, BandData, BandSeriesOptions } from '@nasha/charts';
+import { createBandSeries, BandData, BandSeriesOptions } from 'lightweight-charts-pro-core';
 
 describe('Band Series Feature Parity', () => {
   // Data handling parity
@@ -1502,8 +1502,8 @@ describe('Band Series Feature Parity', () => {
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
-import ChartManager from '@nasha/charts/components/ChartManager.svelte';
-import Chart from '@nasha/charts/components/Chart.svelte';
+import ChartManager from 'lightweight-charts-pro-core/components/ChartManager.svelte';
+import Chart from 'lightweight-charts-pro-core/components/Chart.svelte';
 
 describe('ChartManager Integration', () => {
   afterEach(() => {
