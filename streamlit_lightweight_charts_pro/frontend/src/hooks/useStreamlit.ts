@@ -62,7 +62,13 @@ export function useStreamlitRenderData(): RenderData | undefined {
 
     return () => {
       window.removeEventListener('load', callSetComponentReady);
-      isComponentReady = false;
+      // CRITICAL FIX: Don't reset isComponentReady to false on cleanup
+      // This flag should remain true once set to prevent race conditions with:
+      // 1. Chart reinitialization when changing symbols/data
+      // 2. Primitive creation (legends, rectangles) that happens asynchronously
+      // 3. setFrameHeight() calls from layout changes
+      // Only Streamlit itself should reset this when the component is truly destroyed
+      // isComponentReady = false; // REMOVED
       Streamlit.events.removeEventListener(Streamlit.RENDER_EVENT, onRenderEvent);
     };
   }, []);
@@ -71,15 +77,49 @@ export function useStreamlitRenderData(): RenderData | undefined {
 }
 
 /**
+ * Safely call Streamlit.setFrameHeight() with error handling.
+ * Prevents "unregistered ComponentInstance" errors by validating
+ * component state before calling.
+ *
+ * @param height Optional specific height to set (if omitted, uses auto-height)
+ * @returns true if successful, false if failed
+ */
+export function safeSetFrameHeight(height?: number): boolean {
+  // Check if component is ready
+  if (!isComponentReady) {
+    return false;
+  }
+
+  // Check if Streamlit object exists and has setFrameHeight method
+  if (typeof Streamlit === 'undefined' || typeof Streamlit.setFrameHeight !== 'function') {
+    return false;
+  }
+
+  try {
+    if (height !== undefined) {
+      Streamlit.setFrameHeight(height);
+    } else {
+      Streamlit.setFrameHeight();
+    }
+    return true;
+  } catch (error) {
+    // Silently catch errors - component instance may have been unregistered
+    // This is normal during Streamlit re-renders and symbol changes
+    return false;
+  }
+}
+
+/**
  * Hook for automatic frame height reporting.
  *
  * Updates iframe height on every render. Only calls setFrameHeight()
  * after component is ready to prevent ComponentRegistry errors.
+ * Uses safe wrapper to handle unregistered component instances gracefully.
  */
 export function useStreamlitFrameHeight(): void {
   useEffect(() => {
     if (isComponentReady) {
-      Streamlit.setFrameHeight();
+      safeSetFrameHeight();
     }
   });
 }

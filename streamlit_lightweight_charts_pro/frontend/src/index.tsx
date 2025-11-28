@@ -31,6 +31,7 @@ import {
   useStreamlitRenderData,
   useStreamlitFrameHeight,
   isStreamlitComponentReady,
+  safeSetFrameHeight,
 } from './hooks/useStreamlit';
 
 /**
@@ -174,17 +175,9 @@ const App: React.FC = () => {
         lastReportedHeight.current = finalHeight;
 
         // Report height to Streamlit only if component is ready and mounted
-        if (
-          isMountedRef.current &&
-          isStreamlitComponentReady() &&
-          typeof Streamlit !== 'undefined' &&
-          Streamlit.setFrameHeight
-        ) {
-          try {
-            Streamlit.setFrameHeight(finalHeight);
-          } catch (error) {
-            logger.error('Failed to set Streamlit frame height', 'StreamlitComponent', error);
-          }
+        if (isMountedRef.current && isStreamlitComponentReady()) {
+          // Use safe wrapper that handles unregistered component instances gracefully
+          safeSetFrameHeight(finalHeight);
         }
       }
     } catch (error) {
