@@ -10,6 +10,7 @@
     "focus-trap-react": "^11.0.4",
     "jsdom": "^27.0.0",
     "lightweight-charts": "^5.0.8",
+    "lightweight-charts-pro-core": "file:../../lightweight-charts-pro-core",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "streamlit-component-lib": "^2.0.0"

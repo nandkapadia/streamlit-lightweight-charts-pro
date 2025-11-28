@@ -12,6 +12,10 @@
  */
 
 import { ISeriesApi, Time, Coordinate } from 'lightweight-charts';
+import { LineStyle } from 'lightweight-charts-pro-core';
+
+// Re-export LineStyle from core package
+export { LineStyle };
 
 // ============================================================================
 // Type Definitions
@@ -491,19 +495,8 @@ export function createGradientFillPath(
 }
 
 // ============================================================================
-// Line Style Enums and Types
+// Line Style Types (LineStyle enum is re-exported from core package)
 // ============================================================================
-
-/**
- * Line style constants matching lightweight-charts LineStyle enum
- */
-export enum LineStyle {
-  Solid = 0,
-  Dotted = 1,
-  Dashed = 2,
-  LargeDashed = 3,
-  SparseDotted = 4,
-}
 
 /**
  * Line style configuration
