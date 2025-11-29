@@ -171,3 +171,48 @@ export {
   type SignalColorOptions,
   SignalColorCalculator,
 } from './utils/signalColors';
+
+// ============================================================================
+// Managers
+// ============================================================================
+
+export { ChartManager, type ChartManagerConfig } from './managers';
+
+// ============================================================================
+// Dialogs
+// ============================================================================
+
+export {
+  // Base Dialog
+  BaseDialog,
+
+  // Specific Dialogs
+  ColorPickerDialog,
+  LineEditorDialog,
+  SeriesSettingsDialog,
+  SeriesSettingsRenderer,
+
+  // State Management
+  FormStateManager,
+  TabManager,
+} from './dialogs';
+
+// ============================================================================
+// Buttons
+// ============================================================================
+
+export {
+  // Base Button
+  BaseButton,
+  type BaseButtonConfig,
+  type ButtonState,
+  type ButtonStyling,
+  DEFAULT_BUTTON_STYLING,
+
+  // Button Types
+  CollapseButton,
+  SeriesSettingsButton,
+
+  // Button Registry
+  ButtonRegistry,
+} from './components/buttons';
