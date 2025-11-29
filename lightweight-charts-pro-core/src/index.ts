@@ -216,3 +216,106 @@ export {
   // Button Registry
   ButtonRegistry,
 } from './components/buttons';
+
+// ============================================================================
+// Primitives
+// ============================================================================
+
+export {
+  // Base Primitives
+  BasePanePrimitive,
+  BaseSeriesPrimitive,
+
+  // Series Primitives
+  BandPrimitive,
+  RibbonPrimitive,
+  TrendFillPrimitive,
+  GradientRibbonPrimitive,
+  SignalPrimitive,
+
+  // UI Primitives
+  ButtonPanelPrimitive,
+  LegendPrimitive,
+
+  // Feature Primitives
+  TradeRectanglePrimitive,
+  RangeSwitcherPrimitive,
+
+  // Utilities - Note: PrimitiveDefaults is exported as individual constants
+  PrimitiveStylingUtils,
+
+  // Primitive defaults (exported individually)
+  TimeRangeSeconds,
+  UniversalSpacing,
+  ButtonDimensions,
+  ButtonSpacing,
+  ButtonColors,
+  ButtonEffects,
+  LegendDimensions,
+  LayoutSpacing,
+  LegendColors,
+  RangeSwitcherLayout,
+  FormatDefaults,
+  ContainerDefaults,
+  CommonValues,
+  AnimationTiming,
+  DefaultButtonConfig,
+  DefaultLegendConfig,
+  DefaultRangeSwitcherConfig,
+  DefaultContainerConfig,
+} from './primitives';
+
+// ============================================================================
+// Series Infrastructure
+// ============================================================================
+
+export {
+  // Core Types
+  type UnifiedSeriesDescriptor,
+
+  // Property Mapping (exported as PropertyMapper, not UnifiedPropertyMapper)
+  PropertyMapper,
+  apiOptionsToDialogConfig,
+  dialogConfigToApiOptions,
+  LINE_STYLE_TO_STRING,
+  STRING_TO_LINE_STYLE,
+
+  // Series Factory (exported as SeriesFactory, not UnifiedSeriesFactory)
+  SeriesFactory,
+  createSeries,
+  createSeriesWithConfig,
+  getSeriesDescriptor,
+  getDefaultOptions,
+  isCustomSeries,
+  getAvailableSeriesTypes,
+  updateSeriesData,
+  updateSeriesMarkers,
+  updateSeriesOptions,
+  type ExtendedSeriesConfig,
+  type ExtendedSeriesApi,
+
+  // Utilities (exported as normalizeSeriesType, not seriesTypeNormalizer)
+  normalizeSeriesType,
+
+  // Descriptors (exported with correct names)
+  CUSTOM_SERIES_DESCRIPTORS,
+  BUILTIN_SERIES_DESCRIPTORS,
+} from './series';
+
+// ============================================================================
+// Chart Plugins
+// ============================================================================
+
+export {
+  TooltipManager,
+  TooltipPlugin,
+} from './plugins/chart';
+
+// ============================================================================
+// Overlay Plugins
+// ============================================================================
+
+export {
+  RectangleOverlayPlugin,
+  type RectangleConfig,
+} from './plugins/overlay';

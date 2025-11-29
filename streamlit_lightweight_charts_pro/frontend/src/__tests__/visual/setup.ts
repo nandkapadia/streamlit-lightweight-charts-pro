@@ -185,6 +185,90 @@ function setupResizeObserver() {
 }
 
 /**
+ * Set up Path2D mock for canvas drawing
+ */
+function setupPath2D() {
+  if (typeof globalThis.Path2D === 'undefined') {
+    // Simple Path2D mock that stores path operations
+    (globalThis as any).Path2D = class Path2D {
+      private operations: Array<{ method: string; args: any[] }> = [];
+
+      constructor(path?: Path2D | string) {
+        if (path instanceof Path2D) {
+          this.operations = [...(path as any).operations];
+        }
+      }
+
+      moveTo(x: number, y: number) {
+        this.operations.push({ method: 'moveTo', args: [x, y] });
+      }
+
+      lineTo(x: number, y: number) {
+        this.operations.push({ method: 'lineTo', args: [x, y] });
+      }
+
+      arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterclockwise?: boolean) {
+        this.operations.push({ method: 'arc', args: [x, y, radius, startAngle, endAngle, counterclockwise] });
+      }
+
+      arcTo(x1: number, y1: number, x2: number, y2: number, radius: number) {
+        this.operations.push({ method: 'arcTo', args: [x1, y1, x2, y2, radius] });
+      }
+
+      bezierCurveTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number) {
+        this.operations.push({ method: 'bezierCurveTo', args: [cp1x, cp1y, cp2x, cp2y, x, y] });
+      }
+
+      quadraticCurveTo(cpx: number, cpy: number, x: number, y: number) {
+        this.operations.push({ method: 'quadraticCurveTo', args: [cpx, cpy, x, y] });
+      }
+
+      rect(x: number, y: number, width: number, height: number) {
+        this.operations.push({ method: 'rect', args: [x, y, width, height] });
+      }
+
+      closePath() {
+        this.operations.push({ method: 'closePath', args: [] });
+      }
+
+      // Method to replay operations on a context
+      _replay(ctx: any) {
+        for (const op of this.operations) {
+          if (typeof ctx[op.method] === 'function') {
+            ctx[op.method](...op.args);
+          }
+        }
+      }
+    };
+
+    // Patch CanvasRenderingContext2D.stroke and fill to handle Path2D
+    const proto = CanvasRenderingContext2D.prototype as any;
+
+    const originalStroke = proto.stroke;
+    proto.stroke = function (path?: any) {
+      if (path && path._replay) {
+        this.beginPath();
+        path._replay(this);
+        originalStroke.call(this);
+      } else {
+        originalStroke.call(this, path);
+      }
+    };
+
+    const originalFill = proto.fill;
+    proto.fill = function (path?: any, fillRule?: any) {
+      if (path && path._replay) {
+        this.beginPath();
+        path._replay(this);
+        originalFill.call(this, fillRule);
+      } else {
+        originalFill.call(this, path, fillRule);
+      }
+    };
+  }
+}
+
+/**
  * Set up additional browser APIs needed by lightweight-charts
  */
 function setupAdditionalAPIs() {
@@ -220,6 +304,7 @@ setupAnimationFrame();
 setupDevicePixelRatio();
 setupMatchMedia();
 setupResizeObserver();
+setupPath2D();
 setupAdditionalAPIs();
 
 console.log('✓ Visual test environment initialized with node-canvas');
