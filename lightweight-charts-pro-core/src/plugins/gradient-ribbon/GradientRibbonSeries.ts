@@ -371,23 +371,7 @@ export function GradientRibbonSeriesPlugin(): ICustomSeriesPaneView<
  */
 export function createGradientRibbonSeries(
   chart: IChartApi,
-  options: {
-    upperLineColor?: string;
-    upperLineWidth?: LineWidth;
-    upperLineStyle?: LineStyle;
-    upperLineVisible?: boolean;
-    lowerLineColor?: string;
-    lowerLineWidth?: LineWidth;
-    lowerLineStyle?: LineStyle;
-    lowerLineVisible?: boolean;
-    topColor?: string;
-    bottomColor?: string;
-    fillVisible?: boolean;
-    priceScaleId?: string;
-    lastValueVisible?: boolean;
-    title?: string;
-    visible?: boolean;
-    priceLineVisible?: boolean;
+  options: Partial<GradientRibbonSeriesOptions> & {
     usePrimitive?: boolean;
     zIndex?: number;
     data?: GradientRibbonData[];
@@ -397,23 +381,10 @@ export function createGradientRibbonSeries(
   const paneId = options.paneId ?? 0;
 
   const series = (chart as any).addCustomSeries(GradientRibbonSeriesPlugin(), {
+    ...defaultGradientRibbonOptions,
+    priceScaleId: 'right',
+    ...options,
     _seriesType: 'GradientRibbon',
-    upperLineColor: options.upperLineColor ?? '#4CAF50',
-    upperLineWidth: options.upperLineWidth ?? 2,
-    upperLineStyle: options.upperLineStyle ?? LineStyle.Solid,
-    upperLineVisible: options.upperLineVisible !== false,
-    lowerLineColor: options.lowerLineColor ?? '#F44336',
-    lowerLineWidth: options.lowerLineWidth ?? 2,
-    lowerLineStyle: options.lowerLineStyle ?? LineStyle.Solid,
-    lowerLineVisible: options.lowerLineVisible !== false,
-    topColor: options.topColor ?? 'rgba(76, 175, 80, 0.4)',
-    bottomColor: options.bottomColor ?? 'rgba(244, 67, 54, 0.4)',
-    fillVisible: options.fillVisible !== false,
-    priceScaleId: options.priceScaleId ?? 'right',
-    lastValueVisible: options.lastValueVisible ?? false,
-    priceLineVisible: options.priceLineVisible ?? false,
-    visible: options.visible ?? true,
-    title: options.title,
     _usePrimitive: options.usePrimitive ?? false,
   }, paneId);
 
