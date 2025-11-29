@@ -416,19 +416,7 @@ export function TrendFillSeriesPlugin(): ICustomSeriesPaneView<
  */
 export function createTrendFillSeries(
   chart: IChartApi,
-  options: {
-    lineColor?: string;
-    lineWidth?: LineWidth;
-    lineStyle?: LineStyle;
-    lineVisible?: boolean;
-    upColor?: string;
-    downColor?: string;
-    fillVisible?: boolean;
-    priceScaleId?: string;
-    lastValueVisible?: boolean;
-    title?: string;
-    visible?: boolean;
-    priceLineVisible?: boolean;
+  options: Partial<TrendFillSeriesOptions> & {
     usePrimitive?: boolean;
     zIndex?: number;
     data?: TrendFillData[];
@@ -438,19 +426,10 @@ export function createTrendFillSeries(
   const paneId = options.paneId ?? 0;
 
   const series = (chart as any).addCustomSeries(TrendFillSeriesPlugin(), {
+    ...defaultTrendFillOptions,
+    priceScaleId: 'right',
+    ...options,
     _seriesType: 'TrendFill',
-    lineColor: options.lineColor ?? '#2196F3',
-    lineWidth: options.lineWidth ?? 2,
-    lineStyle: options.lineStyle ?? LineStyle.Solid,
-    lineVisible: options.lineVisible !== false,
-    upColor: options.upColor ?? 'rgba(76, 175, 80, 0.3)',
-    downColor: options.downColor ?? 'rgba(244, 67, 54, 0.3)',
-    fillVisible: options.fillVisible !== false,
-    priceScaleId: options.priceScaleId ?? 'right',
-    lastValueVisible: options.lastValueVisible ?? false,
-    priceLineVisible: options.priceLineVisible ?? false,
-    visible: options.visible ?? true,
-    title: options.title,
     _usePrimitive: options.usePrimitive ?? false,
   }, paneId);
 
