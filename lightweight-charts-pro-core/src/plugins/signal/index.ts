@@ -2,4 +2,11 @@
  * @fileoverview Signal Series plugin exports
  */
 
-export * from './SignalSeries';
+export {
+  SignalSeries,
+  SignalSeriesPlugin,
+  createSignalSeries,
+  defaultSignalOptions,
+  type SignalData,
+  type SignalSeriesOptions,
+} from './SignalSeries';

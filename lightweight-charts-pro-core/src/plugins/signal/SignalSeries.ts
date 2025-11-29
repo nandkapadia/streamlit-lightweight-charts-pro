@@ -27,6 +27,7 @@ import {
   ICustomSeriesPaneRenderer,
   ICustomSeriesPaneView,
   PriceToCoordinateConverter,
+  IChartApi,
 } from 'lightweight-charts';
 import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { isWhitespaceDataMultiField } from '../shared/rendering';
@@ -234,4 +235,75 @@ export function SignalSeriesPlugin(): ICustomSeriesPaneView<
   SignalSeriesOptions
 > {
   return new SignalSeries();
+}
+
+/**
+ * Create Signal series with optional primitive for background rendering
+ *
+ * Hybrid pattern:
+ * - ICustomSeries: Always created for autoscaling
+ * - Primitive: Optionally created for background rendering (usePrimitive: true)
+ *
+ * @param chart - Chart instance
+ * @param options - Configuration options
+ * @returns ICustomSeries instance
+ */
+export function createSignalSeries(
+  chart: IChartApi,
+  options: {
+    // Visual options
+    neutralColor?: string;
+    signalColor?: string;
+    alertColor?: string;
+    priceScaleId?: string;
+
+    // Series options
+    lastValueVisible?: boolean;
+    title?: string;
+    visible?: boolean;
+    priceLineVisible?: boolean;
+
+    // Rendering control
+    usePrimitive?: boolean;
+
+    // Primitive-specific options
+    zIndex?: number;
+    data?: SignalData[];
+
+    // Pane control
+    paneId?: number;
+  } = {}
+): any {
+  // Extract paneId (must be passed as third parameter to addCustomSeries)
+  const paneId = options.paneId ?? 0;
+
+  const usePrimitive = options.usePrimitive ?? false;
+
+  // Create ICustomSeries (always created for autoscaling)
+  const series = (chart as any).addCustomSeries(SignalSeriesPlugin(), {
+    _seriesType: 'Signal', // Internal property for series type identification
+    neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
+    signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
+    alertColor: options.alertColor, // No default - only use if explicitly provided
+    priceScaleId: options.priceScaleId ?? 'right',
+    lastValueVisible: options.lastValueVisible ?? false,
+    title: options.title ?? 'Signal',
+    visible: options.visible !== false,
+    priceLineVisible: options.priceLineVisible ?? false,
+    _usePrimitive: usePrimitive, // Internal flag to disable rendering
+  }, paneId);
+
+  // Set data on series
+  if (options.data && options.data.length > 0) {
+    series.setData(options.data);
+  }
+
+  // Conditionally create primitive for background rendering
+  if (usePrimitive) {
+    // Note: SignalPrimitive needs to be imported from primitives package
+    // This will be available when primitives are moved to core
+    console.warn('SignalPrimitive not yet available in core - using series rendering instead');
+  }
+
+  return series;
 }
