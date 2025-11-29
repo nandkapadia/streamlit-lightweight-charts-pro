@@ -33,7 +33,7 @@ import { createBandSeries } from '../../../plugins/series/bandSeriesPlugin';
 import { createRibbonSeries } from '../../../plugins/series/ribbonSeriesPlugin';
 import { createSignalSeries } from '../../../plugins/series/signalSeriesPlugin';
 import { createGradientRibbonSeries } from '../../../plugins/series/gradientRibbonSeriesPlugin';
-import { LineStyle } from '../../../utils/renderingUtils';
+import { LineStyle } from '../../../utils/lineStyle';
 
 describe('TrendFill Series Visual Rendering', () => {
   let renderResult: ChartRenderResult | null = null;

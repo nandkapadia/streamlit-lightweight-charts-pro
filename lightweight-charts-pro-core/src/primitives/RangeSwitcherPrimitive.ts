@@ -435,7 +435,7 @@ export class RangeSwitcherPrimitive extends BasePanePrimitive<RangeSwitcherPrimi
    */
   private applyButtonStyling(
     button: HTMLElement,
-    isActive: boolean,
+    _isActive: boolean,
     isHover: boolean = false
   ): void {
     const buttonConfig = this.config.style?.button;

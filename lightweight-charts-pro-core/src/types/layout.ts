@@ -96,3 +96,83 @@ export interface LayoutManagerEvents {
   onLayoutChanged: (_corner: Corner, _widgets: IPositionableWidget[]) => void;
   onOverflow: (_corner: Corner, _overflowingWidgets: IPositionableWidget[]) => void;
 }
+
+/**
+ * Pane size dimensions
+ */
+export interface PaneSize {
+  width: number;
+  height: number;
+}
+
+/**
+ * Pane boundary coordinates
+ */
+export interface PaneBounds {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+  right: number;
+  bottom: number;
+}
+
+/**
+ * Widget position in the layout
+ */
+export interface WidgetPosition {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  isValid: boolean;
+}
+
+/**
+ * Layout widget with position and dimensions
+ */
+export interface LayoutWidget {
+  id: string;
+  width: number;
+  height: number;
+  position?: WidgetPosition;
+  visible?: boolean;
+  getDimensions?: () => { width: number; height: number };
+  getContainerClassName?: () => string;
+}
+
+/**
+ * Trade configuration for visualization
+ */
+export interface TradeConfig {
+  entryTime: string | number;
+  entryPrice: number;
+  exitTime: string | number;
+  exitPrice: number;
+  isProfitable: boolean;
+  id: string;
+  pnl?: number;
+  pnlPercentage?: number;
+  [key: string]: any;
+}
+
+/**
+ * Trade visualization options
+ */
+export interface TradeVisualizationOptions {
+  style: 'markers' | 'rectangles' | 'both' | 'lines' | 'arrows' | 'zones';
+  entryMarkerColorLong?: string;
+  entryMarkerColorShort?: string;
+  exitMarkerColorProfit?: string;
+  exitMarkerColorLoss?: string;
+  markerSize?: number;
+  showPnlInMarkers?: boolean;
+  entryMarkerTemplate?: string;
+  exitMarkerTemplate?: string;
+  entryMarkerShape?: 'arrowUp' | 'arrowDown' | 'circle' | 'square';
+  exitMarkerShape?: 'arrowUp' | 'arrowDown' | 'circle' | 'square';
+  entryMarkerPosition?: 'belowBar' | 'aboveBar';
+  exitMarkerPosition?: 'belowBar' | 'aboveBar';
+  showMarkerText?: boolean;
+  [key: string]: any;
+}

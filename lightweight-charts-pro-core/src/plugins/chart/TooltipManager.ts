@@ -36,7 +36,7 @@
  * ```
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from '../../utils/EventEmitter';
 import { logger } from '../../utils/logger';
 import { TooltipPlugin } from './tooltipPlugin';
 

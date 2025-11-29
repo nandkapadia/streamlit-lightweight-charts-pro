@@ -6,7 +6,7 @@
  */
 
 // Base Primitives
-export { BasePanePrimitive } from './BasePanePrimitive';
+export { BasePanePrimitive, PrimitivePriority, type BasePrimitiveConfig } from './BasePanePrimitive';
 export { BaseSeriesPrimitive } from './BaseSeriesPrimitive';
 
 // Series Primitives
@@ -17,12 +17,13 @@ export { GradientRibbonPrimitive } from './GradientRibbonPrimitive';
 export { SignalPrimitive } from './SignalPrimitive';
 
 // UI Primitives
-export { ButtonPanelPrimitive } from './ButtonPanelPrimitive';
+// NOTE: ButtonPanelPrimitive excluded - requires React and Streamlit dependencies
+// export { ButtonPanelPrimitive } from './ButtonPanelPrimitive';
 export { LegendPrimitive } from './LegendPrimitive';
 
 // Feature Primitives
 export { TradeRectanglePrimitive } from './TradeRectanglePrimitive';
-export { RangeSwitcherPrimitive } from './RangeSwitcherPrimitive';
+export { RangeSwitcherPrimitive, DefaultRangeConfigs } from './RangeSwitcherPrimitive';
 
 // Utilities - Export all constants from PrimitiveDefaults
 export * from './PrimitiveDefaults';

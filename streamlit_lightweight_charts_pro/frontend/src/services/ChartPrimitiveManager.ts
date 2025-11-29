@@ -47,19 +47,23 @@
 
 import { IChartApi } from 'lightweight-charts';
 import { logger } from '../utils/logger';
-import { LegendPrimitive } from '../primitives/LegendPrimitive';
-import { RangeSwitcherPrimitive, DefaultRangeConfigs } from '../primitives/RangeSwitcherPrimitive';
-import { PrimitiveEventManager } from './PrimitiveEventManager';
-import { CornerLayoutManager } from './CornerLayoutManager';
+import {
+  LegendPrimitive,
+  RangeSwitcherPrimitive,
+  DefaultRangeConfigs,
+  PrimitiveEventManager,
+  CornerLayoutManager,
+  ExtendedSeriesApi,
+  CrosshairEventData,
+  PrimitivePriority,
+} from 'lightweight-charts-pro-core';
 import { SeriesDialogManager } from './SeriesDialogManager';
 import { PaneCollapseManager } from './PaneCollapseManager';
 import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types';
-import { ExtendedSeriesApi, CrosshairEventData } from '../types/ChartInterfaces';
-import { PrimitivePriority } from '../primitives/BasePanePrimitive';
 import {
   ButtonPanelPrimitive,
   createButtonPanelPrimitive,
-} from '../primitives/ButtonPanelPrimitive';
+} from 'lightweight-charts-pro-core';
 
 /**
  * ChartPrimitiveManager - Centralized primitive lifecycle manager

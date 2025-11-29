@@ -31,7 +31,7 @@
  * ```
  */
 
-import { ChartCoordinateService } from '../../services/ChartCoordinateService';
+import { ChartCoordinateService } from 'lightweight-charts-pro-core';
 import { createSingleton } from '../../utils/SingletonBase';
 import { logger } from '../../utils/logger';
 import { TooltipManager } from './TooltipManager';

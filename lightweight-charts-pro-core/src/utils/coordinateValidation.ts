@@ -10,7 +10,7 @@ import {
   BoundingBox,
   ScaleDimensions,
   // ContainerDimensions is used in type imports
-} from 'lightweight-charts-pro-core';
+} from '../types/coordinates';
 import { DIMENSIONS, FALLBACKS } from '../config/positioningConfig';
 import { logger } from './logger';
 

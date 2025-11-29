@@ -499,7 +499,7 @@ export class ChartCoordinateService {
    */
   private getPaneCoordinatesFromDOM(
     chart: IChartApi,
-    container: HTMLElement,
+    _container: HTMLElement,
     paneId: number,
     options: PaneDimensionsOptions = {}
   ): PaneCoordinates | null {
@@ -1147,7 +1147,7 @@ export class ChartCoordinateService {
     if (chartId) {
       // Remove specific chart entries
       const keysToDelete: string[] = [];
-      this.coordinateCache.forEach((entry, key) => {
+      this.coordinateCache.forEach((_entry, key) => {
         if (key.includes(chartId)) {
           keysToDelete.push(key);
         }
@@ -1543,7 +1543,7 @@ export class ChartCoordinateService {
   forceRefreshCoordinates(chartId: string): void {
     // Clear all cache entries for this chart
     const keysToDelete: string[] = [];
-    this.coordinateCache.forEach((entry, key) => {
+    this.coordinateCache.forEach((_entry, key) => {
       if (key.includes(chartId)) {
         keysToDelete.push(key);
       }
@@ -1552,7 +1552,7 @@ export class ChartCoordinateService {
 
     // Also clear pane dimensions cache
     const paneKeysToDelete: string[] = [];
-    this.paneDimensionsCache.forEach((entry, key) => {
+    this.paneDimensionsCache.forEach((_entry, key) => {
       if (key.includes(chartId)) {
         paneKeysToDelete.push(key);
       }

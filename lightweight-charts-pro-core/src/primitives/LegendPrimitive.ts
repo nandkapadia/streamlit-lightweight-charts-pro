@@ -292,12 +292,12 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
   private adjustColorOpacity(color: string, opacity: number): string {
     // Simple rgba conversion for common color formats
     if (color.startsWith('rgba(')) {
-      return color.replace(/rgba\(([^)]+)\)/, (match, values) => {
+      return color.replace(/rgba\(([^)]+)\)/, (_match, values) => {
         const parts = values.split(',').map((s: string) => s.trim());
         return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${opacity})`;
       });
     } else if (color.startsWith('rgb(')) {
-      return color.replace(/rgb\(([^)]+)\)/, (match, values) => {
+      return color.replace(/rgb\(([^)]+)\)/, (_match, values) => {
         return `rgba(${values}, ${opacity})`;
       });
     } else if (color.startsWith('#')) {

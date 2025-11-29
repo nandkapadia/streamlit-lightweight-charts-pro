@@ -179,6 +179,24 @@ export {
 export { ChartManager, type ChartManagerConfig } from './managers';
 
 // ============================================================================
+// Services
+// ============================================================================
+
+export {
+  ChartCoordinateService,
+  TemplateEngine,
+  PrimitiveEventManager,
+  CornerLayoutManager,
+  TradeTemplateProcessor,
+  createTradeVisualElements,
+  type TemplateResult,
+  type TemplateOptions,
+  type EventSubscription,
+  type PrimitiveEventTypes,
+  type TradeTemplateData,
+} from './services';
+
+// ============================================================================
 // Dialogs
 // ============================================================================
 
@@ -224,6 +242,7 @@ export {
 export {
   // Base Primitives
   BasePanePrimitive,
+  PrimitivePriority,
   BaseSeriesPrimitive,
 
   // Series Primitives
@@ -234,12 +253,13 @@ export {
   SignalPrimitive,
 
   // UI Primitives
-  ButtonPanelPrimitive,
+  // ButtonPanelPrimitive - excluded (requires React and Streamlit dependencies)
   LegendPrimitive,
 
   // Feature Primitives
   TradeRectanglePrimitive,
   RangeSwitcherPrimitive,
+  DefaultRangeConfigs,
 
   // Utilities - Note: PrimitiveDefaults is exported as individual constants
   PrimitiveStylingUtils,
@@ -317,5 +337,72 @@ export {
 
 export {
   RectangleOverlayPlugin,
-  type RectangleConfig,
+  // RectangleConfig already exported from './plugins/shared/rendering'
 } from './plugins/overlay';
+
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+export type {
+  // Coordinate types
+  BoundingBox,
+  ElementPosition,
+  PaneCoordinates,
+
+  // Layout types
+  Corner,
+  Position,
+  IPositionableWidget,
+  WidgetDimensions,
+  TradeVisualizationOptions,
+
+  // Series types
+  SeriesConfiguration,
+  SeriesType,
+
+  // Chart interface types
+  PendingTradeRectangle,
+  PendingRectangleBatch,
+  ExtendedChartApi,
+  BaseDataPoint,
+  OHLCDataPoint,
+  LineDataPoint,
+  HistogramDataPoint,
+  BaselineDataPoint,
+  BandDataPoint,
+  TradeData,
+  ShapeData,
+  TemplateFormatting,
+  TemplateContext,
+  LegendData,
+  CornerPosition,
+  ButtonConfig,
+  Annotation,
+  AnnotationLayers,
+  MarkerData,
+  PrimitiveData,
+  Destroyable,
+  PluginConfig,
+  WidgetConfig,
+  MouseEventParams,
+  CrosshairEventData,
+  ChartClickEventData,
+  SeriesConfigChangeEvent,
+  PaneCollapseEvent,
+  SeriesOptionsConfig,
+  ChartLayoutConfig,
+  TimeScaleConfig,
+  DeepPartial,
+  ParameterType,
+  FunctionReturnType,
+  NonNullable,
+  ValueOf,
+
+  // Series factory types
+  LegendManager,
+  PriceLineConfig,
+  LegendConfig,
+  NestedSeriesOptions,
+  FlattenedSeriesOptions,
+} from './types';

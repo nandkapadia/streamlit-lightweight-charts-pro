@@ -3,8 +3,8 @@
  */
 
 export { ChartCoordinateService } from './ChartCoordinateService';
-export { TemplateEngine } from './TemplateEngine';
-export { PrimitiveEventManager } from './PrimitiveEventManager';
+export { TemplateEngine, type TemplateResult, type TemplateOptions } from './TemplateEngine';
+export { PrimitiveEventManager, type EventSubscription, type PrimitiveEventTypes } from './PrimitiveEventManager';
 export { CornerLayoutManager } from './CornerLayoutManager';
-export { TradeTemplateProcessor } from './TradeTemplateProcessor';
+export { TradeTemplateProcessor, type TradeTemplateData } from './TradeTemplateProcessor';
 export * from './tradeVisualization';

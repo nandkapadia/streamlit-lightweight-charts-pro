@@ -21,7 +21,7 @@ import { getSeriesSettings } from '../config/seriesSettingsRegistry';
 import {
   apiOptionsToDialogConfig,
   dialogConfigToApiOptions,
-} from '../series/UnifiedPropertyMapper';
+} from 'lightweight-charts-pro-core';
 import { toCss, extractColorAndOpacity } from '../utils/colorUtils';
 import '../styles/seriesConfigDialog.css';
 

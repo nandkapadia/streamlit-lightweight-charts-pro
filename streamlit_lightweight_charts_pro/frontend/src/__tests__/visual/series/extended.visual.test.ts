@@ -30,7 +30,7 @@ import {
 } from '../utils';
 import { createTrendFillSeries } from '../../../plugins/series/trendFillSeriesPlugin';
 import { createGradientRibbonSeries } from '../../../plugins/series/gradientRibbonSeriesPlugin';
-import { LineStyle } from '../../../utils/renderingUtils';
+import { LineStyle } from '../../../utils/lineStyle';
 
 // ============================================================================
 // TrendFill Series Per-Point Styling Visual Tests

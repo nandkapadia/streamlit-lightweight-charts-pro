@@ -9,12 +9,21 @@ export default defineConfig({
     'import.meta.env': 'undefined',
     'import.meta.hot': 'undefined',
   },
+  esbuild: {
+    target: 'es2020',
+  },
+  optimizeDeps: {
+    include: ['lightweight-charts-pro-core'],
+  },
   build: {
     target: 'es2020',
     outDir: 'build',
     sourcemap: false,
     minify: 'terser',
     chunkSizeWarningLimit: 1000,
+    commonjsOptions: {
+      include: [/lightweight-charts-pro-core/, /node_modules/],
+    },
     rollupOptions: {
       output: {
         format: 'umd',

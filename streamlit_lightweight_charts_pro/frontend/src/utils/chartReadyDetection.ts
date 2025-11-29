@@ -38,7 +38,7 @@
  */
 
 import { IChartApi, ISeriesApi, UTCTimestamp, Logical } from 'lightweight-charts';
-import { ChartCoordinateService } from '../services/ChartCoordinateService';
+import { ChartCoordinateService } from 'lightweight-charts-pro-core';
 
 /**
  * Utility class for detecting when charts are ready with multiple fallback methods.

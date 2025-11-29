@@ -90,23 +90,23 @@ import {
   AnnotationLayers,
   MarkerData,
   Destroyable,
-} from './types/ChartInterfaces';
+} from 'lightweight-charts-pro-core';
 import { createAnnotationVisualElements } from './services/annotationSystem';
 import { SignalSeries } from './plugins/series/signalSeriesPlugin';
-import { TradeRectanglePrimitive } from './primitives/TradeRectanglePrimitive';
-import { createTradeVisualElements } from './services/tradeVisualization';
+import { TradeRectanglePrimitive } from 'lightweight-charts-pro-core';
+import { createTradeVisualElements } from 'lightweight-charts-pro-core';
 import { ChartReadyDetector } from './utils/chartReadyDetection';
-import { ChartCoordinateService } from './services/ChartCoordinateService';
+import { ChartCoordinateService } from 'lightweight-charts-pro-core';
 import { ChartPrimitiveManager } from './services/ChartPrimitiveManager';
-import { CornerLayoutManager } from './services/CornerLayoutManager';
+import { CornerLayoutManager } from 'lightweight-charts-pro-core';
 import { TooltipPlugin } from './plugins/chart/tooltipPlugin';
 
 import { cleanLineStyleOptions } from './utils/lineStyle';
-import { createSeriesWithConfig } from './series/UnifiedSeriesFactory';
+import { createSeriesWithConfig } from 'lightweight-charts-pro-core';
 import { getCachedDOMElement, createOptimizedStylesAdvanced } from './utils/performance';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { react19Monitor } from './utils/react19PerformanceMonitor';
-import { dialogConfigToApiOptions } from './series/UnifiedPropertyMapper';
+import { dialogConfigToApiOptions } from 'lightweight-charts-pro-core';
 
 /**
  * Finds the nearest available time in chart data to a target timestamp.

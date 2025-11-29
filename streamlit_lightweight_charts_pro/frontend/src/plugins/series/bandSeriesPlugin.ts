@@ -34,7 +34,7 @@ import {
 } from 'lightweight-charts';
 import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { isWhitespaceDataMultiField } from './base/commonRendering';
-import { LineStyle } from '../../utils/renderingUtils';
+import { LineStyle } from 'lightweight-charts-pro-core';
 import { drawMultiLine, drawFillArea } from './base/commonRendering';
 
 // ============================================================================

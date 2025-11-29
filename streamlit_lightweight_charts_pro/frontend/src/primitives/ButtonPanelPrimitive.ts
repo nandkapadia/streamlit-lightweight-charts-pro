@@ -12,13 +12,17 @@
  * - Support for configurable corner positioning
  */
 
-import { BasePanePrimitive, BasePrimitiveConfig, PrimitivePriority } from './BasePanePrimitive';
-import { ButtonDimensions } from './PrimitiveDefaults';
+import {
+  BasePanePrimitive,
+  BasePrimitiveConfig,
+  PrimitivePriority,
+  ButtonDimensions,
+} from 'lightweight-charts-pro-core';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
 import { PaneCollapseManager } from '../services/PaneCollapseManager';
 import { SeriesDialogManager } from '../services/SeriesDialogManager';
 import { StreamlitSeriesConfigService } from '../services/StreamlitSeriesConfigService';
-import { SeriesConfiguration } from '../types/SeriesTypes';
+import { SeriesConfiguration } from 'lightweight-charts-pro-core';
 import { logger } from '../utils/logger';
 import { createSingleton } from '../utils/SingletonBase';
 import { ButtonRegistry } from '../components/buttons/base/ButtonRegistry';

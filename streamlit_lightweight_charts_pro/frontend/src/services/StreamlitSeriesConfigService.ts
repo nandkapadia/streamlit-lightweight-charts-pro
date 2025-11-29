@@ -7,7 +7,7 @@
  */
 
 import { Streamlit } from 'streamlit-component-lib';
-import { SeriesConfiguration, SeriesType } from '../types/SeriesTypes';
+import { SeriesConfiguration, SeriesType } from 'lightweight-charts-pro-core';
 import { logger } from '../utils/logger';
 import { Singleton } from '../utils/SingletonBase';
 import { isStreamlitComponentReady } from '../hooks/useStreamlit';

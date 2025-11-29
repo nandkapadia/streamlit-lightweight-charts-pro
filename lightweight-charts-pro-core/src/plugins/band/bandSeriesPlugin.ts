@@ -33,9 +33,9 @@ import {
   PriceToCoordinateConverter,
 } from 'lightweight-charts';
 import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
-import { isWhitespaceDataMultiField } from './base/commonRendering';
+import { isWhitespaceDataMultiField } from '../shared/rendering';
 import { LineStyle } from '../../utils/renderingUtils';
-import { drawMultiLine, drawFillArea } from './base/commonRendering';
+import { drawMultiLine, drawFillArea } from '../shared/rendering';
 
 // ============================================================================
 // Data Interface

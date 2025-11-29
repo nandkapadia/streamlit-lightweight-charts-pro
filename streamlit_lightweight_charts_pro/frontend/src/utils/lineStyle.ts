@@ -1,35 +1,8 @@
 /**
- * @fileoverview Line Style Validation and Cleaning Utilities
+ * @fileoverview Streamlit-specific line style utilities
  *
- * Utilities for validating and cleaning line style options for TradingView Lightweight Charts.
- * Handles format conversion and recursive option cleaning.
- *
- * This module provides:
- * - Line style validation with multiple input formats
- * - Recursive option cleaning for nested configurations
- * - Debug property removal
- * - Format standardization
- *
- * Features:
- * - Supports numeric and string line style formats
- * - Handles snake_case to camelCase conversion
- * - Recursively cleans nested option objects
- * - Removes invalid or debug properties
- *
- * @example
- * ```typescript
- * import { validateLineStyle, cleanLineStyleOptions } from './lineStyle';
- *
- * // Validate line style
- * const style = validateLineStyle('dashed'); // Returns LineStyle.Dashed
- *
- * // Clean options
- * const cleaned = cleanLineStyleOptions({
- *   lineStyle: 'solid',
- *   debug: true,
- *   upperLine: { lineStyle: 2 }
- * });
- * ```
+ * Provides validation and cleaning functions for line style options.
+ * Core LineStyle enum is imported from lightweight-charts-pro-core.
  */
 
 import { LineStyle } from 'lightweight-charts';
@@ -44,24 +17,18 @@ import { LineStyle } from 'lightweight-charts';
  *
  * @param lineStyle - Line style in various formats
  * @returns Validated LineStyle enum value or undefined if invalid
- *
- * @example
- * ```typescript
- * validateLineStyle(0) // LineStyle.Solid
- * validateLineStyle('dashed') // LineStyle.Dashed
- * validateLineStyle([5, 5]) // LineStyle.Solid (custom pattern)
- * validateLineStyle('invalid') // undefined
- * ```
  */
 export const validateLineStyle = (lineStyle: any): LineStyle | undefined => {
   if (lineStyle === null || lineStyle === undefined || lineStyle === '') return undefined;
 
-  if (typeof lineStyle === 'number' && LineStyle && Object.values(LineStyle).includes(lineStyle)) {
-    return lineStyle;
+  // Handle LineStyle enum values (0-4)
+  if (typeof lineStyle === 'number' && lineStyle >= 0 && lineStyle <= 4) {
+    return lineStyle as LineStyle;
   }
 
-  if (typeof lineStyle === 'string' && LineStyle) {
-    const styleMap: { [key: string]: LineStyle } = {
+  // Handle string format
+  if (typeof lineStyle === 'string') {
+    const styleMap: Record<string, LineStyle> = {
       solid: LineStyle.Solid,
       dotted: LineStyle.Dotted,
       dashed: LineStyle.Dashed,
@@ -71,43 +38,20 @@ export const validateLineStyle = (lineStyle: any): LineStyle | undefined => {
     return styleMap[lineStyle.toLowerCase()];
   }
 
+  // Handle array (custom dash pattern) - return Solid as fallback
   if (Array.isArray(lineStyle)) {
-    if (
-      lineStyle.length > 0 &&
-      lineStyle.every(val => typeof val === 'number' && val >= 0) &&
-      LineStyle
-    ) {
-      return LineStyle.Solid;
-    }
+    return LineStyle.Solid;
   }
 
   return undefined;
 };
 
 /**
- * Recursively cleans and validates chart options.
- *
- * Removes debug properties and validates line styles in nested option objects.
- * Handles special properties like upperLine, middleLine, lowerLine.
+ * Recursively clean line style options by validating line styles and removing debug properties.
+ * Used to sanitize chart configuration before passing to TradingView Lightweight Charts.
  *
  * @param options - Chart options object to clean
  * @returns Cleaned options object with validated line styles
- *
- * @example
- * ```typescript
- * const cleaned = cleanLineStyleOptions({
- *   lineStyle: 'dashed',
- *   debug: true,
- *   upperLine: {
- *     lineStyle: 2,
- *     color: '#ff0000'
- *   },
- *   nestedConfig: {
- *     lineStyle: 'solid'
- *   }
- * });
- * // Returns: { lineStyle: LineStyle.Dashed, upperLine: { ... }, nestedConfig: { ... } }
- * ```
  */
 export const cleanLineStyleOptions = (options: any): any => {
   if (!options) return options;

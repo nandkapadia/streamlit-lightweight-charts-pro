@@ -39,8 +39,8 @@
 import { IChartApi } from 'lightweight-charts';
 import { ChartReadyDetector } from '../../utils/chartReadyDetection';
 import { ResizeObserverManager } from '../../utils/resizeObserverManager';
-import { ChartCoordinateService } from '../../services/ChartCoordinateService';
-import { UniversalSpacing } from '../../primitives/PrimitiveDefaults';
+import { ChartCoordinateService } from 'lightweight-charts-pro-core';
+import { UniversalSpacing } from 'lightweight-charts-pro-core';
 import { logger } from '../../utils/logger';
 
 /**

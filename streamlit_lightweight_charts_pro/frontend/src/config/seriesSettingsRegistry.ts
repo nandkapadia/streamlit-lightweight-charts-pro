@@ -5,9 +5,9 @@
  * This replaces the old manual settings definitions.
  */
 
-import { getSeriesDescriptor } from '../series/UnifiedSeriesFactory';
-import { normalizeSeriesType } from '../series/utils/seriesTypeNormalizer';
-import type { PropertyType } from '../series/core/UnifiedSeriesDescriptor';
+import { getSeriesDescriptor } from 'lightweight-charts-pro-core';
+import { normalizeSeriesType } from 'lightweight-charts-pro-core';
+import type { PropertyType } from 'lightweight-charts-pro-core';
 import { logger } from '../utils/logger';
 
 export type SettingType = 'boolean' | 'number' | 'color' | 'line' | 'lineStyle' | 'lineWidth';

@@ -26,8 +26,8 @@ import { createRoot } from 'react-dom/client';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
 import { logger } from '../utils/logger';
 import { StreamlitSeriesConfigService } from './StreamlitSeriesConfigService';
-import { SeriesType, SeriesConfiguration } from '../types/SeriesTypes';
-import { apiOptionsToDialogConfig } from '../series/UnifiedPropertyMapper';
+import { SeriesType, SeriesConfiguration } from 'lightweight-charts-pro-core';
+import { apiOptionsToDialogConfig } from 'lightweight-charts-pro-core';
 import {
   SeriesSettingsDialog,
   SeriesInfo as DialogSeriesInfo,
