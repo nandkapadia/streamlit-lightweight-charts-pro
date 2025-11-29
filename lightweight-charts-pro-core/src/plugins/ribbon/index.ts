@@ -2,4 +2,11 @@
  * @fileoverview Ribbon Series plugin exports
  */
 
-export * from './RibbonSeries';
+export {
+  RibbonSeries,
+  RibbonSeriesPlugin,
+  createRibbonSeries,
+  defaultRibbonOptions,
+  type RibbonData,
+  type RibbonSeriesOptions,
+} from './RibbonSeries';

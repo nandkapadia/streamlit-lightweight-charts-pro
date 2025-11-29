@@ -27,6 +27,7 @@ import {
   ICustomSeriesPaneView,
   LineWidth,
   PriceToCoordinateConverter,
+  IChartApi,
 } from 'lightweight-charts';
 import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { isWhitespaceDataMultiField, LineStyle, drawMultiLine } from '../shared/rendering';
@@ -359,4 +360,70 @@ export function GradientRibbonSeriesPlugin(): ICustomSeriesPaneView<
   GradientRibbonSeriesOptions
 > {
   return new GradientRibbonSeries();
+}
+
+/**
+ * Create GradientRibbon series
+ *
+ * @param chart - Chart instance
+ * @param options - Configuration options
+ * @returns ICustomSeries instance
+ */
+export function createGradientRibbonSeries(
+  chart: IChartApi,
+  options: {
+    upperLineColor?: string;
+    upperLineWidth?: LineWidth;
+    upperLineStyle?: LineStyle;
+    upperLineVisible?: boolean;
+    lowerLineColor?: string;
+    lowerLineWidth?: LineWidth;
+    lowerLineStyle?: LineStyle;
+    lowerLineVisible?: boolean;
+    topColor?: string;
+    bottomColor?: string;
+    fillVisible?: boolean;
+    priceScaleId?: string;
+    lastValueVisible?: boolean;
+    title?: string;
+    visible?: boolean;
+    priceLineVisible?: boolean;
+    usePrimitive?: boolean;
+    zIndex?: number;
+    data?: GradientRibbonData[];
+    paneId?: number;
+  } = {}
+): any {
+  const paneId = options.paneId ?? 0;
+
+  const series = (chart as any).addCustomSeries(GradientRibbonSeriesPlugin(), {
+    _seriesType: 'GradientRibbon',
+    upperLineColor: options.upperLineColor ?? '#4CAF50',
+    upperLineWidth: options.upperLineWidth ?? 2,
+    upperLineStyle: options.upperLineStyle ?? LineStyle.Solid,
+    upperLineVisible: options.upperLineVisible !== false,
+    lowerLineColor: options.lowerLineColor ?? '#F44336',
+    lowerLineWidth: options.lowerLineWidth ?? 2,
+    lowerLineStyle: options.lowerLineStyle ?? LineStyle.Solid,
+    lowerLineVisible: options.lowerLineVisible !== false,
+    topColor: options.topColor ?? 'rgba(76, 175, 80, 0.4)',
+    bottomColor: options.bottomColor ?? 'rgba(244, 67, 54, 0.4)',
+    fillVisible: options.fillVisible !== false,
+    priceScaleId: options.priceScaleId ?? 'right',
+    lastValueVisible: options.lastValueVisible ?? false,
+    priceLineVisible: options.priceLineVisible ?? false,
+    visible: options.visible ?? true,
+    title: options.title,
+    _usePrimitive: options.usePrimitive ?? false,
+  }, paneId);
+
+  if (options.data && options.data.length > 0) {
+    series.setData(options.data);
+  }
+
+  if (options.usePrimitive) {
+    console.warn('GradientRibbonPrimitive not yet available in core - using series rendering instead');
+  }
+
+  return series;
 }

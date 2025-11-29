@@ -41,6 +41,7 @@ export {
 export {
   RibbonSeries,
   RibbonSeriesPlugin,
+  createRibbonSeries,
   type RibbonData,
   type RibbonSeriesOptions,
   defaultRibbonOptions,
@@ -50,6 +51,7 @@ export {
 export {
   GradientRibbonSeries,
   GradientRibbonSeriesPlugin,
+  createGradientRibbonSeries,
   type GradientRibbonData,
   type GradientRibbonSeriesOptions,
   defaultGradientRibbonOptions,
@@ -59,6 +61,7 @@ export {
 export {
   SignalSeries,
   SignalSeriesPlugin,
+  createSignalSeries,
   type SignalData,
   type SignalSeriesOptions,
   defaultSignalOptions,
@@ -68,6 +71,7 @@ export {
 export {
   TrendFillSeries,
   TrendFillSeriesPlugin,
+  createTrendFillSeries,
   type TrendFillData,
   type TrendFillSeriesOptions,
   defaultTrendFillOptions,

@@ -27,6 +27,7 @@ import {
   ICustomSeriesPaneView,
   LineWidth,
   PriceToCoordinateConverter,
+  IChartApi,
 } from 'lightweight-charts';
 import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import {
@@ -247,4 +248,77 @@ export class RibbonSeries<TData extends RibbonData = RibbonData>
  */
 export function RibbonSeriesPlugin(): ICustomSeriesPaneView<Time, RibbonData, RibbonSeriesOptions> {
   return new RibbonSeries();
+}
+
+/**
+ * Create Ribbon series with optional primitive for background rendering
+ *
+ * @param chart - Chart instance
+ * @param options - Configuration options
+ * @returns ICustomSeries instance
+ */
+export function createRibbonSeries(
+  chart: IChartApi,
+  options: {
+    // Visual options
+    upperLineColor?: string;
+    upperLineWidth?: LineWidth;
+    upperLineStyle?: LineStyle;
+    upperLineVisible?: boolean;
+    lowerLineColor?: string;
+    lowerLineWidth?: LineWidth;
+    lowerLineStyle?: LineStyle;
+    lowerLineVisible?: boolean;
+    fillColor?: string;
+    fillVisible?: boolean;
+    priceScaleId?: string;
+
+    // Series options
+    lastValueVisible?: boolean;
+    title?: string;
+    visible?: boolean;
+    priceLineVisible?: boolean;
+
+    // Rendering control
+    usePrimitive?: boolean;
+
+    // Primitive-specific options
+    zIndex?: number;
+    data?: RibbonData[];
+
+    // Pane control
+    paneId?: number;
+  } = {}
+): any {
+  const paneId = options.paneId ?? 0;
+
+  const series = (chart as any).addCustomSeries(RibbonSeriesPlugin(), {
+    _seriesType: 'Ribbon',
+    upperLineColor: options.upperLineColor ?? '#4CAF50',
+    upperLineWidth: options.upperLineWidth ?? 2,
+    upperLineStyle: options.upperLineStyle ?? LineStyle.Solid,
+    upperLineVisible: options.upperLineVisible !== false,
+    lowerLineColor: options.lowerLineColor ?? '#F44336',
+    lowerLineWidth: options.lowerLineWidth ?? 2,
+    lowerLineStyle: options.lowerLineStyle ?? LineStyle.Solid,
+    lowerLineVisible: options.lowerLineVisible !== false,
+    fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
+    fillVisible: options.fillVisible !== false,
+    priceScaleId: options.priceScaleId ?? 'right',
+    lastValueVisible: options.lastValueVisible ?? false,
+    priceLineVisible: options.priceLineVisible ?? false,
+    visible: options.visible ?? true,
+    title: options.title,
+    _usePrimitive: options.usePrimitive ?? false,
+  }, paneId);
+
+  if (options.data && options.data.length > 0) {
+    series.setData(options.data);
+  }
+
+  if (options.usePrimitive) {
+    console.warn('RibbonPrimitive not yet available in core - using series rendering instead');
+  }
+
+  return series;
 }
