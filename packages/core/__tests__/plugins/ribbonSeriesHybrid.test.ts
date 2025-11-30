@@ -11,6 +11,16 @@ import { Time } from 'lightweight-charts';
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock RibbonPrimitive to avoid dynamic import timing issues
+vi.mock('../../src/primitives/RibbonPrimitive', () => ({
+  RibbonPrimitive: vi.fn().mockImplementation(() => ({
+    setData: vi.fn(),
+    destroy: vi.fn(),
+    requestUpdate: vi.fn(),
+  })),
+}));
+
 import { createRibbonSeries, RibbonData } from '../../src/plugins/series/ribbonSeriesPlugin';
 
 // Mock chart and series
@@ -85,8 +95,8 @@ describe('Ribbon Series - Hybrid Implementation', () => {
       expect(options._usePrimitive).toBe(true);
       expect(options.lastValueVisible).toBe(false);
 
-      // Wait for dynamic import
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for mocked dynamic import to resolve (next tick)
+      await new Promise(resolve => setImmediate(resolve));
       expect(mockCustomSeries.attachPrimitive).toHaveBeenCalled();
     });
 
