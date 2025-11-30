@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lightweight-charts-backend"
+version = "0.1.0"
+description = "FastAPI backend for TradingView Lightweight Charts"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Streamlit Lightweight Charts Contributors"}
+]
+keywords = [
+    "lightweight-charts",
+    "tradingview",
+    "charts",
+    "fastapi",
+    "websocket",
+    "backend"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "websockets>=12.0",
+    "pydantic>=2.0.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "lightweight-charts-core>=0.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.27.0",
+    "pytest-cov>=4.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/nandkapadia/streamlit-lightweight-charts-pro"
+Documentation = "https://github.com/nandkapadia/streamlit-lightweight-charts-pro#readme"
+Repository = "https://github.com/nandkapadia/streamlit-lightweight-charts-pro.git"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lightweight_charts_backend*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+asyncio_mode = "auto"
