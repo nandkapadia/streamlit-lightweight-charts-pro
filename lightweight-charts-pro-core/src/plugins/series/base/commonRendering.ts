@@ -1,14 +1,14 @@
 /**
  * @fileoverview Common rendering utilities for custom series
  *
- * Re-exports shared utilities from lightweight-charts-pro-core.
+ * Re-exports shared utilities from the rendering module.
  * This provides a single source of truth for rendering utilities
  * across all custom series implementations and primitives.
  *
- * @see lightweight-charts-pro-core for core rendering utilities
+ * @see ../../shared/rendering for core rendering utilities
  */
 
-// Re-export all shared rendering utilities from core package
+// Re-export all shared rendering utilities from the shared rendering module
 export {
   // Types
   type CoordinatePoint,
@@ -54,4 +54,4 @@ export {
 
   // Whitespace detection
   isWhitespaceDataMultiField,
-} from 'lightweight-charts-pro-core';
+} from '../../shared/rendering';

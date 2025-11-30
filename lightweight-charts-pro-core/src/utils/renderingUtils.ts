@@ -12,9 +12,9 @@
  */
 
 import { ISeriesApi, Time, Coordinate } from 'lightweight-charts';
-import { LineStyle } from 'lightweight-charts-pro-core';
+import { LineStyle } from '../plugins/shared/rendering';
 
-// Re-export LineStyle from core package
+// Re-export LineStyle from shared rendering
 export { LineStyle };
 
 // ============================================================================
