@@ -408,7 +408,8 @@ export interface Annotation {
   borderColor?: string;
   textColor?: string;
   shape?: 'circle' | 'square' | 'diamond' | 'arrow_up' | 'arrow_down' | 'flag';
-  position?: 'aboveBar' | 'belowBar' | 'inBar';
+  /** Position relative to bar. 'above'/'below' are converted to 'aboveBar'/'belowBar' */
+  position?: 'aboveBar' | 'belowBar' | 'inBar' | 'above' | 'below';
   size?: number;
   layer?: number;
   visible?: boolean;

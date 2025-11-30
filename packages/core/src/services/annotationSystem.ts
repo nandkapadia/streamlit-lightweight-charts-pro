@@ -121,7 +121,7 @@ export const createAnnotationVisualElements = (
           ) {
             const marker: SeriesMarker<Time> = {
               time: parseTime(annotation.time),
-              position: annotation.position || 'aboveBar',
+              position: normalizePosition(annotation.position),
               color: annotation.color || '#2196F3',
               shape: annotation.type === 'arrow' ? 'arrowUp' : 'circle',
               text: annotation.text || '',
@@ -153,7 +153,7 @@ export const createAnnotationVisualElements = (
               backgroundColor: annotation.backgroundColor || 'rgba(255, 255, 255, 0.9)',
               fontSize: annotation.fontSize || 12,
               fontFamily: 'Arial',
-              position: annotation.position || 'aboveBar',
+              position: normalizePosition(annotation.position),
             };
             texts.push(text);
           }
@@ -192,6 +192,18 @@ function parseTime(time: Time): UTCTimestamp {
   }
   // Fallback to current time if invalid
   return Math.floor(Date.now() / 1000) as UTCTimestamp;
+}
+
+/**
+ * Normalize position values from shorthand to full form
+ * Converts 'above' -> 'aboveBar', 'below' -> 'belowBar'
+ */
+function normalizePosition(
+  position?: 'aboveBar' | 'belowBar' | 'inBar' | 'above' | 'below'
+): 'aboveBar' | 'belowBar' | 'inBar' {
+  if (position === 'above') return 'aboveBar';
+  if (position === 'below') return 'belowBar';
+  return position || 'aboveBar';
 }
 
 // Utility functions for annotation management
