@@ -288,7 +288,7 @@ describe('RibbonPrimitive - Data Processing', () => {
   });
 });
 
-describe.skip('RibbonPrimitive - Options Management', () => {
+describe('RibbonPrimitive - Options Management', () => {
   let mockChart: any;
   let defaultOptions: RibbonPrimitiveOptions;
   let primitive: RibbonPrimitive;
@@ -316,9 +316,8 @@ describe.skip('RibbonPrimitive - Options Management', () => {
     primitive = new RibbonPrimitive(mockChart, defaultOptions);
   });
 
-  it.skip('should update line colors', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({
+  it('should update line colors', () => {
+    primitive.applyOptions({
       upperLineColor: '#FFFF00',
       lowerLineColor: '#FF00FF',
     });
@@ -328,9 +327,8 @@ describe.skip('RibbonPrimitive - Options Management', () => {
     expect(options.lowerLineColor).toBe('#FF00FF');
   });
 
-  it.skip('should update line visibility', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({
+  it('should update line visibility', () => {
+    primitive.applyOptions({
       upperLineVisible: false,
       lowerLineVisible: false,
     });
@@ -340,20 +338,18 @@ describe.skip('RibbonPrimitive - Options Management', () => {
     expect(options.lowerLineVisible).toBe(false);
   });
 
-  it.skip('should update fill visibility', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({ fillVisible: false });
+  it('should update fill visibility', () => {
+    primitive.applyOptions({ fillVisible: false });
     expect(primitive.getOptions().fillVisible).toBe(false);
   });
 
-  it.skip('should update fill color', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({ fillColor: 'rgba(200, 200, 200, 0.5)' });
+  it('should update fill color', () => {
+    primitive.applyOptions({ fillColor: 'rgba(200, 200, 200, 0.5)' });
     expect(primitive.getOptions().fillColor).toBe('rgba(200, 200, 200, 0.5)');
   });
 });
 
-describe.skip('RibbonPrimitive - Axis Views', () => {
+describe('RibbonPrimitive - Axis Views', () => {
   let mockChart: any;
   let defaultOptions: RibbonPrimitiveOptions;
   let primitive: RibbonPrimitive;
@@ -363,11 +359,13 @@ describe.skip('RibbonPrimitive - Axis Views', () => {
     mockChart = {
       timeScale: vi.fn(() => ({
         getVisibleLogicalRange: vi.fn(() => ({ from: 0, to: 100 })),
+        getVisibleRange: vi.fn(() => ({ from: 1000, to: 2000 })),
       })),
     };
 
     mockSeries = {
       priceToCoordinate: vi.fn((price: number) => price * 2),
+      data: vi.fn(() => []),
     };
 
     defaultOptions = {
@@ -384,8 +382,8 @@ describe.skip('RibbonPrimitive - Axis Views', () => {
     };
 
     primitive = new RibbonPrimitive(mockChart, defaultOptions);
-    // @ts-expect-error - attachToSeries not implemented yet
-    primitive.attachToSeries(mockSeries);
+    // Simulate attachment via series.attachPrimitive() which calls attached()
+    primitive.attached({ series: mockSeries, requestUpdate: vi.fn() });
   });
 
   it('should have two price axis views', () => {

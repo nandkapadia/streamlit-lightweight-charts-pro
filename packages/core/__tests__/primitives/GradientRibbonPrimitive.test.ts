@@ -342,7 +342,7 @@ describe('GradientRibbonPrimitive - Data Processing', () => {
   });
 });
 
-describe.skip('GradientRibbonPrimitive - Options Management', () => {
+describe('GradientRibbonPrimitive - Options Management', () => {
   let mockChart: any;
   let defaultOptions: GradientRibbonPrimitiveOptions;
   let primitive: GradientRibbonPrimitive;
@@ -373,31 +373,27 @@ describe.skip('GradientRibbonPrimitive - Options Management', () => {
   });
 
   it('should update upper line color', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({ upperLineColor: '#FFFF00' });
+    primitive.applyOptions({ upperLineColor: '#FFFF00' });
     expect(primitive.getOptions().upperLineColor).toBe('#FFFF00');
   });
 
   it('should update lower line visibility', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({ lowerLineVisible: false });
+    primitive.applyOptions({ lowerLineVisible: false });
     expect(primitive.getOptions().lowerLineVisible).toBe(false);
   });
 
   it('should update fill visibility', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({ fillVisible: false });
+    primitive.applyOptions({ fillVisible: false });
     expect(primitive.getOptions().fillVisible).toBe(false);
   });
 
   it('should update gradient normalization', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({ normalizeGradients: true });
+    primitive.applyOptions({ normalizeGradients: true });
     expect(primitive.getOptions().normalizeGradients).toBe(true);
   });
 });
 
-describe.skip('GradientRibbonPrimitive - Axis Views', () => {
+describe('GradientRibbonPrimitive - Axis Views', () => {
   let mockChart: any;
   let defaultOptions: GradientRibbonPrimitiveOptions;
   let primitive: GradientRibbonPrimitive;
@@ -407,11 +403,13 @@ describe.skip('GradientRibbonPrimitive - Axis Views', () => {
     mockChart = {
       timeScale: vi.fn(() => ({
         getVisibleLogicalRange: vi.fn(() => ({ from: 0, to: 100 })),
+        getVisibleRange: vi.fn(() => ({ from: 1000, to: 2000 })),
       })),
     };
 
     mockSeries = {
       priceToCoordinate: vi.fn((price: number) => price * 2),
+      data: vi.fn(() => []),
     };
 
     defaultOptions = {
@@ -430,8 +428,8 @@ describe.skip('GradientRibbonPrimitive - Axis Views', () => {
     };
 
     primitive = new GradientRibbonPrimitive(mockChart, defaultOptions);
-    // @ts-expect-error - attachToSeries not implemented yet
-    primitive.attachToSeries(mockSeries);
+    // Simulate attachment via series.attachPrimitive() which calls attached()
+    primitive.attached({ series: mockSeries, requestUpdate: vi.fn() });
   });
 
   it('should have two price axis views', () => {

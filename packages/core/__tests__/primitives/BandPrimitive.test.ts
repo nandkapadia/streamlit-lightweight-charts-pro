@@ -351,7 +351,7 @@ describe('BandPrimitive - Data Processing', () => {
   });
 });
 
-describe.skip('BandPrimitive - Options Management', () => {
+describe('BandPrimitive - Options Management', () => {
   let mockChart: any;
   let defaultOptions: BandPrimitiveOptions;
   let primitive: BandPrimitive;
@@ -386,8 +386,7 @@ describe.skip('BandPrimitive - Options Management', () => {
   });
 
   it('should update line colors', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({
+    primitive.applyOptions({
       upperLineColor: '#FFFF00',
       middleLineColor: '#FF00FF',
       lowerLineColor: '#00FFFF',
@@ -400,8 +399,7 @@ describe.skip('BandPrimitive - Options Management', () => {
   });
 
   it('should update line visibility', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({
+    primitive.applyOptions({
       upperLineVisible: false,
       middleLineVisible: false,
       lowerLineVisible: false,
@@ -414,8 +412,7 @@ describe.skip('BandPrimitive - Options Management', () => {
   });
 
   it('should update fill visibility', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({
+    primitive.applyOptions({
       upperFill: false,
       lowerFill: false,
     });
@@ -426,8 +423,7 @@ describe.skip('BandPrimitive - Options Management', () => {
   });
 
   it('should update fill colors', () => {
-    // @ts-expect-error - updateOptions not implemented yet
-    primitive.updateOptions({
+    primitive.applyOptions({
       upperFillColor: 'rgba(100, 100, 100, 0.5)',
       lowerFillColor: 'rgba(200, 200, 200, 0.5)',
     });
@@ -438,7 +434,7 @@ describe.skip('BandPrimitive - Options Management', () => {
   });
 });
 
-describe.skip('BandPrimitive - Axis Views', () => {
+describe('BandPrimitive - Axis Views', () => {
   let mockChart: any;
   let defaultOptions: BandPrimitiveOptions;
   let primitive: BandPrimitive;
@@ -448,11 +444,13 @@ describe.skip('BandPrimitive - Axis Views', () => {
     mockChart = {
       timeScale: vi.fn(() => ({
         getVisibleLogicalRange: vi.fn(() => ({ from: 0, to: 100 })),
+        getVisibleRange: vi.fn(() => ({ from: 1000, to: 2000 })),
       })),
     };
 
     mockSeries = {
       priceToCoordinate: vi.fn((price: number) => price * 2),
+      data: vi.fn(() => []),
     };
 
     defaultOptions = {
@@ -475,8 +473,8 @@ describe.skip('BandPrimitive - Axis Views', () => {
     };
 
     primitive = new BandPrimitive(mockChart, defaultOptions);
-    // @ts-expect-error - attachToSeries not implemented yet
-    primitive.attachToSeries(mockSeries);
+    // Simulate attachment via series.attachPrimitive() which calls attached()
+    primitive.attached({ series: mockSeries, requestUpdate: vi.fn() });
   });
 
   it('should have three price axis views', () => {
