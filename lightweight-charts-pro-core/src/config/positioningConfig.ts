@@ -136,7 +136,10 @@ export const TIMING = {
   throttleDelay: 50, // 50ms
   animationDuration: 200, // 200ms
   chartReadyDelay: 300, // 300ms - Delay for chart initialization
-  backendSyncDebounce: 300, // 300ms - Debounce for backend sync operations
+  backendSyncDebounce: 2000, // 2000ms (2 seconds) - Debounce for backend sync operations
+  // Increased from 300ms to prevent infinite re-render loop when user is actively
+  // changing settings in the dialog. This gives users time to finish adjusting settings
+  // before triggering a Streamlit component re-render.
 } as const;
 
 /**

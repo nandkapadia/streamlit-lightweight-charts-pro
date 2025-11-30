@@ -51,6 +51,7 @@ import {
 } from '../dialogs/SeriesSettingsDialog';
 import { SeriesFormConfig } from '../dialogs/FormStateManager';
 import { KeyedSingletonManager } from '../utils/KeyedSingletonManager';
+import { SeriesSettings } from '../dialogs/SeriesSettingsRenderer';
 
 /**
  * Local SeriesInfo interface with config property
@@ -266,15 +267,20 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
    * Uses pure DOM dialogs (no React dependencies).
    */
   public open(paneId: number): void {
+    logger.info(`SeriesDialogManager.open() called - paneId: ${paneId}`, 'SeriesDialogManager');
+
     const state = this.dialogStates.get(paneId);
     if (!state) {
       logger.error('Dialog state not initialized', 'SeriesDialogManager', { paneId });
       return;
     }
 
+    logger.info('Dialog state found, processing series...', 'SeriesDialogManager');
+
     try {
       // Get ALL series for this pane
       const allSeries = this.getAllSeriesForPane(paneId);
+      logger.info(`Found ${allSeries.length} series for pane ${paneId}`, 'SeriesDialogManager');
 
       // Create series configurations from allSeries
       // Read ACTUAL options from chart series instead of using defaults
@@ -308,6 +314,14 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
         });
       }
 
+      // Build seriesSettings map: seriesType -> field definitions
+      const seriesSettings: Record<string, SeriesSettings> = {};
+      allSeries.forEach(series => {
+        if (!seriesSettings[series.type]) {
+          seriesSettings[series.type] = this.getSeriesSpecificSettings(series.type);
+        }
+      });
+
       // Create or update dialog instance
       if (!state.dialogInstance) {
         state.dialogInstance = new SeriesSettingsDialog({
@@ -320,7 +334,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
               }) as DialogSeriesInfo
           ),
           seriesConfigs: seriesConfigs as Record<string, SeriesFormConfig>,
-          seriesSettings: {}, // TODO: Add series-specific settings
+          seriesSettings: seriesSettings,
           onConfigChange: (seriesId: string, newConfig: SeriesFormConfig) => {
             // Find the series type from allSeries
             const seriesInfo = allSeries.find(s => s.id === seriesId);
@@ -365,7 +379,19 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
     if (!state || !state.dialogInstance) return;
 
     try {
-      // Force sync any pending changes to backend
+      // Sync all configuration changes to backend when dialog closes
+      state.seriesConfigs.forEach((config, seriesId) => {
+        const seriesType = (config as any)._seriesType || 'line';
+        this.backendAdapter.recordConfigChange(
+          paneId,
+          seriesId,
+          seriesType,
+          config,
+          this.config.chartId
+        );
+      });
+
+      // Force immediate sync to backend (bypasses debounce)
       this.backendAdapter.forceSyncToBackend();
 
       // Close the dialog
@@ -529,36 +555,11 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
       );
     }
 
-    // Record config change in backend adapter
-    try {
-      const seriesType = (config as any)._seriesType || 'line';
-      this.backendAdapter.recordConfigChange(
-        paneId,
-        seriesId,
-        seriesType,
-        config,
-        this.config.chartId
-      );
-    } catch (error) {
-      logger.warn(
-        'Failed to record config change in backend',
-        'SeriesDialogManager.applySeriesConfig',
-        error
-      );
-    }
+    // DO NOT sync to backend here - only sync when dialog closes
+    // This prevents the infinite re-render loop caused by Streamlit.setComponentValue()
+    // Changes are stored in state.seriesConfigs and will be synced when close() is called
 
-    // Notify external listeners if available
-    try {
-      if (this.config.onSeriesConfigChange) {
-        this.config.onSeriesConfigChange(paneId, seriesId, config as Record<string, unknown>);
-      }
-    } catch (error) {
-      logger.warn(
-        'Failed to notify config change callback',
-        'SeriesDialogManager.applySeriesConfig',
-        error
-      );
-    }
+    // DO NOT notify external listeners - they may trigger backend syncs
   }
 
   /**
@@ -678,6 +679,117 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
         'SeriesDialogManager.applyConfigToChartSeries',
         error
       );
+    }
+  }
+
+  /**
+   * Get series-specific settings definitions for the dialog
+   */
+  private getSeriesSpecificSettings(seriesType: SeriesType): SeriesSettings {
+    switch (seriesType) {
+      case 'line':
+      case 'area':
+        return {
+          color: 'color',
+          lineWidth: 'number',
+          lineStyle: 'lineStyle',
+        };
+
+      case 'candlestick':
+        return {
+          upColor: 'color',
+          downColor: 'color',
+          borderUpColor: 'color',
+          borderDownColor: 'color',
+          wickUpColor: 'color',
+          wickDownColor: 'color',
+        };
+
+      case 'bar':
+        return {
+          upColor: 'color',
+          downColor: 'color',
+          thinBars: 'boolean',
+        };
+
+      case 'histogram':
+        return {
+          color: 'color',
+        };
+
+      case 'baseline':
+        return {
+          topLineColor: 'color',
+          topFillColor1: 'color',
+          topFillColor2: 'color',
+          bottomLineColor: 'color',
+          bottomFillColor1: 'color',
+          bottomFillColor2: 'color',
+          baseValue: 'number',
+        };
+
+      case 'supertrend':
+        return {
+          period: 'number',
+          multiplier: 'number',
+          upTrendColor: 'color',
+          downTrendColor: 'color',
+          lineWidth: 'number',
+        };
+
+      case 'bollinger_bands':
+        return {
+          length: 'number',
+          stdDev: 'number',
+          upperLineColor: 'color',
+          lowerLineColor: 'color',
+          fillColor: 'color',
+          fillVisible: 'boolean',
+        };
+
+      case 'sma':
+      case 'ema':
+        return {
+          length: 'number',
+          source: 'lineStyle', // Reusing lineStyle for dropdown
+          offset: 'number',
+          color: 'color',
+          lineWidth: 'number',
+          lineStyle: 'lineStyle',
+        };
+
+      case 'ribbon':
+      case 'gradient_ribbon':
+        return {
+          color: 'color',
+          lineWidth: 'number',
+        };
+
+      case 'band':
+        return {
+          upperColor: 'color',
+          lowerColor: 'color',
+          fillColor: 'color',
+        };
+
+      case 'signal':
+        return {
+          buyColor: 'color',
+          sellColor: 'color',
+        };
+
+      case 'trend_fill':
+        return {
+          upColor: 'color',
+          downColor: 'color',
+        };
+
+      default:
+        // Default settings for unknown types
+        return {
+          color: 'color',
+          lineWidth: 'number',
+        };
     }
   }
 

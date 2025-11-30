@@ -93,7 +93,15 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
    * Initialize managers when chart is attached
    */
   private initializeManagers(): void {
-    if (!this.chart) return;
+    logger.info(
+      `initializeManagers called - chart: ${!!this.chart}, paneId: ${this.config.paneId}`,
+      'ButtonPanelPrimitive'
+    );
+
+    if (!this.chart) {
+      logger.warn('initializeManagers aborted - chart is null', 'ButtonPanelPrimitive');
+      return;
+    }
 
     // Initialize collapse manager
     if (!this.collapseManager) {
@@ -103,6 +111,7 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
         onPaneCollapse: this.config.onPaneCollapse,
         onPaneExpand: this.config.onPaneExpand,
       });
+      logger.info('CollapseManager initialized', 'ButtonPanelPrimitive');
     }
 
     // Initialize dialog manager
@@ -117,6 +126,7 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
         }
       );
       this.dialogManager.initializePane(this.config.paneId);
+      logger.info('DialogManager initialized', 'ButtonPanelPrimitive');
     }
   }
 
@@ -129,9 +139,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     if (this.isInitialized) return;
 
     this.isInitialized = true;
-
-    // Initialize managers BEFORE creating buttons (buttons depend on managers)
-    this.initializeManagers();
 
     // Clear existing content
     this.containerElement.innerHTML = '';
@@ -164,15 +171,32 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
    * Initialize button registry and create button instances
    */
   private initializeButtons(): void {
-    if (!this.buttonContainer) return;
+    logger.info(
+      `initializeButtons called - container: ${!!this.buttonContainer}, collapseManager: ${!!this.collapseManager}, dialogManager: ${!!this.dialogManager}`,
+      'ButtonPanelPrimitive'
+    );
+    logger.info(
+      `Config: showCollapseButton=${this.config.showCollapseButton}, showSeriesSettingsButton=${this.config.showSeriesSettingsButton}`,
+      'ButtonPanelPrimitive'
+    );
+
+    if (!this.buttonContainer) {
+      logger.warn('initializeButtons aborted - buttonContainer is null', 'ButtonPanelPrimitive');
+      return;
+    }
 
     // Create new button registry
     this.buttonRegistry = new ButtonRegistry();
+    logger.info('ButtonRegistry created', 'ButtonPanelPrimitive');
 
     // Get button styling configuration
     const styling = this.getButtonStyling();
 
     // Create collapse button if enabled
+    logger.info(
+      `Checking collapse button - showCollapseButton !== false: ${this.config.showCollapseButton !== false}`,
+      'ButtonPanelPrimitive'
+    );
     if (this.config.showCollapseButton !== false) {
       const collapseButton = new CollapseButton({
         id: `collapse-${this.config.paneId}`,
@@ -188,24 +212,40 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
       });
 
       this.buttonRegistry.register(collapseButton, 10);
+      logger.info('CollapseButton registered', 'ButtonPanelPrimitive');
     }
 
     // Create series settings button if enabled
+    logger.info(
+      `Checking series settings button - showSeriesSettingsButton !== false: ${this.config.showSeriesSettingsButton !== false}`,
+      'ButtonPanelPrimitive'
+    );
     if (this.config.showSeriesSettingsButton !== false) {
-      const settingsButton = new SeriesSettingsButton({
-        id: `series-settings-${this.config.paneId}`,
-        tooltip: 'Series Settings',
-        onSeriesSettingsClick: () => void this.openSeriesConfigDialog(),
-        styling,
-        visible: true,
-        enabled: true,
-        debounceDelay: 300,
-      });
+      try {
+        logger.info('Creating SeriesSettingsButton...', 'ButtonPanelPrimitive');
+        const settingsButton = new SeriesSettingsButton({
+          id: `series-settings-${this.config.paneId}`,
+          tooltip: 'Series Settings',
+          onSeriesSettingsClick: () => void this.openSeriesConfigDialog(),
+          styling,
+          visible: true,
+          enabled: true,
+          debounceDelay: 300,
+        });
 
-      this.buttonRegistry.register(settingsButton, 20);
+        logger.info('SeriesSettingsButton created, registering...', 'ButtonPanelPrimitive');
+        this.buttonRegistry.register(settingsButton, 20);
+        logger.info('SeriesSettingsButton registered', 'ButtonPanelPrimitive');
+      } catch (error) {
+        logger.error('Failed to create SeriesSettingsButton', 'ButtonPanelPrimitive', error);
+      }
     }
 
     // Render buttons using pure DOM
+    logger.info(
+      `About to renderButtons - registry count: ${this.buttonRegistry.getButtonCount()}`,
+      'ButtonPanelPrimitive'
+    );
     this.renderButtons();
   }
 
@@ -229,10 +269,24 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
    * Render buttons to DOM using pure DOM manipulation (no React)
    */
   private renderButtons(): void {
-    if (!this.buttonContainer || !this.buttonRegistry) return;
+    if (!this.buttonContainer || !this.buttonRegistry) {
+      logger.warn(
+        `renderButtons aborted - container: ${!!this.buttonContainer}, registry: ${!!this.buttonRegistry}`,
+        'ButtonPanelPrimitive'
+      );
+      return;
+    }
 
     const buttons = this.buttonRegistry.getVisibleButtons();
-    if (buttons.length === 0) return;
+    logger.info(
+      `renderButtons - visible buttons: ${buttons.length}, all buttons: ${this.buttonRegistry.getButtonCount()}`,
+      'ButtonPanelPrimitive'
+    );
+
+    if (buttons.length === 0) {
+      logger.warn('renderButtons - no visible buttons to render', 'ButtonPanelPrimitive');
+      return;
+    }
 
     // Clear existing buttons
     this.buttonContainer.innerHTML = '';
@@ -240,8 +294,15 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     // Append each button's DOM element
     buttons.forEach((button: BaseButton) => {
       const buttonElement = button.getElement();
+      logger.info(
+        `Appending button ${button.getId()}, element has ${buttonElement.onclick ? 'inline' : 'no'} onclick, has ${(buttonElement as any)._hasEventListeners ? 'event' : 'no'} listeners`,
+        'ButtonPanelPrimitive'
+      );
       this.buttonContainer!.appendChild(buttonElement);
+      logger.info(`Appended button ${button.getId()} to container`, 'ButtonPanelPrimitive');
     });
+
+    logger.info(`renderButtons complete - ${buttons.length} buttons rendered`, 'ButtonPanelPrimitive');
   }
 
   /**
@@ -267,8 +328,10 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     series: ISeriesApi<any>;
     requestUpdate: () => void;
   }): void {
-    // Initialize managers now that chart is attached
-    this.initializeManagers();
+    // Initialize managers now that chart is attached (only once)
+    if (!this.collapseManager || !this.dialogManager) {
+      this.initializeManagers();
+    }
   }
 
   /**
@@ -321,13 +384,20 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
   // ===== Series Configuration Dialog =====
 
   private async openSeriesConfigDialog(): Promise<void> {
+    logger.info(
+      `openSeriesConfigDialog called - paneId: ${this.config.paneId}, dialogManager: ${!!this.dialogManager}`,
+      'ButtonPanelPrimitive'
+    );
+
     if (!this.dialogManager) {
       logger.error('Dialog manager not initialized', 'ButtonPanelPrimitive');
       return;
     }
 
     try {
+      logger.info('Calling dialogManager.open()', 'ButtonPanelPrimitive');
       this.dialogManager.open(this.config.paneId);
+      logger.info('dialogManager.open() completed', 'ButtonPanelPrimitive');
     } catch (error) {
       logger.error('Button panel operation failed', 'ButtonPanelPrimitive', error);
     }

@@ -210,6 +210,8 @@ export abstract class BaseButton {
    */
   protected updateStyles(): void {
     const { isHovered, isPressed } = this.state;
+    const enabled = this.isEnabled();
+    const visible = this.isVisible();
 
     // Apply styles directly to DOM element
     const style = this.element.style;
@@ -218,8 +220,8 @@ export abstract class BaseButton {
     style.background = isHovered ? this.styling.hoverBackground : this.styling.background;
     style.border = this.styling.border;
     style.borderRadius = `${this.styling.borderRadius}px`;
-    style.cursor = this.isEnabled() ? 'pointer' : 'not-allowed';
-    style.display = this.isVisible() ? 'flex' : 'none';
+    style.cursor = enabled ? 'pointer' : 'not-allowed';
+    style.display = visible ? 'flex' : 'none';
     style.alignItems = 'center';
     style.justifyContent = 'center';
     style.color = isHovered ? this.styling.hoverColor : this.styling.color;
@@ -227,8 +229,8 @@ export abstract class BaseButton {
     style.userSelect = 'none';
     style.boxShadow = isHovered ? this.styling.hoverBoxShadow : 'none';
     style.transform = isPressed ? 'scale(0.9)' : 'scale(1)';
-    style.opacity = this.isEnabled() ? '1' : '0.5';
-    style.pointerEvents = this.isEnabled() ? 'auto' : 'none';
+    style.opacity = enabled ? '1' : '0.5';
+    style.pointerEvents = enabled ? 'auto' : 'none';
 
     // Update tooltip
     this.element.setAttribute('title', this.getTooltip(this.state));

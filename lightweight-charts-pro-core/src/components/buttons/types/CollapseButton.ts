@@ -81,13 +81,14 @@ export class CollapseButton extends BaseButton {
    * Get the collapse/expand icon SVG based on state
    */
   protected getIconSVG(_state: ButtonState): string {
-    const isCollapsed = this.collapseConfig.isCollapsed;
+    // IMPORTANT: collapseConfig might be undefined during super() constructor call
+    const isCollapsed = this.collapseConfig?.isCollapsed ?? false;
 
     // Allow custom icon overrides
-    if (isCollapsed && this.collapseConfig.customExpandIcon) {
+    if (isCollapsed && this.collapseConfig?.customExpandIcon) {
       return this.collapseConfig.customExpandIcon;
     }
-    if (!isCollapsed && this.collapseConfig.customCollapseIcon) {
+    if (!isCollapsed && this.collapseConfig?.customCollapseIcon) {
       return this.collapseConfig.customCollapseIcon;
     }
 

@@ -2312,6 +2312,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             }
 
             // Debug logging
+            logger.info(
+              `Pane collapse config - enabled: ${paneCollapseConfig.enabled}, showSeriesSettingsButton: ${paneCollapseConfig.showSeriesSettingsButton}`,
+              'ButtonPanel'
+            );
             if (paneCollapseConfig.enabled !== false) {
               try {
                 // Get all panes and wrap each in its own collapsible container

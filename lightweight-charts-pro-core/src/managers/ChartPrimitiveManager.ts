@@ -191,23 +191,31 @@ export class ChartPrimitiveManager {
     const primitiveId = `range-switcher-${this.chartId}`;
 
     try {
+      logger.info(`Creating range switcher - chartId: ${this.chartId}`, 'ChartPrimitiveManager');
+
       const rangeSwitcher = new RangeSwitcherPrimitive(primitiveId, {
         corner: config.position || 'top-right',
         priority: PrimitivePriority.RANGE_SWITCHER,
         ranges: config.ranges || [...DefaultRangeConfigs.trading],
       });
 
+      logger.info(`Range switcher created, attaching to pane...`, 'ChartPrimitiveManager');
+
       // Attach to first pane (chart-level primitives go to pane 0)
       const panes = this.chart.panes();
       if (panes.length > 0) {
         panes[0].attachPrimitive(rangeSwitcher);
+        logger.info(`Range switcher attached to pane 0`, 'ChartPrimitiveManager');
+      } else {
+        logger.error('No panes available to attach range switcher', 'ChartPrimitiveManager');
       }
       this.primitives.set(primitiveId, rangeSwitcher);
 
       return {
         destroy: () => this.destroyPrimitive(primitiveId),
       };
-    } catch {
+    } catch (error) {
+      logger.error('Failed to add range switcher', 'ChartPrimitiveManager', error);
       return { destroy: () => {} };
     }
   }

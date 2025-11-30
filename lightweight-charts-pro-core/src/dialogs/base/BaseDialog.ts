@@ -377,6 +377,14 @@ export abstract class BaseDialog {
     title.textContent = this.getDialogTitle();
     header.appendChild(title);
 
+    // Close button (X)
+    const closeBtn = document.createElement('button');
+    closeBtn.className = this._cls('dialog-close');
+    closeBtn.innerHTML = '×';
+    closeBtn.setAttribute('aria-label', 'Close');
+    this._eventManager.addEventListener(closeBtn, 'click', () => this.close());
+    header.appendChild(closeBtn);
+
     return header;
   }
 

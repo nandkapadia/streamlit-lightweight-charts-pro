@@ -147,6 +147,9 @@ function generateStyles(theme: DialogTheme): string {
 
 /* Dialog Header */
 .${CSS_PREFIX}-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 8px 6px 6px 6px;
   border-bottom: 1px solid ${theme.borderColor};
 }
@@ -156,6 +159,27 @@ function generateStyles(theme: DialogTheme): string {
   font-weight: 500;
   color: ${theme.textPrimary};
   line-height: 20px;
+}
+
+.${CSS_PREFIX}-dialog-close {
+  background: none;
+  border: none;
+  color: ${theme.textPrimary};
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.${CSS_PREFIX}-dialog-close:hover {
+  opacity: 1;
 }
 
 /* Dialog Content */
