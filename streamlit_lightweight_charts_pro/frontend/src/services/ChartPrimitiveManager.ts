@@ -57,8 +57,7 @@ import {
   CrosshairEventData,
   PrimitivePriority,
 } from 'lightweight-charts-pro-core';
-import { SeriesDialogManager } from './SeriesDialogManager';
-import { PaneCollapseManager } from 'lightweight-charts-pro-core';
+import { SeriesDialogManager, PaneCollapseManager } from 'lightweight-charts-pro-core';
 import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types';
 import {
   ButtonPanelPrimitive,

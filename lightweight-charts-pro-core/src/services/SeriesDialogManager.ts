@@ -1,41 +1,56 @@
 /**
- * @fileoverview Series Dialog Manager
+ * @fileoverview Series Dialog Manager (Framework-Agnostic)
  *
- * Manages series configuration dialog for Lightweight Charts.
- *
- * ℹ️ REACT PORTAL PATTERN:
- * This manager creates dialog containers and uses React's createRoot API to
- * render React components into them. This is the correct approach for:
- * 1. Rendering React components outside the main component tree (portals)
- * 2. Managing dialog lifecycle independently from chart rendering
- * 3. Ensuring dialogs appear on top of all other content
- *
- * The container is created via DOM manipulation, but React controls all
- * rendering within it. This is a standard pattern for modal/dialog systems.
+ * Manages series configuration dialogs for Lightweight Charts.
+ * This is a pure TypeScript implementation that works with any framework.
  *
  * Responsibilities:
  * - Open/close series configuration dialog
- * - Create portal containers for React rendering
  * - Manage dialog state per pane
- * - Apply configuration changes via Streamlit service
+ * - Apply configuration changes via BackendSyncAdapter
  * - Coordinate with backend for persistence
+ * - Restore configurations from storage
+ *
+ * Architecture:
+ * - Keyed singleton pattern (one instance per chart)
+ * - Pure DOM dialog (no React dependencies)
+ * - Framework-agnostic backend sync via adapter pattern
+ * - Per-pane dialog state management
+ *
+ * @example
+ * ```typescript
+ * const adapter = new InMemoryBackendSyncAdapter();
+ * const manager = SeriesDialogManager.getInstance(
+ *   chartApi,
+ *   adapter,
+ *   'chart-1'
+ * );
+ *
+ * // Initialize pane
+ * manager.initializePane(0);
+ *
+ * // Open dialog with current series settings
+ * manager.open(0);
+ *
+ * // Close dialog
+ * manager.close(0);
+ *
+ * // Cleanup on unmount
+ * SeriesDialogManager.destroyInstance('chart-1');
+ * ```
  */
 
-import React from 'react';
-import { createRoot } from 'react-dom/client';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
-import { logger } from 'lightweight-charts-pro-core';
-import { StreamlitSeriesConfigService } from './StreamlitSeriesConfigService';
-import { SeriesType, SeriesConfiguration } from 'lightweight-charts-pro-core';
-import { apiOptionsToDialogConfig } from 'lightweight-charts-pro-core';
+import { logger } from '../utils/logger';
+import { BackendSyncAdapter } from './BackendSyncAdapter';
+import { SeriesType, SeriesConfiguration } from '../types/SeriesTypes';
+import { apiOptionsToDialogConfig } from '../series/UnifiedPropertyMapper';
 import {
   SeriesSettingsDialog,
   SeriesInfo as DialogSeriesInfo,
-  SeriesConfig,
-} from 'lightweight-charts-pro-core';
-import { KeyedSingletonManager } from 'lightweight-charts-pro-core';
-import { handleError, ErrorSeverity } from '../utils/errorHandler';
-import { CSS_CLASSES } from 'lightweight-charts-pro-core';
+} from '../dialogs/SeriesSettingsDialog';
+import { SeriesFormConfig } from '../dialogs/FormStateManager';
+import { KeyedSingletonManager } from '../utils/KeyedSingletonManager';
 
 /**
  * Local SeriesInfo interface with config property
@@ -52,8 +67,7 @@ export interface SeriesInfo {
  * Dialog state for a pane
  */
 export interface DialogState {
-  dialogElement?: HTMLElement;
-  dialogRoot?: ReturnType<typeof createRoot>;
+  dialogInstance?: SeriesSettingsDialog;
   seriesConfigs: Map<string, SeriesConfiguration>;
 }
 
@@ -72,22 +86,22 @@ export interface SeriesDialogConfig {
 /**
  * Manager for series configuration dialog
  *
- * Manages the lifecycle of series settings dialogs using React Portals.
+ * Manages the lifecycle of series settings dialogs using pure DOM.
  * This class bridges the gap between imperative chart management and
- * declarative React rendering.
+ * declarative dialog rendering, without any framework dependencies.
  *
  * Architecture:
  * - Keyed singleton pattern (one instance per chart)
- * - React portal for dialog rendering
- * - Streamlit integration for configuration persistence
+ * - Pure DOM dialogs (framework-agnostic)
+ * - Backend sync via adapter pattern
  * - Per-pane dialog state management
  *
  * Responsibilities:
- * - Create and manage dialog portal containers
+ * - Create and manage dialog instances
  * - Open/close dialogs with current series settings
  * - Apply configuration changes to chart APIs
- * - Coordinate with backend for persistence
- * - Clean up React roots and DOM elements
+ * - Coordinate with backend for persistence via adapter
+ * - Clean up dialog instances and DOM elements
  *
  * @export
  * @class SeriesDialogManager
@@ -95,9 +109,10 @@ export interface SeriesDialogConfig {
  *
  * @example
  * ```typescript
+ * const adapter = new StreamlitBackendSyncAdapter(streamlitService);
  * const manager = SeriesDialogManager.getInstance(
  *   chartApi,
- *   streamlitService,
+ *   adapter,
  *   'chart-1'
  * );
  *
@@ -117,9 +132,9 @@ export interface SeriesDialogConfig {
 export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManager> {
   /** Chart API reference for accessing panes and series */
   private chartApi: IChartApi;
-  /** Streamlit service for configuration persistence */
-  private streamlitService: StreamlitSeriesConfigService;
-  /** Dialog state per pane (containers, roots, configs) */
+  /** Backend sync adapter for configuration persistence */
+  private backendAdapter: BackendSyncAdapter;
+  /** Dialog state per pane (instances, configs) */
   private dialogStates = new Map<number, DialogState>();
   /** Manager configuration (chartId, callbacks) */
   private config: SeriesDialogConfig;
@@ -132,17 +147,17 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
    *
    * @private
    * @param {IChartApi} chartApi - Lightweight Charts API instance
-   * @param {StreamlitSeriesConfigService} streamlitService - Streamlit config service
+   * @param {BackendSyncAdapter} backendAdapter - Backend sync adapter
    * @param {SeriesDialogConfig} [config={}] - Optional manager configuration
    */
   private constructor(
     chartApi: IChartApi,
-    streamlitService: StreamlitSeriesConfigService,
+    backendAdapter: BackendSyncAdapter,
     config: SeriesDialogConfig = {}
   ) {
     super();
     this.chartApi = chartApi;
-    this.streamlitService = streamlitService;
+    this.backendAdapter = backendAdapter;
     this.config = config;
   }
 
@@ -151,13 +166,13 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
    */
   public static getInstance(
     chartApi: IChartApi,
-    streamlitService: StreamlitSeriesConfigService,
+    backendAdapter: BackendSyncAdapter,
     chartId?: string,
     config: SeriesDialogConfig = {}
   ): SeriesDialogManager {
     const key = chartId || 'default';
     const instance = KeyedSingletonManager.getOrCreateInstance('SeriesDialogManager', key, () => {
-      return new SeriesDialogManager(chartApi, streamlitService, config);
+      return new SeriesDialogManager(chartApi, backendAdapter, config);
     });
     return instance;
   }
@@ -179,21 +194,18 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
         seriesConfigs: new Map(),
       });
 
-      // CRITICAL: Restore saved customizations from sessionStorage immediately after initialization
-      // This ensures customizations persist across reinitialization (e.g., when changing indicator params)
-      // within the current browser session only
-      this.restoreSeriesConfigsFromStorage(paneId);
+      // Restore saved customizations from backend immediately after initialization
+      // This ensures customizations persist across reinitialization
+      this.restoreSeriesConfigsFromBackend(paneId);
     }
   }
 
   /**
-   * Restore series configurations from sessionStorage for a pane
+   * Restore series configurations from backend for a pane
    * Called during pane initialization to restore customizations after reinit
-   * Only restores within current browser session (cleared when tab closes)
    */
-  private restoreSeriesConfigsFromStorage(paneId: number): void {
+  private restoreSeriesConfigsFromBackend(paneId: number): void {
     try {
-
       // Get all series in this pane
       const panes = this.chartApi.panes();
       if (paneId < 0 || paneId >= panes.length) {
@@ -203,14 +215,16 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
       const pane = panes[paneId];
       const paneSeries = pane.getSeries();
 
-
       // Try to restore config for each series
-      paneSeries.forEach((series: ISeriesApi<any>, index: number) => {
+      paneSeries.forEach((_series: ISeriesApi<any>, index: number) => {
         const seriesId = `pane-${paneId}-series-${index}`;
-        const savedConfig = this.loadSeriesConfig(seriesId);
+        const savedConfig = this.backendAdapter.getSeriesConfig(
+          paneId,
+          seriesId,
+          this.config.chartId
+        );
 
         if (savedConfig) {
-
           // Store in memory
           const state = this.dialogStates.get(paneId);
           if (state) {
@@ -221,20 +235,19 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
           try {
             this.applyConfigToChartSeries(paneId, seriesId, savedConfig);
           } catch (error) {
-            console.warn(
-              '[SeriesDialogManager] Failed to apply restored config for:',
-              seriesId,
-              error
+            logger.warn(
+              'Failed to apply restored config',
+              'SeriesDialogManager.restoreSeriesConfigsFromBackend',
+              { seriesId, error }
             );
           }
         }
       });
     } catch (error) {
-      console.error('[SeriesDialogManager] Error restoring configs:', error);
-      handleError(
-        error,
-        'SeriesDialogManager.restoreSeriesConfigsFromStorage',
-        ErrorSeverity.WARNING
+      logger.warn(
+        'Error restoring configs from backend',
+        'SeriesDialogManager.restoreSeriesConfigsFromBackend',
+        error
       );
     }
   }
@@ -247,56 +260,14 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
   }
 
   /**
-   * Create dialog portal container
-   *
-   * Creates a fixed-position container for React portal rendering.
-   * This is a one-time DOM operation; all subsequent updates are handled by React.
-   *
-   * @param paneId - Pane identifier for unique container class
-   * @returns Dialog container element
-   */
-  private createDialogContainer(paneId: number): HTMLElement {
-    const dialogContainer = document.createElement('div');
-    dialogContainer.className = CSS_CLASSES.seriesDialogContainer(paneId);
-
-    // Use data attribute for robust selection
-    dialogContainer.setAttribute('data-dialog-pane-id', String(paneId));
-    dialogContainer.setAttribute('role', 'dialog');
-    dialogContainer.setAttribute('aria-modal', 'true');
-
-    // Apply portal container styles
-    // Note: These are structural styles, not presentation styles
-    // Presentation is handled by React components
-    dialogContainer.style.position = 'fixed';
-    dialogContainer.style.top = '0';
-    dialogContainer.style.left = '0';
-    dialogContainer.style.width = '100vw';
-    dialogContainer.style.height = '100vh';
-    dialogContainer.style.zIndex = '10000';
-    dialogContainer.style.pointerEvents = 'auto';
-
-    // Append to body (outside React root - this is the portal pattern)
-    document.body.appendChild(dialogContainer);
-
-    return dialogContainer;
-  }
-
-  /**
    * Open series configuration dialog
    *
-   * Creates a React portal container if needed and renders the dialog.
-   * The container is created via DOM manipulation, but React controls
-   * all rendering within it (standard portal pattern).
+   * Creates a dialog instance if needed and shows it.
+   * Uses pure DOM dialogs (no React dependencies).
    */
   public open(paneId: number): void {
     const state = this.dialogStates.get(paneId);
     if (!state) {
-      console.error(
-        '[SeriesDialogManager] Dialog state NOT found for paneId:',
-        paneId,
-        'Available panes:',
-        Array.from(this.dialogStates.keys())
-      );
       logger.error('Dialog state not initialized', 'SeriesDialogManager', { paneId });
       return;
     }
@@ -304,17 +275,6 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
     try {
       // Get ALL series for this pane
       const allSeries = this.getAllSeriesForPane(paneId);
-
-      // Create dialog portal container if it doesn't exist
-      if (!state.dialogElement) {
-        state.dialogElement = this.createDialogContainer(paneId);
-        state.dialogRoot = createRoot(state.dialogElement);
-      }
-
-      // Re-enable pointer events when opening dialog
-      if (state.dialogElement) {
-        state.dialogElement.style.pointerEvents = 'auto';
-      }
 
       // Create series configurations from allSeries
       // Read ACTUAL options from chart series instead of using defaults
@@ -348,42 +308,52 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
         });
       }
 
-      // Render the dialog with all series
-      if (state.dialogRoot) {
-        state.dialogRoot.render(
-          React.createElement(SeriesSettingsDialog, {
-            isOpen: true,
-            onClose: () => this.close(paneId),
-            paneId: paneId.toString(),
-            seriesList: allSeries.map(
-              series =>
-                ({
-                  id: series.id,
-                  displayName: series.displayName || series.title || series.id,
-                  type: series.type,
-                }) as DialogSeriesInfo
-            ),
-            seriesConfigs: seriesConfigs as Record<string, SeriesConfig>,
-            onConfigChange: (seriesId: string, newConfig: SeriesConfig) => {
-              // Find the series type from allSeries
-              const series = allSeries.find(s => s.id === seriesId);
-              const seriesType = series?.type || 'line';
+      // Create or update dialog instance
+      if (!state.dialogInstance) {
+        state.dialogInstance = new SeriesSettingsDialog({
+          seriesList: allSeries.map(
+            series =>
+              ({
+                id: series.id,
+                displayName: series.displayName || series.title || series.id,
+                type: series.type,
+              }) as DialogSeriesInfo
+          ),
+          seriesConfigs: seriesConfigs as Record<string, SeriesFormConfig>,
+          seriesSettings: {}, // TODO: Add series-specific settings
+          onConfigChange: (seriesId: string, newConfig: SeriesFormConfig) => {
+            // Find the series type from allSeries
+            const seriesInfo = allSeries.find(s => s.id === seriesId);
+            const seriesType = seriesInfo?.type || 'line';
 
-              // Include series type in the config for proper property mapping
-              const configWithType = {
-                ...newConfig,
-                _seriesType: seriesType,
-              } as SeriesConfiguration;
-              this.applySeriesConfig(paneId, seriesId, configWithType);
-            },
-          })
-        );
+            // Include series type in the config for proper property mapping
+            const configWithType = {
+              ...newConfig,
+              _seriesType: seriesType,
+            } as SeriesConfiguration;
+            this.applySeriesConfig(paneId, seriesId, configWithType);
+          },
+          onClose: () => this.close(paneId),
+        });
       } else {
-        logger.error('Failed to create dialog root for series config', 'SeriesDialogManager');
+        // Update existing dialog with new data
+        state.dialogInstance.updateSeries(
+          allSeries.map(
+            series =>
+              ({
+                id: series.id,
+                displayName: series.displayName || series.title || series.id,
+                type: series.type,
+              }) as DialogSeriesInfo
+          ),
+          seriesConfigs as Record<string, SeriesFormConfig>
+        );
       }
+
+      // Open the dialog
+      state.dialogInstance.open();
     } catch (error) {
-      // Dialog open failures should be visible to caller
-      handleError(error, 'SeriesDialogManager.open', ErrorSeverity.ERROR);
+      logger.error('Failed to open series dialog', 'SeriesDialogManager', error);
     }
   }
 
@@ -392,40 +362,16 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
    */
   public close(paneId: number): void {
     const state = this.dialogStates.get(paneId);
-    if (!state || !state.dialogRoot) return;
+    if (!state || !state.dialogInstance) return;
 
     try {
-      // CRITICAL FIX: Sync all pending changes to backend before closing
-      // This ensures changes are persisted without causing rerenders during live updates
-      try {
-        // Force sync any pending changes to backend
-        this.streamlitService.forceSyncToBackend();
-      } catch (syncError) {
-        // Log but don't prevent dialog close
-        handleError(syncError, 'SeriesDialogManager.close.syncToBackend', ErrorSeverity.WARNING);
-      }
+      // Force sync any pending changes to backend
+      this.backendAdapter.forceSyncToBackend();
 
-      // Render empty dialog (closed state)
-      state.dialogRoot.render(
-        React.createElement(SeriesSettingsDialog, {
-          isOpen: false,
-          onClose: () => {},
-          paneId: paneId.toString(),
-          seriesList: [],
-          seriesConfigs: {},
-          onConfigChange: () => {},
-        })
-      );
-
-      // CRITICAL FIX: Disable pointer events on container to allow chart interaction
-      // The container element stays in DOM for performance (reuse on next open),
-      // but must not block mouse events when dialog is closed
-      if (state.dialogElement) {
-        state.dialogElement.style.pointerEvents = 'none';
-      }
+      // Close the dialog
+      state.dialogInstance.close();
     } catch (error) {
-      // Close failures are less critical - log as warning
-      handleError(error, 'SeriesDialogManager.close', ErrorSeverity.WARNING);
+      logger.warn('Failed to close series dialog', 'SeriesDialogManager', error);
     }
   }
 
@@ -453,29 +399,34 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
 
           // Get existing config or create default
           let seriesConfig = state.seriesConfigs.get(seriesId);
-          let wasLoadedFromStorage = false;
+          let wasLoadedFromBackend = false;
 
           if (!seriesConfig) {
-
-            // CRITICAL: Try to load from sessionStorage first (restores customizations after reinit)
-            seriesConfig = this.loadSeriesConfig(seriesId) || undefined;
+            // Try to load from backend first (restores customizations after reinit)
+            seriesConfig =
+              this.backendAdapter.getSeriesConfig(paneId, seriesId, this.config.chartId) ||
+              undefined;
 
             if (seriesConfig) {
-              wasLoadedFromStorage = true;
+              wasLoadedFromBackend = true;
             } else {
-              // Fall back to defaults if not in sessionStorage
+              // Fall back to defaults if not in backend
               seriesConfig = this.getDefaultSeriesConfig(seriesInfo.type);
             }
 
             state.seriesConfigs.set(seriesId, seriesConfig);
 
-            // CRITICAL: Apply loaded config to chart series immediately
+            // Apply loaded config to chart series immediately
             // This restores customizations (colors, line width, etc.) after reinitialization
-            if (wasLoadedFromStorage) {
+            if (wasLoadedFromBackend) {
               try {
                 this.applyConfigToChartSeries(paneId, seriesId, seriesConfig);
               } catch (error) {
-                console.warn('[SeriesDialogManager] Failed to apply loaded config:', error);
+                logger.warn(
+                  'Failed to apply loaded config',
+                  'SeriesDialogManager.getAllSeriesForPane',
+                  { seriesId, error }
+                );
               }
             }
           }
@@ -492,8 +443,11 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
         });
       }
     } catch (error) {
-      // Series retrieval failures should propagate
-      handleError(error, 'SeriesDialogManager.getAllSeriesForPane', ErrorSeverity.ERROR);
+      logger.error(
+        'Failed to get series for pane',
+        'SeriesDialogManager.getAllSeriesForPane',
+        error
+      );
     }
 
     return seriesList;
@@ -530,7 +484,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
             // Get series type from _seriesType metadata (added by UnifiedSeriesFactory)
             const seriesType = (options._seriesType as SeriesType) || 'line';
 
-            // CRITICAL: displayName and title are stored as direct properties on the series object,
+            // displayName and title are stored as direct properties on the series object,
             // not in options() - lightweight-charts doesn't preserve custom properties in options
             const extendedSeries = series as any;
             const displayName = extendedSeries.displayName;
@@ -548,8 +502,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
         });
       }
     } catch (error) {
-      // Pane access errors - log as warning
-      handleError(error, 'SeriesDialogManager.detectSeriesInPane', ErrorSeverity.WARNING);
+      logger.warn('Failed to detect series in pane', 'SeriesDialogManager', error);
     }
 
     return seriesData;
@@ -566,20 +519,32 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
     state.seriesConfigs.set(seriesId, config);
 
     // Apply configuration changes to actual chart series objects
-    // Errors are handled internally, don't let them prevent other operations
     try {
       this.applyConfigToChartSeries(paneId, seriesId, config);
     } catch (error) {
-      // Log but continue - chart update errors shouldn't prevent config storage
-      handleError(error, 'SeriesDialogManager.applyConfigToChartSeries', ErrorSeverity.WARNING);
+      logger.warn(
+        'Failed to apply config to chart series',
+        'SeriesDialogManager.applySeriesConfig',
+        error
+      );
     }
 
-    // Save to sessionStorage for persistence within current session
+    // Record config change in backend adapter
     try {
-      this.saveSeriesConfig(seriesId, config);
+      const seriesType = (config as any)._seriesType || 'line';
+      this.backendAdapter.recordConfigChange(
+        paneId,
+        seriesId,
+        seriesType,
+        config,
+        this.config.chartId
+      );
     } catch (error) {
-      // Already handled in saveSeriesConfig, but catch just in case
-      handleError(error, 'SeriesDialogManager.saveSeriesConfig', ErrorSeverity.WARNING);
+      logger.warn(
+        'Failed to record config change in backend',
+        'SeriesDialogManager.applySeriesConfig',
+        error
+      );
     }
 
     // Notify external listeners if available
@@ -588,8 +553,11 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
         this.config.onSeriesConfigChange(paneId, seriesId, config as Record<string, unknown>);
       }
     } catch (error) {
-      // Log callback errors but don't propagate
-      handleError(error, 'SeriesDialogManager.onSeriesConfigChange', ErrorSeverity.WARNING);
+      logger.warn(
+        'Failed to notify config change callback',
+        'SeriesDialogManager.applySeriesConfig',
+        error
+      );
     }
   }
 
@@ -628,7 +596,11 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
             if (seriesIndexMatch) {
               targetSeriesIndex = parseInt(seriesIndexMatch[1], 10);
             } else {
-              logger.error('Failed to parse series index from seriesId', 'SeriesDialogManager');
+              logger.error(
+                'Failed to parse series index from seriesId',
+                'SeriesDialogManager.applyConfigToChartSeries',
+                { seriesId }
+              );
             }
 
             // Apply options to the specific series or all series if index not found
@@ -640,9 +612,8 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
                     series.applyOptions(seriesOptions);
                     seriesApplied = true;
 
-                    // CRITICAL FIX: Force chart to acknowledge the update
+                    // Force chart to acknowledge the update
                     // This ensures the chart's internal state is synced after series.applyOptions()
-                    // Without this, the chart may not properly rerender the updated series
                     requestAnimationFrame(() => {
                       try {
                         // Trigger a chart update by accessing the time scale
@@ -654,88 +625,60 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
                         }
                       } catch {
                         // Silently handle - this is just a nudge for the chart
-                        logger.warn(
+                        logger.debug(
                           'Chart update nudge failed (non-critical)',
-                          'SeriesDialogManager'
+                          'SeriesDialogManager.applyConfigToChartSeries'
                         );
                       }
                     });
                   } catch (applyError) {
-                    // Options application errors - log as warning, continue with other series
-                    handleError(
-                      applyError,
-                      'SeriesDialogManager.applyConfigToChartSeries.applyOptions',
-                      ErrorSeverity.WARNING
+                    logger.warn(
+                      'Failed to apply options to series',
+                      'SeriesDialogManager.applyConfigToChartSeries',
+                      applyError
                     );
                   }
                 } else {
-                  logger.error('Series does not have applyOptions method', 'SeriesDialogManager');
+                  logger.error(
+                    'Series does not have applyOptions method',
+                    'SeriesDialogManager.applyConfigToChartSeries'
+                  );
                 }
               }
             });
           } else {
-            logger.error('No series found in target pane', 'SeriesDialogManager');
+            logger.error(
+              'No series found in target pane',
+              'SeriesDialogManager.applyConfigToChartSeries'
+            );
           }
 
           if (!seriesApplied) {
-            logger.error('Failed to apply series options to any series', 'SeriesDialogManager');
+            logger.error(
+              'Failed to apply series options to any series',
+              'SeriesDialogManager.applyConfigToChartSeries'
+            );
           }
         } catch (findError) {
-          // Series lookup errors - log as warning, continue with other series
-          handleError(
-            findError,
-            'SeriesDialogManager.applyConfigToChartSeries.findSeries',
-            ErrorSeverity.WARNING
+          logger.warn(
+            'Failed to find series in pane',
+            'SeriesDialogManager.applyConfigToChartSeries',
+            findError
           );
         }
       } else if (Object.keys(seriesOptions).length === 0) {
-        logger.error('No series options to apply', 'SeriesDialogManager');
+        logger.warn(
+          'No series options to apply',
+          'SeriesDialogManager.applyConfigToChartSeries'
+        );
       }
     } catch (error) {
-      // Chart series config errors should propagate
-      handleError(error, 'SeriesDialogManager.applyConfigToChartSeries', ErrorSeverity.ERROR);
-    }
-  }
-
-  /**
-   * Save series configuration to sessionStorage (current session only)
-   * Customizations persist within the current browser tab but are cleared when tab closes
-   */
-  private saveSeriesConfig(seriesId: string, config: SeriesConfiguration): void {
-    try {
-      const storageKey = `series-config-${seriesId}`;
-      sessionStorage.setItem(storageKey, JSON.stringify(config));
-    } catch (error) {
-      // sessionStorage save failures are non-critical - log as warning
-      handleError(
-        error,
-        'SeriesDialogManager.saveSeriesConfigToSessionStorage',
-        ErrorSeverity.WARNING
+      logger.error(
+        'Failed to apply config to chart series',
+        'SeriesDialogManager.applyConfigToChartSeries',
+        error
       );
     }
-  }
-
-  /**
-   * Load series configuration from sessionStorage (current session only)
-   * Returns null if not found or parsing fails
-   */
-  private loadSeriesConfig(seriesId: string): SeriesConfiguration | null {
-    try {
-      const storageKey = `series-config-${seriesId}`;
-      const stored = sessionStorage.getItem(storageKey);
-      if (stored) {
-        const config = JSON.parse(stored) as SeriesConfiguration;
-        return config;
-      }
-    } catch (error) {
-      // sessionStorage load failures are non-critical - log as warning
-      handleError(
-        error,
-        'SeriesDialogManager.loadSeriesConfigFromSessionStorage',
-        ErrorSeverity.WARNING
-      );
-    }
-    return null;
   }
 
   /**
@@ -807,13 +750,10 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
    * Cleanup resources
    */
   public destroy(): void {
-    // Cleanup all dialog elements
+    // Cleanup all dialog instances
     this.dialogStates.forEach(state => {
-      if (state.dialogElement && state.dialogElement.parentNode) {
-        state.dialogElement.parentNode.removeChild(state.dialogElement);
-      }
-      if (state.dialogRoot) {
-        state.dialogRoot.unmount();
+      if (state.dialogInstance) {
+        state.dialogInstance.destroy();
       }
     });
 
@@ -821,7 +761,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
 
     // Clear all references to allow garbage collection
     (this as any).chartApi = null;
-    (this as any).streamlitService = null;
+    (this as any).backendAdapter = null;
     (this as any).config = null;
   }
 }

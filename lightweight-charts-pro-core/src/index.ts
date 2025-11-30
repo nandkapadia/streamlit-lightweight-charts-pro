@@ -189,6 +189,7 @@ export {
   CornerLayoutManager,
   TradeTemplateProcessor,
   PaneCollapseManager,
+  SeriesDialogManager,
   createTradeVisualElements,
   type TemplateResult,
   type TemplateOptions,
@@ -197,6 +198,9 @@ export {
   type TradeTemplateData,
   type PaneCollapseState,
   type PaneCollapseConfig,
+  type SeriesInfo,
+  type DialogState,
+  type SeriesDialogConfig,
 } from './services';
 
 // ============================================================================

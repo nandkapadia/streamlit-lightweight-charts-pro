@@ -24,11 +24,12 @@ import {
   CollapseButton,
   SeriesSettingsButton,
   ButtonStyling,
+  PaneCollapseManager,
+  SeriesDialogManager,
 } from 'lightweight-charts-pro-core';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
-import { PaneCollapseManager } from 'lightweight-charts-pro-core';
-import { SeriesDialogManager } from '../services/SeriesDialogManager';
 import { StreamlitSeriesConfigService } from '../services/StreamlitSeriesConfigService';
+import { StreamlitBackendSyncAdapter } from '../services/StreamlitBackendSyncAdapter';
 import { createRoot, Root } from 'react-dom/client';
 import React from 'react';
 
@@ -123,9 +124,12 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
 
     // Initialize dialog manager
     if (!this.dialogManager) {
+      // Create StreamlitBackendSyncAdapter wrapping the StreamlitSeriesConfigService
+      const backendAdapter = new StreamlitBackendSyncAdapter(this.streamlitService);
+
       this.dialogManager = SeriesDialogManager.getInstance(
         this.chart,
-        this.streamlitService,
+        backendAdapter,
         this.config.chartId,
         {
           chartId: this.config.chartId,

@@ -8,4 +8,16 @@ export { PrimitiveEventManager, type EventSubscription, type PrimitiveEventTypes
 export { CornerLayoutManager } from './CornerLayoutManager';
 export { TradeTemplateProcessor, type TradeTemplateData } from './TradeTemplateProcessor';
 export { PaneCollapseManager, type PaneCollapseState, type PaneCollapseConfig } from './PaneCollapseManager';
+export {
+  type BackendSyncAdapter,
+  type ConfigChangeEvent,
+  NoOpBackendSyncAdapter,
+  InMemoryBackendSyncAdapter,
+} from './BackendSyncAdapter';
+export {
+  SeriesDialogManager,
+  type SeriesInfo,
+  type DialogState,
+  type SeriesDialogConfig,
+} from './SeriesDialogManager';
 export * from './tradeVisualization';
