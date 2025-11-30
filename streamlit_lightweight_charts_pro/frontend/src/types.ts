@@ -123,37 +123,12 @@ export interface TradeVisualizationOptions {
   annotationBackground?: string;
 }
 
-// Annotation System
-export interface Annotation {
-  time: string;
-  price: number;
-  text: string;
-  type: 'text' | 'arrow' | 'shape' | 'line' | 'rectangle' | 'circle';
-  position: 'above' | 'below' | 'inline';
-  color?: string;
-  backgroundColor?: string;
-  fontSize?: number;
-  fontWeight?: string;
-  textColor?: string;
-  borderColor?: string;
-  borderWidth?: number;
-  opacity?: number;
-  showTime?: boolean;
-  tooltip?: string;
-  lineStyle?: string; // <-- added for build fix
-}
-
-// Properly typed annotation text elements
-export interface AnnotationText {
-  time: Time;
-  price: number;
-  text: string;
-  color: string;
-  backgroundColor: string;
-  fontSize: number;
-  fontFamily: string;
-  position: 'aboveBar' | 'belowBar';
-}
+// Annotation System - Re-export from core
+export type {
+  Annotation,
+  AnnotationText,
+  AnnotationLayer,
+} from 'lightweight-charts-pro-core';
 
 // Chart coordinate and layout types
 export interface PaneSize {
@@ -209,13 +184,6 @@ export interface LayoutWidget {
   visible?: boolean;
   getDimensions?: () => { width: number; height: number };
   getContainerClassName?: () => string;
-}
-
-export interface AnnotationLayer {
-  name: string;
-  visible: boolean;
-  opacity: number;
-  annotations: Annotation[];
 }
 
 export interface AnnotationManager {
