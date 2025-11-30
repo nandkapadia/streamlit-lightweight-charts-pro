@@ -26,7 +26,7 @@ import {
   ButtonStyling,
 } from 'lightweight-charts-pro-core';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
-import { PaneCollapseManager } from '../services/PaneCollapseManager';
+import { PaneCollapseManager } from 'lightweight-charts-pro-core';
 import { SeriesDialogManager } from '../services/SeriesDialogManager';
 import { StreamlitSeriesConfigService } from '../services/StreamlitSeriesConfigService';
 import { createRoot, Root } from 'react-dom/client';

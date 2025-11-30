@@ -188,12 +188,15 @@ export {
   PrimitiveEventManager,
   CornerLayoutManager,
   TradeTemplateProcessor,
+  PaneCollapseManager,
   createTradeVisualElements,
   type TemplateResult,
   type TemplateOptions,
   type EventSubscription,
   type PrimitiveEventTypes,
   type TradeTemplateData,
+  type PaneCollapseState,
+  type PaneCollapseConfig,
 } from './services';
 
 // ============================================================================

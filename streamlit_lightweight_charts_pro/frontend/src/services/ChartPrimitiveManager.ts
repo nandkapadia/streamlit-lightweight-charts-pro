@@ -58,7 +58,7 @@ import {
   PrimitivePriority,
 } from 'lightweight-charts-pro-core';
 import { SeriesDialogManager } from './SeriesDialogManager';
-import { PaneCollapseManager } from './PaneCollapseManager';
+import { PaneCollapseManager } from 'lightweight-charts-pro-core';
 import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types';
 import {
   ButtonPanelPrimitive,

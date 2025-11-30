@@ -7,4 +7,5 @@ export { TemplateEngine, type TemplateResult, type TemplateOptions } from './Tem
 export { PrimitiveEventManager, type EventSubscription, type PrimitiveEventTypes } from './PrimitiveEventManager';
 export { CornerLayoutManager } from './CornerLayoutManager';
 export { TradeTemplateProcessor, type TradeTemplateData } from './TradeTemplateProcessor';
+export { PaneCollapseManager, type PaneCollapseState, type PaneCollapseConfig } from './PaneCollapseManager';
 export * from './tradeVisualization';
