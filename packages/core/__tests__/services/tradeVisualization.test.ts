@@ -40,18 +40,12 @@ const mockChartCoordinateService = {
   getInstance: vi.fn(() => mockCoordinateService),
 };
 
-vi.mock('../../services/ChartCoordinateService', () => ({
-  ChartCoordinateService: mockChartCoordinateService,
-}));
-
-// Also mock for require() - vitest doesn't handle dynamic require mocks well
-// We'll need to use doMock or handle this differently
-vi.doMock('../services/ChartCoordinateService', () => ({
+vi.mock('../../src/services/ChartCoordinateService', () => ({
   ChartCoordinateService: mockChartCoordinateService,
 }));
 
 // Mock chartReadyDetection
-vi.mock('../../utils/chartReadyDetection', () => ({
+vi.mock('../../src/utils/chartReadyDetection', () => ({
   ChartReadyDetector: {
     waitForChartReady: vi.fn(async () => true),
   },
@@ -1106,7 +1100,7 @@ describe('Trade Visualization Service', () => {
     });
 
     it('should fallback to immediate conversion if chart is not ready', async () => {
-      const { ChartReadyDetector } = await import('../../utils/chartReadyDetection');
+      const { ChartReadyDetector } = await import('../../src/utils/chartReadyDetection');
       (ChartReadyDetector.waitForChartReady as any).mockResolvedValueOnce(false);
 
       const rectangles: TradeRectangleData[] = [];

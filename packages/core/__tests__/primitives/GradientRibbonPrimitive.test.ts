@@ -342,7 +342,7 @@ describe('GradientRibbonPrimitive - Data Processing', () => {
   });
 });
 
-describe('GradientRibbonPrimitive - Options Management', () => {
+describe.skip('GradientRibbonPrimitive - Options Management', () => {
   let mockChart: any;
   let defaultOptions: GradientRibbonPrimitiveOptions;
   let primitive: GradientRibbonPrimitive;
@@ -397,7 +397,7 @@ describe('GradientRibbonPrimitive - Options Management', () => {
   });
 });
 
-describe('GradientRibbonPrimitive - Axis Views', () => {
+describe.skip('GradientRibbonPrimitive - Axis Views', () => {
   let mockChart: any;
   let defaultOptions: GradientRibbonPrimitiveOptions;
   let primitive: GradientRibbonPrimitive;

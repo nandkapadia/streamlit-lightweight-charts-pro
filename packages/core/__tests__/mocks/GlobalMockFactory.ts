@@ -6,7 +6,6 @@
  */
 
 import { vi } from 'vitest';
-import React from 'react';
 import type {
   IChartApi,
   IPaneApi,
@@ -214,44 +213,22 @@ export const createMockContainer = (
 
 export const mockLightweightChartsComponent = {
   default: vi.fn().mockImplementation((props: any) => {
-    // Import React dynamically to avoid module loading issues
-    // Use existing React import at top of file
-
-    // Return proper React element instead of DOM element
-    return React.createElement(
-      'div',
-      {
+    // Return mock DOM structure for testing (framework-agnostic)
+    return {
+      type: 'div',
+      props: {
         'data-testid': 'lightweight-charts',
         className: 'lightweight-charts-wrapper',
-        style: { width: '100%', height: '100%' },
-        // Add additional props for testing
-        'data-chart-ready': props.seriesData ? 'true' : 'false',
+        'data-chart-ready': props?.seriesData ? 'true' : 'false',
+        'data-series-count': props?.seriesData
+          ? Array.isArray(props.seriesData)
+            ? props.seriesData.length
+            : 1
+          : 0,
+        'data-has-legend': props?.legendConfig ? 'true' : 'false',
+        'data-has-range-switcher': props?.rangeSwitcherConfig ? 'true' : 'false',
       },
-      [
-        // Add series container if seriesData exists
-        props.seriesData
-          ? React.createElement('div', {
-              key: 'series',
-              'data-testid': 'chart-series',
-              'data-series-count': Array.isArray(props.seriesData) ? props.seriesData.length : 1,
-            })
-          : null,
-        // Add legend container if legend config exists
-        props.legendConfig
-          ? React.createElement('div', {
-              key: 'legend',
-              'data-testid': 'chart-legend',
-            })
-          : null,
-        // Add range switcher if config exists
-        props.rangeSwitcherConfig
-          ? React.createElement('div', {
-              key: 'range-switcher',
-              'data-testid': 'range-switcher',
-            })
-          : null,
-      ].filter(Boolean)
-    );
+    };
   }),
 };
 

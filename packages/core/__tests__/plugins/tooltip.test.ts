@@ -13,7 +13,7 @@ import { TooltipPlugin } from '../../src/plugins/chart/tooltipPlugin';
 import { TooltipManager } from '../../src/plugins/chart/TooltipManager';
 
 // Mock TooltipManager
-vi.mock('../../plugins/chart/TooltipManager', () => ({
+vi.mock('../../src/plugins/chart/TooltipManager', () => ({
   TooltipManager: {
     getInstance: vi.fn(() => ({
       registerRenderer: vi.fn(),
@@ -23,7 +23,7 @@ vi.mock('../../plugins/chart/TooltipManager', () => ({
 }));
 
 // Mock ChartCoordinateService
-vi.mock('../../services/ChartCoordinateService', () => ({
+vi.mock('../../src/services/ChartCoordinateService', () => ({
   ChartCoordinateService: {
     getInstance: vi.fn(() => ({
       calculateTooltipPosition: vi.fn((x, y) => ({ x, y })),
@@ -33,7 +33,7 @@ vi.mock('../../services/ChartCoordinateService', () => ({
 }));
 
 // Mock logger
-vi.mock('../../utils/logger', () => ({
+vi.mock('../../src/utils/logger', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),

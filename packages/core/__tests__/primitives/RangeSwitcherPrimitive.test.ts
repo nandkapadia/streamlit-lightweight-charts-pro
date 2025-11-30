@@ -64,7 +64,7 @@ vi.mock('../../primitives/BasePanePrimitive', () => ({
   },
   BasePrimitiveConfig: class {},
   PrimitivePriority: {
-    RANGE_SWITCHER: 100,
+    RANGE_SWITCHER: 1,
   },
 }));
 
@@ -294,7 +294,7 @@ describe('RangeSwitcherPrimitive - Construction and Configuration', () => {
       ranges: [],
     });
 
-    expect((primitive as any).config.priority).toBe(100); // PrimitivePriority.RANGE_SWITCHER
+    expect((primitive as any).config.priority).toBe(1); // PrimitivePriority.RANGE_SWITCHER
   });
 
   it('should apply default visibility', () => {

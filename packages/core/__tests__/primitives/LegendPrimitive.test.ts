@@ -67,7 +67,7 @@ vi.mock('../../primitives/BasePanePrimitive', () => ({
   },
   BasePrimitiveConfig: class {},
   PrimitivePriority: {
-    LEGEND: 50,
+    LEGEND: 3,
   },
 }));
 
@@ -75,26 +75,26 @@ vi.mock('../../primitives/BasePanePrimitive', () => ({
 vi.mock('../../primitives/PrimitiveDefaults', () => ({
   LegendColors: {
     DEFAULT_BACKGROUND: 'rgba(0, 0, 0, 0.8)',
-    DEFAULT_COLOR: '#FFFFFF',
+    DEFAULT_COLOR: 'white',
     DEFAULT_OPACITY: 0.8,
-    VOLUME_BACKGROUND: 'rgba(0, 0, 0, 0.6)',
-    BAND_BACKGROUND: 'rgba(0, 0, 0, 0.7)',
+    VOLUME_BACKGROUND: 'rgba(100, 100, 100, 0.8)',
+    BAND_BACKGROUND: 'rgba(0, 50, 100, 0.8)',
   },
   LegendDimensions: {
     FONT_SIZE: 12,
-    DEFAULT_PADDING: 8,
-    OHLC_PADDING: 10,
-    BAND_PADDING: 8,
+    DEFAULT_PADDING: 6,
+    OHLC_PADDING: 6,
+    BAND_PADDING: 6,
     BORDER_RADIUS: 4,
-    MAX_WIDTH: 400,
+    MAX_WIDTH: 200,
     OHLC_FONT_SIZE: 11,
     BAND_FONT_SIZE: 11,
   },
   FormatDefaults: {
     VALUE_FORMAT: '.2f',
-    TIME_FORMAT: 'YYYY-MM-DD',
+    TIME_FORMAT: 'YYYY-MM-DD HH:mm:ss',
     VOLUME_FORMAT: '.0f',
-    BAND_FORMAT: '.2f',
+    BAND_FORMAT: '.3f',
   },
   ContainerDefaults: {
     FONT_FAMILY: 'Arial, sans-serif',
@@ -146,7 +146,7 @@ describe('LegendPrimitive - Construction', () => {
       text: 'Test',
     });
 
-    expect((legend as any).config.priority).toBe(50); // PrimitivePriority.LEGEND
+    expect((legend as any).config.priority).toBe(3); // PrimitivePriority.LEGEND
   });
 
   it('should apply default visibility', () => {
@@ -202,7 +202,7 @@ describe('LegendPrimitive - Construction', () => {
     });
 
     expect((legend as any).config.style.backgroundColor).toBe('rgba(0, 0, 0, 0.8)');
-    expect((legend as any).config.style.color).toBe('#FFFFFF');
+    expect((legend as any).config.style.color).toBe('white');
     expect((legend as any).config.style.fontSize).toBe(12);
   });
 
@@ -216,7 +216,7 @@ describe('LegendPrimitive - Construction', () => {
     });
 
     expect((legend as any).config.style.backgroundColor).toBe('blue');
-    expect((legend as any).config.style.color).toBe('#FFFFFF'); // Default
+    expect((legend as any).config.style.color).toBe('white'); // Default
   });
 });
 
@@ -413,7 +413,7 @@ describe('LegendPrimitive - Crosshair Events', () => {
       seriesData: { value: 42 },
       formatting: {
         valueFormat: '.2f',
-        timeFormat: 'YYYY-MM-DD',
+        timeFormat: 'YYYY-MM-DD HH:mm:ss',
       },
     });
   });
@@ -593,14 +593,14 @@ describe('Default Configurations', () => {
 
   it('should provide band config', () => {
     expect(DefaultLegendConfigs.band.text).toBe('U: $$upper$$ M: $$middle$$ L: $$lower$$');
-    expect(DefaultLegendConfigs.band.valueFormat).toBe('.2f');
+    expect(DefaultLegendConfigs.band.valueFormat).toBe('.3f');
   });
 
   it('should have consistent styling in configs', () => {
     expect(DefaultLegendConfigs.simple.style.backgroundColor).toBe('rgba(0, 0, 0, 0.8)');
     expect(DefaultLegendConfigs.ohlc.style.backgroundColor).toBe('rgba(0, 0, 0, 0.8)');
-    expect(DefaultLegendConfigs.volume.style.backgroundColor).toBe('rgba(0, 0, 0, 0.6)');
-    expect(DefaultLegendConfigs.band.style.backgroundColor).toBe('rgba(0, 0, 0, 0.7)');
+    expect(DefaultLegendConfigs.volume.style.backgroundColor).toBe('rgba(100, 100, 100, 0.8)');
+    expect(DefaultLegendConfigs.band.style.backgroundColor).toBe('rgba(0, 50, 100, 0.8)');
   });
 });
 

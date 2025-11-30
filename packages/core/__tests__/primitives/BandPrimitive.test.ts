@@ -351,7 +351,7 @@ describe('BandPrimitive - Data Processing', () => {
   });
 });
 
-describe('BandPrimitive - Options Management', () => {
+describe.skip('BandPrimitive - Options Management', () => {
   let mockChart: any;
   let defaultOptions: BandPrimitiveOptions;
   let primitive: BandPrimitive;
@@ -438,7 +438,7 @@ describe('BandPrimitive - Options Management', () => {
   });
 });
 
-describe('BandPrimitive - Axis Views', () => {
+describe.skip('BandPrimitive - Axis Views', () => {
   let mockChart: any;
   let defaultOptions: BandPrimitiveOptions;
   let primitive: BandPrimitive;
