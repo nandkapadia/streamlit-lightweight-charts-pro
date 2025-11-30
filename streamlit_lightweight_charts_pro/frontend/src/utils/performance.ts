@@ -30,7 +30,7 @@
  * ```
  */
 
-import { Singleton } from './SingletonBase';
+import { Singleton } from 'lightweight-charts-pro-core';
 
 // Production logging control
 const isDevelopment = process.env.NODE_ENV === 'development';

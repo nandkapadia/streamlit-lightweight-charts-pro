@@ -27,7 +27,7 @@
 import { useCallback, useRef } from 'react';
 import { IChartApi } from 'lightweight-charts';
 import { ChartConfig } from '../types';
-import { logger } from '../utils/logger';
+import { logger } from 'lightweight-charts-pro-core';
 
 export interface UseChartResizeOptions {
   /**

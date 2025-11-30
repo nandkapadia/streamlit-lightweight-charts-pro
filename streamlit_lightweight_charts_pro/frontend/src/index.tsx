@@ -17,7 +17,7 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 
 // Utility Imports
-import { logger } from './utils/logger';
+import { logger, ResizeObserverManager } from 'lightweight-charts-pro-core';
 
 // Third Party Imports
 import { createRoot } from 'react-dom/client';
@@ -26,7 +26,6 @@ import { Streamlit } from 'streamlit-component-lib';
 // Local Imports
 import LightweightCharts from './LightweightCharts';
 import { ComponentConfig } from './types';
-import { ResizeObserverManager } from './utils/resizeObserverManager';
 import {
   useStreamlitRenderData,
   useStreamlitFrameHeight,

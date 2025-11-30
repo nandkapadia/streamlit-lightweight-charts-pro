@@ -8,14 +8,15 @@
  */
 
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
-import { LegendPrimitive, LegendPrimitiveConfig } from '../../../primitives/LegendPrimitive';
 import {
+  LegendPrimitive,
+  LegendPrimitiveConfig,
   RangeSwitcherPrimitive,
   RangeSwitcherPrimitiveConfig,
   TimeRange,
   RangeConfig,
-} from '../../../primitives/RangeSwitcherPrimitive';
-import { PrimitivePriority } from '../../../primitives/BasePanePrimitive';
+  PrimitivePriority,
+} from 'lightweight-charts-pro-core';
 
 /**
  * Corner position type for widget placement

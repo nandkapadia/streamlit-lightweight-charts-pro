@@ -13,7 +13,7 @@ import {
   useReact19Performance,
   logReact19Performance,
 } from '../../utils/react19PerformanceMonitor';
-import { logger, LogLevel } from '../../utils/logger';
+import { logger, LogLevel } from 'lightweight-charts-pro-core';
 
 // Mock performance API
 const mockPerformance = {

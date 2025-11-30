@@ -46,7 +46,7 @@
  */
 
 import { IChartApi } from 'lightweight-charts';
-import { logger } from '../utils/logger';
+import { logger } from 'lightweight-charts-pro-core';
 import {
   LegendPrimitive,
   RangeSwitcherPrimitive,
@@ -63,7 +63,7 @@ import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types'
 import {
   ButtonPanelPrimitive,
   createButtonPanelPrimitive,
-} from 'lightweight-charts-pro-core';
+} from '../primitives/ButtonPanelPrimitive';
 
 /**
  * ChartPrimitiveManager - Centralized primitive lifecycle manager

@@ -43,10 +43,10 @@
  */
 
 import { IChartApi } from 'lightweight-charts';
-import { logger } from '../utils/logger';
-import { KeyedSingletonManager } from '../utils/KeyedSingletonManager';
+import { logger } from 'lightweight-charts-pro-core';
+import { KeyedSingletonManager } from 'lightweight-charts-pro-core';
 import { handleError, ErrorSeverity } from '../utils/errorHandler';
-import { DIMENSIONS } from '../config/positioningConfig';
+import { DIMENSIONS } from 'lightweight-charts-pro-core';
 
 /**
  * Pane collapse state

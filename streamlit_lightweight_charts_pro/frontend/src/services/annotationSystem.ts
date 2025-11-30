@@ -45,7 +45,7 @@
  */
 
 import { Annotation, AnnotationLayer, AnnotationText } from '../types';
-import { logger } from '../utils/logger';
+import { logger } from 'lightweight-charts-pro-core';
 import { ShapeData } from 'lightweight-charts-pro-core';
 import { UTCTimestamp, SeriesMarker, Time } from 'lightweight-charts';
 

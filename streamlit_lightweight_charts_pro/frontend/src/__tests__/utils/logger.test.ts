@@ -7,7 +7,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Import logger
-import { logger, LogLevel, chartLog, primitiveLog, perfLog } from '../../utils/logger';
+import { logger, LogLevel, chartLog, primitiveLog, perfLog } from 'lightweight-charts-pro-core';
 
 describe('Logger', () => {
   let consoleDebugSpy: any;

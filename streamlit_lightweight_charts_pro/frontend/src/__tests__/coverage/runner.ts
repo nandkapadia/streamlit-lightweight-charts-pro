@@ -16,7 +16,7 @@ import {
   COVERAGE_TEST_SUITES,
 } from './coverage-test-cases';
 import { CoverageThresholds, calculateWeightedCoverage, COVERAGE_AREAS } from './coverage-config';
-import { logger } from '../../utils/logger';
+import { logger } from 'lightweight-charts-pro-core';
 
 export interface CoverageRunResult {
   suite: string;

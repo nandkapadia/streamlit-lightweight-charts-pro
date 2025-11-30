@@ -17,18 +17,18 @@ import {
   BasePrimitiveConfig,
   PrimitivePriority,
   ButtonDimensions,
+  SeriesConfiguration,
+  logger,
+  createSingleton,
+  ButtonRegistry,
+  CollapseButton,
+  SeriesSettingsButton,
+  ButtonStyling,
 } from 'lightweight-charts-pro-core';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
 import { PaneCollapseManager } from '../services/PaneCollapseManager';
 import { SeriesDialogManager } from '../services/SeriesDialogManager';
 import { StreamlitSeriesConfigService } from '../services/StreamlitSeriesConfigService';
-import { SeriesConfiguration } from 'lightweight-charts-pro-core';
-import { logger } from '../utils/logger';
-import { createSingleton } from '../utils/SingletonBase';
-import { ButtonRegistry } from '../components/buttons/base/ButtonRegistry';
-import { CollapseButton } from '../components/buttons/types/CollapseButton';
-import { SeriesSettingsButton } from '../components/buttons/types/SeriesSettingsButton';
-import { ButtonStyling } from '../components/buttons/base/ButtonConfig';
 import { createRoot, Root } from 'react-dom/client';
 import React from 'react';
 

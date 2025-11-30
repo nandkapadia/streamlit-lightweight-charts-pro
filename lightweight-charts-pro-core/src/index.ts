@@ -197,6 +197,23 @@ export {
 } from './services';
 
 // ============================================================================
+// Configuration
+// ============================================================================
+
+export {
+  MARGINS,
+  DIMENSIONS,
+  FALLBACKS,
+  Z_INDEX,
+  TIMING,
+  CSS_CLASSES,
+  getMargins,
+  getDimensions,
+  getFallback,
+  validateConfiguration,
+} from './config/positioningConfig';
+
+// ============================================================================
 // Dialogs
 // ============================================================================
 
@@ -255,11 +272,15 @@ export {
   // UI Primitives
   // ButtonPanelPrimitive - excluded (requires React and Streamlit dependencies)
   LegendPrimitive,
+  type LegendPrimitiveConfig,
 
   // Feature Primitives
   TradeRectanglePrimitive,
   RangeSwitcherPrimitive,
   DefaultRangeConfigs,
+  TimeRange,
+  type RangeConfig,
+  type RangeSwitcherPrimitiveConfig,
 
   // Utilities - Note: PrimitiveDefaults is exported as individual constants
   PrimitiveStylingUtils,
@@ -406,3 +427,25 @@ export type {
   NestedSeriesOptions,
   FlattenedSeriesOptions,
 } from './types';
+
+// ============================================================================
+// Utilities
+// ============================================================================
+
+export {
+  // Logger
+  logger,
+
+  // Singleton utilities
+  SingletonBase,
+  Singleton,
+  createSingleton,
+  KeyedSingletonManager,
+
+  // Chart utilities
+  ChartReadyDetector,
+  ResizeObserverManager,
+
+  // Event handling
+  EventEmitter,
+} from './utils';

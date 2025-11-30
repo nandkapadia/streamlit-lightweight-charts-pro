@@ -11,8 +11,8 @@
 
 import { useCallback } from 'react';
 import { Streamlit } from 'streamlit-component-lib';
-import type { SeriesConfig } from '../forms/SeriesSettingsDialog';
-import { logger } from '../utils/logger';
+import type { SeriesConfig } from 'lightweight-charts-pro-core';
+import { logger } from 'lightweight-charts-pro-core';
 import { isStreamlitComponentReady } from './useStreamlit';
 
 // Get Streamlit object from imported module

@@ -13,7 +13,7 @@ import {
   SeriesType,
   SeriesOptionsMap,
 } from 'lightweight-charts';
-import { logger } from '../../utils/logger';
+import { logger } from 'lightweight-charts-pro-core';
 import { MockFactory } from '../mocks/MockFactory';
 import { TestDataFactory } from '../mocks/TestDataFactory';
 

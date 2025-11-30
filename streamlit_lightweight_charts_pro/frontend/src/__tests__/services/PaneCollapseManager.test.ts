@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PaneCollapseManager } from '../../services/PaneCollapseManager';
 import type { IChartApi } from 'lightweight-charts';
 import { DIMENSIONS } from '../../config/positioningConfig';
-import { KeyedSingletonManager } from '../../utils/KeyedSingletonManager';
+import { KeyedSingletonManager } from 'lightweight-charts-pro-core';
 
 describe.skip('PaneCollapseManager', () => {
   let mockChartApi: IChartApi;

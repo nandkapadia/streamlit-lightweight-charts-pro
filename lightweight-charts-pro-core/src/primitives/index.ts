@@ -19,11 +19,17 @@ export { SignalPrimitive } from './SignalPrimitive';
 // UI Primitives
 // NOTE: ButtonPanelPrimitive excluded - requires React and Streamlit dependencies
 // export { ButtonPanelPrimitive } from './ButtonPanelPrimitive';
-export { LegendPrimitive } from './LegendPrimitive';
+export { LegendPrimitive, type LegendPrimitiveConfig } from './LegendPrimitive';
 
 // Feature Primitives
 export { TradeRectanglePrimitive } from './TradeRectanglePrimitive';
-export { RangeSwitcherPrimitive, DefaultRangeConfigs } from './RangeSwitcherPrimitive';
+export {
+  RangeSwitcherPrimitive,
+  DefaultRangeConfigs,
+  TimeRange,
+  type RangeConfig,
+  type RangeSwitcherPrimitiveConfig,
+} from './RangeSwitcherPrimitive';
 
 // Utilities - Export all constants from PrimitiveDefaults
 export * from './PrimitiveDefaults';

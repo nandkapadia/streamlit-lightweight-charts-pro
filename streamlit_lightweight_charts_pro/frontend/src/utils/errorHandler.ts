@@ -28,7 +28,7 @@
  * ```
  */
 
-import { logger } from './logger';
+import { logger } from 'lightweight-charts-pro-core';
 
 /**
  * Error severity levels
