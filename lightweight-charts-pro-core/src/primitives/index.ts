@@ -17,8 +17,12 @@ export { GradientRibbonPrimitive } from './GradientRibbonPrimitive';
 export { SignalPrimitive } from './SignalPrimitive';
 
 // UI Primitives
-// NOTE: ButtonPanelPrimitive excluded - requires React and Streamlit dependencies
-// export { ButtonPanelPrimitive } from './ButtonPanelPrimitive';
+export {
+  ButtonPanelPrimitive,
+  createButtonPanelPrimitive,
+  createButtonPanelPrimitives,
+  type ButtonPanelPrimitiveConfig,
+} from './ButtonPanelPrimitive';
 export { LegendPrimitive, type LegendPrimitiveConfig } from './LegendPrimitive';
 
 // Feature Primitives

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Button Panel Primitive for pane controls.
+ * @fileoverview Button Panel Primitive for pane controls (Framework-Agnostic)
  *
  * This primitive provides TradingView-style pane controls including collapse functionality and series configuration.
  * It follows the same pattern as RangeSwitcherPrimitive, extending BasePanePrimitive for consistent positioning.
@@ -8,30 +8,24 @@
  * - TradingView-style pane collapse/expand functionality
  * - Series configuration dialog with real-time option changes
  * - Automatic positioning via BasePanePrimitive/CornerLayoutManager
- * - React-based UI components with proper lifecycle management
+ * - Pure DOM button components (zero React dependencies)
  * - Support for configurable corner positioning
+ * - Framework-agnostic backend sync via BackendSyncAdapter
  */
 
-import {
-  BasePanePrimitive,
-  BasePrimitiveConfig,
-  PrimitivePriority,
-  ButtonDimensions,
-  SeriesConfiguration,
-  logger,
-  createSingleton,
-  ButtonRegistry,
-  CollapseButton,
-  SeriesSettingsButton,
-  ButtonStyling,
-  PaneCollapseManager,
-  SeriesDialogManager,
-} from 'lightweight-charts-pro-core';
+import { BasePanePrimitive, PrimitivePriority, type BasePrimitiveConfig } from './BasePanePrimitive';
+import { ButtonDimensions } from './PrimitiveDefaults';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
-import { StreamlitSeriesConfigService } from '../services/StreamlitSeriesConfigService';
-import { StreamlitBackendSyncAdapter } from '../services/StreamlitBackendSyncAdapter';
-import { createRoot, Root } from 'react-dom/client';
-import React from 'react';
+import { PaneCollapseManager } from '../services/PaneCollapseManager';
+import { SeriesDialogManager } from '../services/SeriesDialogManager';
+import { BackendSyncAdapter } from '../services/BackendSyncAdapter';
+import { type SeriesConfiguration } from '../types/SeriesTypes';
+import { logger } from '../utils/logger';
+import { ButtonRegistry } from '../components/buttons/base/ButtonRegistry';
+import { CollapseButton } from '../components/buttons/types/CollapseButton';
+import { SeriesSettingsButton } from '../components/buttons/types/SeriesSettingsButton';
+import { type ButtonStyling } from '../components/buttons/base/ButtonConfig';
+import { BaseButton } from '../components/buttons/base/BaseButton';
 
 /**
  * Configuration interface for ButtonPanelPrimitive
@@ -43,6 +37,8 @@ export interface ButtonPanelPrimitiveConfig extends BasePrimitiveConfig {
   paneId: number;
   /** Chart ID for backend synchronization */
   chartId?: string;
+  /** Backend sync adapter for configuration persistence */
+  backendAdapter: BackendSyncAdapter;
   /** Button configuration options */
   buttonSize?: number;
   buttonColor?: string;
@@ -70,17 +66,17 @@ export interface ButtonPanelPrimitiveConfig extends BasePrimitiveConfig {
 }
 
 /**
- * Button Panel Primitive - TradingView-style pane controls
+ * Button Panel Primitive - TradingView-style pane controls (Framework-Agnostic)
  *
  * Provides collapse/expand functionality and series configuration dialogs
- * using React-based buttons integrated with the chart's rendering pipeline.
+ * using pure DOM buttons integrated with the chart's rendering pipeline.
+ *
+ * This is a framework-agnostic implementation with zero React dependencies.
  */
 export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitiveConfig> {
   private collapseManager: PaneCollapseManager | null = null;
   private dialogManager: SeriesDialogManager | null = null;
-  private _streamlitService: StreamlitSeriesConfigService | null = null;
   private buttonRegistry: ButtonRegistry | null = null;
-  private reactRoot: Root | null = null;
   private buttonContainer: HTMLDivElement | null = null;
   private isInitialized = false;
 
@@ -91,19 +87,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
       corner: config.corner || 'top-right',
       priority: config.priority || PrimitivePriority.MINIMIZE_BUTTON,
     });
-  }
-
-  /**
-   * Lazy getter for streamlit service
-   */
-  private get streamlitService(): StreamlitSeriesConfigService {
-    if (!this._streamlitService) {
-      this._streamlitService = createSingleton(StreamlitSeriesConfigService);
-    }
-    if (!this._streamlitService) {
-      throw new Error('Failed to initialize StreamlitSeriesConfigService');
-    }
-    return this._streamlitService;
   }
 
   /**
@@ -124,12 +107,9 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
 
     // Initialize dialog manager
     if (!this.dialogManager) {
-      // Create StreamlitBackendSyncAdapter wrapping the StreamlitSeriesConfigService
-      const backendAdapter = new StreamlitBackendSyncAdapter(this.streamlitService);
-
       this.dialogManager = SeriesDialogManager.getInstance(
         this.chart,
-        backendAdapter,
+        this.config.backendAdapter,
         this.config.chartId,
         {
           chartId: this.config.chartId,
@@ -171,7 +151,7 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
   }
 
   protected getTemplate(): string {
-    // Button panel uses React-based button components
+    // Button panel uses DOM-based button components
     return '';
   }
 
@@ -222,7 +202,7 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
       this.buttonRegistry.register(settingsButton, 20);
     }
 
-    // Render buttons using React
+    // Render buttons using pure DOM
     this.renderButtons();
   }
 
@@ -243,7 +223,7 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
   }
 
   /**
-   * Render buttons to DOM using React
+   * Render buttons to DOM using pure DOM manipulation (no React)
    */
   private renderButtons(): void {
     if (!this.buttonContainer || !this.buttonRegistry) return;
@@ -251,18 +231,14 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     const buttons = this.buttonRegistry.getVisibleButtons();
     if (buttons.length === 0) return;
 
-    // Create React root if not exists
-    if (!this.reactRoot) {
-      this.reactRoot = createRoot(this.buttonContainer);
-    }
+    // Clear existing buttons
+    this.buttonContainer.innerHTML = '';
 
-    // Map buttons to React elements with proper keys
-    const buttonElements = buttons.map(button =>
-      React.cloneElement(button.render(), { key: button.getId() })
-    );
-
-    // Render as Fragment
-    this.reactRoot.render(React.createElement(React.Fragment, null, ...buttonElements));
+    // Append each button's DOM element
+    buttons.forEach((button: BaseButton) => {
+      const buttonElement = button.getElement();
+      this.buttonContainer!.appendChild(buttonElement);
+    });
   }
 
   /**
@@ -278,9 +254,6 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
     if (collapseButton) {
       const isCollapsed = this.collapseManager.isCollapsed(this.config.paneId);
       collapseButton.setCollapsedState(isCollapsed);
-
-      // Re-render buttons to reflect state change
-      this.renderButtons();
     }
   }
 
@@ -303,14 +276,12 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
   }
 
   protected onDetached(): void {
-    // Clean up React root
-    if (this.reactRoot) {
-      this.reactRoot.unmount();
-      this.reactRoot = null;
-    }
-
-    // Clear button registry
+    // Destroy all button DOM elements
     if (this.buttonRegistry) {
+      const buttons = this.buttonRegistry.getAllButtons();
+      buttons.forEach((button: BaseButton) => {
+        button.destroy();
+      });
       this.buttonRegistry.clear();
       this.buttonRegistry = null;
     }
@@ -387,15 +358,25 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
   }
 
   public syncToBackend(): void {
-    this.streamlitService.forceSyncToBackend();
+    this.config.backendAdapter.forceSyncToBackend();
   }
 }
 
 // ===== Factory Functions =====
 
+/**
+ * Create a ButtonPanelPrimitive for a pane
+ *
+ * @param paneId - Pane identifier
+ * @param backendAdapter - Backend sync adapter for configuration persistence
+ * @param config - Optional configuration overrides
+ * @param chartId - Optional chart identifier
+ * @returns ButtonPanelPrimitive instance
+ */
 export function createButtonPanelPrimitive(
   paneId: number,
-  config: Partial<ButtonPanelPrimitiveConfig> = {},
+  backendAdapter: BackendSyncAdapter,
+  config: Partial<Omit<ButtonPanelPrimitiveConfig, 'paneId' | 'backendAdapter'>> = {},
   chartId?: string
 ): ButtonPanelPrimitive {
   const id = `button-panel-pane-${paneId}-${chartId || 'default'}`;
@@ -405,6 +386,7 @@ export function createButtonPanelPrimitive(
     priority: PrimitivePriority.MINIMIZE_BUTTON,
     isPanePrimitive: paneId > 0,
     paneId,
+    backendAdapter,
     chartId,
     buttonSize: 16,
     buttonColor: '#787B86',
@@ -427,10 +409,20 @@ export function createButtonPanelPrimitive(
   return new ButtonPanelPrimitive(id, fullConfig);
 }
 
+/**
+ * Create multiple ButtonPanelPrimitives for multiple panes
+ *
+ * @param paneIds - Array of pane identifiers
+ * @param backendAdapter - Backend sync adapter for configuration persistence
+ * @param config - Optional configuration overrides
+ * @param chartId - Optional chart identifier
+ * @returns Array of ButtonPanelPrimitive instances
+ */
 export function createButtonPanelPrimitives(
   paneIds: number[],
-  config: Partial<ButtonPanelPrimitiveConfig> = {},
+  backendAdapter: BackendSyncAdapter,
+  config: Partial<Omit<ButtonPanelPrimitiveConfig, 'paneId' | 'backendAdapter'>> = {},
   chartId?: string
 ): ButtonPanelPrimitive[] {
-  return paneIds.map(paneId => createButtonPanelPrimitive(paneId, config, chartId));
+  return paneIds.map(paneId => createButtonPanelPrimitive(paneId, backendAdapter, config, chartId));
 }

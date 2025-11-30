@@ -56,13 +56,15 @@ import {
   ExtendedSeriesApi,
   CrosshairEventData,
   PrimitivePriority,
-} from 'lightweight-charts-pro-core';
-import { SeriesDialogManager, PaneCollapseManager } from 'lightweight-charts-pro-core';
-import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types';
-import {
+  SeriesDialogManager,
+  PaneCollapseManager,
   ButtonPanelPrimitive,
   createButtonPanelPrimitive,
-} from '../primitives/ButtonPanelPrimitive';
+} from 'lightweight-charts-pro-core';
+import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types';
+import { StreamlitSeriesConfigService } from './StreamlitSeriesConfigService';
+import { StreamlitBackendSyncAdapter } from './StreamlitBackendSyncAdapter';
+import { createSingleton } from 'lightweight-charts-pro-core';
 
 /**
  * ChartPrimitiveManager - Centralized primitive lifecycle manager
@@ -214,13 +216,16 @@ export class ChartPrimitiveManager {
     const primitiveId = `button-panel-${this.chartId}-${paneId}`;
 
     try {
+      // Create Streamlit backend adapter for configuration persistence
+      const streamlitService = createSingleton(StreamlitSeriesConfigService);
+      const backendAdapter = new StreamlitBackendSyncAdapter(streamlitService);
+
       const buttonPanel = createButtonPanelPrimitive(
         paneId,
+        backendAdapter,
         {
           corner: config.corner || 'top-right',
           priority: PrimitivePriority.MINIMIZE_BUTTON,
-          paneId,
-          chartId: this.chartId,
           buttonSize: config.buttonSize,
           buttonColor: config.buttonColor,
           buttonHoverColor: config.buttonHoverColor,
@@ -252,15 +257,18 @@ export class ChartPrimitiveManager {
         plugin: buttonPanel,
       };
     } catch {
+      // Fallback: Create with minimal config
+      const streamlitService = createSingleton(StreamlitSeriesConfigService);
+      const backendAdapter = new StreamlitBackendSyncAdapter(streamlitService);
+
       return {
         destroy: () => {},
         plugin: createButtonPanelPrimitive(
           paneId,
+          backendAdapter,
           {
             corner: 'top-right',
             priority: PrimitivePriority.MINIMIZE_BUTTON,
-            paneId,
-            chartId: this.chartId,
           },
           this.chartId
         ),

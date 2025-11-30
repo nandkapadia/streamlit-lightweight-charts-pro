@@ -277,7 +277,10 @@ export {
   SignalPrimitive,
 
   // UI Primitives
-  // ButtonPanelPrimitive - excluded (requires React and Streamlit dependencies)
+  ButtonPanelPrimitive,
+  createButtonPanelPrimitive,
+  createButtonPanelPrimitives,
+  type ButtonPanelPrimitiveConfig,
   LegendPrimitive,
   type LegendPrimitiveConfig,
 
