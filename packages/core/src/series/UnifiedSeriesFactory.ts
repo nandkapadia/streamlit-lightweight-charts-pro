@@ -483,15 +483,21 @@ export function createSeriesWithConfig(
       legend,
       seriesId,
       chartId,
+      title, // Extract top-level title from config
     } = config;
 
     // Backend now sends all series configuration properties in the options object.
     // Framework metadata (type, data, paneId) and post-creation objects (priceScale,
     // priceLines, markers, legend) remain at top-level for proper handling.
 
+    // Merge top-level title into options (top-level takes precedence)
+    const mergedOptions = title !== undefined
+      ? { ...options, title }
+      : options;
+
     // Step 1: Create the series using basic createSeries
     // Note: createSeries already handles data sorting and setting via descriptors
-    const series = createSeries(chart, type, data, options, paneId) as ExtendedSeriesApi;
+    const series = createSeries(chart, type, data, mergedOptions, paneId) as ExtendedSeriesApi;
 
     // Step 2: Data is already set by descriptor's create method (with sorting/deduplication)
     // No need to set data again here - descriptor handles it properly
