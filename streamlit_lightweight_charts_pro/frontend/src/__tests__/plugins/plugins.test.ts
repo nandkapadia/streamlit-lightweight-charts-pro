@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RectangleOverlayPlugin } from '../../plugins/overlay/rectanglePlugin';
 import { createSignalSeries } from '../../plugins/series/signalSeriesPlugin';
 import { createTradeVisualElements } from '../../services/tradeVisualization';
-import { createAnnotationVisualElements } from '../../services/annotationSystem';
+import { createAnnotationVisualElements } from 'lightweight-charts-pro-core';
 import { resetMocks, mockChart, mockSeries } from '../../test-utils/lightweightChartsMocks';
 
 // Use unified mock system

@@ -24,7 +24,7 @@ import {
   type ChartRenderResult,
 } from '../utils';
 import { createSeriesMarkers } from 'lightweight-charts';
-import { createAnnotationVisualElements } from '../../../services/annotationSystem';
+import { createAnnotationVisualElements } from 'lightweight-charts-pro-core';
 import { Annotation } from '../../../types';
 
 describe('Annotation Visual Tests', () => {

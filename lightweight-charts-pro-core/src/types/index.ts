@@ -34,6 +34,8 @@ export type {
   ButtonConfig,
   CoordinatePoint,
   Annotation,
+  AnnotationText,
+  AnnotationLayer,
   AnnotationLayers,
   MarkerData,
   PrimitiveData,

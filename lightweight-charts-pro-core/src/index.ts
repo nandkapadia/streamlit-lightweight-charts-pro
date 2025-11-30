@@ -191,6 +191,10 @@ export {
   PaneCollapseManager,
   SeriesDialogManager,
   createTradeVisualElements,
+  createAnnotationVisualElements,
+  filterAnnotationsByTimeRange,
+  filterAnnotationsByPriceRange,
+  createAnnotationLayer,
   type TemplateResult,
   type TemplateOptions,
   type EventSubscription,
@@ -201,6 +205,7 @@ export {
   type SeriesInfo,
   type DialogState,
   type SeriesDialogConfig,
+  type AnnotationVisualElements,
 } from './services';
 
 // ============================================================================
@@ -410,6 +415,8 @@ export type {
   CornerPosition,
   ButtonConfig,
   Annotation,
+  AnnotationText,
+  AnnotationLayer,
   AnnotationLayers,
   MarkerData,
   PrimitiveData,

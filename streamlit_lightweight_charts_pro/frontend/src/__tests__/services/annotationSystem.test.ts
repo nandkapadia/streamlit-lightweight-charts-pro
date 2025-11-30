@@ -15,7 +15,7 @@ import {
   filterAnnotationsByTimeRange,
   filterAnnotationsByPriceRange,
   createAnnotationLayer,
-} from '../../services/annotationSystem';
+} from 'lightweight-charts-pro-core';
 import { Annotation } from '../../types';
 
 // Mock logger

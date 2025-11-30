@@ -97,8 +97,8 @@ import {
   createTradeVisualElements,
   createSeriesWithConfig,
   dialogConfigToApiOptions,
+  createAnnotationVisualElements,
 } from 'lightweight-charts-pro-core';
-import { createAnnotationVisualElements } from './services/annotationSystem';
 import { ChartPrimitiveManager } from './services/ChartPrimitiveManager';
 import { getCachedDOMElement, createOptimizedStylesAdvanced } from './utils/performance';
 import { ErrorBoundary } from './components/ErrorBoundary';

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Annotation System
+ * @fileoverview Annotation System (Framework-Agnostic)
  *
  * Handles conversion of annotation data to visual elements (markers, shapes, texts).
  * Provides robust parsing and validation for annotation display on charts.
@@ -17,6 +17,7 @@
  * - Graceful degradation on errors
  * - Time parsing with timezone handling
  * - Support for multiple annotation types
+ * - Framework-agnostic (no React, no Streamlit dependencies)
  *
  * Annotation Types Supported:
  * - **arrow**: Arrow markers (up/down) at specific points
@@ -44,10 +45,9 @@
  * ```
  */
 
-import { Annotation, AnnotationLayer, AnnotationText } from '../types';
-import { logger } from 'lightweight-charts-pro-core';
-import { ShapeData } from 'lightweight-charts-pro-core';
 import { UTCTimestamp, SeriesMarker, Time } from 'lightweight-charts';
+import { logger } from '../utils/logger';
+import { Annotation, AnnotationLayer, AnnotationText, ShapeData } from '../types';
 
 /**
  * Result of annotation processing containing all visual elements
@@ -120,8 +120,8 @@ export const createAnnotationVisualElements = (
             annotation.type === 'circle'
           ) {
             const marker: SeriesMarker<Time> = {
-              time: parseTime(annotation.time),
-              position: annotation.position === 'above' ? 'aboveBar' : 'belowBar',
+              time: parseTimeFromAnnotation(annotation.time),
+              position: annotation.position === 'above' || annotation.position === 'aboveBar' ? 'aboveBar' : 'belowBar',
               color: annotation.color || '#2196F3',
               shape: annotation.type === 'arrow' ? 'arrowUp' : 'circle',
               text: annotation.text || '',
@@ -134,7 +134,7 @@ export const createAnnotationVisualElements = (
           if (annotation.type === 'rectangle' || annotation.type === 'line') {
             const shape: ShapeData = {
               type: annotation.type,
-              points: [{ time: parseTime(annotation.time), price: annotation.price }],
+              points: [{ time: parseTimeFromAnnotation(annotation.time), price: annotation.price || 0 }],
               color: annotation.color || '#2196F3',
               fillColor: annotation.backgroundColor || '#2196F3',
               borderWidth: annotation.borderWidth || 1,
@@ -146,14 +146,14 @@ export const createAnnotationVisualElements = (
           // Create text annotation if specified
           if (annotation.type === 'text') {
             const text: AnnotationText = {
-              time: parseTime(annotation.time),
-              price: annotation.price,
-              text: annotation.text,
+              time: parseTimeFromAnnotation(annotation.time),
+              price: annotation.price || 0,
+              text: annotation.text || '',
               color: annotation.textColor || '#131722',
               backgroundColor: annotation.backgroundColor || 'rgba(255, 255, 255, 0.9)',
               fontSize: annotation.fontSize || 12,
               fontFamily: 'Arial',
-              position: annotation.position === 'above' ? 'aboveBar' : 'belowBar',
+              position: annotation.position === 'above' || annotation.position === 'aboveBar' ? 'aboveBar' : 'belowBar',
             };
             texts.push(text);
           }
@@ -171,6 +171,26 @@ export const createAnnotationVisualElements = (
   return { markers, shapes, texts };
 };
 
+/**
+ * Parse time from annotation (handles both string and Time types)
+ */
+function parseTimeFromAnnotation(time: Time): Time {
+  // If already a Time type (number/UTCTimestamp), return as-is
+  if (typeof time === 'number') {
+    return time;
+  }
+  // If string, parse to timestamp
+  if (typeof time === 'string') {
+    const date = new Date(time);
+    return Math.floor(date.getTime() / 1000) as UTCTimestamp;
+  }
+  // Fallback: return the time as-is
+  return time;
+}
+
+/**
+ * Parse string time to UTC timestamp
+ */
 function parseTime(timeStr: string): UTCTimestamp {
   // Convert string time to UTC timestamp
   const date = new Date(timeStr);
@@ -187,8 +207,8 @@ export function filterAnnotationsByTimeRange(
   const end = parseTime(endTime);
 
   return annotations.filter(annotation => {
-    const time = parseTime(annotation.time);
-    return time >= start && time <= end;
+    const time = parseTimeFromAnnotation(annotation.time);
+    return typeof time === 'number' && time >= start && time <= end;
   });
 }
 
@@ -198,7 +218,8 @@ export function filterAnnotationsByPriceRange(
   maxPrice: number
 ): Annotation[] {
   return annotations.filter(annotation => {
-    return annotation.price >= minPrice && annotation.price <= maxPrice;
+    const price = annotation.price;
+    return price !== undefined && price >= minPrice && price <= maxPrice;
   });
 }
 

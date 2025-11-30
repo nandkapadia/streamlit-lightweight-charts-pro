@@ -20,4 +20,11 @@ export {
   type DialogState,
   type SeriesDialogConfig,
 } from './SeriesDialogManager';
+export {
+  createAnnotationVisualElements,
+  filterAnnotationsByTimeRange,
+  filterAnnotationsByPriceRange,
+  createAnnotationLayer,
+  type AnnotationVisualElements,
+} from './annotationSystem';
 export * from './tradeVisualization';

@@ -406,13 +406,40 @@ export interface Annotation {
   color?: string;
   backgroundColor?: string;
   borderColor?: string;
+  borderWidth?: number;
   textColor?: string;
+  fontSize?: number;
+  type?: 'arrow' | 'shape' | 'circle' | 'rectangle' | 'line' | 'text';
   shape?: 'circle' | 'square' | 'diamond' | 'arrow_up' | 'arrow_down' | 'flag';
-  position?: 'aboveBar' | 'belowBar' | 'inBar';
+  position?: 'aboveBar' | 'belowBar' | 'inBar' | 'above' | 'below';
   size?: number;
   layer?: number;
   visible?: boolean;
   customData?: Record<string, unknown>;
+}
+
+/**
+ * Annotation text element for displaying text at specific coordinates
+ */
+export interface AnnotationText {
+  time: Time;
+  price: number;
+  text: string;
+  color: string;
+  backgroundColor: string;
+  fontSize: number;
+  fontFamily: string;
+  position: 'aboveBar' | 'belowBar';
+}
+
+/**
+ * Annotation layer with visibility and opacity controls
+ */
+export interface AnnotationLayer {
+  name: string;
+  visible: boolean;
+  opacity: number;
+  annotations: Annotation[];
 }
 
 /**
