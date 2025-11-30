@@ -99,6 +99,7 @@ import {
   dialogConfigToApiOptions,
   createAnnotationVisualElements,
   cleanLineStyleOptions,
+  TooltipPlugin,
 } from 'lightweight-charts-pro-core';
 import { ChartPrimitiveManager } from 'lightweight-charts-pro-core';
 import { StreamlitBackendSyncAdapter } from './services/StreamlitBackendSyncAdapter';

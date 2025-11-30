@@ -130,6 +130,9 @@ export class ButtonPanelPrimitive extends BasePanePrimitive<ButtonPanelPrimitive
 
     this.isInitialized = true;
 
+    // Initialize managers BEFORE creating buttons (buttons depend on managers)
+    this.initializeManagers();
+
     // Clear existing content
     this.containerElement.innerHTML = '';
 
