@@ -413,6 +413,14 @@ export interface Annotation {
   layer?: number;
   visible?: boolean;
   customData?: Record<string, unknown>;
+  /** Type of annotation for visual rendering */
+  type?: 'arrow' | 'shape' | 'circle' | 'rectangle' | 'line' | 'text';
+  /** Font size for text annotations */
+  fontSize?: number;
+  /** Border width for shape annotations */
+  borderWidth?: number;
+  /** Padding for annotation containers */
+  padding?: number;
 }
 
 /**
@@ -424,6 +432,31 @@ export interface AnnotationLayers {
     layerOrder?: number[];
     defaultLayer?: number;
   };
+}
+
+/**
+ * Single annotation layer
+ */
+export interface AnnotationLayer {
+  name: string;
+  annotations: Annotation[];
+  visible?: boolean;
+  opacity?: number;
+}
+
+/**
+ * Annotation text element for display
+ */
+export interface AnnotationText {
+  time: Time | number;
+  price?: number;
+  text?: string;
+  color?: string;
+  backgroundColor?: string;
+  fontSize?: number;
+  fontFamily?: string;
+  position?: 'aboveBar' | 'belowBar' | 'inBar';
+  padding?: number;
 }
 
 /**
@@ -681,6 +714,81 @@ declare global {
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
+
+// =============================================================================
+// TRADE TYPES
+// =============================================================================
+
+/**
+ * Trade configuration for visualization
+ */
+export interface TradeConfig {
+  // Core fields required for trade visualization
+  entryTime: string | number;
+  entryPrice: number;
+  exitTime: string | number;
+  exitPrice: number;
+  isProfitable: boolean;
+  id: string;
+  pnl?: number;
+  pnlPercentage?: number;
+  /** Type of trade (long/short) */
+  tradeType?: 'long' | 'short';
+  /** Trade quantity */
+  quantity?: number;
+  // Allow any additional properties for template access
+  [key: string]: unknown;
+}
+
+/**
+ * Trade visualization options
+ */
+export interface TradeVisualizationOptions {
+  style: 'markers' | 'rectangles' | 'both' | 'lines' | 'arrows' | 'zones';
+
+  // Marker options
+  entryMarkerColorLong?: string;
+  entryMarkerColorShort?: string;
+  exitMarkerColorProfit?: string;
+  exitMarkerColorLoss?: string;
+  markerSize?: number;
+  showPnlInMarkers?: boolean;
+
+  // Marker template options
+  entryMarkerTemplate?: string;
+  exitMarkerTemplate?: string;
+  entryMarkerShape?: 'arrowUp' | 'arrowDown' | 'circle' | 'square';
+  exitMarkerShape?: 'arrowUp' | 'arrowDown' | 'circle' | 'square';
+  entryMarkerPosition?: 'belowBar' | 'aboveBar';
+  exitMarkerPosition?: 'belowBar' | 'aboveBar';
+  showMarkerText?: boolean;
+
+  // Rectangle options
+  rectangleFillOpacity?: number;
+  rectangleBorderWidth?: number;
+  rectangleColorProfit?: string;
+  rectangleColorLoss?: string;
+  showRectanglePnl?: boolean;
+  rectanglePnlTemplate?: string;
+
+  // Annotation options
+  /** Show trade annotations */
+  showAnnotations?: boolean;
+  /** Show trade ID in annotations */
+  showTradeId?: boolean;
+  /** Show trade type in annotations */
+  showTradeType?: boolean;
+  /** Show quantity in annotations */
+  showQuantity?: boolean;
+  /** Font size for annotation text */
+  annotationFontSize?: number;
+  /** Background color for annotations */
+  annotationBackground?: string;
+}
+
+// =============================================================================
+// UTILITY TYPES
+// =============================================================================
 
 /**
  * Extract function parameter types

@@ -3,4 +3,4 @@
  */
 
 export { TooltipManager } from './TooltipManager';
-export { tooltipPlugin } from './tooltipPlugin';
+export { TooltipPlugin } from './tooltipPlugin';

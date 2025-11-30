@@ -96,3 +96,37 @@ export interface LayoutManagerEvents {
   onLayoutChanged: (_corner: Corner, _widgets: IPositionableWidget[]) => void;
   onOverflow: (_corner: Corner, _overflowingWidgets: IPositionableWidget[]) => void;
 }
+
+// Pane types
+export interface PaneSize {
+  width: number;
+  height: number;
+}
+
+export interface PaneBounds {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+  right: number;
+  bottom: number;
+}
+
+// Widget positioning types
+export interface WidgetPosition {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  isValid: boolean;
+}
+
+export interface LayoutWidget {
+  id: string;
+  width: number;
+  height: number;
+  position?: WidgetPosition;
+  visible?: boolean;
+  getDimensions?: () => { width: number; height: number };
+  getContainerClassName?: () => string;
+}

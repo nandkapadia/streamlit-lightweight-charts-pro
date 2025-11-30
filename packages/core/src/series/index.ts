@@ -5,9 +5,25 @@
  * and custom series types with consistent configuration.
  */
 
-// Main factory
-export { UnifiedSeriesFactory } from './UnifiedSeriesFactory';
-export { UnifiedPropertyMapper } from './UnifiedPropertyMapper';
+// Main factory exports
+export {
+  SeriesFactory,
+  SeriesCreationError,
+  getSeriesDescriptor,
+  getAvailableSeriesTypes,
+  isCustomSeries,
+  createSeries,
+  getDefaultOptions,
+  registerSeriesDescriptor,
+  unregisterSeriesDescriptor,
+  getSeriesDescriptorsByCategory,
+  createSeriesWithConfig,
+  updateSeriesData,
+  updateSeriesMarkers,
+  updateSeriesOptions,
+} from './UnifiedSeriesFactory';
+export type { ExtendedSeriesConfig, ExtendedSeriesApi } from './UnifiedSeriesFactory';
+export { PropertyMapper } from './UnifiedPropertyMapper';
 
 // Core types and descriptors
 export * from './core';

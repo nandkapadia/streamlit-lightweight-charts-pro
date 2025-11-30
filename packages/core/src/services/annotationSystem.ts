@@ -121,7 +121,7 @@ export const createAnnotationVisualElements = (
           ) {
             const marker: SeriesMarker<Time> = {
               time: parseTime(annotation.time),
-              position: annotation.position === 'above' ? 'aboveBar' : 'belowBar',
+              position: annotation.position || 'aboveBar',
               color: annotation.color || '#2196F3',
               shape: annotation.type === 'arrow' ? 'arrowUp' : 'circle',
               text: annotation.text || '',
@@ -134,7 +134,7 @@ export const createAnnotationVisualElements = (
           if (annotation.type === 'rectangle' || annotation.type === 'line') {
             const shape: ShapeData = {
               type: annotation.type,
-              points: [{ time: parseTime(annotation.time), price: annotation.price }],
+              points: [{ time: parseTime(annotation.time), price: annotation.price ?? 0 }],
               color: annotation.color || '#2196F3',
               fillColor: annotation.backgroundColor || '#2196F3',
               borderWidth: annotation.borderWidth || 1,
@@ -153,7 +153,7 @@ export const createAnnotationVisualElements = (
               backgroundColor: annotation.backgroundColor || 'rgba(255, 255, 255, 0.9)',
               fontSize: annotation.fontSize || 12,
               fontFamily: 'Arial',
-              position: annotation.position === 'above' ? 'aboveBar' : 'belowBar',
+              position: annotation.position || 'aboveBar',
             };
             texts.push(text);
           }
@@ -171,10 +171,27 @@ export const createAnnotationVisualElements = (
   return { markers, shapes, texts };
 };
 
-function parseTime(timeStr: string): UTCTimestamp {
-  // Convert string time to UTC timestamp
-  const date = new Date(timeStr);
-  return Math.floor(date.getTime() / 1000) as UTCTimestamp;
+/**
+ * Parse time value to UTCTimestamp
+ * Handles string, number (UTCTimestamp), and BusinessDay inputs
+ */
+function parseTime(time: Time): UTCTimestamp {
+  if (typeof time === 'number') {
+    // Already a timestamp
+    return time as UTCTimestamp;
+  }
+  if (typeof time === 'string') {
+    // Convert string time to UTC timestamp
+    const date = new Date(time);
+    return Math.floor(date.getTime() / 1000) as UTCTimestamp;
+  }
+  // BusinessDay object { year, month, day }
+  if (typeof time === 'object' && 'year' in time && 'month' in time && 'day' in time) {
+    const date = new Date(time.year, time.month - 1, time.day);
+    return Math.floor(date.getTime() / 1000) as UTCTimestamp;
+  }
+  // Fallback to current time if invalid
+  return Math.floor(Date.now() / 1000) as UTCTimestamp;
 }
 
 // Utility functions for annotation management
@@ -198,6 +215,7 @@ export function filterAnnotationsByPriceRange(
   maxPrice: number
 ): Annotation[] {
   return annotations.filter(annotation => {
+    if (annotation.price === undefined) return false;
     return annotation.price >= minPrice && annotation.price <= maxPrice;
   });
 }

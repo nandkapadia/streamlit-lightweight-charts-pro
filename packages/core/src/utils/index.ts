@@ -10,7 +10,7 @@ export { KeyedSingletonManager } from './KeyedSingletonManager';
 export { SingletonBase } from './SingletonBase';
 
 // Chart utilities
-export { chartReadyDetection } from './chartReadyDetection';
+export { ChartReadyDetector } from './chartReadyDetection';
 export * from './lightweightChartsUtils';
 
 // Color utilities
@@ -29,10 +29,19 @@ export * from './lineStyle';
 export * from './errorHandler';
 
 // Logging
-export { logger, setLogLevel, LogLevel } from './logger';
+export { logger, LogLevel, chartLog, primitiveLog, perfLog } from './logger';
 
-// Performance utilities
-export * from './performance';
+// Performance utilities - exclude debounce (already in colorUtils)
+export {
+  perfLogFn,
+  deepCompare,
+  getCachedDOMElement,
+  getCachedDOMElementForTesting,
+  throttle,
+  memoize,
+  batchDOMUpdates,
+  getCachedDimensions,
+} from './performance';
 
 // Resize observer
 export { ResizeObserverManager } from './resizeObserverManager';

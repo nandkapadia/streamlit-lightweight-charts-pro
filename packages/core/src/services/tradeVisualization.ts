@@ -339,9 +339,9 @@ function createTradeMarkers(
           trade // Pass entire trade object for flexible template access
         );
         entryMarkerText = result.content;
-      } else if (options.showPnlInMarkers && trade.text) {
+      } else if (options.showPnlInMarkers && trade.text && typeof trade.text === 'string') {
         // Use custom text from trade if showPnlInMarkers is true
-        entryMarkerText = trade.text;
+        entryMarkerText = trade.text as string;
       } else if (options.showPnlInMarkers && trade.pnl !== undefined) {
         // Calculate and show P&L
         entryMarkerText = `$${trade.pnl.toFixed(2)}`;
@@ -449,7 +449,7 @@ export function createTradeVisualElements(
         textParts.push(`#${trade.id}`);
       }
 
-      if (options.showTradeType) {
+      if (options.showTradeType && trade.tradeType) {
         textParts.push(trade.tradeType.toUpperCase());
       }
 
