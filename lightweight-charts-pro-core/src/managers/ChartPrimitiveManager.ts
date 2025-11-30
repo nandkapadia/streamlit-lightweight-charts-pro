@@ -1,5 +1,5 @@
 /**
- * @fileoverview Chart Primitive Manager
+ * @fileoverview Chart Primitive Manager (Framework-Agnostic)
  *
  * Centralized manager for all chart primitives (legends, range switchers, buttons).
  * Provides lifecycle management, coordinated positioning, and event handling
@@ -18,6 +18,7 @@
  * - Integration with CornerLayoutManager
  * - Primitive registry with cleanup
  * - Per-pane primitive attachment
+ * - Framework-agnostic (no React, no Streamlit dependencies)
  *
  * Managed Primitive Types:
  * - **LegendPrimitive**: Dynamic legends with series data
@@ -40,38 +41,93 @@
  *   ranges: [{ text: '1D', seconds: 86400 }]
  * });
  *
+ * // Add button panel (requires BackendSyncAdapter)
+ * const adapter = new YourFrameworkBackendSyncAdapter(yourService);
+ * const buttonPanel = manager.addButtonPanel(paneId, adapter, config);
+ *
  * // Cleanup on unmount
  * ChartPrimitiveManager.cleanup('chart-1');
  * ```
  */
 
 import { IChartApi } from 'lightweight-charts';
-import { logger } from 'lightweight-charts-pro-core';
+import { logger } from '../utils/logger';
 import {
   LegendPrimitive,
   RangeSwitcherPrimitive,
-  DefaultRangeConfigs,
-  PrimitiveEventManager,
-  CornerLayoutManager,
-  ExtendedSeriesApi,
-  CrosshairEventData,
-  PrimitivePriority,
-  SeriesDialogManager,
-  PaneCollapseManager,
   ButtonPanelPrimitive,
   createButtonPanelPrimitive,
-} from 'lightweight-charts-pro-core';
-import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types';
-import { StreamlitSeriesConfigService } from './StreamlitSeriesConfigService';
-import { StreamlitBackendSyncAdapter } from './StreamlitBackendSyncAdapter';
-import { createSingleton } from 'lightweight-charts-pro-core';
+  PrimitivePriority,
+  DefaultRangeConfigs,
+  type RangeConfig,
+} from '../primitives';
+import { PrimitiveEventManager } from '../services/PrimitiveEventManager';
+import { CornerLayoutManager } from '../services/CornerLayoutManager';
+import { SeriesDialogManager } from '../services/SeriesDialogManager';
+import { PaneCollapseManager } from '../services/PaneCollapseManager';
+import { BackendSyncAdapter } from '../services/BackendSyncAdapter';
+import type {
+  ExtendedSeriesApi,
+  CrosshairEventData,
+  Corner,
+} from '../types';
 
 /**
- * ChartPrimitiveManager - Centralized primitive lifecycle manager
+ * Range switcher configuration options
+ */
+export interface RangeSwitcherConfig {
+  position?: Corner;
+  ranges?: RangeConfig[];
+}
+
+/**
+ * Legend configuration options for ChartPrimitiveManager
+ */
+export interface LegendManagerConfig {
+  position?: Corner;
+  text?: string;
+  valueFormat?: string;
+  visible?: boolean;
+  backgroundColor?: string;
+  textColor?: string;
+}
+
+/**
+ * Button panel configuration options for ChartPrimitiveManager
+ * This is a simplified config that matches ButtonPanelPrimitiveConfig
+ */
+export interface ButtonPanelConfig {
+  corner?: Corner;
+  buttonSize?: number;
+  buttonColor?: string;
+  buttonHoverColor?: string;
+  buttonBackground?: string;
+  buttonHoverBackground?: string;
+  buttonBorderRadius?: number;
+  showTooltip?: boolean;
+  tooltipText?: {
+    collapse?: string;
+    expand?: string;
+  };
+  showCollapseButton?: boolean;
+  showSeriesSettingsButton?: boolean;
+  onPaneCollapse?: (paneId: number, isCollapsed: boolean) => void;
+  onPaneExpand?: (paneId: number, isCollapsed: boolean) => void;
+  onSeriesConfigChange?: (
+    paneId: number,
+    seriesId: string,
+    config: Record<string, unknown>
+  ) => void;
+}
+
+/**
+ * ChartPrimitiveManager - Centralized primitive lifecycle manager (Framework-Agnostic)
  *
  * Manages all chart primitives with unified API, coordinated positioning,
  * and proper cleanup. Replaces old widget-based approach with pure
  * primitive architecture.
+ *
+ * This is a framework-agnostic implementation with zero React or Streamlit dependencies.
  *
  * @export
  * @class ChartPrimitiveManager
@@ -160,7 +216,7 @@ export class ChartPrimitiveManager {
    * Add legend primitive
    */
   public addLegend(
-    config: LegendConfig,
+    config: LegendManagerConfig,
     isPanePrimitive: boolean = false,
     paneId: number = 0,
     seriesReference?: ExtendedSeriesApi
@@ -208,18 +264,23 @@ export class ChartPrimitiveManager {
 
   /**
    * Add button panel (gear + collapse buttons) primitive
+   *
+   * FRAMEWORK-AGNOSTIC: Accepts BackendSyncAdapter as parameter instead of
+   * hardcoding framework-specific adapter creation.
+   *
+   * @param paneId - Pane identifier
+   * @param backendAdapter - Backend sync adapter for configuration persistence
+   * @param config - Optional configuration overrides
+   * @returns Object with destroy function and button panel primitive
    */
   public addButtonPanel(
     paneId: number,
-    config: PaneCollapseConfig = {}
+    backendAdapter: BackendSyncAdapter,
+    config: ButtonPanelConfig = {}
   ): { destroy: () => void; plugin: ButtonPanelPrimitive } {
     const primitiveId = `button-panel-${this.chartId}-${paneId}`;
 
     try {
-      // Create Streamlit backend adapter for configuration persistence
-      const streamlitService = createSingleton(StreamlitSeriesConfigService);
-      const backendAdapter = new StreamlitBackendSyncAdapter(streamlitService);
-
       const buttonPanel = createButtonPanelPrimitive(
         paneId,
         backendAdapter,
@@ -258,9 +319,6 @@ export class ChartPrimitiveManager {
       };
     } catch {
       // Fallback: Create with minimal config
-      const streamlitService = createSingleton(StreamlitSeriesConfigService);
-      const backendAdapter = new StreamlitBackendSyncAdapter(streamlitService);
-
       return {
         destroy: () => {},
         plugin: createButtonPanelPrimitive(

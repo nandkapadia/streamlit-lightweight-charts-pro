@@ -176,7 +176,14 @@ export {
 // Managers
 // ============================================================================
 
-export { ChartManager, type ChartManagerConfig } from './managers';
+export {
+  ChartManager,
+  ChartPrimitiveManager,
+  type ChartManagerConfig,
+  type RangeSwitcherConfig,
+  type ButtonPanelConfig,
+  type LegendManagerConfig,
+} from './managers';
 
 // ============================================================================
 // Services

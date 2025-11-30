@@ -99,7 +99,10 @@ import {
   dialogConfigToApiOptions,
   createAnnotationVisualElements,
 } from 'lightweight-charts-pro-core';
-import { ChartPrimitiveManager } from './services/ChartPrimitiveManager';
+import { ChartPrimitiveManager } from 'lightweight-charts-pro-core';
+import { StreamlitBackendSyncAdapter } from './services/StreamlitBackendSyncAdapter';
+import { StreamlitSeriesConfigService } from './services/StreamlitSeriesConfigService';
+import { createSingleton } from 'lightweight-charts-pro-core';
 import { getCachedDOMElement, createOptimizedStylesAdvanced } from './utils/performance';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { react19Monitor } from './utils/react19PerformanceMonitor';
@@ -2353,7 +2356,13 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 if (allPanes.length > 1 || paneCollapseConfig.showSeriesSettingsButton) {
                   // Set up pane collapse support using ChartPrimitiveManager
                   try {
-                    const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId); // Create button panels (gear + collapse buttons) for each pane using primitive manager
+                    const primitiveManager = ChartPrimitiveManager.getInstance(chart, chartId);
+
+                    // Create adapter for backend synchronization
+                    const streamlitService = createSingleton(StreamlitSeriesConfigService);
+                    const backendAdapter = new StreamlitBackendSyncAdapter(streamlitService);
+
+                    // Create button panels (gear + collapse buttons) for each pane using primitive manager
                     for (const [paneId, _pane] of allPanes.entries()) {
                       // Configure button panel based on pane count
                       const buttonConfig = {
@@ -2363,6 +2372,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       }; // Add button panel using primitive manager
                       const buttonPanelWidget = primitiveManager.addButtonPanel(
                         paneId,
+                        backendAdapter,
                         buttonConfig
                       ); // Store widget reference for cleanup
                       if (!window.paneButtonPanelWidgets) {
