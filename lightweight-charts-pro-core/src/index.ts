@@ -470,6 +470,10 @@ export {
   ChartReadyDetector,
   ResizeObserverManager,
 
+  // Line style utilities
+  cleanLineStyleOptions,
+  validateLineStyle,
+
   // Event handling
   EventEmitter,
 } from './utils';
