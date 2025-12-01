@@ -3,7 +3,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ref } from 'vue';
 
 // Mock WebSocket before importing the composable
 class MockWebSocket {
@@ -23,7 +22,7 @@ class MockWebSocket {
     this.url = url;
   }
 
-  send(data: string): void {
+  send(_data: string): void {
     if (this.readyState !== MockWebSocket.OPEN) {
       throw new Error('WebSocket is not open');
     }

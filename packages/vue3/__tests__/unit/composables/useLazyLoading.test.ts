@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, type ShallowRef } from 'vue';
+import type { IChartApi } from 'lightweight-charts';
 import type { SeriesConfig } from '../../../src/types';
 
 // Mock Vue's onUnmounted to avoid warnings in tests
@@ -429,7 +430,7 @@ describe('useLazyLoading', () => {
       const onRequestHistory = vi.fn();
 
       useLazyLoading({
-        chart: chart as ReturnType<typeof ref<null>>,
+        chart: chart as unknown as ShallowRef<IChartApi | null>,
         seriesConfigs,
         loadThreshold: 50,
         debounceMs: 100,
@@ -470,7 +471,7 @@ describe('useLazyLoading', () => {
       const onRequestHistory = vi.fn();
 
       useLazyLoading({
-        chart: chart as ReturnType<typeof ref<null>>,
+        chart: chart as unknown as ShallowRef<IChartApi | null>,
         seriesConfigs,
         loadThreshold: 50,
         debounceMs: 100,
@@ -526,7 +527,7 @@ describe('useLazyLoading', () => {
       const onRequestHistory = vi.fn();
 
       useLazyLoading({
-        chart: chart as ReturnType<typeof ref<null>>,
+        chart: chart as unknown as ShallowRef<IChartApi | null>,
         seriesConfigs,
         loadThreshold: 50,
         debounceMs: 100,

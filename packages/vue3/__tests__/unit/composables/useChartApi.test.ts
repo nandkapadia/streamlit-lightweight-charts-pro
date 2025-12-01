@@ -2,13 +2,13 @@
  * @fileoverview Unit tests for the useChartApi composable.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { useChartApi } from '../../../src/composables/useChartApi';
 
 // Helper to create mock fetch
 function createMockFetch(responses: Map<string, unknown>) {
-  return vi.fn(async (url: string) => {
-    const urlString = typeof url === 'string' ? url : url.toString();
+  return vi.fn(async (url: string | URL | Request) => {
+    const urlString = url.toString();
 
     // Find matching response
     for (const [pattern, response] of responses.entries()) {

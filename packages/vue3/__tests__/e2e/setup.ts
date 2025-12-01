@@ -14,7 +14,6 @@ config.global.stubs = {};
 // More realistic WebSocket mock with message queue
 export class MockWebSocketServer {
   private connections: Map<string, MockWebSocketClient[]> = new Map();
-  private messageQueue: Map<string, unknown[]> = new Map();
 
   addConnection(chartId: string, client: MockWebSocketClient): void {
     if (!this.connections.has(chartId)) {

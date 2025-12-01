@@ -98,7 +98,7 @@ export function flushPromises(): Promise<void> {
 
 // Helper to create a mock fetch
 export function createMockFetch(responses: Map<string, unknown>): typeof fetch {
-  return vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+  return vi.fn(async (url: string | URL | Request, _init?: RequestInit) => {
     const urlString = typeof url === 'string' ? url : url.toString();
 
     // Find matching response
