@@ -53,6 +53,10 @@ import {
   UTCTimestamp,
   PrimitivePaneViewZOrder,
   ISeriesPrimitiveAxisView,
+  ITimeScaleApi,
+  Time,
+  ISeriesApi,
+  SeriesType,
 } from 'lightweight-charts';
 import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { getSolidColorFromFill } from '../utils/colorUtils';
@@ -149,6 +153,15 @@ interface TrendFillItem {
 }
 
 /**
+ * Transition point data for smooth color changes at direction boundaries
+ */
+interface TransitionData {
+  x: number;
+  trendLineY: number;
+  baseLineY: number;
+}
+
+/**
  * Render data with converted coordinates
  */
 interface TrendFillRenderData {
@@ -160,6 +173,8 @@ interface TrendFillRenderData {
   lineWidth: number;
   lineStyle: number;
   trendDirection: number;
+  /** Optional transition data for boundary interpolation */
+  transitionData?: TransitionData;
 }
 
 /**
@@ -167,8 +182,8 @@ interface TrendFillRenderData {
  */
 interface TrendFillRendererData {
   items: TrendFillRenderData[];
-  timeScale: any;
-  priceScale: any;
+  timeScale: ITimeScaleApi<Time> | null;
+  priceScale: ISeriesApi<SeriesType> | null;
   chartWidth: number;
   lineWidth: number;
   lineStyle: number;
@@ -183,7 +198,7 @@ interface TrendFillRendererData {
 interface TrendFillViewData {
   data: TrendFillRendererData;
   options: TrendFillPrimitiveOptions;
-  series: any | null;
+  series: ISeriesApi<SeriesType> | null;
 }
 
 // ============================================================================
@@ -264,8 +279,11 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
       ctx.save();
 
       // Read visibility flags from series options (flat properties)
+      // Cast to TrendFillPrimitiveOptions since series.options() returns standard options
       const series = this._viewData.series;
-      const seriesOptions = series ? series.options() : null;
+      const seriesOptions = series
+        ? (series.options() as unknown as TrendFillPrimitiveOptions)
+        : null;
       const uptrendLineVisible =
         seriesOptions?.uptrendLineVisible ?? this._viewData.options.uptrendLineVisible ?? true;
       const downtrendLineVisible =
@@ -309,8 +327,11 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
       ctx.save();
 
       // Read fillVisible from series options
+      // Cast to TrendFillPrimitiveOptions since series.options() returns standard options
       const series = this._viewData.series;
-      const seriesOptions = series ? series.options() : null;
+      const seriesOptions = series
+        ? (series.options() as unknown as TrendFillPrimitiveOptions)
+        : null;
       const fillVisible = seriesOptions?.fillVisible ?? true;
 
       // Draw fills (background)
@@ -334,8 +355,11 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
     }
 
     // Read colors from series options (single source of truth)
+    // Cast to TrendFillPrimitiveOptions since series.options() returns standard options
     const series = this._viewData.series;
-    const seriesOptions = series ? series.options() : null;
+    const seriesOptions = series
+      ? (series.options() as unknown as TrendFillPrimitiveOptions)
+      : null;
     const uptrendColor =
       seriesOptions?.uptrendFillColor ||
       this._viewData.options.uptrendFillColor ||
@@ -373,8 +397,8 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
       const lastBar = currentGroup[currentGroup.length - 1];
 
       // Check if first/last bars are transition points
-      const firstTransitionData = (firstBar as any).transitionData;
-      const lastTransitionData = (lastBar as any).transitionData;
+      const firstTransitionData = firstBar.transitionData;
+      const lastTransitionData = lastBar.transitionData;
 
       // Start position: if first bar is after transition, use interpolated point, else extend by bar-width
       let startX, startTrendY, startBaseY;
@@ -462,11 +486,11 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
         flushGroup();
 
         // If starting after transition, use transition data
-        const barToAdd = transitionData
-          ? ({
+        const barToAdd: TrendFillRenderData = transitionData
+          ? {
               ...bar,
               transitionData: { ...transitionData },
-            } as any)
+            }
           : bar;
 
         currentGroup = [barToAdd];
@@ -500,14 +524,15 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
 
         // Store transition data for ending current group
         // Extend current trend to interpolated midpoint
+        const lastItem = currentGroup[currentGroup.length - 1];
         currentGroup[currentGroup.length - 1] = {
-          ...currentGroup[currentGroup.length - 1],
+          ...lastItem,
           transitionData: {
             x: transitionX,
             trendLineY: transitionTrendY,
             baseLineY: transitionBaseY,
           },
-        } as any;
+        };
 
         // Store transition data for starting next group
         // Next group starts at same interpolated midpoint
@@ -539,8 +564,11 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
     }
 
     // Read line options from series options (single source of truth)
+    // Cast to TrendFillPrimitiveOptions since series.options() returns standard options
     const series = this._viewData.series;
-    const seriesOptions = series ? series.options() : null;
+    const seriesOptions = series
+      ? (series.options() as unknown as TrendFillPrimitiveOptions)
+      : null;
 
     // Read flat line properties from series options
     const uptrendLineColor =
@@ -635,8 +663,11 @@ class TrendFillPrimitiveRenderer implements IPrimitivePaneRenderer {
     }
 
     // Read flat base line properties from series options
+    // Cast to TrendFillPrimitiveOptions since series.options() returns standard options
     const series = this._viewData.series;
-    const seriesOptions = series ? series.options() : null;
+    const seriesOptions = series
+      ? (series.options() as unknown as TrendFillPrimitiveOptions)
+      : null;
     const baseLineColor =
       seriesOptions?.baseLineColor ?? this._viewData.options.baseLineColor ?? '#666666';
     const baseLineWidth = seriesOptions?.baseLineWidth ?? this._viewData.options.baseLineWidth ?? 1;
@@ -758,7 +789,9 @@ class TrendFillPrimitiveView extends BaseSeriesPrimitivePaneView<
     }
 
     // Read options from attached series (single source of truth)
-    const seriesOptions = (attachedSeries as any).options();
+    // Note: ISeriesApi.options() returns SeriesOptionsCommon but we need TrendFillPrimitiveOptions
+    // which is a superset with additional custom properties
+    const seriesOptions = attachedSeries.options() as unknown as TrendFillPrimitiveOptions;
     this._data.options = seriesOptions;
     this._data.series = attachedSeries;
 
@@ -767,9 +800,17 @@ class TrendFillPrimitiveView extends BaseSeriesPrimitivePaneView<
     this._data.data.chartWidth = chartElement?.clientWidth || 800;
     this._data.data.useHalfBarWidth = seriesOptions.useHalfBarWidth ?? false;
 
-    // Get bar spacing
+    // Get bar spacing from chart's internal model (private API)
+    // This is necessary because timeScale.options().barSpacing doesn't always reflect current value
     try {
-      const extendedChart = chart as any;
+      interface ChartModelInternal {
+        _model?: {
+          timeScale?: {
+            barSpacing?: () => number;
+          };
+        };
+      }
+      const extendedChart = chart as unknown as ChartModelInternal;
       if (extendedChart._model?.timeScale?.barSpacing) {
         this._data.data.barSpacing = extendedChart._model.timeScale.barSpacing();
       } else {
@@ -790,8 +831,8 @@ class TrendFillPrimitiveView extends BaseSeriesPrimitivePaneView<
 
   private _batchConvertCoordinates(
     items: TrendFillItem[],
-    timeScale: any,
-    attachedSeries: any
+    timeScale: ITimeScaleApi<Time>,
+    attachedSeries: ISeriesApi<SeriesType>
   ): TrendFillRenderData[] {
     if (!timeScale || !attachedSeries) {
       return [];
@@ -922,8 +963,11 @@ class TrendFillPriceAxisView implements ISeriesPrimitiveAxisView {
     }
 
     // Read colors from series options (single source of truth)
+    // Cast to TrendFillPrimitiveOptions since series.options() returns standard options
     const attachedSeries = this._source.getAttachedSeries();
-    const seriesOptions = attachedSeries ? attachedSeries.options() : null;
+    const seriesOptions = attachedSeries
+      ? (attachedSeries.options() as unknown as TrendFillPrimitiveOptions)
+      : null;
 
     // Use trend direction to determine background color
     const isUptrend = lastItem.trendDirection > 0;
@@ -962,8 +1006,11 @@ class TrendFillPriceAxisView implements ISeriesPrimitiveAxisView {
 
     // Check if at least ONE visual element is visible
     // If fill, uptrend line, AND downtrend line are all hidden, the primitive is effectively invisible
+    // Cast to TrendFillPrimitiveOptions since series.options() returns standard options
     const attachedSeries = this._source.getAttachedSeries();
-    const seriesOptions = attachedSeries ? attachedSeries.options() : null;
+    const seriesOptions = attachedSeries
+      ? (attachedSeries.options() as unknown as TrendFillPrimitiveOptions)
+      : null;
 
     const fillVisible = seriesOptions?.fillVisible ?? options.fillVisible ?? true;
     const uptrendLineVisible =
@@ -1058,6 +1105,8 @@ export class TrendFillPrimitive extends BaseSeriesPrimitive<
   TrendFillPrimitiveOptions
 > {
   private trendFillItems: TrendFillItem[] = [];
+  /** Raw input data before processing */
+  private _rawData: TrendFillPrimitiveData[] = [];
 
   constructor(
     chart: IChartApi,
@@ -1101,7 +1150,7 @@ export class TrendFillPrimitive extends BaseSeriesPrimitive<
   }
 
   // Required: Process raw data
-  protected _processData(_rawData: any[]): TrendFillItem[] {
+  protected _processData(_rawData: TrendFillPrimitiveData[]): TrendFillItem[] {
     // This method will be called by the base class
     // For now, return the existing trendFillItems
     return this.trendFillItems;
@@ -1114,7 +1163,7 @@ export class TrendFillPrimitive extends BaseSeriesPrimitive<
 
   setData(data: TrendFillPrimitiveData[]): void {
     // Store the raw data and process it
-    (this as any)._rawData = data;
+    this._rawData = data;
     this.processData();
     this.updateAllViews();
   }
@@ -1122,11 +1171,11 @@ export class TrendFillPrimitive extends BaseSeriesPrimitive<
   private processData(): void {
     this.trendFillItems = [];
 
-    if (!(this as any)._rawData || (this as any)._rawData.length === 0) {
+    if (!this._rawData || this._rawData.length === 0) {
       return;
     }
 
-    const sortedData = [...((this as any)._rawData as TrendFillPrimitiveData[])].sort((a, b) => {
+    const sortedData = [...this._rawData].sort((a, b) => {
       const timeA = parseTime(a.time);
       const timeB = parseTime(b.time);
       return timeA - timeB;
@@ -1202,7 +1251,7 @@ export class TrendFillPrimitive extends BaseSeriesPrimitive<
     return this.trendFillItems;
   }
 
-  getAttachedSeries(): any {
+  getAttachedSeries(): ISeriesApi<SeriesType> | null {
     return this._series;
   }
 

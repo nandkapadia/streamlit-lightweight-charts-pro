@@ -35,6 +35,9 @@ export * from './errorHandler';
 // Logging
 export { logger, LogLevel, chartLog, primitiveLog, perfLog } from './logger';
 
+// Security/Sanitization utilities
+export * from './sanitization';
+
 // Performance utilities - exclude debounce (already in colorUtils)
 export {
   perfLogFn,

@@ -36,7 +36,7 @@
  * @see SignalSeries for the ICustomSeries implementation
  */
 
-import { IChartApi, IPrimitivePaneRenderer, PrimitivePaneViewZOrder } from 'lightweight-charts';
+import { IChartApi, IPrimitivePaneRenderer, PrimitivePaneViewZOrder, Time } from 'lightweight-charts';
 import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { isTransparent } from '../utils/colorUtils';
 import { SignalColorCalculator } from '../utils/signalColorUtils';
@@ -143,7 +143,8 @@ class SignalPrimitiveRenderer implements IPrimitivePaneRenderer {
       if (!series || data.length === 0) return;
 
       // Read options from attached series (single source of truth)
-      const options = (series as any).options();
+      // Note: ISeriesApi.options() returns SeriesOptionsCommon but we need SignalPrimitiveOptions
+      const options = series.options() as unknown as SignalPrimitiveOptions;
       if (!options || options.visible === false) return;
 
       // Check if data contains non-boolean values (values other than 0 or 1)
@@ -238,7 +239,7 @@ export class SignalPrimitive extends BaseSeriesPrimitive<
   }
 
   // Required: Process raw data
-  protected _processData(rawData: any[]): SignalProcessedData[] {
+  protected _processData(rawData: SignalPrimitiveData[]): SignalProcessedData[] {
     return rawData.flatMap(item => {
       let value = item.value ?? 0;
 
@@ -256,9 +257,11 @@ export class SignalPrimitive extends BaseSeriesPrimitive<
 
       return [
         {
-          time: item.time,
+          // Cast time to Time since lightweight-charts accepts number | string | Date
+          time: item.time as Time,
           value,
-          color: item.color,
+          // Convert null to undefined since SignalProcessedData.color doesn't accept null
+          color: item.color ?? undefined,
         },
       ];
     });
