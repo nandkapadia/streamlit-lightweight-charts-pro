@@ -6,7 +6,8 @@
  */
 
 // Disposable utilities
-export { Disposable, cleanupInstance } from './Disposable';
+export type { Disposable } from './Disposable';
+export { cleanupInstance } from './Disposable';
 
 // Singleton patterns
 export { KeyedSingletonManager } from './KeyedSingletonManager';
