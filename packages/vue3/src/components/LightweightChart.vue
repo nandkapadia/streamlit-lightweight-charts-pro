@@ -162,15 +162,20 @@ const lazyLoadingState = props.lazyLoading
           ws.requestHistory(paneId, seriesId, beforeTime, count);
         } else {
           // Use REST API for history
-          api.getHistory(props.chartId, paneId, seriesId, beforeTime, count).then((response) => {
-            mergeHistoryData(seriesId, response.data, direction);
-            lazyLoadingState?.handleHistoryResponse(
-              seriesId,
-              direction,
-              response.hasMoreBefore,
-              response.hasMoreAfter
-            );
-          });
+          api.getHistory(props.chartId, paneId, seriesId, beforeTime, count)
+            .then((response) => {
+              mergeHistoryData(seriesId, response.data, direction);
+              lazyLoadingState?.handleHistoryResponse(
+                seriesId,
+                direction,
+                response.hasMoreBefore,
+                response.hasMoreAfter
+              );
+            })
+            .catch((err) => {
+              error.value = err instanceof Error ? err.message : 'Failed to load history';
+              emit('error', err instanceof Error ? err : new Error(String(err)));
+            });
         }
       },
     })
