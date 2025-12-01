@@ -1,0 +1,79 @@
+{
+  "name": "@lightweight-charts-pro/vue3",
+  "version": "0.2.0",
+  "description": "Vue 3 components for TradingView Lightweight Charts with backend API integration",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./components": {
+      "import": "./dist/components/index.js",
+      "require": "./dist/components/index.cjs",
+      "types": "./dist/components/index.d.ts"
+    },
+    "./composables": {
+      "import": "./dist/composables/index.js",
+      "require": "./dist/composables/index.cjs",
+      "types": "./dist/composables/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "sideEffects": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nandkapadia/streamlit-lightweight-charts-pro.git",
+    "directory": "packages/vue3"
+  },
+  "keywords": [
+    "vue3",
+    "lightweight-charts",
+    "tradingview",
+    "charts",
+    "financial",
+    "trading",
+    "typescript",
+    "websocket"
+  ],
+  "peerDependencies": {
+    "lightweight-charts": "^5.0.0",
+    "vue": "^3.4.0"
+  },
+  "dependencies": {
+    "@lightweight-charts-pro/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^18.0.1",
+    "jsdom": "^27.0.0",
+    "lightweight-charts": "^5.0.8",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.4",
+    "vue": "^3.5.17"
+  },
+  "scripts": {
+    "build": "vite build",
+    "build:types": "vue-tsc --emitDeclarationOnly",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "type-check": "vue-tsc --noEmit",
+    "lint": "eslint src --ext .ts,.vue",
+    "format": "prettier --write \"src/**/*.{ts,vue}\""
+  }
+}
