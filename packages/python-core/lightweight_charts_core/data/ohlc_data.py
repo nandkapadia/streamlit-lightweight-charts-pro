@@ -136,13 +136,25 @@ class OhlcData(Data):
         # Call parent's __post_init__ to normalize the time value to UNIX timestamp
         super().__post_init__()
 
+        # Validate that all OHLC values are non-negative (prices cannot be negative)
+        if self.open < 0 or self.high < 0 or self.low < 0 or self.close < 0:
+            raise ValueValidationError.non_negative_value("all OHLC values")
+
         # Validate OHLC relationships - high must be greater than or equal to low
         if self.high < self.low:
             raise ValueValidationError("high", "must be greater than or equal to low")
 
-        # Validate that all OHLC values are non-negative (prices cannot be negative)
-        if self.open < 0 or self.high < 0 or self.low < 0 or self.close < 0:
-            raise ValueValidationError.non_negative_value("all OHLC values")
+        # Validate open is within high-low range
+        if self.open > self.high:
+            raise ValueValidationError("open", "must be less than or equal to high")
+        if self.open < self.low:
+            raise ValueValidationError("open", "must be greater than or equal to low")
+
+        # Validate close is within high-low range
+        if self.close > self.high:
+            raise ValueValidationError("close", "must be less than or equal to high")
+        if self.close < self.low:
+            raise ValueValidationError("close", "must be greater than or equal to low")
 
         # Handle NaN values in all OHLC fields - convert to 0.0 for frontend compatibility
         for field_name in ["open", "high", "low", "close"]:
