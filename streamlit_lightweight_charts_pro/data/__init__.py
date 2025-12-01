@@ -2,54 +2,38 @@
 
 This module provides the core data models used throughout the library for
 representing financial data points, markers, annotations, and other chart elements.
-It serves as the foundation for all data handling and visualization in the library.
 
-The data models are designed to be flexible and support various input formats
-while maintaining consistency in the internal representation. They provide
-type safety and validation for financial data structures.
-
-The module includes:
-    - Base data classes: Data, SingleValueData, LineData, etc.
-    - OHLC data classes: CandlestickData, OhlcvData, BarData
-    - Specialized data classes: AreaData, BaselineData, HistogramData, BandData
-    - Marker classes: MarkerBase, PriceMarker, BarMarker, Marker
-    - Annotation system: Annotation, AnnotationLayer, AnnotationManager
-    - Trade visualization: TradeData, TradeType, TradeVisualizationOptions
-    - Tooltip system: TooltipConfig, TooltipManager, various tooltip creators
-    - Signal data: SignalData for signal-based visualizations
-
-Example Usage:
-    ```python
-    from streamlit_lightweight_charts_pro.data import (
-        SingleValueData,
-        CandlestickData,
-        Marker,
-        create_text_annotation,
-    )
-
-    # Create single value data
-    data = [SingleValueData("2024-01-01", 100), SingleValueData("2024-01-02", 105)]
-
-    # Create OHLC data
-    ohlc_data = [CandlestickData("2024-01-01", 100, 105, 98, 102, 1000)]
-
-    # Create markers
-    marker = Marker("2024-01-01", 100, MarkerPosition.ABOVE_BAR, MarkerShape.CIRCLE)
-
-    # Create annotations
-    annotation = create_text_annotation("2024-01-01", 100, "Important Event")
-    ```
-
-Version: 0.1.0
-Author: Streamlit Lightweight Charts Contributors
-License: MIT
+The base data classes (Data, SingleValueData, LineData, etc.) are imported from
+lightweight_charts_core package. Extended data classes specific to Streamlit
+(markers, annotations, tooltips) are defined in this package.
 """
 
+# Import base data classes from core package
+from lightweight_charts_core.data import (
+    AreaData,
+    BarData,
+    BaselineData,
+    CandlestickData,
+    Data,
+    HistogramData,
+    LineData,
+    OhlcData,
+    OhlcvData,
+    SingleValueData,
+)
+
+# Import type definitions from core
+from lightweight_charts_core.type_definitions import (
+    TooltipPosition,
+    TooltipType,
+    TradeType,
+    TradeVisualization,
+)
+
+# Import streamlit-specific data classes
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-
-# Import annotation classes
 from streamlit_lightweight_charts_pro.data.annotation import (
     Annotation,
     AnnotationLayer,
@@ -60,36 +44,11 @@ from streamlit_lightweight_charts_pro.data.annotation import (
     create_shape_annotation,
     create_text_annotation,
 )
-
-# Import area and bar data classes
-from streamlit_lightweight_charts_pro.data.area_data import AreaData
-
-# Import band data classes
 from streamlit_lightweight_charts_pro.data.band import BandData
-from streamlit_lightweight_charts_pro.data.bar_data import BarData
-from streamlit_lightweight_charts_pro.data.baseline_data import BaselineData
-
-# Import OHLC data classes
-from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
-
-# Import base data classes
-from streamlit_lightweight_charts_pro.data.data import Data
 from streamlit_lightweight_charts_pro.data.gradient_ribbon import GradientRibbonData
-from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
-
-# Import single value data classes
-from streamlit_lightweight_charts_pro.data.line_data import LineData
-
-# Import marker classes
 from streamlit_lightweight_charts_pro.data.marker import BarMarker, Marker, MarkerBase, PriceMarker
-from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
 from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
-
-# Import signal data classes
 from streamlit_lightweight_charts_pro.data.signal_data import SignalData
-from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
-
-# Import tooltip classes
 from streamlit_lightweight_charts_pro.data.tooltip import (
     TooltipConfig,
     TooltipField,
@@ -101,51 +60,35 @@ from streamlit_lightweight_charts_pro.data.tooltip import (
     create_single_value_tooltip,
     create_trade_tooltip,
 )
-
-# Import trade classes
 from streamlit_lightweight_charts_pro.data.trade import TradeData
 from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData
 
-# Import tooltip enums from type_definitions
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    TooltipPosition,
-    TooltipType,
-    TradeType,
-    TradeVisualization,
-)
-
-# Re-export all classes for backward compatibility
 __all__ = [
-    # Annotation classes
+    # Base data classes (from core)
+    "AreaData",
+    "BarData",
+    "BaselineData",
+    "CandlestickData",
+    "Data",
+    "HistogramData",
+    "LineData",
+    "OhlcData",
+    "OhlcvData",
+    "SingleValueData",
+    # Extended data classes (streamlit-specific)
     "Annotation",
     "AnnotationLayer",
     "AnnotationManager",
     "AnnotationPosition",
     "AnnotationType",
-    # Area and bar data classes
-    "AreaData",
-    # Band data classes
     "BandData",
-    "BarData",
     "BarMarker",
-    "BaselineData",
-    # OHLC data classes
-    "CandlestickData",
-    # Base data classes
-    "Data",
     "GradientRibbonData",
-    "HistogramData",
-    "LineData",
     "Marker",
-    # Marker classes
     "MarkerBase",
-    "OhlcvData",
     "PriceMarker",
     "RibbonData",
-    # Signal data classes
     "SignalData",
-    # Single value data classes
-    "SingleValueData",
     # Tooltip classes
     "TooltipConfig",
     "TooltipField",
@@ -159,6 +102,7 @@ __all__ = [
     "TradeVisualization",
     "TradeVisualizationOptions",
     "TrendFillData",
+    # Functions
     "create_arrow_annotation",
     "create_custom_tooltip",
     "create_multi_series_tooltip",
