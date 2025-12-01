@@ -74,7 +74,8 @@ class TestPriceScaleAutoCreation:
         chart = Chart()
 
         # Manually add price scale with specific configuration
-        # Note: price_scale_id is the key in add_overlay_price_scale, not a PriceScaleOptions parameter
+        # Note: price_scale_id is the key in add_overlay_price_scale,
+        # not a PriceScaleOptions parameter
         manual_config = PriceScaleOptions(
             visible=True,
             auto_scale=True,
@@ -211,7 +212,8 @@ class TestPriceScaleAutoCreation:
         chart = Chart()
 
         # Old way: Manual pre-registration
-        # Note: price_scale_id is the key in add_overlay_price_scale, not a PriceScaleOptions parameter
+        # Note: price_scale_id is the key in add_overlay_price_scale,
+        # not a PriceScaleOptions parameter
         rsi_scale = PriceScaleOptions(
             visible=True,
             auto_scale=True,

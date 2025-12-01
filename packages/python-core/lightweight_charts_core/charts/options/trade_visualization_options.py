@@ -156,7 +156,9 @@ class TradeVisualizationOptions(Options):
         - Any custom field from additional_data: $$strategy$$, $$risk_level$$, etc.
 
     Example templates:
-        tooltip_template: "<div><strong>$$trade_type$$</strong><br/>Entry: $$entry_price$$<br/>Exit: $$exit_price$$<br/>P&L: $$pnl$$ ($$pnl_percentage$$%)</div>"
+        tooltip_template: "<div><strong>$$trade_type$$</strong><br/>
+            Entry: $$entry_price$$<br/>Exit: $$exit_price$$<br/>
+            P&L: $$pnl$$ ($$pnl_percentage$$%)</div>"
         entry_marker_template: "↑ $$trade_type$$<br/>$$$entry_price$$"
         exit_marker_template: "↓ $$$exit_price$$<br/>($$pnl_percentage$$%)"
 

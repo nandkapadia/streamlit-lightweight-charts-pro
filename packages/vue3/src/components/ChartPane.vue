@@ -10,12 +10,24 @@ import {
   ref,
   inject,
   watch,
-  onMounted,
   onUnmounted,
   type PropType,
   type ShallowRef,
 } from 'vue';
-import type { IChartApi, ISeriesApi, SeriesType } from 'lightweight-charts';
+import {
+  LineSeries,
+  AreaSeries,
+  CandlestickSeries,
+  BarSeries,
+  HistogramSeries,
+  BaselineSeries,
+} from 'lightweight-charts';
+import type {
+  IChartApi,
+  ISeriesApi,
+  SeriesType,
+  SeriesPartialOptionsMap,
+} from 'lightweight-charts';
 import type { SeriesConfig, DataPoint } from '../types';
 
 // Define props
@@ -82,30 +94,41 @@ function createSeries(config: SeriesConfig): ISeriesApi<SeriesType> | null {
   let series: ISeriesApi<SeriesType>;
   const seriesType = config.seriesType.toLowerCase();
 
-  // Ensure paneId is included in options
+  // Series options (paneId is passed as third parameter to addSeries)
   const options = {
     ...config.options,
-    pane: props.paneId,
   };
 
   switch (seriesType) {
     case 'line':
-      series = chart.value.addSeries({ type: 'Line', ...options });
+      series = chart.value.addSeries(
+        LineSeries, options as SeriesPartialOptionsMap['Line'], props.paneId
+      );
       break;
     case 'area':
-      series = chart.value.addSeries({ type: 'Area', ...options });
+      series = chart.value.addSeries(
+        AreaSeries, options as SeriesPartialOptionsMap['Area'], props.paneId
+      );
       break;
     case 'candlestick':
-      series = chart.value.addSeries({ type: 'Candlestick', ...options });
+      series = chart.value.addSeries(
+        CandlestickSeries, options as SeriesPartialOptionsMap['Candlestick'], props.paneId
+      );
       break;
     case 'bar':
-      series = chart.value.addSeries({ type: 'Bar', ...options });
+      series = chart.value.addSeries(
+        BarSeries, options as SeriesPartialOptionsMap['Bar'], props.paneId
+      );
       break;
     case 'histogram':
-      series = chart.value.addSeries({ type: 'Histogram', ...options });
+      series = chart.value.addSeries(
+        HistogramSeries, options as SeriesPartialOptionsMap['Histogram'], props.paneId
+      );
       break;
     case 'baseline':
-      series = chart.value.addSeries({ type: 'Baseline', ...options });
+      series = chart.value.addSeries(
+        BaselineSeries, options as SeriesPartialOptionsMap['Baseline'], props.paneId
+      );
       break;
     default:
       console.warn(`Unknown series type: ${config.seriesType}`);
@@ -249,26 +272,32 @@ defineExpose({
     :class="{ collapsed: isCollapsed }"
     :style="{ height: typeof height === 'number' ? `${height}px` : height }"
   >
-    <div v-if="title" class="pane-header">
+    <div
+      v-if="title"
+      class="pane-header"
+    >
       <span class="pane-title">{{ title }}</span>
       <button
         v-if="!isCollapsed"
         class="collapse-btn"
-        @click="toggleCollapse"
         title="Collapse pane"
+        @click="toggleCollapse"
       >
         −
       </button>
       <button
         v-else
         class="collapse-btn"
-        @click="toggleCollapse"
         title="Expand pane"
+        @click="toggleCollapse"
       >
         +
       </button>
     </div>
-    <div v-if="!isCollapsed" class="pane-content">
+    <div
+      v-if="!isCollapsed"
+      class="pane-content"
+    >
       <slot />
     </div>
   </div>

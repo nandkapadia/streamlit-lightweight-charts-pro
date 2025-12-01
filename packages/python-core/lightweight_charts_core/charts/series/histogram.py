@@ -325,10 +325,14 @@ class HistogramSeries(Series):
             series = HistogramSeries(data=data)
 
             # Histogram series with DataFrame
-            series = HistogramSeries(data=dataframe, column_mapping={"time": "datetime", "value": "volume"})
+            series = HistogramSeries(
+                data=dataframe, column_mapping={"time": "datetime", "value": "volume"}
+            )
 
             # Histogram series with Series
-            series = HistogramSeries(data=series_data, column_mapping={"time": "index", "value": "values"})
+            series = HistogramSeries(
+                data=series_data, column_mapping={"time": "index", "value": "values"}
+            )
             ```
 
         """

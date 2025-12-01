@@ -39,7 +39,10 @@ def validate_identifier(value: str, field_name: str) -> str:
     if not ID_PATTERN.match(value):
         raise HTTPException(
             status_code=400,
-            detail=f"{field_name} contains invalid characters. Only alphanumeric, underscore, hyphen, and dot allowed.",
+            detail=(
+                f"{field_name} contains invalid characters. "
+                "Only alphanumeric, underscore, hyphen, and dot allowed."
+            ),
         )
 
     # Prevent path traversal

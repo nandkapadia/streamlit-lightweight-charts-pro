@@ -60,13 +60,15 @@ class TestSignalData:
 
     def test_invalid_color_hex(self):
         """Test SignalData construction with invalid hex color."""
-        # Centralized validation raises ColorValidationError (more specific than ValueValidationError)
+        # Centralized validation raises ColorValidationError
+        # (more specific than ValueValidationError)
         with pytest.raises(ColorValidationError):
             SignalData("2024-01-01", 1, color="#invalid")
 
     def test_invalid_color_rgba(self):
         """Test SignalData construction with invalid rgba color."""
-        # Centralized validation raises ColorValidationError (more specific than ValueValidationError)
+        # Centralized validation raises ColorValidationError
+        # (more specific than ValueValidationError)
         with pytest.raises(ColorValidationError):
             SignalData("2024-01-01", 1, color="not_a_color_at_all")
 

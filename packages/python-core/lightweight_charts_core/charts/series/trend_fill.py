@@ -68,7 +68,9 @@ class TrendFillSeries(Series):
         ]
 
         # Create series with custom colors
-        series = TrendFillSeries(data).set_uptrend_fill_color("#00FF00").set_downtrend_fill_color("#FF0000")
+        series = TrendFillSeries(data) \
+            .set_uptrend_fill_color("#00FF00") \
+            .set_downtrend_fill_color("#FF0000")
         ```
 
     """

@@ -198,6 +198,8 @@ export interface ChartData {
 export interface ApiError {
   /** Error message */
   error: string;
+  /** Detail message (FastAPI style) */
+  detail?: string;
   /** HTTP status code */
   statusCode?: number;
 }

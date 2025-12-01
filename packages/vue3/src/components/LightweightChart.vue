@@ -19,11 +19,20 @@ import {
 } from 'vue';
 import {
   createChart,
+  LineSeries,
+  AreaSeries,
+  CandlestickSeries,
+  BarSeries,
+  HistogramSeries,
+  BaselineSeries,
   type IChartApi,
   type ISeriesApi,
   type SeriesType,
   type MouseEventParams,
   type LogicalRange,
+  type DeepPartial,
+  type TimeChartOptions,
+  type SeriesPartialOptionsMap,
 } from 'lightweight-charts';
 import type { ChartOptions, SeriesConfig, DataPoint } from '../types';
 import { useChartApi } from '../composables/useChartApi';
@@ -107,17 +116,11 @@ const chart = shallowRef<IChartApi | null>(null);
 const seriesMap = shallowRef<Map<string, ISeriesApi<SeriesType>>>(new Map());
 const seriesConfigs = ref<SeriesConfig[]>([...props.series]);
 const isInitialized = ref(false);
-const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 // Cleanup references
 let resizeObserver: ResizeObserver | null = null;
-let unsubscribeCrosshairMove: (() => void) | null = null;
-let unsubscribeClick: (() => void) | null = null;
-let unsubscribeVisibleRangeChange: (() => void) | null = null;
 
-// Computed
-const hasWebSocket = computed(() => !!props.wsUrl);
 
 // API composable
 const api = useChartApi({ baseUrl: props.apiUrl });
@@ -196,20 +199,20 @@ function initializeChart(): void {
     width: containerRef.value.clientWidth,
     height: props.options?.height || 400,
     ...props.options,
-  };
+  } as DeepPartial<TimeChartOptions>;
 
   chart.value = createChart(containerRef.value, chartOptions);
 
-  // Subscribe to events and store unsubscribe functions
-  unsubscribeCrosshairMove = chart.value.subscribeCrosshairMove((params) => {
+  // Subscribe to events
+  chart.value.subscribeCrosshairMove((params) => {
     emit('crosshairMove', params);
   });
 
-  unsubscribeClick = chart.value.subscribeClick((params) => {
+  chart.value.subscribeClick((params) => {
     emit('click', params);
   });
 
-  unsubscribeVisibleRangeChange = chart.value.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+  chart.value.timeScale().subscribeVisibleLogicalRangeChange((range) => {
     emit('visibleTimeRangeChange', range);
   });
 
@@ -230,22 +233,34 @@ function createSeries(config: SeriesConfig): ISeriesApi<SeriesType> | null {
   const seriesType = config.seriesType.toLowerCase();
   switch (seriesType) {
     case 'line':
-      series = chart.value.addSeries({ type: 'Line', ...config.options });
+      series = chart.value.addSeries(
+        LineSeries, config.options as SeriesPartialOptionsMap['Line']
+      );
       break;
     case 'area':
-      series = chart.value.addSeries({ type: 'Area', ...config.options });
+      series = chart.value.addSeries(
+        AreaSeries, config.options as SeriesPartialOptionsMap['Area']
+      );
       break;
     case 'candlestick':
-      series = chart.value.addSeries({ type: 'Candlestick', ...config.options });
+      series = chart.value.addSeries(
+        CandlestickSeries, config.options as SeriesPartialOptionsMap['Candlestick']
+      );
       break;
     case 'bar':
-      series = chart.value.addSeries({ type: 'Bar', ...config.options });
+      series = chart.value.addSeries(
+        BarSeries, config.options as SeriesPartialOptionsMap['Bar']
+      );
       break;
     case 'histogram':
-      series = chart.value.addSeries({ type: 'Histogram', ...config.options });
+      series = chart.value.addSeries(
+        HistogramSeries, config.options as SeriesPartialOptionsMap['Histogram']
+      );
       break;
     case 'baseline':
-      series = chart.value.addSeries({ type: 'Baseline', ...config.options });
+      series = chart.value.addSeries(
+        BaselineSeries, config.options as SeriesPartialOptionsMap['Baseline']
+      );
       break;
     default:
       console.warn(`Unknown series type: ${config.seriesType}`);
@@ -406,7 +421,7 @@ watch(
     if (newOptionsJson !== lastOptionsJson) {
       lastOptionsJson = newOptionsJson;
       if (chart.value && props.options) {
-        chart.value.applyOptions(props.options);
+        chart.value.applyOptions(props.options as DeepPartial<TimeChartOptions>);
       }
     }
   }
@@ -444,20 +459,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  // Unsubscribe from chart events
-  if (unsubscribeCrosshairMove) {
-    unsubscribeCrosshairMove();
-    unsubscribeCrosshairMove = null;
-  }
-  if (unsubscribeClick) {
-    unsubscribeClick();
-    unsubscribeClick = null;
-  }
-  if (unsubscribeVisibleRangeChange) {
-    unsubscribeVisibleRangeChange();
-    unsubscribeVisibleRangeChange = null;
-  }
-
   // Disconnect resize observer
   if (resizeObserver) {
     resizeObserver.disconnect();
