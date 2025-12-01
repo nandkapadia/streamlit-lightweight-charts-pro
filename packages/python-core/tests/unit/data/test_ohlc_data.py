@@ -5,6 +5,7 @@ construction, validation, and serialization.
 """
 
 import pytest
+
 from lightweight_charts_core.data.ohlc_data import OhlcData
 from lightweight_charts_core.exceptions import ValueValidationError
 

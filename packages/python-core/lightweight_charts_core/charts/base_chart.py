@@ -9,6 +9,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 import pandas as pd
+
 from lightweight_charts_core.charts.managers import (
     PriceScaleManager,
     SeriesManager,

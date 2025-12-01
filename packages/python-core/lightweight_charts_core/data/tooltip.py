@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pandas as pd
+
 from lightweight_charts_core.type_definitions.enums import TooltipPosition, TooltipType
 
 

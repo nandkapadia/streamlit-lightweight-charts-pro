@@ -14,10 +14,10 @@ but positioning is handled by the user's layout system.
 
 import numpy as np
 import streamlit as st
+from streamlit_lightweight_charts_pro.charts.series import LineSeries
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager, SyncOptions
-from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import LineData
 
 

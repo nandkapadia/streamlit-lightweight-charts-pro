@@ -7,6 +7,7 @@ covering construction, validation, serialization, edge cases, and integration sc
 import time
 
 import pytest
+
 from lightweight_charts_core.charts.options import ChartOptions
 from lightweight_charts_core.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,

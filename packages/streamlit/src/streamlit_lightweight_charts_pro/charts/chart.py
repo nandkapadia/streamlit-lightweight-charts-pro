@@ -6,7 +6,7 @@ with Streamlit-specific rendering capabilities.
 
 import time
 import uuid
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from lightweight_charts_core.charts import BaseChart
 from lightweight_charts_core.charts.options import ChartOptions

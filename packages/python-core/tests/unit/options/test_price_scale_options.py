@@ -6,6 +6,7 @@ This module contains comprehensive tests for price scale-related option classes:
 """
 
 import pytest
+
 from lightweight_charts_core.charts.options.price_scale_options import (
     PriceScaleMargins,
     PriceScaleOptions,

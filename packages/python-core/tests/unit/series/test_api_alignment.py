@@ -17,6 +17,7 @@ import re
 from typing import Any, ClassVar
 
 import pytest
+
 from lightweight_charts_core.charts.series import LineSeries
 from lightweight_charts_core.data import LineData
 from lightweight_charts_core.exceptions import ColorValidationError

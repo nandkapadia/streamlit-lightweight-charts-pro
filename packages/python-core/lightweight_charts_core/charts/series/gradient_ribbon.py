@@ -7,6 +7,7 @@ that display upper and lower bands with gradient fill areas based on gradient va
 import math
 
 import pandas as pd
+
 from lightweight_charts_core.charts.series.ribbon import RibbonSeries
 from lightweight_charts_core.data.gradient_ribbon import GradientRibbonData
 from lightweight_charts_core.type_definitions import ChartType

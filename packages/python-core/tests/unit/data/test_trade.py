@@ -15,6 +15,7 @@ from datetime import datetime
 
 import pandas as pd
 import pytest
+
 from lightweight_charts_core.data.trade import TradeData
 from lightweight_charts_core.exceptions import (
     ExitTimeAfterEntryTimeError,

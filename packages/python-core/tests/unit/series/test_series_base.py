@@ -44,6 +44,7 @@ from unittest.mock import Mock
 # Third Party Imports
 import pandas as pd
 import pytest
+from unit.series_utils import _get_enum_value
 
 # Local Imports
 from lightweight_charts_core.charts.options.price_format_options import PriceFormatOptions
@@ -76,7 +77,6 @@ from lightweight_charts_core.type_definitions.enums import (
     MarkerShape,
     PriceScaleMode,
 )
-from unit.series_utils import _get_enum_value
 
 
 class ConcreteSeries(Series):

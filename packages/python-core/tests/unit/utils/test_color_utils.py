@@ -8,6 +8,7 @@ Tests color manipulation utilities including:
 """
 
 import pytest
+
 from lightweight_charts_core.utils.color_utils import (
     add_opacity,
     hex_to_rgba,

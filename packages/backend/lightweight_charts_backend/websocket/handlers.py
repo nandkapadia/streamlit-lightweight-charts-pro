@@ -37,7 +37,7 @@ def validate_identifier(value: Optional[str], field_name: str) -> Optional[str]:
         return None
 
     if not isinstance(value, str):
-        raise ValueError(f"{field_name} must be a string")
+        raise TypeError(f"{field_name} must be a string")
 
     if not value:
         raise ValueError(f"{field_name} cannot be empty")
@@ -74,7 +74,7 @@ def validate_pane_id(value: Optional[int]) -> int:
         return 0
 
     if not isinstance(value, int):
-        raise ValueError("paneId must be an integer")
+        raise TypeError("paneId must be an integer")
 
     if value < 0 or value > 100:
         raise ValueError("paneId must be between 0 and 100")
@@ -98,7 +98,7 @@ def validate_count(value: Optional[int]) -> int:
         return 500
 
     if not isinstance(value, int):
-        raise ValueError("count must be an integer")
+        raise TypeError("count must be an integer")
 
     if value <= 0 or value > MAX_HISTORY_COUNT:
         raise ValueError(f"count must be between 1 and {MAX_HISTORY_COUNT}")
@@ -122,7 +122,7 @@ def validate_before_time(value: Optional[int]) -> Optional[int]:
         return None
 
     if not isinstance(value, int):
-        raise ValueError("beforeTime must be an integer")
+        raise TypeError("beforeTime must be an integer")
 
     if value < 0:
         raise ValueError("beforeTime must be >= 0")

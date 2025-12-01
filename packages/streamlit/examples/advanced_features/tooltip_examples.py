@@ -7,6 +7,10 @@ use cases including OHLC data, custom templates, trade information, and markers.
 import numpy as np
 import pandas as pd
 import streamlit as st
+from streamlit_lightweight_charts_pro.type_definitions.enums import (
+    MarkerPosition,
+    MarkerShape,
+)
 
 from streamlit_lightweight_charts_pro import AreaSeries, CandlestickSeries, Chart, LineSeries
 from streamlit_lightweight_charts_pro.data import (
@@ -25,10 +29,6 @@ from streamlit_lightweight_charts_pro.data import (
     create_ohlc_tooltip,
     create_single_value_tooltip,
     create_trade_tooltip,
-)
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
-    MarkerPosition,
-    MarkerShape,
 )
 
 

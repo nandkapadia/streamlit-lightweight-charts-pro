@@ -9,6 +9,7 @@ This module contains comprehensive tests for layout-related option classes:
 """
 
 import pytest
+
 from lightweight_charts_core.charts.options.layout_options import (
     GridLineOptions,
     GridOptions,

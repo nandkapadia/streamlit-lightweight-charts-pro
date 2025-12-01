@@ -64,4 +64,4 @@ class ChartOptionsRequest(BaseModel):
     layout: Optional[dict[str, Any]] = None
     crosshair: Optional[dict[str, Any]] = None
     grid: Optional[dict[str, Any]] = None
-    timeScale: Optional[dict[str, Any]] = None
+    time_scale: Optional[dict[str, Any]] = Field(default=None, alias="timeScale")

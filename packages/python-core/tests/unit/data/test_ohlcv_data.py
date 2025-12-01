@@ -7,6 +7,7 @@ This module contains comprehensive tests for OHLCV data classes:
 from datetime import datetime, timedelta
 
 import pytest
+
 from lightweight_charts_core.data.ohlcv_data import OhlcvData
 from lightweight_charts_core.exceptions import ValueValidationError
 

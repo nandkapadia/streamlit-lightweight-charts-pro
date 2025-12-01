@@ -9,10 +9,10 @@ import sys
 from pathlib import Path
 
 import streamlit as st
-from examples.utilities.data_samples import get_line_data
-
-from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
+
+from examples.utilities.data_samples import get_line_data
+from streamlit_lightweight_charts_pro.charts import Chart
 
 sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 

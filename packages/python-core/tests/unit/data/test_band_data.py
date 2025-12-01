@@ -9,6 +9,7 @@ from datetime import datetime
 
 import pandas as pd
 import pytest
+
 from lightweight_charts_core.data.band import BandData
 from lightweight_charts_core.data.data import Data
 from lightweight_charts_core.exceptions import (

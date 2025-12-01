@@ -6,6 +6,7 @@ for creating signal-based background coloring in financial charts.
 
 import pandas as pd
 import pytest
+
 from lightweight_charts_core.charts.series.signal_series import SignalSeries
 from lightweight_charts_core.data.signal_data import SignalData
 from lightweight_charts_core.exceptions import ColorValidationError

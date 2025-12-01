@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from typing import Any
 
 import pandas as pd
+
 from lightweight_charts_core.charts.options.price_scale_options import (
     PriceScaleMargins,
     PriceScaleOptions,

@@ -24,6 +24,7 @@ Example:
 """
 
 import pandas as pd
+
 from lightweight_charts_core.charts.series.base import Series
 from lightweight_charts_core.data import BarData
 from lightweight_charts_core.type_definitions import ChartType

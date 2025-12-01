@@ -4,6 +4,7 @@ This module tests the color validation and background classes in the colors modu
 """
 
 import pytest
+
 from lightweight_charts_core.exceptions import ColorValidationError
 from lightweight_charts_core.type_definitions.colors import (
     Background,

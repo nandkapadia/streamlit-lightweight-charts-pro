@@ -7,6 +7,7 @@ gradient bounds calculation, normalization, and data handling.
 import time
 
 import pandas as pd
+
 from lightweight_charts_core.charts.series.gradient_ribbon import GradientRibbonSeries
 from lightweight_charts_core.data.gradient_ribbon import GradientRibbonData
 from lightweight_charts_core.type_definitions.enums import ChartType

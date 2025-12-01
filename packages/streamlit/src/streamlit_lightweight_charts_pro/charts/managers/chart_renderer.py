@@ -7,7 +7,7 @@ of chart components in Streamlit.
 import html
 import json
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import streamlit.components.v1 as components
 from lightweight_charts_core.logging_config import get_logger

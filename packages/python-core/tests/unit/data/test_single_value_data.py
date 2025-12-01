@@ -5,6 +5,7 @@ construction, validation, and serialization.
 """
 
 import pytest
+
 from lightweight_charts_core.data.single_value_data import SingleValueData
 
 

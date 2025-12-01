@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import psutil
 import pytest
+
 from lightweight_charts_core.charts.series.histogram import HistogramSeries
 from lightweight_charts_core.constants import HISTOGRAM_UP_COLOR_DEFAULT
 from lightweight_charts_core.data.histogram_data import HistogramData

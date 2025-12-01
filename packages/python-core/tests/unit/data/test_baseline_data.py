@@ -10,6 +10,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import pytest
+
 from lightweight_charts_core.data.baseline_data import BaselineData
 from lightweight_charts_core.data.single_value_data import SingleValueData
 from lightweight_charts_core.exceptions import ColorValidationError

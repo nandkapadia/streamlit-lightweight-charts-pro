@@ -15,13 +15,13 @@ export interface Disposable {
 /**
  * Utility to safely nullify instance properties during cleanup
  * @param instance - The instance to clean up
- * @param properties - Property names to set to null
+ * @param properties - Property names to set to null (accepts private property names)
  */
 export function cleanupInstance<T extends object>(
   instance: T,
-  properties: (keyof T)[]
+  properties: string[]
 ): void {
   for (const prop of properties) {
-    (instance as Record<string, unknown>)[prop as string] = null;
+    (instance as Record<string, unknown>)[prop] = null;
   }
 }

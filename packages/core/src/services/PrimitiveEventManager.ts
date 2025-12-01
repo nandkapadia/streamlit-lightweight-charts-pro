@@ -227,15 +227,17 @@ export class PrimitiveEventManager {
     }
 
     const listeners = this.eventListeners.get(eventKey);
+    // Cast to internal storage type - safe because emit() will call with correct type
+    const internalListener = listener as (event: unknown) => void;
     if (listeners) {
-      listeners.add(listener);
+      listeners.add(internalListener);
     }
 
     return {
       unsubscribe: () => {
         const listeners = this.eventListeners.get(eventKey);
         if (listeners) {
-          listeners.delete(listener);
+          listeners.delete(internalListener);
           if (listeners.size === 0) {
             this.eventListeners.delete(eventKey);
           }

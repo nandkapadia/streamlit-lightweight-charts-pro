@@ -1,6 +1,7 @@
 """Test the new dynamic legend value options."""
 
 import pytest
+
 from lightweight_charts_core.charts.options.ui_options import LegendOptions
 
 

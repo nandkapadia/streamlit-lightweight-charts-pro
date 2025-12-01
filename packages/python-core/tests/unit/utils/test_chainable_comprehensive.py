@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Optional, Union
 
 import pytest
+
 from lightweight_charts_core.data.marker import MarkerBase
 from lightweight_charts_core.exceptions import (
     ColorValidationError,

@@ -419,5 +419,5 @@ class DatafeedService:
         for callback in subscribers:
             try:
                 await callback(event_type, data)
-            except Exception as e:
-                logger.exception(f"Callback error for {chart_id}: {e}")
+            except Exception:
+                logger.exception("Callback error for %s", chart_id)

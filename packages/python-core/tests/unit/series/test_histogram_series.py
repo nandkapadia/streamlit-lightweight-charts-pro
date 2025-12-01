@@ -10,6 +10,7 @@ import json
 
 import pandas as pd
 import pytest
+
 from lightweight_charts_core.charts.options.price_line_options import PriceLineOptions
 from lightweight_charts_core.charts.series.base import Series
 from lightweight_charts_core.charts.series.histogram import HistogramSeries

@@ -9,6 +9,7 @@ import json
 
 import pandas as pd
 import pytest
+
 from lightweight_charts_core.charts.options.line_options import LineOptions
 from lightweight_charts_core.charts.options.price_line_options import PriceLineOptions
 from lightweight_charts_core.charts.series.area import AreaSeries
