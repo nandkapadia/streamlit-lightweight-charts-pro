@@ -351,13 +351,17 @@ export function useLazyLoading(options: UseLazyLoadingOptions): UseLazyLoadingRe
     subscribeToChart();
   }
 
-  // Watch for chart changes
-  watch(chart, (newChart) => {
-    unsubscribeFromChart();
-    if (newChart) {
-      subscribeToChart();
-    }
-  });
+  // Watch for chart changes - immediate to subscribe if chart is already set
+  watch(
+    chart,
+    (newChart) => {
+      unsubscribeFromChart();
+      if (newChart) {
+        subscribeToChart();
+      }
+    },
+    { immediate: true }
+  );
 
   // Watch for series config changes
   watch(

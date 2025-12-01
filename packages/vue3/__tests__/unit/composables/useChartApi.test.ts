@@ -4,18 +4,38 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useChartApi } from '../../../src/composables/useChartApi';
-import { createMockFetch, flushPromises } from '../../setup';
+
+// Helper to create mock fetch
+function createMockFetch(responses: Map<string, unknown>) {
+  return vi.fn(async (url: string) => {
+    const urlString = typeof url === 'string' ? url : url.toString();
+
+    // Find matching response
+    for (const [pattern, response] of responses.entries()) {
+      if (urlString.includes(pattern)) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => response,
+        } as Response;
+      }
+    }
+
+    // Default 404
+    return {
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+      json: async () => ({ error: 'Not found' }),
+    } as Response;
+  });
+}
 
 describe('useChartApi', () => {
   let mockFetch: ReturnType<typeof vi.fn>;
 
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.useRealTimers();
   });
 
   describe('healthCheck', () => {
@@ -30,10 +50,7 @@ describe('useChartApi', () => {
         fetchFn: mockFetch,
       });
 
-      const resultPromise = healthCheck();
-      await flushPromises();
-      vi.runAllTimers();
-      const result = await resultPromise;
+      const result = await healthCheck();
 
       expect(result).toEqual({ status: 'healthy', version: '0.1.0' });
       expect(isLoading.value).toBe(false);
@@ -48,15 +65,12 @@ describe('useChartApi', () => {
       ]);
       mockFetch = createMockFetch(responses);
 
-      const { createChart, isLoading, error } = useChartApi({
+      const { createChart } = useChartApi({
         baseUrl: '/api/charts',
         fetchFn: mockFetch,
       });
 
-      const resultPromise = createChart('my-chart', { height: 400 });
-      await flushPromises();
-      vi.runAllTimers();
-      const result = await resultPromise;
+      const result = await createChart('my-chart', { height: 400 });
 
       expect(result.chartId).toBe('my-chart');
       expect(mockFetch).toHaveBeenCalledWith(
@@ -94,10 +108,7 @@ describe('useChartApi', () => {
         fetchFn: mockFetch,
       });
 
-      const resultPromise = getChart('test-chart');
-      await flushPromises();
-      vi.runAllTimers();
-      const result = await resultPromise;
+      const result = await getChart('test-chart');
 
       expect(result).toEqual(chartData);
     });
@@ -123,10 +134,7 @@ describe('useChartApi', () => {
         fetchFn: mockFetch,
       });
 
-      const resultPromise = getSeriesData('test-chart', 0, 'price');
-      await flushPromises();
-      vi.runAllTimers();
-      const result = await resultPromise;
+      const result = await getSeriesData('test-chart', 0, 'price');
 
       expect(result.chunked).toBe(false);
       expect(result.data).toHaveLength(1);
@@ -160,10 +168,7 @@ describe('useChartApi', () => {
         fetchFn: mockFetch,
       });
 
-      const resultPromise = getSeriesData('test-chart', 0, 'price');
-      await flushPromises();
-      vi.runAllTimers();
-      const result = await resultPromise;
+      const result = await getSeriesData('test-chart', 0, 'price');
 
       expect(result.chunked).toBe(true);
       if (result.chunked) {
@@ -186,13 +191,10 @@ describe('useChartApi', () => {
         fetchFn: mockFetch,
       });
 
-      const resultPromise = setSeriesData('test-chart', 'price', {
+      const result = await setSeriesData('test-chart', 'price', {
         seriesType: 'line',
         data: Array(100).fill({ time: 0, value: 100 }),
       });
-      await flushPromises();
-      vi.runAllTimers();
-      const result = await resultPromise;
 
       expect(result.count).toBe(100);
     });
@@ -224,10 +226,7 @@ describe('useChartApi', () => {
         fetchFn: mockFetch,
       });
 
-      const resultPromise = getHistory('test-chart', 0, 'price', 1234567890, 500);
-      await flushPromises();
-      vi.runAllTimers();
-      const result = await resultPromise;
+      const result = await getHistory('test-chart', 0, 'price', 1234567890, 500);
 
       expect(result.data).toHaveLength(500);
       expect(result.hasMoreBefore).toBe(true);
@@ -266,22 +265,35 @@ describe('useChartApi', () => {
     });
 
     it('should handle timeout', async () => {
-      mockFetch = vi.fn().mockImplementation(() => new Promise(() => {}));
+      // Mock fetch that respects abort signal
+      mockFetch = vi.fn().mockImplementation((_url: string, init?: RequestInit) =>
+        new Promise((resolve, reject) => {
+          const timeoutId = setTimeout(() => {
+            resolve({
+              ok: true,
+              json: async () => ({ chartId: 'test-chart' }),
+            } as Response);
+          }, 1000);
+
+          // Listen for abort signal
+          init?.signal?.addEventListener('abort', () => {
+            clearTimeout(timeoutId);
+            const abortError = new Error('Aborted');
+            abortError.name = 'AbortError';
+            reject(abortError);
+          });
+        })
+      );
 
       const { getChart, error } = useChartApi({
         baseUrl: '/api/charts',
-        timeout: 100,
+        timeout: 50, // Very short timeout
         fetchFn: mockFetch,
       });
 
-      const resultPromise = getChart('test-chart');
-
-      // Advance past timeout
-      vi.advanceTimersByTime(200);
-
-      await expect(resultPromise).rejects.toThrow();
+      await expect(getChart('test-chart')).rejects.toThrow();
       expect(error.value).toBe('Request timeout');
-    });
+    }, 10000);
   });
 
   describe('clearError', () => {
@@ -306,6 +318,38 @@ describe('useChartApi', () => {
       expect(error.value).toBe('Server error');
       clearError();
       expect(error.value).toBeNull();
+    });
+  });
+
+  describe('isLoading state', () => {
+    it('should set loading state during request', async () => {
+      let resolvePromise: (value: Response) => void;
+      const pendingPromise = new Promise<Response>((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      mockFetch = vi.fn().mockReturnValue(pendingPromise);
+
+      const { getChart, isLoading } = useChartApi({
+        baseUrl: '/api/charts',
+        fetchFn: mockFetch,
+      });
+
+      const requestPromise = getChart('test-chart');
+
+      // Should be loading
+      expect(isLoading.value).toBe(true);
+
+      // Resolve the request
+      resolvePromise!({
+        ok: true,
+        json: async () => ({ chartId: 'test-chart' }),
+      } as Response);
+
+      await requestPromise;
+
+      // Should no longer be loading
+      expect(isLoading.value).toBe(false);
     });
   });
 });
