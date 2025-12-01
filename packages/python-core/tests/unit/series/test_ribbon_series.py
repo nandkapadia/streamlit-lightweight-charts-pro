@@ -8,7 +8,6 @@ ensuring proper functionality, data handling, and configuration options.
 
 import numpy as np
 import pandas as pd
-
 from lightweight_charts_core.charts.series.band import BandSeries
 from lightweight_charts_core.charts.series.base import Series
 from lightweight_charts_core.charts.series.ribbon import RibbonSeries

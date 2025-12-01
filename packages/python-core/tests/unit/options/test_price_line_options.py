@@ -1,5 +1,4 @@
 import pytest
-
 from lightweight_charts_core.charts.options.price_line_options import PriceLineOptions
 from lightweight_charts_core.exceptions import ColorValidationError, TypeValidationError
 from lightweight_charts_core.type_definitions.enums import LineStyle

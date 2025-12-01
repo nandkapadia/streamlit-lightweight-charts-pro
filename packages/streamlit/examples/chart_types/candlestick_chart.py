@@ -17,9 +17,9 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries, HistogramSeries
 
 from streamlit_lightweight_charts_pro.charts import Chart
+from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries, HistogramSeries
 from streamlit_lightweight_charts_pro.data import CandlestickData, HistogramData
 
 # Add project root to path for examples imports

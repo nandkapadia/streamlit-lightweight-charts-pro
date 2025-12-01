@@ -24,9 +24,10 @@ class TestMain:
 
     def test_build_frontend_command_success(self):
         """Test build-frontend command success."""
-        with patch("sys.argv", ["streamlit-lightweight-charts-pro", "build-frontend"]), patch(
-            "streamlit_lightweight_charts_pro.cli.build_frontend"
-        ) as mock_build:
+        with (
+            patch("sys.argv", ["streamlit-lightweight-charts-pro", "build-frontend"]),
+            patch("streamlit_lightweight_charts_pro.cli.build_frontend") as mock_build,
+        ):
             mock_build.return_value = True
             result = main()
 
@@ -34,9 +35,10 @@ class TestMain:
 
     def test_build_frontend_command_failure(self):
         """Test build-frontend command failure."""
-        with patch("sys.argv", ["streamlit-lightweight-charts-pro", "build-frontend"]), patch(
-            "streamlit_lightweight_charts_pro.cli.build_frontend"
-        ) as mock_build:
+        with (
+            patch("sys.argv", ["streamlit-lightweight-charts-pro", "build-frontend"]),
+            patch("streamlit_lightweight_charts_pro.cli.build_frontend") as mock_build,
+        ):
             mock_build.return_value = False
             result = main()
 
@@ -44,9 +46,10 @@ class TestMain:
 
     def test_check_command_success(self):
         """Test check command success."""
-        with patch("sys.argv", ["streamlit-lightweight-charts-pro", "check"]), patch(
-            "streamlit_lightweight_charts_pro.cli.check_frontend_build"
-        ) as mock_check:
+        with (
+            patch("sys.argv", ["streamlit-lightweight-charts-pro", "check"]),
+            patch("streamlit_lightweight_charts_pro.cli.check_frontend_build") as mock_check,
+        ):
             mock_check.return_value = True
             result = main()
 
@@ -54,9 +57,10 @@ class TestMain:
 
     def test_check_command_failure(self):
         """Test check command failure."""
-        with patch("sys.argv", ["streamlit-lightweight-charts-pro", "check"]), patch(
-            "streamlit_lightweight_charts_pro.cli.check_frontend_build"
-        ) as mock_check:
+        with (
+            patch("sys.argv", ["streamlit-lightweight-charts-pro", "check"]),
+            patch("streamlit_lightweight_charts_pro.cli.check_frontend_build") as mock_check,
+        ):
             mock_check.return_value = False
             result = main()
 

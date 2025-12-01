@@ -6,12 +6,9 @@ with Streamlit-specific rendering capabilities.
 
 import time
 import uuid
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from lightweight_charts_core.charts import BaseChart
-
-if TYPE_CHECKING:
-    from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 from lightweight_charts_core.charts.options import ChartOptions
 from lightweight_charts_core.charts.series import Series
 from lightweight_charts_core.data import Annotation
@@ -21,6 +18,9 @@ from streamlit_lightweight_charts_pro.charts.managers import (
     ChartRenderer,
     SessionStateManager,
 )
+
+if TYPE_CHECKING:
+    from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 
 
 class Chart(BaseChart):
@@ -48,9 +48,9 @@ class Chart(BaseChart):
 
     def __init__(
         self,
-        series: Optional[Union[Series, List[Series]]] = None,
+        series: Optional[Union[Series, list[Series]]] = None,
         options: Optional[ChartOptions] = None,
-        annotations: Optional[List[Annotation]] = None,
+        annotations: Optional[list[Annotation]] = None,
         chart_group_id: int = 0,
         chart_manager: Optional["ChartManager"] = None,
     ):
@@ -83,7 +83,7 @@ class Chart(BaseChart):
         key: str,
         series_index: int = 0,
         pane_id: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get stored configuration for a specific series from session state.
 
         Args:
@@ -96,7 +96,7 @@ class Chart(BaseChart):
         """
         return self._session_state_manager.get_stored_series_config(key, series_index, pane_id)
 
-    def to_frontend_config(self) -> Dict[str, Any]:
+    def to_frontend_config(self) -> dict[str, Any]:
         """Convert chart to frontend configuration dictionary.
 
         Extends the base implementation to use ChartRenderer for generating
@@ -204,9 +204,9 @@ class Chart(BaseChart):
         try:
             series_configs = self._series_manager.to_frontend_configs()
             return self._chart_renderer._calculate_data_timespan(series_configs)
-        except (ValueError, AttributeError, TypeError) as e:
+        except (ValueError, AttributeError, TypeError):
             return None
 
-    def _get_range_seconds(self, range_config: Dict[str, Any]) -> Optional[float]:
+    def _get_range_seconds(self, range_config: dict[str, Any]) -> Optional[float]:
         """Extract seconds from range configuration."""
         return self._chart_renderer._get_range_seconds(range_config)

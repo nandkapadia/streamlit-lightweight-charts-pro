@@ -17,9 +17,9 @@ Next steps:
 """
 
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.series import LineSeries
 
 from streamlit_lightweight_charts_pro.charts import Chart
+from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import LineData
 
 # Page configuration

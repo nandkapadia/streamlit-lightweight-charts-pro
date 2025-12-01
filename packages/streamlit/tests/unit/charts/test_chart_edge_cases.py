@@ -655,11 +655,14 @@ class TestChartRenderingEdgeCases:
         mock_get_component_func.return_value = mock_component
 
         # Mock to_frontend_config to raise error
-        with patch.object(
-            chart,
-            "to_frontend_config",
-            side_effect=Exception("Config error"),
-        ), pytest.raises(Exception, match="Config error"):
+        with (
+            patch.object(
+                chart,
+                "to_frontend_config",
+                side_effect=Exception("Config error"),
+            ),
+            pytest.raises(Exception, match="Config error"),
+        ):
             chart.render()
 
 

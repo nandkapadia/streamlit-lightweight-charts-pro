@@ -23,12 +23,12 @@ Example:
     ```
 """
 
-from typing import Dict, List, Union
+from typing import Union
 
 import pandas as pd
-from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames
 
 from streamlit_lightweight_charts_pro.data import BarData, CandlestickData, LineData
+from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames
 
 # =============================================================================
 # RAW DATA DICTIONARIES (for backward compatibility)
@@ -373,7 +373,7 @@ series_volume_chart = [
 # =============================================================================
 
 
-def get_line_data() -> List[LineData]:
+def get_line_data() -> list[LineData]:
     """Get sample line chart data as LineData objects.
 
     Returns:
@@ -393,7 +393,7 @@ def get_line_data() -> List[LineData]:
     ]
 
 
-def get_bar_data() -> List[BarData]:
+def get_bar_data() -> list[BarData]:
     """Get sample bar chart data as BarData objects.
 
     Returns:
@@ -419,7 +419,7 @@ def get_bar_data() -> List[BarData]:
     ]
 
 
-def get_candlestick_data() -> List[CandlestickData]:
+def get_candlestick_data() -> list[CandlestickData]:
     """Get sample candlestick chart data as CandlestickData objects.
 
     Returns:
@@ -445,7 +445,7 @@ def get_candlestick_data() -> List[CandlestickData]:
     ]
 
 
-def get_volume_data() -> List[LineData]:
+def get_volume_data() -> list[LineData]:
     """Get sample volume chart data as LineData objects.
 
     Returns:
@@ -469,7 +469,7 @@ def get_volume_data() -> List[LineData]:
     ]
 
 
-def get_baseline_data() -> List[LineData]:
+def get_baseline_data() -> list[LineData]:
     """Get sample baseline chart data as LineData objects.
 
     Returns:
@@ -489,7 +489,7 @@ def get_baseline_data() -> List[LineData]:
     ]
 
 
-def get_multi_area_data_1() -> List[LineData]:
+def get_multi_area_data_1() -> list[LineData]:
     """Get first multi-area chart data as LineData objects.
 
     Returns:
@@ -509,7 +509,7 @@ def get_multi_area_data_1() -> List[LineData]:
     ]
 
 
-def get_multi_area_data_2() -> List[LineData]:
+def get_multi_area_data_2() -> list[LineData]:
     """Get second multi-area chart data as LineData objects.
 
     Returns:
@@ -529,7 +529,7 @@ def get_multi_area_data_2() -> List[LineData]:
     ]
 
 
-def get_volume_histogram_data() -> List[LineData]:
+def get_volume_histogram_data() -> list[LineData]:
     """Get sample volume histogram data as LineData objects.
 
     Returns:
@@ -605,7 +605,7 @@ def get_dataframe_volume_data() -> pd.DataFrame:
 # =============================================================================
 
 
-def get_sample_data_for_chart_type(chart_type: str) -> Union[List, pd.DataFrame]:
+def get_sample_data_for_chart_type(chart_type: str) -> Union[list, pd.DataFrame]:
     """Get sample data for a specific chart type.
 
     Args:
@@ -643,7 +643,7 @@ def get_sample_data_for_chart_type(chart_type: str) -> Union[List, pd.DataFrame]
     raise ValueError(f"Unsupported chart type: {chart_type}")
 
 
-def get_all_sample_datasets() -> Dict[str, Union[List, pd.DataFrame]]:
+def get_all_sample_datasets() -> dict[str, Union[list, pd.DataFrame]]:
     """Get all available sample datasets.
 
     Returns:

@@ -19,7 +19,7 @@ Example:
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 import streamlit as st
 
@@ -50,10 +50,10 @@ class LazyLoadingState:
     has_more_before: bool = False
     has_more_after: bool = False
     chunk_info: ChunkInfo = field(default_factory=ChunkInfo)
-    full_data: List[Dict[str, Any]] = field(default_factory=list)
-    loaded_data: List[Dict[str, Any]] = field(default_factory=list)
+    full_data: list[dict[str, Any]] = field(default_factory=list)
+    loaded_data: list[dict[str, Any]] = field(default_factory=list)
 
-    def get_initial_chunk(self) -> List[Dict[str, Any]]:
+    def get_initial_chunk(self) -> list[dict[str, Any]]:
         """Get the initial data chunk (most recent data).
 
         Returns:
@@ -89,7 +89,7 @@ class LazyLoadingState:
 
     def get_history_chunk(
         self, before_time: int, count: int = DEFAULT_CHUNK_SIZE
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get a chunk of historical data before a given time.
 
         Args:
@@ -151,14 +151,14 @@ class LazyLoadingManager:
 
     def __init__(self):
         """Initialize the lazy loading manager."""
-        self._series_states: Dict[str, LazyLoadingState] = {}
+        self._series_states: dict[str, LazyLoadingState] = {}
 
     def register_series(
         self,
         chart_key: str,
         series_id: str,
         pane_id: int,
-        data: List[Dict[str, Any]],
+        data: list[dict[str, Any]],
         chunk_size: int = DEFAULT_CHUNK_SIZE,
     ) -> LazyLoadingState:
         """Register a series for lazy loading.
@@ -207,7 +207,7 @@ class LazyLoadingManager:
         pane_id: int,
         before_time: int,
         count: int = DEFAULT_CHUNK_SIZE,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[dict[str, Any]]:
         """Handle a history request from the frontend.
 
         Args:
@@ -252,12 +252,12 @@ def get_lazy_loading_manager() -> LazyLoadingManager:
 
 
 def prepare_series_for_lazy_loading(
-    series_config: Dict[str, Any],
+    series_config: dict[str, Any],
     chart_key: str,
     series_id: str,
     pane_id: int = 0,
     chunk_size: int = DEFAULT_CHUNK_SIZE,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Prepare a series configuration for lazy loading.
 
     If the dataset is large enough, this function:
@@ -303,7 +303,7 @@ def prepare_series_for_lazy_loading(
     return modified_config
 
 
-def handle_lazy_load_response(response: Dict[str, Any], chart_key: str) -> Optional[Dict[str, Any]]:
+def handle_lazy_load_response(response: dict[str, Any], chart_key: str) -> Optional[dict[str, Any]]:
     """Handle a lazy loading response from the frontend.
 
     Args:
@@ -332,7 +332,7 @@ def lazy_chart(
     chart: Any,
     key: str,
     chunk_size: int = DEFAULT_CHUNK_SIZE,
-    on_history_loaded: Optional[Callable[[Dict[str, Any]], None]] = None,
+    on_history_loaded: Optional[Callable[[dict[str, Any]], None]] = None,
 ) -> Any:
     """Render a chart with lazy loading support using Streamlit Fragment.
 

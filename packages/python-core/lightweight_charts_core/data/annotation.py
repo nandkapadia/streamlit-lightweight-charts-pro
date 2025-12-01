@@ -41,7 +41,6 @@ from datetime import datetime
 from typing import Any, Optional
 
 import pandas as pd
-
 from lightweight_charts_core.exceptions import (
     TypeValidationError,
     ValueValidationError,

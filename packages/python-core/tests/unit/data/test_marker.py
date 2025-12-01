@@ -8,7 +8,6 @@ from datetime import datetime
 
 import pandas as pd
 import pytest
-
 from lightweight_charts_core.charts.options.line_options import LineOptions
 from lightweight_charts_core.charts.series.line import LineSeries
 from lightweight_charts_core.data.data import Data

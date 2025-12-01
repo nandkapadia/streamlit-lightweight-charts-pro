@@ -4,7 +4,7 @@ import asyncio
 import json
 import logging
 import re
-from typing import TYPE_CHECKING, Dict, Optional, Set
+from typing import TYPE_CHECKING, Optional
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
@@ -52,7 +52,7 @@ def validate_identifier(value: Optional[str], field_name: str) -> Optional[str]:
         )
 
     # Prevent path traversal
-    if ".." in value or value.startswith("/") or value.startswith("\\"):
+    if ".." in value or value.startswith(("/", "\\")):
         raise ValueError(f"Invalid {field_name} format")
 
     return value
@@ -139,7 +139,7 @@ class ConnectionManager:
 
     def __init__(self):
         """Initialize connection manager."""
-        self._connections: Dict[str, Set[WebSocket]] = {}
+        self._connections: dict[str, set[WebSocket]] = {}
         self._lock = asyncio.Lock()
 
     async def connect(self, chart_id: str, websocket: WebSocket) -> None:
@@ -235,7 +235,7 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
     try:
         datafeed: DatafeedService = websocket.app.state.datafeed
     except AttributeError:
-        logger.error("DatafeedService not initialized in app.state")
+        logger.exception("DatafeedService not initialized in app.state")
         await websocket.close(code=1011, reason="Server configuration error")
         await manager.disconnect(chart_id, websocket)
         return
@@ -271,7 +271,7 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
                 await websocket.send_json(
                     {
                         "type": "error",
-                        "error": f"Invalid JSON: {str(e)}",
+                        "error": f"Invalid JSON: {e!s}",
                     }
                 )
                 continue
@@ -286,9 +286,7 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
                     before_time = validate_before_time(message.get("beforeTime"))
                     count = validate_count(message.get("count"))
                 except ValueError as e:
-                    await websocket.send_json(
-                        {"type": "error", "error": str(e)}
-                    )
+                    await websocket.send_json({"type": "error", "error": str(e)})
                     continue
 
                 if series_id and before_time is not None:
@@ -320,9 +318,7 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
                     pane_id = validate_pane_id(message.get("paneId"))
                     series_id = validate_identifier(message.get("seriesId"), "seriesId")
                 except ValueError as e:
-                    await websocket.send_json(
-                        {"type": "error", "error": str(e)}
-                    )
+                    await websocket.send_json({"type": "error", "error": str(e)})
                     continue
 
                 result = await datafeed.get_initial_data(

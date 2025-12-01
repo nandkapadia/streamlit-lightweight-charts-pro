@@ -13,10 +13,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 """
 
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.series import BaselineSeries
-
 from examples.utilities.data_samples import get_baseline_data, get_dataframe_line_data
+
 from streamlit_lightweight_charts_pro.charts import Chart
+from streamlit_lightweight_charts_pro.charts.series import BaselineSeries
 
 
 def main():

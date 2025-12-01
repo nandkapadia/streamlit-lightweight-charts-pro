@@ -7,9 +7,9 @@ that creates smooth, continuous fills exactly like the image visualization.
 import numpy as np
 import pandas as pd
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries, TrendFillSeries
 
 from streamlit_lightweight_charts_pro.charts import Chart
+from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries, TrendFillSeries
 from streamlit_lightweight_charts_pro.data import CandlestickData, TrendFillData
 
 

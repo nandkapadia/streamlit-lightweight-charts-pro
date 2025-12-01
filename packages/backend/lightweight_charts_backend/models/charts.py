@@ -1,6 +1,6 @@
 """Pydantic models for chart API requests and responses."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -17,8 +17,8 @@ class SetSeriesDataRequest(BaseModel):
 
     pane_id: int = Field(default=0, ge=0, description="Pane index")
     series_type: str = Field(..., min_length=1, description="Series type")
-    data: List[Dict[str, Any]] = Field(..., description="Series data points")
-    options: Optional[Dict[str, Any]] = Field(default=None, description="Series options")
+    data: list[dict[str, Any]] = Field(..., description="Series data points")
+    options: Optional[dict[str, Any]] = Field(default=None, description="Series options")
 
     @field_validator("series_type")
     @classmethod
@@ -61,7 +61,7 @@ class ChartOptionsRequest(BaseModel):
 
     width: Optional[int] = Field(default=None, ge=100, le=10000)
     height: Optional[int] = Field(default=None, ge=100, le=10000)
-    layout: Optional[Dict[str, Any]] = None
-    crosshair: Optional[Dict[str, Any]] = None
-    grid: Optional[Dict[str, Any]] = None
-    timeScale: Optional[Dict[str, Any]] = None
+    layout: Optional[dict[str, Any]] = None
+    crosshair: Optional[dict[str, Any]] = None
+    grid: Optional[dict[str, Any]] = None
+    timeScale: Optional[dict[str, Any]] = None

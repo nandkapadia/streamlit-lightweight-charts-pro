@@ -17,7 +17,6 @@ from typing import Any
 import httpx
 import streamlit as st
 
-
 # Backend server configuration
 DEFAULT_BASE_URL = "http://localhost:8000"
 
@@ -64,14 +63,16 @@ def generate_ohlcv_data(points: int = 1000, base_price: float = 100.0) -> list[d
 
         timestamp = int((base_time + timedelta(hours=i)).timestamp())
 
-        data.append({
-            "time": timestamp,
-            "open": round(open_price, 2),
-            "high": round(high, 2),
-            "low": round(low, 2),
-            "close": round(close, 2),
-            "volume": random.randint(5000, 15000),
-        })
+        data.append(
+            {
+                "time": timestamp,
+                "open": round(open_price, 2),
+                "high": round(high, 2),
+                "low": round(low, 2),
+                "close": round(close, 2),
+                "volume": random.randint(5000, 15000),
+            }
+        )
 
     return data
 
@@ -101,9 +102,7 @@ async def test_health_check(client: httpx.AsyncClient, results: dict) -> bool:
         return False
 
 
-async def test_create_chart(
-    client: httpx.AsyncClient, chart_id: str, results: dict
-) -> bool:
+async def test_create_chart(client: httpx.AsyncClient, chart_id: str, results: dict) -> bool:
     """Test chart creation endpoint.
 
     Args:
@@ -177,9 +176,7 @@ async def test_set_series_data(
         return False
 
 
-async def test_get_chart(
-    client: httpx.AsyncClient, chart_id: str, results: dict
-) -> bool:
+async def test_get_chart(client: httpx.AsyncClient, chart_id: str, results: dict) -> bool:
     """Test getting full chart data.
 
     Args:
@@ -227,9 +224,7 @@ async def test_get_series_data(
         Response data dict.
     """
     try:
-        response = await client.get(
-            f"/api/charts/{chart_id}/data/{pane_id}/{series_id}"
-        )
+        response = await client.get(f"/api/charts/{chart_id}/data/{pane_id}/{series_id}")
         response.raise_for_status()
         data = response.json()
 
@@ -287,9 +282,7 @@ async def test_get_history(
         return False
 
 
-async def test_websocket_connection(
-    base_url: str, chart_id: str, results: dict
-) -> bool:
+async def test_websocket_connection(base_url: str, chart_id: str, results: dict) -> bool:
     """Test WebSocket connection and messaging.
 
     Args:
@@ -332,11 +325,13 @@ async def test_websocket_connection(
 
             # Test initial data request
             await ws.send(
-                json.dumps({
-                    "type": "get_initial_data",
-                    "paneId": 0,
-                    "seriesId": "price",
-                })
+                json.dumps(
+                    {
+                        "type": "get_initial_data",
+                        "paneId": 0,
+                        "seriesId": "price",
+                    }
+                )
             )
             msg = await asyncio.wait_for(ws.recv(), timeout=5.0)
             initial_data = json.loads(msg)
@@ -391,9 +386,7 @@ async def test_smart_chunking(
             },
         )
 
-        small_response = await client.get(
-            f"/api/charts/{chart_id}/data/0/small_series"
-        )
+        small_response = await client.get(f"/api/charts/{chart_id}/data/0/small_series")
         small_result = small_response.json()
 
         # Test with large dataset
@@ -407,9 +400,7 @@ async def test_smart_chunking(
             },
         )
 
-        large_response = await client.get(
-            f"/api/charts/{chart_id}/data/0/large_series"
-        )
+        large_response = await client.get(f"/api/charts/{chart_id}/data/0/large_series")
         large_result = large_response.json()
 
         # Small should not be chunked, large should be
@@ -483,6 +474,7 @@ async def run_all_tests(base_url: str) -> dict:
     # 9. WebSocket test (needs websockets library)
     try:
         import websockets  # noqa: F401
+
         await test_websocket_connection(base_url, chart_id, results)
     except ImportError:
         results["websocket"] = {
@@ -689,9 +681,7 @@ def main():
         )
 
         st.code(
-            "# Run Vue3 tests\n"
-            "cd packages/vue3\n"
-            "npm test",
+            "# Run Vue3 tests\n" "cd packages/vue3\n" "npm test",
             language="bash",
         )
 

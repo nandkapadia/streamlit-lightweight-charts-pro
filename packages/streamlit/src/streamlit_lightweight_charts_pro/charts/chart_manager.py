@@ -8,7 +8,8 @@ import hashlib
 import json
 import time
 import uuid
-from typing import Any, Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import Any, Optional, Union
 
 import pandas as pd
 import streamlit as st
@@ -173,7 +174,7 @@ class ChartManager(BaseChartManager):
                     try:
                         data_str = str(series.data)
                         data_hash = hashlib.md5(data_str.encode()).hexdigest()[:8]  # noqa: S324
-                    except (ValueError, TypeError, AttributeError) as e:
+                    except (ValueError, TypeError, AttributeError):
                         data_hash = None
 
                 series_info = {

@@ -12,20 +12,6 @@ import random
 from datetime import datetime, timedelta
 
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.layout_options import LayoutOptions
-from streamlit_lightweight_charts_pro.charts.options.sync_options import SyncOptions
-from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
-    TradeVisualizationOptions,
-)
-from streamlit_lightweight_charts_pro.charts.options.ui_options import (
-    LegendOptions,
-    RangeConfig,
-    RangeSwitcherOptions,
-    TimeRange,
-)
-from streamlit_lightweight_charts_pro.type_definitions.colors import BackgroundSolid
-from streamlit_lightweight_charts_pro.type_definitions.enums import TradeVisualization
 
 from streamlit_lightweight_charts_pro import (
     AreaSeries,
@@ -44,6 +30,18 @@ from streamlit_lightweight_charts_pro import (
     create_arrow_annotation,
     create_text_annotation,
 )
+from streamlit_lightweight_charts_pro.charts.options import ChartOptions
+from streamlit_lightweight_charts_pro.charts.options.layout_options import LayoutOptions
+from streamlit_lightweight_charts_pro.charts.options.sync_options import SyncOptions
+from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
+    TradeVisualizationOptions,
+)
+from streamlit_lightweight_charts_pro.charts.options.ui_options import (
+    LegendOptions,
+    RangeConfig,
+    RangeSwitcherOptions,
+    TimeRange,
+)
 from streamlit_lightweight_charts_pro.data import (
     BandData,
     GradientRibbonData,
@@ -54,6 +52,8 @@ from streamlit_lightweight_charts_pro.data import (
     TradeData,
     TrendFillData,
 )
+from streamlit_lightweight_charts_pro.type_definitions.colors import BackgroundSolid
+from streamlit_lightweight_charts_pro.type_definitions.enums import TradeVisualization
 
 
 def generate_sample_data(points: int = 100) -> dict:

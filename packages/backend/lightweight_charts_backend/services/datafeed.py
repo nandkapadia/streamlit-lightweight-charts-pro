@@ -6,7 +6,7 @@ This module implements the smart chunking and pagination strategy for large data
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, TypedDict
+from typing import Any, Callable, Optional, TypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class ChunkInfo(TypedDict):
 class DataChunk(TypedDict):
     """A chunk of chart data."""
 
-    data: List[Dict[str, Any]]
+    data: list[dict[str, Any]]
     chunk_info: ChunkInfo
     has_more_before: bool
     has_more_after: bool
@@ -37,11 +37,11 @@ class SeriesData:
 
     series_id: str
     series_type: str
-    data: List[Dict[str, Any]] = field(default_factory=list)
-    options: Dict[str, Any] = field(default_factory=dict)
+    data: list[dict[str, Any]] = field(default_factory=list)
+    options: dict[str, Any] = field(default_factory=dict)
     _sorted: bool = field(default=False, init=False)
 
-    def get_data_range(self, start_time: int, end_time: int) -> List[Dict[str, Any]]:
+    def get_data_range(self, start_time: int, end_time: int) -> list[dict[str, Any]]:
         """Get data within a time range.
 
         Args:
@@ -137,8 +137,8 @@ class ChartState:
     """State container for a single chart."""
 
     chart_id: str
-    panes: Dict[int, Dict[str, SeriesData]] = field(default_factory=dict)
-    options: Dict[str, Any] = field(default_factory=dict)
+    panes: dict[int, dict[str, SeriesData]] = field(default_factory=dict)
+    options: dict[str, Any] = field(default_factory=dict)
 
     def get_series(self, pane_id: int, series_id: str) -> Optional[SeriesData]:
         """Get series data by pane and series ID."""
@@ -152,16 +152,16 @@ class ChartState:
             self.panes[pane_id] = {}
         self.panes[pane_id][series_id] = series
 
-    def get_all_series_data(self) -> Dict[str, Any]:
+    def get_all_series_data(self) -> dict[str, Any]:
         """Get all series data for initial chart render.
 
         Returns:
             Dictionary with pane structure and all series data.
         """
-        result: Dict[str, Any] = {}
+        result: dict[str, Any] = {}
 
         for pane_id, series_dict in self.panes.items():
-            pane_data: Dict[str, Any] = {}
+            pane_data: dict[str, Any] = {}
             for series_id, series in series_dict.items():
                 pane_data[series_id] = {
                     "seriesType": series.series_type,
@@ -188,8 +188,8 @@ class DatafeedService:
 
     def __init__(self):
         """Initialize the datafeed service."""
-        self._charts: Dict[str, ChartState] = {}
-        self._subscribers: Dict[str, List[Callable]] = {}
+        self._charts: dict[str, ChartState] = {}
+        self._subscribers: dict[str, list[Callable]] = {}
         self._lock = asyncio.Lock()
 
     async def get_chart(self, chart_id: str) -> Optional[ChartState]:
@@ -197,7 +197,7 @@ class DatafeedService:
         async with self._lock:
             return self._charts.get(chart_id)
 
-    async def create_chart(self, chart_id: str, options: Optional[Dict] = None) -> ChartState:
+    async def create_chart(self, chart_id: str, options: Optional[dict] = None) -> ChartState:
         """Create a new chart state.
 
         Args:
@@ -210,7 +210,7 @@ class DatafeedService:
         async with self._lock:
             return self._create_chart_no_lock(chart_id, options)
 
-    def _create_chart_no_lock(self, chart_id: str, options: Optional[Dict] = None) -> ChartState:
+    def _create_chart_no_lock(self, chart_id: str, options: Optional[dict] = None) -> ChartState:
         """Internal method to create chart without acquiring lock.
 
         Must only be called when lock is already held.
@@ -235,8 +235,8 @@ class DatafeedService:
         pane_id: int,
         series_id: str,
         series_type: str,
-        data: List[Dict[str, Any]],
-        options: Optional[Dict] = None,
+        data: list[dict[str, Any]],
+        options: Optional[dict] = None,
     ) -> SeriesData:
         """Set data for a series.
 
@@ -285,7 +285,7 @@ class DatafeedService:
         chart_id: str,
         pane_id: Optional[int] = None,
         series_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get initial data for chart rendering.
 
         Implements smart chunking:
@@ -350,7 +350,7 @@ class DatafeedService:
         series_id: str,
         before_time: int,
         count: int = 500,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get historical data chunk for infinite history loading.
 
         Args:
@@ -412,7 +412,7 @@ class DatafeedService:
         self,
         chart_id: str,
         event_type: str,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> None:
         """Notify all subscribers of an event."""
         subscribers = self._subscribers.get(chart_id, [])
@@ -420,4 +420,4 @@ class DatafeedService:
             try:
                 await callback(event_type, data)
             except Exception as e:
-                logger.error(f"Callback error for {chart_id}: {e}")
+                logger.exception(f"Callback error for {chart_id}: {e}")

@@ -13,7 +13,10 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries
+from streamlit_lightweight_charts_pro.data import OhlcvData
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.data.trade import TradeData
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
@@ -22,9 +25,6 @@ from streamlit_lightweight_charts_pro.type_definitions.enums import (
     TradeType,
 )
 from streamlit_lightweight_charts_pro.utils.data_utils import to_utc_timestamp
-
-from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.data import OhlcvData
 
 
 def generate_brownian_motion_ohlcv(

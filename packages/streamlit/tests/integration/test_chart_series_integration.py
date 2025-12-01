@@ -7,7 +7,6 @@ ensuring they work together correctly in real-world scenarios.
 
 import gc
 import json
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -46,7 +45,7 @@ class TestChartSeriesIntegration:
     """Test integration between Chart and Series classes."""
 
     @pytest.fixture
-    def sample_ohlcv_data(self) -> List[OhlcvData]:
+    def sample_ohlcv_data(self) -> list[OhlcvData]:
         """Create sample OHLCV data for testing."""
         return [
             OhlcvData("2024-01-01 10:00:00", 100, 102, 99, 101, 1000),
@@ -57,7 +56,7 @@ class TestChartSeriesIntegration:
         ]
 
     @pytest.fixture
-    def sample_line_data(self) -> List[LineData]:
+    def sample_line_data(self) -> list[LineData]:
         """Create sample line data for testing."""
         return [
             LineData(time=1640995200, value=100),
@@ -68,7 +67,7 @@ class TestChartSeriesIntegration:
         ]
 
     @pytest.fixture
-    def sample_trades(self) -> List[TradeData]:
+    def sample_trades(self) -> list[TradeData]:
         """Create sample trades for testing."""
         return [
             TradeData(

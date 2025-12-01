@@ -14,13 +14,13 @@ What you'll learn:
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.series import (
     CandlestickSeries,
     HistogramSeries,
     LineSeries,
 )
-
-from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.data import CandlestickData, HistogramData, LineData
 
 # Page configuration

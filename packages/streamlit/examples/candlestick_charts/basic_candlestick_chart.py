@@ -9,10 +9,10 @@ import sys
 from pathlib import Path
 
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries
-
 from examples.utilities.data_samples import get_candlestick_data, get_dataframe_candlestick_data
+
 from streamlit_lightweight_charts_pro.charts import Chart
+from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries
 
 sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 

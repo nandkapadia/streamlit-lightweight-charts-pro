@@ -7,7 +7,6 @@ LayoutOptions and Chart configuration.
 import time
 
 import pytest
-
 from lightweight_charts_core.charts import (
     AreaSeries,
     BaseChart,

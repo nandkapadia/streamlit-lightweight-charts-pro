@@ -12,6 +12,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.options import (
     ChartOptions,
     LayoutOptions,
@@ -22,8 +24,6 @@ from streamlit_lightweight_charts_pro.charts.series import (
     HistogramSeries,
     LineSeries,
 )
-
-from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.data import CandlestickData, HistogramData, LineData
 
 sys.path.insert(0, str(Path(__file__).parent))

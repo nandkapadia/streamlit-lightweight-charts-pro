@@ -4,7 +4,6 @@ from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from lightweight_charts_backend.api import chart_router
 from lightweight_charts_backend.services import DatafeedService
 from lightweight_charts_backend.websocket import websocket_router
@@ -99,7 +98,7 @@ def create_app(
                 async with datafeed_service._lock:
                     datafeed_service._charts.pop(test_chart_id, None)
             except Exception as e:
-                errors.append(f"DatafeedService operation failed: {str(e)}")
+                errors.append(f"DatafeedService operation failed: {e!s}")
 
         # Determine overall status
         all_checks_passed = all(checks.values())

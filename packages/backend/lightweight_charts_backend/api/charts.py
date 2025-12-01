@@ -1,10 +1,9 @@
 """Chart API endpoints for data management."""
 
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request
-
 from lightweight_charts_backend.models import GetHistoryRequest, SetSeriesDataRequest
 from lightweight_charts_backend.services import DatafeedService
 
@@ -43,7 +42,7 @@ def validate_identifier(value: str, field_name: str) -> str:
         )
 
     # Prevent path traversal
-    if ".." in value or value.startswith("/") or value.startswith("\\"):
+    if ".." in value or value.startswith(("/", "\\")):
         raise HTTPException(status_code=400, detail=f"Invalid {field_name} format")
 
     return value
@@ -79,7 +78,7 @@ async def get_chart(
 @router.post("/{chart_id}")
 async def create_chart(
     chart_id: str = Path(..., min_length=1, max_length=MAX_ID_LENGTH),
-    options: Optional[Dict[str, Any]] = None,
+    options: Optional[dict[str, Any]] = None,
     datafeed: DatafeedService = Depends(get_datafeed),
 ):
     """Create a new chart.

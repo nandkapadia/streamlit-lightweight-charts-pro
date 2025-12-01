@@ -16,17 +16,17 @@ import sys
 from pathlib import Path
 
 import streamlit as st
+
+from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.options import LineOptions
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
+from streamlit_lightweight_charts_pro.data import BarMarker, LineData
 from streamlit_lightweight_charts_pro.type_definitions.enums import (
     LineStyle,
     MarkerPosition,
     MarkerShape,
 )
-
-from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.data import BarMarker, LineData
 
 # Add project root to path for examples imports
 sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))

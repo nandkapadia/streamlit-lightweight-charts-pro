@@ -5,7 +5,6 @@ ensuring proper construction, validation, and serialization.
 """
 
 import pytest
-
 from lightweight_charts_core.charts.options.chart_options import ChartOptions
 from lightweight_charts_core.charts.options.interaction_options import (
     CrosshairMode,

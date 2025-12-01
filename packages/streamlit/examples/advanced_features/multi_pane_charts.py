@@ -15,14 +15,14 @@ import sys
 from pathlib import Path
 
 import streamlit as st
+
+from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions, LineOptions
 from streamlit_lightweight_charts_pro.charts.options.layout_options import (
     LayoutOptions,
     PaneHeightOptions,
 )
 from streamlit_lightweight_charts_pro.charts.series import AreaSeries, LineSeries
-
-from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.data import AreaData, LineData
 
 # Add project root to path for examples imports

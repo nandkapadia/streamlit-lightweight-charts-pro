@@ -28,7 +28,6 @@ Example:
 from typing import Any
 
 import pandas as pd
-
 from lightweight_charts_core.charts.options.line_options import LineOptions
 from lightweight_charts_core.charts.series.base import Series
 from lightweight_charts_core.constants import (

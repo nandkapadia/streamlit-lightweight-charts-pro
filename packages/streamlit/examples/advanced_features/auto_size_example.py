@@ -7,9 +7,9 @@ features of the streamlit-lightweight-charts-pro library.
 import numpy as np
 import pandas as pd
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions, TimeScaleOptions
 
 from streamlit_lightweight_charts_pro import CandlestickSeries, Chart, LineSeries
+from streamlit_lightweight_charts_pro.charts.options import ChartOptions, TimeScaleOptions
 from streamlit_lightweight_charts_pro.data import OhlcvData, SingleValueData
 
 

@@ -10,12 +10,12 @@ import sys
 from pathlib import Path
 
 import streamlit as st
+from examples.utilities.data_samples import get_dataframe_line_data
+
+from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
-
-from examples.utilities.data_samples import get_dataframe_line_data
-from streamlit_lightweight_charts_pro.charts import Chart
 
 sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 
