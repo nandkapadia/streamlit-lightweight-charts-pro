@@ -39,7 +39,7 @@ class BandData(Data):
 
     Example:
         ```python
-        from streamlit_lightweight_charts_pro.data import BandData
+        from lightweight_charts_core.data import BandData
 
         # Basic data point
         data = BandData(time="2024-01-01", upper=110, middle=105, lower=100)

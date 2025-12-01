@@ -32,7 +32,7 @@ class RibbonData(Data):
 
     Example:
         ```python
-        from streamlit_lightweight_charts_pro.data import RibbonData
+        from lightweight_charts_core.data import RibbonData
 
         # Basic data point
         data = RibbonData(time="2024-01-01", upper=110, lower=100)

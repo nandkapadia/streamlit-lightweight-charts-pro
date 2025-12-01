@@ -6,8 +6,8 @@ and comprehensive customization options with a fluent API for method chaining.
 
 Example:
     ```python
-    from streamlit_lightweight_charts_pro import Chart, LineSeries
-    from streamlit_lightweight_charts_pro.data import SingleValueData
+    from lightweight_charts_core import Chart, LineSeries
+    from lightweight_charts_core.data import SingleValueData
 
     # Create data
     data = [SingleValueData("2024-01-01", 100), SingleValueData("2024-01-02", 105)]
@@ -32,36 +32,41 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Union
 # Third Party Imports
 import pandas as pd
 
-from streamlit_lightweight_charts_pro.charts.managers import (
-    ChartRenderer,
+# Core imports
+from lightweight_charts_core.charts.managers import (
     PriceScaleManager,
     SeriesManager,
-    SessionStateManager,
     TradeManager,
 )
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.series import (
-    Series,
+from lightweight_charts_core.charts.options import ChartOptions
+from lightweight_charts_core.charts.series import Series
+from lightweight_charts_core.data import (
+    Annotation,
+    AnnotationManager,
+    OhlcvData,
+    TooltipConfig,
+    TooltipManager,
+    TradeData,
 )
-from streamlit_lightweight_charts_pro.component import (  # pylint: disable=import-outside-toplevel
-    get_component_func,
-    reinitialize_component,
-)
-
-# Local Imports
-from streamlit_lightweight_charts_pro.data.annotation import Annotation, AnnotationManager
-from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
-from streamlit_lightweight_charts_pro.data.tooltip import TooltipConfig, TooltipManager
-from streamlit_lightweight_charts_pro.data.trade import TradeData
-from streamlit_lightweight_charts_pro.exceptions import (
+from lightweight_charts_core.exceptions import (
     AnnotationItemsTypeError,
     TypeValidationError,
     ValueValidationError,
 )
-from streamlit_lightweight_charts_pro.logging_config import get_logger
+from lightweight_charts_core.logging_config import get_logger
+
+# Streamlit-specific imports
+from streamlit_lightweight_charts_pro.charts.managers import (
+    ChartRenderer,
+    SessionStateManager,
+)
+from streamlit_lightweight_charts_pro.component import (
+    get_component_func,
+    reinitialize_component,
+)
 
 if TYPE_CHECKING:
-    from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
+    from lightweight_charts_core.charts.options.price_scale_options import (
         PriceScaleOptions,
     )
 
@@ -532,7 +537,7 @@ class Chart:
 
         Example:
             ```python
-            from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
+            from lightweight_charts_core.charts.options.price_scale_options import (
                 PriceScaleOptions,
             )
 
@@ -638,8 +643,8 @@ class Chart:
 
         Example:
             ```python
-            from streamlit_lightweight_charts_pro.data import TradeData
-            from streamlit_lightweight_charts_pro.type_definitions.enums import TradeType
+            from lightweight_charts_core.data import TradeData
+            from lightweight_charts_core.type_definitions.enums import TradeType
 
             # Create TradeData objects
             trades = [

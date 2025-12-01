@@ -51,9 +51,12 @@ Author: Streamlit Lightweight Charts Contributors
 License: MIT
 """
 
+# Streamlit-specific chart classes
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
-from streamlit_lightweight_charts_pro.charts.series import (
+
+# Re-export series from core
+from lightweight_charts_core.charts.series import (
     AreaSeries,
     BandSeries,
     BarSeries,
@@ -63,6 +66,7 @@ from streamlit_lightweight_charts_pro.charts.series import (
     HistogramSeries,
     LineSeries,
     RibbonSeries,
+    Series,
     SignalSeries,
     TrendFillSeries,
 )
@@ -79,6 +83,7 @@ __all__ = [
     "HistogramSeries",
     "LineSeries",
     "RibbonSeries",
+    "Series",
     "SignalSeries",
     "TrendFillSeries",
 ]

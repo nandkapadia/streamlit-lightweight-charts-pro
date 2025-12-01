@@ -105,8 +105,8 @@ Example:
 Note:
     This module was created to consolidate serialization logic previously
     scattered across:
-        - streamlit_lightweight_charts_pro/data/data.py
-        - streamlit_lightweight_charts_pro/charts/options/base_options.py
+        - lightweight_charts_core/data/data.py
+        - lightweight_charts_core/charts/options/base_options.py
         - Other classes with custom asdict() implementations
 
     By centralizing this logic, we ensure consistent serialization behavior
