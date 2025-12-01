@@ -9,6 +9,7 @@
 import {
   ref,
   shallowRef,
+  triggerRef,
   computed,
   watch,
   onMounted,
@@ -109,6 +110,12 @@ const isInitialized = ref(false);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
+// Cleanup references
+let resizeObserver: ResizeObserver | null = null;
+let unsubscribeCrosshairMove: (() => void) | null = null;
+let unsubscribeClick: (() => void) | null = null;
+let unsubscribeVisibleRangeChange: (() => void) | null = null;
+
 // Computed
 const hasWebSocket = computed(() => !!props.wsUrl);
 
@@ -156,15 +163,20 @@ const lazyLoadingState = props.lazyLoading
           ws.requestHistory(paneId, seriesId, beforeTime, count);
         } else {
           // Use REST API for history
-          api.getHistory(props.chartId, paneId, seriesId, beforeTime, count).then((response) => {
-            mergeHistoryData(seriesId, response.data, direction);
-            lazyLoadingState?.handleHistoryResponse(
-              seriesId,
-              direction,
-              response.hasMoreBefore,
-              response.hasMoreAfter
-            );
-          });
+          api.getHistory(props.chartId, paneId, seriesId, beforeTime, count)
+            .then((response) => {
+              mergeHistoryData(seriesId, response.data, direction);
+              lazyLoadingState?.handleHistoryResponse(
+                seriesId,
+                direction,
+                response.hasMoreBefore,
+                response.hasMoreAfter
+              );
+            })
+            .catch((err) => {
+              error.value = err instanceof Error ? err.message : 'Failed to load history';
+              emit('error', err instanceof Error ? err : new Error(String(err)));
+            });
         }
       },
     })
@@ -188,16 +200,16 @@ function initializeChart(): void {
 
   chart.value = createChart(containerRef.value, chartOptions);
 
-  // Subscribe to events
-  chart.value.subscribeCrosshairMove((params) => {
+  // Subscribe to events and store unsubscribe functions
+  unsubscribeCrosshairMove = chart.value.subscribeCrosshairMove((params) => {
     emit('crosshairMove', params);
   });
 
-  chart.value.subscribeClick((params) => {
+  unsubscribeClick = chart.value.subscribeClick((params) => {
     emit('click', params);
   });
 
-  chart.value.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+  unsubscribeVisibleRangeChange = chart.value.timeScale().subscribeVisibleLogicalRangeChange((range) => {
     emit('visibleTimeRangeChange', range);
   });
 
@@ -246,6 +258,8 @@ function createSeries(config: SeriesConfig): ISeriesApi<SeriesType> | null {
   }
 
   seriesMap.value.set(seriesId, series);
+  // Trigger reactivity for shallowRef Map mutation
+  triggerRef(seriesMap);
   return series;
 }
 
@@ -257,6 +271,8 @@ function removeSeries(seriesId: string): void {
   if (series && chart.value) {
     chart.value.removeSeries(series);
     seriesMap.value.delete(seriesId);
+    // Trigger reactivity for shallowRef Map mutation
+    triggerRef(seriesMap);
   }
 }
 
@@ -381,25 +397,33 @@ function handleResize(): void {
   }
 }
 
-// Watch for option changes
+// Watch for option changes using JSON comparison to avoid unnecessary deep watching
+// This is more performant than deep: true for large option objects
+let lastOptionsJson = '';
 watch(
-  () => props.options,
-  (newOptions) => {
-    if (chart.value && newOptions) {
-      chart.value.applyOptions(newOptions);
+  () => JSON.stringify(props.options),
+  (newOptionsJson) => {
+    if (newOptionsJson !== lastOptionsJson) {
+      lastOptionsJson = newOptionsJson;
+      if (chart.value && props.options) {
+        chart.value.applyOptions(props.options);
+      }
     }
-  },
-  { deep: true }
+  }
 );
 
-// Watch for series changes
+// Watch for series changes using JSON comparison
+// Avoids unnecessary re-renders when series data hasn't actually changed
+let lastSeriesJson = '';
 watch(
-  () => props.series,
-  (newSeries) => {
-    seriesConfigs.value = [...newSeries];
-    initializeSeries();
-  },
-  { deep: true }
+  () => JSON.stringify(props.series),
+  (newSeriesJson) => {
+    if (newSeriesJson !== lastSeriesJson) {
+      lastSeriesJson = newSeriesJson;
+      seriesConfigs.value = [...props.series];
+      initializeSeries();
+    }
+  }
 );
 
 // Lifecycle hooks
@@ -414,12 +438,33 @@ onMounted(() => {
 
   // Set up resize observer
   if (containerRef.value) {
-    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(containerRef.value);
   }
 });
 
 onUnmounted(() => {
+  // Unsubscribe from chart events
+  if (unsubscribeCrosshairMove) {
+    unsubscribeCrosshairMove();
+    unsubscribeCrosshairMove = null;
+  }
+  if (unsubscribeClick) {
+    unsubscribeClick();
+    unsubscribeClick = null;
+  }
+  if (unsubscribeVisibleRangeChange) {
+    unsubscribeVisibleRangeChange();
+    unsubscribeVisibleRangeChange = null;
+  }
+
+  // Disconnect resize observer
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+
+  // Remove chart
   if (chart.value) {
     chart.value.remove();
     chart.value = null;

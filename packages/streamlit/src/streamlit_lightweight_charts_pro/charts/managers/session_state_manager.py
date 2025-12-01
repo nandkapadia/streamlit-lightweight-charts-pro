@@ -163,7 +163,7 @@ class SessionStateManager:
                         logger.debug("Applying series config to %s: %s", series_id, series_config)
                         series.update(series_config)
 
-                except Exception:
+                except (ValueError, TypeError, AttributeError, KeyError) as e:
                     logger.exception("Failed to apply config to series %s", series_id)
 
         # Mark configs as applied for this render cycle

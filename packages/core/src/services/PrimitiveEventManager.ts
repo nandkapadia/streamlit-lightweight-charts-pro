@@ -44,29 +44,34 @@
  * ```
  */
 
-import { IChartApi, ISeriesApi } from 'lightweight-charts';
+import { IChartApi, ISeriesApi, Time, SeriesDataItemTypeMap, MouseEventParams } from 'lightweight-charts';
 
 /**
  * Event types for primitive interactions
  *
  * @interface PrimitiveEventTypes
  */
+/**
+ * Series data map type for event payloads
+ */
+export type SeriesDataMap = Map<ISeriesApi<keyof SeriesDataItemTypeMap>, SeriesDataItemTypeMap[keyof SeriesDataItemTypeMap]>;
+
 export interface PrimitiveEventTypes {
   /**
    * Crosshair position changed
    */
   crosshairMove: {
-    time: any;
+    time: Time | null;
     point: { x: number; y: number } | null;
-    seriesData: Map<ISeriesApi<any>, any>;
+    seriesData: SeriesDataMap;
   };
 
   /**
    * Chart data updated
    */
   dataUpdate: {
-    series: ISeriesApi<any>;
-    data: any[];
+    series: ISeriesApi<keyof SeriesDataItemTypeMap>;
+    data: SeriesDataItemTypeMap[keyof SeriesDataItemTypeMap][];
   };
 
   /**
@@ -90,33 +95,33 @@ export interface PrimitiveEventTypes {
    */
   configChange: {
     primitiveId: string;
-    config: any;
+    config: Record<string, unknown>;
   };
 
   /**
    * Chart time scale visible range changed
    */
   timeScaleChange: {
-    from: any;
-    to: any;
+    from: Time | null;
+    to: Time | null;
   };
 
   /**
    * Chart click event
    */
   click: {
-    time: any;
+    time: Time | null;
     point: { x: number; y: number };
-    seriesData: Map<ISeriesApi<any>, any>;
+    seriesData: SeriesDataMap;
   };
 
   /**
    * Chart hover event
    */
   hover: {
-    time: any;
+    time: Time | null;
     point: { x: number; y: number };
-    seriesData: Map<ISeriesApi<any>, any>;
+    seriesData: SeriesDataMap;
   };
 
   /**
@@ -124,7 +129,7 @@ export interface PrimitiveEventTypes {
    */
   custom: {
     eventType: string;
-    data: any;
+    data: unknown;
   };
 }
 
@@ -156,12 +161,12 @@ export class PrimitiveEventManager {
 
   private chart: IChartApi | null = null;
   private chartId: string;
-  private eventListeners: Map<string, Set<(event: any) => void>> = new Map();
+  private eventListeners: Map<string, Set<(event: unknown) => void>> = new Map();
   private chartEventCleanup: Array<() => void> = [];
   private _isDestroyed: boolean = false;
 
   // Crosshair tracking
-  private lastCrosshairPosition: { time: any; point: { x: number; y: number } | null } | null =
+  private lastCrosshairPosition: { time: Time | null; point: { x: number; y: number } | null } | null =
     null;
 
   private constructor(chartId: string) {
@@ -273,7 +278,7 @@ export class PrimitiveEventManager {
     // Crosshair move events with throttling to prevent performance issues during pan/zoom
     let lastCrosshairUpdate = 0;
     const crosshairThrottleDelay = 16; // ~60fps max update rate
-    const crosshairMoveHandler = (param: any) => {
+    const crosshairMoveHandler = (param: MouseEventParams) => {
       const now = Date.now();
       if (now - lastCrosshairUpdate >= crosshairThrottleDelay) {
         lastCrosshairUpdate = now;
@@ -288,7 +293,7 @@ export class PrimitiveEventManager {
     });
 
     // Chart click events
-    const clickHandler = (param: any) => {
+    const clickHandler = (param: MouseEventParams) => {
       this.handleChartClick(param);
     };
     this.chart.subscribeClick(clickHandler);
@@ -325,14 +330,14 @@ export class PrimitiveEventManager {
   /**
    * Handle crosshair move events
    */
-  private handleCrosshairMove(param: any): void {
-    const time = param.time;
-    const point = param.point;
+  private handleCrosshairMove(param: MouseEventParams): void {
+    const time = param.time ?? null;
+    const point = param.point ?? null;
 
     // Collect series data
-    const seriesData = new Map<ISeriesApi<any>, any>();
+    const seriesData: SeriesDataMap = new Map();
     if (param.seriesData) {
-      param.seriesData.forEach((data: any, series: ISeriesApi<any>) => {
+      param.seriesData.forEach((data, series) => {
         seriesData.set(series, data);
       });
     }
@@ -360,16 +365,16 @@ export class PrimitiveEventManager {
   /**
    * Handle chart click events
    */
-  private handleChartClick(param: any): void {
-    const time = param.time;
-    const point = param.point;
+  private handleChartClick(param: MouseEventParams): void {
+    const time = param.time ?? null;
+    const point = param.point ?? null;
 
     if (!point || !time) return;
 
     // Collect series data at click point
-    const seriesData = new Map<ISeriesApi<any>, any>();
+    const seriesData: SeriesDataMap = new Map();
     if (param.seriesData) {
-      param.seriesData.forEach((data: any, series: ISeriesApi<any>) => {
+      param.seriesData.forEach((data, series) => {
         seriesData.set(series, data);
       });
     }
@@ -426,14 +431,14 @@ export class PrimitiveEventManager {
   /**
    * Emit primitive configuration change event
    */
-  public emitConfigChange(primitiveId: string, config: any): void {
+  public emitConfigChange(primitiveId: string, config: Record<string, unknown>): void {
     this.emit('configChange', { primitiveId, config });
   }
 
   /**
    * Emit custom primitive event
    */
-  public emitCustomEvent(eventType: string, data: any): void {
+  public emitCustomEvent(eventType: string, data: unknown): void {
     this.emit('custom', { eventType, data });
   }
 
@@ -441,7 +446,7 @@ export class PrimitiveEventManager {
    * Get current crosshair position
    */
   public getCurrentCrosshairPosition(): {
-    time: any;
+    time: Time | null;
     point: { x: number; y: number } | null;
   } | null {
     return this.lastCrosshairPosition;

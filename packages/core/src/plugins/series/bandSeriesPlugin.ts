@@ -36,6 +36,7 @@ import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-
 import { isWhitespaceDataMultiField } from './base/commonRendering';
 import { LineStyle } from '../../utils/renderingUtils';
 import { drawMultiLine, drawFillArea } from './base/commonRendering';
+import { logger } from '../../utils/logger';
 
 // ============================================================================
 // Data Interface
@@ -418,31 +419,35 @@ export function createBandSeries(
   // Attach primitive if requested
   if (options.usePrimitive) {
     // Dynamic import to avoid circular dependencies
-    void import('../../primitives/BandPrimitive').then(({ BandPrimitive }) => {
-      const primitive = new BandPrimitive(chart, {
-        upperLineColor: options.upperLineColor ?? '#4CAF50',
-        upperLineWidth: options.upperLineWidth ?? 2,
-        upperLineStyle: Math.min(options.upperLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
-        upperLineVisible: options.upperLineVisible !== false,
-        middleLineColor: options.middleLineColor ?? '#2196F3',
-        middleLineWidth: options.middleLineWidth ?? 2,
-        middleLineStyle: Math.min(options.middleLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
-        middleLineVisible: options.middleLineVisible !== false,
-        lowerLineColor: options.lowerLineColor ?? '#F44336',
-        lowerLineWidth: options.lowerLineWidth ?? 2,
-        lowerLineStyle: Math.min(options.lowerLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
-        lowerLineVisible: options.lowerLineVisible !== false,
-        upperFillColor: options.upperFillColor ?? 'rgba(76, 175, 80, 0.1)',
-        upperFill: options.upperFill !== false, // Changed from upperFillVisible
-        lowerFillColor: options.lowerFillColor ?? 'rgba(244, 67, 54, 0.1)',
-        lowerFill: options.lowerFill !== false, // Changed from lowerFillVisible
-        visible: true,
-        priceScaleId: options.priceScaleId ?? 'right',
-        zIndex: options.zIndex ?? 0,
-      });
+    void import('../../primitives/BandPrimitive')
+      .then(({ BandPrimitive }) => {
+        const primitive = new BandPrimitive(chart, {
+          upperLineColor: options.upperLineColor ?? '#4CAF50',
+          upperLineWidth: options.upperLineWidth ?? 2,
+          upperLineStyle: Math.min(options.upperLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
+          upperLineVisible: options.upperLineVisible !== false,
+          middleLineColor: options.middleLineColor ?? '#2196F3',
+          middleLineWidth: options.middleLineWidth ?? 2,
+          middleLineStyle: Math.min(options.middleLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
+          middleLineVisible: options.middleLineVisible !== false,
+          lowerLineColor: options.lowerLineColor ?? '#F44336',
+          lowerLineWidth: options.lowerLineWidth ?? 2,
+          lowerLineStyle: Math.min(options.lowerLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
+          lowerLineVisible: options.lowerLineVisible !== false,
+          upperFillColor: options.upperFillColor ?? 'rgba(76, 175, 80, 0.1)',
+          upperFill: options.upperFill !== false, // Changed from upperFillVisible
+          lowerFillColor: options.lowerFillColor ?? 'rgba(244, 67, 54, 0.1)',
+          lowerFill: options.lowerFill !== false, // Changed from lowerFillVisible
+          visible: true,
+          priceScaleId: options.priceScaleId ?? 'right',
+          zIndex: options.zIndex ?? 0,
+        });
 
-      series.attachPrimitive(primitive);
-    });
+        series.attachPrimitive(primitive);
+      })
+      .catch((error: Error) => {
+        logger.error('Failed to load BandPrimitive', 'BandSeries', error);
+      });
   }
 
   return series;

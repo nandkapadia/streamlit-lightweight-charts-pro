@@ -521,6 +521,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
             window.addEventListener('storage', handleStorageChange);
             (chart as ExtendedChartApi)._storageListenerAdded = true;
+            // Store handler reference for cleanup
+            (chart as ExtendedChartApi)._storageHandler = handleStorageChange;
           }
 
           chart.subscribeCrosshairMove(param => {
@@ -648,6 +650,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
               window.addEventListener('storage', handleTimeRangeStorageChange);
               (chart as ExtendedChartApi)._timeRangeStorageListenerAdded = true;
+              // Store handler reference for cleanup
+              (chart as ExtendedChartApi)._timeRangeStorageHandler = handleTimeRangeStorageChange;
             }
 
             // Throttle timeScale range changes to prevent X-axis lag during pan/zoom
@@ -925,6 +929,37 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           CornerLayoutManager.cleanup(chartId);
         } catch (error) {
           logger.warn('CornerLayoutManager already cleaned up', 'Cleanup', error);
+        }
+      });
+
+      // Clear any pending timeouts and remove storage listeners from chart sync operations
+      Object.values(chartRefs.current).forEach(chart => {
+        try {
+          const extendedChart = chart as ExtendedChartApi;
+          // Clear crosshair sync timeout
+          if (extendedChart._externalSyncTimeout) {
+            clearTimeout(extendedChart._externalSyncTimeout);
+            extendedChart._externalSyncTimeout = undefined;
+          }
+          // Clear time range sync timeout
+          if (extendedChart._externalTimeRangeSyncTimeout) {
+            clearTimeout(extendedChart._externalTimeRangeSyncTimeout);
+            extendedChart._externalTimeRangeSyncTimeout = undefined;
+          }
+          // Remove crosshair storage event listener
+          if (extendedChart._storageHandler) {
+            window.removeEventListener('storage', extendedChart._storageHandler);
+            extendedChart._storageHandler = undefined;
+            extendedChart._storageListenerAdded = false;
+          }
+          // Remove time range storage event listener
+          if (extendedChart._timeRangeStorageHandler) {
+            window.removeEventListener('storage', extendedChart._timeRangeStorageHandler);
+            extendedChart._timeRangeStorageHandler = undefined;
+            extendedChart._timeRangeStorageListenerAdded = false;
+          }
+        } catch (error) {
+          logger.warn('Error clearing chart timeouts and listeners', 'Cleanup', error);
         }
       });
 

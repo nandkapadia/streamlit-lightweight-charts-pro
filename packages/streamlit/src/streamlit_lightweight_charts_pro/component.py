@@ -339,7 +339,7 @@ def reinitialize_component() -> bool:
                 "streamlit_lightweight_charts_pro",
                 path=str(frontend_dir),
             )
-        except Exception:
+        except (OSError, ValueError, RuntimeError) as e:
             # Log the exception with full traceback for debugging
             logger.exception("Failed to reinitialize component")
             # Return False to indicate reinitialization failed
@@ -358,7 +358,7 @@ def reinitialize_component() -> bool:
             "streamlit_lightweight_charts_pro",
             url="http://localhost:3001",
         )
-    except Exception:
+    except (OSError, ValueError, RuntimeError) as e:
         # Log the exception with full traceback for debugging
         logger.exception("Failed to reinitialize development component")
         # Return False to indicate reinitialization failed
@@ -461,7 +461,7 @@ def _initialize_component() -> None:
                 # Set to None to indicate initialization failed
                 _component_func = None
 
-            except Exception:
+            except (OSError, ValueError, RuntimeError) as e:
                 # Catch any other unexpected errors during initialization
                 # This could include:
                 # - File permission errors
@@ -506,7 +506,7 @@ def _initialize_component() -> None:
             # Set to None to indicate initialization failed
             _component_func = None
 
-        except Exception:
+        except (OSError, ValueError, RuntimeError) as e:
             # Catch any other unexpected errors during initialization
             # In dev mode, this often means the dev server isn't running
             logger.exception("Could not load development component")

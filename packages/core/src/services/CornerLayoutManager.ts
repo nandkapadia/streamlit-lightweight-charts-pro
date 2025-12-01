@@ -62,6 +62,7 @@ import { IChartApi } from 'lightweight-charts';
 import { ChartCoordinateService } from './ChartCoordinateService';
 import { LayoutSpacing } from '../primitives/PrimitiveDefaults';
 import { KeyedSingletonManager, createInstanceKey } from '../utils/KeyedSingletonManager';
+import { cleanupInstance, Disposable } from '../utils/Disposable';
 
 /**
  * CornerLayoutManager - Automatic corner-based widget positioning
@@ -500,8 +501,6 @@ export class CornerLayoutManager extends KeyedSingletonManager<CornerLayoutManag
     this.events = {};
 
     // Clear all references to allow garbage collection
-    (this as any).chartApi = null;
-    (this as any).coordinateService = null;
-    (this as any).config = null;
+    cleanupInstance(this, ['chartApi', 'coordinateService', 'config']);
   }
 }

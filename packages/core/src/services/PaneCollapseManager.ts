@@ -47,6 +47,7 @@ import { logger } from '../utils/logger';
 import { KeyedSingletonManager } from '../utils/KeyedSingletonManager';
 import { handleError, ErrorSeverity } from '../utils/errorHandler';
 import { DIMENSIONS } from '../config/positioningConfig';
+import { cleanupInstance, Disposable } from '../utils/Disposable';
 
 /**
  * Pane collapse state
@@ -373,7 +374,6 @@ export class PaneCollapseManager extends KeyedSingletonManager<PaneCollapseManag
     this.states.clear();
 
     // Clear all references to allow garbage collection
-    (this as any).chartApi = null;
-    (this as any).config = null;
+    cleanupInstance(this, ['chartApi', 'config']);
   }
 }

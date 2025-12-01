@@ -59,7 +59,7 @@ Note:
 
 # Standard Imports
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 # Third Party Imports
@@ -273,20 +273,20 @@ def from_utc_timestamp(timestamp: int) -> str:
             '2024-01-01T00:00:00'
 
     Note:
-        The function uses datetime.utcfromtimestamp() to ensure the output
-        is always in UTC timezone, regardless of the system's local timezone.
-        This is important for consistent time display in web applications.
+        The function uses datetime.fromtimestamp() with UTC timezone to ensure
+        the output is always in UTC timezone, regardless of the system's local
+        timezone. This is important for consistent time display in web applications.
 
     """
     # Convert UNIX timestamp to UTC datetime object
-    # utcfromtimestamp() interprets the timestamp as UTC time
-    # This is different from fromtimestamp() which uses local timezone
-    dt = datetime.utcfromtimestamp(timestamp)
+    # Using fromtimestamp() with explicit UTC timezone (recommended approach)
+    # This replaces the deprecated utcfromtimestamp() method
+    dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
 
-    # Convert datetime to ISO format string
-    # isoformat() returns "YYYY-MM-DDTHH:MM:SS" format
-    # The 'T' separates date and time per ISO 8601 standard
-    return dt.isoformat()
+    # Convert datetime to ISO format string without timezone info
+    # isoformat() returns "YYYY-MM-DDTHH:MM:SS+00:00" with timezone
+    # We use replace to remove timezone for backward compatibility
+    return dt.replace(tzinfo=None).isoformat()
 
 
 def snake_to_camel(snake_str: str) -> str:

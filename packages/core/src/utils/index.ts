@@ -5,6 +5,10 @@
  * rendering, logging, and chart-related utilities.
  */
 
+// Disposable utilities
+export type { Disposable } from './Disposable';
+export { cleanupInstance } from './Disposable';
+
 // Singleton patterns
 export { KeyedSingletonManager } from './KeyedSingletonManager';
 export { SingletonBase } from './SingletonBase';
@@ -30,6 +34,9 @@ export * from './errorHandler';
 
 // Logging
 export { logger, LogLevel, chartLog, primitiveLog, perfLog } from './logger';
+
+// Security/Sanitization utilities
+export * from './sanitization';
 
 // Performance utilities - exclude debounce (already in colorUtils)
 export {

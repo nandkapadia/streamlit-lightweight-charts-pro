@@ -173,7 +173,7 @@ class ChartManager(BaseChartManager):
                     try:
                         data_str = str(series.data)
                         data_hash = hashlib.md5(data_str.encode()).hexdigest()[:8]  # noqa: S324
-                    except Exception:
+                    except (ValueError, TypeError, AttributeError) as e:
                         data_hash = None
 
                 series_info = {

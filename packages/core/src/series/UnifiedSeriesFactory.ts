@@ -269,12 +269,12 @@ function flattenLineOptions(
  * @throws {SeriesCreationError} If series creation fails
  */
 export function createSeries(
-  chart: any,
+  chart: IChartApi,
   seriesType: string,
-  data: any[],
+  data: unknown[],
   userOptions: Partial<SeriesOptionsCommon> = {},
   paneId: number = 0
-): ISeriesApi<any> {
+): ISeriesApi<keyof SeriesOptionsMap> {
   try {
     // Validate inputs
     if (!chart) {
@@ -309,7 +309,7 @@ export function createSeries(
 
     // Extract custom properties that are NOT part of the official Lightweight Charts API
     // These properties are used for UI/metadata purposes only
-    const { displayName, ...apiOptions } = flattenedUserOptions as any;
+    const { displayName, ...apiOptions } = flattenedUserOptions as Record<string, unknown> & { displayName?: string };
 
     // Merge user options with defaults and add _seriesType metadata
     const options = {
@@ -392,14 +392,14 @@ export function getSeriesDescriptorsByCategory(category: string): UnifiedSeriesD
 /**
  * Extended series configuration for full-featured series creation
  * This interface matches the old SeriesConfig for backward compatibility
- * Uses any for maximum flexibility with existing code
+ * Uses flexible typing for maximum compatibility with existing code
  */
 export interface ExtendedSeriesConfig {
   /** Series type (e.g., 'Line', 'Area', 'Band') */
   type: string;
   /** Series data (flexible type for all series data formats) */
   data?: unknown[];
-  /** Series options (flexible to accept any options structure) */
+  /** Series options (flexible to accept various options structures) */
   options?: Record<string, unknown> | SeriesOptionsCommon;
   /** Pane ID for multi-pane charts */
   paneId?: number;
@@ -516,7 +516,8 @@ export function createSeriesWithConfig(
     if (priceLines && Array.isArray(priceLines)) {
       priceLines.forEach((priceLine: Record<string, unknown>) => {
         try {
-          series.createPriceLine(priceLine as any); // Type assertion needed for dynamic price line creation
+          // Price line options are dynamic and come from user configuration
+          series.createPriceLine(priceLine as Parameters<typeof series.createPriceLine>[0]);
         } catch (error) {
           logger.warn('Failed to create price line', 'UnifiedSeriesFactory', error);
         }
@@ -549,12 +550,15 @@ export function createSeriesWithConfig(
     //                  Filtered out before passing to API (see createSeries function)
     //   - title: Official Lightweight Charts API property
     //            Already passed in options to addSeries(), stored here for quick access
-    const optionsAny = options as any;
-    if (optionsAny.displayName) {
-      series.displayName = optionsAny.displayName;
+    const optionsWithCustomProps = options as Record<string, unknown> & {
+      displayName?: string;
+      title?: string;
+    };
+    if (optionsWithCustomProps.displayName) {
+      series.displayName = optionsWithCustomProps.displayName;
     }
-    if (optionsAny.title) {
-      series.title = optionsAny.title;
+    if (optionsWithCustomProps.title) {
+      series.title = optionsWithCustomProps.title;
     }
 
     // Step 7: Handle legend registration
@@ -683,8 +687,8 @@ export function updateSeriesData(
  * @param data - Optional data for timestamp snapping
  */
 export function updateSeriesMarkers(
-  series: ISeriesApi<any>,
-  markers: SeriesMarker<any>[],
+  series: ISeriesApi<keyof SeriesOptionsMap>,
+  markers: SeriesMarker<Time>[],
   data?: SeriesDataPoint[]
 ): void {
   try {
@@ -703,7 +707,7 @@ export function updateSeriesMarkers(
  * @param options - New options to apply
  */
 export function updateSeriesOptions(
-  series: ISeriesApi<any>,
+  series: ISeriesApi<keyof SeriesOptionsMap>,
   options: Partial<SeriesOptionsCommon>
 ): void {
   try {

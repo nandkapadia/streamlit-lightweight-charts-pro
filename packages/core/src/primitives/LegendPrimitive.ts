@@ -51,6 +51,7 @@ import {
   TypographyConfig,
   BorderConfig,
 } from './PrimitiveStylingUtils';
+import { sanitizeHtml } from '../utils/sanitization';
 
 /**
  * Configuration for LegendPrimitive
@@ -193,8 +194,8 @@ export class LegendPrimitive extends BasePanePrimitive<LegendPrimitiveConfig> {
       this.containerElement.appendChild(legendElement);
     }
 
-    // Update content (use innerHTML to allow HTML markup)
-    legendElement.innerHTML = content;
+    // Update content (use innerHTML with sanitization for XSS protection)
+    legendElement.innerHTML = sanitizeHtml(content);
 
     // Apply styling
     this.applyLegendStyling(legendElement);

@@ -4,8 +4,11 @@ This module implements the smart chunking and pagination strategy for large data
 """
 
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, TypedDict
+
+logger = logging.getLogger(__name__)
 
 
 class ChunkInfo(TypedDict):
@@ -36,6 +39,7 @@ class SeriesData:
     series_type: str
     data: List[Dict[str, Any]] = field(default_factory=list)
     options: Dict[str, Any] = field(default_factory=dict)
+    _sorted: bool = field(default=False, init=False)
 
     def get_data_range(self, start_time: int, end_time: int) -> List[Dict[str, Any]]:
         """Get data within a time range.
@@ -48,6 +52,12 @@ class SeriesData:
             List of data points within the range.
         """
         return [d for d in self.data if start_time <= d.get("time", 0) <= end_time]
+
+    def _ensure_sorted(self):
+        """Ensure data is sorted by time (ascending)."""
+        if not self._sorted and self.data:
+            self.data.sort(key=lambda d: d.get("time", 0))
+            self._sorted = True
 
     def get_data_chunk(
         self,
@@ -78,8 +88,9 @@ class SeriesData:
                 total_available=0,
             )
 
-        # Sort data by time (ascending)
-        sorted_data = sorted(self.data, key=lambda d: d.get("time", 0))
+        # Ensure data is sorted (only sorts once)
+        self._ensure_sorted()
+        sorted_data = self.data
 
         if before_time is None:
             # Return latest data
@@ -197,12 +208,26 @@ class DatafeedService:
             Created ChartState.
         """
         async with self._lock:
-            if chart_id in self._charts:
-                return self._charts[chart_id]
+            return self._create_chart_no_lock(chart_id, options)
 
-            chart = ChartState(chart_id=chart_id, options=options or {})
-            self._charts[chart_id] = chart
-            return chart
+    def _create_chart_no_lock(self, chart_id: str, options: Optional[Dict] = None) -> ChartState:
+        """Internal method to create chart without acquiring lock.
+
+        Must only be called when lock is already held.
+
+        Args:
+            chart_id: Unique chart identifier.
+            options: Chart options.
+
+        Returns:
+            Created ChartState.
+        """
+        if chart_id in self._charts:
+            return self._charts[chart_id]
+
+        chart = ChartState(chart_id=chart_id, options=options or {})
+        self._charts[chart_id] = chart
+        return chart
 
     async def set_series_data(
         self,
@@ -229,7 +254,8 @@ class DatafeedService:
         async with self._lock:
             chart = self._charts.get(chart_id)
             if not chart:
-                chart = await self.create_chart(chart_id)
+                # Use internal no-lock method since we already hold the lock
+                chart = self._create_chart_no_lock(chart_id)
 
             series = SeriesData(
                 series_id=series_id,
@@ -237,20 +263,22 @@ class DatafeedService:
                 data=data,
                 options=options or {},
             )
+            # Sort data once when setting
+            series._ensure_sorted()
             chart.set_series(pane_id, series_id, series)
 
-            # Notify subscribers
-            await self._notify_subscribers(
-                chart_id,
-                "data_update",
-                {
-                    "paneId": pane_id,
-                    "seriesId": series_id,
-                    "count": len(data),
-                },
-            )
+            # Prepare notification data while holding lock
+            notification_data = {
+                "paneId": pane_id,
+                "seriesId": series_id,
+                "count": len(data),
+            }
 
-            return series
+        # Notify subscribers OUTSIDE the lock to prevent blocking
+        # This allows other operations to proceed while callbacks execute
+        await self._notify_subscribers(chart_id, "data_update", notification_data)
+
+        return series
 
     async def get_initial_data(
         self,
@@ -370,9 +398,13 @@ class DatafeedService:
                 self._subscribers[chart_id] = []
             self._subscribers[chart_id].append(callback)
 
-        def unsubscribe():
-            if chart_id in self._subscribers:
-                self._subscribers[chart_id].remove(callback)
+        async def unsubscribe():
+            async with self._lock:
+                if chart_id in self._subscribers:
+                    try:
+                        self._subscribers[chart_id].remove(callback)
+                    except ValueError:
+                        pass  # Already removed
 
         return unsubscribe
 
@@ -387,5 +419,5 @@ class DatafeedService:
         for callback in subscribers:
             try:
                 await callback(event_type, data)
-            except Exception:
-                pass  # Don't let one callback break others
+            except Exception as e:
+                logger.error(f"Callback error for {chart_id}: {e}")

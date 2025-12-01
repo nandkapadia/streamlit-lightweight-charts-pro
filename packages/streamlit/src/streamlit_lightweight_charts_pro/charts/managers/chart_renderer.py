@@ -4,12 +4,16 @@ This module handles the generation of frontend configuration and rendering
 of chart components in Streamlit.
 """
 
+import html
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import streamlit.components.v1 as components
 from lightweight_charts_core.logging_config import get_logger
+
+if TYPE_CHECKING:
+    from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 
 from streamlit_lightweight_charts_pro.charts.series_settings_api import (
     get_series_settings_api,
@@ -37,7 +41,7 @@ class ChartRenderer:
         chart_manager_ref: Optional reference to ChartManager for sync config.
     """
 
-    def __init__(self, chart_manager_ref: Optional[Any] = None):
+    def __init__(self, chart_manager_ref: Optional["ChartManager"] = None):
         """Initialize the ChartRenderer.
 
         Args:
@@ -395,12 +399,14 @@ class ChartRenderer:
 
                 if message_id:
                     pane_state = series_api.get_pane_state(pane_id)
+                    # Escape message_id to prevent XSS attacks
+                    safe_message_id = html.escape(str(message_id))
                     components.html(
                         f"""
                     <script>
                     document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                         detail: {{
-                            messageId: '{message_id}',
+                            messageId: '{safe_message_id}',
                             response: {json.dumps({"success": True, "data": pane_state})}
                         }}
                     }}));
@@ -418,12 +424,14 @@ class ChartRenderer:
                 success = series_api.update_series_settings(pane_id, series_id, config)
 
                 if message_id:
+                    # Escape message_id to prevent XSS attacks
+                    safe_message_id = html.escape(str(message_id))
                     components.html(
                         f"""
                     <script>
                     document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                         detail: {{
-                            messageId: '{message_id}',
+                            messageId: '{safe_message_id}',
                             response: {json.dumps({"success": success})}
                         }}
                     }}));
@@ -440,12 +448,14 @@ class ChartRenderer:
                 if message_id:
                     defaults = series_api.reset_series_to_defaults(pane_id, series_id)
                     success = defaults is not None
+                    # Escape message_id to prevent XSS attacks
+                    safe_message_id = html.escape(str(message_id))
                     components.html(
                         f"""
                     <script>
                     document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                         detail: {{
-                            messageId: '{message_id}',
+                            messageId: '{safe_message_id}',
                             response: {json.dumps({"success": success, "data": defaults or {}})}
                         }}
                     }}));
@@ -469,7 +479,7 @@ class ChartRenderer:
                     else:
                         logger.warning("Skipping invalid change (missing seriesId or config)")
 
-        except Exception:
+        except (KeyError, ValueError, TypeError, AttributeError) as e:
             logger.exception("Error handling series settings response")
 
     def _handle_lazy_loading_request(self, response: dict, key: str) -> None:
@@ -489,13 +499,15 @@ class ChartRenderer:
 
             if history_data:
                 message_id = response.get("messageId", "")
+                # Escape message_id to prevent XSS attacks
+                safe_message_id = html.escape(str(message_id))
                 # Send response back to frontend via custom event
                 components.html(
                     f"""
                 <script>
                 document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                     detail: {{
-                        messageId: '{message_id}',
+                        messageId: '{safe_message_id}',
                         response: {json.dumps(history_data)}
                     }}
                 }}));
@@ -513,5 +525,5 @@ class ChartRenderer:
                     "No history data found for series %s",
                     response.get("seriesId"),
                 )
-        except Exception:
+        except (ImportError, KeyError, ValueError, TypeError) as e:
             logger.exception("Error handling lazy loading request")

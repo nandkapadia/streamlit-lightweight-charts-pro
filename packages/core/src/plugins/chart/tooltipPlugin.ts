@@ -34,6 +34,7 @@
 import { ChartCoordinateService } from '../../services/ChartCoordinateService';
 import { createSingleton } from '../../utils/SingletonBase';
 import { logger } from '../../utils/logger';
+import { sanitizeHtml } from '../../utils/sanitization';
 import { TooltipManager } from './TooltipManager';
 
 /**
@@ -77,6 +78,8 @@ export class TooltipPlugin {
   private tooltipElement: HTMLElement | null = null;
   /** Coordinate service for positioning (lazy-initialized) */
   private _coordinateService: ChartCoordinateService | null = null;
+  /** Timeout ID for hide animation - tracked for cleanup */
+  private _hideTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * Creates a new TooltipPlugin
@@ -157,8 +160,8 @@ export class TooltipPlugin {
         return;
       }
 
-      // Step 3: Inject HTML content from plugin
-      this.tooltipElement.innerHTML = content;
+      // Step 3: Inject HTML content from plugin (sanitized for XSS protection)
+      this.tooltipElement.innerHTML = sanitizeHtml(content);
 
       // Step 4: Apply CSS styles from plugin
       this.applyStyle(this.tooltipElement, style);
@@ -204,14 +207,21 @@ export class TooltipPlugin {
    */
   hide(): void {
     if (this.tooltipElement) {
+      // Clear any pending hide timeout to prevent race conditions
+      if (this._hideTimeoutId !== null) {
+        clearTimeout(this._hideTimeoutId);
+        this._hideTimeoutId = null;
+      }
+
       // Start fade-out transition
       this.tooltipElement.style.opacity = '0';
 
-      // Hide element after fade-out completes
-      setTimeout(() => {
+      // Hide element after fade-out completes (track timeout for cleanup)
+      this._hideTimeoutId = setTimeout(() => {
         if (this.tooltipElement) {
           this.tooltipElement.style.display = 'none';
         }
+        this._hideTimeoutId = null;
       }, 150); // Match CSS transition duration
     }
   }
@@ -315,6 +325,12 @@ export class TooltipPlugin {
    */
   destroy(): void {
     try {
+      // Clear any pending hide timeout to prevent memory leaks
+      if (this._hideTimeoutId !== null) {
+        clearTimeout(this._hideTimeoutId);
+        this._hideTimeoutId = null;
+      }
+
       if (this.tooltipElement && this.tooltipElement.parentNode) {
         this.tooltipElement.parentNode.removeChild(this.tooltipElement);
         this.tooltipElement = null;

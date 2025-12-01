@@ -35,7 +35,7 @@ def create_app(
 
     # Configure CORS
     if cors_origins is None:
-        cors_origins = ["*"]
+        cors_origins = ["http://localhost:3000", "http://localhost:8501"]
 
     app.add_middleware(
         CORSMiddleware,
@@ -57,7 +57,63 @@ def create_app(
 
     @app.get("/health")
     async def health_check():
-        """Health check endpoint."""
+        """Basic health check endpoint."""
         return {"status": "healthy", "version": version}
+
+    @app.get("/health/ready")
+    async def readiness_check():
+        """Readiness check that verifies DatafeedService is functional.
+
+        This endpoint performs actual operations on DatafeedService to verify
+        it's working correctly, not just that the app started.
+
+        Returns:
+            Health status with service checks.
+        """
+        checks = {
+            "datafeed_initialized": False,
+            "datafeed_operational": False,
+        }
+        errors = []
+
+        # Check if DatafeedService is initialized
+        try:
+            datafeed_service = app.state.datafeed
+            checks["datafeed_initialized"] = datafeed_service is not None
+        except AttributeError:
+            errors.append("DatafeedService not found in app.state")
+
+        # Test DatafeedService operations
+        if checks["datafeed_initialized"]:
+            try:
+                # Create a test chart to verify operations work
+                test_chart_id = "__health_check_test__"
+                await datafeed_service.create_chart(test_chart_id)
+
+                # Verify we can retrieve it
+                chart = await datafeed_service.get_chart(test_chart_id)
+                if chart is not None:
+                    checks["datafeed_operational"] = True
+
+                # Clean up - remove test chart from internal state
+                async with datafeed_service._lock:
+                    datafeed_service._charts.pop(test_chart_id, None)
+            except Exception as e:
+                errors.append(f"DatafeedService operation failed: {str(e)}")
+
+        # Determine overall status
+        all_checks_passed = all(checks.values())
+        status = "ready" if all_checks_passed else "degraded"
+
+        response = {
+            "status": status,
+            "version": version,
+            "checks": checks,
+        }
+
+        if errors:
+            response["errors"] = errors
+
+        return response
 
     return app

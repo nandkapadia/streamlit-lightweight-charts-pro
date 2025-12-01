@@ -18,6 +18,34 @@ import type {
 } from '../types';
 
 /**
+ * Type guard to check if a value is a valid ApiError object.
+ */
+function isApiError(value: unknown): value is ApiError {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const obj = value as Record<string, unknown>;
+  return typeof obj.error === 'string' || typeof obj.detail === 'string';
+}
+
+/**
+ * Extract error message from API error response.
+ */
+function extractErrorMessage(value: unknown, fallback: string): string {
+  if (isApiError(value)) {
+    return value.error || value.detail || fallback;
+  }
+  return fallback;
+}
+
+/**
+ * Type guard to check if a value is a valid object (not null/array).
+ */
+function isValidResponseObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
  * API client state returned by the composable.
  */
 export interface UseChartApiState {
@@ -138,17 +166,25 @@ export function useChartApi(options: UseChartApiOptions = {}): UseChartApiReturn
         },
       });
 
-      clearTimeout(timeoutId);
-
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({})) as ApiError;
-        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        const errorData: unknown = await response.json().catch(() => ({}));
+        const errorMessage = extractErrorMessage(
+          errorData,
+          `HTTP ${response.status}: ${response.statusText}`
+        );
         throw new Error(errorMessage);
       }
 
-      const result = await response.json() as T;
+      const result: unknown = await response.json();
+
+      // Validate response is an object (basic structure check)
+      if (!isValidResponseObject(result)) {
+        throw new Error('Invalid API response: expected object');
+      }
+
+      // Type assertion after validation
       data.value = result;
-      return result;
+      return result as T;
     } catch (err) {
       if (err instanceof Error) {
         if (err.name === 'AbortError') {
@@ -161,6 +197,7 @@ export function useChartApi(options: UseChartApiOptions = {}): UseChartApiReturn
       }
       throw err;
     } finally {
+      clearTimeout(timeoutId);
       isLoading.value = false;
     }
   }

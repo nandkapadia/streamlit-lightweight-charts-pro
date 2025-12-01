@@ -68,6 +68,61 @@ const DEFAULT_RECONNECT = {
 const DEFAULT_PING_INTERVAL = 30000;
 
 /**
+ * Valid incoming message types for validation.
+ */
+const VALID_MESSAGE_TYPES = ['connected', 'pong', 'initial_data_response', 'history_response', 'data_update'] as const;
+
+/**
+ * Validate that the parsed message has the expected structure.
+ * Prevents accepting malformed or unexpected message payloads.
+ */
+function isValidIncomingMessage(message: unknown): message is IncomingMessage {
+  if (typeof message !== 'object' || message === null) {
+    return false;
+  }
+
+  const msg = message as Record<string, unknown>;
+
+  // Must have a valid type
+  if (typeof msg.type !== 'string' || !VALID_MESSAGE_TYPES.includes(msg.type as typeof VALID_MESSAGE_TYPES[number])) {
+    return false;
+  }
+
+  // Type-specific validation
+  switch (msg.type) {
+    case 'connected':
+      return typeof msg.chartId === 'string';
+
+    case 'pong':
+      return true;
+
+    case 'initial_data_response':
+      return typeof msg.chartId === 'string';
+
+    case 'history_response':
+      return (
+        typeof msg.chartId === 'string' &&
+        typeof msg.paneId === 'number' &&
+        typeof msg.seriesId === 'string' &&
+        Array.isArray(msg.data) &&
+        typeof msg.hasMoreBefore === 'boolean' &&
+        typeof msg.hasMoreAfter === 'boolean'
+      );
+
+    case 'data_update':
+      return (
+        typeof msg.chartId === 'string' &&
+        typeof msg.paneId === 'number' &&
+        typeof msg.seriesId === 'string' &&
+        typeof msg.count === 'number'
+      );
+
+    default:
+      return false;
+  }
+}
+
+/**
  * Vue 3 composable for WebSocket communication with the chart backend.
  *
  * @param config - WebSocket configuration
@@ -142,7 +197,15 @@ export function useChartWebSocket(
    */
   function handleMessage(event: MessageEvent): void {
     try {
-      const message = JSON.parse(event.data) as IncomingMessage;
+      const parsed: unknown = JSON.parse(event.data);
+
+      // Validate message structure before processing
+      if (!isValidIncomingMessage(parsed)) {
+        console.warn('Invalid WebSocket message received:', parsed);
+        return;
+      }
+
+      const message = parsed;
 
       switch (message.type) {
         case 'connected':
@@ -156,19 +219,16 @@ export function useChartWebSocket(
           break;
 
         case 'initial_data_response':
-          handlers.onInitialData?.(message as InitialDataResponseMessage);
+          handlers.onInitialData?.(message);
           break;
 
         case 'history_response':
-          handlers.onHistoryResponse?.(message as HistoryResponseMessage);
+          handlers.onHistoryResponse?.(message);
           break;
 
         case 'data_update':
-          handlers.onDataUpdate?.(message as DataUpdateMessage);
+          handlers.onDataUpdate?.(message);
           break;
-
-        default:
-          console.warn('Unknown message type:', (message as { type: string }).type);
       }
     } catch (err) {
       console.error('Failed to parse WebSocket message:', err);
@@ -191,8 +251,8 @@ export function useChartWebSocket(
     stopPingInterval();
     handlers.onDisconnected?.();
 
-    // Attempt reconnection if not manually disconnected
-    if (!isManualDisconnect && reconnect.enabled) {
+    // Attempt reconnection if not manually disconnected and not already scheduled
+    if (!isManualDisconnect && reconnect.enabled && !reconnectTimer) {
       const maxAttempts = reconnect.maxAttempts ?? DEFAULT_RECONNECT.maxAttempts;
       if (reconnectAttempts.value < maxAttempts) {
         scheduleReconnect();
@@ -238,8 +298,10 @@ export function useChartWebSocket(
    * Schedule reconnection attempt.
    */
   function scheduleReconnect(): void {
+    // Clear any existing timer before scheduling a new one
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
+      reconnectTimer = null;
     }
 
     const delay = getReconnectDelay();
@@ -250,6 +312,7 @@ export function useChartWebSocket(
     );
 
     reconnectTimer = setTimeout(() => {
+      reconnectTimer = null; // Clear timer reference after it fires
       connect();
     }, delay);
   }
@@ -277,6 +340,8 @@ export function useChartWebSocket(
       socket.onclose = handleClose;
       socket.onerror = handleError;
     } catch (err) {
+      // Ensure socket is nullified on construction error
+      socket = null;
       state.value = 'error';
       error.value = err instanceof Error ? err.message : 'Failed to connect';
       handlers.onError?.(err instanceof Error ? err : new Error(String(err)));

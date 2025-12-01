@@ -36,46 +36,46 @@ import { Singleton } from './SingletonBase';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const perfLog = {
-  log: (..._: any[]) => {
+  log: (..._: unknown[]) => {
     if (isDevelopment) {
       // Performance logging disabled in favor of logger utility
     }
   },
-  warn: (..._: any[]) => {
+  warn: (..._: unknown[]) => {
     if (isDevelopment) {
       // Performance logging disabled in favor of logger utility
     }
   },
-  error: (..._: any[]) => {
+  error: (..._: unknown[]) => {
     // Always log errors, even in production
     // Performance logging disabled in favor of logger utility
   },
 };
 
 // Performance logging function for timing operations
-export function perfLogFn(_operationName: string, fn: () => any): any {
+export function perfLogFn<T>(_operationName: string, fn: () => T): T {
   const result = fn();
   return result;
 }
 
 // Optimized deep comparison without JSON.stringify
-export function deepCompare(objA: any, objB: any): boolean {
+export function deepCompare(objA: unknown, objB: unknown): boolean {
   if (objA === objB) return true;
 
   if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
     return false;
   }
 
-  const keysA = Object.keys(objA);
-  const keysB = Object.keys(objB);
+  const keysA = Object.keys(objA as Record<string, unknown>);
+  const keysB = Object.keys(objB as Record<string, unknown>);
 
   if (keysA.length !== keysB.length) return false;
 
   for (const key of keysA) {
     if (!Object.prototype.hasOwnProperty.call(objB, key)) return false;
 
-    const valA = objA[key];
-    const valB = objB[key];
+    const valA = (objA as Record<string, unknown>)[key];
+    const valB = (objB as Record<string, unknown>)[key];
 
     if (typeof valA === 'object' && typeof valB === 'object') {
       if (!deepCompare(valA, valB)) return false;
@@ -129,12 +129,13 @@ export function getCachedDOMElementForTesting(
 }
 
 // Debounce function with improved performance
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic debounce requires any for flexibility
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number,
   immediate = false
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
 
   return function executedFunction(..._args: Parameters<T>) {
     const later = () => {
@@ -152,6 +153,7 @@ export function debounce<T extends (...args: any[]) => any>(
 }
 
 // Throttle function for performance-critical operations
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic throttle requires any for flexibility
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
   limit: number
@@ -167,21 +169,90 @@ export function throttle<T extends (...args: any[]) => any>(
   };
 }
 
-// Memoization utility for expensive calculations
+/**
+ * LRU (Least Recently Used) cache implementation for memoization.
+ * Automatically evicts oldest entries when maxSize is reached.
+ */
+class LRUCache<K, V> {
+  private cache = new Map<K, V>();
+  private readonly maxSize: number;
+
+  constructor(maxSize: number = 100) {
+    this.maxSize = maxSize;
+  }
+
+  get(key: K): V | undefined {
+    if (!this.cache.has(key)) {
+      return undefined;
+    }
+    // Move to end (most recently used)
+    const value = this.cache.get(key)!;
+    this.cache.delete(key);
+    this.cache.set(key, value);
+    return value;
+  }
+
+  set(key: K, value: V): void {
+    // If key exists, delete it first to update position
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    } else if (this.cache.size >= this.maxSize) {
+      // Evict oldest entry (first key in map)
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
+    }
+    this.cache.set(key, value);
+  }
+
+  has(key: K): boolean {
+    return this.cache.has(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  get size(): number {
+    return this.cache.size;
+  }
+}
+
+/**
+ * Memoization utility for expensive calculations with LRU cache eviction.
+ *
+ * @param func - The function to memoize
+ * @param resolver - Optional custom key resolver function
+ * @param maxCacheSize - Maximum number of entries to cache (default: 100)
+ * @returns Memoized function with bounded cache
+ *
+ * @example
+ * ```typescript
+ * const expensiveCalc = memoize(
+ *   (x: number, y: number) => x * y,
+ *   (x, y) => `${x}-${y}`,
+ *   50 // Cache up to 50 results
+ * );
+ * ```
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic memoize requires any for flexibility
 export function memoize<T extends (...args: any[]) => any>(
   func: T,
-  resolver?: (...args: Parameters<T>) => string
+  resolver?: (...args: Parameters<T>) => string,
+  maxCacheSize: number = 100
 ): T {
-  const cache = new Map<string, ReturnType<T>>();
+  const cache = new LRUCache<string, ReturnType<T>>(maxCacheSize);
 
   return ((..._args: Parameters<T>) => {
     const key = resolver ? resolver(..._args) : JSON.stringify(_args);
 
-    if (cache.has(key)) {
-      return cache.get(key);
+    const cached = cache.get(key);
+    if (cached !== undefined) {
+      return cached;
     }
 
-    const result = func(..._args);
+    const result = func(..._args) as ReturnType<T>;
     cache.set(key, result);
     return result;
   }) as T;
@@ -273,20 +344,22 @@ export class PerformanceMonitor {
 }
 
 // Efficient object comparison for React dependencies
-export function shallowEqual(objA: any, objB: any): boolean {
+export function shallowEqual(objA: unknown, objB: unknown): boolean {
   if (objA === objB) return true;
 
   if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
     return false;
   }
 
-  const keysA = Object.keys(objA);
-  const keysB = Object.keys(objB);
+  const keysA = Object.keys(objA as Record<string, unknown>);
+  const keysB = Object.keys(objB as Record<string, unknown>);
 
   if (keysA.length !== keysB.length) return false;
 
   for (const key of keysA) {
-    if (!Object.prototype.hasOwnProperty.call(objB, key) || objA[key] !== objB[key]) {
+    const recA = objA as Record<string, unknown>;
+    const recB = objB as Record<string, unknown>;
+    if (!Object.prototype.hasOwnProperty.call(objB, key) || recA[key] !== recB[key]) {
       return false;
     }
   }
@@ -295,7 +368,7 @@ export function shallowEqual(objA: any, objB: any): boolean {
 }
 
 // Deep comparison for complex objects (use sparingly)
-export function deepEqual(objA: any, objB: any): boolean {
+export function deepEqual(objA: unknown, objB: unknown): boolean {
   return deepCompare(objA, objB);
 }
 
@@ -328,54 +401,142 @@ export function createIntersectionObserver(
   });
 }
 
-// Efficient event listener management
+/**
+ * Stored listener entry with element reference for proper cleanup.
+ */
+interface ListenerEntry {
+  element: EventTarget;
+  event: string;
+  listener: EventListener;
+}
+
+/**
+ * Efficient event listener management with proper cleanup support.
+ * Stores element references to enable removeAllListeners() to actually
+ * remove the listeners from the DOM.
+ */
 export class EventManager {
-  private listeners: Map<string, Set<EventListener>> = new Map();
+  private listeners: Map<string, ListenerEntry[]> = new Map();
+  private elementIdCounter = 0;
+  private elementIds = new WeakMap<EventTarget, number>();
+
+  private getElementId(element: EventTarget): number {
+    let id = this.elementIds.get(element);
+    if (id === undefined) {
+      id = ++this.elementIdCounter;
+      this.elementIds.set(element, id);
+    }
+    return id;
+  }
 
   addEventListener(element: EventTarget, event: string, listener: EventListener): void {
-    const key = `${element}-${event}`;
+    const elementId = this.getElementId(element);
+    const key = `${elementId}-${event}`;
+
     if (!this.listeners.has(key)) {
-      this.listeners.set(key, new Set());
+      this.listeners.set(key, []);
     }
-    const listeners = this.listeners.get(key);
-    if (listeners) {
-      listeners.add(listener);
-    }
+
+    const entries = this.listeners.get(key)!;
+    entries.push({ element, event, listener });
     element.addEventListener(event, listener);
   }
 
   removeEventListener(element: EventTarget, event: string, listener: EventListener): void {
-    const key = `${element}-${event}`;
-    const listeners = this.listeners.get(key);
-    if (listeners) {
-      listeners.delete(listener);
-      element.removeEventListener(event, listener);
-      if (listeners.size === 0) {
-        this.listeners.delete(key);
+    const elementId = this.getElementId(element);
+    const key = `${elementId}-${event}`;
+    const entries = this.listeners.get(key);
+
+    if (entries) {
+      const index = entries.findIndex(e => e.listener === listener);
+      if (index !== -1) {
+        entries.splice(index, 1);
+        element.removeEventListener(event, listener);
+        if (entries.length === 0) {
+          this.listeners.delete(key);
+        }
       }
     }
   }
 
   removeAllListeners(): void {
-    this.listeners.forEach(listeners => {
-      listeners.forEach(() => {
-        // Note: This is a simplified version - in practice you'd need to store the actual element reference
-        perfLog.warn('EventManager: removeAllListeners called but element reference not available');
+    this.listeners.forEach(entries => {
+      entries.forEach(({ element, event, listener }) => {
+        try {
+          element.removeEventListener(event, listener);
+        } catch {
+          // Element may have been removed from DOM
+        }
       });
     });
     this.listeners.clear();
+  }
+
+  /**
+   * Remove all listeners for a specific element.
+   */
+  removeAllListenersForElement(element: EventTarget): void {
+    const elementId = this.getElementId(element);
+    const keysToDelete: string[] = [];
+
+    this.listeners.forEach((entries, key) => {
+      if (key.startsWith(`${elementId}-`)) {
+        entries.forEach(({ event, listener }) => {
+          try {
+            element.removeEventListener(event, listener);
+          } catch {
+            // Element may have been removed from DOM
+          }
+        });
+        keysToDelete.push(key);
+      }
+    });
+
+    keysToDelete.forEach(key => this.listeners.delete(key));
   }
 }
 
 // Global event manager instance
 export const globalEventManager = new EventManager();
 
+/** Style object type for CSS properties */
+export type StyleObject = Record<string, string | number | undefined>;
+
 // Simple style creation for testing
-export function createOptimizedStyles(styles: any): any {
+export function createOptimizedStyles<T extends StyleObject | null | undefined>(styles: T): T extends null | undefined ? Record<string, never> : T {
   if (styles === null || styles === undefined) {
-    return {};
+    return {} as T extends null | undefined ? Record<string, never> : T;
   }
-  return styles;
+  return styles as T extends null | undefined ? Record<string, never> : T;
+}
+
+/** Chart options for style calculation */
+export interface ChartStyleOptions {
+  minWidth?: number;
+  minHeight?: number;
+  maxWidth?: number | string;
+  maxHeight?: number | string;
+}
+
+/** Optimized styles result */
+export interface OptimizedStyles {
+  container: {
+    position: 'relative';
+    border: string;
+    borderRadius: string;
+    padding: string;
+    width: string;
+    height: string;
+    minWidth?: number;
+    minHeight?: number;
+    maxWidth?: number | string;
+    maxHeight?: number | string;
+  };
+  chartContainer: {
+    width: string;
+    height: string;
+    position: 'relative';
+  };
 }
 
 // Style optimization utilities
@@ -384,8 +545,8 @@ export const createOptimizedStylesAdvanced = memoize(
     width: number | null,
     height: number | null,
     shouldAutoSize: boolean,
-    chartOptions: any = {}
-  ) => {
+    chartOptions: ChartStyleOptions = {}
+  ): OptimizedStyles => {
     return {
       container: {
         position: 'relative' as const,
@@ -397,12 +558,12 @@ export const createOptimizedStylesAdvanced = memoize(
             ? '100%'
             : typeof width === 'number'
               ? `${width}px`
-              : width || '100%',
+              : '100%',
         height: shouldAutoSize
           ? '100%'
           : typeof height === 'number'
             ? `${height}px`
-            : height || '100%',
+            : '100%',
         minWidth: chartOptions.minWidth || (shouldAutoSize ? 200 : undefined),
         minHeight: chartOptions.minHeight || (shouldAutoSize ? 200 : undefined),
         maxWidth: chartOptions.maxWidth,
@@ -414,12 +575,12 @@ export const createOptimizedStylesAdvanced = memoize(
             ? '100%'
             : typeof width === 'number'
               ? `${width}px`
-              : width || '100%',
+              : '100%',
         height: shouldAutoSize
           ? '100%'
           : typeof height === 'number'
             ? `${height}px`
-            : height || '100%',
+            : '100%',
         position: 'relative' as const,
       },
     };

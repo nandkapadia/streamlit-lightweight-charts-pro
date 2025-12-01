@@ -130,6 +130,10 @@ from lightweight_charts_core.utils.case_converter import CaseConverter
 snake_to_camel = CaseConverter.snake_to_camel
 
 
+"""Maximum recursion depth for serialization to prevent stack overflow."""
+MAX_SERIALIZATION_DEPTH = 50
+
+
 class SerializationConfig:
     """Configuration for serialization behavior.
 
@@ -531,6 +535,7 @@ class SerializableMixin:
         self,
         value: Any,
         config: SerializationConfig,
+        depth: int = 0,
     ) -> Any:
         """Process a value during serialization with type-specific conversions.
 
@@ -590,6 +595,10 @@ class SerializableMixin:
             Circular references will cause infinite recursion.
 
         """
+        # Check depth limit to prevent stack overflow from deeply nested data
+        if depth > MAX_SERIALIZATION_DEPTH:
+            return f"<max depth {MAX_SERIALIZATION_DEPTH} exceeded>"
+
         # Step 1: Handle NaN floats - convert to zero for JSON compatibility
         # JSON spec doesn't support NaN, Infinity, or -Infinity
         # JavaScript charts typically treat NaN as zero anyway
@@ -617,13 +626,13 @@ class SerializableMixin:
         # Step 5: Handle serializable lists recursively
         # Lists may contain nested objects that also need serialization
         elif isinstance(value, list):
-            return self._serialize_list_recursively(value, config)
+            return self._serialize_list_recursively(value, config, depth + 1)
 
         # Step 6: Handle nested dictionaries recursively
         # Dictionaries need key conversion (snake_case to camelCase)
         # and recursive value processing
         elif isinstance(value, dict):
-            return self._serialize_dict_recursively(value, config)
+            return self._serialize_dict_recursively(value, config, depth + 1)
 
         # Step 7: Return the processed value
         # At this point, the value has been fully processed and is
@@ -634,6 +643,7 @@ class SerializableMixin:
         self,
         items: list[Any],
         config: SerializationConfig,
+        depth: int = 0,
     ) -> list[Any]:
         """Serialize a list recursively.
 
@@ -689,6 +699,10 @@ class SerializableMixin:
             Circular references will cause infinite recursion.
 
         """
+        # Check depth limit
+        if depth > MAX_SERIALIZATION_DEPTH:
+            return [f"<max depth {MAX_SERIALIZATION_DEPTH} exceeded>"]
+
         # Initialize result list to hold processed items
         processed_items = []
 
@@ -697,7 +711,7 @@ class SerializableMixin:
             # Process each item using the same serialization logic
             # This ensures consistency between top-level and nested values
             # Handles: enums, nested objects, dicts, other lists, etc.
-            processed_item = self._process_value_for_serialization(item, config)
+            processed_item = self._process_value_for_serialization(item, config, depth)
 
             # Add the processed item to result list
             processed_items.append(processed_item)
@@ -709,6 +723,7 @@ class SerializableMixin:
         self,
         data: dict[str, Any],
         config: SerializationConfig,
+        depth: int = 0,
     ) -> dict[str, Any]:
         """Serialize a dictionary recursively with key conversion.
 
@@ -761,6 +776,10 @@ class SerializableMixin:
             object keys which are always strings.
 
         """
+        # Check depth limit
+        if depth > MAX_SERIALIZATION_DEPTH:
+            return {"error": f"max depth {MAX_SERIALIZATION_DEPTH} exceeded"}
+
         # Initialize result dictionary to hold processed key-value pairs
         result = {}
 
@@ -775,7 +794,7 @@ class SerializableMixin:
             # Step 2: Process value recursively
             # Apply the full serialization pipeline to the value
             # This handles nested objects, enums, lists, dicts, etc.
-            processed_value = self._process_value_for_serialization(value, config)
+            processed_value = self._process_value_for_serialization(value, config, depth)
 
             # Step 3: Add processed key-value pair to result dictionary
             result[processed_key] = processed_value

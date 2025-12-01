@@ -69,7 +69,7 @@ export interface ErrorHandlingOptions {
   severity?: ErrorSeverity;
 
   /** Additional context data to log */
-  data?: any;
+  data?: Record<string, unknown>;
 
   /** Custom error message (overrides error.message) */
   message?: string;
@@ -226,7 +226,11 @@ export function createErrorHandler(context: string) {
  * @param context - Context string
  * @param data - Validation data
  */
-export function throwValidationError(message: string, context: string, data?: any): never {
+export function throwValidationError(
+  message: string,
+  context: string,
+  data?: Record<string, unknown>
+): never {
   const error = new Error(message);
   error.name = 'ValidationError';
   handleErrorWithOptions(error, context, {
