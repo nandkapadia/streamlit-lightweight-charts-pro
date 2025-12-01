@@ -98,7 +98,12 @@ async def get_series_data(
     Returns:
         Series data with chunking metadata.
     """
-    return await datafeed.get_initial_data(chart_id, pane_id, series_id)
+    result = await datafeed.get_initial_data(chart_id, pane_id, series_id)
+
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+
+    return result
 
 
 @router.post("/{chart_id}/data/{series_id}")
