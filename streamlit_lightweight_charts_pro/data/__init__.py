@@ -61,7 +61,7 @@ from lightweight_charts_core.type_definitions import (
 )
 
 # Import streamlit-specific options classes
-from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
+from lightweight_charts_core.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
 

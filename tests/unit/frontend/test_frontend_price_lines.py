@@ -8,11 +8,11 @@ that are attached to individual series.
 import json
 
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
-from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-from streamlit_lightweight_charts_pro.data.line_data import LineData
-from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
+from lightweight_charts_core.charts.options.line_options import LineOptions
+from lightweight_charts_core.charts.options.price_line_options import PriceLineOptions
+from lightweight_charts_core.charts.series.line import LineSeries
+from lightweight_charts_core.data.line_data import LineData
+from lightweight_charts_core.type_definitions.enums import LineStyle
 
 
 class TestFrontendPriceLines:

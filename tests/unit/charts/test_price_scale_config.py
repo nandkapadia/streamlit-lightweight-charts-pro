@@ -4,8 +4,8 @@ This module tests the PriceScaleConfig factory methods for creating
 common price scale configurations.
 """
 
-from streamlit_lightweight_charts_pro.charts.utils import PriceScaleConfig
-from streamlit_lightweight_charts_pro.type_definitions.enums import PriceScaleMode
+from lightweight_charts_core.charts.utils import PriceScaleConfig
+from lightweight_charts_core.type_definitions.enums import PriceScaleMode
 
 
 class TestPriceScaleConfig:

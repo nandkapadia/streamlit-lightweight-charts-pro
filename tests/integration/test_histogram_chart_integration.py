@@ -12,16 +12,16 @@ import pandas as pd
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
-from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
-from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
-from streamlit_lightweight_charts_pro.constants import (
+from lightweight_charts_core.charts.options import ChartOptions
+from lightweight_charts_core.charts.options.price_line_options import PriceLineOptions
+from lightweight_charts_core.charts.series.candlestick import CandlestickSeries
+from lightweight_charts_core.charts.series.histogram import HistogramSeries
+from lightweight_charts_core.constants import (
     HISTOGRAM_DOWN_COLOR_DEFAULT,
     HISTOGRAM_UP_COLOR_DEFAULT,
 )
-from streamlit_lightweight_charts_pro.data.marker import BarMarker
-from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+from lightweight_charts_core.data.marker import BarMarker
+from lightweight_charts_core.data.ohlcv_data import OhlcvData
 
 
 class TestHistogramChartIntegration:

@@ -78,7 +78,7 @@ from typing import Any, Callable, Dict, Optional
 import streamlit.components.v1 as components
 
 # Local Imports
-from streamlit_lightweight_charts_pro.logging_config import get_logger
+from lightweight_charts_core.logging_config import get_logger
 
 # Component function for Streamlit integration - initialized once at module load
 # This is a module-level singleton that holds the Streamlit component function

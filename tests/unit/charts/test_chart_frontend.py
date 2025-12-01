@@ -13,15 +13,15 @@ import pytest
 
 # Local Imports
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.layout_options import (
+from lightweight_charts_core.charts.options import ChartOptions
+from lightweight_charts_core.charts.options.layout_options import (
     LayoutOptions,
     PaneHeightOptions,
 )
-from streamlit_lightweight_charts_pro.charts.options.price_scale_options import PriceScaleOptions
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-from streamlit_lightweight_charts_pro.data.annotation import Annotation
-from streamlit_lightweight_charts_pro.data.line_data import LineData
+from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
+from lightweight_charts_core.charts.series.line import LineSeries
+from lightweight_charts_core.data.annotation import Annotation
+from lightweight_charts_core.data.line_data import LineData
 from streamlit_lightweight_charts_pro.exceptions import ComponentNotAvailableError
 
 

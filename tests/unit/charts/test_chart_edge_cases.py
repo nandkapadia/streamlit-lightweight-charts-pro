@@ -15,11 +15,11 @@ import psutil
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.price_scale_options import PriceScaleOptions
-from streamlit_lightweight_charts_pro.charts.series import LineSeries
+from lightweight_charts_core.charts.options import ChartOptions
+from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
+from lightweight_charts_core.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import LineData, OhlcvData, TradeData
-from streamlit_lightweight_charts_pro.data.annotation import Annotation
+from lightweight_charts_core.data.annotation import Annotation
 from streamlit_lightweight_charts_pro.exceptions import (
     AnnotationItemsTypeError,
     SeriesItemsTypeError,

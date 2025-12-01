@@ -7,10 +7,10 @@ Options and Series classes, including nested object handling.
 
 # pylint: disable=no-member,protected-access
 
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-from streamlit_lightweight_charts_pro.data.line_data import LineData
-from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
+from lightweight_charts_core.charts.options.line_options import LineOptions
+from lightweight_charts_core.charts.series.line import LineSeries
+from lightweight_charts_core.data.line_data import LineData
+from lightweight_charts_core.type_definitions.enums import LineStyle
 
 
 class TestOptionsUpdateMethod:

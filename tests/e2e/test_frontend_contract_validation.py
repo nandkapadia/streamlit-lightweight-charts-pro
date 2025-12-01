@@ -20,15 +20,15 @@ from typing import Any, ClassVar, List
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.options.price_scale_options import PriceScaleOptions
-from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
-from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
-from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
-from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
-from streamlit_lightweight_charts_pro.data.line_data import LineData
-from streamlit_lightweight_charts_pro.type_definitions.enums import PriceScaleMode
+from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
+from lightweight_charts_core.charts.options.ui_options import LegendOptions
+from lightweight_charts_core.charts.series.candlestick import CandlestickSeries
+from lightweight_charts_core.charts.series.histogram import HistogramSeries
+from lightweight_charts_core.charts.series.line import LineSeries
+from lightweight_charts_core.data.candlestick_data import CandlestickData
+from lightweight_charts_core.data.histogram_data import HistogramData
+from lightweight_charts_core.data.line_data import LineData
+from lightweight_charts_core.type_definitions.enums import PriceScaleMode
 
 
 @dataclass

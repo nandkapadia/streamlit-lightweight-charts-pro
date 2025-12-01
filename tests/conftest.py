@@ -20,7 +20,7 @@ from hypothesis import strategies as st
 # Local imports
 # Import modules only when needed to avoid import errors during test discovery
 try:
-    from streamlit_lightweight_charts_pro.charts.options import (
+    from lightweight_charts_core.charts.options import (
         ChartOptions,
         CrosshairOptions,
         LayoutOptions,

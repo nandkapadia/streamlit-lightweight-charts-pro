@@ -15,7 +15,7 @@ import pandas as pd
 import psutil
 import pytest
 
-from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
+from lightweight_charts_core.charts.series.histogram import HistogramSeries
 
 
 @pytest.mark.performance

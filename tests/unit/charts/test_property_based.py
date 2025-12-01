@@ -13,8 +13,8 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.series import LineSeries
+from lightweight_charts_core.charts.options import ChartOptions
+from lightweight_charts_core.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import LineData
 
 # =============================================================================

@@ -23,8 +23,8 @@ from lightweight_charts_core.utils import (
     validated_field,
 )
 
-# Streamlit-specific utilities
-from .profiler import Profiler, profile_method
+# Also re-export profiler from core
+from lightweight_charts_core.utils.profiler import Profiler, profile_method
 
 __all__ = [
     # From core

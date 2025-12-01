@@ -19,19 +19,19 @@ import time
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.options.chart_options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.price_scale_options import PriceScaleOptions
-from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
-from streamlit_lightweight_charts_pro.charts.series.area import AreaSeries
-from streamlit_lightweight_charts_pro.charts.series.baseline import BaselineSeries
-from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
-from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-from streamlit_lightweight_charts_pro.data.area_data import AreaData
-from streamlit_lightweight_charts_pro.data.baseline_data import BaselineData
-from streamlit_lightweight_charts_pro.data.candlestick_data import CandlestickData
-from streamlit_lightweight_charts_pro.data.histogram_data import HistogramData
-from streamlit_lightweight_charts_pro.data.line_data import LineData
+from lightweight_charts_core.charts.options.chart_options import ChartOptions
+from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
+from lightweight_charts_core.charts.options.ui_options import LegendOptions
+from lightweight_charts_core.charts.series.area import AreaSeries
+from lightweight_charts_core.charts.series.baseline import BaselineSeries
+from lightweight_charts_core.charts.series.candlestick import CandlestickSeries
+from lightweight_charts_core.charts.series.histogram import HistogramSeries
+from lightweight_charts_core.charts.series.line import LineSeries
+from lightweight_charts_core.data.area_data import AreaData
+from lightweight_charts_core.data.baseline_data import BaselineData
+from lightweight_charts_core.data.candlestick_data import CandlestickData
+from lightweight_charts_core.data.histogram_data import HistogramData
+from lightweight_charts_core.data.line_data import LineData
 
 
 class TestCompleteChartValidation:

@@ -49,16 +49,18 @@ from pathlib import Path
 # (None in this module)
 # Local Imports
 from streamlit_lightweight_charts_pro.charts import Chart, ChartManager
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.layout_options import (
+
+# Import from core package (options, series, utils, validators)
+from lightweight_charts_core.charts.options import ChartOptions
+from lightweight_charts_core.charts.options.layout_options import (
     LayoutOptions,
     PaneHeightOptions,
 )
-from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
+from lightweight_charts_core.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
-from streamlit_lightweight_charts_pro.charts.series import (
+from lightweight_charts_core.charts.options.ui_options import LegendOptions
+from lightweight_charts_core.charts.series import (
     AreaSeries,
     BandSeries,
     BarSeries,
@@ -73,9 +75,9 @@ from streamlit_lightweight_charts_pro.charts.series import (
     TrendFillSeries,
 )
 
-# Import chart utilities and validators
-from streamlit_lightweight_charts_pro.charts.utils import PriceScaleConfig
-from streamlit_lightweight_charts_pro.charts.validators import (
+# Import chart utilities and validators from core
+from lightweight_charts_core.charts.utils import PriceScaleConfig
+from lightweight_charts_core.charts.validators import (
     PriceScaleValidationError,
     PriceScaleValidator,
 )
@@ -92,20 +94,22 @@ from streamlit_lightweight_charts_pro.data import (
     SignalData,
     SingleValueData,
 )
-from streamlit_lightweight_charts_pro.data.annotation import (
+from lightweight_charts_core.data.annotation import (
     AnnotationLayer,
     AnnotationManager,
     create_arrow_annotation,
     create_shape_annotation,
     create_text_annotation,
 )
-from streamlit_lightweight_charts_pro.data.trade import TradeData
+from lightweight_charts_core.data.trade import TradeData
 
-# Import logging configuration
-from streamlit_lightweight_charts_pro.logging_config import get_logger, setup_logging
-from streamlit_lightweight_charts_pro.type_definitions import ChartType, LineStyle, MarkerPosition
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
+# Import logging configuration from core
+from lightweight_charts_core.logging_config import get_logger, setup_logging
+from streamlit_lightweight_charts_pro.type_definitions import (
+    ChartType,
     ColumnNames,
+    LineStyle,
+    MarkerPosition,
     MarkerShape,
     TradeType,
     TradeVisualization,

@@ -17,9 +17,9 @@ from typing import Any, Dict, List, Optional
 
 import streamlit as st
 
-from streamlit_lightweight_charts_pro.charts.series import Series
-from streamlit_lightweight_charts_pro.logging_config import get_logger
-from streamlit_lightweight_charts_pro.types.series_config_types import (
+from lightweight_charts_core.charts.series import Series
+from lightweight_charts_core.logging_config import get_logger
+from lightweight_charts_core.types.series_config_types import (
     SeriesConfigState,
 )
 

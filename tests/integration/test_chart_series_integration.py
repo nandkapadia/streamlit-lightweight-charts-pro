@@ -16,23 +16,23 @@ import pytest
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.line_options import LineOptions
-from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
-from streamlit_lightweight_charts_pro.charts.options.price_scale_options import PriceScaleOptions
-from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
+from lightweight_charts_core.charts.options import ChartOptions
+from lightweight_charts_core.charts.options.line_options import LineOptions
+from lightweight_charts_core.charts.options.price_line_options import PriceLineOptions
+from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
+from lightweight_charts_core.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from streamlit_lightweight_charts_pro.charts.series import (
+from lightweight_charts_core.charts.series import (
     AreaSeries,
     CandlestickSeries,
     HistogramSeries,
     LineSeries,
 )
 from streamlit_lightweight_charts_pro.data import Annotation, LineData, OhlcvData, TradeData
-from streamlit_lightweight_charts_pro.data.marker import BarMarker
+from lightweight_charts_core.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.exceptions import SeriesItemsTypeError, TypeValidationError
-from streamlit_lightweight_charts_pro.type_definitions.enums import (
+from lightweight_charts_core.type_definitions.enums import (
     LineStyle,
     MarkerPosition,
     MarkerShape,

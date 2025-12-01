@@ -13,7 +13,7 @@ import pytest
 
 # Local Imports
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.data.annotation import Annotation
+from lightweight_charts_core.data.annotation import Annotation
 from streamlit_lightweight_charts_pro.exceptions import (
     AnnotationItemsTypeError,
     TypeValidationError,

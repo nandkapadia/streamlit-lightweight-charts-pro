@@ -5,8 +5,8 @@ with TradingView's official API behavior.
 """
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.managers.series_manager import SeriesManager
-from streamlit_lightweight_charts_pro.charts.series import LineSeries
+from lightweight_charts_core.charts.managers.series_manager import SeriesManager
+from lightweight_charts_core.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import SingleValueData
 
 
@@ -62,11 +62,11 @@ class TestPriceScaleAutoCreation:
 
     def test_auto_creation_does_not_override_existing_scale(self):
         """Test that auto-creation doesn't override manually configured scales."""
-        from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
+        from lightweight_charts_core.charts.options.price_scale_options import (
             PriceScaleMargins,
             PriceScaleOptions,
         )
-        from streamlit_lightweight_charts_pro.type_definitions.enums import (
+        from lightweight_charts_core.type_definitions.enums import (
             PriceScaleMode,
         )
 
@@ -155,7 +155,7 @@ class TestPriceScaleAutoCreation:
 
     def test_auto_creation_with_multiple_series_same_pane(self):
         """Test auto-creation works when multiple series share same pane and scale."""
-        from streamlit_lightweight_charts_pro.charts.series import CandlestickSeries
+        from lightweight_charts_core.charts.series import CandlestickSeries
         from streamlit_lightweight_charts_pro.data import CandlestickData
 
         chart = Chart()
@@ -198,11 +198,11 @@ class TestPriceScaleAutoCreation:
 
     def test_backwards_compatibility_manual_registration(self):
         """Test that manual pre-registration still works (backwards compatibility)."""
-        from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
+        from lightweight_charts_core.charts.options.price_scale_options import (
             PriceScaleMargins,
             PriceScaleOptions,
         )
-        from streamlit_lightweight_charts_pro.type_definitions.enums import (
+        from lightweight_charts_core.type_definitions.enums import (
             PriceScaleMode,
         )
 

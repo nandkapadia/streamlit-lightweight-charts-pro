@@ -1,21 +1,21 @@
 import pandas as pd
 
 from streamlit_lightweight_charts_pro.charts import Chart, ChartManager
-from streamlit_lightweight_charts_pro.charts.options.price_scale_options import (
+from lightweight_charts_core.charts.options.price_scale_options import (
     PriceScaleMargins,
     PriceScaleOptions,
 )
-from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
+from lightweight_charts_core.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from streamlit_lightweight_charts_pro.charts.series.candlestick import CandlestickSeries
-from streamlit_lightweight_charts_pro.charts.series.histogram import HistogramSeries
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-from streamlit_lightweight_charts_pro.data.annotation import Annotation
-from streamlit_lightweight_charts_pro.data.line_data import LineData
-from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
-from streamlit_lightweight_charts_pro.data.trade import TradeData
-from streamlit_lightweight_charts_pro.type_definitions.enums import PriceScaleMode
+from lightweight_charts_core.charts.series.candlestick import CandlestickSeries
+from lightweight_charts_core.charts.series.histogram import HistogramSeries
+from lightweight_charts_core.charts.series.line import LineSeries
+from lightweight_charts_core.data.annotation import Annotation
+from lightweight_charts_core.data.line_data import LineData
+from lightweight_charts_core.data.ohlcv_data import OhlcvData
+from lightweight_charts_core.data.trade import TradeData
+from lightweight_charts_core.type_definitions.enums import PriceScaleMode
 
 
 def create_sample_ohlcv_data(n=10):

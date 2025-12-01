@@ -11,18 +11,18 @@ import pytest
 
 # Local Imports
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.options.price_scale_options import PriceScaleOptions
-from streamlit_lightweight_charts_pro.charts.series import (
+from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
+from lightweight_charts_core.charts.series import (
     CandlestickSeries,
     HistogramSeries,
     LineSeries,
 )
-from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+from lightweight_charts_core.data.ohlcv_data import OhlcvData
 from streamlit_lightweight_charts_pro.exceptions import (
     TypeValidationError,
     ValueValidationError,
 )
-from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames, PriceScaleMode
+from lightweight_charts_core.type_definitions.enums import ColumnNames, PriceScaleMode
 
 
 class TestOverlayPriceScales:

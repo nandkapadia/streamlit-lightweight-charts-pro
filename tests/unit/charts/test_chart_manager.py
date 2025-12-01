@@ -11,9 +11,9 @@ import pytest
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
-from streamlit_lightweight_charts_pro.charts.options.sync_options import SyncOptions
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-from streamlit_lightweight_charts_pro.data.line_data import LineData
+from lightweight_charts_core.charts.options.sync_options import SyncOptions
+from lightweight_charts_core.charts.series.line import LineSeries
+from lightweight_charts_core.data.line_data import LineData
 from streamlit_lightweight_charts_pro.exceptions import DuplicateError, NotFoundError
 
 
@@ -378,11 +378,11 @@ class TestChartManagerFromPriceVolumeDataframe:
 
     def test_from_price_volume_dataframe_with_list(self):
         """Test creating chart from list of OhlcvData."""
-        from streamlit_lightweight_charts_pro.charts.series import (
+        from lightweight_charts_core.charts.series import (
             CandlestickSeries,
             HistogramSeries,
         )
-        from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+        from lightweight_charts_core.data.ohlcv_data import OhlcvData
 
         manager = ChartManager()
         data = [
@@ -441,7 +441,7 @@ class TestChartManagerFromPriceVolumeDataframe:
 
     def test_from_price_volume_dataframe_line_type(self):
         """Test creating chart with line price type."""
-        from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+        from lightweight_charts_core.data.ohlcv_data import OhlcvData
 
         manager = ChartManager()
         data = [OhlcvData(time=1640995200, open=100, high=105, low=98, close=103, volume=1000)]
@@ -463,7 +463,7 @@ class TestChartManagerFromPriceVolumeDataframe:
 
     def test_from_price_volume_dataframe_custom_kwargs(self):
         """Test creating chart with custom kwargs."""
-        from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+        from lightweight_charts_core.data.ohlcv_data import OhlcvData
 
         manager = ChartManager()
         data = [OhlcvData(time=1640995200, open=100, high=105, low=98, close=103, volume=1000)]
@@ -490,7 +490,7 @@ class TestChartManagerFromPriceVolumeDataframe:
 
     def test_from_price_volume_dataframe_custom_chart_id(self):
         """Test creating chart with custom chart ID."""
-        from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+        from lightweight_charts_core.data.ohlcv_data import OhlcvData
 
         manager = ChartManager()
         data = [OhlcvData(time=1640995200, open=100, high=105, low=98, close=103, volume=1000)]

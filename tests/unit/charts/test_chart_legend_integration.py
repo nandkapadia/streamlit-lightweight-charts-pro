@@ -10,10 +10,10 @@ import time
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.options.chart_options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
-from streamlit_lightweight_charts_pro.charts.series.line import LineSeries
-from streamlit_lightweight_charts_pro.data.line_data import LineData
+from lightweight_charts_core.charts.options.chart_options import ChartOptions
+from lightweight_charts_core.charts.options.ui_options import LegendOptions
+from lightweight_charts_core.charts.series.line import LineSeries
+from lightweight_charts_core.data.line_data import LineData
 
 
 class TestChartLegendConfiguration:

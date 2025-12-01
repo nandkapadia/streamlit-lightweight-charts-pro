@@ -17,7 +17,7 @@ import psutil
 import pytest
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.series import LineSeries
+from lightweight_charts_core.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import LineData
 
 

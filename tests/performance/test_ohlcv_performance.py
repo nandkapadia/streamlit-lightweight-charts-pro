@@ -24,7 +24,7 @@ from typing import List
 import psutil
 import pytest
 
-from streamlit_lightweight_charts_pro.data.ohlcv_data import OhlcvData
+from lightweight_charts_core.data.ohlcv_data import OhlcvData
 
 
 @pytest.mark.performance

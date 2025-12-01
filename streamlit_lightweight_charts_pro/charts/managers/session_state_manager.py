@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 import streamlit as st
 
-from streamlit_lightweight_charts_pro.logging_config import get_logger
+from lightweight_charts_core.logging_config import get_logger
 
 # Initialize logger
 logger = get_logger(__name__)
