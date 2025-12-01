@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Custom Font Chart</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+<style>* { margin: 0; padding: 0; font-family: 'Roboto Mono', monospace; } body { padding: 20px; } #container { width: 800px; height: 400px; }</style>
+</head><body>
+<div id="container"></div>
+<script>
+function runTestCase(container) {
+    const chart = LightweightCharts.createChart(container, { width: 800, height: 400, layout: { background: { color: '#FFFFFF' }, textColor: '#000000', fontFamily: "'Roboto Mono', monospace" } });
+    const series = chart.addSeries(LightweightCharts.LineSeries);
+    series.applyOptions({ color: '#9C27B0', lineWidth: 2 });
+    const data = []; for (let i = 0; i < 40; i++) data.push({ time: '2024-01-'+String(i+1).padStart(2,'0'), value: 100+i*0.6+Math.sin(i/5)*12 });
+    series.setData(data); chart.timeScale().fitContent();
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+</script></body></html>

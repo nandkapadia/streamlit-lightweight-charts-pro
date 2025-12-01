@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Multiple Shape Annotations - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #chart-container { width: 800px; height: 400px; background: white; }
+    </style>
+</head>
+<body>
+    <div id="chart-container"></div>
+    <script>
+function runTestCase(container) {
+    const data = [];
+    const startDate = new Date('2024-01-01');
+    for (let i = 0; i < 30; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        data.push({
+            time: dateStr,
+            value: parseFloat((100 + i * 0.5 + Math.sin(i / 5) * 10).toFixed(2))
+        });
+    }
+
+    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    const series = chart.addSeries(LightweightCharts.LineSeries);
+    series.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    series.setData(data);
+
+    // Create multiple shape annotations
+    const markers = LightweightCharts.createSeriesMarkers(series, [
+        {
+            time: '2024-01-08',
+            position: 'aboveBar',
+            color: '#FF9800',
+            shape: 'circle',
+            text: 'High',
+            size: 1.5,
+        },
+        {
+            time: '2024-01-15',
+            position: 'aboveBar',
+            color: '#F44336',
+            shape: 'circle',
+            text: 'Peak',
+            size: 2,
+        },
+        {
+            time: '2024-01-22',
+            position: 'belowBar',
+            color: '#4CAF50',
+            shape: 'circle',
+            text: 'Low',
+            size: 1.5,
+        },
+    ]);
+
+    chart.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('chart-container')));
+</script>
+</body>
+</html>

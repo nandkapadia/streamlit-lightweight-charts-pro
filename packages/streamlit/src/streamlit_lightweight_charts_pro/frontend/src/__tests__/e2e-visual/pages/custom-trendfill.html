@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TrendFill Custom Series - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        #container { width: 800px; height: 400px; margin: 20px; }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <script>
+function runTestCase(container) {
+    // Use LightweightCharts directly
+
+            const chart = LightweightCharts.createChart(document.getElementById('container'), {
+                width: 800,
+                height: 400,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { color: '#f0f0f0' } },
+            });
+
+            const data = [];
+            for (let i = 0; i < 60; i++) {
+                const time = '2024-01-' + String((i % 30) + 1).padStart(2, '0');
+                const value = 100 + i * 0.5 + Math.sin(i / 8) * 20;
+                data.push({ time, value });
+            }
+
+            const uptrendSeries = chart.addSeries(LightweightCharts.AreaSeries);
+            uptrendSeries.applyOptions({
+                topColor: 'rgba(76, 175, 80, 0.5)',
+                bottomColor: 'rgba(76, 175, 80, 0.1)',
+                lineColor: '#4CAF50',
+                lineWidth: 2,
+            });
+
+            const uptrendData = data.slice(0, 30).map(d => ({ time: d.time, value: d.value }));
+            uptrendSeries.setData(uptrendData);
+
+            const downtrendSeries = chart.addSeries(LightweightCharts.AreaSeries);
+            downtrendSeries.applyOptions({
+                topColor: 'rgba(244, 67, 54, 0.5)',
+                bottomColor: 'rgba(244, 67, 54, 0.1)',
+                lineColor: '#F44336',
+                lineWidth: 2,
+            });
+
+            const downtrendData = data.slice(25).map(d => ({ time: d.time, value: d.value - 10 }));
+            downtrendSeries.setData(downtrendData);
+
+            const baselineSeries = chart.addSeries(LightweightCharts.LineSeries);
+            baselineSeries.applyOptions({
+                color: '#999999',
+                lineWidth: 1,
+                lineStyle: 1, // Dotted
+            });
+
+            const baselineData = data.map(d => ({ time: d.time, value: 100 }));
+            baselineSeries.setData(baselineData);
+
+            chart.timeScale().fitContent();
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+</script>
+</body>
+</html>

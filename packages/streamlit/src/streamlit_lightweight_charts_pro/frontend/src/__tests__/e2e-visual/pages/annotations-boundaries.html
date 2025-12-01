@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Annotations at Chart Boundaries - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #chart-container { width: 800px; height: 400px; background: white; }
+    </style>
+</head>
+<body>
+    <div id="chart-container"></div>
+    <script>
+function runTestCase(container) {
+    const data = [];
+    const startDate = new Date('2024-01-01');
+    for (let i = 0; i < 30; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        data.push({
+            time: dateStr,
+            value: parseFloat((100 + i * 0.5 + Math.sin(i / 5) * 10).toFixed(2))
+        });
+    }
+
+    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    const series = chart.addSeries(LightweightCharts.LineSeries);
+    series.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    series.setData(data);
+
+    // Create annotations at chart boundaries (first and last data points)
+    const markers = LightweightCharts.createSeriesMarkers(series, [
+        {
+            time: '2024-01-01', // First data point
+            position: 'belowBar',
+            color: '#2196F3',
+            shape: 'circle',
+            text: 'Start',
+            size: 1.5,
+        },
+        {
+            time: '2024-01-30', // Last data point
+            position: 'aboveBar',
+            color: '#E91E63',
+            shape: 'circle',
+            text: 'End',
+            size: 1.5,
+        },
+    ]);
+
+    chart.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('chart-container')));
+</script>
+</body>
+</html>

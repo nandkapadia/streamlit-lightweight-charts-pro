@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Large Dataset</title>
+<script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+<style>* { margin: 0; padding: 0; } body { padding: 20px; } #container { width: 800px; height: 400px; }</style>
+</head><body><div id="container"></div>
+<script>
+function runTestCase(container) {
+    const chart = LightweightCharts.createChart(container, { width: 800, height: 400, layout: { background: { color: '#FFFFFF' } } });
+    const series = chart.addSeries(LightweightCharts.LineSeries);
+    series.applyOptions({ color: '#2196F3', lineWidth: 1 });
+    const data = [];
+    const startDate = new Date('2020-01-01');
+    for (let i = 0; i < 5000; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const y = date.getFullYear(), m = String(date.getMonth()+1).padStart(2,'0'), d = String(date.getDate()).padStart(2,'0');
+        data.push({ time: `${y}-${m}-${d}`, value: parseFloat((100 + i*0.01 + Math.sin(i/30)*20 + Math.cos(i/50)*3).toFixed(2)) });
+    }
+    series.setData(data);
+    chart.timeScale().fitContent();
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+</script></body></html>

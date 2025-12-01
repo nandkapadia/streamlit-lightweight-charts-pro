@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Corner Layout Stacking Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #chart-container {
+            width: 800px;
+            height: 400px;
+            position: relative;
+            background: white;
+        }
+        #chart { width: 100%; height: 100%; }
+        .corner-widget {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            z-index: 10;
+        }
+        #legend {
+            top: 10px;
+            left: 10px;
+        }
+        #range-switcher {
+            top: 50px;
+            left: 10px;
+            display: flex;
+            gap: 4px;
+        }
+        .range-button {
+            padding: 4px 10px;
+            border: 1px solid #2196F3;
+            background: white;
+            color: #2196F3;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart-container">
+        <div id="chart"></div>
+        <div id="legend" class="corner-widget">
+            <span style="color: #2196F3; font-weight: bold;">Price:</span> 105.25
+        </div>
+        <div id="range-switcher" class="corner-widget">
+            <button class="range-button" data-range="1W">1W</button>
+            <button class="range-button" data-range="1M">1M</button>
+            <button class="range-button" data-range="ALL">ALL</button>
+        </div>
+    </div>
+    <script>
+let chart, series, allData;
+
+function runTestCase() {
+    allData = [];
+    const startDate = new Date('2024-01-01');
+
+    for (let i = 0; i < 90; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const price = 100 + i * 0.4 + Math.sin(i / 12) * 15;
+
+        allData.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+    }
+
+    chart = LightweightCharts.createChart(document.getElementById('chart'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    series = chart.addSeries(LightweightCharts.LineSeries);
+    series.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    series.setData(allData);
+
+    // Range switcher
+    document.querySelectorAll('.range-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const range = button.getAttribute('data-range');
+            applyRange(range);
+        });
+    });
+
+    // Update legend
+    chart.subscribeCrosshairMove((param) => {
+        if (param.time) {
+            const data = param.seriesData.get(series);
+            if (data) {
+                document.getElementById('legend').innerHTML =
+                    '<span style="color: #2196F3; font-weight: bold;">Price:</span> ' + data.value.toFixed(2);
+            }
+        }
+    });
+
+    chart.timeScale().fitContent();
+}
+
+function applyRange(range) {
+    const lastDate = new Date(allData[allData.length - 1].time);
+    let fromDate;
+
+    switch(range) {
+        case '1W':
+            fromDate = new Date(lastDate);
+            fromDate.setDate(fromDate.getDate() - 7);
+            break;
+        case '1M':
+            fromDate = new Date(lastDate);
+            fromDate.setMonth(fromDate.getMonth() - 1);
+            break;
+        case 'ALL':
+            chart.timeScale().fitContent();
+            return;
+    }
+
+    const fromStr = fromDate.toISOString().split('T')[0];
+    const toStr = lastDate.toISOString().split('T')[0];
+    chart.timeScale().setVisibleRange({ from: fromStr, to: toStr });
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>
