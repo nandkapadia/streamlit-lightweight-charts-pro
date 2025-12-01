@@ -50,6 +50,7 @@ import { TemplateContext } from '../types/ChartInterfaces';
 import { PrimitiveEventManager, EventSubscription } from '../services/PrimitiveEventManager';
 import { Corner, Position, IPositionableWidget, WidgetDimensions } from '../types/layout';
 import { createSingleton } from '../utils/SingletonBase';
+import { PrimitiveStylingUtils } from './PrimitiveStylingUtils';
 
 /**
  * Base configuration for all pane primitives
@@ -452,22 +453,13 @@ export abstract class BasePanePrimitive<TConfig extends BasePrimitiveConfig = Ba
 
   /**
    * Apply position to container using CSS (no chart re-render)
+   * Uses PrimitiveStylingUtils.applyPosition for DRY compliance
    */
   private applyPositionToContainer(position: Position): void {
     if (!this.containerElement) return;
 
-    const style = this.containerElement.style;
-    style.position = 'absolute';
-    style.top = '';
-    style.right = '';
-    style.bottom = '';
-    style.left = '';
-
-    if (position.top !== undefined) style.top = `${position.top}px`;
-    if (position.right !== undefined) style.right = `${position.right}px`;
-    if (position.bottom !== undefined) style.bottom = `${position.bottom}px`;
-    if (position.left !== undefined) style.left = `${position.left}px`;
-    if (position.zIndex !== undefined) style.zIndex = position.zIndex.toString();
+    // Use shared positioning utility (single source of truth)
+    PrimitiveStylingUtils.applyPosition(this.containerElement, position);
   }
 
   /**

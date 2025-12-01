@@ -377,6 +377,61 @@ export class PrimitiveStylingUtils {
   /**
    * Reset all styles to defaults (useful for cleanup)
    */
+  /**
+   * Apply position styles to an element.
+   * Resets all position values first, then applies provided coordinates.
+   * This is the single source of truth for position styling (DRY principle).
+   *
+   * @param element - The element to style
+   * @param position - Position coordinates (top, right, bottom, left, zIndex)
+   * @param setAbsolute - Whether to set position: absolute (default: true)
+   */
+  static applyPosition(
+    element: HTMLElement,
+    position: {
+      top?: number;
+      right?: number;
+      bottom?: number;
+      left?: number;
+      zIndex?: number;
+    },
+    setAbsolute: boolean = true
+  ): void {
+    const style = element.style;
+
+    // Set position mode
+    if (setAbsolute) {
+      style.position = 'absolute';
+    }
+
+    // Reset all position values first to prevent conflicts
+    style.top = '';
+    style.right = '';
+    style.bottom = '';
+    style.left = '';
+
+    // Apply provided position values
+    if (position.top !== undefined) style.top = `${position.top}px`;
+    if (position.right !== undefined) style.right = `${position.right}px`;
+    if (position.bottom !== undefined) style.bottom = `${position.bottom}px`;
+    if (position.left !== undefined) style.left = `${position.left}px`;
+    if (position.zIndex !== undefined) style.zIndex = position.zIndex.toString();
+  }
+
+  /**
+   * Reset position styles on an element.
+   * Sets all position values to 'auto' for clean slate.
+   *
+   * @param element - The element to reset
+   */
+  static resetPosition(element: HTMLElement): void {
+    const style = element.style;
+    style.top = 'auto';
+    style.left = 'auto';
+    style.right = 'auto';
+    style.bottom = 'auto';
+  }
+
   static resetStyles(element: HTMLElement, preserveLayout: boolean = false): void {
     const style = element.style;
 

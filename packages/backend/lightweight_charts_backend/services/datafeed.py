@@ -267,18 +267,18 @@ class DatafeedService:
             series._ensure_sorted()
             chart.set_series(pane_id, series_id, series)
 
-            # Notify subscribers
-            await self._notify_subscribers(
-                chart_id,
-                "data_update",
-                {
-                    "paneId": pane_id,
-                    "seriesId": series_id,
-                    "count": len(data),
-                },
-            )
+            # Prepare notification data while holding lock
+            notification_data = {
+                "paneId": pane_id,
+                "seriesId": series_id,
+                "count": len(data),
+            }
 
-            return series
+        # Notify subscribers OUTSIDE the lock to prevent blocking
+        # This allows other operations to proceed while callbacks execute
+        await self._notify_subscribers(chart_id, "data_update", notification_data)
+
+        return series
 
     async def get_initial_data(
         self,

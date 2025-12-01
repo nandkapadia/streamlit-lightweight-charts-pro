@@ -1,32 +1,13 @@
 """Chart API endpoints for data management."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
 
+from lightweight_charts_backend.models import GetHistoryRequest, SetSeriesDataRequest
 from lightweight_charts_backend.services import DatafeedService
 
 router = APIRouter()
-
-
-# Request/Response Models
-class SetSeriesDataRequest(BaseModel):
-    """Request model for setting series data."""
-
-    pane_id: int = 0
-    series_type: str
-    data: List[Dict[str, Any]]
-    options: Optional[Dict[str, Any]] = None
-
-
-class GetHistoryRequest(BaseModel):
-    """Request model for getting historical data."""
-
-    pane_id: int
-    series_id: str
-    before_time: int
-    count: int = 500
 
 
 # Dependency to get datafeed service

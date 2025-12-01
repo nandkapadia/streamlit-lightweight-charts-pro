@@ -9,6 +9,7 @@
 import {
   ref,
   shallowRef,
+  triggerRef,
   computed,
   watch,
   onMounted,
@@ -257,6 +258,8 @@ function createSeries(config: SeriesConfig): ISeriesApi<SeriesType> | null {
   }
 
   seriesMap.value.set(seriesId, series);
+  // Trigger reactivity for shallowRef Map mutation
+  triggerRef(seriesMap);
   return series;
 }
 
@@ -268,6 +271,8 @@ function removeSeries(seriesId: string): void {
   if (series && chart.value) {
     chart.value.removeSeries(series);
     seriesMap.value.delete(seriesId);
+    // Trigger reactivity for shallowRef Map mutation
+    triggerRef(seriesMap);
   }
 }
 
@@ -392,25 +397,33 @@ function handleResize(): void {
   }
 }
 
-// Watch for option changes
+// Watch for option changes using JSON comparison to avoid unnecessary deep watching
+// This is more performant than deep: true for large option objects
+let lastOptionsJson = '';
 watch(
-  () => props.options,
-  (newOptions) => {
-    if (chart.value && newOptions) {
-      chart.value.applyOptions(newOptions);
+  () => JSON.stringify(props.options),
+  (newOptionsJson) => {
+    if (newOptionsJson !== lastOptionsJson) {
+      lastOptionsJson = newOptionsJson;
+      if (chart.value && props.options) {
+        chart.value.applyOptions(props.options);
+      }
     }
-  },
-  { deep: true }
+  }
 );
 
-// Watch for series changes
+// Watch for series changes using JSON comparison
+// Avoids unnecessary re-renders when series data hasn't actually changed
+let lastSeriesJson = '';
 watch(
-  () => props.series,
-  (newSeries) => {
-    seriesConfigs.value = [...newSeries];
-    initializeSeries();
-  },
-  { deep: true }
+  () => JSON.stringify(props.series),
+  (newSeriesJson) => {
+    if (newSeriesJson !== lastSeriesJson) {
+      lastSeriesJson = newSeriesJson;
+      seriesConfigs.value = [...props.series];
+      initializeSeries();
+    }
+  }
 );
 
 // Lifecycle hooks
