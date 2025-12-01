@@ -191,8 +191,8 @@ export function useChartWebSocket(
     stopPingInterval();
     handlers.onDisconnected?.();
 
-    // Attempt reconnection if not manually disconnected
-    if (!isManualDisconnect && reconnect.enabled) {
+    // Attempt reconnection if not manually disconnected and not already scheduled
+    if (!isManualDisconnect && reconnect.enabled && !reconnectTimer) {
       const maxAttempts = reconnect.maxAttempts ?? DEFAULT_RECONNECT.maxAttempts;
       if (reconnectAttempts.value < maxAttempts) {
         scheduleReconnect();
@@ -238,8 +238,10 @@ export function useChartWebSocket(
    * Schedule reconnection attempt.
    */
   function scheduleReconnect(): void {
+    // Clear any existing timer before scheduling a new one
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
+      reconnectTimer = null;
     }
 
     const delay = getReconnectDelay();
@@ -250,6 +252,7 @@ export function useChartWebSocket(
     );
 
     reconnectTimer = setTimeout(() => {
+      reconnectTimer = null; // Clear timer reference after it fires
       connect();
     }, delay);
   }

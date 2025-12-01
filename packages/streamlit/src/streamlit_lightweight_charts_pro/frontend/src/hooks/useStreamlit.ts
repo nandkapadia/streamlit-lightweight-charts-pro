@@ -81,5 +81,5 @@ export function useStreamlitFrameHeight(): void {
     if (isComponentReady) {
       Streamlit.setFrameHeight();
     }
-  });
+  }, []);
 }

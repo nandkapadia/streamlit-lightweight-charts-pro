@@ -6,10 +6,13 @@ of chart components in Streamlit.
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import streamlit.components.v1 as components
 from lightweight_charts_core.logging_config import get_logger
+
+if TYPE_CHECKING:
+    from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 
 from streamlit_lightweight_charts_pro.charts.series_settings_api import (
     get_series_settings_api,
@@ -37,7 +40,7 @@ class ChartRenderer:
         chart_manager_ref: Optional reference to ChartManager for sync config.
     """
 
-    def __init__(self, chart_manager_ref: Optional[Any] = None):
+    def __init__(self, chart_manager_ref: Optional["ChartManager"] = None):
         """Initialize the ChartRenderer.
 
         Args:
@@ -469,7 +472,7 @@ class ChartRenderer:
                     else:
                         logger.warning("Skipping invalid change (missing seriesId or config)")
 
-        except Exception:
+        except (KeyError, ValueError, TypeError, AttributeError) as e:
             logger.exception("Error handling series settings response")
 
     def _handle_lazy_loading_request(self, response: dict, key: str) -> None:
@@ -513,5 +516,5 @@ class ChartRenderer:
                     "No history data found for series %s",
                     response.get("seriesId"),
                 )
-        except Exception:
+        except (ImportError, KeyError, ValueError, TypeError) as e:
             logger.exception("Error handling lazy loading request")

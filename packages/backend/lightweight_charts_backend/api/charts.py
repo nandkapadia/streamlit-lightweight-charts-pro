@@ -162,6 +162,13 @@ async def get_history(
     Returns:
         Data chunk with pagination metadata.
     """
+    # Validate input parameters
+    if before_time < 0:
+        raise HTTPException(status_code=400, detail="before_time must be >= 0")
+
+    if count <= 0 or count > 10000:
+        raise HTTPException(status_code=400, detail="count must be between 1 and 10000")
+
     result = await datafeed.get_history(
         chart_id=chart_id,
         pane_id=pane_id,
@@ -193,6 +200,13 @@ async def get_history_batch(
     Returns:
         Data chunk with pagination metadata.
     """
+    # Validate input parameters
+    if request.before_time < 0:
+        raise HTTPException(status_code=400, detail="before_time must be >= 0")
+
+    if request.count <= 0 or request.count > 10000:
+        raise HTTPException(status_code=400, detail="count must be between 1 and 10000")
+
     return await datafeed.get_history(
         chart_id=chart_id,
         pane_id=request.pane_id,

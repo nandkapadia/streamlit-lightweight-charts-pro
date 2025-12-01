@@ -35,7 +35,7 @@ def create_app(
 
     # Configure CORS
     if cors_origins is None:
-        cors_origins = ["*"]
+        cors_origins = ["http://localhost:3000", "http://localhost:8501"]
 
     app.add_middleware(
         CORSMiddleware,

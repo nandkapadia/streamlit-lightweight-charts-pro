@@ -310,6 +310,12 @@ export function useLazyLoading(options: UseLazyLoadingOptions): UseLazyLoadingRe
   function subscribeToChart(): void {
     if (!chart.value) return;
 
+    // Unsubscribe first if already subscribed to prevent memory leaks
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+
     // Check if any series has lazy loading enabled
     const hasLazyLoading = Array.from(loadingStates.value.values()).some(
       (state) => state.lazyLoading.enabled

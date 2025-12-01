@@ -107,8 +107,17 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
 
         while True:
             # Receive and process messages
-            data = await websocket.receive_text()
-            message = json.loads(data)
+            try:
+                data = await websocket.receive_text()
+                message = json.loads(data)
+            except json.JSONDecodeError as e:
+                await websocket.send_json(
+                    {
+                        "type": "error",
+                        "error": f"Invalid JSON: {str(e)}",
+                    }
+                )
+                continue
 
             msg_type = message.get("type")
 
@@ -165,4 +174,4 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
         pass
     finally:
         manager.disconnect(chart_id, websocket)
-        unsubscribe()
+        await unsubscribe()

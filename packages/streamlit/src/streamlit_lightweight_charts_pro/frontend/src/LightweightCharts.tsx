@@ -928,6 +928,25 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         }
       });
 
+      // Clear any pending timeouts from chart sync operations
+      Object.values(chartRefs.current).forEach(chart => {
+        try {
+          const extendedChart = chart as ExtendedChartApi;
+          // Clear crosshair sync timeout
+          if (extendedChart._externalSyncTimeout) {
+            clearTimeout(extendedChart._externalSyncTimeout);
+            extendedChart._externalSyncTimeout = undefined;
+          }
+          // Clear time range sync timeout
+          if (extendedChart._externalTimeRangeSyncTimeout) {
+            clearTimeout(extendedChart._externalTimeRangeSyncTimeout);
+            extendedChart._externalTimeRangeSyncTimeout = undefined;
+          }
+        } catch (error) {
+          logger.warn('Error clearing chart timeouts', 'Cleanup', error);
+        }
+      });
+
       // Remove all charts with better error handling
       Object.values(chartRefs.current).forEach(chart => {
         try {

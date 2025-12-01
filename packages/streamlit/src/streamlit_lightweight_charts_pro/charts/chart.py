@@ -6,9 +6,12 @@ with Streamlit-specific rendering capabilities.
 
 import time
 import uuid
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from lightweight_charts_core.charts import BaseChart
+
+if TYPE_CHECKING:
+    from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 from lightweight_charts_core.charts.options import ChartOptions
 from lightweight_charts_core.charts.series import Series
 from lightweight_charts_core.data import Annotation
@@ -49,7 +52,7 @@ class Chart(BaseChart):
         options: Optional[ChartOptions] = None,
         annotations: Optional[List[Annotation]] = None,
         chart_group_id: int = 0,
-        chart_manager: Optional[Any] = None,
+        chart_manager: Optional["ChartManager"] = None,
     ):
         """Initialize a Streamlit chart.
 
@@ -201,7 +204,7 @@ class Chart(BaseChart):
         try:
             series_configs = self._series_manager.to_frontend_configs()
             return self._chart_renderer._calculate_data_timespan(series_configs)
-        except Exception:
+        except (ValueError, AttributeError, TypeError) as e:
             return None
 
     def _get_range_seconds(self, range_config: Dict[str, Any]) -> Optional[float]:

@@ -5,6 +5,9 @@
  * rendering, logging, and chart-related utilities.
  */
 
+// Disposable utilities
+export { Disposable, cleanupInstance } from './Disposable';
+
 // Singleton patterns
 export { KeyedSingletonManager } from './KeyedSingletonManager';
 export { SingletonBase } from './SingletonBase';

@@ -191,23 +191,29 @@ function flattenLineOptions(
 
       // Only flatten if it's an object (nested format from Python)
       if (typeof lineObj === 'object' && lineObj !== null && !Array.isArray(lineObj)) {
+        // Validate that apiMapping is properly defined
+        if (!propDesc.apiMapping.colorKey && !propDesc.apiMapping.widthKey && !propDesc.apiMapping.styleKey) {
+          logger.warn(`Line property '${propName}' has no valid apiMapping keys, skipping flattening`, 'UnifiedSeriesFactory');
+          continue;
+        }
+
         // Remove the nested object
         delete flattened[propName];
 
         // Flatten to individual properties using descriptor's apiMapping
         const lineObjTyped = lineObj as Record<string, unknown>;
 
-        // Map color
+        // Map color (with validation)
         if (lineObjTyped.color !== undefined && propDesc.apiMapping.colorKey) {
           flattened[propDesc.apiMapping.colorKey] = lineObjTyped.color;
         }
 
-        // Map line width
+        // Map line width (with validation)
         if (lineObjTyped.lineWidth !== undefined && propDesc.apiMapping.widthKey) {
           flattened[propDesc.apiMapping.widthKey] = lineObjTyped.lineWidth;
         }
 
-        // Map line style
+        // Map line style (with validation)
         if (lineObjTyped.lineStyle !== undefined && propDesc.apiMapping.styleKey) {
           flattened[propDesc.apiMapping.styleKey] = lineObjTyped.lineStyle;
         }
@@ -269,12 +275,12 @@ function flattenLineOptions(
  * @throws {SeriesCreationError} If series creation fails
  */
 export function createSeries(
-  chart: IChartApi,
+  chart: any,
   seriesType: string,
-  data: unknown[],
+  data: any[],
   userOptions: Partial<SeriesOptionsCommon> = {},
   paneId: number = 0
-): ISeriesApi<keyof SeriesOptionsMap> {
+): ISeriesApi<any> {
   try {
     // Validate inputs
     if (!chart) {
@@ -309,7 +315,7 @@ export function createSeries(
 
     // Extract custom properties that are NOT part of the official Lightweight Charts API
     // These properties are used for UI/metadata purposes only
-    const { displayName, ...apiOptions } = flattenedUserOptions as Record<string, unknown> & { displayName?: string };
+    const { displayName, ...apiOptions } = flattenedUserOptions as any;
 
     // Merge user options with defaults and add _seriesType metadata
     const options = {
@@ -392,14 +398,14 @@ export function getSeriesDescriptorsByCategory(category: string): UnifiedSeriesD
 /**
  * Extended series configuration for full-featured series creation
  * This interface matches the old SeriesConfig for backward compatibility
- * Uses flexible typing for maximum compatibility with existing code
+ * Uses any for maximum flexibility with existing code
  */
 export interface ExtendedSeriesConfig {
   /** Series type (e.g., 'Line', 'Area', 'Band') */
   type: string;
   /** Series data (flexible type for all series data formats) */
   data?: unknown[];
-  /** Series options (flexible to accept various options structures) */
+  /** Series options (flexible to accept any options structure) */
   options?: Record<string, unknown> | SeriesOptionsCommon;
   /** Pane ID for multi-pane charts */
   paneId?: number;
@@ -483,21 +489,15 @@ export function createSeriesWithConfig(
       legend,
       seriesId,
       chartId,
-      title, // Extract top-level title from config
     } = config;
 
     // Backend now sends all series configuration properties in the options object.
     // Framework metadata (type, data, paneId) and post-creation objects (priceScale,
     // priceLines, markers, legend) remain at top-level for proper handling.
 
-    // Merge top-level title into options (top-level takes precedence)
-    const mergedOptions = title !== undefined
-      ? { ...options, title }
-      : options;
-
     // Step 1: Create the series using basic createSeries
     // Note: createSeries already handles data sorting and setting via descriptors
-    const series = createSeries(chart, type, data, mergedOptions, paneId) as ExtendedSeriesApi;
+    const series = createSeries(chart, type, data, options, paneId) as ExtendedSeriesApi;
 
     // Step 2: Data is already set by descriptor's create method (with sorting/deduplication)
     // No need to set data again here - descriptor handles it properly
@@ -516,8 +516,7 @@ export function createSeriesWithConfig(
     if (priceLines && Array.isArray(priceLines)) {
       priceLines.forEach((priceLine: Record<string, unknown>) => {
         try {
-          // Price line options are dynamic and come from user configuration
-          series.createPriceLine(priceLine as Parameters<typeof series.createPriceLine>[0]);
+          series.createPriceLine(priceLine as any); // Type assertion needed for dynamic price line creation
         } catch (error) {
           logger.warn('Failed to create price line', 'UnifiedSeriesFactory', error);
         }
@@ -550,15 +549,12 @@ export function createSeriesWithConfig(
     //                  Filtered out before passing to API (see createSeries function)
     //   - title: Official Lightweight Charts API property
     //            Already passed in options to addSeries(), stored here for quick access
-    const optionsWithCustomProps = options as Record<string, unknown> & {
-      displayName?: string;
-      title?: string;
-    };
-    if (optionsWithCustomProps.displayName) {
-      series.displayName = optionsWithCustomProps.displayName;
+    const optionsAny = options as any;
+    if (optionsAny.displayName) {
+      series.displayName = optionsAny.displayName;
     }
-    if (optionsWithCustomProps.title) {
-      series.title = optionsWithCustomProps.title;
+    if (optionsAny.title) {
+      series.title = optionsAny.title;
     }
 
     // Step 7: Handle legend registration
@@ -687,8 +683,8 @@ export function updateSeriesData(
  * @param data - Optional data for timestamp snapping
  */
 export function updateSeriesMarkers(
-  series: ISeriesApi<keyof SeriesOptionsMap>,
-  markers: SeriesMarker<Time>[],
+  series: ISeriesApi<any>,
+  markers: SeriesMarker<any>[],
   data?: SeriesDataPoint[]
 ): void {
   try {
@@ -707,7 +703,7 @@ export function updateSeriesMarkers(
  * @param options - New options to apply
  */
 export function updateSeriesOptions(
-  series: ISeriesApi<keyof SeriesOptionsMap>,
+  series: ISeriesApi<any>,
   options: Partial<SeriesOptionsCommon>
 ): void {
   try {

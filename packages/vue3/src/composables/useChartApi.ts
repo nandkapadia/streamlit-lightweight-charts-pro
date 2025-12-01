@@ -138,8 +138,6 @@ export function useChartApi(options: UseChartApiOptions = {}): UseChartApiReturn
         },
       });
 
-      clearTimeout(timeoutId);
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({})) as ApiError;
         const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
@@ -161,6 +159,7 @@ export function useChartApi(options: UseChartApiOptions = {}): UseChartApiReturn
       }
       throw err;
     } finally {
+      clearTimeout(timeoutId);
       isLoading.value = false;
     }
   }

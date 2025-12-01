@@ -3,16 +3,16 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["setup"]
+py-modules = []
 
 [project]
-name = "streamlit_lightweight_charts_pro"
+name = "streamlit-lightweight-charts-pro"
 version = "0.2.0"
 description = "Enhanced Streamlit wrapper for TradingView's lightweight-charts with ultra-simplified API and performance optimizations"
 authors = [{ name = "Nand Kapadia", email = "nand.kapadia@gmail.com" }]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 dependencies = [
     "streamlit>=1.0",
     "pandas>=1.0",
@@ -66,26 +66,29 @@ test = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["packages/streamlit/src"]
 include = ["streamlit_lightweight_charts_pro*"]
+
+[tool.setuptools.package-data]
+"streamlit_lightweight_charts_pro" = [
+    "frontend/build/**/*",
+]
 
 # Black code formatter configuration
 [tool.black]
 line-length = 100
-target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+target-version = ['py39', 'py310', 'py311', 'py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
-  # directories
   \.eggs
   | \.git
-  | \.hg
   | \.mypy_cache
-  | \.tox
   | \.venv
   | build
   | dist
-  | frontend
+  | node_modules
+  | frontend/node_modules
 )/
 '''
 
@@ -129,13 +132,8 @@ addopts = [
     "--tb=short",
     "--maxfail=10",
     "--durations=10",
-    "--cov=streamlit_lightweight_charts_pro",
-    "--cov-report=term-missing",
-    "--cov-report=html:htmlcov",
-    "-n 4",
-    "--dist=loadfile"
 ]
-testpaths = ["tests"]
+testpaths = ["packages/streamlit/tests", "packages/python-core/tests", "packages/backend/tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -229,8 +227,8 @@ exclude = [
 line-length = 100
 indent-width = 4
 
-# Assume Python 3.7+
-target-version = "py37"
+# Assume Python 3.9+
+target-version = "py39"
 
 # Enable unsafe fixes by default (like Black does)
 unsafe-fixes = true

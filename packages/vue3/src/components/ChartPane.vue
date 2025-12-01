@@ -64,6 +64,7 @@ const globalSeriesMap = inject<ShallowRef<Map<string, ISeriesApi<SeriesType>>>>(
 // Local state
 const localSeriesMap = ref<Map<string, ISeriesApi<SeriesType>>>(new Map());
 const isCollapsed = ref(props.collapsed);
+let seriesIdCounter = 0; // Counter for generating unique series IDs
 
 /**
  * Create a series on the chart for this pane.
@@ -71,7 +72,7 @@ const isCollapsed = ref(props.collapsed);
 function createSeries(config: SeriesConfig): ISeriesApi<SeriesType> | null {
   if (!chart?.value) return null;
 
-  const seriesId = config.seriesId || config.name || `pane${props.paneId}_series_${localSeriesMap.value.size}`;
+  const seriesId = config.seriesId || config.name || `pane${props.paneId}_series_${seriesIdCounter++}`;
 
   // Check if series already exists
   if (localSeriesMap.value.has(seriesId)) {

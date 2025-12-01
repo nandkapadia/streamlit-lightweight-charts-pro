@@ -45,7 +45,6 @@
 import { IChartApi } from 'lightweight-charts';
 import { logger } from '../utils/logger';
 import { KeyedSingletonManager } from '../utils/KeyedSingletonManager';
-import { handleError, ErrorSeverity } from '../utils/errorHandler';
 import { DIMENSIONS } from '../config/positioningConfig';
 import { cleanupInstance, Disposable } from '../utils/Disposable';
 
@@ -168,7 +167,7 @@ export class PaneCollapseManager extends KeyedSingletonManager<PaneCollapseManag
         this.collapse(paneId);
       }
     } catch (error) {
-      handleError(error, 'PaneCollapseManager.toggle', ErrorSeverity.WARNING);
+      logger.warn('Failed to toggle pane', 'PaneCollapseManager.toggle', error);
     }
   }
 
@@ -266,7 +265,7 @@ export class PaneCollapseManager extends KeyedSingletonManager<PaneCollapseManag
         state.onPaneCollapse(paneId, true);
       }
     } catch (error) {
-      handleError(error, 'PaneCollapseManager.collapse', ErrorSeverity.ERROR);
+      logger.error('Failed to collapse pane', 'PaneCollapseManager.collapse', error);
     }
   }
 
@@ -363,7 +362,7 @@ export class PaneCollapseManager extends KeyedSingletonManager<PaneCollapseManag
         state.onPaneExpand(paneId, false);
       }
     } catch (error) {
-      handleError(error, 'PaneCollapseManager.expand', ErrorSeverity.ERROR);
+      logger.error('Failed to expand pane', 'PaneCollapseManager.expand', error);
     }
   }
 

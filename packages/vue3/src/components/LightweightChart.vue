@@ -109,6 +109,12 @@ const isInitialized = ref(false);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
+// Cleanup references
+let resizeObserver: ResizeObserver | null = null;
+let unsubscribeCrosshairMove: (() => void) | null = null;
+let unsubscribeClick: (() => void) | null = null;
+let unsubscribeVisibleRangeChange: (() => void) | null = null;
+
 // Computed
 const hasWebSocket = computed(() => !!props.wsUrl);
 
@@ -188,16 +194,16 @@ function initializeChart(): void {
 
   chart.value = createChart(containerRef.value, chartOptions);
 
-  // Subscribe to events
-  chart.value.subscribeCrosshairMove((params) => {
+  // Subscribe to events and store unsubscribe functions
+  unsubscribeCrosshairMove = chart.value.subscribeCrosshairMove((params) => {
     emit('crosshairMove', params);
   });
 
-  chart.value.subscribeClick((params) => {
+  unsubscribeClick = chart.value.subscribeClick((params) => {
     emit('click', params);
   });
 
-  chart.value.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+  unsubscribeVisibleRangeChange = chart.value.timeScale().subscribeVisibleLogicalRangeChange((range) => {
     emit('visibleTimeRangeChange', range);
   });
 
@@ -414,12 +420,33 @@ onMounted(() => {
 
   // Set up resize observer
   if (containerRef.value) {
-    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(containerRef.value);
   }
 });
 
 onUnmounted(() => {
+  // Unsubscribe from chart events
+  if (unsubscribeCrosshairMove) {
+    unsubscribeCrosshairMove();
+    unsubscribeCrosshairMove = null;
+  }
+  if (unsubscribeClick) {
+    unsubscribeClick();
+    unsubscribeClick = null;
+  }
+  if (unsubscribeVisibleRangeChange) {
+    unsubscribeVisibleRangeChange();
+    unsubscribeVisibleRangeChange = null;
+  }
+
+  // Disconnect resize observer
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+
+  // Remove chart
   if (chart.value) {
     chart.value.remove();
     chart.value = null;
