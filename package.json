@@ -1,0 +1,50 @@
+{
+  "name": "streamlit-lightweight-charts-pro",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Monorepo for TradingView Lightweight Charts Pro packages",
+  "type": "module",
+  "workspaces": [
+    "packages/core",
+    "packages/vue3",
+    "packages/streamlit/src/streamlit_lightweight_charts_pro/frontend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:core": "npm run build -w @lightweight-charts-pro/core",
+    "build:vue3": "npm run build -w @lightweight-charts-pro/vue3",
+    "build:streamlit": "npm run build -w streamlit_lightweight_charts_pro",
+    "test": "npm run test --workspaces --if-present",
+    "test:core": "npm run test -w @lightweight-charts-pro/core",
+    "test:vue3": "npm run test -w @lightweight-charts-pro/vue3",
+    "test:streamlit": "npm run test -w streamlit_lightweight_charts_pro",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "clean": "rm -rf packages/*/node_modules packages/*/dist packages/streamlit/src/streamlit_lightweight_charts_pro/frontend/node_modules packages/streamlit/src/streamlit_lightweight_charts_pro/frontend/dist node_modules",
+    "install:all": "npm install",
+    "dev:core": "npm run dev -w @lightweight-charts-pro/core",
+    "dev:vue3": "npm run dev -w @lightweight-charts-pro/vue3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nandkapadia/streamlit-lightweight-charts-pro.git"
+  },
+  "keywords": [
+    "tradingview",
+    "lightweight-charts",
+    "streamlit",
+    "vue3",
+    "financial-charts",
+    "trading",
+    "typescript",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "packageManager": "npm@10.0.0"
+}
