@@ -5,12 +5,11 @@ of chart components in Streamlit.
 """
 
 import json
-import time
-import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import streamlit.components.v1 as components
+from lightweight_charts_core.logging_config import get_logger
 
 from streamlit_lightweight_charts_pro.charts.series_settings_api import (
     get_series_settings_api,
@@ -20,7 +19,6 @@ from streamlit_lightweight_charts_pro.component import (
     reinitialize_component,
 )
 from streamlit_lightweight_charts_pro.exceptions import ComponentNotAvailableError
-from lightweight_charts_core.logging_config import get_logger
 
 # Initialize logger
 logger = get_logger(__name__)

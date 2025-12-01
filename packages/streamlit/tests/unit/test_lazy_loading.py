@@ -4,17 +4,16 @@ This module tests the lazy loading capabilities for Streamlit charts,
 including chunking, history requests, and state management.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 
 from streamlit_lightweight_charts_pro.lazy_loading import (
-    ChunkInfo,
-    LazyLoadingState,
-    LazyLoadingManager,
-    prepare_series_for_lazy_loading,
-    handle_lazy_load_response,
     CHUNK_SIZE_THRESHOLD,
     DEFAULT_CHUNK_SIZE,
+    ChunkInfo,
+    LazyLoadingManager,
+    LazyLoadingState,
+    handle_lazy_load_response,
+    prepare_series_for_lazy_loading,
 )
 
 
@@ -229,7 +228,7 @@ class TestPrepareSeriesForLazyLoading:
     """Tests for prepare_series_for_lazy_loading function."""
 
     @patch("streamlit_lightweight_charts_pro.lazy_loading.get_lazy_loading_manager")
-    def test_small_dataset_unchanged(self, mock_get_manager):
+    def test_small_dataset_unchanged(self, _mock_get_manager):
         """Test that small datasets are returned unchanged."""
         series_config = {
             "type": "Line",
@@ -275,14 +274,14 @@ class TestHandleLazyLoadResponse:
     """Tests for handle_lazy_load_response function."""
 
     @patch("streamlit_lightweight_charts_pro.lazy_loading.get_lazy_loading_manager")
-    def test_non_history_request_returns_none(self, mock_get_manager):
+    def test_non_history_request_returns_none(self, _mock_get_manager):
         """Test that non-history requests return None."""
         response = {"type": "other_request"}
         result = handle_lazy_load_response(response, "chart_1")
         assert result is None
 
     @patch("streamlit_lightweight_charts_pro.lazy_loading.get_lazy_loading_manager")
-    def test_missing_fields_returns_none(self, mock_get_manager):
+    def test_missing_fields_returns_none(self, _mock_get_manager):
         """Test that requests with missing fields return None."""
         response = {"type": "load_history"}  # Missing seriesId and beforeTime
         result = handle_lazy_load_response(response, "chart_1")

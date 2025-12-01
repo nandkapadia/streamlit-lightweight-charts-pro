@@ -19,7 +19,8 @@ Example:
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
+
 import streamlit as st
 
 # Lazy loading constants
@@ -232,9 +233,7 @@ class LazyLoadingManager:
                       If None, clear all states.
         """
         if chart_key:
-            keys_to_remove = [
-                k for k in self._series_states if k.startswith(f"{chart_key}_")
-            ]
+            keys_to_remove = [k for k in self._series_states if k.startswith(f"{chart_key}_")]
             for key in keys_to_remove:
                 del self._series_states[key]
         else:
@@ -304,9 +303,7 @@ def prepare_series_for_lazy_loading(
     return modified_config
 
 
-def handle_lazy_load_response(
-    response: Dict[str, Any], chart_key: str
-) -> Optional[Dict[str, Any]]:
+def handle_lazy_load_response(response: Dict[str, Any], chart_key: str) -> Optional[Dict[str, Any]]:
     """Handle a lazy loading response from the frontend.
 
     Args:
@@ -328,9 +325,7 @@ def handle_lazy_load_response(
         return None
 
     manager = get_lazy_loading_manager()
-    return manager.handle_history_request(
-        chart_key, series_id, pane_id, before_time, count
-    )
+    return manager.handle_history_request(chart_key, series_id, pane_id, before_time, count)
 
 
 def lazy_chart(
@@ -398,9 +393,7 @@ def lazy_chart(
                     on_history_loaded(history_data)
 
             # Also handle standard responses
-            chart._chart_renderer.handle_response(
-                result, key, chart._session_state_manager
-            )
+            chart._chart_renderer.handle_response(result, key, chart._session_state_manager)
 
         return result
 
@@ -409,13 +402,13 @@ def lazy_chart(
 
 # Export public API
 __all__ = [
-    "lazy_chart",
-    "LazyLoadingManager",
-    "LazyLoadingState",
-    "ChunkInfo",
-    "get_lazy_loading_manager",
-    "prepare_series_for_lazy_loading",
-    "handle_lazy_load_response",
     "CHUNK_SIZE_THRESHOLD",
     "DEFAULT_CHUNK_SIZE",
+    "ChunkInfo",
+    "LazyLoadingManager",
+    "LazyLoadingState",
+    "get_lazy_loading_manager",
+    "handle_lazy_load_response",
+    "lazy_chart",
+    "prepare_series_for_lazy_loading",
 ]

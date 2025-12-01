@@ -45,11 +45,6 @@ https://github.com/nandkapadia/streamlit-lightweight-charts-pro
 import warnings
 from pathlib import Path
 
-# Third Party Imports
-# (None in this module)
-# Local Imports
-from streamlit_lightweight_charts_pro.charts import Chart, ChartManager
-
 # Import from core package (options, series, utils, validators)
 from lightweight_charts_core.charts.options import ChartOptions
 from lightweight_charts_core.charts.options.layout_options import (
@@ -81,6 +76,22 @@ from lightweight_charts_core.charts.validators import (
     PriceScaleValidationError,
     PriceScaleValidator,
 )
+from lightweight_charts_core.data.annotation import (
+    AnnotationLayer,
+    AnnotationManager,
+    create_arrow_annotation,
+    create_shape_annotation,
+    create_text_annotation,
+)
+from lightweight_charts_core.data.trade import TradeData
+
+# Import logging configuration from core
+from lightweight_charts_core.logging_config import get_logger, setup_logging
+
+# Third Party Imports
+# (None in this module)
+# Local Imports
+from streamlit_lightweight_charts_pro.charts import Chart, ChartManager
 from streamlit_lightweight_charts_pro.data import (
     Annotation,
     AreaData,
@@ -94,26 +105,15 @@ from streamlit_lightweight_charts_pro.data import (
     SignalData,
     SingleValueData,
 )
-from lightweight_charts_core.data.annotation import (
-    AnnotationLayer,
-    AnnotationManager,
-    create_arrow_annotation,
-    create_shape_annotation,
-    create_text_annotation,
-)
-from lightweight_charts_core.data.trade import TradeData
 
 # Import lazy loading support
 from streamlit_lightweight_charts_pro.lazy_loading import (
-    lazy_chart,
-    LazyLoadingManager,
-    get_lazy_loading_manager,
     CHUNK_SIZE_THRESHOLD,
     DEFAULT_CHUNK_SIZE,
+    LazyLoadingManager,
+    get_lazy_loading_manager,
+    lazy_chart,
 )
-
-# Import logging configuration from core
-from lightweight_charts_core.logging_config import get_logger, setup_logging
 from streamlit_lightweight_charts_pro.type_definitions import (
     ChartType,
     ColumnNames,
@@ -205,6 +205,8 @@ _check_frontend_build()
 # This list defines what is available when importing from the main package
 # Organized by category for better maintainability and documentation
 __all__ = [
+    "CHUNK_SIZE_THRESHOLD",
+    "DEFAULT_CHUNK_SIZE",
     # Data models
     "Annotation",
     "AnnotationLayer",
@@ -232,6 +234,7 @@ __all__ = [
     "HistogramData",
     "HistogramSeries",
     "LayoutOptions",
+    "LazyLoadingManager",
     "LegendOptions",
     "LineData",
     "LineSeries",
@@ -261,13 +264,10 @@ __all__ = [
     "create_arrow_annotation",
     "create_shape_annotation",
     "create_text_annotation",
+    "get_lazy_loading_manager",
     # Logging
     "get_logger",
-    "setup_logging",
     # Lazy loading
     "lazy_chart",
-    "LazyLoadingManager",
-    "get_lazy_loading_manager",
-    "CHUNK_SIZE_THRESHOLD",
-    "DEFAULT_CHUNK_SIZE",
+    "setup_logging",
 ]

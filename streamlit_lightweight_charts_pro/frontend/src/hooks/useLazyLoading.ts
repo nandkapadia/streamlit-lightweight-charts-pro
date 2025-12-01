@@ -97,7 +97,7 @@ export function useLazyLoading({
 
     lazyStatesRef.current = newStates;
 
-    logger.debug('Lazy loading initialized for series:', Array.from(newStates.keys()));
+    logger.debug(`Lazy loading initialized for series: ${Array.from(newStates.keys()).join(', ')}`);
   }, [seriesConfigs]);
 
   // Request historical data from the backend
@@ -144,10 +144,7 @@ export function useLazyLoading({
         messageId: `history_${seriesId}_${Date.now()}`,
       };
 
-      logger.info(`Requesting ${direction} history for ${seriesId}`, {
-        beforeTime,
-        count: state.lazyLoading.chunkSize,
-      });
+      logger.info(`Requesting ${direction} history for ${seriesId} (beforeTime: ${beforeTime}, count: ${state.lazyLoading.chunkSize})`);
 
       // Send request to Streamlit backend
       Streamlit.setComponentValue(request);
@@ -243,17 +240,13 @@ export function useLazyLoading({
     const timeScale: ITimeScaleApi<unknown> = chart.timeScale();
 
     // Subscribe to logical range changes (bar indices)
-    const subscription = timeScale.subscribeVisibleLogicalRangeChange(
-      handleVisibleRangeChange
-    );
+    timeScale.subscribeVisibleLogicalRangeChange(handleVisibleRangeChange);
 
     logger.info('Subscribed to visible range changes for lazy loading');
 
     return () => {
       // Cleanup subscription
-      if (subscription) {
-        timeScale.unsubscribeVisibleLogicalRangeChange(handleVisibleRangeChange);
-      }
+      timeScale.unsubscribeVisibleLogicalRangeChange(handleVisibleRangeChange);
       // Clear debounce timer
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -294,10 +287,7 @@ export function useLazyLoading({
         state.lazyLoading.chunkInfo = response.chunkInfo;
       }
 
-      logger.info(`Received ${response.data?.length || 0} points for ${seriesId}`, {
-        hasMoreBefore: response.hasMoreBefore,
-        hasMoreAfter: response.hasMoreAfter,
-      });
+      logger.info(`Received ${response.data?.length || 0} points for ${seriesId} (hasMoreBefore: ${response.hasMoreBefore}, hasMoreAfter: ${response.hasMoreAfter})`);
 
       // Notify callback
       if (onHistoryLoaded && response.data?.length) {
