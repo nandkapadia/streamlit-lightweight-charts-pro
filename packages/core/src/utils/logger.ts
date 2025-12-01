@@ -53,7 +53,7 @@ interface LogEntry {
   level: LogLevel;
   message: string;
   context?: string;
-  data?: any;
+  data?: unknown;
   timestamp: Date;
 }
 
@@ -75,7 +75,7 @@ class Logger {
     return `${timestamp} ${levelName} ${context}${entry.message}`;
   }
 
-  private log(level: LogLevel, message: string, context?: string, data?: any): void {
+  private log(level: LogLevel, message: string, context?: string, data?: unknown): void {
     if (!this.shouldLog(level)) return;
 
     const entry: LogEntry = {
@@ -104,19 +104,19 @@ class Logger {
     }
   }
 
-  debug(message: string, context?: string, data?: any): void {
+  debug(message: string, context?: string, data?: unknown): void {
     this.log(LogLevel.DEBUG, message, context, data);
   }
 
-  info(message: string, context?: string, data?: any): void {
+  info(message: string, context?: string, data?: unknown): void {
     this.log(LogLevel.INFO, message, context, data);
   }
 
-  warn(message: string, context?: string, data?: any): void {
+  warn(message: string, context?: string, data?: unknown): void {
     this.log(LogLevel.WARN, message, context, data);
   }
 
-  error(message: string, context?: string, data?: any): void {
+  error(message: string, context?: string, data?: unknown): void {
     this.log(LogLevel.ERROR, message, context, data);
   }
 
@@ -129,11 +129,11 @@ class Logger {
     this.error(message, `Primitive:${primitiveId}`, error);
   }
 
-  performanceWarn(message: string, data?: any): void {
+  performanceWarn(message: string, data?: unknown): void {
     this.warn(message, 'Performance', data);
   }
 
-  renderDebug(message: string, componentName: string, data?: any): void {
+  renderDebug(message: string, componentName: string, data?: unknown): void {
     this.debug(message, `Render:${componentName}`, data);
   }
 }
@@ -143,22 +143,22 @@ export const logger = new Logger();
 
 // Export convenience methods for common patterns
 export const chartLog = {
-  debug: (message: string, data?: any) => logger.debug(message, 'Chart', data),
-  info: (message: string, data?: any) => logger.info(message, 'Chart', data),
-  warn: (message: string, data?: any) => logger.warn(message, 'Chart', data),
+  debug: (message: string, data?: unknown) => logger.debug(message, 'Chart', data),
+  info: (message: string, data?: unknown) => logger.info(message, 'Chart', data),
+  warn: (message: string, data?: unknown) => logger.warn(message, 'Chart', data),
   error: (message: string, error?: Error) => logger.chartError(message, error),
 };
 
 export const primitiveLog = {
-  debug: (message: string, primitiveId: string, data?: any) =>
+  debug: (message: string, primitiveId: string, data?: unknown) =>
     logger.debug(message, `Primitive:${primitiveId}`, data),
   error: (message: string, primitiveId: string, error?: Error) =>
     logger.primitiveError(message, primitiveId, error),
 };
 
 export const perfLog = {
-  warn: (message: string, data?: any) => logger.performanceWarn(message, data),
-  debug: (message: string, data?: any) => logger.debug(message, 'Performance', data),
+  warn: (message: string, data?: unknown) => logger.performanceWarn(message, data),
+  debug: (message: string, data?: unknown) => logger.debug(message, 'Performance', data),
 };
 
 export default logger;

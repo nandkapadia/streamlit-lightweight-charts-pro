@@ -11,7 +11,8 @@
  * - Visible range calculation for optimization
  */
 
-import { ISeriesApi, Time, Coordinate } from 'lightweight-charts';
+import { ISeriesApi, ITimeScaleApi, Time, Coordinate, SeriesType } from 'lightweight-charts';
+import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 
 // ============================================================================
 // Type Definitions
@@ -69,21 +70,23 @@ export interface VisibleRange {
  * @param config - Configuration specifying which fields to convert
  * @returns Array of renderer data points with x and y coordinates
  */
-export function convertToRendererCoordinates<T extends Record<string, any>>(
+export function convertToRendererCoordinates<T extends { time: Time; [key: string]: Time | number }>(
   data: T[],
-  timeScale: any,
-  seriesMap: Record<string, ISeriesApi<any>>,
+  timeScale: ITimeScaleApi<Time>,
+  seriesMap: Record<string, ISeriesApi<SeriesType>>,
   config: CoordinateConversionConfig
 ): RendererDataPoint[] {
   return data.map(item => {
+    const timeValue = item[config.timeField] as Time;
     const result: RendererDataPoint = {
-      x: timeScale.timeToCoordinate(item[config.timeField]) ?? -100,
+      x: timeScale.timeToCoordinate(timeValue) ?? -100,
     };
 
     config.coordinateFields.forEach(field => {
       const series = seriesMap[field];
-      if (series && item[field] !== undefined) {
-        result[`${field}Y`] = series.priceToCoordinate(item[field]) ?? -100;
+      const fieldValue = item[field];
+      if (series && fieldValue !== undefined && typeof fieldValue === 'number') {
+        result[`${field}Y`] = series.priceToCoordinate(fieldValue) ?? -100;
       }
     });
 
@@ -102,9 +105,9 @@ export function convertToRendererCoordinates<T extends Record<string, any>>(
  */
 export function convertTwoLineCoordinates<T extends { time: Time; upper: number; lower: number }>(
   data: T[],
-  timeScale: any,
-  upperSeries: ISeriesApi<any>,
-  lowerSeries: ISeriesApi<any>
+  timeScale: ITimeScaleApi<Time>,
+  upperSeries: ISeriesApi<SeriesType>,
+  lowerSeries: ISeriesApi<SeriesType>
 ): Array<
   { x: Coordinate | number; upperY: Coordinate | number; lowerY: Coordinate | number } & Partial<T>
 > {
@@ -135,10 +138,10 @@ export function convertThreeLineCoordinates<
   T extends { time: Time; upper: number; middle: number; lower: number },
 >(
   data: T[],
-  timeScale: any,
-  upperSeries: ISeriesApi<any>,
-  middleSeries: ISeriesApi<any>,
-  lowerSeries: ISeriesApi<any>
+  timeScale: ITimeScaleApi<Time>,
+  upperSeries: ISeriesApi<SeriesType>,
+  middleSeries: ISeriesApi<SeriesType>,
+  lowerSeries: ISeriesApi<SeriesType>
 ): Array<{
   x: Coordinate | number;
   upperY: Coordinate | number;
@@ -167,10 +170,10 @@ export function convertThreeLineCoordinates<
  * @param coordinateFields - Fields to convert
  * @returns Array of renderer data points (null for failed conversions)
  */
-export function batchConvertCoordinates<T extends Record<string, any>>(
+export function batchConvertCoordinates<T extends { time: Time; [key: string]: Time | number }>(
   items: T[],
-  timeScale: any,
-  seriesMap: Record<string, ISeriesApi<any>>,
+  timeScale: ITimeScaleApi<Time>,
+  seriesMap: Record<string, ISeriesApi<SeriesType>>,
   coordinateFields: string[]
 ): Array<RendererDataPoint | null> {
   return items.map((item, _index) => {
@@ -180,12 +183,13 @@ export function batchConvertCoordinates<T extends Record<string, any>>(
         return null;
       }
 
-      const result: RendererDataPoint = { x };
+      const result: RendererDataPoint = { x: x as number };
 
       for (const field of coordinateFields) {
         const series = seriesMap[field];
-        if (series && item[field] !== undefined) {
-          const coord = series.priceToCoordinate(item[field]) ?? -100;
+        const fieldValue = item[field];
+        if (series && fieldValue !== undefined && typeof fieldValue === 'number') {
+          const coord = series.priceToCoordinate(fieldValue) ?? -100;
           if (isValidCoordinate(coord)) {
             result[`${field}Y`] = coord;
           }
@@ -314,11 +318,11 @@ export function calculateVisibleRange<T extends { x: number | Coordinate | null 
  * @returns Setup function that provides scaled context
  */
 export function setupCanvasContext(
-  target: any,
+  target: CanvasRenderingTarget2D,
   zIndex?: number
 ): (callback: (ctx: CanvasRenderingContext2D) => void) => void {
   return (callback: (ctx: CanvasRenderingContext2D) => void) => {
-    target.useBitmapCoordinateSpace((scope: any) => {
+    target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
       const ctx = scope.context;
       ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio);
 
@@ -341,7 +345,7 @@ export function setupCanvasContext(
  *
  * @example
  * // Instead of:
- * target.useBitmapCoordinateSpace((scope: any) => {
+ * target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
  *   const ctx = scope.context;
  *   ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio);
  *   // ... rendering code
@@ -353,10 +357,10 @@ export function setupCanvasContext(
  * });
  */
 export function renderWithScaledCanvas(
-  target: any,
-  callback: (ctx: CanvasRenderingContext2D, scope: any) => void
+  target: CanvasRenderingTarget2D,
+  callback: (ctx: CanvasRenderingContext2D, scope: BitmapCoordinatesRenderingScope) => void
 ): void {
-  target.useBitmapCoordinateSpace((scope: any) => {
+  target.useBitmapCoordinateSpace((scope: BitmapCoordinatesRenderingScope) => {
     const ctx = scope.context;
     if (!ctx) return;
 
