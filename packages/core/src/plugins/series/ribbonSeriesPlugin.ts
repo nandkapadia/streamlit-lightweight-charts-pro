@@ -37,6 +37,7 @@ import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-
 import { isWhitespaceDataMultiField } from './base/commonRendering';
 import { LineStyle } from '../../utils/renderingUtils';
 import { drawFillArea, drawMultiLine } from './base/commonRendering';
+import { logger } from '../../utils/logger';
 
 // ============================================================================
 // Data Interface
@@ -365,25 +366,29 @@ export function createRibbonSeries(
   // Attach primitive if requested
   if (options.usePrimitive) {
     // Dynamic import to avoid circular dependencies
-    void import('../../primitives/RibbonPrimitive').then(({ RibbonPrimitive }) => {
-      const primitive = new RibbonPrimitive(chart, {
-        upperLineColor: options.upperLineColor ?? '#4CAF50',
-        upperLineWidth: options.upperLineWidth ?? 2,
-        upperLineStyle: Math.min(options.upperLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
-        upperLineVisible: options.upperLineVisible !== false,
-        lowerLineColor: options.lowerLineColor ?? '#F44336',
-        lowerLineWidth: options.lowerLineWidth ?? 2,
-        lowerLineStyle: Math.min(options.lowerLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
-        lowerLineVisible: options.lowerLineVisible !== false,
-        fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
-        fillVisible: options.fillVisible !== false,
-        visible: true,
-        priceScaleId: options.priceScaleId ?? 'right',
-        zIndex: options.zIndex ?? 0,
-      });
+    void import('../../primitives/RibbonPrimitive')
+      .then(({ RibbonPrimitive }) => {
+        const primitive = new RibbonPrimitive(chart, {
+          upperLineColor: options.upperLineColor ?? '#4CAF50',
+          upperLineWidth: options.upperLineWidth ?? 2,
+          upperLineStyle: Math.min(options.upperLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
+          upperLineVisible: options.upperLineVisible !== false,
+          lowerLineColor: options.lowerLineColor ?? '#F44336',
+          lowerLineWidth: options.lowerLineWidth ?? 2,
+          lowerLineStyle: Math.min(options.lowerLineStyle ?? LineStyle.Solid, 2) as 0 | 1 | 2,
+          lowerLineVisible: options.lowerLineVisible !== false,
+          fillColor: options.fillColor ?? 'rgba(76, 175, 80, 0.1)',
+          fillVisible: options.fillVisible !== false,
+          visible: true,
+          priceScaleId: options.priceScaleId ?? 'right',
+          zIndex: options.zIndex ?? 0,
+        });
 
-      series.attachPrimitive(primitive);
-    });
+        series.attachPrimitive(primitive);
+      })
+      .catch((error: Error) => {
+        logger.error('Failed to load RibbonPrimitive', 'RibbonSeries', error);
+      });
   }
 
   return series;

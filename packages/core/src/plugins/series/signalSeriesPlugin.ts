@@ -34,6 +34,7 @@ import {
 import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { isTransparent } from '../../utils/colorUtils';
 import { SignalColorCalculator } from '../../utils/signalColorUtils';
+import { logger } from '../../utils/logger';
 
 // ============================================================================
 // Data Interface
@@ -355,16 +356,20 @@ export function createSignalSeries(
 
   // Conditionally create primitive for background rendering
   if (usePrimitive) {
-    void import('../../primitives/SignalPrimitive').then(({ SignalPrimitive }) => {
-      const primitive = new SignalPrimitive(chart, {
-        neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
-        signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
-        alertColor: options.alertColor, // No default - only use if explicitly provided
-        visible: options.visible !== false,
-        zIndex: options.zIndex ?? -100,
+    void import('../../primitives/SignalPrimitive')
+      .then(({ SignalPrimitive }) => {
+        const primitive = new SignalPrimitive(chart, {
+          neutralColor: options.neutralColor ?? 'rgba(128, 128, 128, 0.1)',
+          signalColor: options.signalColor ?? 'rgba(76, 175, 80, 0.2)',
+          alertColor: options.alertColor, // No default - only use if explicitly provided
+          visible: options.visible !== false,
+          zIndex: options.zIndex ?? -100,
+        });
+        series.attachPrimitive(primitive);
+      })
+      .catch((error: Error) => {
+        logger.error('Failed to load SignalPrimitive', 'SignalSeries', error);
       });
-      series.attachPrimitive(primitive);
-    });
   }
 
   return series;
