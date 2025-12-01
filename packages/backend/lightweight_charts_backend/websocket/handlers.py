@@ -3,7 +3,8 @@
 import asyncio
 import json
 import logging
-from typing import TYPE_CHECKING, Dict, Set
+import re
+from typing import TYPE_CHECKING, Dict, Optional, Set
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
@@ -12,6 +13,121 @@ if TYPE_CHECKING:
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+# Validation constants
+MAX_ID_LENGTH = 128
+ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\.]+$")
+MAX_HISTORY_COUNT = 10000
+
+
+def validate_identifier(value: Optional[str], field_name: str) -> Optional[str]:
+    """Validate an identifier (chart_id, series_id).
+
+    Args:
+        value: The identifier to validate.
+        field_name: Name of the field for error messages.
+
+    Returns:
+        The validated identifier or None if value is None.
+
+    Raises:
+        ValueError: If validation fails.
+    """
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        raise ValueError(f"{field_name} must be a string")
+
+    if not value:
+        raise ValueError(f"{field_name} cannot be empty")
+
+    if len(value) > MAX_ID_LENGTH:
+        raise ValueError(f"{field_name} cannot exceed {MAX_ID_LENGTH} characters")
+
+    if not ID_PATTERN.match(value):
+        raise ValueError(
+            f"{field_name} contains invalid characters. "
+            "Only alphanumeric, underscore, hyphen, and dot allowed."
+        )
+
+    # Prevent path traversal
+    if ".." in value or value.startswith("/") or value.startswith("\\"):
+        raise ValueError(f"Invalid {field_name} format")
+
+    return value
+
+
+def validate_pane_id(value: Optional[int]) -> int:
+    """Validate pane_id.
+
+    Args:
+        value: The pane_id to validate.
+
+    Returns:
+        The validated pane_id (default 0).
+
+    Raises:
+        ValueError: If validation fails.
+    """
+    if value is None:
+        return 0
+
+    if not isinstance(value, int):
+        raise ValueError("paneId must be an integer")
+
+    if value < 0 or value > 100:
+        raise ValueError("paneId must be between 0 and 100")
+
+    return value
+
+
+def validate_count(value: Optional[int]) -> int:
+    """Validate count parameter.
+
+    Args:
+        value: The count to validate.
+
+    Returns:
+        The validated count (default 500).
+
+    Raises:
+        ValueError: If validation fails.
+    """
+    if value is None:
+        return 500
+
+    if not isinstance(value, int):
+        raise ValueError("count must be an integer")
+
+    if value <= 0 or value > MAX_HISTORY_COUNT:
+        raise ValueError(f"count must be between 1 and {MAX_HISTORY_COUNT}")
+
+    return value
+
+
+def validate_before_time(value: Optional[int]) -> Optional[int]:
+    """Validate before_time parameter.
+
+    Args:
+        value: The before_time to validate.
+
+    Returns:
+        The validated before_time.
+
+    Raises:
+        ValueError: If validation fails.
+    """
+    if value is None:
+        return None
+
+    if not isinstance(value, int):
+        raise ValueError("beforeTime must be an integer")
+
+    if value < 0:
+        raise ValueError("beforeTime must be >= 0")
+
+    return value
 
 
 class ConnectionManager:
@@ -102,6 +218,17 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
         websocket: WebSocket connection.
         chart_id: Chart identifier.
     """
+    # Validate chart_id before accepting connection
+    try:
+        chart_id = validate_identifier(chart_id, "chart_id") or ""
+        if not chart_id:
+            await websocket.close(code=1008, reason="Invalid chart_id")
+            return
+    except ValueError as e:
+        await websocket.accept()
+        await websocket.close(code=1008, reason=str(e))
+        return
+
     await manager.connect(chart_id, websocket)
 
     # Safely access datafeed service from app state
@@ -152,13 +279,19 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
             msg_type = message.get("type")
 
             if msg_type == "request_history":
-                # Handle history request
-                pane_id = message.get("paneId", 0)
-                series_id = message.get("seriesId")
-                before_time = message.get("beforeTime")
-                count = message.get("count", 500)
+                # Handle history request with validation
+                try:
+                    pane_id = validate_pane_id(message.get("paneId"))
+                    series_id = validate_identifier(message.get("seriesId"), "seriesId")
+                    before_time = validate_before_time(message.get("beforeTime"))
+                    count = validate_count(message.get("count"))
+                except ValueError as e:
+                    await websocket.send_json(
+                        {"type": "error", "error": str(e)}
+                    )
+                    continue
 
-                if series_id and before_time:
+                if series_id and before_time is not None:
                     result = await datafeed.get_history(
                         chart_id=chart_id,
                         pane_id=pane_id,
@@ -176,15 +309,25 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
                             **result,
                         }
                     )
+                else:
+                    await websocket.send_json(
+                        {"type": "error", "error": "seriesId and beforeTime are required"}
+                    )
 
             elif msg_type == "get_initial_data":
-                # Handle initial data request
-                pane_id = message.get("paneId")
-                series_id = message.get("seriesId")
+                # Handle initial data request with validation
+                try:
+                    pane_id = validate_pane_id(message.get("paneId"))
+                    series_id = validate_identifier(message.get("seriesId"), "seriesId")
+                except ValueError as e:
+                    await websocket.send_json(
+                        {"type": "error", "error": str(e)}
+                    )
+                    continue
 
                 result = await datafeed.get_initial_data(
                     chart_id=chart_id,
-                    pane_id=pane_id,
+                    pane_id=pane_id if pane_id else None,
                     series_id=series_id,
                 )
 
