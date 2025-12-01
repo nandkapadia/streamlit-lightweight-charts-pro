@@ -213,7 +213,8 @@ class TestAreaDataSerialization:
 
     def test_to_dict_with_whitespace_colors(self):
         """Test AreaData to_dict with whitespace-only color strings."""
-        # Whitespace-only strings are stripped to empty, then converted to None by centralized validation
+        # Whitespace-only strings are stripped to empty, then converted
+        # to None by centralized validation
         data = AreaData(
             time=1640995200,
             value=100,

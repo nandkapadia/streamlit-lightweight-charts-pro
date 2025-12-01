@@ -4,7 +4,7 @@ This module handles session state persistence for series configurations,
 allowing chart state to be maintained across Streamlit reruns.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 import streamlit as st
 from lightweight_charts_core.logging_config import get_logger
@@ -29,7 +29,7 @@ class SessionStateManager:
         """Initialize the SessionStateManager."""
         self.configs_applied = False
 
-    def save_series_configs(self, key: str, configs: Dict[str, Any]) -> None:
+    def save_series_configs(self, key: str, configs: dict[str, Any]) -> None:
         """Save series configurations to Streamlit session state.
 
         Args:
@@ -42,7 +42,7 @@ class SessionStateManager:
         session_key = f"_chart_series_configs_{key}"
         st.session_state[session_key] = configs
 
-    def load_series_configs(self, key: str) -> Dict[str, Any]:
+    def load_series_configs(self, key: str) -> dict[str, Any]:
         """Load series configurations from Streamlit session state.
 
         Args:
@@ -62,7 +62,7 @@ class SessionStateManager:
         key: str,
         series_index: int = 0,
         pane_id: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get stored configuration for a specific series.
 
         Args:
@@ -80,8 +80,8 @@ class SessionStateManager:
 
     def apply_stored_configs_to_series(
         self,
-        stored_configs: Dict[str, Any],
-        series_list: List[Any],
+        stored_configs: dict[str, Any],
+        series_list: list[Any],
     ) -> None:
         """Apply stored configurations to series objects.
 
@@ -163,7 +163,7 @@ class SessionStateManager:
                         logger.debug("Applying series config to %s: %s", series_id, series_config)
                         series.update(series_config)
 
-                except (ValueError, TypeError, AttributeError, KeyError) as e:
+                except (ValueError, TypeError, AttributeError, KeyError):
                     logger.exception("Failed to apply config to series %s", series_id)
 
         # Mark configs as applied for this render cycle

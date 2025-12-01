@@ -11,7 +11,8 @@ All data classes are imported from lightweight_charts_core package.
 from lightweight_charts_core.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from lightweight_charts_core.data import (  # Annotations; Base data classes; Markers; Tooltips; Trade
+# Annotations; Base data classes; Markers; Tooltips; Trade
+from lightweight_charts_core.data import (
     Annotation,
     AnnotationLayer,
     AnnotationManager,

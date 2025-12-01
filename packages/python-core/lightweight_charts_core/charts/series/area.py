@@ -165,7 +165,8 @@ class AreaSeries(Series):
                 Defaults to 0.
 
         Raises:
-            ValueError: If data is not a valid type (list of AreaData objects, DataFrame, or Series).
+            ValueError: If data is not a valid type (list of AreaData objects,
+                DataFrame, or Series).
             ValueError: If DataFrame/Series is provided without column_mapping.
             ValueError: If all items in data list are not instances of AreaData or its subclasses.
 

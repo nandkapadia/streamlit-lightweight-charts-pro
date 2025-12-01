@@ -62,7 +62,7 @@ import { IChartApi } from 'lightweight-charts';
 import { ChartCoordinateService } from './ChartCoordinateService';
 import { LayoutSpacing } from '../primitives/PrimitiveDefaults';
 import { KeyedSingletonManager, createInstanceKey } from '../utils/KeyedSingletonManager';
-import { cleanupInstance, Disposable } from '../utils/Disposable';
+import { cleanupInstance } from '../utils/Disposable';
 
 /**
  * CornerLayoutManager - Automatic corner-based widget positioning

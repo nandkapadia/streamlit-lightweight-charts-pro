@@ -7,9 +7,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import { nextTick, defineComponent, h } from 'vue';
+import { nextTick, defineComponent } from 'vue';
 import LightweightChart from '../../src/components/LightweightChart.vue';
-import { createE2EMockFetch, waitForComponent, mockWsServer } from './setup';
+import { createE2EMockFetch } from './setup';
 
 // Sample data for tests
 const sampleCandlestickData = [
@@ -369,7 +369,8 @@ describe('LightweightChart E2E Tests', () => {
 
   describe('WebSocket Integration', () => {
     it('should connect to WebSocket when autoConnect is true', async () => {
-      const wrapper = mount(LightweightChart, {
+      // Mount creates the component instance for WebSocket connection test
+      mount(LightweightChart, {
         props: {
           chartId: 'ws-connect-test',
           wsUrl: 'ws://localhost:8000/ws',

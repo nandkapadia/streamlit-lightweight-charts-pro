@@ -118,8 +118,13 @@ class Options(SerializableMixin, ABC):
         )
         result = options.asdict()
         # Returns: {
-        #     "mainOptions": {"backgroundColor": "#ffffff", "textColor": "#000000", "isVisible": True},
-        #     "nestedDict": {"line": {"color": "#ff0000", "width": 2}, "area": {"color": "#ff0000", "width": 2}}
+        #     "mainOptions": {
+        #         "backgroundColor": "#ffffff", "textColor": "#000000", "isVisible": True
+        #     },
+        #     "nestedDict": {
+        #         "line": {"color": "#ff0000", "width": 2},
+        #         "area": {"color": "#ff0000", "width": 2}
+        #     }
         # }
         ```
 

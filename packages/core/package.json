@@ -61,10 +61,13 @@
     "lightweight-charts": "^5.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.36.0",
     "@types/node": "^24.5.2",
+    "eslint": "^9.36.0",
     "jsdom": "^27.0.0",
     "lightweight-charts": "^5.0.8",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.1",
     "vite": "^7.1.7",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^3.2.4"

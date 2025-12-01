@@ -129,7 +129,6 @@ export function getCachedDOMElementForTesting(
 }
 
 // Debounce function with improved performance
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic debounce requires any for flexibility
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number,
@@ -153,7 +152,6 @@ export function debounce<T extends (...args: any[]) => any>(
 }
 
 // Throttle function for performance-critical operations
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic throttle requires any for flexibility
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
   limit: number
@@ -236,7 +234,6 @@ class LRUCache<K, V> {
  * );
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic memoize requires any for flexibility
 export function memoize<T extends (...args: any[]) => any>(
   func: T,
   resolver?: (...args: Parameters<T>) => string,

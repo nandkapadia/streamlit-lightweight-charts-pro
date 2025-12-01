@@ -1015,7 +1015,9 @@ def create_serializable_mixin(
         Create mixin for minimal payloads::
 
             # Create config that aggressively filters
-            minimal_config = SerializationConfig(skip_none=True, skip_empty_strings=True, skip_empty_dicts=True)
+            minimal_config = SerializationConfig(
+                skip_none=True, skip_empty_strings=True, skip_empty_dicts=True
+            )
 
             MinimalMixin = create_serializable_mixin(minimal_config)
 

@@ -9,7 +9,7 @@ helpers, and mock objects for testing chart functionality.
 # Standard imports
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # Third-party imports
 import numpy as np
@@ -584,7 +584,7 @@ def generate_random_data(
     base_value: float = 100.0,
     volatility: float = 0.1,
     trend: float = 0.0,
-) -> List[LineData]:
+) -> list[LineData]:
     """Generate random time series data for testing.
 
     Creates realistic time series data using a random walk with optional trend.
@@ -627,7 +627,7 @@ def generate_random_data(
     return [LineData(time=ts, value=val) for ts, val in zip(timestamps, values)]
 
 
-def create_test_chart_with_series(series_list: List, options: ChartOptions = None):
+def create_test_chart_with_series(series_list: list, options: ChartOptions = None):
     """Create a test chart with the given series.
 
     Utility function to create charts for testing with specified series
@@ -782,7 +782,7 @@ def chart_options_strategy(draw):
 # =============================================================================
 
 
-def validate_data_integrity(data: List[Any]) -> bool:
+def validate_data_integrity(data: list[Any]) -> bool:
     """Validate data integrity for testing.
 
     Checks that data list contains valid objects with required attributes
@@ -968,7 +968,7 @@ class MockDataManager:
         data: Dictionary storing the mock data.
     """
 
-    def __init__(self, data: Optional[Dict[str, Any]] = None):
+    def __init__(self, data: Optional[dict[str, Any]] = None):
         """Initialize the mock data manager.
 
         Args:
@@ -1017,7 +1017,7 @@ class MockChartRenderer:
         self.render_calls = []
         self.config_calls = []
 
-    def render(self, config: Dict[str, Any]):
+    def render(self, config: dict[str, Any]):
         """Mock render method.
 
         Args:
@@ -1026,7 +1026,7 @@ class MockChartRenderer:
         # Track the render call for test verification
         self.render_calls.append(config)
 
-    def configure(self, options: Dict[str, Any]):
+    def configure(self, options: dict[str, Any]):
         """Mock configure method.
 
         Args:

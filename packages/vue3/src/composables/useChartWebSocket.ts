@@ -12,9 +12,6 @@ import type {
   WebSocketEventHandlers,
   IncomingMessage,
   OutgoingMessage,
-  HistoryResponseMessage,
-  InitialDataResponseMessage,
-  DataUpdateMessage,
 } from '../types';
 
 /**
@@ -265,7 +262,7 @@ export function useChartWebSocket(
   /**
    * Handle WebSocket errors.
    */
-  function handleError(event: Event): void {
+  function handleError(_event: Event): void {
     state.value = 'error';
     const errorMessage = 'WebSocket connection error';
     error.value = errorMessage;

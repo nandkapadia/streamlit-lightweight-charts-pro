@@ -15,7 +15,7 @@ Key Features:
 
 import math
 from dataclasses import dataclass
-from typing import Any, ClassVar, List
+from typing import Any, ClassVar
 
 import pytest
 from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
@@ -38,7 +38,7 @@ class FrontendFieldContract:
     name: str
     type: type
     required: bool = False
-    enum_values: List[Any] = None
+    enum_values: list[Any] = None
     default_value: Any = None
 
 
@@ -46,7 +46,7 @@ class FrontendContracts:
     """Frontend field contracts based on TypeScript interfaces."""
 
     # Legend configuration contract
-    LEGEND_FIELDS: ClassVar[List] = [
+    LEGEND_FIELDS: ClassVar[list] = [
         FrontendFieldContract("visible", bool, default_value=True),
         FrontendFieldContract(
             "position",
@@ -72,7 +72,7 @@ class FrontendContracts:
     ]
 
     # Price scale options contract
-    PRICE_SCALE_FIELDS: ClassVar[List] = [
+    PRICE_SCALE_FIELDS: ClassVar[list] = [
         FrontendFieldContract("visible", bool, default_value=True),
         FrontendFieldContract("autoScale", bool, default_value=True),
         FrontendFieldContract("mode", int, default_value=0),
@@ -90,7 +90,7 @@ class FrontendContracts:
     ]
 
     # Series configuration contract
-    SERIES_FIELDS: ClassVar[List] = [
+    SERIES_FIELDS: ClassVar[list] = [
         FrontendFieldContract(
             "type",
             str,
@@ -122,14 +122,14 @@ class FrontendContracts:
     ]
 
     # Data point contract
-    DATA_POINT_FIELDS: ClassVar[List] = [
+    DATA_POINT_FIELDS: ClassVar[list] = [
         FrontendFieldContract("time", int, required=True),
         FrontendFieldContract("value", float, required=True),
         FrontendFieldContract("color", str),
     ]
 
     # OHLC data point contract
-    OHLC_DATA_POINT_FIELDS: ClassVar[List] = [
+    OHLC_DATA_POINT_FIELDS: ClassVar[list] = [
         FrontendFieldContract("time", int, required=True),
         FrontendFieldContract("open", float, required=True),
         FrontendFieldContract("high", float, required=True),

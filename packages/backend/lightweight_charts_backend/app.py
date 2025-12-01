@@ -99,7 +99,7 @@ def create_app(
                 async with datafeed_service._lock:
                     datafeed_service._charts.pop(test_chart_id, None)
             except Exception as e:
-                errors.append(f"DatafeedService operation failed: {str(e)}")
+                errors.append(f"DatafeedService operation failed: {e!s}")
 
         # Determine overall status
         all_checks_passed = all(checks.values())

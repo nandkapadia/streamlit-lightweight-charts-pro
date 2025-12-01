@@ -6,7 +6,7 @@
  * and error scenarios.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useChartApi } from '../../src/composables/useChartApi';
 
 // Mock server responses matching FastAPI backend

@@ -92,10 +92,12 @@ class TradeData(SerializableMixin):
             This provides maximum flexibility for custom fields.
 
     Note:
-        - Exit time must be after entry time, otherwise ExitTimeAfterEntryTimeError is raised
+        - Exit time must be after entry time, otherwise
+          ExitTimeAfterEntryTimeError is raised
         - Price values are automatically converted to appropriate numeric types
         - Time values are normalized to UTC timestamps for consistent handling
-        - All additional data (quantity, trade_type, notes, etc.) should be provided in additional_data
+        - All additional data (quantity, trade_type, notes, etc.) should be
+          provided in additional_data
         - The id field is required for trade identification
 
     """

@@ -113,7 +113,8 @@ class Series(ABC):  # noqa: B024
         markers (List[MarkerBase]): List of markers to display on this series.
         pane_id (Optional[int]): The pane index this series belongs to for multi-pane charts.
         z_index (int): Z-index for controlling series rendering order.
-        base_line_visible (bool): Whether to show the base line (reference line in indexed/percentage modes).
+        base_line_visible (bool): Whether to show the base line (reference line in
+            indexed/percentage modes).
         base_line_color (str): Color of the base line. Defaults to '#B2B5BE'.
         base_line_width (int): Width of the base line in pixels. Defaults to 1.
         base_line_style (LineStyle): Visual style of the base line. Defaults to LineStyle.SOLID.
@@ -889,20 +890,22 @@ class Series(ABC):  # noqa: B024
 
                 if isinstance(attr_value, LineOptions):
                     line_dict = attr_value.asdict()
-                    # If property ends with _options or is named line_options, send nested as 'lineOptions'
+                    # If property ends with _options or is named line_options,
+                    # send nested as 'lineOptions'
                     if attr_name.endswith("_options") or attr_name == "line_options":
-                        # Send lineOptions nested - let frontend handle flattening via descriptors
-                        # This is cleaner: frontend knows the correct property names (color vs lineColor)
-                        # based on the series type's descriptor apiMapping
+                        # Send lineOptions nested - frontend handles flattening
+                        # via descriptors. Frontend knows correct property names
+                        # (color vs lineColor) based on series type's apiMapping
                         options["lineOptions"] = line_dict
                     else:
-                        # Flatten with property name as prefix (e.g., upper_line -> upperLine*)
-                        # Convert the property name to camelCase for the prefix
+                        # Flatten with property name as prefix
+                        # e.g., upper_line -> upperLine*
                         prefix = snake_to_camel(attr_name)
                         for line_key, line_value in line_dict.items():
-                            # Capitalize first letter of line property and append to prefix
-                            # Special handling: if line_key starts with 'line' and prefix ends with 'Line',
-                            # don't duplicate 'Line' (e.g., upperLine + lineWidth -> upperLineWidth, not upperLineLineWidth)
+                            # Capitalize first letter of line property and append
+                            # Special handling: if line_key starts with 'line' and
+                            # prefix ends with 'Line', don't duplicate 'Line'
+                            # e.g., upperLine + lineWidth -> upperLineWidth
                             if line_key.startswith("line") and prefix.endswith("Line"):
                                 # Remove 'line' prefix from the key before appending
                                 # lineWidth -> Width, lineStyle -> Style

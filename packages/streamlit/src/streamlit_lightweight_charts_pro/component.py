@@ -72,7 +72,7 @@ Raises:
 
 # Standard Imports
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 # Third Party Imports
 import streamlit.components.v1 as components
@@ -161,7 +161,7 @@ def get_component_func() -> Optional[Callable[..., Any]]:
     return _component_func
 
 
-def debug_component_status() -> Dict[str, Any]:
+def debug_component_status() -> dict[str, Any]:
     """Debug function to check component initialization status.
 
     This utility function provides comprehensive information about the
@@ -211,7 +211,7 @@ def debug_component_status() -> Dict[str, Any]:
     """
     # Initialize status dictionary with basic component information
     # This will be populated with detailed information below
-    status: Dict[str, Any] = {
+    status: dict[str, Any] = {
         # Check if component function was successfully created
         "component_initialized": _component_func is not None,
         # Current mode: True = production, False = development
@@ -339,7 +339,7 @@ def reinitialize_component() -> bool:
                 "streamlit_lightweight_charts_pro",
                 path=str(frontend_dir),
             )
-        except (OSError, ValueError, RuntimeError) as e:
+        except (OSError, ValueError, RuntimeError):
             # Log the exception with full traceback for debugging
             logger.exception("Failed to reinitialize component")
             # Return False to indicate reinitialization failed
@@ -358,7 +358,7 @@ def reinitialize_component() -> bool:
             "streamlit_lightweight_charts_pro",
             url="http://localhost:3001",
         )
-    except (OSError, ValueError, RuntimeError) as e:
+    except (OSError, ValueError, RuntimeError):
         # Log the exception with full traceback for debugging
         logger.exception("Failed to reinitialize development component")
         # Return False to indicate reinitialization failed
@@ -461,7 +461,7 @@ def _initialize_component() -> None:
                 # Set to None to indicate initialization failed
                 _component_func = None
 
-            except (OSError, ValueError, RuntimeError) as e:
+            except (OSError, ValueError, RuntimeError):
                 # Catch any other unexpected errors during initialization
                 # This could include:
                 # - File permission errors
@@ -506,7 +506,7 @@ def _initialize_component() -> None:
             # Set to None to indicate initialization failed
             _component_func = None
 
-        except (OSError, ValueError, RuntimeError) as e:
+        except (OSError, ValueError, RuntimeError):
             # Catch any other unexpected errors during initialization
             # In dev mode, this often means the dev server isn't running
             logger.exception("Could not load development component")

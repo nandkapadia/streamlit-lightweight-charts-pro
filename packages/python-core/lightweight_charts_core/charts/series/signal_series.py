@@ -34,8 +34,10 @@ class SignalSeries(Series):
     - Ternary (0, 1, negative): Uses all three colors including alert_color
 
     Attributes:
-        neutral_color: Background color for signal value=0 (default: "rgba(128, 128, 128, 0.1)")
-        signal_color: Background color for signal value>0 (positive, default: "rgba(76, 175, 80, 0.2)")
+        neutral_color: Background color for signal value=0
+            (default: "rgba(128, 128, 128, 0.1)")
+        signal_color: Background color for signal value>0
+            (positive, default: "rgba(76, 175, 80, 0.2)")
         alert_color: Background color for signal value<0 (negative, optional, default: None)
             Frontend intelligently uses this only when data contains non-boolean values
 
@@ -90,8 +92,10 @@ class SignalSeries(Series):
         Args:
             data: List of SignalData objects, DataFrame, or Series.
             column_mapping: Optional column mapping for DataFrame input.
-            neutral_color: Background color for value=0. Defaults to "rgba(128, 128, 128, 0.1)".
-            signal_color: Background color for value>0 (positive). Defaults to "rgba(76, 175, 80, 0.2)".
+            neutral_color: Background color for value=0.
+                Defaults to "rgba(128, 128, 128, 0.1)".
+            signal_color: Background color for value>0 (positive).
+                Defaults to "rgba(76, 175, 80, 0.2)".
             alert_color: Background color for value<0 (negative). Defaults to None.
                 Frontend intelligently uses this only when needed based on data values.
             visible: Whether the signal series should be visible. Defaults to True.

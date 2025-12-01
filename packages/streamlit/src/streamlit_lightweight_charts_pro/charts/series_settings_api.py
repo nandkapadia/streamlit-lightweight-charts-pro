@@ -13,7 +13,7 @@ compatibility with the series configuration system.
 """
 
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import streamlit as st
 from lightweight_charts_core.charts.series import Series
@@ -47,7 +47,7 @@ class SeriesSettingsAPI:
                 "last_update": time.time(),
             }
 
-    def _get_chart_state(self) -> Dict[str, Any]:
+    def _get_chart_state(self) -> dict[str, Any]:
         """Get the current chart state from session."""
         # Initialize state if it doesn't exist
         if self._session_key not in st.session_state:
@@ -117,7 +117,7 @@ class SeriesSettingsAPI:
 
         self._update_last_modified()
 
-    def get_pane_state(self, pane_id: int) -> Dict[str, Any]:
+    def get_pane_state(self, pane_id: int) -> dict[str, Any]:
         """Get current state for a specific pane.
 
         Args:
@@ -149,7 +149,7 @@ class SeriesSettingsAPI:
         self,
         pane_id: int,
         series_id: str,
-        config_patch: Dict[str, Any],
+        config_patch: dict[str, Any],
     ) -> bool:
         """Update series settings with a configuration patch.
 
@@ -239,7 +239,7 @@ class SeriesSettingsAPI:
         self,
         pane_id: int,
         series_id: str,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[dict[str, Any]]:
         """Reset a series to its default configuration.
 
         Args:
@@ -280,7 +280,7 @@ class SeriesSettingsAPI:
 
         return None
 
-    def _get_series_defaults(self, series_instance: Series) -> Dict[str, Any]:
+    def _get_series_defaults(self, series_instance: Series) -> dict[str, Any]:
         """Get default configuration for a series type.
 
         Args:
@@ -292,7 +292,7 @@ class SeriesSettingsAPI:
         series_type = series_instance.__class__.__name__.lower()
 
         # Common defaults for all series types
-        defaults: Dict[str, Any] = {
+        defaults: dict[str, Any] = {
             "visible": True,
             "markers": False,
             "last_value_visible": True,
@@ -349,7 +349,7 @@ class SeriesSettingsAPI:
 
     def update_multiple_settings(
         self,
-        patches: List[Dict[str, Any]],
+        patches: list[dict[str, Any]],
     ) -> bool:
         """Update multiple series settings in a batch operation.
 
@@ -376,7 +376,7 @@ class SeriesSettingsAPI:
         else:
             return success
 
-    def get_all_series_info(self, pane_id: int) -> List[Dict[str, Any]]:
+    def get_all_series_info(self, pane_id: int) -> list[dict[str, Any]]:
         """Get information about all series in a pane.
 
         Args:
@@ -432,7 +432,7 @@ def create_series_settings_api(chart_id: str = "default") -> SeriesSettingsAPI:
 
 
 # Global API instances cache to avoid recreating for the same chart
-_api_instances: Dict[str, SeriesSettingsAPI] = {}
+_api_instances: dict[str, SeriesSettingsAPI] = {}
 
 
 def get_series_settings_api(chart_id: str = "default") -> SeriesSettingsAPI:

@@ -79,7 +79,10 @@ Example Usage:
 
         # Complex nested chart configuration
         python_config = {
-            "chart_options": {"time_scale": {"visible": True}, "price_scale": {"auto_scale": False}},
+            "chart_options": {
+                "time_scale": {"visible": True},
+                "price_scale": {"auto_scale": False}
+            },
             "series_options": {"line_width": 2},
         }
 

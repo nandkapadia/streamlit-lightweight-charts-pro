@@ -10,7 +10,7 @@ import gc
 import os
 import time
 from datetime import datetime
-from typing import ClassVar, Dict, List, Tuple
+from typing import ClassVar
 
 import numpy as np
 import psutil
@@ -26,7 +26,7 @@ class TestPerformanceBenchmarks:
     """Performance benchmarks for core functionality."""
 
     # Performance targets (in milliseconds)
-    PERFORMANCE_TARGETS: ClassVar[Dict[str, float]] = {
+    PERFORMANCE_TARGETS: ClassVar[dict[str, float]] = {
         "small_dataset": 10.0,  # 1K data points
         "medium_dataset": 50.0,  # 10K data points
         "large_dataset": 200.0,  # 100K data points
@@ -393,7 +393,7 @@ def assert_performance_target(operation_name: str, execution_time: float, target
     ), f"[{operation_name}] Execution time {execution_time:.2f}ms exceeds target {target_ms}ms"
 
 
-def generate_performance_report(test_results: List[Tuple[str, float, float]]):
+def generate_performance_report(test_results: list[tuple[str, float, float]]):
     """Generate a performance test report."""
     print("\n" + "=" * 60)
     print("PERFORMANCE TEST REPORT")

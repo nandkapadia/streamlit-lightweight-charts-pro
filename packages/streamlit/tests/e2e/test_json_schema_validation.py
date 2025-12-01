@@ -14,7 +14,7 @@ Key Features:
 
 import math
 import time
-from typing import Any, ClassVar, Dict
+from typing import Any, ClassVar
 
 import pytest
 from jsonschema import ValidationError, validate
@@ -41,7 +41,7 @@ class FrontendJSONSchemas:
     """
 
     # Base data point schema
-    DATA_POINT_SCHEMA: ClassVar[Dict[str, Any]] = {
+    DATA_POINT_SCHEMA: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "time": {"type": "integer"},
@@ -53,7 +53,7 @@ class FrontendJSONSchemas:
     }
 
     # OHLC data point schema
-    OHLC_DATA_POINT_SCHEMA: ClassVar[Dict[str, Any]] = {
+    OHLC_DATA_POINT_SCHEMA: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "time": {"type": "integer"},
@@ -67,7 +67,7 @@ class FrontendJSONSchemas:
     }
 
     # Line options schema
-    LINE_OPTIONS_SCHEMA: ClassVar[Dict[str, Any]] = {
+    LINE_OPTIONS_SCHEMA: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "color": {"type": "string"},
@@ -88,7 +88,7 @@ class FrontendJSONSchemas:
     }
 
     # Legend configuration schema
-    LEGEND_CONFIG_SCHEMA: ClassVar[Dict[str, Any]] = {
+    LEGEND_CONFIG_SCHEMA: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "visible": {"type": "boolean"},
@@ -117,7 +117,7 @@ class FrontendJSONSchemas:
     }
 
     # Price scale options schema
-    PRICE_SCALE_OPTIONS_SCHEMA: ClassVar[Dict[str, Any]] = {
+    PRICE_SCALE_OPTIONS_SCHEMA: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "visible": {"type": "boolean"},
@@ -143,7 +143,7 @@ class FrontendJSONSchemas:
     }
 
     # Series configuration schema
-    SERIES_CONFIG_SCHEMA: ClassVar[Dict[str, Any]] = {
+    SERIES_CONFIG_SCHEMA: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "type": {
@@ -181,7 +181,7 @@ class FrontendJSONSchemas:
     }
 
     # Chart configuration schema
-    CHART_CONFIG_SCHEMA: ClassVar[Dict[str, Any]] = {
+    CHART_CONFIG_SCHEMA: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "chart": {"type": "object"},
@@ -201,7 +201,7 @@ class FrontendJSONSchemas:
     }
 
     # Component configuration schema (top-level)
-    COMPONENT_CONFIG_SCHEMA: ClassVar[Dict[str, Any]] = {
+    COMPONENT_CONFIG_SCHEMA: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "charts": {"type": "array", "items": CHART_CONFIG_SCHEMA, "minItems": 1},

@@ -80,7 +80,8 @@ class OhlcvData(OhlcData):
 
         # Create OHLCV data point with volume
         data = OhlcvData(
-            time="2024-01-01T00:00:00", open=100.0, high=105.0, low=98.0, close=102.0, volume=1000000
+            time="2024-01-01T00:00:00", open=100.0, high=105.0,
+            low=98.0, close=102.0, volume=1000000
         )
 
         # Serialize for frontend

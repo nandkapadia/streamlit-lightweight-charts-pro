@@ -12,7 +12,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 
 class EnhancedTestRunner:
@@ -114,7 +114,7 @@ class EnhancedTestRunner:
         markers: Optional[str],
         performance: bool,
         property_based: bool,
-    ) -> List[str]:
+    ) -> list[str]:
         """Build the pytest command with all options."""
         cmd = ["python", "-m", "pytest"]
 

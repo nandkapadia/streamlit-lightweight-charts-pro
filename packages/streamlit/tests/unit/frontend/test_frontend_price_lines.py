@@ -23,7 +23,7 @@ class TestFrontendPriceLines:
         """Test that series configuration includes price lines."""
         # Create series with price lines
         data = [LineData(time=1704067200, value=100.0)]
-        line_options = LineOptions(color="#2196f3")
+        LineOptions(color="#2196f3")
         series = LineSeries(data=data)
 
         # Add price line
@@ -47,7 +47,7 @@ class TestFrontendPriceLines:
         """Test that frontend configuration includes price lines from series."""
         # Create series with price lines
         data = [LineData(time=1704067200, value=100.0)]
-        line_options = LineOptions(color="#2196f3")
+        LineOptions(color="#2196f3")
         series = LineSeries(data=data)
 
         # Add multiple price lines
@@ -82,7 +82,7 @@ class TestFrontendPriceLines:
         """Test that multiple series can have their own price lines."""
         # Create first series with price lines
         data1 = [LineData(time=1704067200, value=100.0)]
-        line_options1 = LineOptions(color="#2196f3")
+        LineOptions(color="#2196f3")
         series1 = LineSeries(data=data1)
 
         resistance = PriceLineOptions(price=108.0, color="#F44336", title="Resistance 1")
@@ -90,7 +90,7 @@ class TestFrontendPriceLines:
 
         # Create second series with different price lines
         data2 = [LineData(time=1704067200, value=50.0)]
-        line_options2 = LineOptions(color="#FF9800")
+        LineOptions(color="#FF9800")
         series2 = LineSeries(data=data2)
 
         support = PriceLineOptions(price=45.0, color="#4CAF50", title="Support 2")
@@ -118,7 +118,7 @@ class TestFrontendPriceLines:
         """Test that price lines can be properly serialized to JSON."""
         # Create series with price lines
         data = [LineData(time=1704067200, value=100.0)]
-        line_options = LineOptions(color="#2196f3")
+        LineOptions(color="#2196f3")
         series = LineSeries(data=data)
 
         price_line = PriceLineOptions(
@@ -162,7 +162,7 @@ class TestFrontendPriceLines:
         """Test that empty price lines are handled correctly."""
         # Create series without price lines
         data = [LineData(time=1704067200, value=100.0)]
-        line_options = LineOptions(color="#2196f3")
+        LineOptions(color="#2196f3")
         series = LineSeries(data=data)
 
         # Get series configuration
@@ -175,7 +175,7 @@ class TestFrontendPriceLines:
         """Test price lines with all available properties."""
         # Create series with comprehensive price line
         data = [LineData(time=1704067200, value=100.0)]
-        line_options = LineOptions(color="#2196f3")
+        LineOptions(color="#2196f3")
         series = LineSeries(data=data)
 
         price_line = PriceLineOptions(

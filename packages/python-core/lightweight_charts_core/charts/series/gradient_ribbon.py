@@ -178,7 +178,8 @@ class GradientRibbonSeries(RibbonSeries):
         """
         data_dict = super().asdict()
 
-        # Remove inherited fill_color property - gradient ribbon uses gradientStartColor/gradientEndColor instead
+        # Remove inherited fill_color - gradient ribbon uses
+        # gradientStartColor/gradientEndColor instead
         data_dict.get("options", {}).pop("fillColor", None)
 
         if self._normalize_gradients:

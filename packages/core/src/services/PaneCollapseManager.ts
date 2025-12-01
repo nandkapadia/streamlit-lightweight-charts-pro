@@ -47,7 +47,7 @@ import { logger } from '../utils/logger';
 import { KeyedSingletonManager } from '../utils/KeyedSingletonManager';
 import { handleError, ErrorSeverity } from '../utils/errorHandler';
 import { DIMENSIONS } from '../config/positioningConfig';
-import { cleanupInstance, Disposable } from '../utils/Disposable';
+import { cleanupInstance } from '../utils/Disposable';
 
 /**
  * Pane collapse state

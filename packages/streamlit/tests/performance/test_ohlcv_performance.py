@@ -19,7 +19,6 @@ import gc
 import math
 import time
 from datetime import datetime
-from typing import List
 
 import psutil
 import pytest
@@ -36,7 +35,7 @@ class TestOhlcvDataPerformance:
         return int(datetime(2020, 1, 1, 9, 30).timestamp())  # Market open
 
     @pytest.fixture
-    def small_dataset(self, base_timestamp) -> List[OhlcvData]:
+    def small_dataset(self, base_timestamp) -> list[OhlcvData]:
         """Small dataset: 1 day of 1-minute data (375 candles)."""
         data = []
         for i in range(375):  # 1 trading day
@@ -62,7 +61,7 @@ class TestOhlcvDataPerformance:
         return data
 
     @pytest.fixture
-    def medium_dataset(self, base_timestamp) -> List[OhlcvData]:
+    def medium_dataset(self, base_timestamp) -> list[OhlcvData]:
         """Medium dataset: 1 month of 1-minute data (~7,500 candles)."""
         data = []
         for day in range(20):  # ~20 trading days
@@ -89,7 +88,7 @@ class TestOhlcvDataPerformance:
         return data
 
     @pytest.fixture
-    def large_dataset(self, base_timestamp) -> List[OhlcvData]:
+    def large_dataset(self, base_timestamp) -> list[OhlcvData]:
         """Large dataset: 1 year of 1-minute data (~94,000 candles)."""
         data = []
         for day in range(251):  # 251 trading days per year
@@ -116,7 +115,7 @@ class TestOhlcvDataPerformance:
         return data
 
     @pytest.fixture
-    def very_large_dataset(self, base_timestamp) -> List[OhlcvData]:
+    def very_large_dataset(self, base_timestamp) -> list[OhlcvData]:
         """Very large dataset: 9 years of 1-minute data (~850,000 candles)."""
         data = []
         for year in range(9):  # 9 years

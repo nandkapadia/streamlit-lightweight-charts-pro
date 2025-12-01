@@ -7,13 +7,10 @@ of chart components in Streamlit.
 import html
 import json
 from datetime import datetime
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import streamlit.components.v1 as components
 from lightweight_charts_core.logging_config import get_logger
-
-if TYPE_CHECKING:
-    from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 
 from streamlit_lightweight_charts_pro.charts.series_settings_api import (
     get_series_settings_api,
@@ -23,6 +20,10 @@ from streamlit_lightweight_charts_pro.component import (
     reinitialize_component,
 )
 from streamlit_lightweight_charts_pro.exceptions import ComponentNotAvailableError
+
+if TYPE_CHECKING:
+    from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
+
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -54,13 +55,13 @@ class ChartRenderer:
         self,
         chart_id: str,
         chart_options: Any,
-        series_configs: List[Dict[str, Any]],
-        annotations_config: Dict[str, Any],
-        trades_config: Optional[Dict[str, Any]],
-        tooltip_configs: Optional[Dict[str, Any]],
+        series_configs: list[dict[str, Any]],
+        annotations_config: dict[str, Any],
+        trades_config: Optional[dict[str, Any]],
+        tooltip_configs: Optional[dict[str, Any]],
         chart_group_id: int,
-        price_scale_config: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        price_scale_config: dict[str, Any],
+    ) -> dict[str, Any]:
         """Generate the complete frontend configuration.
 
         Args:
@@ -87,7 +88,7 @@ class ChartRenderer:
             series_configs,
         )
 
-        chart_obj: Dict[str, Any] = {
+        chart_obj: dict[str, Any] = {
             "chartId": chart_id,
             "chart": chart_config,
             "series": series_configs,
@@ -105,7 +106,7 @@ class ChartRenderer:
         # Add chart group ID
         chart_obj["chartGroupId"] = chart_group_id
 
-        config: Dict[str, Any] = {
+        config: dict[str, Any] = {
             "charts": [chart_obj],
         }
 
@@ -115,7 +116,7 @@ class ChartRenderer:
 
         return config
 
-    def _get_sync_config(self, chart_group_id: int) -> Dict[str, Any]:
+    def _get_sync_config(self, chart_group_id: int) -> dict[str, Any]:
         """Get synchronization configuration from ChartManager.
 
         Args:
@@ -136,7 +137,7 @@ class ChartRenderer:
 
         sync_enabled = self.chart_manager_ref.default_sync.enabled or group_sync_enabled
 
-        sync_config: Dict[str, Any] = {
+        sync_config: dict[str, Any] = {
             "enabled": sync_enabled,
             "crosshair": self.chart_manager_ref.default_sync.crosshair,
             "timeRange": self.chart_manager_ref.default_sync.time_range,
@@ -156,9 +157,9 @@ class ChartRenderer:
 
     def _filter_range_switcher_by_data(
         self,
-        chart_config: Dict[str, Any],
-        series_configs: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        chart_config: dict[str, Any],
+        series_configs: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """Filter range switcher options based on available data timespan.
 
         Args:
@@ -193,7 +194,7 @@ class ChartRenderer:
 
     def _calculate_data_timespan(
         self,
-        series_configs: List[Dict[str, Any]],
+        series_configs: list[dict[str, Any]],
     ) -> Optional[float]:
         """Calculate the timespan of data across all series in seconds.
 
@@ -263,7 +264,7 @@ class ChartRenderer:
             return time_value.timestamp()
         return None
 
-    def _get_range_seconds(self, range_config: Dict[str, Any]) -> Optional[float]:
+    def _get_range_seconds(self, range_config: dict[str, Any]) -> Optional[float]:
         """Extract seconds from range configuration.
 
         Args:
@@ -303,7 +304,7 @@ class ChartRenderer:
 
     def render(
         self,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         key: str,
         chart_options: Any,
     ) -> Any:
@@ -331,7 +332,7 @@ class ChartRenderer:
                 raise ComponentNotAvailableError()
 
         # Build component kwargs
-        kwargs: Dict[str, Any] = {"config": config}
+        kwargs: dict[str, Any] = {"config": config}
 
         # Extract height and width from chart options
         if chart_options:
@@ -479,7 +480,7 @@ class ChartRenderer:
                     else:
                         logger.warning("Skipping invalid change (missing seriesId or config)")
 
-        except (KeyError, ValueError, TypeError, AttributeError) as e:
+        except (KeyError, ValueError, TypeError, AttributeError):
             logger.exception("Error handling series settings response")
 
     def _handle_lazy_loading_request(self, response: dict, key: str) -> None:
@@ -525,5 +526,5 @@ class ChartRenderer:
                     "No history data found for series %s",
                     response.get("seriesId"),
                 )
-        except (ImportError, KeyError, ValueError, TypeError) as e:
+        except (ImportError, KeyError, ValueError, TypeError):
             logger.exception("Error handling lazy loading request")
