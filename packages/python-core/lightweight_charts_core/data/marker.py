@@ -1,4 +1,4 @@
-"""Marker data classes for Streamlit Lightweight Charts Pro.
+"""Marker data classes for Lightweight Charts.
 
 This module provides data classes for chart markers used to highlight
 specific data points or events on charts, following the TradingView Lightweight Charts API.
@@ -20,8 +20,8 @@ Key Features:
 
 Example Usage:
     ```python
-    from streamlit_lightweight_charts_pro.data import Marker, PriceMarker
-    from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
+    from lightweight_charts_core.data import Marker, PriceMarker
+    from lightweight_charts_core.type_definitions.enums import MarkerPosition, MarkerShape
 
     # Create bar marker
     bar_marker = Marker(
@@ -51,12 +51,10 @@ License: MIT
 from dataclasses import dataclass
 from typing import ClassVar, Optional, Union
 
-# Third Party Imports
-# (None in this module)
 # Local Imports
-from streamlit_lightweight_charts_pro.data.data import Data
-from streamlit_lightweight_charts_pro.exceptions import RequiredFieldError
-from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
+from lightweight_charts_core.data.data import Data
+from lightweight_charts_core.exceptions import RequiredFieldError
+from lightweight_charts_core.type_definitions.enums import MarkerPosition, MarkerShape
 
 
 @dataclass
@@ -91,27 +89,6 @@ class MarkerBase(Data):
             required columns for DataFrame conversion operations.
         OPTIONAL_COLUMNS (set): Set containing optional columns for
             DataFrame conversion operations.
-
-    Example:
-        ```python
-        from streamlit_lightweight_charts_pro.data import MarkerBase
-        from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
-
-        # Create base marker
-        marker = MarkerBase(
-            time="2024-01-01T00:00:00",
-            position=MarkerPosition.ABOVE_BAR,
-            shape=MarkerShape.CIRCLE,
-            color="#FF0000",
-            text="Important Event",
-            size=2,
-        )
-        ```
-
-    See also:
-        Data: Base class providing time normalization and serialization.
-        PriceMarker: Marker positioned at exact price levels.
-        BarMarker: Marker positioned relative to bars.
     """
 
     # Define required columns for DataFrame conversion - position and shape are required
@@ -202,28 +179,8 @@ class PriceMarker(MarkerBase):
         OPTIONAL_COLUMNS (set): Set containing optional columns for
             DataFrame conversion operations.
 
-    Example:
-        ```python
-        from streamlit_lightweight_charts_pro.data import PriceMarker
-        from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
-
-        # Create price marker at resistance level
-        price_marker = PriceMarker(
-            time="2024-01-01T00:00:00",
-            position=MarkerPosition.AT_PRICE_TOP,
-            shape=MarkerShape.ARROW_DOWN,
-            price=100.0,
-            color="#FF0000",
-            text="Resistance Level",
-        )
-        ```
-
     Raises:
         RequiredFieldError: If the price field is 0.0 or missing.
-
-    See also:
-        MarkerBase: Base class providing marker functionality.
-        BarMarker: Marker positioned relative to bars.
     """
 
     # Define required columns for DataFrame conversion - price is additional requirement
@@ -305,35 +262,6 @@ class BarMarker(MarkerBase):
             required columns for DataFrame conversion operations.
         OPTIONAL_COLUMNS (set): Set containing optional columns including
             "price" for enhanced positioning flexibility.
-
-    Example:
-        ```python
-        from streamlit_lightweight_charts_pro.data import BarMarker
-        from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
-
-        # Create bar marker above the bar
-        bar_marker = BarMarker(
-            time="2024-01-01T00:00:00",
-            position=MarkerPosition.ABOVE_BAR,
-            shape=MarkerShape.CIRCLE,
-            color="#00FF00",
-            text="Buy Signal",
-        )
-
-        # Create bar marker with exact price positioning
-        price_bar_marker = BarMarker(
-            time="2024-01-01T00:00:00",
-            position=MarkerPosition.ABOVE_BAR,
-            shape=MarkerShape.ARROW_UP,
-            price=105.0,
-            color="#FF0000",
-        )
-        ```
-
-    See also:
-        MarkerBase: Base class providing marker functionality.
-        PriceMarker: Marker positioned at exact price levels.
-        Marker: Backward compatibility alias for BarMarker.
     """
 
     # Define required columns for DataFrame conversion - same as base class

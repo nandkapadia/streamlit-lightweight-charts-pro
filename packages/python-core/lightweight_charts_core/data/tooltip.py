@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
 
-from ..type_definitions.enums import TooltipPosition, TooltipType
+from lightweight_charts_core.type_definitions.enums import TooltipPosition, TooltipType
 
 
 @dataclass
@@ -204,8 +204,8 @@ class TooltipConfig:
             placeholder = f"{{{key}}}"
             if placeholder in result:
                 # Format the value based on field configuration
-                field = next((f for f in self.fields if f.value_key == key), None)
-                formatted_value = field.format_value(value) if field else str(value)
+                field_config = next((f for f in self.fields if f.value_key == key), None)
+                formatted_value = field_config.format_value(value) if field_config else str(value)
                 result = result.replace(placeholder, formatted_value)
 
         # Add date/time if configured
@@ -266,7 +266,7 @@ class TooltipConfig:
             "enabled": self.enabled,
             "type": self.type.value,
             "template": self.template,
-            "fields": [self._field_to_dict(field) for field in self.fields],
+            "fields": [self._field_to_dict(f) for f in self.fields],
             "position": self.position.value,
             "offset": self.offset,
             "style": self._style_to_dict(self.style),
@@ -276,17 +276,17 @@ class TooltipConfig:
             "timeFormat": self.time_format,
         }
 
-    def _field_to_dict(self, field: TooltipField) -> Dict[str, Any]:
+    def _field_to_dict(self, tooltip_field: TooltipField) -> Dict[str, Any]:
         """Convert tooltip field to dictionary."""
         return {
-            "label": field.label,
-            "valueKey": field.value_key,
-            "color": field.color,
-            "fontSize": field.font_size,
-            "fontWeight": field.font_weight,
-            "prefix": field.prefix,
-            "suffix": field.suffix,
-            "precision": field.precision,
+            "label": tooltip_field.label,
+            "valueKey": tooltip_field.value_key,
+            "color": tooltip_field.color,
+            "fontSize": tooltip_field.font_size,
+            "fontWeight": tooltip_field.font_weight,
+            "prefix": tooltip_field.prefix,
+            "suffix": tooltip_field.suffix,
+            "precision": tooltip_field.precision,
         }
 
     def _style_to_dict(self, style: TooltipStyle) -> Dict[str, Any]:
