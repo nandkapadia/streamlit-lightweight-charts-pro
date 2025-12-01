@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ribbon Series Pan Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #chart-container { width: 800px; height: 400px; background: white; }
+    </style>
+</head>
+<body>
+    <div id="chart-container"></div>
+    <script>
+function runTestCase() {
+    const line1Data = [];
+    const line2Data = [];
+    const line3Data = [];
+    const line4Data = [];
+    const startDate = new Date('2024-01-01');
+
+    for (let i = 0; i < 100; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        const base = 100 + i * 0.3 + Math.sin(i / 10) * 15;
+        const ribbon1 = base + 15;
+        const ribbon2 = base + 5;
+        const ribbon3 = base - 5;
+        const ribbon4 = base - 15;
+
+        line1Data.push({ time: dateStr, value: parseFloat(ribbon1.toFixed(2)) });
+        line2Data.push({ time: dateStr, value: parseFloat(ribbon2.toFixed(2)) });
+        line3Data.push({ time: dateStr, value: parseFloat(ribbon3.toFixed(2)) });
+        line4Data.push({ time: dateStr, value: parseFloat(ribbon4.toFixed(2)) });
+    }
+
+    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+        timeScale: { rightOffset: 10, barSpacing: 8 },
+    });
+
+    // Top ribbon line
+    const line1Series = chart.addSeries(LightweightCharts.LineSeries);
+    line1Series.applyOptions({ color: '#E91E63', lineWidth: 2 });
+    line1Series.setData(line1Data);
+
+    // Second line
+    const line2Series = chart.addSeries(LightweightCharts.LineSeries);
+    line2Series.applyOptions({ color: '#9C27B0', lineWidth: 2 });
+    line2Series.setData(line2Data);
+
+    // Third line
+    const line3Series = chart.addSeries(LightweightCharts.LineSeries);
+    line3Series.applyOptions({ color: '#3F51B5', lineWidth: 2 });
+    line3Series.setData(line3Data);
+
+    // Bottom ribbon line
+    const line4Series = chart.addSeries(LightweightCharts.LineSeries);
+    line4Series.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    line4Series.setData(line4Data);
+
+    // Fill between lines (creating ribbon effect)
+    const fill1Series = chart.addSeries(LightweightCharts.AreaSeries);
+    fill1Series.applyOptions({
+        topColor: 'rgba(233, 30, 99, 0.3)',
+        bottomColor: 'rgba(233, 30, 99, 0.1)',
+        lineColor: 'transparent',
+        lineWidth: 0,
+    });
+    fill1Series.setData(line1Data);
+
+    const fill2Series = chart.addSeries(LightweightCharts.AreaSeries);
+    fill2Series.applyOptions({
+        topColor: 'rgba(156, 39, 176, 0.3)',
+        bottomColor: 'rgba(156, 39, 176, 0.1)',
+        lineColor: 'transparent',
+        lineWidth: 0,
+    });
+    fill2Series.setData(line2Data);
+
+    chart.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>

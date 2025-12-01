@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Button Panel Interaction Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #container {
+            width: 800px;
+            background: white;
+        }
+        .chart-pane {
+            width: 100%;
+            height: 250px;
+            position: relative;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            transition: height 0.3s ease;
+        }
+        .chart-pane.collapsed {
+            height: 0;
+            overflow: hidden;
+            margin: 0;
+            border: none;
+        }
+        .chart { width: 100%; height: 100%; }
+        .button-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 10;
+        }
+        .panel-button {
+            padding: 4px 10px;
+            border: 1px solid #666;
+            background: white;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        .panel-button:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div class="chart-pane" id="pane-1">
+            <div id="chart1" class="chart"></div>
+            <div class="button-panel">
+                <button class="panel-button" data-testid="collapse-pane-1">Collapse</button>
+            </div>
+        </div>
+        <div class="chart-pane" id="pane-2">
+            <div id="chart2" class="chart"></div>
+            <div class="button-panel">
+                <button class="panel-button" data-testid="collapse-pane-2">Collapse</button>
+            </div>
+        </div>
+    </div>
+    <script>
+function runTestCase() {
+    const data = [];
+    const startDate = new Date('2024-01-01');
+
+    for (let i = 0; i < 100; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const price = 100 + i * 0.3 + Math.sin(i / 10) * 15;
+
+        data.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+    }
+
+    // Chart 1
+    const chart1 = LightweightCharts.createChart(document.getElementById('chart1'), {
+        width: 800,
+        height: 250,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    const series1 = chart1.addSeries(LightweightCharts.LineSeries);
+    series1.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    series1.setData(data);
+
+    // Chart 2
+    const chart2 = LightweightCharts.createChart(document.getElementById('chart2'), {
+        width: 800,
+        height: 250,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    const series2 = chart2.addSeries(LightweightCharts.LineSeries);
+    series2.applyOptions({ color: '#9C27B0', lineWidth: 2 });
+    series2.setData(data);
+
+    // Collapse functionality
+    document.querySelector('[data-testid="collapse-pane-1"]').addEventListener('click', () => {
+        document.getElementById('pane-1').classList.toggle('collapsed');
+    });
+
+    document.querySelector('[data-testid="collapse-pane-2"]').addEventListener('click', () => {
+        document.getElementById('pane-2').classList.toggle('collapsed');
+    });
+
+    chart1.timeScale().fitContent();
+    chart2.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>

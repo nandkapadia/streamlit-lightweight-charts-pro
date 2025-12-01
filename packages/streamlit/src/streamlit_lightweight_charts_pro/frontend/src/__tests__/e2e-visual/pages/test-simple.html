@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+<div id="container" style="width: 800px; height: 400px;"></div>
+<script>
+function runTestCase(container) {
+    const chart = LightweightCharts.createChart(container, {
+        width: 800,
+        height: 400
+    });
+
+    const lineSeries = chart.addSeries(LightweightCharts.LineSeries);
+    lineSeries.applyOptions({ color: '#2196F3' });
+
+    lineSeries.setData([
+        { time: '2024-01-01', value: 100 },
+        { time: '2024-01-02', value: 105 },
+        { time: '2024-01-03', value: 103 },
+    ]);
+
+    chart.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+</script>
+</body>
+</html>

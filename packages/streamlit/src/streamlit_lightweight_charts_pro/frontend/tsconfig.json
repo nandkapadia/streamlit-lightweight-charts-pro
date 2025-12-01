@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "dom", "dom.iterable"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "types": ["vitest/globals", "node"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}

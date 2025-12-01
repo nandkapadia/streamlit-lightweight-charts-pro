@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chart with Legend - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        #container { width: 840px; margin: 20px; }
+        #legend {
+            display: flex;
+            gap: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .legend-item:hover { background: #e0e0e0; }
+        .legend-item.hidden { opacity: 0.5; }
+        .legend-color {
+            width: 16px;
+            height: 3px;
+            border-radius: 2px;
+        }
+        .legend-label { font-size: 14px; font-weight: 500; }
+        .legend-value { font-size: 14px; color: #666; margin-left: 4px; }
+        #chart { width: 800px; height: 400px; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="legend">
+            <div class="legend-item" data-series-id="series-1">
+                <div class="legend-color" style="background: #2196F3;"></div>
+                <span class="legend-label">Price</span>
+                <span class="legend-value" data-testid="legend-value-1">$0.00</span>
+            </div>
+            <div class="legend-item" data-series-id="series-2">
+                <div class="legend-color" style="background: #4CAF50;"></div>
+                <span class="legend-label">EMA 20</span>
+                <span class="legend-value" data-testid="legend-value-2">$0.00</span>
+            </div>
+            <div class="legend-item" data-series-id="series-3">
+                <div class="legend-color" style="background: #FF9800;"></div>
+                <span class="legend-label">EMA 50</span>
+                <span class="legend-value" data-testid="legend-value-3">$0.00</span>
+            </div>
+        </div>
+        <div id="chart"></div>
+    </div>
+
+    <script>
+        function runTestCase(container) {
+            const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+                width: 800,
+                height: 400,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { color: '#f0f0f0' } },
+                crosshair: { mode: 1 },
+            });
+
+            // Add price series
+            const priceSeries = chart.addSeries(LightweightCharts.LineSeries);
+            priceSeries.applyOptions({ color: '#2196F3', lineWidth: 2 });
+            const priceData = [];
+            const startDate = new Date('2024-01-01');
+            for (let i = 0; i < 50; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                priceData.push({
+                    time: dateStr,
+                    value: parseFloat((100 + i * 0.8 + Math.sin(i / 5) * 15).toFixed(2))
+                });
+            }
+            priceSeries.setData(priceData);
+
+            // Add EMA 20 series
+            const ema20Series = chart.addSeries(LightweightCharts.LineSeries);
+            ema20Series.applyOptions({ color: '#4CAF50', lineWidth: 2 });
+            const ema20Data = [];
+            for (let i = 0; i < 50; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                ema20Data.push({
+                    time: dateStr,
+                    value: parseFloat((100 + i * 0.7 + Math.sin(i / 6) * 10).toFixed(2))
+                });
+            }
+            ema20Series.setData(ema20Data);
+
+            // Add EMA 50 series
+            const ema50Series = chart.addSeries(LightweightCharts.LineSeries);
+            ema50Series.applyOptions({ color: '#FF9800', lineWidth: 2 });
+            const ema50Data = [];
+            for (let i = 0; i < 50; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                ema50Data.push({
+                    time: dateStr,
+                    value: parseFloat((100 + i * 0.6 + Math.sin(i / 7) * 8).toFixed(2))
+                });
+            }
+            ema50Series.setData(ema50Data);
+
+            chart.timeScale().fitContent();
+
+            // Map legend items to series
+            const seriesMap = {
+                'series-1': { series: priceSeries, data: priceData, valueElement: document.querySelector('[data-testid="legend-value-1"]') },
+                'series-2': { series: ema20Series, data: ema20Data, valueElement: document.querySelector('[data-testid="legend-value-2"]') },
+                'series-3': { series: ema50Series, data: ema50Data, valueElement: document.querySelector('[data-testid="legend-value-3"]') },
+            };
+
+            // Legend click handler
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const seriesId = item.getAttribute('data-series-id');
+                    const { series } = seriesMap[seriesId];
+
+                    if (item.classList.contains('hidden')) {
+                        item.classList.remove('hidden');
+                        series.applyOptions({ visible: true });
+                    } else {
+                        item.classList.add('hidden');
+                        series.applyOptions({ visible: false });
+                    }
+                });
+            });
+
+            // Update legend values on crosshair move
+            chart.subscribeCrosshairMove((param) => {
+                if (!param.time) {
+                    Object.values(seriesMap).forEach(({ valueElement, data }) => {
+                        valueElement.textContent = `$${data[data.length - 1].value.toFixed(2)}`;
+                    });
+                    return;
+                }
+
+                Object.entries(seriesMap).forEach(([seriesId, { series, valueElement }]) => {
+                    const price = param.seriesData.get(series);
+                    if (price && price.value !== undefined) {
+                        valueElement.textContent = `$${price.value.toFixed(2)}`;
+                    }
+                });
+            });
+
+            // Initialize legend values
+            Object.values(seriesMap).forEach(({ valueElement, data }) => {
+                valueElement.textContent = `$${data[data.length - 1].value.toFixed(2)}`;
+            });
+        }
+
+        window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+    </script>
+</body>
+</html>

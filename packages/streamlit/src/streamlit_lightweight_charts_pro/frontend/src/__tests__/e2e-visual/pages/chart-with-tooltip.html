@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chart with Tooltip - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        #wrapper { position: relative; width: 800px; margin: 20px; }
+        #container { width: 800px; height: 400px; }
+        #tooltip {
+            position: absolute;
+            display: none;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        #tooltip.visible { display: block; }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <div id="container"></div>
+        <div id="tooltip" data-testid="chart-tooltip">
+            <div id="tooltip-date"></div>
+            <div id="tooltip-price"></div>
+        </div>
+    </div>
+
+    <script>
+function runTestCase(container) {
+            const chart = LightweightCharts.createChart(container, {
+                width: 800,
+                height: 400,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { color: '#f0f0f0' } },
+                crosshair: {
+                    mode: 1, // Normal crosshair
+                    vertLine: { color: '#758696', style: 3, width: 1 },
+                    horzLine: { color: '#758696', style: 3, width: 1 },
+                },
+            });
+
+            const lineSeries = chart.addSeries(LightweightCharts.LineSeries);
+            lineSeries.applyOptions({
+                color: '#2196F3',
+                lineWidth: 2,
+            });
+
+            // Generate deterministic data
+            const data = [];
+            const startDate = new Date('2024-01-01');
+            for (let i = 0; i < 50; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                const value = 100 + i * 0.8 + Math.sin(i / 5) * 15;
+                data.push({
+                    time: dateStr,
+                    value: parseFloat(value.toFixed(2))
+                });
+            }
+            lineSeries.setData(data);
+            chart.timeScale().fitContent();
+
+            // Tooltip logic
+            const tooltip = document.getElementById('tooltip');
+            const tooltipDate = document.getElementById('tooltip-date');
+            const tooltipPrice = document.getElementById('tooltip-price');
+
+            chart.subscribeCrosshairMove((param) => {
+                if (!param.time || !param.point) {
+                    tooltip.classList.remove('visible');
+                    return;
+                }
+
+                const price = param.seriesData.get(lineSeries);
+                if (!price) {
+                    tooltip.classList.remove('visible');
+                    return;
+                }
+
+                tooltipDate.textContent = `Date: ${param.time}`;
+                tooltipPrice.textContent = `Price: $${price.value.toFixed(2)}`;
+
+                const y = param.point.y;
+                const x = param.point.x;
+
+                tooltip.style.left = x + 10 + 'px';
+                tooltip.style.top = y - 50 + 'px';
+                tooltip.classList.add('visible');
+            });
+
+            // Handle mouse leave
+            container.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('visible');
+            });
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+</script>
+</body>
+</html>

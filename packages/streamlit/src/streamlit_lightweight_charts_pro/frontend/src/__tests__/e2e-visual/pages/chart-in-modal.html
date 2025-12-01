@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chart in Modal - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                 background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 1000; }
+        #modal.open { display: block; }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+        .overlay.open { display: block; }
+        button { padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <button data-action="open-modal">Open Chart Modal</button>
+    <div class="overlay" id="overlay"></div>
+    <div id="modal">
+        <h3>Trading Chart</h3>
+        <div id="chart" style="width: 600px; height: 350px; margin-top: 10px;"></div>
+        <button data-action="close-modal" style="margin-top: 10px;">Close</button>
+    </div>
+    <script>
+function runTestCase(container) {
+            const data = [];
+            const startDate = new Date('2024-01-01');
+            for (let i = 0; i < 40; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                data.push({ time: dateStr, value: parseFloat((100 + i*0.6 + Math.sin(i/5)*12).toFixed(2)) });
+            }
+
+            const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+                width: 600, height: 350,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+            });
+            const series = chart.addSeries(LightweightCharts.LineSeries);
+            series.applyOptions({ color: '#2196F3', lineWidth: 2 });
+            series.setData(data);
+            chart.timeScale().fitContent();
+
+            document.querySelector('[data-action="open-modal"]').onclick = () => {
+                document.getElementById('modal').classList.add('open');
+                document.getElementById('overlay').classList.add('open');
+                // Give the modal time to render, then resize chart
+                setTimeout(() => {
+                    chart.resize(600, 350);
+                    chart.timeScale().fitContent();
+                }, 50);
+            };
+            document.querySelector('[data-action="close-modal"]').onclick = () => {
+                document.getElementById('modal').classList.remove('open');
+                document.getElementById('overlay').classList.remove('open');
+            };
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('chart')));
+</script>
+</body>
+</html>

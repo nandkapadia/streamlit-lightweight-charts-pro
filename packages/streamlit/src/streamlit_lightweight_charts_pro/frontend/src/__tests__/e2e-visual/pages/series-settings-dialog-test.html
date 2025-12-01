@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Series Settings Dialog Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        #container {
+            width: 800px;
+            height: 400px;
+            position: relative;
+            background: white;
+        }
+        #chart { width: 100%; height: 100%; }
+
+        /* Series Config Button */
+        .series-config-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            border: 1px solid #666;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            z-index: 10;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .series-config-button:hover { background: #f0f0f0; }
+
+        /* Dialog Overlay */
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        .dialog-overlay.open { display: flex; }
+
+        /* Main Dialog */
+        .series-dialog {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            width: 440px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .dialog-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .dialog-close {
+            border: none;
+            background: transparent;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            color: #666;
+            line-height: 1;
+            border-radius: 4px;
+        }
+        .dialog-close:hover { background: #f5f5f5; }
+
+        /* Tabs */
+        .dialog-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            overflow-x: auto;
+        }
+
+        .dialog-tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: #787b86;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+        }
+
+        .dialog-tab.active {
+            color: #131722;
+            border-bottom-color: #2962ff;
+        }
+
+        .dialog-tab:hover:not(.active) { color: #131722; }
+
+        /* Dialog Content */
+        .dialog-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .settings-section {
+            margin-bottom: 12px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .checkbox-row label {
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        /* Line Row */
+        .line-row, .color-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin: 8px 0;
+            cursor: pointer;
+            background: white;
+        }
+
+        .line-row:hover, .color-row:hover {
+            background: #f8f9fa;
+        }
+
+        .line-preview {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .line-color-swatch {
+            width: 20px;
+            height: 12px;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+        }
+
+        .color-swatch {
+            width: 32px;
+            height: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* Line Editor Dialog */
+        .line-editor {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            min-width: 320px;
+            z-index: 10001;
+        }
+
+        .line-editor.open { display: block; }
+
+        .line-editor-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* Color Picker Dialog */
+        .color-picker {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            min-width: 280px;
+            z-index: 10001;
+        }
+
+        .color-picker.open { display: block; }
+
+        .color-picker-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .color-presets {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .color-preset {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .color-preset:hover {
+            border-color: #2962ff;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 6px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background: white;
+            color: #131722;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-primary {
+            background: #2962ff;
+            color: white;
+            border-color: #2962ff;
+        }
+
+        .btn-primary:hover {
+            background: #1e53e5;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="chart"></div>
+        <button class="series-config-button" data-testid="series-config-button">⚙️</button>
+    </div>
+
+    <!-- Main Series Settings Dialog -->
+    <div class="dialog-overlay" id="overlay" role="dialog">
+        <div class="series-dialog" onclick="event.stopPropagation()">
+            <div class="dialog-header">
+                <span class="dialog-title">Settings</span>
+                <button class="dialog-close" data-testid="dialog-close">×</button>
+            </div>
+
+            <div class="dialog-tabs">
+                <button class="dialog-tab active" data-series="line">Line Series</button>
+                <button class="dialog-tab" data-series="area">Area Series</button>
+                <button class="dialog-tab" data-series="ribbon">Ribbon Series</button>
+            </div>
+
+            <div class="dialog-content">
+                <!-- Common Settings -->
+                <div class="settings-section">
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="visible" checked>
+                        <label for="visible">Visible</label>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="lastValueVisible" checked>
+                        <label for="lastValueVisible">Last Value Visible</label>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="priceLineVisible" checked>
+                        <label for="priceLineVisible">Price Line</label>
+                    </div>
+                </div>
+
+                <!-- Line Series Settings -->
+                <div id="line-settings" class="series-specific">
+                    <div class="line-row" role="button" data-line-type="mainLine">
+                        <span>Main Line</span>
+                        <div class="line-preview">
+                            <div class="line-color-swatch" style="background: #2196F3;"></div>
+                            <span class="line-style-indicator">solid • 2px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Area Series Settings -->
+                <div id="area-settings" class="series-specific hidden">
+                    <div class="line-row" role="button" data-line-type="mainLine">
+                        <span>Main Line</span>
+                        <div class="line-preview">
+                            <div class="line-color-swatch" style="background: #2196F3;"></div>
+                            <span class="line-style-indicator">solid • 2px</span>
+                        </div>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="lineVisible" checked>
+                        <label for="lineVisible">Line Visible</label>
+                    </div>
+                    <div class="color-row" role="button" data-color-type="topColor">
+                        <span>Top Color</span>
+                        <div class="color-swatch" style="background: rgba(41, 98, 255, 0.5);"></div>
+                    </div>
+                    <div class="color-row" role="button" data-color-type="bottomColor">
+                        <span>Bottom Color</span>
+                        <div class="color-swatch" style="background: rgba(41, 98, 255, 0.1);"></div>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="invertFilledArea">
+                        <label for="invertFilledArea">Invert Filled Area</label>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="relativeGradient">
+                        <label for="relativeGradient">Relative Gradient</label>
+                    </div>
+                </div>
+
+                <!-- Ribbon Series Settings -->
+                <div id="ribbon-settings" class="series-specific hidden">
+                    <div class="line-row" role="button" data-line-type="upperLine">
+                        <span>Upper Line</span>
+                        <div class="line-preview">
+                            <div class="line-color-swatch" style="background: #4CAF50;"></div>
+                            <span class="line-style-indicator">solid • 2px</span>
+                        </div>
+                    </div>
+                    <div class="line-row" role="button" data-line-type="lowerLine">
+                        <span>Lower Line</span>
+                        <div class="line-preview">
+                            <div class="line-color-swatch" style="background: #F44336;"></div>
+                            <span class="line-style-indicator">solid • 2px</span>
+                        </div>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="fillVisible" checked>
+                        <label for="fillVisible">Fill Visible</label>
+                    </div>
+                    <div id="fillColorRow" class="color-row" role="button" data-color-type="fillColor">
+                        <span>Fill Color</span>
+                        <div class="color-swatch" style="background: rgba(33, 150, 243, 0.2);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Line Editor Sub-Dialog -->
+    <div class="line-editor" id="lineEditor" data-testid="line-editor">
+        <div class="line-editor-header">Line Editor</div>
+        <div class="form-group">
+            <label class="form-label">Color</label>
+            <input type="color" class="form-input" id="lineColor" data-testid="line-color-input" value="#2196F3">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Style</label>
+            <select class="form-select" id="lineStyle" data-testid="line-style-select">
+                <option value="solid">Solid</option>
+                <option value="dashed">Dashed</option>
+                <option value="dotted">Dotted</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Width</label>
+            <input type="number" class="form-input" id="lineWidth" data-testid="line-width-input" value="2" min="1" max="10">
+        </div>
+        <div class="button-group">
+            <button class="btn" id="cancelLine">Cancel Line</button>
+            <button class="btn btn-primary" id="saveLine">Save Line</button>
+        </div>
+    </div>
+
+    <!-- Color Picker Sub-Dialog -->
+    <div class="color-picker" id="colorPicker" data-testid="color-picker">
+        <div class="color-picker-header">Color Picker</div>
+        <div class="color-presets">
+            <div class="color-preset" style="background: #2196F3;" data-color="#2196F3"></div>
+            <div class="color-preset" style="background: #4CAF50;" data-color="#4CAF50"></div>
+            <div class="color-preset" style="background: #F44336;" data-color="#F44336"></div>
+            <div class="color-preset" style="background: #FF9800;" data-color="#FF9800"></div>
+            <div class="color-preset" style="background: #9C27B0;" data-color="#9C27B0"></div>
+            <div class="color-preset" style="background: #00BCD4;" data-color="#00BCD4"></div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Custom Color</label>
+            <input type="color" class="form-input" id="customColor" value="#2196F3">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Opacity (%)</label>
+            <input type="number" class="form-input" id="colorOpacity" value="75" min="0" max="100">
+        </div>
+        <div class="button-group">
+            <button class="btn" id="cancelColor">Cancel Color</button>
+            <button class="btn btn-primary" id="saveColor">Save Color</button>
+        </div>
+    </div>
+
+    <script>
+let chart, lineSeries, areaSeries, ribbonSeries;
+let currentSeriesType = 'line';
+let currentLineType = null;
+let currentColorType = null;
+
+function runTestCase() {
+    // Create sample data
+    const data = [];
+    const startDate = new Date('2024-01-01');
+    for (let i = 0; i < 60; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const price = 100 + i * 0.5 + Math.sin(i / 8) * 15;
+        data.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+    }
+
+    // Create chart
+    chart = LightweightCharts.createChart(document.getElementById('chart'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    // Add line series
+    lineSeries = chart.addSeries(LightweightCharts.LineSeries);
+    lineSeries.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    lineSeries.setData(data);
+
+    chart.timeScale().fitContent();
+
+    setupDialogHandlers();
+}
+
+function setupDialogHandlers() {
+    const configButton = document.querySelector('[data-testid="series-config-button"]');
+    const overlay = document.getElementById('overlay');
+    const closeButton = document.querySelector('[data-testid="dialog-close"]');
+    const lineEditor = document.getElementById('lineEditor');
+    const colorPicker = document.getElementById('colorPicker');
+
+    // Open main dialog
+    configButton.onclick = () => {
+        overlay.classList.add('open');
+    };
+
+    // Close main dialog
+    closeButton.onclick = () => {
+        overlay.classList.remove('open');
+    };
+
+    overlay.onclick = (e) => {
+        if (e.target === overlay && !lineEditor.classList.contains('open') && !colorPicker.classList.contains('open')) {
+            overlay.classList.remove('open');
+        }
+    };
+
+    // Tab switching
+    document.querySelectorAll('.dialog-tab').forEach(tab => {
+        tab.onclick = () => {
+            // Update active tab
+            document.querySelectorAll('.dialog-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Show corresponding settings
+            currentSeriesType = tab.dataset.series;
+            document.querySelectorAll('.series-specific').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`${currentSeriesType}-settings`).classList.remove('hidden');
+        };
+    });
+
+    // Line row clicks - open line editor
+    document.querySelectorAll('.line-row').forEach(row => {
+        row.onclick = () => {
+            currentLineType = row.dataset.lineType;
+            lineEditor.classList.add('open');
+        };
+    });
+
+    // Color row clicks - open color picker
+    document.querySelectorAll('.color-row').forEach(row => {
+        row.onclick = () => {
+            currentColorType = row.dataset.colorType;
+            colorPicker.classList.add('open');
+        };
+    });
+
+    // Line editor handlers
+    document.getElementById('saveLine').onclick = () => {
+        const color = document.getElementById('lineColor').value;
+        const style = document.getElementById('lineStyle').value;
+        const width = document.getElementById('lineWidth').value;
+
+        // Update the UI to show new values
+        const lineRow = document.querySelector(`[data-line-type="${currentLineType}"]`);
+        if (lineRow) {
+            lineRow.querySelector('.line-color-swatch').style.background = color;
+            lineRow.querySelector('.line-style-indicator').textContent = `${style} • ${width}px`;
+        }
+
+        lineEditor.classList.remove('open');
+    };
+
+    document.getElementById('cancelLine').onclick = () => {
+        lineEditor.classList.remove('open');
+    };
+
+    // Color picker handlers
+    document.getElementById('saveColor').onclick = () => {
+        const color = document.getElementById('customColor').value;
+        const opacity = document.getElementById('colorOpacity').value / 100;
+
+        // Update the UI
+        const colorRow = document.querySelector(`[data-color-type="${currentColorType}"]`);
+        if (colorRow) {
+            colorRow.querySelector('.color-swatch').style.background = color;
+        }
+
+        colorPicker.classList.remove('open');
+    };
+
+    document.getElementById('cancelColor').onclick = () => {
+        colorPicker.classList.remove('open');
+    };
+
+    // Color preset clicks
+    document.querySelectorAll('.color-preset').forEach(preset => {
+        preset.onclick = () => {
+            const color = preset.dataset.color;
+            document.getElementById('customColor').value = color;
+        };
+    });
+
+    // Fill visible toggle - show/hide fill color row
+    const fillVisibleCheckbox = document.getElementById('fillVisible');
+    const fillColorRow = document.getElementById('fillColorRow');
+    if (fillVisibleCheckbox && fillColorRow) {
+        fillVisibleCheckbox.onchange = () => {
+            if (fillVisibleCheckbox.checked) {
+                fillColorRow.classList.remove('hidden');
+            } else {
+                fillColorRow.classList.add('hidden');
+            }
+        };
+    }
+
+    // Keyboard handling - ESC key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (lineEditor.classList.contains('open')) {
+                lineEditor.classList.remove('open');
+                e.stopPropagation();
+            } else if (colorPicker.classList.contains('open')) {
+                colorPicker.classList.remove('open');
+                e.stopPropagation();
+            } else if (overlay.classList.contains('open')) {
+                overlay.classList.remove('open');
+            }
+        }
+    });
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lightweight-charts-core"
+version = "0.1.0"
+description = "Framework-agnostic Python core library for TradingView Lightweight Charts"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Streamlit Lightweight Charts Contributors"}
+]
+keywords = [
+    "lightweight-charts",
+    "tradingview",
+    "charts",
+    "financial",
+    "trading",
+    "python"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/nandkapadia/streamlit-lightweight-charts-pro"
+Documentation = "https://github.com/nandkapadia/streamlit-lightweight-charts-pro#readme"
+Repository = "https://github.com/nandkapadia/streamlit-lightweight-charts-pro.git"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lightweight_charts_core*"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "D", "UP", "B", "C4", "SIM"]
+ignore = ["D100", "D104"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

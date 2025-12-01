@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Multiple Charts Memory</title>
+<script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+<style>* { margin: 0; padding: 0; } body { padding: 20px; } #charts-grid { display: grid; grid-template-columns: repeat(3, 260px); gap: 10px; } .mini-chart { width: 260px; height: 180px; border: 1px solid #ddd; }</style>
+</head><body><div id="charts-grid"></div>
+<script>
+function runTestCase(container) {
+    const data = [];
+    const startDate = new Date('2024-01-01');
+    for (let i = 0; i < 30; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        data.push({ time: dateStr, value: parseFloat((100 + i + Math.sin(i/5)*10).toFixed(2)) });
+    }
+    const colors = ['#2196F3', '#4CAF50', '#FF9800', '#E91E63', '#9C27B0', '#00BCD4', '#FF5722', '#607D8B', '#8BC34A'];
+    for (let i = 0; i < 9; i++) {
+        const div = document.createElement('div'); div.className = 'mini-chart'; document.getElementById('charts-grid').appendChild(div);
+        const chart = LightweightCharts.createChart(div, { width: 260, height: 180, layout: { background: { color: '#FFFFFF' } } });
+        const series = chart.addSeries(LightweightCharts.LineSeries);
+            series.applyOptions({ color: colors[i] });
+        series.setData(data); chart.timeScale().fitContent();
+    }
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('charts-grid')));
+</script></body></html>
