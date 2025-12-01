@@ -358,6 +358,11 @@ class ChartRenderer:
             session_state_manager: SessionStateManager for config persistence.
         """
         if response and isinstance(response, dict):
+            # Handle lazy loading history requests
+            if response.get("type") == "load_history":
+                self._handle_lazy_loading_request(response, key)
+                return
+
             # Check if we have series config changes from the frontend
             if response.get("type") == "series_config_changes":
                 changes = response.get("changes", [])
@@ -468,3 +473,47 @@ class ChartRenderer:
 
         except Exception:
             logger.exception("Error handling series settings response")
+
+    def _handle_lazy_loading_request(self, response: dict, key: str) -> None:
+        """Handle lazy loading history request from the frontend.
+
+        Args:
+            response: History request data from frontend.
+            key: Component key for session state.
+        """
+        try:
+            from streamlit_lightweight_charts_pro.lazy_loading import (
+                handle_lazy_load_response,
+            )
+
+            # Get history data from lazy loading manager
+            history_data = handle_lazy_load_response(response, key)
+
+            if history_data:
+                message_id = response.get("messageId", "")
+                # Send response back to frontend via custom event
+                components.html(
+                    f"""
+                <script>
+                document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
+                    detail: {{
+                        messageId: '{message_id}',
+                        response: {json.dumps(history_data)}
+                    }}
+                }}));
+                </script>
+                """,
+                    height=0,
+                )
+                logger.debug(
+                    "Sent lazy loading response for series %s with %d points",
+                    history_data.get("seriesId"),
+                    len(history_data.get("data", [])),
+                )
+            else:
+                logger.warning(
+                    "No history data found for series %s",
+                    response.get("seriesId"),
+                )
+        except Exception:
+            logger.exception("Error handling lazy loading request")

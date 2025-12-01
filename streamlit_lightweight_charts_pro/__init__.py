@@ -103,6 +103,15 @@ from lightweight_charts_core.data.annotation import (
 )
 from lightweight_charts_core.data.trade import TradeData
 
+# Import lazy loading support
+from streamlit_lightweight_charts_pro.lazy_loading import (
+    lazy_chart,
+    LazyLoadingManager,
+    get_lazy_loading_manager,
+    CHUNK_SIZE_THRESHOLD,
+    DEFAULT_CHUNK_SIZE,
+)
+
 # Import logging configuration from core
 from lightweight_charts_core.logging_config import get_logger, setup_logging
 from streamlit_lightweight_charts_pro.type_definitions import (
@@ -255,4 +264,10 @@ __all__ = [
     # Logging
     "get_logger",
     "setup_logging",
+    # Lazy loading
+    "lazy_chart",
+    "LazyLoadingManager",
+    "get_lazy_loading_manager",
+    "CHUNK_SIZE_THRESHOLD",
+    "DEFAULT_CHUNK_SIZE",
 ]
