@@ -70,6 +70,8 @@ export interface PendingRectangleBatch {
 export interface ExtendedChartApi extends IChartApi {
   _storageListenerAdded?: boolean;
   _timeRangeStorageListenerAdded?: boolean;
+  _storageHandler?: (e: StorageEvent) => void;
+  _timeRangeStorageHandler?: (e: StorageEvent) => void;
   _isExternalSync?: boolean;
   _isExternalTimeRangeSync?: boolean;
   _externalSyncTimeout?: NodeJS.Timeout;

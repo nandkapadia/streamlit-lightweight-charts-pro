@@ -349,6 +349,29 @@ export function logReact19Performance(options?: { skipEnvCheck?: boolean }): voi
 }
 
 // Auto-log performance report every 30 seconds in development
+// Store interval ID for potential cleanup
+let performanceLogIntervalId: ReturnType<typeof setInterval> | null = null;
+
 if (process.env.NODE_ENV === 'development') {
-  setInterval(logReact19Performance, 30000);
+  performanceLogIntervalId = setInterval(logReact19Performance, 30000);
+}
+
+/**
+ * Stop the automatic performance logging interval.
+ * Call this during application cleanup if needed.
+ */
+export function stopPerformanceLogging(): void {
+  if (performanceLogIntervalId !== null) {
+    clearInterval(performanceLogIntervalId);
+    performanceLogIntervalId = null;
+  }
+}
+
+/**
+ * Start the automatic performance logging interval (development only).
+ */
+export function startPerformanceLogging(): void {
+  if (process.env.NODE_ENV === 'development' && performanceLogIntervalId === null) {
+    performanceLogIntervalId = setInterval(logReact19Performance, 30000);
+  }
 }

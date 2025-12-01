@@ -24,7 +24,7 @@
  * ```
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { IChartApi } from 'lightweight-charts';
 import { ChartConfig } from '../types';
 import { logger } from '../utils/logger';
@@ -84,6 +84,14 @@ export function useChartResize(options: UseChartResizeOptions): UseChartResizeRe
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const debounceTimersRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
+  // Store latest options in ref to avoid stale closures in ResizeObserver callback
+  const optionsRef = useRef({ width, height, debounceMs });
+
+  // Update ref when options change
+  useEffect(() => {
+    optionsRef.current = { width, height, debounceMs };
+  }, [width, height, debounceMs]);
+
   /**
    * Get container dimensions using getBoundingClientRect
    * More accurate than offsetWidth/offsetHeight
@@ -99,6 +107,7 @@ export function useChartResize(options: UseChartResizeOptions): UseChartResizeRe
   /**
    * Debounced resize handler
    * Prevents excessive chart.resize() calls during rapid dimension changes
+   * Uses ref to always access latest options values
    */
   const debouncedResizeHandler = useCallback(
     (chartId: string, chart: IChartApi, container: HTMLElement, chartConfig: ChartConfig) => {
@@ -107,17 +116,20 @@ export function useChartResize(options: UseChartResizeOptions): UseChartResizeRe
         clearTimeout(debounceTimersRef.current[chartId]);
       }
 
+      // Get latest options from ref to avoid stale closure
+      const { width: currentWidth, height: currentHeight, debounceMs: currentDebounceMs } = optionsRef.current;
+
       // Set new timer
       debounceTimersRef.current[chartId] = setTimeout(() => {
         try {
           const dimensions = getContainerDimensions(container);
           const newWidth = chartConfig.autoWidth
             ? dimensions.width
-            : chartConfig.chart?.width || width;
+            : chartConfig.chart?.width || currentWidth;
           // Prioritize height from chart options (JSON config) over autoHeight
           const newHeight =
             chartConfig.chart?.height ||
-            (chartConfig.autoHeight ? dimensions.height : height) ||
+            (chartConfig.autoHeight ? dimensions.height : currentHeight) ||
             dimensions.height;
 
           if (newHeight != null && newWidth != null) {
@@ -126,9 +138,9 @@ export function useChartResize(options: UseChartResizeOptions): UseChartResizeRe
         } catch (error) {
           logger.warn('Chart auto-resize failed', 'useChartResize', error);
         }
-      }, debounceMs);
+      }, currentDebounceMs);
     },
-    [width, height, debounceMs, getContainerDimensions]
+    [getContainerDimensions]
   );
 
   /**

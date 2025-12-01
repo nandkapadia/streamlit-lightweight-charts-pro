@@ -34,7 +34,12 @@ export function useStreamlitRenderData(): RenderData | undefined {
   const [renderData, setRenderData] = useState<RenderData | undefined>();
 
   useEffect(() => {
+    // Track pending timeout to prevent race conditions on cleanup
+    let readyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    let isMounted = true;
+
     const onRenderEvent = (event: Event) => {
+      if (!isMounted) return;
       const renderEvent = event as CustomEvent<RenderData>;
       setRenderData(renderEvent.detail);
 
@@ -49,8 +54,12 @@ export function useStreamlitRenderData(): RenderData | undefined {
     // Delay setComponentReady() to allow parent's ComponentInstance to register listener
     // This prevents race condition with ComponentRegistry
     const callSetComponentReady = () => {
-      setTimeout(() => {
-        Streamlit.setComponentReady();
+      readyTimeoutId = setTimeout(() => {
+        // Only call if still mounted to prevent race condition
+        if (isMounted) {
+          Streamlit.setComponentReady();
+        }
+        readyTimeoutId = null;
       }, 100);
     };
 
@@ -61,6 +70,14 @@ export function useStreamlitRenderData(): RenderData | undefined {
     }
 
     return () => {
+      isMounted = false;
+
+      // Clear pending timeout to prevent race condition
+      if (readyTimeoutId !== null) {
+        clearTimeout(readyTimeoutId);
+        readyTimeoutId = null;
+      }
+
       window.removeEventListener('load', callSetComponentReady);
       isComponentReady = false;
       Streamlit.events.removeEventListener(Streamlit.RENDER_EVENT, onRenderEvent);
