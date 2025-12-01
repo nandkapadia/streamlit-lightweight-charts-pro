@@ -3,10 +3,13 @@
 This module provides all chart-related classes including series types,
 options, managers, and validators.
 
-Note: The Chart class is framework-specific and should be imported from
-the appropriate framework package (e.g., streamlit_lightweight_charts_pro).
+BaseChart and BaseChartManager provide framework-agnostic chart logic.
+Framework-specific implementations (Streamlit, FastAPI, etc.) should extend
+these base classes and add their rendering capabilities.
 """
 
+from lightweight_charts_core.charts.base_chart import BaseChart
+from lightweight_charts_core.charts.base_chart_manager import BaseChartManager
 from lightweight_charts_core.charts.options import (
     ChartOptions,
     CrosshairLineOptions,
@@ -49,6 +52,9 @@ from lightweight_charts_core.charts.series import (
 )
 
 __all__ = [
+    # Base classes
+    "BaseChart",
+    "BaseChartManager",
     # Series
     "AreaSeries",
     "BandSeries",
