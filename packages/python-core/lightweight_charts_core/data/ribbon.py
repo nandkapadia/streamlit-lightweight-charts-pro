@@ -1,4 +1,4 @@
-"""Ribbon data classes for streamlit-lightweight-charts.
+"""Ribbon data classes for lightweight-charts-core.
 
 This module provides data classes for ribbon data points used in
 ribbon charts that display upper and lower bands with fill areas.
@@ -8,8 +8,8 @@ import math
 from dataclasses import dataclass
 from typing import ClassVar, Optional
 
-from streamlit_lightweight_charts_pro.data.data import Data
-from streamlit_lightweight_charts_pro.utils import validated_field
+from lightweight_charts_core.data.data import Data
+from lightweight_charts_core.utils import validated_field
 
 
 @dataclass

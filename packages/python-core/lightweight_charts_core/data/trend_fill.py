@@ -1,4 +1,4 @@
-"""Trend fill data classes for streamlit-lightweight-charts.
+"""Trend fill data classes for lightweight-charts-core.
 
 This module provides TrendFillData class for creating trend-based fill charts
 that display fills between trend lines and base lines, similar to
@@ -14,8 +14,8 @@ import math
 from dataclasses import dataclass
 from typing import ClassVar, Optional
 
-from streamlit_lightweight_charts_pro.data.data import Data
-from streamlit_lightweight_charts_pro.exceptions import (
+from lightweight_charts_core.data.data import Data
+from lightweight_charts_core.exceptions import (
     TrendDirectionIntegerError,
     TypeValidationError,
     ValueValidationError,

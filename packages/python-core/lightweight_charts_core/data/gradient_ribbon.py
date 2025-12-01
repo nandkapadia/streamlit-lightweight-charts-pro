@@ -1,4 +1,4 @@
-"""Gradient ribbon data classes for streamlit-lightweight-charts.
+"""Gradient ribbon data classes for lightweight-charts-core.
 
 This module provides data classes for gradient ribbon data points used in
 ribbon charts that display upper and lower bands with gradient fill areas.
@@ -8,8 +8,8 @@ import math
 from dataclasses import dataclass
 from typing import ClassVar, Optional
 
-from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
-from streamlit_lightweight_charts_pro.exceptions import ValueValidationError
+from lightweight_charts_core.data.ribbon import RibbonData
+from lightweight_charts_core.exceptions import ValueValidationError
 
 
 @dataclass

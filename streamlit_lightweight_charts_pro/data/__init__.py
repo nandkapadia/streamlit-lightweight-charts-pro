@@ -3,24 +3,27 @@
 This module provides the core data models used throughout the library for
 representing financial data points, markers, annotations, and other chart elements.
 
-All base data classes are imported from lightweight_charts_core package.
-Extended data classes specific to Streamlit (BandData, RibbonData, etc.) are
-defined in this package.
+All data classes are imported from lightweight_charts_core package.
 """
 
-# Import base data classes from core package
+# Import all data classes from core package
 from lightweight_charts_core.data import (
     # Base data classes
     AreaData,
+    BandData,
     BarData,
     BaselineData,
     CandlestickData,
     Data,
+    GradientRibbonData,
     HistogramData,
     LineData,
     OhlcData,
     OhlcvData,
+    RibbonData,
+    SignalData,
     SingleValueData,
+    TrendFillData,
     # Markers
     BarMarker,
     Marker,
@@ -57,15 +60,10 @@ from lightweight_charts_core.type_definitions import (
     TradeVisualization,
 )
 
-# Import streamlit-specific data classes
+# Import streamlit-specific options classes
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from streamlit_lightweight_charts_pro.data.band import BandData
-from streamlit_lightweight_charts_pro.data.gradient_ribbon import GradientRibbonData
-from streamlit_lightweight_charts_pro.data.ribbon import RibbonData
-from streamlit_lightweight_charts_pro.data.signal_data import SignalData
-from streamlit_lightweight_charts_pro.data.trend_fill import TrendFillData
 
 __all__ = [
     # Base data classes (from core)

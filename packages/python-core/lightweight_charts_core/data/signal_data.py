@@ -8,8 +8,8 @@ or ternary values that determine background colors for specific time periods.
 from dataclasses import dataclass
 from typing import ClassVar, Optional
 
-from streamlit_lightweight_charts_pro.data.single_value_data import SingleValueData
-from streamlit_lightweight_charts_pro.utils import validated_field
+from lightweight_charts_core.data.single_value_data import SingleValueData
+from lightweight_charts_core.utils import validated_field
 
 
 @dataclass
