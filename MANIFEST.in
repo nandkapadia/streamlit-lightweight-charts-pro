@@ -1,10 +1,10 @@
-recursive-include streamlit_lightweight_charts_pro/frontend/build *
-recursive-include streamlit_lightweight_charts_pro/frontend/package.json
-recursive-include streamlit_lightweight_charts_pro/frontend/package-lock.json
-recursive-include streamlit_lightweight_charts_pro/frontend/craco.config.js
-recursive-include streamlit_lightweight_charts_pro/frontend/tsconfig.json
-recursive-include streamlit_lightweight_charts_pro/frontend/public *
-recursive-include streamlit_lightweight_charts_pro/frontend/src *
+recursive-include packages/streamlit/src/streamlit_lightweight_charts_pro/frontend/build *
+recursive-include packages/streamlit/src/streamlit_lightweight_charts_pro/frontend/package.json
+recursive-include packages/streamlit/src/streamlit_lightweight_charts_pro/frontend/package-lock.json
+recursive-include packages/streamlit/src/streamlit_lightweight_charts_pro/frontend/craco.config.js
+recursive-include packages/streamlit/src/streamlit_lightweight_charts_pro/frontend/tsconfig.json
+recursive-include packages/streamlit/src/streamlit_lightweight_charts_pro/frontend/public *
+recursive-include packages/streamlit/src/streamlit_lightweight_charts_pro/frontend/src *
 include README.md
 include CHANGELOG.md
 include LICENSE

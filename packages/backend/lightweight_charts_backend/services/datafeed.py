@@ -208,12 +208,26 @@ class DatafeedService:
             Created ChartState.
         """
         async with self._lock:
-            if chart_id in self._charts:
-                return self._charts[chart_id]
+            return self._create_chart_no_lock(chart_id, options)
 
-            chart = ChartState(chart_id=chart_id, options=options or {})
-            self._charts[chart_id] = chart
-            return chart
+    def _create_chart_no_lock(self, chart_id: str, options: Optional[Dict] = None) -> ChartState:
+        """Internal method to create chart without acquiring lock.
+
+        Must only be called when lock is already held.
+
+        Args:
+            chart_id: Unique chart identifier.
+            options: Chart options.
+
+        Returns:
+            Created ChartState.
+        """
+        if chart_id in self._charts:
+            return self._charts[chart_id]
+
+        chart = ChartState(chart_id=chart_id, options=options or {})
+        self._charts[chart_id] = chart
+        return chart
 
     async def set_series_data(
         self,
@@ -240,7 +254,8 @@ class DatafeedService:
         async with self._lock:
             chart = self._charts.get(chart_id)
             if not chart:
-                chart = await self.create_chart(chart_id)
+                # Use internal no-lock method since we already hold the lock
+                chart = self._create_chart_no_lock(chart_id)
 
             series = SeriesData(
                 series_id=series_id,

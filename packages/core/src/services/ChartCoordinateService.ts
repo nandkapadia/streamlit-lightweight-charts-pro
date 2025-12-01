@@ -217,6 +217,9 @@ export class ChartCoordinateService {
   /** Update callbacks for chart changes */
   private updateCallbacks = new Map<string, Set<() => void>>();
 
+  /** Cache cleanup interval ID for proper cleanup */
+  private cacheCleanupIntervalId: ReturnType<typeof setInterval> | null = null;
+
   /**
    * Get singleton instance (lazy initialization)
    *
@@ -1420,7 +1423,12 @@ export class ChartCoordinateService {
    * Start cache cleanup timer
    */
   private startCacheCleanup(): void {
-    setInterval(() => {
+    // Clear any existing interval to prevent leaks
+    if (this.cacheCleanupIntervalId !== null) {
+      clearInterval(this.cacheCleanupIntervalId);
+    }
+
+    this.cacheCleanupIntervalId = setInterval(() => {
       const now = Date.now();
       const keysToDelete: string[] = [];
       this.coordinateCache.forEach((entry, key) => {
@@ -1430,6 +1438,34 @@ export class ChartCoordinateService {
       });
       keysToDelete.forEach(key => this.coordinateCache.delete(key));
     }, TIMING.cacheExpiration);
+  }
+
+  /**
+   * Stop cache cleanup timer and clean up resources
+   * Call this when destroying the service instance
+   */
+  destroy(): void {
+    // Clear the cache cleanup interval
+    if (this.cacheCleanupIntervalId !== null) {
+      clearInterval(this.cacheCleanupIntervalId);
+      this.cacheCleanupIntervalId = null;
+    }
+
+    // Clear all caches
+    this.coordinateCache.clear();
+    this.paneDimensionsCache.clear();
+    this.chartRegistry.clear();
+    this.updateCallbacks.clear();
+  }
+
+  /**
+   * Reset the singleton instance (useful for testing)
+   */
+  static resetInstance(): void {
+    if (this.instance) {
+      this.instance.destroy();
+      this.instance = null as unknown as ChartCoordinateService;
+    }
   }
 
   /**

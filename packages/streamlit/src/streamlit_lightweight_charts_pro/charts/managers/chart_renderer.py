@@ -4,6 +4,7 @@ This module handles the generation of frontend configuration and rendering
 of chart components in Streamlit.
 """
 
+import html
 import json
 from datetime import datetime
 from typing import TYPE_CHECKING, Dict, List, Optional
@@ -398,12 +399,14 @@ class ChartRenderer:
 
                 if message_id:
                     pane_state = series_api.get_pane_state(pane_id)
+                    # Escape message_id to prevent XSS attacks
+                    safe_message_id = html.escape(str(message_id))
                     components.html(
                         f"""
                     <script>
                     document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                         detail: {{
-                            messageId: '{message_id}',
+                            messageId: '{safe_message_id}',
                             response: {json.dumps({"success": True, "data": pane_state})}
                         }}
                     }}));
@@ -421,12 +424,14 @@ class ChartRenderer:
                 success = series_api.update_series_settings(pane_id, series_id, config)
 
                 if message_id:
+                    # Escape message_id to prevent XSS attacks
+                    safe_message_id = html.escape(str(message_id))
                     components.html(
                         f"""
                     <script>
                     document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                         detail: {{
-                            messageId: '{message_id}',
+                            messageId: '{safe_message_id}',
                             response: {json.dumps({"success": success})}
                         }}
                     }}));
@@ -443,12 +448,14 @@ class ChartRenderer:
                 if message_id:
                     defaults = series_api.reset_series_to_defaults(pane_id, series_id)
                     success = defaults is not None
+                    # Escape message_id to prevent XSS attacks
+                    safe_message_id = html.escape(str(message_id))
                     components.html(
                         f"""
                     <script>
                     document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                         detail: {{
-                            messageId: '{message_id}',
+                            messageId: '{safe_message_id}',
                             response: {json.dumps({"success": success, "data": defaults or {}})}
                         }}
                     }}));
@@ -492,13 +499,15 @@ class ChartRenderer:
 
             if history_data:
                 message_id = response.get("messageId", "")
+                # Escape message_id to prevent XSS attacks
+                safe_message_id = html.escape(str(message_id))
                 # Send response back to frontend via custom event
                 components.html(
                     f"""
                 <script>
                 document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
                     detail: {{
-                        messageId: '{message_id}',
+                        messageId: '{safe_message_id}',
                         response: {json.dumps(history_data)}
                     }}
                 }}));
