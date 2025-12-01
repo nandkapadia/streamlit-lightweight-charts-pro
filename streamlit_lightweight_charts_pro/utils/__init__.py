@@ -6,8 +6,8 @@ additional Streamlit-specific utilities like profiling.
 
 # Import all utilities from core
 from lightweight_charts_core.utils import (
-    CaseConverter,
     DEFAULT_CONFIG,
+    CaseConverter,
     SerializableMixin,
     SerializationConfig,
     SimpleSerializableMixin,
@@ -27,9 +27,11 @@ from lightweight_charts_core.utils import (
 from lightweight_charts_core.utils.profiler import Profiler, profile_method
 
 __all__ = [
+    "DEFAULT_CONFIG",
     # From core
     "CaseConverter",
-    "DEFAULT_CONFIG",
+    # Streamlit-specific
+    "Profiler",
     "SerializableMixin",
     "SerializationConfig",
     "SimpleSerializableMixin",
@@ -41,9 +43,7 @@ __all__ = [
     "is_hex_color",
     "is_valid_color",
     "normalize_time",
+    "profile_method",
     "snake_to_camel",
     "validated_field",
-    # Streamlit-specific
-    "Profiler",
-    "profile_method",
 ]

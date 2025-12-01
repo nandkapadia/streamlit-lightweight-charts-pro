@@ -9,10 +9,10 @@ to display and dynamically update values in the legend based on crosshair positi
 import numpy as np
 import pandas as pd
 import streamlit as st
-
-from streamlit_lightweight_charts_pro import CandlestickSeries, Chart, HistogramSeries, LineSeries
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
+
+from streamlit_lightweight_charts_pro import CandlestickSeries, Chart, HistogramSeries, LineSeries
 from streamlit_lightweight_charts_pro.data import CandlestickData, HistogramData, LineData
 
 # Page configuration

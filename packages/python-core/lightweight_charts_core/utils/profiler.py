@@ -133,6 +133,7 @@ Note:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 # Standard Imports
@@ -141,11 +142,12 @@ import threading
 import time
 import tracemalloc
 from collections import defaultdict
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 # Third Party Imports
 import psutil
@@ -228,6 +230,7 @@ class PerformanceProfile:
             - Temporal analysis of performance changes
             - Identifying concurrent execution patterns
             - Correlating profiles with system events
+
     """
 
     operation_name: str
@@ -236,7 +239,7 @@ class PerformanceProfile:
     memory_current: int
     memory_delta: int
     cpu_percent: float
-    data_size: Optional[int] = None
+    data_size: int | None = None
     cache_hits: int = 0
     cache_misses: int = 0
     # Auto-generate current timestamp when profile is created
@@ -247,7 +250,7 @@ class PerformanceProfile:
 
 @dataclass
 class PerformanceReport:
-    """Comprehensive performance report with analysis and recommendations.
+    r"""Comprehensive performance report with analysis and recommendations.
 
     This class aggregates performance data from multiple operations and provides
     comprehensive analysis including bottleneck identification and optimization
@@ -308,6 +311,7 @@ class PerformanceReport:
             - Large dataset detection
             - Repeated operation detection
             - CPU utilization analysis
+
     """
 
     total_operations: int
@@ -315,11 +319,11 @@ class PerformanceReport:
     average_execution_time: float
     memory_peak_total: int
     memory_current_total: int
-    operations: List[PerformanceProfile]
-    bottlenecks: List[str]
-    recommendations: List[str]
+    operations: list[PerformanceProfile]
+    bottlenecks: list[str]
+    recommendations: list[str]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert report to dictionary for serialization.
 
         This method converts the performance report to a dictionary format
@@ -360,6 +364,7 @@ class PerformanceReport:
             to keep the output concise. Only the count is provided via
             operations_count. If you need detailed operation data, access
             the operations attribute directly.
+
         """
         # Convert the performance report to a dictionary format
         # This includes all key metrics and analysis results for serialization
@@ -430,6 +435,7 @@ class PerformanceProfiler:
         For most use cases, use the global profiler instance via the
         convenience functions: profile_function(), profile_operation(),
         and get_profiler().
+
     """
 
     def __init__(self, enable_memory_tracking: bool = True):
@@ -460,21 +466,22 @@ class PerformanceProfiler:
             memory allocations at the Python level. It provides detailed
             insights but has a small performance cost. Disable it for
             minimal overhead in production environments.
+
         """
         # Store memory tracking configuration for later use
         self.enable_memory_tracking = enable_memory_tracking
 
         # Initialize list to store all operation profiles
         # Each profile contains metrics for a single operation execution
-        self.profiles: List[PerformanceProfile] = []
+        self.profiles: list[PerformanceProfile] = []
 
         # Initialize dict to group execution times by operation name
         # Used for calculating statistics per operation type
-        self.operation_times: Dict[str, List[float]] = defaultdict(list)
+        self.operation_times: dict[str, list[float]] = defaultdict(list)
 
         # Initialize list to store memory usage snapshots over time
         # Used for trend analysis and leak detection
-        self.memory_snapshots: List[Dict[str, int]] = []
+        self.memory_snapshots: list[dict[str, int]] = []
 
         # Create thread lock for thread-safe operations
         # Ensures concurrent profiling doesn't corrupt data structures
@@ -486,7 +493,7 @@ class PerformanceProfiler:
             # Start tracking memory allocations at the Python level
             tracemalloc.start()
 
-    def profile_operation(self, operation_name: str, data_size: Optional[int] = None):
+    def profile_operation(self, operation_name: str, data_size: int | None = None):
         """Decorator to profile a function or method.
 
         This decorator wraps a function to automatically profile its execution
@@ -523,6 +530,7 @@ class PerformanceProfiler:
             The decorator preserves the original function's metadata using
             functools.wraps, so docstrings, name, and other attributes are
             maintained.
+
         """
 
         # Define the decorator that will wrap the target function
@@ -542,7 +550,7 @@ class PerformanceProfiler:
         return decorator
 
     @contextmanager
-    def measure_operation(self, operation_name: str, data_size: Optional[int] = None):
+    def measure_operation(self, operation_name: str, data_size: int | None = None):
         """Context manager to measure operation performance.
 
         This context manager measures the performance of a code block by
@@ -588,6 +596,7 @@ class PerformanceProfiler:
             that profiles are recorded even if exceptions occur. The profile
             will still capture execution time and resource usage up to the
             point of failure.
+
         """
         # Get the current process for memory and CPU monitoring
         # psutil.Process() without arguments gets the current process
@@ -669,7 +678,7 @@ class PerformanceProfiler:
                 # Group execution time by operation name for statistics
                 self.operation_times[operation_name].append(execution_time)
 
-    def get_operation_stats(self, operation_name: str) -> Dict[str, float]:
+    def get_operation_stats(self, operation_name: str) -> dict[str, float]:
         """Get statistics for a specific operation.
 
         This method calculates comprehensive statistics for all executions
@@ -710,6 +719,7 @@ class PerformanceProfiler:
             The median calculation uses a simple approach that works well
             for most cases. For even-length lists, it returns the lower
             middle value rather than the average of the two middle values.
+
         """
         # Get list of execution times for this operation
         # Returns empty list if operation name not found
@@ -735,7 +745,7 @@ class PerformanceProfiler:
             "median_time": sorted(times)[len(times) // 2],
         }
 
-    def identify_bottlenecks(self, threshold_percentile: float = 95.0) -> List[str]:
+    def identify_bottlenecks(self, threshold_percentile: float = 95.0) -> list[str]:
         """Identify performance bottlenecks based on execution times.
 
         This method analyzes all profiled operations to identify bottlenecks
@@ -774,6 +784,7 @@ class PerformanceProfiler:
             The method compares average execution times per operation,
             not individual execution times. This helps identify consistently
             slow operations rather than one-off outliers.
+
         """
         # Return empty list if no profiles have been collected
         if not self.profiles:
@@ -807,7 +818,7 @@ class PerformanceProfiler:
         # Return list of identified bottlenecks
         return slow_operations
 
-    def generate_recommendations(self) -> List[str]:
+    def generate_recommendations(self) -> list[str]:
         """Generate performance optimization recommendations.
 
         This method analyzes the collected performance profiles to generate
@@ -845,9 +856,10 @@ class PerformanceProfiler:
             that work well for most applications. You may need to adjust your
             interpretation based on your specific use case and performance
             requirements.
+
         """
         # Initialize list to store recommendations
-        recommendations: List[str] = []
+        recommendations: list[str] = []
 
         # Return empty list if no profiles have been collected
         if not self.profiles:
@@ -908,7 +920,7 @@ class PerformanceProfiler:
         return recommendations
 
     def generate_report(self) -> PerformanceReport:
-        """Generate comprehensive performance report.
+        r"""Generate comprehensive performance report.
 
         This method aggregates all collected performance profiles and generates
         a comprehensive report including total metrics, bottleneck analysis,
@@ -945,6 +957,7 @@ class PerformanceProfiler:
             generated. If you continue profiling operations after generating
             a report, you'll need to call generate_report() again to get
             updated metrics.
+
         """
         # Handle case where no operations have been profiled
         # Return empty report with zero values
@@ -1024,6 +1037,7 @@ class PerformanceProfiler:
 
             After clearing, the profiler is ready to collect new profiles
             immediately.
+
         """
         # Use lock to ensure thread-safe clearing
         # Prevents race conditions with concurrent profiling
@@ -1087,6 +1101,7 @@ class PerformanceProfiler:
         Raises:
             IOError: If the file cannot be written (e.g., permission denied,
                 disk full, parent directory doesn't exist).
+
         """
         # Generate comprehensive performance report
         report = self.generate_report()
@@ -1140,6 +1155,7 @@ class MemoryMonitor:
         The monitor tracks the current process by default. For monitoring
         other processes, you would need to modify the implementation to
         accept a PID parameter.
+
     """
 
     def __init__(self) -> None:
@@ -1152,16 +1168,17 @@ class MemoryMonitor:
             >>> monitor = MemoryMonitor()
             >>> usage = monitor.get_memory_usage()
             >>> print(f"Current memory: {usage['rss'] / 1024 / 1024:.1f} MB")
+
         """
         # Initialize list to store memory usage history
         # Each entry is a dict with memory metrics and timestamp
-        self.memory_history: List[Dict[str, float]] = []
+        self.memory_history: list[dict[str, float]] = []
 
         # Get handle to current process for memory monitoring
         # psutil.Process() without arguments gets current process
         self.process = psutil.Process()
 
-    def get_memory_usage(self) -> Dict[str, float]:
+    def get_memory_usage(self) -> dict[str, float]:
         """Get current memory usage information.
 
         This method retrieves current memory usage metrics for the monitored
@@ -1186,6 +1203,7 @@ class MemoryMonitor:
             process. VMS (Virtual Memory Size) includes swapped memory and
             memory-mapped files. Typically RSS is more relevant for performance
             analysis.
+
         """
         # Get memory info from process
         memory_info = self.process.memory_info()
@@ -1229,6 +1247,7 @@ class MemoryMonitor:
             Snapshots are stored in memory, so excessive snapshot recording
             could itself consume memory. For long-running monitoring, consider
             periodically clearing old snapshots.
+
         """
         # Get current memory usage metrics
         snapshot = self.get_memory_usage()
@@ -1240,7 +1259,7 @@ class MemoryMonitor:
         # Append snapshot to history
         self.memory_history.append(snapshot)
 
-    def get_memory_trend(self) -> Dict[str, Any]:
+    def get_memory_trend(self) -> dict[str, Any]:
         """Analyze memory usage trend.
 
         This method analyzes the memory history to determine whether memory
@@ -1274,6 +1293,7 @@ class MemoryMonitor:
 
             The trend is based on RSS (physical memory) rather than VMS,
             as RSS is more directly related to actual memory consumption.
+
         """
         # Check if we have enough data for trend analysis
         # Need at least 2 snapshots to calculate a trend
@@ -1306,7 +1326,7 @@ class MemoryMonitor:
             "current_vms": recent["vms"],  # Current virtual memory
         }
 
-    def suggest_optimizations(self) -> List[str]:
+    def suggest_optimizations(self) -> list[str]:
         """Suggest memory optimizations based on usage patterns.
 
         This method analyzes memory usage history to identify potential
@@ -1343,9 +1363,10 @@ class MemoryMonitor:
 
             You may need to adjust your interpretation based on your
             specific application's memory requirements.
+
         """
         # Initialize list to store suggestions
-        suggestions: List[str] = []
+        suggestions: list[str] = []
 
         # Return empty list if no history is available
         if not self.memory_history:
@@ -1405,6 +1426,7 @@ def get_profiler() -> PerformanceProfiler:
             >>> profiler = get_profiler()
             >>> with profiler.measure_operation("operation"):
             ...     perform_operation()
+
     """
     return _global_profiler
 
@@ -1426,11 +1448,12 @@ def get_memory_monitor() -> MemoryMonitor:
             >>> perform_operation()
             >>> monitor.record_memory_snapshot()
             >>> trend = monitor.get_memory_trend()
+
     """
     return _memory_monitor
 
 
-def profile_function(operation_name: str, data_size: Optional[int] = None):
+def profile_function(operation_name: str, data_size: int | None = None):
     """Convenience decorator for profiling functions using global profiler.
 
     This is a convenience wrapper around the global profiler's
@@ -1449,12 +1472,13 @@ def profile_function(operation_name: str, data_size: Optional[int] = None):
         >>> @profile_function("data_transform", data_size=1000)
         ... def transform_data(data):
         ...     return data.apply(transformation)
+
     """
     return _global_profiler.profile_operation(operation_name, data_size)
 
 
 @contextmanager
-def profile_operation(operation_name: str, data_size: Optional[int] = None):
+def profile_operation(operation_name: str, data_size: int | None = None):
     """Convenience context manager for profiling using global profiler.
 
     This is a convenience wrapper around the global profiler's
@@ -1472,12 +1496,13 @@ def profile_operation(operation_name: str, data_size: Optional[int] = None):
     Example:
         >>> with profile_operation("data_processing", data_size=5000):
         ...     processed = process_data(raw_data)
+
     """
     with _global_profiler.measure_operation(operation_name, data_size):
         yield
 
 
-def get_performance_summary() -> Dict[str, Any]:
+def get_performance_summary() -> dict[str, Any]:
     """Get a quick performance summary from global profiler and monitor.
 
     This convenience function generates a concise performance summary
@@ -1505,6 +1530,7 @@ def get_performance_summary() -> Dict[str, Any]:
             >>> print(f"Trend: {summary['memory_trend']}")
             >>> print(f"Bottlenecks: {summary['bottlenecks']}")
             >>> print(f"Recommendations: {summary['recommendations']}")
+
     """
     # Generate performance report from global profiler
     report = _global_profiler.generate_report()

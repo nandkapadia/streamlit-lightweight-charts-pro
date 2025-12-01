@@ -43,12 +43,11 @@ License: MIT
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import Any, ClassVar, Dict
+from typing import Any, ClassVar
 
 from lightweight_charts_core.type_definitions import ColumnNames
 from lightweight_charts_core.utils.data_utils import normalize_time
 from lightweight_charts_core.utils.serialization import SerializableMixin
-
 
 # The following disables are for custom class property pattern, which pylint does not recognize.
 # pylint: disable=no-self-argument, no-member, invalid-name
@@ -75,6 +74,7 @@ class classproperty(property):  # noqa: N801
         # Usage
         columns = MyClass.required_columns
         ```
+
     """
 
     def __get__(self, obj, cls):
@@ -86,6 +86,7 @@ class classproperty(property):  # noqa: N801
 
         Returns:
             The computed class property value.
+
         """
         return self.fget(cls)
 
@@ -110,7 +111,7 @@ class Data(SerializableMixin, ABC):
         REQUIRED_COLUMNS (set): Set of required column names for DataFrame conversion.
         OPTIONAL_COLUMNS (set): Set of optional column names for DataFrame conversion.
 
-    See also:
+    See Also:
         LineData: Single value data points for line charts.
         OhlcData: OHLC data points for candlestick charts.
         OhlcvData: OHLCV data points with volume information.
@@ -141,6 +142,7 @@ class Data(SerializableMixin, ABC):
         - Use specific exceptions and lazy string formatting for logging.
         - Time values are normalized to UTC timestamps during serialization.
         - NaN values are converted to 0.0 for frontend compatibility.
+
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = {"time"}  # Required columns for DataFrame conversion
@@ -172,6 +174,7 @@ class Data(SerializableMixin, ABC):
             # Returns {"time", "value", "volume"}
             columns = ChildData.required_columns
             ```
+
         """
         required = set()
         for base in self.__mro__:  # pylint: disable=no-member
@@ -203,6 +206,7 @@ class Data(SerializableMixin, ABC):
             # Returns {"color", "size"}
             columns = ChildData.optional_columns
             ```
+
         """
         optional = set()
         for base in self.__mro__:  # pylint: disable=no-member
@@ -223,7 +227,7 @@ class Data(SerializableMixin, ABC):
         # Time normalization happens in asdict() to allow post-construction modification
         # Subclasses may override this for additional processing
 
-    def asdict(self) -> Dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """Serialize the data class to a dict with camelCase keys for frontend.
 
         Converts the data point to a dictionary format suitable for frontend
@@ -270,6 +274,7 @@ class Data(SerializableMixin, ABC):
             - NumPy scalar types are converted to Python native types
             - Enum values are extracted using their .value property
             - Time column uses standardized ColumnNames.TIME.value
+
         """
         # Normalize time during serialization (not cached in __post_init__)
         normalized_time = normalize_time(self.time)

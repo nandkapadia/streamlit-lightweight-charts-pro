@@ -6,7 +6,7 @@ ribbon charts that display upper and lower bands with fill areas.
 
 import math
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from lightweight_charts_core.data.data import Data
 from lightweight_charts_core.utils import validated_field
@@ -47,16 +47,17 @@ class RibbonData(Data):
             lower_line_color="#00ff00",
         )
         ```
+
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = {"upper", "lower"}
     OPTIONAL_COLUMNS: ClassVar[set] = {"fill", "upper_line_color", "lower_line_color"}
 
-    upper: Optional[float]
-    lower: Optional[float]
-    fill: Optional[str] = None
-    upper_line_color: Optional[str] = None
-    lower_line_color: Optional[str] = None
+    upper: float | None
+    lower: float | None
+    fill: str | None = None
+    upper_line_color: str | None = None
+    lower_line_color: str | None = None
 
     def __post_init__(self):
         # Normalize time

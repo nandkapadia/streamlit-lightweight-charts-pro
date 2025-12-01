@@ -1,12 +1,12 @@
 """WebSocket handlers for real-time chart updates."""
 
 import json
-from typing import Dict, Set
+from typing import TYPE_CHECKING, Dict, Set
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from lightweight_charts_backend.services import DatafeedService
-
+if TYPE_CHECKING:
+    from lightweight_charts_backend.services import DatafeedService
 
 router = APIRouter()
 
@@ -85,20 +85,25 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
 
     # Subscribe to datafeed updates
     async def on_update(event_type: str, data: dict):
-        await manager.broadcast(chart_id, {
-            "type": event_type,
-            "chartId": chart_id,
-            **data,
-        })
+        await manager.broadcast(
+            chart_id,
+            {
+                "type": event_type,
+                "chartId": chart_id,
+                **data,
+            },
+        )
 
     unsubscribe = await datafeed.subscribe(chart_id, on_update)
 
     try:
         # Send initial connection acknowledgment
-        await websocket.send_json({
-            "type": "connected",
-            "chartId": chart_id,
-        })
+        await websocket.send_json(
+            {
+                "type": "connected",
+                "chartId": chart_id,
+            }
+        )
 
         while True:
             # Receive and process messages
@@ -123,13 +128,15 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
                         count=count,
                     )
 
-                    await websocket.send_json({
-                        "type": "history_response",
-                        "chartId": chart_id,
-                        "paneId": pane_id,
-                        "seriesId": series_id,
-                        **result,
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "history_response",
+                            "chartId": chart_id,
+                            "paneId": pane_id,
+                            "seriesId": series_id,
+                            **result,
+                        }
+                    )
 
             elif msg_type == "get_initial_data":
                 # Handle initial data request
@@ -142,11 +149,13 @@ async def chart_websocket(websocket: WebSocket, chart_id: str):
                     series_id=series_id,
                 )
 
-                await websocket.send_json({
-                    "type": "initial_data_response",
-                    "chartId": chart_id,
-                    **result,
-                })
+                await websocket.send_json(
+                    {
+                        "type": "initial_data_response",
+                        "chartId": chart_id,
+                        **result,
+                    }
+                )
 
             elif msg_type == "ping":
                 # Handle ping for connection health

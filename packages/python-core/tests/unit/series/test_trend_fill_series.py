@@ -1,5 +1,4 @@
-"""
-Unit tests for TrendFillSeries with dual mode support.
+"""Unit tests for TrendFillSeries with dual mode support.
 
 This module provides comprehensive testing for the upgraded TrendFillSeries
 that supports both single and dual trend line modes.

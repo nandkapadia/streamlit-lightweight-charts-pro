@@ -55,7 +55,6 @@ class EnhancedTestRunner:
         output_format: str = "text",
     ) -> int:
         """Run tests with enhanced options and reporting."""
-
         print("🚀 Enhanced Test Runner for Streamlit Lightweight Charts Pro")
         print("=" * 70)
 

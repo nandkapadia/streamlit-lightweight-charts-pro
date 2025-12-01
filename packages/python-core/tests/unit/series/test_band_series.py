@@ -1,5 +1,4 @@
-"""
-Tests for BandSeries class.
+"""Tests for BandSeries class.
 
 This module contains comprehensive tests for the BandSeries class,
 covering construction, styling options, serialization, and edge cases.

@@ -5,7 +5,7 @@ management used in the frontend-backend communication.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Any, Literal, Union
 
 from lightweight_charts_core.types.options import Options
 from lightweight_charts_core.utils.chainable import chainable_field
@@ -25,8 +25,8 @@ SeriesType = Literal[
     "macd",
 ]
 
-ConfigValue = Union[str, int, float, bool, Dict[str, Any]]
-ConfigDict = Dict[str, ConfigValue]
+ConfigValue = Union[str, int, float, bool, dict[str, Any]]
+ConfigDict = dict[str, ConfigValue]
 
 
 @dataclass
@@ -42,9 +42,9 @@ class SeriesConfigChange(Options):
     pane_id: int = 0
     series_id: str = ""
     series_type: str = ""
-    config: Dict[str, Any] = field(default_factory=dict)
+    config: dict[str, Any] = field(default_factory=dict)
     timestamp: int = 0
-    chart_id: Optional[str] = None
+    chart_id: str | None = None
 
 
 @dataclass
@@ -54,7 +54,7 @@ class SeriesConfigChange(Options):
 class SeriesConfigState(Options):
     """Represents the complete series configuration state structure."""
 
-    config: Dict[str, Any] = field(default_factory=dict)
+    config: dict[str, Any] = field(default_factory=dict)
     series_type: str = ""
     last_modified: int = 0
 
@@ -64,7 +64,7 @@ class SeriesConfigState(Options):
 class SeriesConfigBackendData(Options):
     """Backend data passed to frontend for series configuration initialization."""
 
-    complete_state: Dict[str, Any] = field(default_factory=dict)
+    complete_state: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -77,15 +77,14 @@ class SeriesConfigChangesResult(Options):
 
     type: str = "series_config_changes"
     changes: list = field(default_factory=list)
-    complete_state: Dict[str, Any] = field(default_factory=dict)
+    complete_state: dict[str, Any] = field(default_factory=dict)
     timestamp: int = 0
 
     @classmethod
     def fromdict(cls, data: dict) -> "SeriesConfigChangesResult":
         """Create from dictionary with proper change object conversion."""
         changes = [
-            SeriesConfigChange.fromdict(change_data)
-            for change_data in data.get("changes", [])
+            SeriesConfigChange.fromdict(change_data) for change_data in data.get("changes", [])
         ]
 
         return cls(
@@ -124,16 +123,16 @@ class SeriesConfigPersistenceOptions(Options):
 class SeriesStyleConfig(Options):
     """Style configuration options for series."""
 
-    color: Optional[str] = None
-    opacity: Optional[float] = None
-    line_width: Optional[int] = None
-    line_style: Optional[Literal["solid", "dashed", "dotted"]] = None
-    last_price_visible: Optional[bool] = None
-    price_line_visible: Optional[bool] = None
-    base_line_visible: Optional[bool] = None
-    base_line_color: Optional[str] = None
-    base_line_style: Optional[Literal["solid", "dashed", "dotted"]] = None
-    base_line_width: Optional[int] = None
+    color: str | None = None
+    opacity: float | None = None
+    line_width: int | None = None
+    line_style: Literal["solid", "dashed", "dotted"] | None = None
+    last_price_visible: bool | None = None
+    price_line_visible: bool | None = None
+    base_line_visible: bool | None = None
+    base_line_color: str | None = None
+    base_line_style: Literal["solid", "dashed", "dotted"] | None = None
+    base_line_width: int | None = None
 
 
 @dataclass
@@ -147,13 +146,13 @@ class SeriesStyleConfig(Options):
 class SeriesVisibilityConfig(Options):
     """Visibility configuration options for series."""
 
-    visible: Optional[bool] = None
-    price_line_visible: Optional[bool] = None
-    last_value_visible: Optional[bool] = None
-    title: Optional[str] = None
-    price_format: Optional[Dict[str, Any]] = None
-    precision: Optional[int] = None
-    min_move: Optional[float] = None
+    visible: bool | None = None
+    price_line_visible: bool | None = None
+    last_value_visible: bool | None = None
+    title: str | None = None
+    price_format: dict[str, Any] | None = None
+    precision: int | None = None
+    min_move: float | None = None
 
 
 @dataclass
@@ -173,18 +172,18 @@ class SeriesInputConfig(Options):
 class SeriesConfiguration(Options):
     """Complete series configuration structure."""
 
-    style: Optional[SeriesStyleConfig] = None
-    visibility: Optional[SeriesVisibilityConfig] = None
-    inputs: Optional[SeriesInputConfig] = None
+    style: SeriesStyleConfig | None = None
+    visibility: SeriesVisibilityConfig | None = None
+    inputs: SeriesInputConfig | None = None
 
     # Legacy support for flat structure
-    color: Optional[str] = None
-    opacity: Optional[float] = None
-    line_width: Optional[int] = None
-    line_style: Optional[Literal["solid", "dashed", "dotted"]] = None
-    last_price_visible: Optional[bool] = None
-    price_line_visible: Optional[bool] = None
-    visible: Optional[bool] = None
+    color: str | None = None
+    opacity: float | None = None
+    line_width: int | None = None
+    line_style: Literal["solid", "dashed", "dotted"] | None = None
+    last_price_visible: bool | None = None
+    price_line_visible: bool | None = None
+    visible: bool | None = None
 
     @classmethod
     def fromdict(cls, data: dict) -> "SeriesConfiguration":
@@ -216,8 +215,8 @@ class SeriesConfiguration(Options):
 
 
 # Type aliases for convenience
-CompleteSeriesConfigState = Dict[str, Any]
-ChartSeriesConfigs = Dict[str, Any]
+CompleteSeriesConfigState = dict[str, Any]
+ChartSeriesConfigs = dict[str, Any]
 
 __all__ = [
     "ChartSeriesConfigs",

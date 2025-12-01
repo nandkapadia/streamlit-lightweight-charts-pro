@@ -75,6 +75,7 @@ def line_options():
 
     Returns:
         LineOptions: Configured line options with blue color and width 2
+
     """
     # Create LineOptions with blue color and medium width for testing
     return LineOptions(color="#2196F3", line_width=2)
@@ -86,6 +87,7 @@ def line_data():
 
     Returns:
         list[LineData]: List of LineData objects with two data points
+
     """
     # Create a list of LineData objects for testing series functionality
     # Using sequential timestamps and ascending values for realistic test data

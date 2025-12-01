@@ -5,7 +5,6 @@ how price values are displayed on charts.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 from lightweight_charts_core.charts.options.base_options import Options
 from lightweight_charts_core.exceptions import ValueValidationError
@@ -25,12 +24,13 @@ class PriceFormatOptions(Options):
         precision (int): Number of decimal places.
         min_move (float): Minimum price movement.
         formatter (Optional[str]): Optional custom formatter (string name or function reference).
+
     """
 
     type: str = "price"
     precision: int = 2
     min_move: float = 0.01
-    formatter: Optional[str] = None
+    formatter: str | None = None
 
     @staticmethod
     def _validate_type_static(type_value: str) -> str:

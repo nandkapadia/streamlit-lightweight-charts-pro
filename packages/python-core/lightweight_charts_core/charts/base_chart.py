@@ -5,7 +5,8 @@ Framework-specific implementations (Streamlit, FastAPI, etc.) should extend this
 and add their rendering capabilities.
 """
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
@@ -50,13 +51,14 @@ class BaseChart:
         series: List of series objects to display in the chart.
         options: Chart configuration options.
         annotation_manager: Manager for chart annotations and layers.
+
     """
 
     def __init__(
         self,
-        series: Optional[Union[Series, List[Series]]] = None,
-        options: Optional[ChartOptions] = None,
-        annotations: Optional[List[Annotation]] = None,
+        series: Series | list[Series] | None = None,
+        options: ChartOptions | None = None,
+        annotations: list[Annotation] | None = None,
         chart_group_id: int = 0,
     ):
         """Initialize a base chart.
@@ -66,6 +68,7 @@ class BaseChart:
             options: Optional chart configuration options.
             annotations: Optional list of annotations to add.
             chart_group_id: Group ID for synchronization.
+
         """
         self.options = options or ChartOptions()
 
@@ -82,7 +85,7 @@ class BaseChart:
         self.annotation_manager = AnnotationManager()
 
         # Initialize tooltip manager for lazy loading
-        self._tooltip_manager: Optional[TooltipManager] = None
+        self._tooltip_manager: TooltipManager | None = None
 
         # Initialize chart synchronization support
         self._chart_group_id = chart_group_id
@@ -111,6 +114,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         self._series_manager.add_series(series, self._price_scale_manager)
         return self
@@ -123,6 +127,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         for key, value in kwargs.items():
             if value is not None and hasattr(self.options, key):
@@ -142,6 +147,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         if annotation is None:
             raise ValueValidationError("annotation", "cannot be None")
@@ -158,7 +164,7 @@ class BaseChart:
 
     def add_annotations(
         self,
-        annotations: List[Annotation],
+        annotations: list[Annotation],
         layer_name: str = "default",
     ) -> "BaseChart":
         """Add multiple annotations to the chart.
@@ -169,6 +175,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         if annotations is None:
             raise TypeValidationError("annotations", "list")
@@ -191,6 +198,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         if name is None:
             raise TypeValidationError("name", "string")
@@ -207,6 +215,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         if not name or not isinstance(name, str):
             raise ValueValidationError("name", "must be a non-empty string")
@@ -221,13 +230,14 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         if not name or not isinstance(name, str):
             raise ValueValidationError("name", "must be a non-empty string")
         self.annotation_manager.show_layer(name)
         return self
 
-    def clear_annotations(self, layer_name: Optional[str] = None) -> "BaseChart":
+    def clear_annotations(self, layer_name: str | None = None) -> "BaseChart":
         """Clear annotations from the chart.
 
         Args:
@@ -235,6 +245,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         if layer_name is not None and (not layer_name or not isinstance(layer_name, str)):
             raise ValueValidationError("layer_name", "must be None or a non-empty string")
@@ -251,6 +262,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         self._price_scale_manager.add_overlay_scale(scale_id, options)
         self.options.overlay_price_scales[scale_id] = options
@@ -258,8 +270,8 @@ class BaseChart:
 
     def add_price_volume_series(
         self,
-        data: Union[Sequence[OhlcvData], pd.DataFrame],
-        column_mapping: Optional[dict] = None,
+        data: Sequence[OhlcvData] | pd.DataFrame,
+        column_mapping: dict | None = None,
         price_type: str = "candlestick",
         price_kwargs=None,
         volume_kwargs=None,
@@ -277,6 +289,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         self._price_scale_manager.configure_for_volume()
         self._series_manager.add_price_volume_series(
@@ -290,7 +303,7 @@ class BaseChart:
         )
         return self
 
-    def add_trades(self, trades: List[TradeData]) -> "BaseChart":
+    def add_trades(self, trades: list[TradeData]) -> "BaseChart":
         """Add trade visualization to the chart.
 
         Args:
@@ -298,6 +311,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         self._trade_manager.add_trades(trades)
         return self
@@ -310,6 +324,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         if not isinstance(tooltip_manager, TooltipManager):
             raise TypeValidationError("tooltip_manager", "TooltipManager instance")
@@ -325,6 +340,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         if not isinstance(config, TooltipConfig):
             raise TypeValidationError("config", "TooltipConfig instance")
@@ -343,6 +359,7 @@ class BaseChart:
 
         Returns:
             Self for method chaining.
+
         """
         self.chart_group_id = group_id
         return self
@@ -359,7 +376,7 @@ class BaseChart:
             raise TypeValidationError("chart_group_id", "integer")
         self._chart_group_id = group_id
 
-    def get_series_info_for_pane(self, _pane_id: int = 0) -> List[dict]:
+    def get_series_info_for_pane(self, _pane_id: int = 0) -> list[dict]:
         """Get series information for the series settings dialog.
 
         Args:
@@ -367,10 +384,11 @@ class BaseChart:
 
         Returns:
             List of series information dictionaries.
+
         """
         return self._series_manager.get_series_info_for_pane(_pane_id)
 
-    def to_frontend_config(self) -> Dict[str, Any]:
+    def to_frontend_config(self) -> dict[str, Any]:
         """Convert chart to frontend configuration dictionary.
 
         This is the core serialization logic. Framework-specific implementations
@@ -378,6 +396,7 @@ class BaseChart:
 
         Returns:
             Complete chart configuration ready for frontend rendering.
+
         """
         # Get series configurations
         series_configs = self._series_manager.to_frontend_configs()

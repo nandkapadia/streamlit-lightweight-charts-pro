@@ -1,5 +1,4 @@
-"""
-Base Options integration tests - Inheritance and complex scenarios.
+"""Base Options integration tests - Inheritance and complex scenarios.
 
 This module tests integration scenarios including:
 - Options inheritance through multiple levels
@@ -12,7 +11,6 @@ This module tests integration scenarios including:
 # Standard Imports
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 # Third Party Imports
 import pytest
@@ -234,8 +232,8 @@ class TestComplexIntegrationScenarios:
         class ChartConfiguration(Options):
             height: int = 400
             width: int = 800
-            price_scale: Optional[PriceScaleOptions] = None
-            time_scale: Optional[TimeScaleOptions] = None
+            price_scale: PriceScaleOptions | None = None
+            time_scale: TimeScaleOptions | None = None
 
         config = ChartConfiguration(
             height=600,
@@ -257,7 +255,7 @@ class TestComplexIntegrationScenarios:
             height: int = 400
             width: int = 800
             auto_size: bool = False
-            nested: Optional[NestedOptions] = None
+            nested: NestedOptions | None = None
 
         # Create options
         options = ChartOptions()

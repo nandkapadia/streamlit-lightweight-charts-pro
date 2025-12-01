@@ -4,8 +4,6 @@ This module provides validation and helpful error messages for price scale
 configurations, helping developers catch common mistakes early.
 """
 
-from typing import Dict, Optional
-
 from lightweight_charts_core.charts.options.price_scale_options import (
     PriceScaleOptions,
 )
@@ -26,7 +24,7 @@ class PriceScaleValidator:
     @staticmethod
     def validate_series_price_scale(
         series: Series,
-        available_scales: Dict[str, PriceScaleOptions],
+        available_scales: dict[str, PriceScaleOptions],
         auto_create_enabled: bool = True,
     ) -> None:
         """Validate that series price_scale_id references existing scale.
@@ -38,6 +36,7 @@ class PriceScaleValidator:
 
         Raises:
             PriceScaleValidationError: If validation fails and auto-create is disabled.
+
         """
         scale_id = getattr(series, "price_scale_id", "")
 
@@ -77,6 +76,7 @@ class PriceScaleValidator:
 
         Returns:
             Formatted suggestion string.
+
         """
         if is_overlay:
             return f"""
@@ -114,7 +114,7 @@ Recommended configuration:
     def validate_pane_configuration(
         pane_id: int,
         existing_series: list,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Validate pane configuration and provide warnings if needed.
 
         Args:
@@ -123,6 +123,7 @@ Recommended configuration:
 
         Returns:
             Warning message if configuration seems inefficient, None otherwise.
+
         """
         # Check if multiple series in same pane use different custom scales
         pane_scales = {}

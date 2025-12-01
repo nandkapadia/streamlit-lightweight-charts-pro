@@ -9,9 +9,9 @@ shows upper and lower bands with dynamic color fills.
 
 import pandas as pd
 import streamlit as st
+from streamlit_lightweight_charts_pro.charts.series import GradientRibbonSeries, RibbonSeries
 
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.series import GradientRibbonSeries, RibbonSeries
 from streamlit_lightweight_charts_pro.data import GradientRibbonData, RibbonData
 
 

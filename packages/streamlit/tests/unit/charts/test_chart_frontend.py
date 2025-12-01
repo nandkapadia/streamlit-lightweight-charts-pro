@@ -10,9 +10,6 @@ from unittest.mock import Mock, patch
 
 # Third Party Imports
 import pytest
-
-# Local Imports
-from streamlit_lightweight_charts_pro.charts.chart import Chart
 from lightweight_charts_core.charts.options import ChartOptions
 from lightweight_charts_core.charts.options.layout_options import (
     LayoutOptions,
@@ -22,6 +19,9 @@ from lightweight_charts_core.charts.options.price_scale_options import PriceScal
 from lightweight_charts_core.charts.series.line import LineSeries
 from lightweight_charts_core.data.annotation import Annotation
 from lightweight_charts_core.data.line_data import LineData
+
+# Local Imports
+from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.exceptions import ComponentNotAvailableError
 
 

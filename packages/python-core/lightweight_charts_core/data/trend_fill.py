@@ -12,7 +12,7 @@ The class now uses a simplified approach with a single trendLine field:
 
 import math
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from lightweight_charts_core.data.data import Data
 from lightweight_charts_core.exceptions import (
@@ -45,6 +45,7 @@ class TrendFillData(Data):
         # Fill color fields
         uptrendFillColor: Optional custom uptrend fill color
         downtrendFillColor: Optional custom downtrend fill color
+
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = {"base_line", "trend_line", "trend_direction"}
@@ -59,8 +60,8 @@ class TrendFillData(Data):
     trend_direction: int = 0
 
     # Fill color fields
-    uptrend_fill_color: Optional[str] = None
-    downtrend_fill_color: Optional[str] = None
+    uptrend_fill_color: str | None = None
+    downtrend_fill_color: str | None = None
 
     def __post_init__(self):
         """Validate and process data after initialization."""
@@ -134,7 +135,7 @@ class TrendFillData(Data):
         )
 
     @property
-    def active_trend_line(self) -> Optional[float]:
+    def active_trend_line(self) -> float | None:
         """Get the active trend line value based on trend direction.
 
         Returns the trend line value for the current trend direction:
@@ -146,7 +147,7 @@ class TrendFillData(Data):
         return None
 
     @property
-    def active_fill_color(self) -> Optional[str]:
+    def active_fill_color(self) -> str | None:
         """Get the active fill color based on trend direction.
 
         Returns the appropriate fill color for the current trend direction,
@@ -159,13 +160,14 @@ class TrendFillData(Data):
         return None
 
     @property
-    def trend_line_type(self) -> Optional[str]:
+    def trend_line_type(self) -> str | None:
         """Get the type of trend line being displayed.
 
         Returns:
             'upper' for uptrend (trend line above price)
             'lower' for downtrend (trend line below price)
             None for neutral
+
         """
         if self.trend_direction == 1:
             return "upper"

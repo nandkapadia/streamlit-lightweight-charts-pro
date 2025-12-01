@@ -1,5 +1,4 @@
-"""
-Tests for BarSeries class.
+"""Tests for BarSeries class.
 
 This module contains comprehensive tests for the BarSeries class,
 covering construction, properties, serialization, data handling,
@@ -454,7 +453,6 @@ class TestBarSeriesInheritance:
 
     def test_inherits_from_series(self):
         """Test that BarSeries inherits from Series."""
-
         data = [BarData(time=1640995200, open=100, high=110, low=95, close=105)]
         series = BarSeries(data=data)
 

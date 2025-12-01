@@ -4,7 +4,7 @@ This module handles trade data storage and visualization configuration
 for chart trades.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from lightweight_charts_core.data.trade import TradeData
 from lightweight_charts_core.exceptions import (
@@ -27,13 +27,14 @@ class TradeManager:
 
     Attributes:
         trades: List of TradeData objects to be visualized.
+
     """
 
     def __init__(self):
         """Initialize the TradeManager."""
-        self.trades: List[TradeData] = []
+        self.trades: list[TradeData] = []
 
-    def add_trades(self, trades: List[TradeData]) -> None:
+    def add_trades(self, trades: list[TradeData]) -> None:
         """Add trade visualization to the chart.
 
         Converts TradeData objects to visual elements. Each trade will be
@@ -46,6 +47,7 @@ class TradeManager:
         Raises:
             TypeValidationError: If trades is not a list.
             ValueValidationError: If any item in trades is not a TradeData object.
+
         """
         if trades is None:
             raise TypeValidationError("trades", "list")
@@ -65,13 +67,14 @@ class TradeManager:
 
         Returns:
             True if there are trades, False otherwise.
+
         """
         return len(self.trades) > 0
 
     def to_frontend_config(
         self,
-        trade_visualization_options: Optional[Any] = None,
-    ) -> Optional[Dict[str, Any]]:
+        trade_visualization_options: Any | None = None,
+    ) -> dict[str, Any] | None:
         """Convert trades to frontend configuration.
 
         Args:
@@ -80,11 +83,12 @@ class TradeManager:
 
         Returns:
             Dictionary with trade configuration or None if no trades exist.
+
         """
         if not self.has_trades():
             return None
 
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "trades": [trade.asdict() for trade in self.trades],
         }
 

@@ -8,9 +8,6 @@ price scale validation, and price-volume series creation.
 # Third Party Imports
 import pandas as pd
 import pytest
-
-# Local Imports
-from streamlit_lightweight_charts_pro.charts.chart import Chart
 from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
 from lightweight_charts_core.charts.series import (
     CandlestickSeries,
@@ -18,11 +15,14 @@ from lightweight_charts_core.charts.series import (
     LineSeries,
 )
 from lightweight_charts_core.data.ohlcv_data import OhlcvData
+from lightweight_charts_core.type_definitions.enums import ColumnNames, PriceScaleMode
+
+# Local Imports
+from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.exceptions import (
     TypeValidationError,
     ValueValidationError,
 )
-from lightweight_charts_core.type_definitions.enums import ColumnNames, PriceScaleMode
 
 
 class TestOverlayPriceScales:

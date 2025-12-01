@@ -13,13 +13,13 @@ from unittest.mock import Mock, patch
 import pandas as pd
 import psutil
 import pytest
-
-from streamlit_lightweight_charts_pro.charts.chart import Chart
 from lightweight_charts_core.charts.options import ChartOptions
 from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
 from lightweight_charts_core.charts.series import LineSeries
-from streamlit_lightweight_charts_pro.data import LineData, OhlcvData, TradeData
 from lightweight_charts_core.data.annotation import Annotation
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.data import LineData, OhlcvData, TradeData
 from streamlit_lightweight_charts_pro.exceptions import (
     AnnotationItemsTypeError,
     SeriesItemsTypeError,
@@ -768,7 +768,6 @@ class TestChartMemoryAndPerformanceEdgeCases:
 
     def test_chart_memory_usage_with_large_dataset(self):
         """Test memory usage with large dataset."""
-
         process = psutil.Process()
         initial_memory = process.memory_info().rss
 

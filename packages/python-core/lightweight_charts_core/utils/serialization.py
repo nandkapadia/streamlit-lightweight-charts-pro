@@ -111,6 +111,7 @@ Note:
 
     By centralizing this logic, we ensure consistent serialization behavior
     across the entire codebase.
+
 """
 
 # Standard Imports
@@ -176,6 +177,7 @@ class SerializationConfig:
     Note:
         The DEFAULT_CONFIG instance uses sensible defaults for most use
         cases: skip None/empty values, convert NaN to zero, convert enums.
+
     """
 
     def __init__(
@@ -225,6 +227,7 @@ class SerializationConfig:
                 ... )
                 >>> config.skip_none
                 False
+
         """
         # Store skip_none setting for filtering None values
         self.skip_none = skip_none
@@ -317,6 +320,7 @@ class SerializableMixin:
         This class is designed to work with dataclasses. It uses the
         dataclasses.fields() function to introspect the class structure.
         Non-dataclass usage may result in errors.
+
     """
 
     def _serialize_to_dict(
@@ -389,6 +393,7 @@ class SerializableMixin:
         Note:
             This method must be called on a dataclass instance. It uses
             dataclasses.fields() to introspect the object structure.
+
         """
         # Step 1: Initialize result dictionary that will hold serialized data
         result: dict[str, Any] = {}
@@ -502,6 +507,7 @@ class SerializableMixin:
         Note:
             This method doesn't check type validity or perform conversions.
             It only determines inclusion based on the filtering rules.
+
         """
         # Check 1: Skip None values if configured
         # None values typically represent unset optional fields
@@ -582,6 +588,7 @@ class SerializableMixin:
         Note:
             This method is recursive and will process deeply nested structures.
             Circular references will cause infinite recursion.
+
         """
         # Step 1: Handle NaN floats - convert to zero for JSON compatibility
         # JSON spec doesn't support NaN, Infinity, or -Infinity
@@ -680,6 +687,7 @@ class SerializableMixin:
         Note:
             This method is recursive and will process deeply nested lists.
             Circular references will cause infinite recursion.
+
         """
         # Initialize result list to hold processed items
         processed_items = []
@@ -751,6 +759,7 @@ class SerializableMixin:
             Non-string keys are converted to strings before camelCase
             conversion. This ensures consistent behavior with JavaScript
             object keys which are always strings.
+
         """
         # Initialize result dictionary to hold processed key-value pairs
         result = {}
@@ -822,6 +831,7 @@ class SerializableMixin:
             The function imports ColumnNames dynamically to avoid circular
             import issues. If the import fails, it falls back to standard
             camelCase conversion.
+
         """
         # Special handling for known column names to match frontend expectations
         # These special cases ensure consistent naming with the JavaScript chart
@@ -907,6 +917,7 @@ class SimpleSerializableMixin(SerializableMixin):
         If you need custom serialization config or field overrides,
         inherit from SerializableMixin instead and implement your own
         asdict() method.
+
     """
 
     def asdict(self) -> dict[str, Any]:
@@ -929,6 +940,7 @@ class SimpleSerializableMixin(SerializableMixin):
             >>> point = Point(x_coord=10, y_coord=20)
             >>> point.asdict()
             {'xCoord': 10, 'yCoord': 20}
+
         """
         # Use the base class _serialize_to_dict with DEFAULT_CONFIG
         # This applies standard serialization rules without customization
@@ -1003,6 +1015,7 @@ def create_serializable_mixin(
         The returned mixin class is a dynamic type created at runtime.
         It inherits from SerializableMixin and overrides the configuration
         behavior.
+
     """
     # Use provided config or fall back to default configuration
     # This allows None to mean "use defaults" rather than requiring
@@ -1024,6 +1037,7 @@ def create_serializable_mixin(
         Attributes:
             config: The SerializationConfig instance to use for this mixin.
                 This is captured from the factory function's closure.
+
         """
 
         def _get_serialization_config(self) -> SerializationConfig:
@@ -1032,6 +1046,7 @@ def create_serializable_mixin(
             Returns:
                 SerializationConfig: The configuration instance captured
                     from the factory function.
+
             """
             # Return the config from the enclosing scope
             # This provides access to the factory function's config parameter
@@ -1046,6 +1061,7 @@ def create_serializable_mixin(
             Returns:
                 dict[str, Any]: Serialized representation with custom
                     configuration applied.
+
             """
             # Use the custom config from _get_serialization_config()
             # This ensures all serialization uses the factory-specified rules

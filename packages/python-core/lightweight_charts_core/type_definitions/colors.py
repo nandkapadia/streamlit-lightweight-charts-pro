@@ -58,10 +58,11 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Union
 
-# Local Imports
-from lightweight_charts_core.types.options import Options
 from lightweight_charts_core.exceptions import ColorValidationError
 from lightweight_charts_core.type_definitions.enums import BackgroundStyle
+
+# Local Imports
+from lightweight_charts_core.types.options import Options
 from lightweight_charts_core.utils.data_utils import is_valid_color
 
 
@@ -98,6 +99,7 @@ class BackgroundSolid(Options, ABC):
     Note:
         The color attribute is validated during initialization using
         the is_valid_color function.
+
     """
 
     color: str = "#ffffff"
@@ -111,6 +113,7 @@ class BackgroundSolid(Options, ABC):
 
         Raises:
             ValueError: If the color format is invalid.
+
         """
         # Validate the color format using the comprehensive validation function
         # This ensures that only valid CSS color formats are accepted
@@ -155,6 +158,7 @@ class BackgroundGradient(Options, ABC):
     Note:
         Both top_color and bottom_color are validated during initialization
         using the _is_valid_color function.
+
     """
 
     top_color: str = "#ffffff"
@@ -169,6 +173,7 @@ class BackgroundGradient(Options, ABC):
 
         Raises:
             ValueError: If either color format is invalid.
+
         """
         # Validate the top color format using the comprehensive validation function
         # This ensures that the top color is in a valid CSS format

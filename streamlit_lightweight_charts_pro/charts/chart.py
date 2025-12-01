@@ -19,11 +19,6 @@ from streamlit_lightweight_charts_pro.charts.managers import (
     SessionStateManager,
 )
 
-if TYPE_CHECKING:
-    from lightweight_charts_core.charts.options.price_scale_options import (
-        PriceScaleOptions,
-    )
-
 
 class Chart(BaseChart):
     """Streamlit Chart class with rendering capabilities.

@@ -31,6 +31,7 @@ Example:
         .set_tooltip_template("<div>$$trade_type$$: $$pnl$$</div>")
     )
     ```
+
 """
 
 # Standard Imports
@@ -158,6 +159,7 @@ class TradeVisualizationOptions(Options):
         tooltip_template: "<div><strong>$$trade_type$$</strong><br/>Entry: $$entry_price$$<br/>Exit: $$exit_price$$<br/>P&L: $$pnl$$ ($$pnl_percentage$$%)</div>"
         entry_marker_template: "↑ $$trade_type$$<br/>$$$entry_price$$"
         exit_marker_template: "↓ $$$exit_price$$<br/>($$pnl_percentage$$%)"
+
     """
 
     style: TradeVisualization = TradeVisualization.RECTANGLES
@@ -231,6 +233,7 @@ class TradeVisualizationOptions(Options):
 
         Raises:
             ValueError: If the style string cannot be converted to TradeVisualization enum.
+
         """
         # Step 1: Convert style to enum if it's a string
         # Allows users to pass "rectangles" instead of TradeVisualization.RECTANGLES

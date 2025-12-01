@@ -9,9 +9,6 @@ import json
 
 import numpy as np
 import pandas as pd
-
-from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 from lightweight_charts_core.charts.options import ChartOptions
 from lightweight_charts_core.charts.options.price_line_options import PriceLineOptions
 from lightweight_charts_core.charts.series.candlestick import CandlestickSeries
@@ -22,6 +19,9 @@ from lightweight_charts_core.constants import (
 )
 from lightweight_charts_core.data.marker import BarMarker
 from lightweight_charts_core.data.ohlcv_data import OhlcvData
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 
 
 class TestHistogramChartIntegration:

@@ -26,11 +26,12 @@ Example:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 # Standard Imports
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional
 
 # Local Imports
 from lightweight_charts_core.charts.options.base_options import Options
@@ -107,8 +108,9 @@ class TimeScaleOptions(Options):
         )
         ```
 
-    See also:
+    See Also:
         Options: Base class providing common option functionality.
+
     """
 
     # Offset and spacing configuration
@@ -133,7 +135,7 @@ class TimeScaleOptions(Options):
     allow_shift_visible_range_on_whitespace_access: bool = False  # Allow shifting on whitespace
 
     # Formatting settings
-    tick_mark_formatter: Optional[Callable] = None  # Custom formatter for tick marks
+    tick_mark_formatter: Callable | None = None  # Custom formatter for tick marks
 
     def __getitem__(self, key):
         """Get option value by key for dictionary-like access.
@@ -153,5 +155,6 @@ class TimeScaleOptions(Options):
             spacing = time_scale["bar_spacing"]  # Returns 6
             visible = time_scale["visible"]  # Returns True
             ```
+
         """
         return self.asdict()[key]

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Literal
+from typing import Literal
 
 from lightweight_charts_core.charts.options.base_options import Options
 from lightweight_charts_core.utils import chainable_field
@@ -57,7 +57,7 @@ class RangeSwitcherOptions(Options):
     """
 
     visible: bool = True
-    ranges: List[RangeConfig] = field(default_factory=list)
+    ranges: list[RangeConfig] = field(default_factory=list)
     position: Literal["top-left", "top-right", "bottom-left", "bottom-right"] = "bottom-right"
 
 

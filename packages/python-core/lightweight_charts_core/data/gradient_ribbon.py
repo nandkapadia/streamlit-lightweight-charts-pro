@@ -6,7 +6,7 @@ ribbon charts that display upper and lower bands with gradient fill areas.
 
 import math
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from lightweight_charts_core.data.ribbon import RibbonData
 from lightweight_charts_core.exceptions import ValueValidationError
@@ -26,13 +26,14 @@ class GradientRibbonData(RibbonData):
         lower: The lower band value.
         fill: Optional fill color override (highest priority).
         gradient: Optional gradient value for color calculation (0.0 to 1.0 or raw value).
+
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = {"upper", "lower"}
     OPTIONAL_COLUMNS: ClassVar[set] = {"fill", "gradient"}
 
     # upper and lower inherited from RibbonData
-    gradient: Optional[float] = None
+    gradient: float | None = None
 
     def __post_init__(self):
         # Call parent's __post_init__ for time normalization and NaN handling

@@ -237,7 +237,6 @@ class TestComponentModuleStructure:
 
     def test_module_imports(self):
         """Test that the module can be imported successfully."""
-
         # Check that all expected attributes exist
         assert hasattr(component_module, "get_component_func")
         assert hasattr(component_module, "debug_component_status")
@@ -248,7 +247,6 @@ class TestComponentModuleStructure:
 
     def test_logger_initialization(self):
         """Test that the logger is properly initialized."""
-
         assert component_module.logger is not None
         assert hasattr(component_module.logger, "info")
         assert hasattr(component_module.logger, "warning")
@@ -256,7 +254,6 @@ class TestComponentModuleStructure:
 
     def test_release_flag(self):
         """Test that the release flag is properly set."""
-
         # The release flag should be a boolean
         assert isinstance(component_module._RELEASE, bool)
 

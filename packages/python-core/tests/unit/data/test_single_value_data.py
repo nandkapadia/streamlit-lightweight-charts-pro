@@ -1,5 +1,4 @@
-"""
-Unit tests for SingleValueData class.
+"""Unit tests for SingleValueData class.
 
 This module tests the SingleValueData class functionality including
 construction, validation, and serialization.
@@ -102,7 +101,6 @@ class TestSingleValueData:
 
     def test_nan_handling(self):
         """Test handling of NaN values."""
-
         # NaN value should be converted to 0.0
         data = SingleValueData(time=1640995200, value=float("nan"))
         assert data.value == 0.0

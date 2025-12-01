@@ -27,11 +27,11 @@ Example:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 # Standard Imports
 from dataclasses import dataclass
-from typing import Optional
 
 # Local Imports
 from lightweight_charts_core.charts.options.base_options import Options
@@ -125,8 +125,9 @@ class LineOptions(Options):
         series = LineSeries(data=data, line_options=line_opts)
         ```
 
-    See also:
+    See Also:
         TradingView LineStyleOptions: https://tradingview.github.io/lightweight-charts/docs/api/interfaces/LineStyleOptions
+
     """
 
     color: str = "#2196f3"
@@ -135,7 +136,7 @@ class LineOptions(Options):
     line_type: LineType = LineType.SIMPLE
     line_visible: bool = True
     point_markers_visible: bool = False
-    point_markers_radius: Optional[int] = None
+    point_markers_radius: int | None = None
     crosshair_marker_visible: bool = False
     crosshair_marker_radius: int = 4
     crosshair_marker_border_color: str = ""
@@ -173,6 +174,7 @@ class LineOptions(Options):
             except ColorValidationError as e:
                 print(f"Invalid color: {e}")
             ```
+
         """
         # Validate color format using utility function
         if not is_valid_color(color):

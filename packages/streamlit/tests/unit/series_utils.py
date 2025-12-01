@@ -1,6 +1,4 @@
-"""
-Test utilities for streamlit-lightweight-charts-pro tests.
-"""
+"""Test utilities for streamlit-lightweight-charts-pro tests."""
 
 
 def _get_enum_value(value, enum_class):

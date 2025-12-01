@@ -17,8 +17,6 @@ Key Features:
 import time
 
 import pytest
-
-from streamlit_lightweight_charts_pro.charts.chart import Chart
 from lightweight_charts_core.charts.options.chart_options import ChartOptions
 from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
 from lightweight_charts_core.charts.options.ui_options import LegendOptions
@@ -32,6 +30,8 @@ from lightweight_charts_core.data.baseline_data import BaselineData
 from lightweight_charts_core.data.candlestick_data import CandlestickData
 from lightweight_charts_core.data.histogram_data import HistogramData
 from lightweight_charts_core.data.line_data import LineData
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
 
 
 class TestCompleteChartValidation:
@@ -576,9 +576,9 @@ class TestPerformanceValidation:
         serialization_time = time.time() - start_time
 
         # Validate performance (should be under 100ms for 1000 points)
-        assert serialization_time < 0.1, (
-            f"Large dataset serialization took {serialization_time:.3f}s, expected < 0.1s"
-        )
+        assert (
+            serialization_time < 0.1
+        ), f"Large dataset serialization took {serialization_time:.3f}s, expected < 0.1s"
 
         # Validate structure
         series_config = config["charts"][0]["series"][0]
@@ -626,9 +626,9 @@ class TestPerformanceValidation:
 
         # Validate performance (should be under 200ms for complex config)
         # Increased from 50ms to account for CI/CD system variance
-        assert serialization_time < 0.2, (
-            f"Complex configuration serialization took {serialization_time:.3f}s, expected < 0.2s"
-        )
+        assert (
+            serialization_time < 0.2
+        ), f"Complex configuration serialization took {serialization_time:.3f}s, expected < 0.2s"
 
         # Validate structure
         chart_config = config["charts"][0]

@@ -5,7 +5,8 @@ chart management logic. Framework-specific implementations should extend this cl
 and add their rendering capabilities.
 """
 
-from typing import Any, Dict, List, Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import Any
 
 import pandas as pd
 
@@ -30,6 +31,7 @@ class BaseChartManager:
         charts: Dictionary mapping chart IDs to chart instances.
         sync_groups: Dictionary mapping group IDs to sync configurations.
         default_sync: Default synchronization options for new charts.
+
     """
 
     # Class attribute to specify which chart class to use
@@ -38,14 +40,14 @@ class BaseChartManager:
 
     def __init__(self) -> None:
         """Initialize the BaseChartManager."""
-        self.charts: Dict[str, BaseChart] = {}
-        self.sync_groups: Dict[str, SyncOptions] = {}
+        self.charts: dict[str, BaseChart] = {}
+        self.sync_groups: dict[str, SyncOptions] = {}
         self.default_sync: SyncOptions = SyncOptions()
         self.force_reinit: bool = False
-        self.symbol: Optional[str] = None
-        self.display_interval: Optional[str] = None
+        self.symbol: str | None = None
+        self.display_interval: str | None = None
 
-    def add_chart(self, chart: BaseChart, chart_id: Optional[str] = None) -> "BaseChartManager":
+    def add_chart(self, chart: BaseChart, chart_id: str | None = None) -> "BaseChartManager":
         """Add a chart to the manager.
 
         Args:
@@ -57,6 +59,7 @@ class BaseChartManager:
 
         Raises:
             DuplicateError: If a chart with the ID already exists.
+
         """
         if chart_id is None:
             chart_id = f"chart_{len(self.charts) + 1}"
@@ -78,6 +81,7 @@ class BaseChartManager:
 
         Raises:
             NotFoundError: If chart ID not found.
+
         """
         if chart_id not in self.charts:
             raise NotFoundError("Chart", chart_id)
@@ -96,17 +100,19 @@ class BaseChartManager:
 
         Raises:
             NotFoundError: If chart ID not found.
+
         """
         if chart_id not in self.charts:
             raise NotFoundError("Chart", chart_id)
 
         return self.charts[chart_id]
 
-    def get_chart_ids(self) -> List[str]:
+    def get_chart_ids(self) -> list[str]:
         """Get all chart IDs.
 
         Returns:
             List of chart IDs.
+
         """
         return list(self.charts.keys())
 
@@ -115,13 +121,14 @@ class BaseChartManager:
 
         Returns:
             Self for method chaining.
+
         """
         self.charts.clear()
         return self
 
     def set_sync_group_config(
         self,
-        group_id: Union[int, str],
+        group_id: int | str,
         sync_options: SyncOptions,
     ) -> "BaseChartManager":
         """Set synchronization configuration for a specific group.
@@ -132,11 +139,12 @@ class BaseChartManager:
 
         Returns:
             Self for method chaining.
+
         """
         self.sync_groups[str(group_id)] = sync_options
         return self
 
-    def get_sync_group_config(self, group_id: Union[int, str]) -> Optional[SyncOptions]:
+    def get_sync_group_config(self, group_id: int | str) -> SyncOptions | None:
         """Get synchronization configuration for a specific group.
 
         Args:
@@ -144,12 +152,11 @@ class BaseChartManager:
 
         Returns:
             SyncOptions or None if not configured.
+
         """
         return self.sync_groups.get(str(group_id))
 
-    def enable_crosshair_sync(
-        self, group_id: Optional[Union[int, str]] = None
-    ) -> "BaseChartManager":
+    def enable_crosshair_sync(self, group_id: int | str | None = None) -> "BaseChartManager":
         """Enable crosshair synchronization.
 
         Args:
@@ -157,6 +164,7 @@ class BaseChartManager:
 
         Returns:
             Self for method chaining.
+
         """
         if group_id:
             group_key = str(group_id)
@@ -167,9 +175,7 @@ class BaseChartManager:
             self.default_sync.enable_crosshair()
         return self
 
-    def disable_crosshair_sync(
-        self, group_id: Optional[Union[int, str]] = None
-    ) -> "BaseChartManager":
+    def disable_crosshair_sync(self, group_id: int | str | None = None) -> "BaseChartManager":
         """Disable crosshair synchronization.
 
         Args:
@@ -177,6 +183,7 @@ class BaseChartManager:
 
         Returns:
             Self for method chaining.
+
         """
         if group_id:
             group_key = str(group_id)
@@ -186,9 +193,7 @@ class BaseChartManager:
             self.default_sync.disable_crosshair()
         return self
 
-    def enable_time_range_sync(
-        self, group_id: Optional[Union[int, str]] = None
-    ) -> "BaseChartManager":
+    def enable_time_range_sync(self, group_id: int | str | None = None) -> "BaseChartManager":
         """Enable time range synchronization.
 
         Args:
@@ -196,6 +201,7 @@ class BaseChartManager:
 
         Returns:
             Self for method chaining.
+
         """
         if group_id:
             group_key = str(group_id)
@@ -206,9 +212,7 @@ class BaseChartManager:
             self.default_sync.enable_time_range()
         return self
 
-    def disable_time_range_sync(
-        self, group_id: Optional[Union[int, str]] = None
-    ) -> "BaseChartManager":
+    def disable_time_range_sync(self, group_id: int | str | None = None) -> "BaseChartManager":
         """Disable time range synchronization.
 
         Args:
@@ -216,6 +220,7 @@ class BaseChartManager:
 
         Returns:
             Self for method chaining.
+
         """
         if group_id:
             group_key = str(group_id)
@@ -225,7 +230,7 @@ class BaseChartManager:
             self.default_sync.disable_time_range()
         return self
 
-    def enable_all_sync(self, group_id: Optional[Union[int, str]] = None) -> "BaseChartManager":
+    def enable_all_sync(self, group_id: int | str | None = None) -> "BaseChartManager":
         """Enable all synchronization features.
 
         Args:
@@ -233,6 +238,7 @@ class BaseChartManager:
 
         Returns:
             Self for method chaining.
+
         """
         if group_id:
             group_key = str(group_id)
@@ -243,7 +249,7 @@ class BaseChartManager:
             self.default_sync.enable_all()
         return self
 
-    def disable_all_sync(self, group_id: Optional[Union[int, str]] = None) -> "BaseChartManager":
+    def disable_all_sync(self, group_id: int | str | None = None) -> "BaseChartManager":
         """Disable all synchronization features.
 
         Args:
@@ -251,6 +257,7 @@ class BaseChartManager:
 
         Returns:
             Self for method chaining.
+
         """
         if group_id:
             group_key = str(group_id)
@@ -262,8 +269,8 @@ class BaseChartManager:
 
     def from_price_volume_dataframe(
         self,
-        data: Union[Sequence[OhlcvData], pd.DataFrame],
-        column_mapping: Optional[dict] = None,
+        data: Sequence[OhlcvData] | pd.DataFrame,
+        column_mapping: dict | None = None,
         price_type: str = "candlestick",
         chart_id: str = "main_chart",
         price_kwargs=None,
@@ -283,6 +290,7 @@ class BaseChartManager:
 
         Returns:
             The created chart instance.
+
         """
         if data is None:
             raise TypeValidationError("data", "list or DataFrame")
@@ -303,11 +311,12 @@ class BaseChartManager:
         self.add_chart(chart, chart_id=chart_id)
         return chart
 
-    def to_frontend_config(self) -> Dict[str, Any]:
+    def to_frontend_config(self) -> dict[str, Any]:
         """Convert the chart manager to frontend configuration.
 
         Returns:
             Dictionary containing the frontend configuration.
+
         """
         if not self.charts:
             return {

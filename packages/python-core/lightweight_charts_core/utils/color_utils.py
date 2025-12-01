@@ -36,10 +36,10 @@ Example:
 Note:
     This module only handles standard hex format (#RRGGBB - 6 digits).
     Short hex format (#RGB - 3 digits) is not currently supported.
+
 """
 
 # Standard Imports
-from typing import Optional
 
 
 def add_opacity(color: str, opacity: float = 0.3) -> str:
@@ -85,6 +85,7 @@ def add_opacity(color: str, opacity: float = 0.3) -> str:
         The function does not validate the opacity value range.
         Values outside 0.0-1.0 will be accepted but may produce
         unexpected results in the browser.
+
     """
     # Check if color starts with '#' to identify hex format
     # If not hex, it could be rgba, rgb, or named color - return unchanged
@@ -122,7 +123,7 @@ def add_opacity(color: str, opacity: float = 0.3) -> str:
         return f"rgba({r}, {g}, {b}, {opacity})"
 
 
-def hex_to_rgba(hex_color: str, alpha: Optional[float] = None) -> str:
+def hex_to_rgba(hex_color: str, alpha: float | None = None) -> str:
     """Convert hex color to rgba or rgb format.
 
     This function provides a more intuitive API for hex to rgba conversion
@@ -163,6 +164,7 @@ def hex_to_rgba(hex_color: str, alpha: Optional[float] = None) -> str:
     Note:
         This is a convenience wrapper around add_opacity() that provides
         more flexibility with the alpha channel.
+
     """
     # If alpha is None, we want rgb format (no alpha channel)
     if alpha is None:
@@ -237,6 +239,7 @@ def is_hex_color(color: str) -> bool:
         This function only validates the standard 6-digit hex format.
         Short format (#RGB) and 8-digit format with alpha (#RRGGBBAA)
         are not considered valid by this function.
+
     """
     # First check: ensure input is a string type
     # This prevents errors when trying to call string methods

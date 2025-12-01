@@ -1,5 +1,4 @@
-"""
-Unit tests for SignalSeries class.
+"""Unit tests for SignalSeries class.
 
 This module contains comprehensive tests for the SignalSeries class, which is used
 for creating signal-based background coloring in financial charts.

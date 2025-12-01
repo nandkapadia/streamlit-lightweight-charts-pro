@@ -10,10 +10,10 @@ from unittest.mock import Mock
 
 # Third Party Imports
 import pytest
+from lightweight_charts_core.data.annotation import Annotation
 
 # Local Imports
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from lightweight_charts_core.data.annotation import Annotation
 from streamlit_lightweight_charts_pro.exceptions import (
     AnnotationItemsTypeError,
     TypeValidationError,

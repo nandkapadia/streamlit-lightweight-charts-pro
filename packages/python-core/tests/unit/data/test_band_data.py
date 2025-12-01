@@ -1,5 +1,4 @@
-"""
-Unit tests for the BandData class.
+"""Unit tests for the BandData class.
 
 This module tests the BandData class functionality including
 construction, validation, serialization, and edge cases.

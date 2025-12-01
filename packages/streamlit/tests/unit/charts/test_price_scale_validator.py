@@ -4,7 +4,6 @@ This module tests the price scale validation functionality.
 """
 
 import pytest
-
 from lightweight_charts_core.charts.options.price_scale_options import (
     PriceScaleOptions,
 )
@@ -13,6 +12,7 @@ from lightweight_charts_core.charts.validators import (
     PriceScaleValidationError,
     PriceScaleValidator,
 )
+
 from streamlit_lightweight_charts_pro.data import SingleValueData
 
 

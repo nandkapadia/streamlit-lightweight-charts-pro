@@ -1,5 +1,4 @@
-"""
-API Alignment Test Suite
+"""API Alignment Test Suite.
 
 This test suite verifies 100% alignment between streamlit-lightweight-charts-pro
 and the official TradingView Lightweight Charts API.
@@ -15,7 +14,7 @@ Tests cover:
 """
 
 import re
-from typing import Any, ClassVar, Type
+from typing import Any, ClassVar
 
 import pytest
 
@@ -40,7 +39,7 @@ class PropertyTestCase:
 
     def verify_property_defaults(
         self,
-        series_class: Type,
+        series_class: type,
         sample_data: list,
         property_name: str,
         expected_default: Any,
@@ -48,13 +47,13 @@ class PropertyTestCase:
         """Helper to test default values."""
         series = series_class(data=sample_data)
         actual_value = getattr(series, property_name)
-        assert actual_value == expected_default, (
-            f"Expected {property_name} default to be {expected_default}, got {actual_value}"
-        )
+        assert (
+            actual_value == expected_default
+        ), f"Expected {property_name} default to be {expected_default}, got {actual_value}"
 
     def verify_property_chainable(
         self,
-        series_class: Type,
+        series_class: type,
         sample_data: list,
         property_name: str,
         test_value: Any,
@@ -69,7 +68,7 @@ class PropertyTestCase:
 
     def verify_property_serialization(
         self,
-        series_class: Type,
+        series_class: type,
         sample_data: list,
         property_name: str,
         test_value: Any,
@@ -88,11 +87,11 @@ class PropertyTestCase:
 
     def verify_property_validation(
         self,
-        series_class: Type,
+        series_class: type,
         sample_data: list,
         property_name: str,
         invalid_value: Any,
-        expected_error: Type[Exception],
+        expected_error: type[Exception],
     ):
         """Helper to test validation."""
         series = series_class(data=sample_data)
@@ -445,9 +444,9 @@ class TestAPIAlignment:
         snake_case_name = self._camel_to_snake(property_name)
 
         # Check property exists
-        assert hasattr(series, snake_case_name), (
-            f"Official API property '{property_name}' ('{snake_case_name}') not implemented"
-        )
+        assert hasattr(
+            series, snake_case_name
+        ), f"Official API property '{property_name}' ('{snake_case_name}') not implemented"
 
         # Check setter exists
         setter_name = f"set_{snake_case_name}"

@@ -1,5 +1,4 @@
-"""
-Comprehensive unit tests for chainable utility module.
+"""Comprehensive unit tests for chainable utility module.
 
 This module tests the chainable decorators functionality including
 method chaining, type validation, edge cases, and error handling.
@@ -10,7 +9,7 @@ method chaining, type validation, edge cases, and error handling.
 # mypy: disable-error-code=attr-defined
 
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import pytest
 
@@ -219,7 +218,7 @@ class TestChainableField:
         @dataclass
         @chainable_field("value", Union[int, float])
         class TestOptions:
-            value: Union[int, float] = 0
+            value: int | float = 0
 
         options = TestOptions()
 
@@ -237,7 +236,7 @@ class TestChainableField:
         @dataclass
         @chainable_field("optional_value", Optional[int])
         class TestOptions:
-            optional_value: Optional[int] = None
+            optional_value: int | None = None
 
         options = TestOptions()
 
@@ -627,12 +626,12 @@ class TestMarkerValidation:
 
     def test_is_list_of_markers_with_list(self):
         """Test _is_list_of_markers with List[MarkerBase]."""
-        result = _is_list_of_markers(List[MarkerBase])
+        result = _is_list_of_markers(list[MarkerBase])
         assert result is True
 
     def test_is_list_of_markers_with_other_list(self):
         """Test _is_list_of_markers with List[str]."""
-        result = _is_list_of_markers(List[str])
+        result = _is_list_of_markers(list[str])
         assert result is False
 
     def test_is_list_of_markers_with_non_list(self):
@@ -646,7 +645,7 @@ class TestMarkerValidation:
         class MarkerSubclass(MarkerBase):
             pass
 
-        result = _is_list_of_markers(List[MarkerSubclass])
+        result = _is_list_of_markers(list[MarkerSubclass])
         assert result is True
 
     def test_validate_list_of_markers_with_valid_markers(self):
@@ -776,7 +775,6 @@ class TestMarkerValidation:
 
     def test_is_list_of_markers_with_union_type(self):
         """Test _is_list_of_markers with Union type containing MarkerBase."""
-
         # Union type with MarkerBase should not be considered a list of markers
         result = _is_list_of_markers(Union[MarkerBase, str])
         assert result is False
@@ -790,7 +788,7 @@ class TestMarkerValidation:
     def test_is_list_of_markers_with_nested_list(self):
         """Test _is_list_of_markers with List[List[MarkerBase]]."""
         # Nested list should not be considered a simple list of markers
-        result = _is_list_of_markers(List[List[MarkerBase]])
+        result = _is_list_of_markers(list[list[MarkerBase]])
         assert result is False
 
     def test_validate_list_of_markers_error_message_format(self):

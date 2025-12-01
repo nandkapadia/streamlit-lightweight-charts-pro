@@ -1,5 +1,4 @@
-"""
-Tests for other options classes.
+"""Tests for other options classes.
 
 This module contains comprehensive tests for the remaining option classes:
 - TimeScaleOptions
@@ -321,7 +320,6 @@ class TestPriceFormatOptions:
 
     def test_validation_precision(self):
         """Test validation of precision field."""
-
         options = PriceFormatOptions()
 
         with pytest.raises(TypeValidationError):
@@ -329,7 +327,6 @@ class TestPriceFormatOptions:
 
     def test_validation_min_move(self):
         """Test validation of min_move field."""
-
         options = PriceFormatOptions()
 
         with pytest.raises(TypeValidationError):
@@ -380,7 +377,6 @@ class TestPriceLineOptions:
 
     def test_validation_price(self):
         """Test validation of price field."""
-
         options = PriceLineOptions()
 
         with pytest.raises(TypeValidationError):
@@ -399,7 +395,6 @@ class TestPriceLineOptions:
 
     def test_validation_line_width(self):
         """Test validation of line_width field."""
-
         options = PriceLineOptions()
 
         with pytest.raises(TypeValidationError):
@@ -502,7 +497,6 @@ class TestLineOptions:
 
     def test_validation_line_width(self):
         """Test validation of line_width field."""
-
         options = LineOptions()
 
         with pytest.raises(TypeValidationError):
@@ -559,7 +553,6 @@ class TestTradeVisualizationOptions:
 
     def test_validation_style(self):
         """Test validation of style field."""
-
         options = TradeVisualizationOptions()
 
         with pytest.raises(TypeValidationError):

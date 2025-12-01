@@ -1,5 +1,4 @@
-"""
-Tests for CandlestickSeries class.
+"""Tests for CandlestickSeries class.
 
 This module contains comprehensive tests for the CandlestickSeries class,
 which represents candlestick chart series with styling options.

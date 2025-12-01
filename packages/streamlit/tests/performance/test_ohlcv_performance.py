@@ -23,7 +23,6 @@ from typing import List
 
 import psutil
 import pytest
-
 from lightweight_charts_core.data.ohlcv_data import OhlcvData
 
 
@@ -495,7 +494,6 @@ class TestOhlcvDataPerformance:
 
     def test_concurrent_processing_small_dataset(self, small_dataset):
         """Test concurrent processing performance for small dataset."""
-
         start_time = time.time()
 
         def process_data(data):
@@ -529,7 +527,6 @@ class TestOhlcvDataPerformance:
 
     def test_concurrent_processing_large_dataset(self, large_dataset):
         """Test concurrent processing performance for large dataset."""
-
         start_time = time.time()
 
         def process_data(data):

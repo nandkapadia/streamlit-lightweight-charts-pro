@@ -4,8 +4,6 @@ This package provides the data models, type definitions, and utilities that are
 shared between different frontend frameworks (Streamlit, Vue 3, React, etc.).
 """
 
-__version__ = "0.1.0"
-
 # Data models
 from lightweight_charts_core.data import (
     AreaData,
@@ -70,6 +68,9 @@ from lightweight_charts_core.utils import (
     snake_to_camel,
     validated_field,
 )
+
+__version__ = "0.1.0"
+
 
 __all__ = [
     # Version

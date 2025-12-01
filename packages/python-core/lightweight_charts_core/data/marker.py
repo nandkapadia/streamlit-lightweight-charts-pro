@@ -49,7 +49,7 @@ License: MIT
 
 # Standard Imports
 from dataclasses import dataclass
-from typing import ClassVar, Optional, Union
+from typing import ClassVar
 
 # Local Imports
 from lightweight_charts_core.data.data import Data
@@ -89,6 +89,7 @@ class MarkerBase(Data):
             required columns for DataFrame conversion operations.
         OPTIONAL_COLUMNS (set): Set containing optional columns for
             DataFrame conversion operations.
+
     """
 
     # Define required columns for DataFrame conversion - position and shape are required
@@ -98,15 +99,15 @@ class MarkerBase(Data):
     OPTIONAL_COLUMNS: ClassVar[set] = {"text", "color", "size", "id"}
 
     # Position of the marker relative to the data point - defaults to above bar
-    position: Union[str, MarkerPosition] = MarkerPosition.ABOVE_BAR
+    position: str | MarkerPosition = MarkerPosition.ABOVE_BAR
     # Shape of the marker - defaults to circle
-    shape: Union[str, MarkerShape] = MarkerShape.CIRCLE
+    shape: str | MarkerShape = MarkerShape.CIRCLE
     # Color of the marker in hex format - defaults to blue
     color: str = "#2196F3"
     # Optional unique identifier for the marker
-    id: Optional[str] = None
+    id: str | None = None
     # Optional text to display with the marker
-    text: Optional[str] = None
+    text: str | None = None
     # Size of the marker in pixels - defaults to 1
     size: int = 1
 
@@ -143,6 +144,7 @@ class MarkerBase(Data):
         Returns:
             bool: True if position is valid, False otherwise. Base implementation
                 always returns True.
+
         """
         # Base class allows all positions - subclasses will override with specific validation
         return True
@@ -181,6 +183,7 @@ class PriceMarker(MarkerBase):
 
     Raises:
         RequiredFieldError: If the price field is 0.0 or missing.
+
     """
 
     # Define required columns for DataFrame conversion - price is additional requirement
@@ -205,6 +208,7 @@ class PriceMarker(MarkerBase):
 
         Raises:
             RequiredFieldError: If the price field is 0.0 or missing.
+
         """
         # Call parent's __post_init__ to normalize time and convert enums
         super().__post_init__()
@@ -221,6 +225,7 @@ class PriceMarker(MarkerBase):
 
         Returns:
             bool: True if position is valid for price markers, False otherwise.
+
         """
         # Define valid positions for price markers - must be price-specific positions
         valid_positions = {
@@ -262,6 +267,7 @@ class BarMarker(MarkerBase):
             required columns for DataFrame conversion operations.
         OPTIONAL_COLUMNS (set): Set containing optional columns including
             "price" for enhanced positioning flexibility.
+
     """
 
     # Define required columns for DataFrame conversion - same as base class
@@ -271,7 +277,7 @@ class BarMarker(MarkerBase):
     OPTIONAL_COLUMNS: ClassVar[set] = {"text", "color", "size", "id", "price"}
 
     # Optional price value for exact Y-axis positioning - provides enhanced flexibility
-    price: Optional[float] = None
+    price: float | None = None
 
     def validate_position(self) -> bool:
         """Validate that the position is valid for bar markers.
@@ -281,6 +287,7 @@ class BarMarker(MarkerBase):
 
         Returns:
             bool: True if position is valid for bar markers, False otherwise.
+
         """
         # Define valid positions for bar markers - must be bar-relative positions
         valid_positions = {

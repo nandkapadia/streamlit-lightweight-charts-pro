@@ -1,5 +1,4 @@
-"""
-Tests for the ChartOptions class.
+"""Tests for the ChartOptions class.
 
 This module contains comprehensive tests for the ChartOptions class,
 ensuring proper construction, validation, and serialization.
@@ -324,9 +323,9 @@ class TestChartOptionsSerialization:
             assert field not in result, f"None field '{field}' should not be in result"
 
         # Check that empty dict fields are omitted
-        assert "overlayPriceScales" not in result, (
-            "Empty dict field 'overlayPriceScales' should not be in result"
-        )
+        assert (
+            "overlayPriceScales" not in result
+        ), "Empty dict field 'overlayPriceScales' should not be in result"
 
     def test_to_dict_with_explicit_none_fields(self):
         """Test that explicitly set None fields are omitted from output."""
@@ -384,7 +383,6 @@ class TestChartOptionsIntegration:
 
     def test_chart_options_with_custom_layout(self):
         """Test ChartOptions with custom layout options."""
-
         custom_layout = LayoutOptions(
             background_options=BackgroundSolid(color="#000000"),
             text_color="#ffffff",
@@ -400,7 +398,6 @@ class TestChartOptionsIntegration:
 
     def test_chart_options_with_custom_price_scales(self):
         """Test ChartOptions with custom price scale options."""
-
         custom_left_scale = PriceScaleOptions(
             visible=True,
             border_color="#ff0000",
@@ -429,7 +426,6 @@ class TestChartOptionsIntegration:
 
     def test_chart_options_with_custom_time_scale(self):
         """Test ChartOptions with custom time scale options."""
-
         custom_time_scale = TimeScaleOptions(
             time_visible=True,
             seconds_visible=False,
@@ -447,7 +443,6 @@ class TestChartOptionsIntegration:
 
     def test_chart_options_with_custom_crosshair(self):
         """Test ChartOptions with custom crosshair options."""
-
         custom_crosshair = CrosshairOptions(mode=CrosshairMode.NORMAL)
 
         options = ChartOptions(crosshair=custom_crosshair)
@@ -457,7 +452,6 @@ class TestChartOptionsIntegration:
 
     def test_chart_options_with_custom_grid(self):
         """Test ChartOptions with custom grid options."""
-
         custom_grid = GridOptions(
             vert_lines=GridLineOptions(color="#ff0000", style=LineStyle.SOLID),
             horz_lines=GridLineOptions(color="#00ff00", style=LineStyle.DOTTED),

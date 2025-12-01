@@ -23,9 +23,8 @@ Example:
     series.lower_line.color = "#F44336"
     series.upper_fill_color = "rgba(76, 175, 80, 0.1)"
     series.lower_fill_color = "rgba(244, 67, 54, 0.1)"
-"""
 
-from typing import List, Optional, Union
+"""
 
 import pandas as pd
 
@@ -73,17 +72,18 @@ class BandSeries(Series):
         price_lines: List of PriceLineOptions for price lines (set after construction)
         price_format: PriceFormatOptions for price formatting (set after construction)
         markers: List of markers to display on this series (set after construction)
+
     """
 
     DATA_CLASS = BandData
 
     def __init__(
         self,
-        data: Union[List[BandData], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[BandData] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
     ):
         """Initialize BandSeries.
 
@@ -93,6 +93,7 @@ class BandSeries(Series):
             visible: Whether the series is visible
             price_scale_id: ID of the price scale
             pane_id: The pane index this series belongs to
+
         """
         super().__init__(
             data=data,

@@ -5,7 +5,7 @@ that support both top and bottom area styling with individual color controls.
 """
 
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from lightweight_charts_core.data.single_value_data import SingleValueData
 from lightweight_charts_core.utils import validated_field
@@ -44,6 +44,7 @@ class BaselineData(SingleValueData):
         - If color properties are not provided, colors from series options will be used.
          - Baseline series display data with both positive and negative areas relative
            to a baseline value.
+
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = set()
@@ -56,9 +57,9 @@ class BaselineData(SingleValueData):
         "bottom_line_color",
     }
 
-    top_fill_color1: Optional[str] = None
-    top_fill_color2: Optional[str] = None
-    top_line_color: Optional[str] = None
-    bottom_fill_color1: Optional[str] = None
-    bottom_fill_color2: Optional[str] = None
-    bottom_line_color: Optional[str] = None
+    top_fill_color1: str | None = None
+    top_fill_color2: str | None = None
+    top_line_color: str | None = None
+    bottom_fill_color1: str | None = None
+    bottom_fill_color2: str | None = None
+    bottom_line_color: str | None = None

@@ -6,8 +6,6 @@ that span the entire chart height, colored based on signal values at specific
 time points.
 """
 
-from typing import List, Optional, Union
-
 import pandas as pd
 
 from lightweight_charts_core.charts.series.base import Series
@@ -61,6 +59,7 @@ class SignalSeries(Series):
         # Add to chart
         chart.add_series(signal_series)
         ```
+
     """
 
     DATA_CLASS = SignalData
@@ -71,19 +70,20 @@ class SignalSeries(Series):
 
         Returns:
             ChartType: ChartType.SIGNAL indicating this is a signal series.
+
         """
         return ChartType.SIGNAL
 
     def __init__(
         self,
-        data: Union[List[SignalData], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[SignalData] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         neutral_color: str = "rgba(128, 128, 128, 0.1)",
         signal_color: str = "rgba(76, 175, 80, 0.2)",
-        alert_color: Optional[str] = None,
+        alert_color: str | None = None,
         visible: bool = True,
         price_scale_id: str = "right",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
     ):
         """Initialize SignalSeries.
 
@@ -100,6 +100,7 @@ class SignalSeries(Series):
 
         Raises:
             ValueError: If data is empty or invalid.
+
         """
         super().__init__(
             data=data,

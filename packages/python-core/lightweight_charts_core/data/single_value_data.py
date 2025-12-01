@@ -45,7 +45,6 @@ from lightweight_charts_core.data.data import Data
 from lightweight_charts_core.exceptions import RequiredFieldError
 
 
-
 @dataclass
 class SingleValueData(Data):
     """Data class for single value data points used in line and area charts.
@@ -80,10 +79,11 @@ class SingleValueData(Data):
         serialized = data.asdict()  # {'time': 1704067200, 'value': 100.0}
         ```
 
-    See also:
+    See Also:
         Data: Base class providing time normalization and serialization.
         LineData: Specialized single value data for line charts.
         AreaData: Specialized single value data for area charts.
+
     """
 
     # Define required columns for DataFrame conversion - only "value" is required
@@ -110,6 +110,7 @@ class SingleValueData(Data):
 
         Raises:
             RequiredFieldError: If the value field is None or missing.
+
         """
         # Call parent's __post_init__ to normalize the time value to UNIX timestamp
         super().__post_init__()

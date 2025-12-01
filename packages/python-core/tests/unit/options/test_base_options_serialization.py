@@ -1,5 +1,4 @@
-"""
-Base Options serialization tests - asdict() and conversion behavior.
+"""Base Options serialization tests - asdict() and conversion behavior.
 
 This module tests all serialization functionality including:
 - Basic field serialization with camelCase conversion
@@ -15,7 +14,7 @@ This module tests all serialization functionality including:
 # Standard Imports
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # Third Party Imports
 import pytest
@@ -56,9 +55,9 @@ class MockOptions(Options):
     none_field: str = None
     empty_string_field: str = ""
     nested_options: Optional["MockOptions"] = None
-    list_field: List[Any] = None
-    background_options: Dict[str, Any] = None
-    other_options: Dict[str, Any] = None
+    list_field: list[Any] = None
+    background_options: dict[str, Any] = None
+    other_options: dict[str, Any] = None
 
 
 @dataclass
@@ -76,10 +75,10 @@ class MockOptionsDataClass(Options):
     background_color: str = "#ffffff"
     text_color: str = "#000000"
     is_visible: bool = True
-    nested_options: Optional[NestedOptions] = None
-    options_list: Optional[List[NestedOptions]] = None
-    options_dict: Optional[Dict[str, NestedOptions]] = None
-    enum_value: Optional[MockEnum] = None
+    nested_options: NestedOptions | None = None
+    options_list: list[NestedOptions] | None = None
+    options_dict: dict[str, NestedOptions] | None = None
+    enum_value: MockEnum | None = None
 
 
 # =============================================================================
@@ -330,16 +329,16 @@ class TestNestedStructures:
         @dataclass
         class Level2Options(Options):
             value: str = "level2"
-            level3: Optional[Level3Options] = None
+            level3: Level3Options | None = None
 
         @dataclass
         class Level1Options(Options):
             value: str = "level1"
-            level2: Optional[Level2Options] = None
+            level2: Level2Options | None = None
 
         @dataclass
         class DeepNestedOptions(Options):
-            level1: Optional[Level1Options] = None
+            level1: Level1Options | None = None
 
         # Create deeply nested structure
         level3 = Level3Options(value="deep_value")

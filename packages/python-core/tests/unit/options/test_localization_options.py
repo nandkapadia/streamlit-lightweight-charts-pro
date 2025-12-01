@@ -1,5 +1,4 @@
-"""
-Unit tests for LocalizationOptions class.
+"""Unit tests for LocalizationOptions class.
 
 This module tests the LocalizationOptions class functionality including
 construction, validation, and serialization.

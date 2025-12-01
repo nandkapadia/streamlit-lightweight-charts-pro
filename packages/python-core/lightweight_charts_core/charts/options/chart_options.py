@@ -29,11 +29,11 @@ Example:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 # Standard Imports
 from dataclasses import dataclass, field
-from typing import Dict, Optional
 
 # Local Imports
 from lightweight_charts_core.charts.options.base_options import Options
@@ -143,18 +143,19 @@ class ChartOptions(Options):
             handle_scale=True,
         )
         ```
+
     """
 
     # Size and layout options
-    width: Optional[int] = None
+    width: int | None = None
     height: int = 400
     auto_size: bool = True
 
     # Layout and appearance
     layout: LayoutOptions = field(default_factory=LayoutOptions)
-    left_price_scale: Optional[PriceScaleOptions] = None
+    left_price_scale: PriceScaleOptions | None = None
     right_price_scale: PriceScaleOptions = field(default_factory=PriceScaleOptions)
-    overlay_price_scales: Dict[str, PriceScaleOptions] = field(default_factory=dict)
+    overlay_price_scales: dict[str, PriceScaleOptions] = field(default_factory=dict)
     time_scale: TimeScaleOptions = field(default_factory=TimeScaleOptions)
 
     # Interaction options
@@ -162,18 +163,18 @@ class ChartOptions(Options):
     grid: GridOptions = field(default_factory=GridOptions)
     handle_scroll: bool = True
     handle_scale: bool = True
-    kinetic_scroll: Optional[KineticScrollOptions] = None
-    tracking_mode: Optional[TrackingModeOptions] = None
+    kinetic_scroll: KineticScrollOptions | None = None
+    tracking_mode: TrackingModeOptions | None = None
 
     # Localization and UI
-    localization: Optional[LocalizationOptions] = None
+    localization: LocalizationOptions | None = None
     add_default_pane: bool = True
 
     # Trade visualization options
-    trade_visualization: Optional[TradeVisualizationOptions] = None
+    trade_visualization: TradeVisualizationOptions | None = None
 
     # UI options
-    range_switcher: Optional[RangeSwitcherOptions] = None
+    range_switcher: RangeSwitcherOptions | None = None
 
     # Synchronization options (reserved for future use)
 

@@ -15,9 +15,9 @@ from typing import ClassVar, Dict, List, Tuple
 import numpy as np
 import psutil
 import pytest
+from lightweight_charts_core.charts.series import LineSeries
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from lightweight_charts_core.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import LineData
 
 
@@ -246,9 +246,9 @@ class TestMemoryProfiling:
         # Memory should be reduced or at least not significantly increased
         memory_change = memory_after_removal - memory_with_series
         # Allow for some memory fluctuation but ensure it's not growing significantly
-        assert memory_change < 50, (
-            f"Memory increased by {memory_change:.2f}MB after cleanup, expected < 50MB"
-        )
+        assert (
+            memory_change < 50
+        ), f"Memory increased by {memory_change:.2f}MB after cleanup, expected < 50MB"
 
     def test_memory_growth_with_repeated_operations(self):
         """Test that memory doesn't grow indefinitely with repeated operations."""
@@ -285,7 +285,6 @@ class TestConcurrentPerformance:
 
     def test_concurrent_series_creation(self):
         """Test performance when creating multiple series concurrently."""
-
         n_series = 10
         n_points = 1000
         rng = np.random.default_rng(42)
@@ -389,9 +388,9 @@ def benchmark_operation(operation_name: str, operation_func, *args, **kwargs) ->
 
 def assert_performance_target(operation_name: str, execution_time: float, target_ms: float):
     """Assert that an operation meets its performance target."""
-    assert execution_time <= target_ms, (
-        f"[{operation_name}] Execution time {execution_time:.2f}ms exceeds target {target_ms}ms"
-    )
+    assert (
+        execution_time <= target_ms
+    ), f"[{operation_name}] Execution time {execution_time:.2f}ms exceeds target {target_ms}ms"
 
 
 def generate_performance_report(test_results: List[Tuple[str, float, float]]):

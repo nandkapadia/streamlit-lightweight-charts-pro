@@ -4,9 +4,10 @@ This module tests the auto-creation of price scales to ensure alignment
 with TradingView's official API behavior.
 """
 
-from streamlit_lightweight_charts_pro.charts.chart import Chart
 from lightweight_charts_core.charts.managers.series_manager import SeriesManager
 from lightweight_charts_core.charts.series import LineSeries
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.data import SingleValueData
 
 
@@ -156,6 +157,7 @@ class TestPriceScaleAutoCreation:
     def test_auto_creation_with_multiple_series_same_pane(self):
         """Test auto-creation works when multiple series share same pane and scale."""
         from lightweight_charts_core.charts.series import CandlestickSeries
+
         from streamlit_lightweight_charts_pro.data import CandlestickData
 
         chart = Chart()

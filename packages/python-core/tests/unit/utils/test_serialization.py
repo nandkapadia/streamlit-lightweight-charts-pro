@@ -12,9 +12,7 @@ Tests serialization functionality including:
 import math
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict
-
-import pytest
+from typing import Any
 
 from lightweight_charts_core.utils.serialization import (
     DEFAULT_CONFIG,
@@ -95,7 +93,7 @@ class TestSerializableMixin:
             title: str = "Test"
             value: int = 42
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         data = SimpleData()
@@ -112,7 +110,7 @@ class TestSerializableMixin:
             price_scale_id: str = "right"
             background_color: str = "#000"
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         data = CamelData()
@@ -129,7 +127,7 @@ class TestSerializableMixin:
         class EnumData(SerializableMixin):
             status: TestEnum = TestEnum.VALUE_ONE
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         data = EnumData()
@@ -146,7 +144,7 @@ class TestSerializableMixin:
             title: str = "Test"
             optional: str = None
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         data = NoneData()
@@ -163,7 +161,7 @@ class TestSerializableMixin:
             title: str = "Test"
             optional: str = None
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 config = SerializationConfig(skip_none=False)
                 return dict(self._serialize_to_dict(config=config))
 
@@ -182,7 +180,7 @@ class TestSerializableMixin:
             title: str = "Test"
             notes: str = ""
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         data = EmptyData()
@@ -198,7 +196,7 @@ class TestSerializableMixin:
         class NanData(SerializableMixin):
             value: float = math.nan
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         data = NanData()
@@ -214,7 +212,7 @@ class TestSerializableMixin:
         class NanData(SerializableMixin):
             value: float = math.nan
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 config = SerializationConfig(convert_nan_to_zero=False)
                 return dict(self._serialize_to_dict(config=config))
 
@@ -230,7 +228,7 @@ class TestSerializableMixin:
         class Inner(SerializableMixin):
             inner_value: int = 10
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         @dataclass
@@ -238,7 +236,7 @@ class TestSerializableMixin:
             outer_value: str = "test"
             nested: Inner = field(default_factory=Inner)
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         data = Outer()
@@ -256,7 +254,7 @@ class TestSerializableMixin:
         class OverrideData(SerializableMixin):
             value: int = 10
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 overrides = {"value": 999}
                 return dict(self._serialize_to_dict(override_fields=overrides))
 
@@ -358,7 +356,7 @@ class TestSerializationIntegration:
         class Level3(SerializableMixin):
             deep_value: int = 30
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         @dataclass
@@ -366,7 +364,7 @@ class TestSerializationIntegration:
             mid_value: str = "middle"
             level3: Level3 = field(default_factory=Level3)
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         @dataclass
@@ -374,7 +372,7 @@ class TestSerializationIntegration:
             top_value: float = 1.0
             level2: Level2 = field(default_factory=Level2)
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         data = Level1()
@@ -400,7 +398,7 @@ class TestSerializationIntegration:
             enum_val: TestEnum = TestEnum.VALUE_TWO
             nan_val: float = math.nan
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         data = MixedData()
@@ -425,7 +423,7 @@ class TestSerializationIntegration:
             empty_val: str = ""
             nan_val: float = math.nan
 
-            def asdict_with_config(self, config: SerializationConfig) -> Dict[str, Any]:
+            def asdict_with_config(self, config: SerializationConfig) -> dict[str, Any]:
                 return dict(self._serialize_to_dict(config=config))
 
         data = ConfigData()
@@ -454,7 +452,7 @@ class TestSerializationIntegration:
         class Inner(SerializableMixin):
             status: TestEnum = TestEnum.VALUE_ONE
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         @dataclass
@@ -462,7 +460,7 @@ class TestSerializationIntegration:
             inner: Inner = field(default_factory=Inner)
             outer_status: TestEnum = TestEnum.VALUE_TWO
 
-            def asdict(self) -> Dict[str, Any]:
+            def asdict(self) -> dict[str, Any]:
                 return dict(self._serialize_to_dict())
 
         data = Outer()

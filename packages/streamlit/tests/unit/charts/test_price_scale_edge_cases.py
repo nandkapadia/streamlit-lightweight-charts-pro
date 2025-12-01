@@ -5,9 +5,9 @@ particularly focusing on default values and built-in scale handling.
 """
 
 import pytest
+from lightweight_charts_core.charts.series import LineSeries
 
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from lightweight_charts_core.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data import SingleValueData
 
 
@@ -168,9 +168,9 @@ class TestPriceScaleEdgeCases:
 
             # None of the built-in scales should create overlay entries
             assert scale_id not in chart._price_scale_manager.overlay_price_scales
-            assert len(chart._price_scale_manager.overlay_price_scales) == 0, (
-                f"Built-in scale '{scale_id}' should not create overlay scale"
-            )
+            assert (
+                len(chart._price_scale_manager.overlay_price_scales) == 0
+            ), f"Built-in scale '{scale_id}' should not create overlay scale"
 
     def test_custom_scales_summary(self, sample_data):
         """Comprehensive test verifying custom scales DO trigger auto-creation.
@@ -186,9 +186,9 @@ class TestPriceScaleEdgeCases:
             chart.add_series(series)
 
             # All custom scales should be auto-created
-            assert scale_id in chart._price_scale_manager.overlay_price_scales, (
-                f"Custom scale '{scale_id}' should be auto-created"
-            )
+            assert (
+                scale_id in chart._price_scale_manager.overlay_price_scales
+            ), f"Custom scale '{scale_id}' should be auto-created"
 
             # Verify it has expected properties
             scale = chart._price_scale_manager.overlay_price_scales[scale_id]

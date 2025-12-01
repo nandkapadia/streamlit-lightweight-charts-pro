@@ -4,8 +4,6 @@ This module provides fluent builder patterns for common price scale configuratio
 making it easier to create properly configured price scales for various use cases.
 """
 
-from typing import Optional
-
 from lightweight_charts_core.charts.options.price_scale_options import (
     PriceScaleMargins,
     PriceScaleOptions,
@@ -45,6 +43,7 @@ class PriceScaleConfig:
         Example:
             >>> config = PriceScaleConfig.for_overlay("volume")
             >>> chart.add_overlay_price_scale("volume", config)
+
         """
         del scale_id
         defaults = {
@@ -81,6 +80,7 @@ class PriceScaleConfig:
         Example:
             >>> config = PriceScaleConfig.for_separate_pane("rsi")
             >>> chart.add_overlay_price_scale("rsi", config)
+
         """
         del scale_id
         defaults = {
@@ -114,6 +114,7 @@ class PriceScaleConfig:
         Example:
             >>> config = PriceScaleConfig.for_volume(as_overlay=True)
             >>> chart.add_overlay_price_scale("volume", config)
+
         """
         del scale_id
         if as_overlay:
@@ -138,8 +139,8 @@ class PriceScaleConfig:
     @staticmethod
     def for_indicator(
         scale_id: str,
-        min_value: Optional[float] = None,  # noqa: ARG004
-        max_value: Optional[float] = None,  # noqa: ARG004
+        min_value: float | None = None,  # noqa: ARG004
+        max_value: float | None = None,  # noqa: ARG004
         **kwargs,
     ) -> PriceScaleOptions:
         """Create price scale config for bounded indicators (RSI, Stochastic, etc).
@@ -164,6 +165,7 @@ class PriceScaleConfig:
             >>> # RSI indicator (0-100 range)
             >>> config = PriceScaleConfig.for_indicator("rsi", min_value=0, max_value=100)
             >>> chart.add_overlay_price_scale("rsi", config)
+
         """
         del scale_id
         defaults = {
@@ -199,6 +201,7 @@ class PriceScaleConfig:
         Example:
             >>> config = PriceScaleConfig.for_percentage("pct_change")
             >>> chart.add_overlay_price_scale("pct_change", config)
+
         """
         del scale_id
         defaults = {
@@ -230,6 +233,7 @@ class PriceScaleConfig:
         Example:
             >>> config = PriceScaleConfig.for_logarithmic("price_log")
             >>> chart.add_overlay_price_scale("price_log", config)
+
         """
         del scale_id
         defaults = {

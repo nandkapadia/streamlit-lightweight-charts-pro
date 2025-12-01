@@ -1,6 +1,6 @@
 """Unit tests for the base data classes in lightweight_charts_core.
 
-This module contains comprehensive unit tests for Data, SingleValueData, and 
+This module contains comprehensive unit tests for Data, SingleValueData, and
 related data classes including time normalization, validation, and serialization.
 """
 
@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 import pandas as pd
 import pytest
 
-from lightweight_charts_core.data import LineData, Data, SingleValueData
+from lightweight_charts_core.data import LineData
 from lightweight_charts_core.exceptions import (
     ColorValidationError,
     RequiredFieldError,

@@ -52,9 +52,6 @@ License: MIT
 """
 
 # Streamlit-specific chart classes
-from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
-
 # Re-export series from core
 from lightweight_charts_core.charts.series import (
     AreaSeries,
@@ -70,6 +67,9 @@ from lightweight_charts_core.charts.series import (
     SignalSeries,
     TrendFillSeries,
 )
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 
 __all__ = [
     "AreaSeries",

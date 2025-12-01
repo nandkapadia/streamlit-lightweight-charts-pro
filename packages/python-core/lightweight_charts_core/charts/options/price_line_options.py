@@ -5,7 +5,6 @@ horizontal price lines on charts.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 from lightweight_charts_core.charts.options.base_options import Options
 from lightweight_charts_core.exceptions import ColorValidationError
@@ -43,9 +42,10 @@ class PriceLineOptions(Options):
         title (str): Title for the price line on the chart pane.
         axis_label_color (Optional[str]): Background color for the axis label.
         axis_label_text_color (Optional[str]): Text color for the axis label.
+
     """
 
-    id: Optional[str] = None
+    id: str | None = None
     price: float = 0.0
     color: str = ""
     line_width: int = 1
@@ -53,8 +53,8 @@ class PriceLineOptions(Options):
     line_visible: bool = True
     axis_label_visible: bool = False
     title: str = ""
-    axis_label_color: Optional[str] = None
-    axis_label_text_color: Optional[str] = None
+    axis_label_color: str | None = None
+    axis_label_text_color: str | None = None
 
     @staticmethod
     def _validate_color_static(color: str, property_name: str) -> str:

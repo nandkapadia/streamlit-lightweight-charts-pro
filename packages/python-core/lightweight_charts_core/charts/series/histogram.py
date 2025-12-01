@@ -42,10 +42,11 @@ Example:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 # Standard Imports
-from typing import List, Optional, Sequence, Union
+from collections.abc import Sequence
 
 # Third Party Imports
 import numpy as np
@@ -123,10 +124,11 @@ class HistogramSeries(Series):
         )
         ```
 
-    See also:
+    See Also:
         Series: Base class providing common series functionality.
         HistogramData: Data class for histogram chart data points.
         create_volume_series: Factory method for volume series with color coding.
+
     """
 
     DATA_CLASS = HistogramData
@@ -146,13 +148,14 @@ class HistogramSeries(Series):
             series = HistogramSeries(data=data)
             chart_type = series.chart_type  # ChartType.HISTOGRAM
             ```
+
         """
         return ChartType.HISTOGRAM
 
     @classmethod
     def create_volume_series(
         cls,
-        data: Union[Sequence[OhlcvData], pd.DataFrame],
+        data: Sequence[OhlcvData] | pd.DataFrame,
         column_mapping: dict,
         up_color: str = HISTOGRAM_UP_COLOR_DEFAULT,
         down_color: str = HISTOGRAM_DOWN_COLOR_DEFAULT,
@@ -209,6 +212,7 @@ class HistogramSeries(Series):
         Note:
             The method automatically sets _last_value_visible to False for volume series
             as it's typically used as an overlay rather than a main price series.
+
         """
         if isinstance(data, pd.DataFrame):
             # Use vectorized operations for efficient color assignment on large datasets
@@ -286,11 +290,11 @@ class HistogramSeries(Series):
 
     def __init__(
         self,
-        data: Union[List[Data], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[Data] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "right",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
     ):
         """Initialize HistogramSeries with data and configuration options.
 
@@ -326,6 +330,7 @@ class HistogramSeries(Series):
             # Histogram series with Series
             series = HistogramSeries(data=series_data, column_mapping={"time": "index", "value": "values"})
             ```
+
         """
         # Initialize base series functionality
         super().__init__(

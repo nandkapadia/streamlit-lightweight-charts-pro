@@ -6,7 +6,7 @@ band charts such as Bollinger Bands and other envelope indicators.
 
 import math
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from lightweight_charts_core.data.data import Data
 from lightweight_charts_core.exceptions import ValueValidationError
@@ -57,6 +57,7 @@ class BandData(Data):
             lower_fill_color="rgba(0,255,0,0.2)",
         )
         ```
+
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = {"upper", "middle", "lower"}
@@ -71,11 +72,11 @@ class BandData(Data):
     upper: float
     middle: float
     lower: float
-    upper_line_color: Optional[str] = None
-    middle_line_color: Optional[str] = None
-    lower_line_color: Optional[str] = None
-    upper_fill_color: Optional[str] = None
-    lower_fill_color: Optional[str] = None
+    upper_line_color: str | None = None
+    middle_line_color: str | None = None
+    lower_line_color: str | None = None
+    upper_fill_color: str | None = None
+    lower_fill_color: str | None = None
 
     def __post_init__(self):
         # Normalize time

@@ -5,7 +5,6 @@ chart appearance, grid settings, panes, and watermarks.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Optional
 
 from lightweight_charts_core.charts.options.base_options import Options
 from lightweight_charts_core.exceptions import ValueValidationError
@@ -71,7 +70,7 @@ class PaneHeightOptions(Options):
 @chainable_field("font_size", int)
 @chainable_field("font_family", str)
 @chainable_field("pane_options", PaneOptions)
-@chainable_field("pane_heights", Dict[int, PaneHeightOptions])
+@chainable_field("pane_heights", dict[int, PaneHeightOptions])
 @chainable_field("attribution_logo", bool)
 class LayoutOptions(Options):
     """Layout configuration for chart."""
@@ -82,8 +81,8 @@ class LayoutOptions(Options):
     text_color: str = "#131722"
     font_size: int = 11
     font_family: str = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    pane_options: Optional[PaneOptions] = None
-    pane_heights: Optional[Dict[int, PaneHeightOptions]] = None
+    pane_options: PaneOptions | None = None
+    pane_heights: dict[int, PaneHeightOptions] | None = None
     attribution_logo: bool = False
 
     @staticmethod

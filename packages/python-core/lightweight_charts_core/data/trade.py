@@ -51,7 +51,7 @@ License: MIT
 # Standard Imports
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 # Third Party Imports
 import pandas as pd
@@ -97,18 +97,19 @@ class TradeData(SerializableMixin):
         - Time values are normalized to UTC timestamps for consistent handling
         - All additional data (quantity, trade_type, notes, etc.) should be provided in additional_data
         - The id field is required for trade identification
+
     """
 
     # Core fields required for trade visualization
-    entry_time: Union[pd.Timestamp, datetime, str, int, float]
-    entry_price: Union[float, int]
-    exit_time: Union[pd.Timestamp, datetime, str, int, float]
-    exit_price: Union[float, int]
+    entry_time: pd.Timestamp | datetime | str | int | float
+    entry_price: float | int
+    exit_time: pd.Timestamp | datetime | str | int | float
+    exit_price: float | int
     is_profitable: bool
     id: str  # Required for trade identification
 
     # All other data moved to additional_data for maximum flexibility
-    additional_data: Optional[Dict[str, Any]] = None
+    additional_data: dict[str, Any] | None = None
 
     def __post_init__(self):
         """Post-initialization processing to normalize and validate trade data.
@@ -122,6 +123,7 @@ class TradeData(SerializableMixin):
         Raises:
             ExitTimeAfterEntryTimeError: If exit time is not after entry time.
             ValueValidationError: If time validation fails.
+
         """
         # Step 1: Convert price values to float for consistent calculations
         self.entry_price = float(self.entry_price)
@@ -156,6 +158,7 @@ class TradeData(SerializableMixin):
 
         Returns:
             str: Formatted tooltip text with trade details and P&L information.
+
         """
         pnl = self.pnl
         pnl_pct = self.pnl_percentage
@@ -189,6 +192,7 @@ class TradeData(SerializableMixin):
         Returns:
             float: Profit/loss amount. Positive values indicate profit,
                 negative values indicate loss.
+
         """
         if self.additional_data and "pnl" in self.additional_data:
             return float(self.additional_data["pnl"])
@@ -202,6 +206,7 @@ class TradeData(SerializableMixin):
         Returns:
             float: Profit/loss percentage. Positive values indicate profit,
                 negative values indicate loss.
+
         """
         if self.additional_data and "pnl_percentage" in self.additional_data:
             return float(self.additional_data["pnl_percentage"])
@@ -211,12 +216,13 @@ class TradeData(SerializableMixin):
 
         return 0.0
 
-    def asdict(self) -> Dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """Serialize the trade data to a dict with camelCase keys for frontend.
 
         Returns:
             Dict[str, Any]: Serialized trade with camelCase keys ready for
                 frontend consumption.
+
         """
         entry_timestamp = to_utc_timestamp(self.entry_time)
         exit_timestamp = to_utc_timestamp(self.exit_time)

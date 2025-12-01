@@ -37,6 +37,7 @@ def create_upper_line() -> LineOptions:
 
     Returns:
         LineOptions configured with green color, standard width, solid style.
+
     """
     return LineOptions(
         color=COLOR_UPPER_GREEN, line_width=LINE_WIDTH_STANDARD, line_style=LineStyle.SOLID
@@ -51,6 +52,7 @@ def create_middle_line() -> LineOptions:
 
     Returns:
         LineOptions configured with blue color, standard width, solid style.
+
     """
     return LineOptions(
         color=COLOR_MIDDLE_BLUE, line_width=LINE_WIDTH_STANDARD, line_style=LineStyle.SOLID
@@ -67,6 +69,7 @@ def create_lower_line() -> LineOptions:
 
     Returns:
         LineOptions configured with red color, standard width, solid style.
+
     """
     return LineOptions(
         color=COLOR_LOWER_RED, line_width=LINE_WIDTH_STANDARD, line_style=LineStyle.SOLID
@@ -81,6 +84,7 @@ def create_base_line() -> LineOptions:
 
     Returns:
         LineOptions configured with gray color, thin width, dotted style, hidden.
+
     """
     return LineOptions(
         color=COLOR_BASE_GRAY,
@@ -97,6 +101,7 @@ def create_uptrend_line() -> LineOptions:
 
     Returns:
         LineOptions configured for uptrend visualization (green, solid).
+
     """
     return create_upper_line()
 
@@ -108,5 +113,6 @@ def create_downtrend_line() -> LineOptions:
 
     Returns:
         LineOptions configured for downtrend visualization (red, solid).
+
     """
     return create_lower_line()

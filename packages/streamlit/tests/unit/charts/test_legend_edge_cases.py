@@ -9,7 +9,6 @@ import sys
 import time
 
 import pytest
-
 from lightweight_charts_core.charts.options.ui_options import LegendOptions
 from lightweight_charts_core.charts.series.line import LineSeries
 

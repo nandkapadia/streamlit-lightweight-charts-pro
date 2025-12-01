@@ -1,5 +1,4 @@
-"""
-Tests for GradientRibbonSeries.
+"""Tests for GradientRibbonSeries.
 
 This module tests the GradientRibbonSeries class functionality including
 gradient bounds calculation, normalization, and data handling.
@@ -281,9 +280,9 @@ class TestGradientRibbonSeries:
         execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
 
         # Should complete in under 10ms for 1000 data points
-        assert execution_time < 10.0, (
-            f"Bounds calculation took {execution_time:.2f}ms, expected < 10ms"
-        )
+        assert (
+            execution_time < 10.0
+        ), f"Bounds calculation took {execution_time:.2f}ms, expected < 10ms"
 
         # Verify bounds are correct
         assert series._gradient_bounds == (0.0, 0.999)
@@ -297,9 +296,9 @@ class TestGradientRibbonSeries:
 
         # Should complete in under 2000ms for 1000 data points
         # Increased threshold to account for CI/CD system variance and parallel test execution
-        assert execution_time < 2000.0, (
-            f"Normalization took {execution_time:.2f}ms, expected < 2000ms"
-        )
+        assert (
+            execution_time < 2000.0
+        ), f"Normalization took {execution_time:.2f}ms, expected < 2000ms"
 
         # Verify first and last normalized values
         assert result["data"][0]["gradient"] == 0.0

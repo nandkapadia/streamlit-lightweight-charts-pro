@@ -1,5 +1,4 @@
-"""
-Test range switcher functionality with automatic range filtering.
+"""Test range switcher functionality with automatic range filtering.
 
 This module contains tests for the RangeSwitcherOptions class which automatically
 filters time ranges in the frontend based on available data timespan.

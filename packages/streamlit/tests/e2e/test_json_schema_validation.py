@@ -18,8 +18,6 @@ from typing import Any, ClassVar, Dict
 
 import pytest
 from jsonschema import ValidationError, validate
-
-from streamlit_lightweight_charts_pro.charts.chart import Chart
 from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
 from lightweight_charts_core.charts.options.ui_options import LegendOptions
 from lightweight_charts_core.charts.series.candlestick import CandlestickSeries
@@ -29,6 +27,8 @@ from lightweight_charts_core.data.candlestick_data import CandlestickData
 from lightweight_charts_core.data.histogram_data import HistogramData
 from lightweight_charts_core.data.line_data import LineData
 from lightweight_charts_core.type_definitions.enums import PriceScaleMode
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
 
 
 class FrontendJSONSchemas:
@@ -578,9 +578,9 @@ class TestPerformanceValidation:
         validate(instance=series_dict, schema=FrontendJSONSchemas.SERIES_CONFIG_SCHEMA)
 
         # Verify performance (should be under 100ms for 1000 points)
-        assert serialization_time < 0.1, (
-            f"Serialization took {serialization_time:.3f}s, expected < 0.1s"
-        )
+        assert (
+            serialization_time < 0.1
+        ), f"Serialization took {serialization_time:.3f}s, expected < 0.1s"
 
         # Verify data integrity
         assert len(series_dict["data"]) == 1000
@@ -617,9 +617,9 @@ class TestPerformanceValidation:
         validate(instance=config, schema=FrontendJSONSchemas.COMPONENT_CONFIG_SCHEMA)
 
         # Verify performance (should be under 50ms for complex config)
-        assert serialization_time < 0.05, (
-            f"Complex serialization took {serialization_time:.3f}s, expected < 0.05s"
-        )
+        assert (
+            serialization_time < 0.05
+        ), f"Complex serialization took {serialization_time:.3f}s, expected < 0.05s"
 
         # Verify structure
         assert len(config["charts"]) == 1

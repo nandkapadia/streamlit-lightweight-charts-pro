@@ -61,7 +61,8 @@ License: MIT
 """
 
 # Standard Imports
-from typing import Any, Callable, Optional, Type, Union, get_args, get_origin
+from collections.abc import Callable
+from typing import Any, get_args, get_origin
 
 # Local Imports
 from ..exceptions import (
@@ -95,6 +96,7 @@ def _is_list_of_markers(value_type) -> bool:
     Note:
         This function uses lazy loading to avoid circular import issues
         with the marker module.
+
     """
     if get_origin(value_type) is list:
         args = get_args(value_type)
@@ -133,6 +135,7 @@ def _validate_list_of_markers(value, attr_name: str) -> bool:
     Note:
         This function uses lazy loading to avoid circular import issues
         with the marker module.
+
     """
     if not isinstance(value, list):
         raise TypeValidationError(attr_name, "list")
@@ -161,8 +164,8 @@ def _validate_list_of_markers(value, attr_name: str) -> bool:
 
 def chainable_property(
     attr_name: str,
-    value_type: Optional[Union[Type, tuple]] = None,
-    validator: Optional[Union[Callable[[Any], Any], str]] = None,
+    value_type: type | tuple | None = None,
+    validator: Callable[[Any], Any] | str | None = None,
     allow_none: bool = False,
     top_level: bool = False,
 ):
@@ -237,6 +240,7 @@ def chainable_property(
         must have the corresponding private attribute (e.g., `_color` for `color`).
         The property getter is not created automatically - you may need to add
         it manually if needed.
+
     """
 
     def decorator(cls):
@@ -247,6 +251,7 @@ def chainable_property(
 
         Returns:
             The modified class with added property and setter method.
+
         """
         # Step 1: Create the setter method name following convention set_{field}
         setter_name = f"set_{attr_name}"
@@ -260,6 +265,7 @@ def chainable_property(
 
             Returns:
                 Self for method chaining.
+
             """
             # Step 1: Handle None values early if they're allowed
             # This bypasses all validation when None is explicitly permitted
@@ -348,6 +354,7 @@ def chainable_property(
 
             Returns:
                 The current value of the attribute.
+
             """
             return getattr(self, f"_{attr_name}")
 
@@ -357,6 +364,7 @@ def chainable_property(
             Args:
                 self: The instance being modified.
                 value: The new value to set.
+
             """
             # Step 1: Handle None values early if they're allowed
             # This bypasses all validation when None is explicitly permitted
@@ -451,8 +459,8 @@ def chainable_property(
 
 def chainable_field(
     field_name: str,
-    value_type: Optional[Union[Type, tuple]] = None,
-    validator: Optional[Union[Callable[[Any], Any], str]] = None,
+    value_type: type | tuple | None = None,
+    validator: Callable[[Any], Any] | str | None = None,
     allow_none: bool = False,
 ):
     """Decorator that creates a setter method for dataclass fields with optional validation.
@@ -520,6 +528,7 @@ def chainable_field(
     Note:
         Direct assignment to dataclass fields bypasses validation. Use the
         generated setter methods when validation is required.
+
     """
 
     def decorator(cls):
@@ -530,6 +539,7 @@ def chainable_field(
 
         Returns:
             The modified class with added setter method.
+
         """
         # Step 1: Create the setter method name following convention set_{field}
         setter_name = f"set_{field_name}"
@@ -543,6 +553,7 @@ def chainable_field(
 
             Returns:
                 Self for method chaining.
+
             """
             # Step 1: Handle None values early if they're allowed
             # This bypasses all validation when None is explicitly permitted
@@ -592,6 +603,7 @@ def _validate_value(field_name: str, value, value_type=None, validator=None):
     Note:
         Boolean values have special handling - only actual boolean values are
         accepted, not truthy/falsy values. This prevents accidental type coercion.
+
     """
     # Step 1: Apply type validation if specified
     # Checks that the value matches the expected type before assignment
@@ -645,8 +657,8 @@ def _validate_value(field_name: str, value, value_type=None, validator=None):
 
 def validated_field(
     field_name: str,
-    value_type: Optional[Union[Type, tuple]] = None,
-    validator: Optional[Union[Callable[[Any], Any], str]] = None,
+    value_type: type | tuple | None = None,
+    validator: Callable[[Any], Any] | str | None = None,
     allow_none: bool = False,
 ):
     """Decorator that validates dataclass fields on initialization and provides setter methods.
@@ -705,6 +717,7 @@ def validated_field(
         This decorator should be applied BEFORE the @dataclass decorator in the
         decorator stack. It works by wrapping the __post_init__ method to add
         validation logic after dataclass initialization.
+
     """
 
     def decorator(cls):
@@ -715,6 +728,7 @@ def validated_field(
 
         Returns:
             The modified class with validation and setter method.
+
         """
         # Step 1: First apply chainable_field to get the setter method
         cls = chainable_field(field_name, value_type, validator, allow_none)(cls)
@@ -731,6 +745,7 @@ def validated_field(
 
             Args:
                 self: The dataclass instance being initialized.
+
             """
             # First, call the original __post_init__ if it exists
             if original_post_init is not None:

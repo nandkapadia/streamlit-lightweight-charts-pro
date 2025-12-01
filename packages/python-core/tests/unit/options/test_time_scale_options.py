@@ -1,5 +1,4 @@
-"""
-Unit tests for TimeScaleOptions class.
+"""Unit tests for TimeScaleOptions class.
 
 This module tests the TimeScaleOptions class functionality including
 construction, validation, and serialization.

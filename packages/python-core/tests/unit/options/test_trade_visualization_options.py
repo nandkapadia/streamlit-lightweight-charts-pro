@@ -1,5 +1,4 @@
-"""
-Tests for TradeVisualizationOptions.
+"""Tests for TradeVisualizationOptions.
 
 This module contains comprehensive tests for the TradeVisualizationOptions class,
 covering construction, validation, serialization, edge cases, and integration scenarios.
@@ -706,7 +705,6 @@ class TestTradeVisualizationOptionsIntegration:
 
     def test_integration_with_chart_options(self):
         """Test integration with ChartOptions."""
-
         trade_viz_options = TradeVisualizationOptions(
             style=TradeVisualization.BOTH,
             marker_size=20,
@@ -722,7 +720,6 @@ class TestTradeVisualizationOptionsIntegration:
 
     def test_integration_serialization_through_chart_options(self):
         """Test serialization when used within ChartOptions."""
-
         trade_viz_options = TradeVisualizationOptions(
             style=TradeVisualization.MARKERS,
             marker_size=25,
@@ -740,7 +737,6 @@ class TestTradeVisualizationOptionsIntegration:
 
     def test_all_visualization_styles_integration(self):
         """Test all visualization styles work correctly in integration."""
-
         styles = [
             TradeVisualization.MARKERS,
             TradeVisualization.RECTANGLES,

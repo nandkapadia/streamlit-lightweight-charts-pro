@@ -1,10 +1,7 @@
 """Tests for WebSocket handlers."""
 
-import json
-
 import pytest
 from fastapi.testclient import TestClient
-
 from lightweight_charts_backend.app import create_app
 from lightweight_charts_backend.websocket.handlers import ConnectionManager
 
@@ -177,11 +174,13 @@ class TestWebSocketEndpoint:
             websocket.receive_json()
 
             # Request initial data
-            websocket.send_json({
-                "type": "get_initial_data",
-                "paneId": 0,
-                "seriesId": "line1",
-            })
+            websocket.send_json(
+                {
+                    "type": "get_initial_data",
+                    "paneId": 0,
+                    "seriesId": "line1",
+                }
+            )
 
             # Should receive initial data response
             data = websocket.receive_json()
@@ -206,13 +205,15 @@ class TestWebSocketEndpoint:
             websocket.receive_json()
 
             # Request history
-            websocket.send_json({
-                "type": "request_history",
-                "paneId": 0,
-                "seriesId": "line1",
-                "beforeTime": 50,
-                "count": 20,
-            })
+            websocket.send_json(
+                {
+                    "type": "request_history",
+                    "paneId": 0,
+                    "seriesId": "line1",
+                    "beforeTime": 50,
+                    "count": 20,
+                }
+            )
 
             # Should receive history response
             data = websocket.receive_json()

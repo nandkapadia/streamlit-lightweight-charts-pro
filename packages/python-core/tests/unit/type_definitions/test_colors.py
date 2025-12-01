@@ -1,5 +1,4 @@
-"""
-Unit tests for colors module.
+"""Unit tests for colors module.
 
 This module tests the color validation and background classes in the colors module.
 """

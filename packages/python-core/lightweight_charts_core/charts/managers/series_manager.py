@@ -4,7 +4,8 @@ This module handles series list operations, validation, and configuration
 for chart series.
 """
 
-from typing import Any, Dict, List, Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import Any
 
 import pandas as pd
 
@@ -49,9 +50,10 @@ class SeriesManager:
 
     Attributes:
         series (List[Series]): List of series objects managed by this instance.
+
     """
 
-    def __init__(self, series: Optional[Union[Series, List[Series]]] = None):
+    def __init__(self, series: Series | list[Series] | None = None):
         """Initialize the SeriesManager.
 
         Args:
@@ -61,6 +63,7 @@ class SeriesManager:
             SeriesItemsTypeError: If any item in the series list is not a Series
                 instance.
             TypeValidationError: If series is not a Series instance or list.
+
         """
         # Handle series input - convert to list for uniform processing
         if series is None:
@@ -78,7 +81,7 @@ class SeriesManager:
     def add_series(
         self,
         series: Series,
-        price_scale_manager: Optional[Any] = None,
+        price_scale_manager: Any | None = None,
         auto_create_price_scales: bool = True,
     ) -> None:
         """Add a series to the managed list.
@@ -98,6 +101,7 @@ class SeriesManager:
 
         Raises:
             TypeValidationError: If the series parameter is not an instance of Series.
+
         """
         if not isinstance(series, Series):
             raise TypeValidationError("series", "Series instance")
@@ -154,6 +158,7 @@ class SeriesManager:
 
         Returns:
             PriceScaleOptions configured with smart defaults.
+
         """
         # Determine if this is an overlay or separate pane
         is_overlay = self._is_overlay_series(series)
@@ -183,6 +188,7 @@ class SeriesManager:
 
         Returns:
             True if series is an overlay, False if it's in a separate pane.
+
         """
         series_pane_id = getattr(series, "pane_id", 0)
         series_price_scale_id = getattr(series, "price_scale_id", "")
@@ -203,13 +209,13 @@ class SeriesManager:
 
     def add_price_volume_series(
         self,
-        data: Union[Sequence[OhlcvData], pd.DataFrame],
-        column_mapping: Optional[dict],
+        data: Sequence[OhlcvData] | pd.DataFrame,
+        column_mapping: dict | None,
         price_type: str = "candlestick",
-        price_kwargs: Optional[dict] = None,
-        volume_kwargs: Optional[dict] = None,
+        price_kwargs: dict | None = None,
+        volume_kwargs: dict | None = None,
         pane_id: int = 0,
-        price_scale_manager: Optional[Any] = None,
+        price_scale_manager: Any | None = None,
     ) -> None:
         """Add price and volume series to the chart.
 
@@ -229,6 +235,7 @@ class SeriesManager:
         Raises:
             TypeValidationError: If data or column_mapping is invalid.
             ValueValidationError: If data is empty or price_type is invalid.
+
         """
         # Validate inputs
         if data is None:
@@ -250,7 +257,7 @@ class SeriesManager:
         volume_kwargs = volume_kwargs or {}
 
         # Price series creation
-        price_series: Union[CandlestickSeries, LineSeries]
+        price_series: CandlestickSeries | LineSeries
         if price_type == "candlestick":
             price_column_mapping = {
                 k: v
@@ -320,7 +327,7 @@ class SeriesManager:
         self.add_series(price_series, price_scale_manager)
         self.add_series(volume_series, price_scale_manager)
 
-    def get_series_info_for_pane(self, _pane_id: int = 0) -> List[dict]:
+    def get_series_info_for_pane(self, _pane_id: int = 0) -> list[dict]:
         """Get series information for a specific pane.
 
         Args:
@@ -328,6 +335,7 @@ class SeriesManager:
 
         Returns:
             List of series information dictionaries.
+
         """
         series_info = []
 
@@ -355,16 +363,17 @@ class SeriesManager:
 
         return series_info
 
-    def to_frontend_configs(self) -> List[Dict[str, Any]]:
+    def to_frontend_configs(self) -> list[dict[str, Any]]:
         """Convert all series to frontend configuration dictionaries.
 
         Groups series by pane and sorts by z-index for proper layering.
 
         Returns:
             List of series configuration dictionaries.
+
         """
         # Group series by pane_id and sort by z_index within each pane
-        series_by_pane: Dict[int, List[Dict[str, Any]]] = {}
+        series_by_pane: dict[int, list[dict[str, Any]]] = {}
 
         for series in self.series:
             series_config = series.asdict()

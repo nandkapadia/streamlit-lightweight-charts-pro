@@ -42,7 +42,7 @@ License: MIT
 
 # Standard Imports
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 # Third Party Imports
 # (None in this module)
@@ -109,9 +109,10 @@ class CandlestickData(OhlcData):
         NonNegativeValueError: If any OHLC value is negative.
         RequiredFieldError: If any required OHLC field is None or missing.
 
-    See also:
+    See Also:
         OhlcData: Base class providing OHLC validation and serialization.
         BarData: Similar data class for bar charts.
+
     """
 
     # Define required columns for DataFrame conversion - none additional beyond
@@ -122,8 +123,8 @@ class CandlestickData(OhlcData):
     OPTIONAL_COLUMNS: ClassVar[set] = {"color", "border_color", "wick_color"}
 
     # Optional color field for the candlestick body
-    color: Optional[str] = None
+    color: str | None = None
     # Optional color field for the candlestick border
-    border_color: Optional[str] = None
+    border_color: str | None = None
     # Optional color field for the candlestick wick
-    wick_color: Optional[str] = None
+    wick_color: str | None = None

@@ -5,8 +5,6 @@ This module tests the color validation and background classes in the colors modu
 """
 
 import pytest
-
-from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 from lightweight_charts_core.type_definitions.colors import (
     Background,
     BackgroundGradient,
@@ -14,6 +12,8 @@ from lightweight_charts_core.type_definitions.colors import (
 )
 from lightweight_charts_core.type_definitions.enums import BackgroundStyle
 from lightweight_charts_core.utils.data_utils import is_valid_color
+
+from streamlit_lightweight_charts_pro.exceptions import ColorValidationError
 
 
 class TestIsValidColor:

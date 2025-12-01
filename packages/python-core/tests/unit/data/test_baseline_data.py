@@ -1,5 +1,4 @@
-"""
-Unit tests for the BaselineData class.
+"""Unit tests for the BaselineData class.
 
 This module tests the BaselineData class functionality including
 construction, validation, serialization, and edge cases.

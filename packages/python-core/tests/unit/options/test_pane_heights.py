@@ -1,5 +1,4 @@
-"""
-Tests for pane heights configuration.
+"""Tests for pane heights configuration.
 
 This module tests the PaneHeightOptions class and its integration with
 LayoutOptions and Chart configuration.

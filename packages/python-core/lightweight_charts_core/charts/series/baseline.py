@@ -22,9 +22,10 @@ Example:
     series.base_value = {"type": "price", "price": 100}
     series.top_line_color = "#26a69a"
     series.bottom_line_color = "#ef5350"
+
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import pandas as pd
 
@@ -45,7 +46,7 @@ from lightweight_charts_core.utils import chainable_property
 from lightweight_charts_core.utils.data_utils import is_valid_color
 
 
-def _validate_base_value_static(base_value) -> Dict[str, Any]:
+def _validate_base_value_static(base_value) -> dict[str, Any]:
     """Static version of base_value validator for decorator use."""
     if isinstance(base_value, (int, float)):
         return {"type": "price", "price": float(base_value)}
@@ -72,11 +73,11 @@ class BaselineSeries(Series):
 
     def __init__(
         self,
-        data: Union[List[BaselineData], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[BaselineData] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "right",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
     ):
         super().__init__(
             data=data,
@@ -99,7 +100,7 @@ class BaselineSeries(Series):
         self._bottom_fill_color2 = BASELINE_BOTTOM_FILL_COLOR2
         self._bottom_line_color = BASELINE_BOTTOM_LINE_COLOR
 
-    def _validate_base_value(self, base_value: Union[int, float, Dict[str, Any]]) -> Dict[str, Any]:
+    def _validate_base_value(self, base_value: int | float | dict[str, Any]) -> dict[str, Any]:
         """Validate and normalize base_value."""
         if isinstance(base_value, (int, float)):
             return {"type": "price", "price": float(base_value)}

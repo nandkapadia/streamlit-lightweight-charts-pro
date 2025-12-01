@@ -1,5 +1,4 @@
-"""
-Comprehensive unit tests for TradeData class.
+"""Comprehensive unit tests for TradeData class.
 
 This module provides extensive test coverage for TradeData including:
 - Basic construction and validation

@@ -35,6 +35,7 @@ Note:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 from .case_converter import CaseConverter, camel_to_snake, snake_to_camel

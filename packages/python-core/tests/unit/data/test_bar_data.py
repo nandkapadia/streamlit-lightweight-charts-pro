@@ -1,5 +1,4 @@
-"""
-Unit tests for the BarData class.
+"""Unit tests for the BarData class.
 
 This module tests the BarData class functionality including
 construction, validation, serialization, and edge cases.

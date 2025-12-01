@@ -6,7 +6,6 @@ each other when they are part of a linked chart system.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 from lightweight_charts_core.charts.options.base_options import Options
 from lightweight_charts_core.utils import chainable_field
@@ -65,18 +64,20 @@ class SyncOptions(Options):
         The synchronization system prevents race conditions and feedback loops
         through debouncing and flag-based protection mechanisms. This ensures
         smooth performance even with rapid user interactions.
+
     """
 
     enabled: bool = False
     crosshair: bool = False
     time_range: bool = False
-    group_id: Optional[str] = None
+    group_id: str | None = None
 
     def enable_all(self) -> "SyncOptions":
         """Enable all synchronization features.
 
         Returns:
             SyncOptions: Self for method chaining.
+
         """
         self.enabled = True
         self.crosshair = True
@@ -88,6 +89,7 @@ class SyncOptions(Options):
 
         Returns:
             SyncOptions: Self for method chaining.
+
         """
         self.enabled = False
         self.crosshair = False
@@ -99,6 +101,7 @@ class SyncOptions(Options):
 
         Returns:
             SyncOptions: Self for method chaining.
+
         """
         self.crosshair = True
         self.enabled = True
@@ -109,6 +112,7 @@ class SyncOptions(Options):
 
         Returns:
             SyncOptions: Self for method chaining.
+
         """
         self.crosshair = False
         if not self.time_range:
@@ -120,6 +124,7 @@ class SyncOptions(Options):
 
         Returns:
             SyncOptions: Self for method chaining.
+
         """
         self.time_range = True
         self.enabled = True
@@ -130,6 +135,7 @@ class SyncOptions(Options):
 
         Returns:
             SyncOptions: Self for method chaining.
+
         """
         self.time_range = False
         if not self.crosshair:

@@ -92,10 +92,11 @@ class OhlcvData(OhlcData):
         NonNegativeValueError: If any OHLC value is negative.
         RequiredFieldError: If any required OHLCV field is None or missing.
 
-    See also:
+    See Also:
         OhlcData: Base class providing OHLC validation and serialization.
         CandlestickData: OHLC data with color styling capabilities.
         BarData: Similar data class for bar charts.
+
     """
 
     # Define required columns for DataFrame conversion - volume is additional requirement
@@ -124,6 +125,7 @@ class OhlcvData(OhlcData):
         Raises:
             ValueValidationError: If volume < 0 (volume cannot be negative).
             RequiredFieldError: If volume field is None or missing.
+
         """
         # Call parent's __post_init__ to validate OHLC data and time normalization
         super().__post_init__()

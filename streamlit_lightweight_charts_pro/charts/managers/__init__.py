@@ -22,11 +22,11 @@ from streamlit_lightweight_charts_pro.charts.managers.session_state_manager impo
 )
 
 __all__ = [
+    # Streamlit-specific managers
+    "ChartRenderer",
     # Core managers
     "PriceScaleManager",
     "SeriesManager",
-    "TradeManager",
-    # Streamlit-specific managers
-    "ChartRenderer",
     "SessionStateManager",
+    "TradeManager",
 ]

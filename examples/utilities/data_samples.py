@@ -26,9 +26,9 @@ Example:
 from typing import Dict, List, Union
 
 import pandas as pd
+from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames
 
 from streamlit_lightweight_charts_pro.data import BarData, CandlestickData, LineData
-from streamlit_lightweight_charts_pro.type_definitions.enums import ColumnNames
 
 # =============================================================================
 # RAW DATA DICTIONARIES (for backward compatibility)

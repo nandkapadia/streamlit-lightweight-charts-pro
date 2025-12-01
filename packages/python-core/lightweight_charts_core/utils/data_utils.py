@@ -54,6 +54,7 @@ Example:
 Note:
     All time functions return UNIX timestamps in seconds (not milliseconds)
     for consistency with Python's datetime module and pandas.
+
 """
 
 # Standard Imports
@@ -132,6 +133,7 @@ def normalize_time(time_value: Any) -> int:
         a wide variety of date/time formats including ISO format, common
         date formats, and relative dates. This ensures maximum compatibility
         with different data sources.
+
     """
     # Step 1: Handle numpy types by converting to Python native types first
     # NumPy types have different behavior and need special handling
@@ -239,6 +241,7 @@ def to_utc_timestamp(time_value: Any) -> int:
     Note:
         This function exists for backward compatibility with older code.
         New code should use normalize_time() directly.
+
     """
     # Simply delegate to normalize_time()
     # This maintains backward compatibility while keeping single source of truth
@@ -273,6 +276,7 @@ def from_utc_timestamp(timestamp: int) -> str:
         The function uses datetime.utcfromtimestamp() to ensure the output
         is always in UTC timezone, regardless of the system's local timezone.
         This is important for consistent time display in web applications.
+
     """
     # Convert UNIX timestamp to UTC datetime object
     # utcfromtimestamp() interprets the timestamp as UTC time
@@ -328,6 +332,7 @@ def snake_to_camel(snake_str: str) -> str:
     See Also:
         CaseConverter.snake_to_camel: The main implementation that handles
             the actual conversion logic.
+
     """
     # Delegate to CaseConverter for actual conversion logic
     # This keeps the conversion logic centralized and maintainable
@@ -393,6 +398,7 @@ def is_valid_color(color: str) -> bool:
         - Accepts both 3-digit (#RGB) and 6-digit (#RRGGBB) hex codes
         - Named colors are case-insensitive for user convenience
         - Empty strings are explicitly rejected as invalid
+
     """
     # Step 1: Validate input is a string type
     # Non-string inputs (int, None, list, etc.) are invalid
@@ -520,6 +526,7 @@ def validate_price_format_type(type_value: str) -> str:
         The validation is case-sensitive. "Price" and "PRICE" are not valid,
         only "price" (lowercase) is accepted. This ensures consistency with
         the frontend JavaScript code.
+
     """
     # Define set of valid price format types
     # Using a set for O(1) lookup performance
@@ -583,6 +590,7 @@ def validate_precision(precision: int) -> int:
         values typically range from 0 to 8 in financial charts. Very
         large precision values (> 10) may cause display issues or
         performance problems in the frontend.
+
     """
     # Check both type and value constraints
     # Must be exactly int type (not bool, which is subclass of int)
@@ -648,6 +656,7 @@ def validate_min_move(min_move: float) -> float:
 
         The function accepts both int and float, converting to float for
         consistency. This allows flexible input while ensuring type safety.
+
     """
     # Check type and value constraints
     # Must be int or float (numeric type)

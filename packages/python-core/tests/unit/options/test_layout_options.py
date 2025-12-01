@@ -1,5 +1,4 @@
-"""
-Tests for layout options classes.
+"""Tests for layout options classes.
 
 This module contains comprehensive tests for layout-related option classes:
 - LayoutOptions
@@ -70,7 +69,6 @@ class TestLayoutOptions:
 
     def test_validation_pane_options(self):
         """Test validation of pane_options field."""
-
         options = LayoutOptions()
 
         with pytest.raises(TypeValidationError):
@@ -125,7 +123,6 @@ class TestGridOptions:
 
     def test_validation_vert_lines(self):
         """Test validation of vert_lines field."""
-
         options = GridOptions()
 
         with pytest.raises(TypeValidationError):
@@ -133,7 +130,6 @@ class TestGridOptions:
 
     def test_validation_horz_lines(self):
         """Test validation of horz_lines field."""
-
         options = GridOptions()
 
         with pytest.raises(TypeValidationError):
@@ -181,7 +177,6 @@ class TestGridLineOptions:
 
     def test_validation_style(self):
         """Test validation of style field."""
-
         options = GridLineOptions()
 
         with pytest.raises(TypeValidationError):
@@ -189,7 +184,6 @@ class TestGridLineOptions:
 
     def test_validation_visible(self):
         """Test validation of visible field."""
-
         options = GridLineOptions()
 
         with pytest.raises(TypeValidationError):
@@ -248,7 +242,6 @@ class TestPaneOptions:
 
     def test_validation_enable_resize(self):
         """Test validation of enable_resize field."""
-
         options = PaneOptions()
 
         with pytest.raises(TypeValidationError):
@@ -302,7 +295,6 @@ class TestWatermarkOptions:
 
     def test_validation_visible(self):
         """Test validation of visible field."""
-
         options = WatermarkOptions()
 
         with pytest.raises(TypeValidationError):
@@ -316,7 +308,6 @@ class TestWatermarkOptions:
 
     def test_validation_font_size(self):
         """Test validation of font_size field."""
-
         options = WatermarkOptions()
 
         with pytest.raises(TypeValidationError):
@@ -324,7 +315,6 @@ class TestWatermarkOptions:
 
     def test_validation_horz_align(self):
         """Test validation of horz_align field."""
-
         options = WatermarkOptions()
 
         with pytest.raises(TypeValidationError):
@@ -332,7 +322,6 @@ class TestWatermarkOptions:
 
     def test_validation_vert_align(self):
         """Test validation of vert_align field."""
-
         options = WatermarkOptions()
 
         with pytest.raises(TypeValidationError):

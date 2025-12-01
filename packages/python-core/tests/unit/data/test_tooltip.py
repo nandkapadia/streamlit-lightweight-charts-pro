@@ -1,5 +1,4 @@
-"""
-Unit tests for tooltip functionality.
+"""Unit tests for tooltip functionality.
 
 This module tests the tooltip data structures, configuration, and formatting
 functionality to ensure proper operation of the tooltip system.

@@ -1,5 +1,4 @@
-"""
-Tests for BaselineSeries class.
+"""Tests for BaselineSeries class.
 
 This module contains comprehensive tests for the BaselineSeries class,
 which represents a baseline chart series with support for top and bottom

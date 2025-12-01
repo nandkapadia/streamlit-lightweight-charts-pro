@@ -1,5 +1,4 @@
-"""
-Tests for AreaSeries class.
+"""Tests for AreaSeries class.
 
 This module contains comprehensive tests for the AreaSeries class,
 covering construction, styling options, serialization, and edge cases.

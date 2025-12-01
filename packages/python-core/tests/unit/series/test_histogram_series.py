@@ -1,5 +1,4 @@
-"""
-Tests for HistogramSeries class.
+"""Tests for HistogramSeries class.
 
 This module contains comprehensive tests for the HistogramSeries class,
 which represents a histogram series for lightweight charts.
@@ -422,7 +421,6 @@ class TestHistogramSeriesInheritance:
 
     def test_inherits_from_series(self):
         """Test that HistogramSeries inherits from Series."""
-
         data = [HistogramData(time=1640995200, value=100.5)]
         series = HistogramSeries(data=data)
         assert isinstance(series, Series)

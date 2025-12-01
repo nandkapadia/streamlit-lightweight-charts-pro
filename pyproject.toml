@@ -311,8 +311,18 @@ ignore = [
     "F841",
     # Allow long docstrings
     "D213", "D214",
-    # Allow missing docstrings
+    # Allow missing docstrings and relaxed docstring style
     "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+    "D205",  # 1 blank line required between summary line and description
+    "D401",  # First line of docstring should be in imperative mood
+    # Allow try-except-pass in certain cases (intentional error handling)
+    "SIM105",  # Use contextlib.suppress instead of try-except-pass
+    "S110",  # try-except-pass detected
+    "PERF203",  # try-except within a loop incurs performance overhead
+    # Allow Union for older Python compatibility
+    "UP007",  # Use X | Y for type annotations
+    # Allow raising generic exceptions in tests
+    "TRY002",  # Create your own exception
     # Allow missing docstrings but enforce Google format
     "D203", "D211", "D212", "D213", "D214", "D215", "D300", "D301", "D404", "D405", "D406", "D407", "D408", "D409", "D410", "D411", "D412", "D413", "D414", "D415", "D416", "D417",
     # Temporarily ignore remaining issues for commit
@@ -338,6 +348,27 @@ convention = "google"
     "TID252",  # Relative imports are banned
     "D",  # Disable all docstring rules for tests
 ]
+"**/tests/**/*.py" = [
+    "S101",  # Use of `assert` detected
+    "S106",  # Possible hardcoded password
+    "PLR2004",  # Magic value used in comparison
+    "TID252",  # Relative imports are banned
+    "D",  # Disable all docstring rules for tests
+    "ARG",  # Allow unused arguments in test mocks
+    "TRY002",  # Allow generic exceptions in tests
+]
+"test_*.py" = [
+    "S101",  # Use of `assert` detected
+    "S106",  # Possible hardcoded password
+    "PLR2004",  # Magic value used in comparison
+    "D",  # Disable all docstring rules for tests
+]
+
+# FastAPI uses Depends() in default arguments - this is the standard pattern
+"**/api/**/*.py" = ["B008"]
+
+# Examples don't need strict docstrings
+"examples/**/*.py" = ["D"]
 
 # Allow magic values in configuration files
 "**/settings.py" = ["PLR2004"]

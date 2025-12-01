@@ -1,5 +1,4 @@
-"""
-Unit tests for OhlcData class.
+"""Unit tests for OhlcData class.
 
 This module tests the OhlcData class functionality including
 construction, validation, and serialization.
@@ -105,7 +104,6 @@ class TestOhlcData:
 
     def test_nan_handling(self):
         """Test handling of NaN values."""
-
         # NaN values should be converted to 0.0
         data = OhlcData(
             time=1640995200,

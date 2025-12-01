@@ -3,9 +3,9 @@
 This module implements the smart chunking and pagination strategy for large datasets.
 """
 
-from typing import Any, Callable, Dict, List, Optional, TypedDict
-from dataclasses import dataclass, field
 import asyncio
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional, TypedDict
 
 
 class ChunkInfo(TypedDict):
@@ -240,11 +240,15 @@ class DatafeedService:
             chart.set_series(pane_id, series_id, series)
 
             # Notify subscribers
-            await self._notify_subscribers(chart_id, "data_update", {
-                "paneId": pane_id,
-                "seriesId": series_id,
-                "count": len(data),
-            })
+            await self._notify_subscribers(
+                chart_id,
+                "data_update",
+                {
+                    "paneId": pane_id,
+                    "seriesId": series_id,
+                    "count": len(data),
+                },
+            )
 
             return series
 
@@ -291,27 +295,25 @@ class DatafeedService:
                         "chunked": False,
                         "totalCount": total_count,
                     }
-                else:
-                    # Large dataset - send initial chunk
-                    chunk = series.get_data_chunk(count=self.CHUNK_SIZE_THRESHOLD)
-                    return {
-                        "seriesId": series_id,
-                        "seriesType": series.series_type,
-                        "data": chunk["data"],
-                        "options": series.options,
-                        "chunked": True,
-                        "chunkInfo": chunk["chunk_info"],
-                        "hasMoreBefore": chunk["has_more_before"],
-                        "hasMoreAfter": chunk["has_more_after"],
-                        "totalCount": chunk["total_available"],
-                    }
-            else:
-                # Full chart data
+                # Large dataset - send initial chunk
+                chunk = series.get_data_chunk(count=self.CHUNK_SIZE_THRESHOLD)
                 return {
-                    "chartId": chart_id,
-                    "panes": chart.get_all_series_data(),
-                    "options": chart.options,
+                    "seriesId": series_id,
+                    "seriesType": series.series_type,
+                    "data": chunk["data"],
+                    "options": series.options,
+                    "chunked": True,
+                    "chunkInfo": chunk["chunk_info"],
+                    "hasMoreBefore": chunk["has_more_before"],
+                    "hasMoreAfter": chunk["has_more_after"],
+                    "totalCount": chunk["total_available"],
                 }
+            # Full chart data
+            return {
+                "chartId": chart_id,
+                "panes": chart.get_all_series_data(),
+                "options": chart.options,
+            }
 
     async def get_history(
         self,

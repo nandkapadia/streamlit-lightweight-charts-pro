@@ -34,7 +34,7 @@ License: MIT
 
 # Standard Imports
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 # Third Party Imports
 # (None in this module)
@@ -85,10 +85,11 @@ class LineData(SingleValueData):
     Raises:
         ValueValidationError: If the color format is invalid (not hex or rgba).
 
-    See also:
+    See Also:
         SingleValueData: Base class providing time normalization and value validation.
         AreaData: Similar data class for area charts.
         HistogramData: Similar data class for histogram charts.
+
     """
 
     # Define required columns for DataFrame conversion - none additional beyond
@@ -99,4 +100,4 @@ class LineData(SingleValueData):
     OPTIONAL_COLUMNS: ClassVar[set] = {"color"}
 
     # Optional color field for styling this data point
-    color: Optional[str] = None
+    color: str | None = None

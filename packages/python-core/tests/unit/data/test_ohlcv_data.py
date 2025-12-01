@@ -1,5 +1,4 @@
-"""
-Tests for OHLCV data classes.
+"""Tests for OHLCV data classes.
 
 This module contains comprehensive tests for OHLCV data classes:
 - OhlcvData

@@ -1,11 +1,8 @@
-"""
-Test utilities for streamlit-lightweight-charts-pro tests.
-"""
+"""Test utilities for streamlit-lightweight-charts-pro tests."""
 
 
 def _get_enum_value(value, enum_class):
-    """
-    Helper function to get enum value, handling both enum objects and strings.
+    """Helper function to get enum value, handling both enum objects and strings.
 
     This function safely converts enum values to their string representations,
     handling cases where the value might already be a string or an enum object.
@@ -27,6 +24,7 @@ def _get_enum_value(value, enum_class):
         # With string
         _get_enum_value("solid", LineStyle)  # Returns "solid"
         ```
+
     """
     if isinstance(value, enum_class):
         return value.value

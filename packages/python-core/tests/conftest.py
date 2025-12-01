@@ -27,6 +27,7 @@ def sample_dataframe():
 
     Returns:
         pd.DataFrame: DataFrame with datetime index and financial data columns.
+
     """
     rng = np.random.default_rng(42)
     dates = pd.date_range("2023-01-01", periods=10, freq="h")

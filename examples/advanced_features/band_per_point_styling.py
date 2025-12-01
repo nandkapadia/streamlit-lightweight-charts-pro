@@ -12,9 +12,9 @@ Features demonstrated:
 
 import pandas as pd
 import streamlit as st
+from streamlit_lightweight_charts_pro.charts.series import BandSeries
 
 from streamlit_lightweight_charts_pro.charts import Chart
-from streamlit_lightweight_charts_pro.charts.series import BandSeries
 from streamlit_lightweight_charts_pro.data import BandData
 
 

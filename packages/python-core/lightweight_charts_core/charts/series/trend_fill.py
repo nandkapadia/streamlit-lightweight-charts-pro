@@ -11,7 +11,6 @@ The series now properly handles separate trend lines based on trend direction:
 
 # Standard Imports
 import logging
-from typing import List, Optional, Union
 
 # Third Party Imports
 import pandas as pd
@@ -71,17 +70,18 @@ class TrendFillSeries(Series):
         # Create series with custom colors
         series = TrendFillSeries(data).set_uptrend_fill_color("#00FF00").set_downtrend_fill_color("#FF0000")
         ```
+
     """
 
     DATA_CLASS = TrendFillData
 
     def __init__(
         self,
-        data: Union[List[TrendFillData], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[TrendFillData] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
         uptrend_fill_color: str = "#4CAF50",
         downtrend_fill_color: str = "#F44336",
     ):
@@ -95,6 +95,7 @@ class TrendFillSeries(Series):
             pane_id: The pane index this series belongs to
             uptrend_fill_color: Color for uptrend fills (green)
             downtrend_fill_color: Color for downtrend fills (red)
+
         """
         super().__init__(
             data=data,

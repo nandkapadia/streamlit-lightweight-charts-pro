@@ -1,5 +1,4 @@
-"""
-Base Options type system tests - Type analysis and conversion utilities.
+"""Base Options type system tests - Type analysis and conversion utilities.
 
 This module tests type-related functionality including:
 - _analyze_type_for_options() with various type annotations
@@ -14,7 +13,6 @@ This module tests type-related functionality including:
 # Standard Imports
 from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Dict, List, Optional
 
 # Third Party Imports
 import pytest
@@ -40,7 +38,7 @@ class NestedOptions(Options):
     """Options with nested Options field."""
 
     name: str = "test"
-    simple_options: Optional[SimpleOptions] = None
+    simple_options: SimpleOptions | None = None
 
 
 @dataclass
@@ -48,7 +46,7 @@ class OptionsWithDict(Options):
     """Options with Dict[str, Options] field."""
 
     name: str = "test"
-    options_dict: Optional[Dict[str, SimpleOptions]] = None
+    options_dict: dict[str, SimpleOptions] | None = None
 
 
 @dataclass
@@ -56,7 +54,7 @@ class OptionsWithList(Options):
     """Options with List[Options] field."""
 
     name: str = "test"
-    options_list: Optional[List[SimpleOptions]] = None
+    options_list: list[SimpleOptions] | None = None
 
 
 @dataclass
@@ -64,7 +62,7 @@ class OptionsWithStringDict(Options):
     """Options with Dict[str, str] field."""
 
     name: str = "test"
-    string_dict: Optional[Dict[str, str]] = None
+    string_dict: dict[str, str] | None = None
 
 
 @dataclass

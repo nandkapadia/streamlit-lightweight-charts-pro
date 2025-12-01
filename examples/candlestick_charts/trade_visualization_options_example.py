@@ -10,15 +10,15 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import streamlit as st
-
-from streamlit_lightweight_charts_pro.charts import Chart
 from streamlit_lightweight_charts_pro.charts.options import ChartOptions
 from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from streamlit_lightweight_charts_pro.data import OhlcvData, TradeData
 from streamlit_lightweight_charts_pro.type_definitions.enums import TradeType, TradeVisualization
 from streamlit_lightweight_charts_pro.utils.data_utils import to_utc_timestamp
+
+from streamlit_lightweight_charts_pro.charts import Chart
+from streamlit_lightweight_charts_pro.data import OhlcvData, TradeData
 
 
 def generate_sample_ohlcv_data(n_periods=50):

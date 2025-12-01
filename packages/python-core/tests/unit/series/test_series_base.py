@@ -44,6 +44,7 @@ from unittest.mock import Mock
 # Third Party Imports
 import pandas as pd
 import pytest
+from unit.series_utils import _get_enum_value
 
 # Local Imports
 from lightweight_charts_core.charts.options.price_format_options import PriceFormatOptions
@@ -76,7 +77,6 @@ from lightweight_charts_core.type_definitions.enums import (
     MarkerShape,
     PriceScaleMode,
 )
-from unit.series_utils import _get_enum_value
 
 
 class ConcreteSeries(Series):
@@ -105,6 +105,7 @@ class ConcreteSeries(Series):
         df = pd.DataFrame({"time": ["2024-01-01"], "value": [100]})
         series = ConcreteSeries(data=df, column_mapping={"time": "time", "value": "value"})
         ```
+
     """
 
     DATA_CLASS = LineData
@@ -115,6 +116,7 @@ class ConcreteSeries(Series):
 
         Returns:
             ChartType: The line chart type identifier for testing.
+
         """
         return ChartType.LINE
 
@@ -128,6 +130,7 @@ class ConcreteSeries(Series):
         Args:
             data: Series data as list of data objects, DataFrame, or Series.
             **kwargs: Additional configuration options for the series.
+
         """
         if isinstance(data, pd.DataFrame):
             # Use the new from_dataframe logic for DataFrame processing
@@ -679,7 +682,6 @@ class TestSeriesBaseAdvanced:
 
     def test_get_enum_value_helper_function(self):
         """Test the _get_enum_value helper function."""
-
         # Test with enum object
         result = _get_enum_value(LineStyle.SOLID, LineStyle)
         assert result == 0  # LineStyle.SOLID.value is 0
@@ -936,7 +938,6 @@ class TestSeriesBaseAdvanced:
 
     def test_price_scale_id_included_in_to_dict(self):
         """Test that priceScaleId is included in to_dict output."""
-
         # Create series with custom price_scale_id
         data = [LineData("2024-01-01", 100)]
         series = LineSeries(data=data, price_scale_id="left")
@@ -991,7 +992,6 @@ class TestPriceScaleProperty:
 
     def test_price_scale_property_setter(self):
         """Test price_scale property setter."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -1017,7 +1017,6 @@ class TestPriceScaleProperty:
 
     def test_price_scale_property_getter(self):
         """Test price_scale property getter."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -1031,7 +1030,6 @@ class TestPriceScaleProperty:
 
     def test_price_scale_property_allow_none(self):
         """Test that price_scale property allows None values."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -1050,7 +1048,6 @@ class TestPriceScaleProperty:
 
     def test_price_scale_in_asdict_output(self):
         """Test that price_scale is included in asdict output at top level."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -1075,7 +1072,6 @@ class TestPriceScaleProperty:
 
     def test_price_scale_not_in_options_when_set(self):
         """Test that price_scale is not included in options when set."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -1109,7 +1105,6 @@ class TestPriceScaleProperty:
 
     def test_price_scale_method_chaining(self):
         """Test price_scale property with method chaining."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -1121,7 +1116,6 @@ class TestPriceScaleProperty:
 
     def test_price_scale_with_scale_margins(self):
         """Test price_scale with scale margins configuration."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -1156,7 +1150,6 @@ class TestPriceScaleProperty:
 
     def test_price_scale_and_price_scale_id_coexistence(self):
         """Test that price_scale and price_scale_id can coexist."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -1177,7 +1170,6 @@ class TestPriceScaleProperty:
 
     def test_price_scale_complete_configuration(self):
         """Test price_scale with complete configuration."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -1224,7 +1216,6 @@ class TestPriceScaleProperty:
 
     def test_top_level_properties_in_asdict(self):
         """Test that properties are placed correctly in asdict output."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -1277,7 +1268,6 @@ class TestPriceScaleProperty:
 
     def test_non_top_level_properties_in_options(self):
         """Test that properties without top_level=True are placed in options."""
-
         data = [LineData(time=1640995200, value=100)]
         series = ConcreteSeries(data=data)
 
@@ -2130,7 +2120,8 @@ class TestSeriesLegendEdgeCases:
 
     def test_legend_property_immutability(self):
         """Test that legend property changes affect the original legend object
-        (shared reference)."""
+        (shared reference).
+        """
         series = LineSeries(data=[])
         original_legend = LegendOptions(position="top-left", visible=True)
         series.legend = original_legend
@@ -2176,7 +2167,6 @@ class TestSeriesLegendIntegration:
 
     def test_candlestick_series_legend_integration(self):
         """Test legend integration with CandlestickSeries."""
-
         data = [CandlestickData(time="2023-01-01", open=100, high=105, low=95, close=102)]
         series = CandlestickSeries(data=data)
         legend = LegendOptions(position="top-left")
@@ -2188,7 +2178,6 @@ class TestSeriesLegendIntegration:
 
     def test_area_series_legend_integration(self):
         """Test legend integration with AreaSeries."""
-
         data = [AreaData(time="2023-01-01", value=100)]
         series = AreaSeries(data=data)
         legend = LegendOptions(position="bottom-right")

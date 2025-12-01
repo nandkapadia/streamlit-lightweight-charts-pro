@@ -8,12 +8,12 @@ chart management, synchronization, rendering, and error handling.
 from unittest.mock import patch
 
 import pytest
-
-from streamlit_lightweight_charts_pro.charts.chart import Chart
-from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 from lightweight_charts_core.charts.options.sync_options import SyncOptions
 from lightweight_charts_core.charts.series.line import LineSeries
 from lightweight_charts_core.data.line_data import LineData
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
+from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 from streamlit_lightweight_charts_pro.exceptions import DuplicateError, NotFoundError
 
 

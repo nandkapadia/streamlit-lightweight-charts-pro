@@ -18,8 +18,6 @@ from dataclasses import dataclass
 from typing import Any, ClassVar, List
 
 import pytest
-
-from streamlit_lightweight_charts_pro.charts.chart import Chart
 from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
 from lightweight_charts_core.charts.options.ui_options import LegendOptions
 from lightweight_charts_core.charts.series.candlestick import CandlestickSeries
@@ -29,6 +27,8 @@ from lightweight_charts_core.data.candlestick_data import CandlestickData
 from lightweight_charts_core.data.histogram_data import HistogramData
 from lightweight_charts_core.data.line_data import LineData
 from lightweight_charts_core.type_definitions.enums import PriceScaleMode
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
 
 
 @dataclass
@@ -371,9 +371,9 @@ class TestFrontendContractValidation:
 
         for snake_case, camel_case in camelcase_mappings.items():
             assert camel_case in legend_dict, f"Expected camelCase field '{camel_case}' not found"
-            assert snake_case not in legend_dict, (
-                f"snake_case field '{snake_case}' should not be present"
-            )
+            assert (
+                snake_case not in legend_dict
+            ), f"snake_case field '{snake_case}' should not be present"
 
         # Test price scale options
         # Note: price_scale_id is NOT a valid PriceScaleOptions parameter
@@ -400,12 +400,12 @@ class TestFrontendContractValidation:
         }
 
         for snake_case, camel_case in price_scale_mappings.items():
-            assert camel_case in price_scale_dict, (
-                f"Expected camelCase field '{camel_case}' not found"
-            )
-            assert snake_case not in price_scale_dict, (
-                f"snake_case field '{snake_case}' should not be present"
-            )
+            assert (
+                camel_case in price_scale_dict
+            ), f"Expected camelCase field '{camel_case}' not found"
+            assert (
+                snake_case not in price_scale_dict
+            ), f"snake_case field '{snake_case}' should not be present"
 
     def test_boolean_serialization_contract(self):
         """Test that boolean values are correctly serialized according to contract."""

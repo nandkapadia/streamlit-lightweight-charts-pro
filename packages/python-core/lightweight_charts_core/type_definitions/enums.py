@@ -68,6 +68,7 @@ class ChartType(str, Enum):
         GRADIENT_RIBBON: Gradient ribbon chart - ribbon with gradient fills.
         TREND_FILL: Trend fill chart - fills between trend lines and candle body midpoints.
         SIGNAL: Signal chart - background coloring based on signal values.
+
     """
 
     AREA = "area"
@@ -92,6 +93,7 @@ class ColorType(str, Enum):
     Attributes:
         SOLID: Solid color - uniform color across the element.
         VERTICAL_GRADIENT: Vertical gradient - color gradient from top to bottom.
+
     """
 
     SOLID = "solid"
@@ -109,6 +111,7 @@ class LineStyle(IntEnum):
         DOTTED: Dotted line - series of dots.
         DASHED: Dashed line - series of short dashes.
         LARGE_DASHED: Large dashed line - series of long dashes.
+
     """
 
     SOLID = 0
@@ -126,6 +129,7 @@ class LineType(IntEnum):
     Attributes:
         SIMPLE: Simple line - straight lines between points.
         CURVED: Curved line - smooth curves between points.
+
     """
 
     SIMPLE = 0
@@ -142,6 +146,7 @@ class CrosshairMode(IntEnum):
     Attributes:
         NORMAL: Normal mode - crosshair moves freely across the chart.
         MAGNET: Magnet mode - crosshair snaps to nearest data points.
+
     """
 
     NORMAL = 0
@@ -158,6 +163,7 @@ class LastPriceAnimationMode(IntEnum):
         DISABLED: No animation - last price line updates instantly.
         CONTINUOUS: Continuous animation - smooth transitions for all updates.
         ON_DATA_UPDATE: Update animation - animation only when new data arrives.
+
     """
 
     DISABLED = 0
@@ -176,6 +182,7 @@ class PriceScaleMode(IntEnum):
         LOGARITHMIC: Logarithmic scale - log-based price scale.
         PERCENTAGE: Percentage scale - values as percentages.
         INDEXED_TO_100: Indexed scale - values relative to 100.
+
     """
 
     NORMAL = 0
@@ -194,6 +201,7 @@ class HorzAlign(str, Enum):
         LEFT: Left alignment - text aligned to the left.
         CENTER: Center alignment - text centered horizontally.
         RIGHT: Right alignment - text aligned to the right.
+
     """
 
     LEFT = "left"
@@ -211,6 +219,7 @@ class VertAlign(str, Enum):
         TOP: Top alignment - text aligned to the top.
         CENTER: Center alignment - text centered vertically.
         BOTTOM: Bottom alignment - text aligned to the bottom.
+
     """
 
     TOP = "top"
@@ -227,6 +236,7 @@ class TrackingExitMode(str, Enum):
         EXIT_ON_MOVE: Exit tracking mode when mouse moves.
         EXIT_ON_CROSS: Exit tracking mode when crosshair crosses series.
         NEVER_EXIT: Never exit tracking mode automatically.
+
     """
 
     EXIT_ON_MOVE = "EXIT_ON_MOVE"
@@ -242,6 +252,7 @@ class TrackingActivationMode(str, Enum):
     Attributes:
         ON_MOUSE_ENTER: Activate tracking mode when mouse enters chart.
         ON_TOUCH_START: Activate tracking mode when touch starts.
+
     """
 
     ON_MOUSE_ENTER = "ON_MOUSE_ENTER"
@@ -258,6 +269,7 @@ class MarkerPosition(str, Enum):
         ABOVE_BAR: Position marker above the data bar/point.
         BELOW_BAR: Position marker below the data bar/point.
         IN_BAR: Position marker inside the data bar/point.
+
     """
 
     ABOVE_BAR = "aboveBar"
@@ -279,6 +291,7 @@ class MarkerShape(str, Enum):
         SQUARE: Square marker shape.
         ARROW_UP: Upward-pointing arrow marker.
         ARROW_DOWN: Downward-pointing arrow marker.
+
     """
 
     CIRCLE = "circle"
@@ -300,6 +313,7 @@ class AnnotationType(str, Enum):
         LINE: Line annotation - draws horizontal or vertical lines.
         RECTANGLE: Rectangle annotation - draws rectangular shapes.
         CIRCLE: Circle annotation - draws circular shapes.
+
     """
 
     TEXT = "text"
@@ -320,6 +334,7 @@ class AnnotationPosition(str, Enum):
         ABOVE: Position annotation above the data point.
         BELOW: Position annotation below the data point.
         INLINE: Position annotation inline with the data point.
+
     """
 
     ABOVE = "above"
@@ -343,6 +358,7 @@ class ColumnNames(str, Enum):
         VOLUME: Volume column (for OHLCV data).
         DATETIME: Datetime column (alternative to TIME).
         VALUE: Value column (for single-value data like line charts).
+
     """
 
     TIME = "time"
@@ -364,6 +380,7 @@ class TradeType(str, Enum):
     Attributes:
         LONG: Long trade - profit when price goes up.
         SHORT: Short trade - profit when price goes down.
+
     """
 
     LONG = "long"
@@ -384,6 +401,7 @@ class TradeVisualization(str, Enum):
         LINES: Display connecting lines between entry and exit.
         ARROWS: Display directional arrows from entry to exit.
         ZONES: Display colored zones with transparency around trades.
+
     """
 
     MARKERS = "markers"  # Just entry/exit markers
@@ -403,6 +421,7 @@ class BackgroundStyle(str, Enum):
     Attributes:
         SOLID: Solid background color.
         VERTICAL_GRADIENT: Vertical gradient background.
+
     """
 
     SOLID = "solid"
@@ -418,6 +437,7 @@ class PriceLineSource(str, Enum):
     Attributes:
         LAST_BAR: Last bar - use the last visible bar's price.
         LAST_VISIBLE: Last visible - use the last visible data point's price.
+
     """
 
     LAST_BAR = "lastBar"
@@ -437,6 +457,7 @@ class TooltipType(str, Enum):
         CUSTOM: Custom tooltip - displays custom content using templates.
         TRADE: Trade tooltip - displays trade information (entry, exit, P&L).
         MARKER: Marker tooltip - displays marker-specific information.
+
     """
 
     OHLC = "ohlc"
@@ -457,6 +478,7 @@ class TooltipPosition(str, Enum):
         CURSOR: Cursor position - tooltip follows the mouse cursor.
         FIXED: Fixed position - tooltip appears at a fixed location.
         AUTO: Auto position - tooltip position is automatically determined.
+
     """
 
     CURSOR = "cursor"

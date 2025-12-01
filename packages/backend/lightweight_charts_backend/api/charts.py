@@ -7,7 +7,6 @@ from pydantic import BaseModel
 
 from lightweight_charts_backend.services import DatafeedService
 
-
 router = APIRouter()
 
 

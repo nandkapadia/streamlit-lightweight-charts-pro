@@ -8,7 +8,6 @@ Tests performance profiling utilities including:
 """
 
 import time
-from unittest.mock import patch
 
 from lightweight_charts_core.utils.profiler import (
     MemoryMonitor,

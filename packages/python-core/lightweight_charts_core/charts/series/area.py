@@ -40,10 +40,10 @@ Example:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 # Standard Imports
-from typing import List, Optional, Union
 
 # Third Party Imports
 import pandas as pd
@@ -130,21 +130,22 @@ class AreaSeries(Series):
         series.line_options.set_color("#2196F3").set_width(2)
         ```
 
-    See also:
+    See Also:
         Series: Base class providing common series functionality.
         LineOptions: Configuration class for line styling options.
         AreaData: Data class for area chart data points.
+
     """
 
     DATA_CLASS = AreaData
 
     def __init__(
         self,
-        data: Union[List[AreaData], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[AreaData] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
     ):
         """Initialize AreaSeries with data and configuration options.
 
@@ -180,6 +181,7 @@ class AreaSeries(Series):
             # Area series with custom configuration
             series = AreaSeries(data=data, visible=True, price_scale_id="right", pane_id=1)
             ```
+
         """
         # Initialize base series functionality
         super().__init__(
@@ -212,5 +214,6 @@ class AreaSeries(Series):
             series = AreaSeries(data=data)
             chart_type = series.chart_type  # ChartType.AREA
             ```
+
         """
         return ChartType.AREA

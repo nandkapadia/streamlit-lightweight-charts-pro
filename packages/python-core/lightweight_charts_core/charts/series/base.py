@@ -22,11 +22,12 @@ Example:
     data = [SingleValueData("2024-01-01", 100)]
     series = MyCustomSeries(data=data)
     ```
+
 """
 
 # Standard Imports
 from abc import ABC
-from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
+from typing import Any, Union, get_type_hints
 
 # Third Party Imports
 import pandas as pd
@@ -62,7 +63,7 @@ logger = get_logger(__name__)
 @chainable_property("price_scale", allow_none=True, top_level=True)
 @chainable_property("price_format")
 @chainable_property("price_lines", top_level=True)
-@chainable_property("markers", List[MarkerBase], allow_none=True, top_level=True)
+@chainable_property("markers", list[MarkerBase], allow_none=True, top_level=True)
 @chainable_property("pane_id", top_level=True)
 @chainable_property("last_value_visible")
 @chainable_property("price_line_visible")
@@ -140,15 +141,16 @@ class Series(ABC):  # noqa: B024
     Note:
         Subclasses must define a class-level DATA_CLASS attribute for from_dataframe to work.
         The data_class property will always pick the most-derived DATA_CLASS in the MRO.
+
     """
 
     def __init__(
         self,
-        data: Union[List[Data], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[Data] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
     ):
         """Initialize a series with data and configuration.
 
@@ -190,6 +192,7 @@ class Series(ABC):  # noqa: B024
             # Series with custom configuration
             series = LineSeries(data=line_data, visible=False, price_scale_id="right", pane_id=1)
             ```
+
         """
         # Validate and process data input based on type
         if data is None:
@@ -217,8 +220,8 @@ class Series(ABC):  # noqa: B024
         self._price_scale_id = price_scale_id  # Price scale attachment ID
         self._price_scale = None  # Price scale configuration object
         self._price_format = None  # Price formatting options
-        self._price_lines: List[PriceLineOptions] = []  # List of price line markers
-        self._markers: List[MarkerBase] = []  # List of chart markers for annotations
+        self._price_lines: list[PriceLineOptions] = []  # List of price line markers
+        self._markers: list[MarkerBase] = []  # List of chart markers for annotations
         self._pane_id = pane_id  # Pane index for multi-pane charts
         self._column_mapping = column_mapping  # DataFrame column mapping
 
@@ -242,7 +245,7 @@ class Series(ABC):  # noqa: B024
         self._legend = None  # Legend configuration
 
     @staticmethod
-    def prepare_index(data_frame: pd.DataFrame, column_mapping: Dict[str, str]) -> pd.DataFrame:
+    def prepare_index(data_frame: pd.DataFrame, column_mapping: dict[str, str]) -> pd.DataFrame:
         """Prepare index for column mapping.
 
         Handles all index-related column mapping cases:
@@ -261,6 +264,7 @@ class Series(ABC):  # noqa: B024
 
         Raises:
             ValueError: If time column is not found and no DatetimeIndex is available
+
         """
         # Handle time column mapping first (special case for DatetimeIndex)
         if "time" in column_mapping:
@@ -377,9 +381,9 @@ class Series(ABC):  # noqa: B024
 
     def _process_dataframe_input(
         self,
-        data: Union[pd.DataFrame, pd.Series],
-        column_mapping: Dict[str, str],
-    ) -> List[Data]:
+        data: pd.DataFrame | pd.Series,
+        column_mapping: dict[str, str],
+    ) -> list[Data]:
         """Process DataFrame or Series input into a list of Data objects.
 
         This method duplicates the logic from from_dataframe to handle
@@ -402,6 +406,7 @@ class Series(ABC):  # noqa: B024
         Note:
             This method uses the data_class property to determine the appropriate
             Data class for conversion.
+
         """
         # Convert Series to DataFrame if needed (do this first)
         if isinstance(data, pd.Series):
@@ -471,7 +476,7 @@ class Series(ABC):  # noqa: B024
         return result
 
     @property
-    def data_dict(self) -> List[Dict[str, Any]]:
+    def data_dict(self) -> list[dict[str, Any]]:
         """Get the data in dictionary format.
 
         Converts the series data to a list of dictionaries suitable for
@@ -493,6 +498,7 @@ class Series(ABC):  # noqa: B024
                 # Data point contains time and value information
                 pass
             ```
+
         """
         if isinstance(self.data, dict):
             return self.data  # type: ignore[return-value]
@@ -554,6 +560,7 @@ class Series(ABC):  # noqa: B024
             # Method chaining
             series.add_marker(marker1).add_marker(marker2)
             ```
+
         """
         # Validate the marker position
         if not marker.validate_position():
@@ -562,7 +569,7 @@ class Series(ABC):  # noqa: B024
         self._markers.append(marker)
         return self
 
-    def add_markers(self, markers: List[MarkerBase]) -> "Series":
+    def add_markers(self, markers: list[MarkerBase]) -> "Series":
         """Add multiple markers to this series.
 
         Adds a list of markers to the series. Returns self for method chaining.
@@ -575,6 +582,7 @@ class Series(ABC):  # noqa: B024
 
         Raises:
             ValueError: If any marker position is not valid for its type.
+
         """
         # Validate all markers before adding
         for marker in markers:
@@ -591,6 +599,7 @@ class Series(ABC):  # noqa: B024
 
         Returns:
             Series: Self for method chaining.
+
         """
         self._markers.clear()
         return self
@@ -603,6 +612,7 @@ class Series(ABC):  # noqa: B024
 
         Returns:
             Series: Self for method chaining.
+
         """
         self._price_lines.append(price_line)
         return self
@@ -612,6 +622,7 @@ class Series(ABC):  # noqa: B024
 
         Returns:
             Series: Self for method chaining.
+
         """
         self._price_lines.clear()
         return self
@@ -624,16 +635,17 @@ class Series(ABC):  # noqa: B024
 
         Raises:
             ValueError: If pane_id is negative.
+
         """
         if self._pane_id is not None and self._pane_id < 0:
             raise ValueValidationError("pane_id", "must be non-negative")
         if self._pane_id is None:
             self._pane_id = 0
 
-    def _get_attr_name(self, key: str) -> Optional[str]:
+    def _get_attr_name(self, key: str) -> str | None:
         """Get the attribute name for a given key."""
         # Convert camelCase to snake_case for attribute lookup
-        attr_name: Optional[str] = self._camel_to_snake(key)
+        attr_name: str | None = self._camel_to_snake(key)
 
         # Check if attribute exists (try multiple variations)
         # Need to check attr_name is not None before using hasattr
@@ -654,7 +666,7 @@ class Series(ABC):  # noqa: B024
 
         return attr_name
 
-    def update(self, updates: Dict[str, Any]) -> "Series":
+    def update(self, updates: dict[str, Any]) -> "Series":
         """Update series configuration with a dictionary of values.
 
         This method updates series properties using a configuration dictionary. It supports
@@ -686,6 +698,7 @@ class Series(ABC):  # noqa: B024
             )
             series.update({"visible": True}).update({"pane_id": 1})
             ```
+
         """
         for key, value in updates.items():
             if value is None:
@@ -718,6 +731,7 @@ class Series(ABC):  # noqa: B024
 
         Raises:
             AttributeError: If the attribute cannot be updated.
+
         """
         current_value = getattr(self, attr_name, None)
 
@@ -760,6 +774,7 @@ class Series(ABC):  # noqa: B024
 
         Raises:
             AttributeError: If the attribute cannot be updated.
+
         """
         current_value = getattr(self, attr_name, None)
 
@@ -807,12 +822,13 @@ class Series(ABC):  # noqa: B024
 
         Returns:
             String in snake_case format.
+
         """
         import re  # pylint: disable=import-outside-toplevel
 
         return re.sub(r"(?<!^)(?=[A-Z])", "_", camel_case).lower()
 
-    def asdict(self) -> Dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """Convert series to dictionary representation.
 
         This method creates a dictionary representation of the series
@@ -820,6 +836,7 @@ class Series(ABC):  # noqa: B024
 
         Returns:
             Dict[str, Any]: Dictionary containing series configuration for the frontend.
+
         """
         # Validate pane configuration
         self._validate_pane_config()
@@ -958,10 +975,12 @@ class Series(ABC):  # noqa: B024
 
         Returns:
             bool: True if the attribute is a chainable property
+
         """
         return (
             hasattr(self.__class__, "_chainable_properties")
-            and attr_name in self.__class__._chainable_properties  # pylint: disable=protected-access
+            and attr_name
+            in self.__class__._chainable_properties  # pylint: disable=protected-access
         )
 
     def _is_allow_none(self, attr_name: str) -> bool:
@@ -972,6 +991,7 @@ class Series(ABC):  # noqa: B024
 
         Returns:
             bool: True if the property allows None values
+
         """
         if self._is_chainable_property(attr_name):
             # pylint: disable=protected-access
@@ -986,6 +1006,7 @@ class Series(ABC):  # noqa: B024
 
         Returns:
             bool: True if the attribute should be at the top level
+
         """
         if self._is_chainable_property(attr_name):
             # pylint: disable=protected-access
@@ -993,7 +1014,7 @@ class Series(ABC):  # noqa: B024
         return False
 
     @classproperty
-    def data_class(self) -> Type[Data]:  # pylint: disable=no-self-argument
+    def data_class(self) -> type[Data]:  # pylint: disable=no-self-argument
         """Return the first DATA_CLASS found in the MRO (most-derived class wins)."""
         for base in self.__mro__:  # type: ignore[attr-defined]
             if hasattr(base, "DATA_CLASS"):
@@ -1003,8 +1024,8 @@ class Series(ABC):  # noqa: B024
     @classmethod
     def from_dataframe(
         cls,
-        df: Union[pd.DataFrame, pd.Series],
-        column_mapping: Dict[str, str],
+        df: pd.DataFrame | pd.Series,
+        column_mapping: dict[str, str],
         price_scale_id: str = "",
         **kwargs,
     ) -> "Series":
@@ -1024,6 +1045,7 @@ class Series(ABC):  # noqa: B024
             NotImplementedError: If the subclass does not define DATA_CLASS.
             ValueError: If required columns are missing in column_mapping or DataFrame.
             AttributeError: If the data class does not define REQUIRED_COLUMNS.
+
         """
         # Convert Series to DataFrame if needed
         dataframe = df

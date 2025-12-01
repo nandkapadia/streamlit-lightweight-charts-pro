@@ -8,12 +8,12 @@ covering chart options, series legends, and frontend integration.
 import time
 
 import pytest
-
-from streamlit_lightweight_charts_pro.charts.chart import Chart
 from lightweight_charts_core.charts.options.chart_options import ChartOptions
 from lightweight_charts_core.charts.options.ui_options import LegendOptions
 from lightweight_charts_core.charts.series.line import LineSeries
 from lightweight_charts_core.data.line_data import LineData
+
+from streamlit_lightweight_charts_pro.charts.chart import Chart
 
 
 class TestChartLegendConfiguration:
@@ -303,7 +303,6 @@ class TestChartLegendPerformance:
 
     def test_chart_legend_construction_performance(self):
         """Test performance of chart construction with legends."""
-
         # Create multiple series with legends
         series_list = []
         for i in range(10):

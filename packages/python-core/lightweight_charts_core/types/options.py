@@ -5,7 +5,7 @@ This module provides the base Options class for all configuration classes.
 
 from abc import ABC
 from dataclasses import dataclass, fields
-from typing import Any, Dict
+from typing import Any
 
 from lightweight_charts_core.utils.case_converter import CaseConverter
 from lightweight_charts_core.utils.serialization import SerializableMixin
@@ -19,11 +19,11 @@ class Options(SerializableMixin, ABC):
     camelCase key conversion for frontend serialization.
     """
 
-    def asdict(self) -> Dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """Serialize to dictionary with camelCase keys."""
         return self._serialize_to_dict()
 
-    def update(self, config: Dict[str, Any]) -> "Options":
+    def update(self, config: dict[str, Any]) -> "Options":
         """Update options from dictionary.
 
         Args:
@@ -31,6 +31,7 @@ class Options(SerializableMixin, ABC):
 
         Returns:
             Self for method chaining.
+
         """
         # Convert camelCase keys to snake_case
         snake_config = CaseConverter.convert_dict_keys(config, to_camel=False)
@@ -42,7 +43,7 @@ class Options(SerializableMixin, ABC):
         return self
 
     @classmethod
-    def fromdict(cls, data: Dict[str, Any]) -> "Options":
+    def fromdict(cls, data: dict[str, Any]) -> "Options":
         """Create instance from dictionary.
 
         Args:
@@ -50,6 +51,7 @@ class Options(SerializableMixin, ABC):
 
         Returns:
             New instance with values from dictionary.
+
         """
         # Convert camelCase keys to snake_case
         snake_data = CaseConverter.convert_dict_keys(data, to_camel=False)

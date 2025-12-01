@@ -44,18 +44,18 @@ Example:
 Note:
     The module automatically initializes logging with ERROR level
     at import time. Call setup_logging() to change the configuration.
+
 """
 
 # Standard Imports
 import logging
 import sys
-from typing import Optional
 
 
 def setup_logging(
     level: int = logging.WARN,
-    log_format: Optional[str] = None,
-    stream: Optional[logging.StreamHandler] = None,
+    log_format: str | None = None,
+    stream: logging.StreamHandler | None = None,
 ) -> logging.Logger:
     """Set up logging configuration for the package.
 
@@ -106,6 +106,7 @@ def setup_logging(
         This function is idempotent - calling it multiple times with
         the same logger won't create duplicate handlers. However, the
         level will be updated on subsequent calls.
+
     """
     # Create or retrieve the root logger for this package
     # Using a specific package name creates a logger hierarchy
@@ -161,7 +162,7 @@ def setup_logging(
     return logger
 
 
-def get_logger(name: Optional[str] = None, level: int = logging.DEBUG) -> logging.Logger:
+def get_logger(name: str | None = None, level: int = logging.DEBUG) -> logging.Logger:
     """Get a logger instance for the package.
 
     This function creates or retrieves a logger instance with proper
@@ -211,6 +212,7 @@ def get_logger(name: Optional[str] = None, level: int = logging.DEBUG) -> loggin
         The logger inherits handlers and formatters from the root
         package logger configured by setup_logging(). You don't need
         to configure handlers for component loggers.
+
     """
     # Create hierarchical logger name by combining package name with
     # component name. Example:

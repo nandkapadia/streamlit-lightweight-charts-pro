@@ -1,5 +1,4 @@
-"""
-Unit tests for the HistogramData class.
+"""Unit tests for the HistogramData class.
 
 This module tests the HistogramData class functionality including
 construction, validation, serialization, and edge cases.

@@ -49,6 +49,7 @@ def valid_time() -> int:
 
     Returns:
         int: UNIX timestamp representing 2024-01-01 00:00:00 UTC
+
     """
     return 1704067200  # 2024-01-01 00:00:00 UTC
 
@@ -62,6 +63,7 @@ def test_standard_construction(valid_time):
 
     Args:
         valid_time: Fixture providing a valid UNIX timestamp
+
     """
     # Create LineData with time, value, and color
     data = LineData(time=valid_time, value=123.45, color="#2196F3")
@@ -88,6 +90,7 @@ def test_nan_value(valid_time):
 
     Args:
         valid_time: Fixture providing a valid UNIX timestamp
+
     """
     # Create LineData with NaN value to test conversion
     data = LineData(time=valid_time, value=math.nan, color="#2196F3")

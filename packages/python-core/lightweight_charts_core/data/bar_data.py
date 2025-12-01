@@ -22,11 +22,12 @@ Example:
         color="#4CAF50",  # Optional: Green bar
     )
     ```
+
 """
 
 # Standard Imports
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 # Local Imports
 from lightweight_charts_core.data.ohlc_data import OhlcData
@@ -50,9 +51,10 @@ class BarData(OhlcData):
 
     Note:
         - Color should be a valid hex (e.g., #2196F3) or rgba string (e.g., rgba(33,150,243,1)).
+
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = set()
     OPTIONAL_COLUMNS: ClassVar[set] = {"color"}
 
-    color: Optional[str] = None
+    color: str | None = None

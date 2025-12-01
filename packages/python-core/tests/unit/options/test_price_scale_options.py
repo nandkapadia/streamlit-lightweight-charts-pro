@@ -1,5 +1,4 @@
-"""
-Tests for price scale options classes.
+"""Tests for price scale options classes.
 
 This module contains comprehensive tests for price scale-related option classes:
 - PriceScaleOptions
@@ -35,7 +34,6 @@ class TestPriceScaleMargins:
 
     def test_validation_top(self):
         """Test validation of top field."""
-
         options = PriceScaleMargins()
 
         with pytest.raises(TypeValidationError):
@@ -43,7 +41,6 @@ class TestPriceScaleMargins:
 
     def test_validation_bottom(self):
         """Test validation of bottom field."""
-
         options = PriceScaleMargins()
 
         with pytest.raises(TypeValidationError):
@@ -105,7 +102,6 @@ class TestPriceScaleOptions:
 
     def test_validation_visible(self):
         """Test validation of visible field."""
-
         options = PriceScaleOptions()
 
         with pytest.raises(TypeValidationError):
@@ -113,7 +109,6 @@ class TestPriceScaleOptions:
 
     def test_validation_auto_scale(self):
         """Test validation of auto_scale field."""
-
         options = PriceScaleOptions()
 
         with pytest.raises(TypeValidationError):
@@ -121,7 +116,6 @@ class TestPriceScaleOptions:
 
     def test_validation_mode(self):
         """Test validation of mode field."""
-
         options = PriceScaleOptions()
 
         with pytest.raises(TypeValidationError):
@@ -129,7 +123,6 @@ class TestPriceScaleOptions:
 
     def test_validation_invert_scale(self):
         """Test validation of invert_scale field."""
-
         options = PriceScaleOptions()
 
         with pytest.raises(TypeValidationError):
@@ -137,7 +130,6 @@ class TestPriceScaleOptions:
 
     def test_validation_border_visible(self):
         """Test validation of border_visible field."""
-
         options = PriceScaleOptions()
 
         with pytest.raises(TypeValidationError):
@@ -157,7 +149,6 @@ class TestPriceScaleOptions:
 
     def test_validation_ticks_visible(self):
         """Test validation of ticks_visible field."""
-
         options = PriceScaleOptions()
 
         with pytest.raises(TypeValidationError):
@@ -165,7 +156,6 @@ class TestPriceScaleOptions:
 
     def test_validation_ensure_edge_tick_marks_visible(self):
         """Test validation of ensure_edge_tick_marks_visible field."""
-
         options = PriceScaleOptions()
 
         with pytest.raises(TypeValidationError):
@@ -173,7 +163,6 @@ class TestPriceScaleOptions:
 
     def test_validation_align_labels(self):
         """Test validation of align_labels field."""
-
         options = PriceScaleOptions()
 
         with pytest.raises(TypeValidationError):
@@ -181,7 +170,6 @@ class TestPriceScaleOptions:
 
     def test_validation_entire_text_only(self):
         """Test validation of entire_text_only field."""
-
         options = PriceScaleOptions()
 
         with pytest.raises(TypeValidationError):
@@ -189,7 +177,6 @@ class TestPriceScaleOptions:
 
     def test_validation_minimum_width(self):
         """Test validation of minimum_width field."""
-
         options = PriceScaleOptions()
 
         with pytest.raises(TypeValidationError):

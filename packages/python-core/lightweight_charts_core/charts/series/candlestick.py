@@ -46,10 +46,10 @@ Example:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 # Standard Imports
-from typing import List, Optional, Union
 
 # Third Party Imports
 import pandas as pd
@@ -130,9 +130,10 @@ class CandlestickSeries(Series):
         )
         ```
 
-    See also:
+    See Also:
         Series: Base class providing common series functionality.
         CandlestickData: Data class for candlestick chart data points.
+
     """
 
     # Define the data class type for this series - used for validation and conversion
@@ -140,11 +141,11 @@ class CandlestickSeries(Series):
 
     def __init__(
         self,
-        data: Union[List[CandlestickData], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[CandlestickData] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "right",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
     ):
         """Initialize a CandlestickSeries instance with data and configuration options.
 
@@ -171,6 +172,7 @@ class CandlestickSeries(Series):
             DataItemsTypeError: If data items are not of the expected type.
             DataFrameMissingColumnError: If required columns are missing from DataFrame.
             ColumnMappingRequiredError: If column mapping is required but not provided.
+
         """
         # Call parent constructor to initialize base series functionality
         super().__init__(
@@ -219,6 +221,7 @@ class CandlestickSeries(Series):
 
         Raises:
             ColorValidationError: If the color format is invalid.
+
         """
         # Validate color format using utility function
         if not is_valid_color(color):
@@ -231,5 +234,6 @@ class CandlestickSeries(Series):
 
         Returns:
             ChartType: The chart type identifier for candlestick charts.
+
         """
         return ChartType.CANDLESTICK

@@ -1,5 +1,4 @@
-"""
-Unit tests for SignalData class.
+"""Unit tests for SignalData class.
 
 This module contains comprehensive tests for the SignalData class, which is used
 for creating signal-based background coloring in financial charts.

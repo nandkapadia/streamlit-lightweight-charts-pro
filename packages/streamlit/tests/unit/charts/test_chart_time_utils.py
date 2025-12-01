@@ -11,11 +11,11 @@ from unittest.mock import Mock
 
 # Third Party Imports
 import pytest
+from lightweight_charts_core.charts.series.line import LineSeries
+from lightweight_charts_core.data.line_data import LineData
 
 # Local Imports
 from streamlit_lightweight_charts_pro.charts.chart import Chart
-from lightweight_charts_core.charts.series.line import LineSeries
-from lightweight_charts_core.data.line_data import LineData
 
 
 class TestTimeConversion:

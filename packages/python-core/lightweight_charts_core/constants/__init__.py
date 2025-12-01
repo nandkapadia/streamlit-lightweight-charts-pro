@@ -1,5 +1,4 @@
-"""
-Global constants for streamlit-lightweight-charts-pro.
+"""Global constants for streamlit-lightweight-charts-pro.
 
 This module contains all magic numbers, colors, timeouts, and other hardcoded
 values used throughout the library. Centralizing these values makes it easier

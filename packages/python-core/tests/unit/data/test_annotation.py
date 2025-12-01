@@ -1,5 +1,4 @@
-"""
-Comprehensive unit tests for Annotation class.
+"""Comprehensive unit tests for Annotation class.
 
 This module tests the Annotation class functionality including
 construction, validation, serialization, and edge cases.

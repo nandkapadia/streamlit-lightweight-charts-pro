@@ -7,13 +7,9 @@ Tests command-line interface functionality including:
 """
 
 import subprocess
-from pathlib import Path
-from unittest.mock import Mock, patch
-
-import pytest
+from unittest.mock import patch
 
 from streamlit_lightweight_charts_pro.cli import main
-from streamlit_lightweight_charts_pro.exceptions import NpmNotFoundError
 
 
 class TestMain:

@@ -4,8 +4,6 @@ This module provides the RibbonSeries class for creating ribbon charts
 that display upper and lower bands with fill areas between them.
 """
 
-from typing import List, Optional, Union
-
 import pandas as pd
 
 from lightweight_charts_core.charts.options.line_options import LineOptions
@@ -42,17 +40,18 @@ class RibbonSeries(Series):
         price_lines: List of PriceLineOptions for price lines (set after construction)
         price_format: PriceFormatOptions for price formatting (set after construction)
         markers: List of markers to display on this series (set after construction)
+
     """
 
     DATA_CLASS = RibbonData
 
     def __init__(
         self,
-        data: Union[List[RibbonData], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[RibbonData] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
     ):
         """Initialize RibbonSeries.
 
@@ -62,6 +61,7 @@ class RibbonSeries(Series):
             visible: Whether the series is visible
             price_scale_id: ID of the price scale
             pane_id: The pane index this series belongs to
+
         """
         super().__init__(
             data=data,

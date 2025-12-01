@@ -1,5 +1,4 @@
-"""
-Unit tests for TrendFillData module.
+"""Unit tests for TrendFillData module.
 
 This module tests the TrendFillData class functionality including
 data validation, property methods, and edge cases.

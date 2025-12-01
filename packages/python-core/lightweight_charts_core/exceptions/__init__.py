@@ -31,10 +31,11 @@ Example:
                 raise ValueValidationError.positive_value("price", value)
         except ValidationError as e:
             print(f"Validation failed: {e}")
+
 """
 
 # Standard Imports
-from typing import Any, Optional
+from typing import Any
 
 
 class ValidationError(Exception):
@@ -50,6 +51,7 @@ class ValidationError(Exception):
 
     Example:
         >>> raise ValidationError("Invalid input provided")
+
     """
 
     def __init__(self, message: str):
@@ -57,6 +59,7 @@ class ValidationError(Exception):
 
         Args:
             message (str): Error message describing the validation failure.
+
         """
         # Call parent Exception class constructor with the message
         super().__init__(message)
@@ -74,6 +77,7 @@ class ConfigurationError(Exception):
 
     Example:
         >>> raise ConfigurationError("Invalid configuration detected")
+
     """
 
     def __init__(self, message: str):
@@ -81,6 +85,7 @@ class ConfigurationError(Exception):
 
         Args:
             message (str): Error message describing the configuration issue.
+
         """
         # Call parent Exception class constructor with the message
         super().__init__(message)
@@ -102,13 +107,14 @@ class TypeValidationError(ValidationError):
     Example:
         >>> raise TypeValidationError("price", "float", "str")
         # Error: price must be float, got str
+
     """
 
     def __init__(
         self,
         field_name: str,
         expected_type: str,
-        actual_type: Optional[str] = None,
+        actual_type: str | None = None,
     ):
         """Initialize TypeValidationError.
 
@@ -116,6 +122,7 @@ class TypeValidationError(ValidationError):
             field_name (str): Name of the field being validated.
             expected_type (str): Expected type description.
             actual_type (Optional[str]): Actual type received, if known.
+
         """
         # Build error message based on whether actual type is provided
         if actual_type:
@@ -144,6 +151,7 @@ class ValueValidationError(ValidationError):
         >>> error = ValueValidationError.positive_value("price", -10)
         >>> raise error
         # Error: price must be positive, got -10
+
     """
 
     def __init__(self, field_name: str, message: str):
@@ -152,6 +160,7 @@ class ValueValidationError(ValidationError):
         Args:
             field_name (str): Name of the field being validated.
             message (str): Validation failure description.
+
         """
         # Combine field name and message for full error text
         super().__init__(f"{field_name} {message}")
@@ -172,6 +181,7 @@ class ValueValidationError(ValidationError):
         Example:
             >>> error = ValueValidationError.positive_value("price", -5)
             >>> raise error
+
         """
         # Create instance with positive value message
         return cls(field_name, f"must be positive, got {value}")
@@ -197,6 +207,7 @@ class ValueValidationError(ValidationError):
         Example:
             >>> error = ValueValidationError.non_negative_value("count", -1)
             >>> raise error
+
         """
         # Build message based on whether value is provided
         if value is not None:
@@ -230,6 +241,7 @@ class ValueValidationError(ValidationError):
         Example:
             >>> error = ValueValidationError.in_range("percentage", 0, 100, 150)
             >>> raise error
+
         """
         # Create instance with range validation message
         return cls(field_name, f"must be between {min_val} and {max_val}, got {value}")
@@ -249,6 +261,7 @@ class ValueValidationError(ValidationError):
         Example:
             >>> error = ValueValidationError.required_field("title")
             >>> raise error
+
         """
         # Create instance with required field message
         return cls(field_name, "is required")
@@ -269,14 +282,15 @@ class RangeValidationError(ValueValidationError):
     Example:
         >>> raise RangeValidationError("opacity", 1.5, 0.0, 1.0)
         # Error: opacity must be between 0.0 and 1.0, got 1.5
+
     """
 
     def __init__(
         self,
         field_name: str,
         value: float | int,
-        min_value: Optional[float] = None,
-        max_value: Optional[float] = None,
+        min_value: float | None = None,
+        max_value: float | None = None,
     ):
         """Initialize RangeValidationError.
 
@@ -285,6 +299,7 @@ class RangeValidationError(ValueValidationError):
             value (float | int): Invalid value provided.
             min_value (Optional[float]): Minimum bound, if applicable.
             max_value (Optional[float]): Maximum bound, if applicable.
+
         """
         # Build appropriate message based on which bounds are specified
         if min_value is not None and max_value is not None:
@@ -316,6 +331,7 @@ class RequiredFieldError(ValidationError):
     Example:
         >>> raise RequiredFieldError("title")
         # Error: title is required
+
     """
 
     def __init__(self, field_name: str):
@@ -323,6 +339,7 @@ class RequiredFieldError(ValidationError):
 
         Args:
             field_name (str): Name of the missing required field.
+
         """
         # Format message indicating field is required
         super().__init__(f"{field_name} is required")
@@ -341,6 +358,7 @@ class DuplicateError(ValidationError):
     Example:
         >>> raise DuplicateError("series_id", "main")
         # Error: Duplicate series_id: main
+
     """
 
     def __init__(self, field_name: str, value: Any):
@@ -349,6 +367,7 @@ class DuplicateError(ValidationError):
         Args:
             field_name (str): Field name where duplicate was found.
             value (Any): The duplicate value.
+
         """
         # Format message showing duplicate field and value
         super().__init__(f"Duplicate {field_name}: {value}")
@@ -364,6 +383,7 @@ class ComponentNotAvailableError(ConfigurationError):
         >>> raise ComponentNotAvailableError()
         # Error: Component function not available. Please check if the
         # component is properly initialized.
+
     """
 
     def __init__(self):
@@ -384,6 +404,7 @@ class AnnotationItemsTypeError(TypeValidationError):
     Example:
         >>> raise AnnotationItemsTypeError()
         # Error: All items must be Annotation instances
+
     """
 
     def __init__(self):
@@ -401,6 +422,7 @@ class SeriesItemsTypeError(TypeValidationError):
     Example:
         >>> raise SeriesItemsTypeError()
         # Error: All items must be Series instances
+
     """
 
     def __init__(self):
@@ -419,6 +441,7 @@ class PriceScaleIdTypeError(TypeValidationError):
     Example:
         >>> raise PriceScaleIdTypeError("left_scale", int)
         # Error: left_scale.price_scale_id must be a string, got int
+
     """
 
     def __init__(self, scale_name: str, actual_type: type):
@@ -427,6 +450,7 @@ class PriceScaleIdTypeError(TypeValidationError):
         Args:
             scale_name (str): Name of the price scale configuration.
             actual_type (type): Actual type of the invalid value.
+
         """
         # Format message with scale name and type information
         super().__init__(
@@ -446,6 +470,7 @@ class PriceScaleOptionsTypeError(TypeValidationError):
     Example:
         >>> raise PriceScaleOptionsTypeError("right_scale", dict)
         # Error: right_scale must be a PriceScaleOptions object, got dict
+
     """
 
     def __init__(self, scale_name: str, actual_type: type):
@@ -454,6 +479,7 @@ class PriceScaleOptionsTypeError(TypeValidationError):
         Args:
             scale_name (str): Name of the price scale configuration.
             actual_type (type): Actual type of the invalid value.
+
         """
         # Format message indicating PriceScaleOptions is required
         super().__init__(
@@ -477,6 +503,7 @@ class ColorValidationError(ValidationError):
         >>> raise ColorValidationError("backgroundColor", "invalid")
         # Error: Invalid color format for backgroundColor: 'invalid'.
         # Must be hex or rgba.
+
     """
 
     def __init__(self, property_name: str, color_value: str):
@@ -485,6 +512,7 @@ class ColorValidationError(ValidationError):
         Args:
             property_name (str): Property name containing the color.
             color_value (str): The invalid color value.
+
         """
         # Format message with property name and color value
         super().__init__(
@@ -502,6 +530,7 @@ class DataFrameValidationError(ValidationError):
         >>> error = DataFrameValidationError.missing_column("price")
         >>> raise error
         # Error: DataFrame is missing required column: price
+
     """
 
     @classmethod
@@ -517,6 +546,7 @@ class DataFrameValidationError(ValidationError):
         Example:
             >>> error = DataFrameValidationError.missing_column("time")
             >>> raise error
+
         """
         # Create instance with missing column message
         return cls(f"DataFrame is missing required column: {column}")
@@ -534,6 +564,7 @@ class DataFrameValidationError(ValidationError):
         Example:
             >>> error = DataFrameValidationError.invalid_data_type(str)
             >>> raise error
+
         """
         # Create instance with invalid data type message
         return cls(
@@ -562,6 +593,7 @@ class DataFrameValidationError(ValidationError):
             ...     ["price"], ["time", "price"], {"time": "timestamp"}
             ... )
             >>> raise error
+
         """
         # Build detailed message showing what's missing
         message = (
@@ -585,6 +617,7 @@ class TimeValidationError(ValidationError):
     Example:
         >>> raise TimeValidationError("Invalid timestamp format")
         # Error: Time validation failed: Invalid timestamp format
+
     """
 
     def __init__(self, message: str):
@@ -592,6 +625,7 @@ class TimeValidationError(ValidationError):
 
         Args:
             message (str): Time validation failure description.
+
         """
         # Prefix message with "Time validation failed:"
         super().__init__(f"Time validation failed: {message}")
@@ -609,6 +643,7 @@ class TimeValidationError(ValidationError):
         Example:
             >>> error = TimeValidationError.invalid_time_string("not-a-date")
             >>> raise error
+
         """
         # Create instance with invalid time string message
         return cls(f"Invalid time string: {time_value!r}")
@@ -626,6 +661,7 @@ class TimeValidationError(ValidationError):
         Example:
             >>> error = TimeValidationError.unsupported_type(list)
             >>> raise error
+
         """
         # Create instance with unsupported type message
         return cls(f"Unsupported time type {time_type.__name__}")
@@ -640,6 +676,7 @@ class UnsupportedTimeTypeError(TypeValidationError):
     Example:
         >>> raise UnsupportedTimeTypeError(list)
         # Error: time unsupported type, got list
+
     """
 
     def __init__(self, time_type: type):
@@ -647,6 +684,7 @@ class UnsupportedTimeTypeError(TypeValidationError):
 
         Args:
             time_type (type): The unsupported type provided.
+
         """
         # Use predefined message for unsupported time types
         super().__init__("time", "unsupported type", time_type.__name__)
@@ -662,6 +700,7 @@ class InvalidMarkerPositionError(ValidationError):
     Example:
         >>> raise InvalidMarkerPositionError("top", "circle")
         # Error: Invalid position 'top' for marker type circle
+
     """
 
     def __init__(self, position: str, marker_type: str):
@@ -670,6 +709,7 @@ class InvalidMarkerPositionError(ValidationError):
         Args:
             position (str): The invalid position string.
             marker_type (str): Type of marker being configured.
+
         """
         # Format message with position and marker type
         super().__init__(f"Invalid position '{position}' for marker type {marker_type}")
@@ -685,6 +725,7 @@ class ColumnMappingRequiredError(RequiredFieldError):
         >>> raise ColumnMappingRequiredError()
         # Error: column_mapping is required when providing DataFrame or
         # Series data is required
+
     """
 
     def __init__(self):
@@ -703,6 +744,7 @@ class DataItemsTypeError(TypeValidationError):
         >>> raise DataItemsTypeError()
         # Error: All items in data list must be instances of Data or its
         # subclasses
+
     """
 
     def __init__(self):
@@ -723,6 +765,7 @@ class ExitTimeAfterEntryTimeError(ValueValidationError):
     Example:
         >>> raise ExitTimeAfterEntryTimeError()
         # Error: Exit time must be after entry time
+
     """
 
     def __init__(self):
@@ -742,6 +785,7 @@ class InstanceTypeError(TypeValidationError):
     Example:
         >>> raise InstanceTypeError("series", Series, allow_none=True)
         # Error: series must be an instance of Series or None
+
     """
 
     def __init__(self, attr_name: str, value_type: type, allow_none: bool = False):
@@ -751,6 +795,7 @@ class InstanceTypeError(TypeValidationError):
             attr_name (str): Attribute name being validated.
             value_type (type): Required type for the value.
             allow_none (bool): Whether None is acceptable.
+
         """
         # Build message based on whether None is allowed
         if allow_none:
@@ -775,6 +820,7 @@ class TypeMismatchError(TypeValidationError):
     Example:
         >>> raise TypeMismatchError("count", int, str)
         # Error: count must be of type int, got str
+
     """
 
     def __init__(self, attr_name: str, value_type: type, actual_type: type):
@@ -784,6 +830,7 @@ class TypeMismatchError(TypeValidationError):
             attr_name (str): Attribute name being validated.
             value_type (type): Expected type.
             actual_type (type): Actual type received.
+
         """
         # Format message with expected and actual type names
         super().__init__(
@@ -804,6 +851,7 @@ class TrendDirectionIntegerError(TypeValidationError):
     Example:
         >>> raise TrendDirectionIntegerError("direction", "int", "float")
         # Error: direction must be int, got float
+
     """
 
     def __init__(self, field_name: str, expected_type: str, actual_type: str):
@@ -813,6 +861,7 @@ class TrendDirectionIntegerError(TypeValidationError):
             field_name (str): Field name being validated.
             expected_type (str): Expected type description.
             actual_type (str): Actual type description.
+
         """
         # Format message with type requirement
         super().__init__(field_name, f"must be {expected_type}", actual_type)
@@ -827,6 +876,7 @@ class BaseValueFormatError(ValidationError):
     Example:
         >>> raise BaseValueFormatError()
         # Error: Base value must be a dict with 'type' and 'price' keys
+
     """
 
     def __init__(self):
@@ -845,6 +895,7 @@ class NotFoundError(ValidationError):
     Example:
         >>> raise NotFoundError("Series", "main-series")
         # Error: Series with identifier 'main-series' not found
+
     """
 
     def __init__(self, resource_type: str, identifier: str):
@@ -853,6 +904,7 @@ class NotFoundError(ValidationError):
         Args:
             resource_type (str): Type of the missing resource.
             identifier (str): Identifier that was searched for.
+
         """
         # Format message with resource type and identifier
         super().__init__(f"{resource_type} with identifier '{identifier}' not found")
@@ -868,6 +920,7 @@ class NpmNotFoundError(ConfigurationError):
         >>> raise NpmNotFoundError()
         # Error: NPM not found in system PATH. Please install Node.js
         # and NPM to build frontend assets.
+
     """
 
     def __init__(self):
@@ -889,6 +942,7 @@ class CliNotFoundError(ConfigurationError):
         >>> raise CliNotFoundError()
         # Error: CLI not found in system PATH. Please ensure the package
         # is properly installed.
+
     """
 
     def __init__(self):

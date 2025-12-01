@@ -5,7 +5,6 @@ that display upper and lower bands with gradient fill areas based on gradient va
 """
 
 import math
-from typing import List, Optional, Union
 
 import pandas as pd
 
@@ -40,17 +39,18 @@ class GradientRibbonSeries(RibbonSeries):
         price_lines: List of PriceLineOptions for price lines (set after construction)
         price_format: PriceFormatOptions for price formatting (set after construction)
         markers: List of markers to display on this series (set after construction)
+
     """
 
     DATA_CLASS = GradientRibbonData
 
     def __init__(
         self,
-        data: Union[List[GradientRibbonData], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[GradientRibbonData] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
         gradient_start_color: str = "#4CAF50",
         gradient_end_color: str = "#F44336",
         normalize_gradients: bool = False,
@@ -66,6 +66,7 @@ class GradientRibbonSeries(RibbonSeries):
             gradient_start_color: Starting color for gradient fills
             gradient_end_color: Ending color for gradient fills
             normalize_gradients: Whether to normalize gradient values to 0-1 range
+
         """
         super().__init__(
             data=data,
@@ -79,10 +80,10 @@ class GradientRibbonSeries(RibbonSeries):
         self._gradient_start_color = gradient_start_color
         self._gradient_end_color = gradient_end_color
         self._normalize_gradients = normalize_gradients
-        self._gradient_bounds: Optional[tuple[float, float]] = None
+        self._gradient_bounds: tuple[float, float] | None = None
 
         # Performance optimization: cache normalized results
-        self._normalized_cache: Optional[dict] = None
+        self._normalized_cache: dict | None = None
 
     @property
     def chart_type(self) -> ChartType:
@@ -106,6 +107,7 @@ class GradientRibbonSeries(RibbonSeries):
 
         Returns:
             Self for method chaining.
+
         """
         # Invalidate cache before updating
         self._invalidate_cache()
@@ -123,6 +125,7 @@ class GradientRibbonSeries(RibbonSeries):
 
         Args:
             value: New data to set.
+
         """
         self._data = value
         self._invalidate_cache()
@@ -171,6 +174,7 @@ class GradientRibbonSeries(RibbonSeries):
 
         Returns:
             dict: The serialized dictionary with normalized gradients.
+
         """
         data_dict = super().asdict()
 
@@ -216,6 +220,7 @@ class GradientRibbonSeries(RibbonSeries):
 
         Returns:
             dict: The serialized dictionary with normalized gradients.
+
         """
         # Return cached result if available
         if self._normalized_cache is not None:

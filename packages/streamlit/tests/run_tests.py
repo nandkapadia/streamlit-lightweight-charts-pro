@@ -21,7 +21,6 @@ def run_tests(
     test_file=None,
 ):
     """Run tests for the specified category."""
-
     # Base command
     cmd = ["python", "-m", "pytest"]
 

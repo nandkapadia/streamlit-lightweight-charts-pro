@@ -20,9 +20,8 @@ Example:
     series = BarSeries(data=data)
     series.color = "#26a69a"
     series.base = 0
-"""
 
-from typing import List, Optional, Union
+"""
 
 import pandas as pd
 
@@ -56,6 +55,7 @@ class BarSeries(Series):
         price_lines: List of PriceLineOptions for price lines (set after construction)
         price_format: PriceFormatOptions for price formatting (set after construction)
         markers: List of markers to display on this series (set after construction)
+
     """
 
     DATA_CLASS = BarData
@@ -67,11 +67,11 @@ class BarSeries(Series):
 
     def __init__(
         self,
-        data: Union[List[BarData], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[BarData] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "right",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
     ):
         super().__init__(
             data=data,

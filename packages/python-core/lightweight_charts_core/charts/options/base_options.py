@@ -39,12 +39,13 @@ Example:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 # Standard Imports
 from abc import ABC
 from dataclasses import dataclass, fields
-from typing import Any, Dict
+from typing import Any
 
 # Local Imports
 from lightweight_charts_core.logging_config import get_logger
@@ -122,12 +123,13 @@ class Options(SerializableMixin, ABC):
         # }
         ```
 
-    See also:
+    See Also:
         chainable_field: Decorator for creating chainable option properties.
         snake_to_camel: Utility function for key conversion.
+
     """
 
-    def update(self, updates: Dict[str, Any]) -> "Options":
+    def update(self, updates: dict[str, Any]) -> "Options":
         """Update options with a dictionary of values.
 
         This method provides a flexible way to update option properties using a dictionary.
@@ -158,6 +160,7 @@ class Options(SerializableMixin, ABC):
             # Method chaining
             options.update({"color": "red"}).update({"width": 100})
             ```
+
         """
         for key, value in updates.items():
             if value is None:
@@ -227,6 +230,7 @@ class Options(SerializableMixin, ABC):
 
         See Also:
             CaseConverter.camel_to_snake: The main implementation in case_converter.py.
+
         """
         return CaseConverter.camel_to_snake(camel_case)
 
@@ -244,6 +248,7 @@ class Options(SerializableMixin, ABC):
         Returns:
             The processed data with all Options objects converted to dictionaries
             and keys converted to camelCase.
+
         """
         if isinstance(data, Options):
             return data.asdict()
@@ -266,6 +271,7 @@ class Options(SerializableMixin, ABC):
             - contains_options: True if the type contains Options objects
             - options_class: The Options class if found, None otherwise
             - is_dict_type: True if the type is a Dict type (including Optional[Dict])
+
         """
         # Direct Options type
         if isinstance(field_type, type) and issubclass(field_type, Options):
@@ -314,7 +320,7 @@ class Options(SerializableMixin, ABC):
 
         return False, None, False
 
-    def asdict(self) -> Dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """Convert options to dictionary with camelCase keys for frontend.
 
         This method provides comprehensive serialization of option objects for
@@ -343,6 +349,7 @@ class Options(SerializableMixin, ABC):
             - Lists containing Options objects are handled recursively
             - Dictionaries containing Options objects at any nesting level are processed recursively
             - background_options fields are flattened into the parent result
+
         """
         # Use the inherited serialization from SerializableMixin
         return dict(self._serialize_to_dict())

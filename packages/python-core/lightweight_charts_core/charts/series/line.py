@@ -19,10 +19,10 @@ Example:
     # Create line series with styling
     series = LineSeries(data=data).line_options.set_color("#2196F3").set_width(2)
     ```
+
 """
 
 # Standard Imports
-from typing import List, Optional, Union
 
 # Third Party Imports
 import pandas as pd
@@ -75,6 +75,7 @@ class LineSeries(Series):
         # Add to chart
         chart = Chart(series=series)
         ```
+
     """
 
     # Define the data class type for this series - used for validation and conversion
@@ -86,16 +87,17 @@ class LineSeries(Series):
 
         Returns:
             ChartType: The chart type identifier for line charts.
+
         """
         return ChartType.LINE
 
     def __init__(
         self,
-        data: Union[List[LineData], pd.DataFrame, pd.Series],
-        column_mapping: Optional[dict] = None,
+        data: list[LineData] | pd.DataFrame | pd.Series,
+        column_mapping: dict | None = None,
         visible: bool = True,
         price_scale_id: str = "right",
-        pane_id: Optional[int] = 0,
+        pane_id: int | None = 0,
     ):
         """Initialize a LineSeries instance with data and configuration options.
 
@@ -121,6 +123,7 @@ class LineSeries(Series):
             DataItemsTypeError: If data items are not of the expected type.
             DataFrameMissingColumnError: If required columns are missing from DataFrame.
             ColumnMappingRequiredError: If column mapping is required but not provided.
+
         """
         # Call parent constructor to initialize base series functionality
         # This sets up data validation, column mapping processing, and basic properties

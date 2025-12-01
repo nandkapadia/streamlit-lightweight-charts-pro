@@ -40,7 +40,7 @@ License: MIT
 
 # Standard Imports
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 # Third Party Imports
 # (None in this module)
@@ -102,10 +102,11 @@ class AreaData(SingleValueData):
     Raises:
         ColorValidationError: If any color format is invalid (not hex or rgba).
 
-    See also:
+    See Also:
         SingleValueData: Base class providing time normalization and value validation.
         LineData: Similar data class for line charts.
         HistogramData: Similar data class for histogram charts.
+
     """
 
     # Define required columns for DataFrame conversion - none additional beyond
@@ -116,11 +117,11 @@ class AreaData(SingleValueData):
     OPTIONAL_COLUMNS: ClassVar[set] = {"line_color", "top_color", "bottom_color"}
 
     # Optional color field for the area line
-    line_color: Optional[str] = None
+    line_color: str | None = None
     # Optional color field for the top of the area fill
-    top_color: Optional[str] = None
+    top_color: str | None = None
     # Optional color field for the bottom of the area fill
-    bottom_color: Optional[str] = None
+    bottom_color: str | None = None
 
     def __post_init__(self):
         """Post-initialization processing to strip whitespace from color values.

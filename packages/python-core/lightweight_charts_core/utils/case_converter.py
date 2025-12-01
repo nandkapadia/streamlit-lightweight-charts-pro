@@ -130,11 +130,12 @@ Note:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 # Standard Imports
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 # Define public API for module
 __all__ = ["CaseConverter"]
@@ -171,6 +172,7 @@ class CaseConverter:
         'priceScaleId'
         >>> CaseConverter.camel_to_snake("priceScaleId")
         'price_scale_id'
+
     """
 
     # Pre-compiled regex patterns for performance optimization
@@ -248,6 +250,7 @@ class CaseConverter:
                 - Empty strings return empty strings
                 - Strings with no underscores return unchanged (except leading/trailing)
                 - Numbers are preserved in their original positions
+
         """
         # Handle empty string case immediately
         if not snake_case:
@@ -366,6 +369,7 @@ class CaseConverter:
                 - (?=[A-Z]): Positive lookahead - match before uppercase
                 This ensures we insert underscores before capitals but not
                 at the beginning of the string.
+
         """
         # Handle empty string case immediately
         if not camel_case:
@@ -382,8 +386,8 @@ class CaseConverter:
 
     @staticmethod
     def convert_dict_keys(
-        data: Dict[str, Any], to_camel: bool = True, recursive: bool = True
-    ) -> Dict[str, Any]:
+        data: dict[str, Any], to_camel: bool = True, recursive: bool = True
+    ) -> dict[str, Any]:
         """Convert all dictionary keys between snake_case and camelCase.
 
         This function converts dictionary keys while preserving the structure
@@ -468,6 +472,7 @@ class CaseConverter:
                 - Creates a new dictionary (doesn't modify original)
                 - Recursive conversion is O(n*m) where n=keys, m=nesting depth
                 - Non-recursive conversion is O(n) where n=keys
+
         """
         # Validate input is a dictionary
         # If not, return unchanged (protects against misuse)
@@ -513,7 +518,7 @@ class CaseConverter:
         return result
 
     @staticmethod
-    def _convert_list(items: List[Any], to_camel: bool, recursive: bool) -> List[Any]:
+    def _convert_list(items: list[Any], to_camel: bool, recursive: bool) -> list[Any]:
         """Convert dictionary keys in a list of items.
 
         This is a helper method for convert_dict_keys to handle lists that
@@ -556,6 +561,7 @@ class CaseConverter:
                 - Nested lists: Recursively processes if recursive=True
                 - Primitives: Passes through unchanged
                 - Mixed types: Handles lists with heterogeneous types
+
         """
         # Initialize result list to hold processed items
         result = []
@@ -582,7 +588,7 @@ class CaseConverter:
         return result
 
     @staticmethod
-    def convert_keys_shallow(data: Dict[str, Any], to_camel: bool = True) -> Dict[str, Any]:
+    def convert_keys_shallow(data: dict[str, Any], to_camel: bool = True) -> dict[str, Any]:
         """Convert dictionary keys without recursing into nested structures.
 
         This is a convenience method equivalent to calling convert_dict_keys
@@ -641,6 +647,7 @@ class CaseConverter:
                 - Improved code readability (intent is clearer)
                 - Convenience (don't need to remember parameter name)
                 - API consistency (matches common use cases)
+
         """
         # Call convert_dict_keys with recursive=False
         # This converts only top-level keys
@@ -680,6 +687,7 @@ def snake_to_camel(snake_case: str) -> str:
             - Shorter code when class prefix is not needed
         For new code, consider using CaseConverter.snake_to_camel directly
         for clarity.
+
     """
     # Delegate to CaseConverter static method
     return CaseConverter.snake_to_camel(snake_case)
@@ -714,6 +722,7 @@ def camel_to_snake(camel_case: str) -> str:
             - Shorter code when class prefix is not needed
         For new code, consider using CaseConverter.camel_to_snake directly
         for clarity.
+
     """
     # Delegate to CaseConverter static method
     return CaseConverter.camel_to_snake(camel_case)

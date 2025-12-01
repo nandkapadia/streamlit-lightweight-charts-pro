@@ -5,8 +5,9 @@ dynamic content using placeholders, multiple tooltip types, and flexible
 configuration options.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 import pandas as pd
 
@@ -27,17 +28,18 @@ class TooltipField:
         prefix: Optional prefix to add before the value
         suffix: Optional suffix to add after the value
         precision: Optional decimal precision for numeric values
+
     """
 
     label: str
     value_key: str
-    formatter: Optional[Callable[[Any], str]] = None
-    color: Optional[str] = None
-    font_size: Optional[int] = None
-    font_weight: Optional[str] = None
-    prefix: Optional[str] = None
-    suffix: Optional[str] = None
-    precision: Optional[int] = None
+    formatter: Callable[[Any], str] | None = None
+    color: str | None = None
+    font_size: int | None = None
+    font_weight: str | None = None
+    prefix: str | None = None
+    suffix: str | None = None
+    precision: int | None = None
 
     def format_value(self, value: Any) -> str:
         """Format the value according to field configuration."""
@@ -75,6 +77,7 @@ class TooltipStyle:
         color: Text color
         box_shadow: CSS box shadow
         z_index: Z-index for layering
+
     """
 
     background_color: str = "rgba(255, 255, 255, 0.95)"
@@ -106,20 +109,21 @@ class TooltipConfig:
         show_time: Whether to show time
         time_format: Time format string
         custom_formatters: Custom formatter functions
+
     """
 
     enabled: bool = True
     type: TooltipType = TooltipType.OHLC
-    template: Optional[str] = None
-    fields: List[TooltipField] = field(default_factory=list)
+    template: str | None = None
+    fields: list[TooltipField] = field(default_factory=list)
     position: TooltipPosition = TooltipPosition.CURSOR
-    offset: Optional[Dict[str, int]] = None
+    offset: dict[str, int] | None = None
     style: TooltipStyle = field(default_factory=TooltipStyle)
     show_date: bool = True
     date_format: str = "%Y-%m-%d"
     show_time: bool = True
     time_format: str = "%H:%M:%S"
-    custom_formatters: Dict[str, Callable[[Any], str]] = field(default_factory=dict)
+    custom_formatters: dict[str, Callable[[Any], str]] = field(default_factory=dict)
 
     def __post_init__(self):
         """Initialize default fields based on tooltip type."""
@@ -130,7 +134,7 @@ class TooltipConfig:
         elif not self.fields and self.type == TooltipType.TRADE:
             self.fields = self._get_default_trade_fields()
 
-    def _get_default_ohlc_fields(self) -> List[TooltipField]:
+    def _get_default_ohlc_fields(self) -> list[TooltipField]:
         """Get default fields for OHLC tooltip."""
         return [
             TooltipField("Open", "open", precision=2, prefix="$"),
@@ -140,13 +144,13 @@ class TooltipConfig:
             TooltipField("Volume", "volume", formatter=self._format_volume),
         ]
 
-    def _get_default_single_fields(self) -> List[TooltipField]:
+    def _get_default_single_fields(self) -> list[TooltipField]:
         """Get default fields for single value tooltip."""
         return [
             TooltipField("Value", "value", precision=2),
         ]
 
-    def _get_default_trade_fields(self) -> List[TooltipField]:
+    def _get_default_trade_fields(self) -> list[TooltipField]:
         """Get default fields for trade tooltip."""
         return [
             TooltipField("Entry", "entryPrice", precision=2, prefix="$"),
@@ -171,8 +175,8 @@ class TooltipConfig:
 
     def format_tooltip(
         self,
-        data: Dict[str, Any],
-        time_value: Optional[Union[int, str, pd.Timestamp]] = None,
+        data: dict[str, Any],
+        time_value: int | str | pd.Timestamp | None = None,
     ) -> str:
         """Format tooltip content using template or fields.
 
@@ -182,6 +186,7 @@ class TooltipConfig:
 
         Returns:
             Formatted tooltip string
+
         """
         if self.template:
             return self._format_with_template(data, time_value)
@@ -189,8 +194,8 @@ class TooltipConfig:
 
     def _format_with_template(
         self,
-        data: Dict[str, Any],
-        time_value: Optional[Union[int, str, pd.Timestamp]] = None,
+        data: dict[str, Any],
+        time_value: int | str | pd.Timestamp | None = None,
     ) -> str:
         """Format tooltip using template string with placeholders."""
         if not self.template:
@@ -218,8 +223,8 @@ class TooltipConfig:
 
     def _format_with_fields(
         self,
-        data: Dict[str, Any],
-        time_value: Optional[Union[int, str, pd.Timestamp]] = None,
+        data: dict[str, Any],
+        time_value: int | str | pd.Timestamp | None = None,
     ) -> str:
         """Format tooltip using field configuration."""
         lines = []
@@ -239,7 +244,7 @@ class TooltipConfig:
 
         return "\n".join(lines)
 
-    def _format_time(self, time_value: Union[int, str, pd.Timestamp]) -> str:
+    def _format_time(self, time_value: int | str | pd.Timestamp) -> str:
         """Format time value according to configuration."""
         try:
             if isinstance(time_value, (int, float)):
@@ -260,7 +265,7 @@ class TooltipConfig:
         except Exception:
             return str(time_value)
 
-    def asdict(self) -> Dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """Convert tooltip config to dictionary for serialization."""
         return {
             "enabled": self.enabled,
@@ -276,7 +281,7 @@ class TooltipConfig:
             "timeFormat": self.time_format,
         }
 
-    def _field_to_dict(self, tooltip_field: TooltipField) -> Dict[str, Any]:
+    def _field_to_dict(self, tooltip_field: TooltipField) -> dict[str, Any]:
         """Convert tooltip field to dictionary."""
         return {
             "label": tooltip_field.label,
@@ -289,7 +294,7 @@ class TooltipConfig:
             "precision": tooltip_field.precision,
         }
 
-    def _style_to_dict(self, style: TooltipStyle) -> Dict[str, Any]:
+    def _style_to_dict(self, style: TooltipStyle) -> dict[str, Any]:
         """Convert tooltip style to dictionary."""
         return {
             "backgroundColor": style.background_color,
@@ -314,15 +319,15 @@ class TooltipManager:
 
     def __init__(self) -> None:
         """Initialize tooltip manager."""
-        self.configs: Dict[str, TooltipConfig] = {}
-        self.custom_formatters: Dict[str, Callable[[Any], str]] = {}
+        self.configs: dict[str, TooltipConfig] = {}
+        self.custom_formatters: dict[str, Callable[[Any], str]] = {}
 
     def add_config(self, name: str, config: TooltipConfig) -> "TooltipManager":
         """Add a tooltip configuration."""
         self.configs[name] = config
         return self
 
-    def get_config(self, name: str) -> Optional[TooltipConfig]:
+    def get_config(self, name: str) -> TooltipConfig | None:
         """Get a tooltip configuration by name."""
         return self.configs.get(name)
 
@@ -341,8 +346,8 @@ class TooltipManager:
     def format_tooltip(
         self,
         config_name: str,
-        data: Dict[str, Any],
-        time_value: Optional[Union[int, str, pd.Timestamp]] = None,
+        data: dict[str, Any],
+        time_value: int | str | pd.Timestamp | None = None,
     ) -> str:
         """Format tooltip using specified configuration."""
         config = self.get_config(config_name)

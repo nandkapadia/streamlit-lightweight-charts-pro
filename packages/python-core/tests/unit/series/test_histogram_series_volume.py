@@ -1,5 +1,4 @@
-"""
-Tests for volume series creation.
+"""Tests for volume series creation.
 
 This module tests the HistogramSeries.create_volume_series class method
 for creating colored volume data.
@@ -194,7 +193,6 @@ class TestHistogramSeriesCreateVolumeSeries:
 
     def test_time_normalization_pandas_timestamps(self):
         """Test that pandas timestamps are correctly normalized to seconds."""
-
         test_dataframe = pd.DataFrame(
             {
                 "time": pd.date_range("2024-01-01", periods=3, freq="1h"),
@@ -222,7 +220,6 @@ class TestHistogramSeriesCreateVolumeSeries:
 
     def test_time_normalization_mixed_formats(self):
         """Test time normalization with mixed timestamp formats."""
-
         # Mix of different timestamp formats
         test_dataframe = pd.DataFrame(
             {
@@ -252,7 +249,6 @@ class TestHistogramSeriesCreateVolumeSeries:
 
     def test_time_normalization_edge_cases(self):
         """Test time normalization with edge cases."""
-
         # Edge cases: different time zones, leap seconds, etc.
         test_dataframe = pd.DataFrame(
             {
@@ -380,7 +376,6 @@ class TestHistogramSeriesCreateVolumeSeries:
 
     def test_numeric_data_types(self):
         """Test handling of different numeric data types."""
-
         test_dataframe = pd.DataFrame(
             {
                 "time": ["2024-01-01", "2024-01-02"],
@@ -404,7 +399,6 @@ class TestHistogramSeriesCreateVolumeSeries:
 
     def test_large_dataset_performance(self):
         """Test performance with large dataset."""
-
         # Create a large dataset
         n_points = 10000
         rng = np.random.default_rng(42)
@@ -472,7 +466,6 @@ class TestHistogramSeriesCreateVolumeSeries:
 
     def test_memory_efficiency(self):
         """Test memory efficiency with large datasets."""
-
         # Create a large dataset
         n_points = 50000
         rng = np.random.default_rng(42)

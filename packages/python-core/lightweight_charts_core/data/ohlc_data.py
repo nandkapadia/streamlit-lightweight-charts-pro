@@ -90,10 +90,11 @@ class OhlcData(Data):
         NonNegativeValueError: If any OHLC value is negative.
         RequiredFieldError: If any required OHLC field is None or missing.
 
-    See also:
+    See Also:
         Data: Base class providing time normalization and serialization.
         OhlcvData: OHLC data with additional volume information.
         CandlestickData: Specialized OHLC data for candlestick charts.
+
     """
 
     # Define required columns for DataFrame conversion - all OHLC fields are required
@@ -130,6 +131,7 @@ class OhlcData(Data):
             ValueValidationError: If high < low (invalid OHLC relationship).
             NonNegativeValueError: If any OHLC value is negative.
             RequiredFieldError: If any required OHLC field is None or missing.
+
         """
         # Call parent's __post_init__ to normalize the time value to UNIX timestamp
         super().__post_init__()

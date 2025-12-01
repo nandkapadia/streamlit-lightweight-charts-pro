@@ -8,14 +8,11 @@ import hashlib
 import json
 import time
 import uuid
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Optional, Sequence, Union
 
 import pandas as pd
-
 import streamlit as st
-
 from lightweight_charts_core.charts import BaseChartManager
-from lightweight_charts_core.charts.options import SyncOptions
 from lightweight_charts_core.data import OhlcvData
 from lightweight_charts_core.exceptions import (
     DuplicateError,
@@ -249,7 +246,9 @@ class ChartManager(BaseChartManager):
         # Load and apply stored configs for each chart
         for chart in self.charts.values():
             chart._session_state_manager.reset_config_applied_flag()  # pylint: disable=protected-access
-            stored_configs = chart._session_state_manager.load_series_configs(key)  # pylint: disable=protected-access
+            stored_configs = chart._session_state_manager.load_series_configs(
+                key
+            )  # pylint: disable=protected-access
             if stored_configs:
                 chart._session_state_manager.apply_stored_configs_to_series(  # pylint: disable=protected-access
                     stored_configs,
@@ -261,7 +260,9 @@ class ChartManager(BaseChartManager):
 
         # Render using first chart's renderer
         first_chart = next(iter(self.charts.values()))
-        result = first_chart._chart_renderer.render(config, key, None)  # pylint: disable=protected-access
+        result = first_chart._chart_renderer.render(
+            config, key, None
+        )  # pylint: disable=protected-access
 
         # Handle response for each chart
         if result:

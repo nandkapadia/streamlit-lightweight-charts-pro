@@ -4,7 +4,7 @@ This module handles price scale configuration and overlay price scales
 for chart series.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from lightweight_charts_core.charts.options.price_scale_options import (
     PriceScaleMargins,
@@ -33,13 +33,14 @@ class PriceScaleManager:
         left_price_scale: Left price scale configuration.
         right_price_scale: Right price scale configuration.
         overlay_price_scales: Dictionary of overlay price scale configurations.
+
     """
 
     def __init__(
         self,
-        left_price_scale: Optional[PriceScaleOptions] = None,
-        right_price_scale: Optional[PriceScaleOptions] = None,
-        overlay_price_scales: Optional[Dict[str, PriceScaleOptions]] = None,
+        left_price_scale: PriceScaleOptions | None = None,
+        right_price_scale: PriceScaleOptions | None = None,
+        overlay_price_scales: dict[str, PriceScaleOptions] | None = None,
     ):
         """Initialize the PriceScaleManager.
 
@@ -47,6 +48,7 @@ class PriceScaleManager:
             left_price_scale: Optional left price scale configuration.
             right_price_scale: Optional right price scale configuration.
             overlay_price_scales: Optional dictionary of overlay price scales.
+
         """
         self.left_price_scale = left_price_scale
         self.right_price_scale = right_price_scale
@@ -66,6 +68,7 @@ class PriceScaleManager:
         Raises:
             ValueValidationError: If scale_id is not a non-empty string.
             TypeValidationError: If options is None or not a PriceScaleOptions instance.
+
         """
         if not scale_id or not isinstance(scale_id, str):
             raise ValueValidationError("scale_id", "must be a non-empty string")
@@ -85,6 +88,7 @@ class PriceScaleManager:
 
         Returns:
             True if the overlay price scale exists, False otherwise.
+
         """
         return scale_id in self.overlay_price_scales
 
@@ -102,7 +106,7 @@ class PriceScaleManager:
                 bottom=0.15,  # 15% margin at bottom (reserves space for volume overlay)
             )
 
-    def validate_and_serialize(self) -> Dict[str, Any]:
+    def validate_and_serialize(self) -> dict[str, Any]:
         """Validate and serialize price scale configurations.
 
         Returns:
@@ -110,6 +114,7 @@ class PriceScaleManager:
 
         Raises:
             PriceScaleOptionsTypeError: If price scale is not a valid type.
+
         """
         result = {}
 

@@ -7,12 +7,13 @@ that are attached to individual series.
 
 import json
 
-from streamlit_lightweight_charts_pro.charts import Chart
 from lightweight_charts_core.charts.options.line_options import LineOptions
 from lightweight_charts_core.charts.options.price_line_options import PriceLineOptions
 from lightweight_charts_core.charts.series.line import LineSeries
 from lightweight_charts_core.data.line_data import LineData
 from lightweight_charts_core.type_definitions.enums import LineStyle
+
+from streamlit_lightweight_charts_pro.charts import Chart
 
 
 class TestFrontendPriceLines:

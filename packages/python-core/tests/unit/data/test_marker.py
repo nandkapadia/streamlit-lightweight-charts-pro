@@ -1,5 +1,4 @@
-"""
-Unit tests for the Marker classes.
+"""Unit tests for the Marker classes.
 
 This module tests the MarkerBase, PriceMarker, and BarMarker class functionality including
 construction, validation, and serialization.

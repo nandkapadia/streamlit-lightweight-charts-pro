@@ -1,5 +1,4 @@
-"""
-Unit tests for the AreaData class.
+"""Unit tests for the AreaData class.
 
 This module tests the AreaData class functionality including
 construction, validation, serialization, and inheritance.

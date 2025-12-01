@@ -6,7 +6,7 @@ or ternary values that determine background colors for specific time periods.
 """
 
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from lightweight_charts_core.data.single_value_data import SingleValueData
 from lightweight_charts_core.utils import validated_field
@@ -56,9 +56,10 @@ class SignalData(SingleValueData):
             signal_color="#2962FF",  # Blue for True/1 (signal)
         )
         ```
+
     """
 
     REQUIRED_COLUMNS: ClassVar[set] = set()
     OPTIONAL_COLUMNS: ClassVar[set] = {"color"}
 
-    color: Optional[str] = None
+    color: str | None = None

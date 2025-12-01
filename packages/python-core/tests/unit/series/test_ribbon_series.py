@@ -1,5 +1,4 @@
-"""
-Test suite for RibbonSeries.
+"""Test suite for RibbonSeries.
 
 This module provides comprehensive testing for the RibbonSeries class,
 ensuring proper functionality, data handling, and configuration options.

@@ -30,6 +30,7 @@ Example:
 Version: 0.1.0
 Author: Streamlit Lightweight Charts Contributors
 License: MIT
+
 """
 
 # Standard Imports
@@ -67,6 +68,7 @@ class PriceScaleMargins(Options):
         # Use with price scale options
         price_scale = PriceScaleOptions(scale_margins=margins)
         ```
+
     """
 
     top: float = 0.1  # Top margin as percentage of visible price range
@@ -139,9 +141,10 @@ class PriceScaleOptions(Options):
         right_scale = PriceScaleOptions(visible=True, auto_scale=False)
         ```
 
-    See also:
+    See Also:
         PriceScaleMargins: Configuration class for price scale margins.
         PriceScaleMode: Enum for different price scale modes.
+
     """
 
     # Core visibility and behavior settings

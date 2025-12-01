@@ -1,5 +1,4 @@
-"""
-Base Options update() method tests - Key handling and nested updates.
+"""Base Options update() method tests - Key handling and nested updates.
 
 This module tests the update() method functionality including:
 - CamelCase and snake_case key conversion
@@ -12,7 +11,6 @@ This module tests the update() method functionality including:
 
 # Standard Imports
 from dataclasses import dataclass
-from typing import Dict, Optional
 
 # Third Party Imports
 import pytest
@@ -38,7 +36,7 @@ class NestedOptions(Options):
     """Options with nested Options field."""
 
     name: str = "test"
-    simple_options: Optional[SimpleOptions] = None
+    simple_options: SimpleOptions | None = None
 
 
 @dataclass
@@ -46,7 +44,7 @@ class OptionsWithDict(Options):
     """Options with Dict[str, Options] field."""
 
     name: str = "test"
-    options_dict: Optional[Dict[str, SimpleOptions]] = None
+    options_dict: dict[str, SimpleOptions] | None = None
 
 
 @dataclass

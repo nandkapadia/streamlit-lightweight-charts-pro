@@ -1,6 +1,4 @@
 import pandas as pd
-
-from streamlit_lightweight_charts_pro.charts import Chart, ChartManager
 from lightweight_charts_core.charts.options.price_scale_options import (
     PriceScaleMargins,
     PriceScaleOptions,
@@ -16,6 +14,8 @@ from lightweight_charts_core.data.line_data import LineData
 from lightweight_charts_core.data.ohlcv_data import OhlcvData
 from lightweight_charts_core.data.trade import TradeData
 from lightweight_charts_core.type_definitions.enums import PriceScaleMode
+
+from streamlit_lightweight_charts_pro.charts import Chart, ChartManager
 
 
 def create_sample_ohlcv_data(n=10):

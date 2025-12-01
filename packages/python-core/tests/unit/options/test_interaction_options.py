@@ -1,5 +1,4 @@
-"""
-Tests for interaction options classes.
+"""Tests for interaction options classes.
 
 This module contains comprehensive tests for interaction-related option classes:
 - CrosshairOptions

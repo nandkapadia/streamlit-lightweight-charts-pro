@@ -1,5 +1,4 @@
-"""
-Unit tests for SyncOptions module.
+"""Unit tests for SyncOptions module.
 
 This module tests the SyncOptions class functionality including
 synchronization configuration, method chaining, and edge cases.

@@ -1,6 +1,4 @@
-"""
-Comprehensive tests for chainable decorators across all Options classes.
-"""
+"""Comprehensive tests for chainable decorators across all Options classes."""
 
 import pytest
 

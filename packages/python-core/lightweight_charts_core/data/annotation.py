@@ -32,12 +32,13 @@ Example:
         .add_annotation(arrow_ann, "events")
     )
     ```
+
 """
 
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional
 
 import pandas as pd
 
@@ -80,9 +81,10 @@ class Annotation:
         opacity: Overall opacity of the annotation (0.0 to 1.0)
         show_time: Whether to show time in the annotation text
         tooltip: Optional tooltip text for hover interactions
+
     """
 
-    time: Union[pd.Timestamp, datetime, str, int, float]
+    time: pd.Timestamp | datetime | str | int | float
     price: float
     text: str
     annotation_type: AnnotationType = AnnotationType.TEXT
@@ -96,15 +98,15 @@ class Annotation:
     border_width: int = 1
     opacity: float = 1.0
     show_time: bool = False
-    tooltip: Optional[str] = None
+    tooltip: str | None = None
 
     def __init__(
         self,
-        time: Union[pd.Timestamp, datetime, str, int, float],
+        time: pd.Timestamp | datetime | str | int | float,
         price: float,
         text: str,
-        annotation_type: Union[str, AnnotationType] = AnnotationType.TEXT,
-        position: Union[str, AnnotationPosition] = AnnotationPosition.ABOVE,
+        annotation_type: str | AnnotationType = AnnotationType.TEXT,
+        position: str | AnnotationPosition = AnnotationPosition.ABOVE,
         color: str = "#2196F3",
         background_color: str = "rgba(255, 255, 255, 0.9)",
         font_size: int = 12,
@@ -114,7 +116,7 @@ class Annotation:
         border_width: int = 1,
         opacity: float = 1.0,
         show_time: bool = False,
-        tooltip: Optional[str] = None,
+        tooltip: str | None = None,
     ):
         # Store time as-is, convert to UTC timestamp in asdict() for consistency
         self.time = time
@@ -170,6 +172,7 @@ class Annotation:
 
         Returns:
             int: UTC timestamp as integer (seconds).
+
         """
         return to_utc_timestamp(self.time)
 
@@ -180,15 +183,17 @@ class Annotation:
         Returns:
             pd.Timestamp: Pandas Timestamp object representing the
                 annotation time.
+
         """
         return pd.Timestamp(from_utc_timestamp(to_utc_timestamp(self.time)))
 
-    def asdict(self) -> Dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """Convert annotation to dictionary for serialization.
 
         Returns:
             Dict[str, Any]: Dictionary containing all annotation properties
                 in a format suitable for the frontend component.
+
         """
         return {
             ColumnNames.TIME: to_utc_timestamp(self.time),
@@ -218,10 +223,11 @@ class AnnotationLayer:
         annotations: List of annotation objects in this layer
         visible: Whether this layer is currently visible
         opacity: Overall opacity of the layer (0.0 to 1.0)
+
     """
 
     name: str
-    annotations: List[Annotation]
+    annotations: list[Annotation]
     visible: bool = True
     opacity: float = 1.0
 
@@ -271,9 +277,9 @@ class AnnotationLayer:
 
     def filter_by_time_range(
         self,
-        start_time: Union[pd.Timestamp, datetime, str, int, float],
-        end_time: Union[pd.Timestamp, datetime, str, int, float],
-    ) -> List[Annotation]:
+        start_time: pd.Timestamp | datetime | str | int | float,
+        end_time: pd.Timestamp | datetime | str | int | float,
+    ) -> list[Annotation]:
         """Filter annotations by time range."""
         start_ts = to_utc_timestamp(start_time)
         end_ts = to_utc_timestamp(end_time)
@@ -284,7 +290,7 @@ class AnnotationLayer:
             if start_ts <= annotation.timestamp <= end_ts
         ]
 
-    def filter_by_price_range(self, min_price: float, max_price: float) -> List[Annotation]:
+    def filter_by_price_range(self, min_price: float, max_price: float) -> list[Annotation]:
         """Filter annotations by price range."""
         return [
             annotation
@@ -292,7 +298,7 @@ class AnnotationLayer:
             if min_price <= annotation.price <= max_price
         ]
 
-    def asdict(self) -> Dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """Convert layer to dictionary for serialization."""
         return {
             "name": self.name,
@@ -311,7 +317,7 @@ class AnnotationManager:
 
     def __init__(self) -> None:
         """Initialize the annotation manager."""
-        self.layers: Dict[str, AnnotationLayer] = {}
+        self.layers: dict[str, AnnotationLayer] = {}
 
     def create_layer(self, name: str) -> "AnnotationManager":
         """Create a new annotation layer."""
@@ -366,7 +372,7 @@ class AnnotationManager:
             self.layers[name].clear_annotations()
         return self
 
-    def get_all_annotations(self) -> List[Annotation]:
+    def get_all_annotations(self) -> list[Annotation]:
         """Get all annotations from all layers."""
         all_annotations = []
         for layer in self.layers.values():
@@ -385,13 +391,13 @@ class AnnotationManager:
             layer.show()
         return self
 
-    def asdict(self) -> Dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """Convert manager to dictionary for serialization."""
         return {"layers": {layer_name: layer.asdict() for layer_name, layer in self.layers.items()}}
 
 
 def create_text_annotation(
-    time: Union[pd.Timestamp, datetime, str, int, float],
+    time: pd.Timestamp | datetime | str | int | float,
     price: float,
     text: str,
     **kwargs,
@@ -407,7 +413,7 @@ def create_text_annotation(
 
 
 def create_arrow_annotation(
-    time: Union[pd.Timestamp, datetime, str, int, float],
+    time: pd.Timestamp | datetime | str | int | float,
     price: float,
     text: str,
     **kwargs,
@@ -423,7 +429,7 @@ def create_arrow_annotation(
 
 
 def create_shape_annotation(
-    time: Union[pd.Timestamp, datetime, str, int, float],
+    time: pd.Timestamp | datetime | str | int | float,
     price: float,
     text: str,
     **kwargs,

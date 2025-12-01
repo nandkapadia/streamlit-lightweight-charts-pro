@@ -1,6 +1,4 @@
-"""
-Test the new dynamic legend value options.
-"""
+"""Test the new dynamic legend value options."""
 
 import pytest
 

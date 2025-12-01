@@ -19,10 +19,11 @@ Example:
 
 Version: 0.1.9
 License: MIT
+
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional
 
 from lightweight_charts_core.charts.options.base_options import Options
 from lightweight_charts_core.utils import chainable_field
@@ -68,9 +69,10 @@ class LocalizationOptions(Options):
 
     See Also:
         ChartOptions: Main chart configuration that includes localization options.
+
     """
 
     locale: str = "en-US"
     date_format: str = "yyyy-MM-dd"
-    price_formatter: Optional[Callable] = None
-    percentage_formatter: Optional[Callable] = None
+    price_formatter: Callable | None = None
+    percentage_formatter: Callable | None = None
