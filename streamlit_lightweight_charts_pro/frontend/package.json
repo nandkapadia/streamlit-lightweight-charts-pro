@@ -1,11 +1,11 @@
 {
   "name": "streamlit_lightweight_charts_pro",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "private": false,
   "license": "MIT",
   "dependencies": {
-    "@lightweight-charts-pro/core": "file:../../../../core",
+    "@lightweight-charts-pro/core": "file:../../../../lightweight-charts-pro-frontend",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "focus-trap-react": "^11.0.4",

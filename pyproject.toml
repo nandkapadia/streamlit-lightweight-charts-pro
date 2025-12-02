@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "streamlit-lightweight-charts-pro"
-version = "0.2.0"
+version = "0.3.0"
 description = "Streamlit wrapper for TradingView's lightweight-charts with ultra-simplified API and performance optimizations"
 authors = [{ name = "Nand Kapadia", email = "nand.kapadia@gmail.com" }]
 license = "MIT"
@@ -14,11 +14,8 @@ dependencies = [
     "streamlit>=1.0",
     "pandas>=1.0",
     "numpy>=1.19",
+    "lightweight-charts-core @ file:///Users/nandkapadia/lightweight-charts-pro-python",
 ]
-
-# Note: lightweight-charts-core is a sibling package in the monorepo
-# For development, install with: pip install -e ../python-core
-# For production, lightweight-charts-core will be published to PyPI
 keywords = ["streamlit", "tradingview", "charts", "visualization", "trading", "financial"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -61,7 +58,7 @@ test = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
 include = ["streamlit_lightweight_charts_pro*"]
 
 [tool.setuptools.package-data]
