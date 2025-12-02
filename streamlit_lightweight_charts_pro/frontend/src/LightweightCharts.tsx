@@ -2233,13 +2233,13 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                 minWidth: 200,
                 minHeight: 100,
               })
-                .then(isReady => {
+                .then(async isReady => {
                   if (isReady) {
-                    void functionRefs.current.addRangeSwitcher?.(chart, rangeSwitcherConfig);
+                    await functionRefs.current.addRangeSwitcher?.(chart, rangeSwitcherConfig);
                   }
                 })
                 .catch(error => {
-                  logger.error('Failed to add legend', 'LightweightCharts', error);
+                  logger.error('Failed to add range switcher', 'LightweightCharts', error);
                 });
             }
 

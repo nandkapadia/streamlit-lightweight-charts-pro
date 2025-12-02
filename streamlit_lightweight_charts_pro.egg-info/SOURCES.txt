@@ -1,6 +1,10 @@
+CHANGELOG.md
 LICENSE
+MANIFEST.in
+MIGRATION.md
 README.md
 pyproject.toml
+setup.py
 streamlit_lightweight_charts_pro/__init__.py
 streamlit_lightweight_charts_pro/cli.py
 streamlit_lightweight_charts_pro/component.py
@@ -22,7 +26,5 @@ streamlit_lightweight_charts_pro/charts/managers/session_state_manager.py
 streamlit_lightweight_charts_pro/data/__init__.py
 streamlit_lightweight_charts_pro/frontend/build/index.html
 streamlit_lightweight_charts_pro/frontend/build/static/js/index.q-MfpzoS.js
-streamlit_lightweight_charts_pro/frontend/node_modules/@lightweight-charts-pro/core/node_modules/flatted/python/flatted.py
-streamlit_lightweight_charts_pro/frontend/node_modules/flatted/python/flatted.py
 streamlit_lightweight_charts_pro/type_definitions/__init__.py
 streamlit_lightweight_charts_pro/utils/__init__.py

@@ -365,7 +365,7 @@ def main():
             options=ChartOptions(
                 range_switcher=RangeSwitcherOptions(
                     visible=True,
-                    position="bottom-right",
+                    position="top-right",
                     ranges=[
                         RangeConfig(text="1D", tooltip="1 Day", range=TimeRange.ONE_DAY),
                         RangeConfig(text="1W", tooltip="1 Week", range=TimeRange.ONE_WEEK),

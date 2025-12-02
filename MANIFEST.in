@@ -1,0 +1,16 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include MIGRATION.md
+include pyproject.toml
+include setup.py
+
+recursive-include streamlit_lightweight_charts_pro *.py
+recursive-include streamlit_lightweight_charts_pro/frontend/build *
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * *.so
+recursive-exclude * .DS_Store
+recursive-exclude streamlit_lightweight_charts_pro/frontend/node_modules *
+recursive-exclude streamlit_lightweight_charts_pro/frontend/src *
