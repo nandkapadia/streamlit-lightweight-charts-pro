@@ -4,7 +4,7 @@
 
 ### Options Module Removed
 
-In version 0.2.0, we've eliminated code duplication by removing the proxy `options` module from the Streamlit package. All options classes now live in the core package: `lightweight_charts_core`.
+In version 0.2.0, we've eliminated code duplication by removing the proxy `options` module from the Streamlit package. All options classes now live in the core package: `lightweight_charts_pro`.
 
 ## How to Update Your Code
 
@@ -17,9 +17,9 @@ from streamlit_lightweight_charts_pro.charts.options.price_scale_options import 
 
 ### New Import Pattern (v0.2.0+)
 ```python
-from lightweight_charts_core.charts.options import ChartOptions
-from lightweight_charts_core.charts.options.ui_options import LegendOptions
-from lightweight_charts_core.charts.options.price_scale_options import PriceScaleOptions
+from lightweight_charts_pro.charts.options import ChartOptions
+from lightweight_charts_pro.charts.options.ui_options import LegendOptions
+from lightweight_charts_pro.charts.options.price_scale_options import PriceScaleOptions
 ```
 
 ## Quick Find & Replace
@@ -29,16 +29,16 @@ You can use these sed commands to update your codebase:
 ```bash
 # Update package-level imports
 find . -name "*.py" -type f -exec sed -i '' \
-  's/from streamlit_lightweight_charts_pro\.charts\.options import/from lightweight_charts_core.charts.options import/g' {} +
+  's/from streamlit_lightweight_charts_pro\.charts\.options import/from lightweight_charts_pro.charts.options import/g' {} +
 
 # Update submodule imports
 find . -name "*.py" -type f -exec sed -i '' \
-  's/from streamlit_lightweight_charts_pro\.charts\.options\./from lightweight_charts_core.charts.options./g' {} +
+  's/from streamlit_lightweight_charts_pro\.charts\.options\./from lightweight_charts_pro.charts.options./g' {} +
 ```
 
 ## Available Options Modules
 
-All of these are now imported from `lightweight_charts_core.charts.options`:
+All of these are now imported from `lightweight_charts_pro.charts.options`:
 
 - `base_options` - Base options classes
 - `chart_options` - Main chart configuration (ChartOptions)
@@ -76,4 +76,4 @@ from streamlit_lightweight_charts_pro import (
 )
 ```
 
-For specialized options, import directly from `lightweight_charts_core.charts.options`.
+For specialized options, import directly from `lightweight_charts_pro.charts.options`.

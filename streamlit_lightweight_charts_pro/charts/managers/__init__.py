@@ -4,12 +4,12 @@ This module provides specialized manager classes that handle different
 aspects of chart functionality, promoting separation of concerns and
 maintainability.
 
-Core managers (framework-agnostic) are imported from lightweight_charts_core.
+Core managers (framework-agnostic) are imported from lightweight_charts_pro.
 Streamlit-specific managers are defined in this package.
 """
 
 # Core managers (re-exported from core)
-from lightweight_charts_core.charts.managers import (
+from lightweight_charts_pro.charts.managers import (
     PriceScaleManager,
     SeriesManager,
     TradeManager,

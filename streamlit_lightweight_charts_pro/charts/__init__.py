@@ -53,7 +53,7 @@ License: MIT
 
 # Streamlit-specific chart classes
 # Re-export series from core
-from lightweight_charts_core.charts.series import (
+from lightweight_charts_pro.charts.series import (
     AreaSeries,
     BandSeries,
     BarSeries,

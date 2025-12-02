@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, Optional
 
 import streamlit.components.v1 as components
-from lightweight_charts_core.logging_config import get_logger
+from lightweight_charts_pro.logging_config import get_logger
 
 from streamlit_lightweight_charts_pro.charts.series_settings_api import (
     get_series_settings_api,

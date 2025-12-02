@@ -3,17 +3,17 @@
 This module provides the core data models used throughout the library for
 representing financial data points, markers, annotations, and other chart elements.
 
-All data classes are imported from lightweight_charts_core package.
+All data classes are imported from lightweight_charts_pro package.
 """
 
 # Import all data classes from core package
 # Import streamlit-specific options classes
-from lightweight_charts_core.charts.options.trade_visualization_options import (
+from lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
 
 # Annotations; Base data classes; Markers; Tooltips; Trade
-from lightweight_charts_core.data import (
+from lightweight_charts_pro.data import (
     Annotation,
     AnnotationLayer,
     AnnotationManager,
@@ -52,7 +52,7 @@ from lightweight_charts_core.data import (
 )
 
 # Import type definitions from core
-from lightweight_charts_core.type_definitions import (
+from lightweight_charts_pro.type_definitions import (
     AnnotationPosition,
     AnnotationType,
     TooltipPosition,

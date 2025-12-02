@@ -7,7 +7,7 @@ allowing chart state to be maintained across Streamlit reruns.
 from typing import Any
 
 import streamlit as st
-from lightweight_charts_core.logging_config import get_logger
+from lightweight_charts_pro.logging_config import get_logger
 
 # Initialize logger
 logger = get_logger(__name__)

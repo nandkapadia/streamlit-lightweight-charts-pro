@@ -14,7 +14,7 @@ dependencies = [
     "streamlit>=1.0",
     "pandas>=1.0",
     "numpy>=1.19",
-    "lightweight-charts-core @ file:///Users/nandkapadia/lightweight-charts-pro-python",
+    "lightweight-charts-pro @ file:///Users/nandkapadia/lightweight-charts-pro-python",
 ]
 keywords = ["streamlit", "tradingview", "charts", "visualization", "trading", "financial"]
 classifiers = [
@@ -87,7 +87,7 @@ extend-exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 100
-known_first_party = ["streamlit_lightweight_charts_pro", "lightweight_charts_core"]
+known_first_party = ["streamlit_lightweight_charts_pro", "lightweight_charts_pro"]
 known_third_party = ["streamlit", "pandas", "numpy"]
 
 # Pytest configuration

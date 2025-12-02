@@ -46,16 +46,16 @@ import warnings
 from pathlib import Path
 
 # Import from core package (options, series, utils, validators)
-from lightweight_charts_core.charts.options import ChartOptions
-from lightweight_charts_core.charts.options.layout_options import (
+from lightweight_charts_pro.charts.options import ChartOptions
+from lightweight_charts_pro.charts.options.layout_options import (
     LayoutOptions,
     PaneHeightOptions,
 )
-from lightweight_charts_core.charts.options.trade_visualization_options import (
+from lightweight_charts_pro.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from lightweight_charts_core.charts.options.ui_options import LegendOptions
-from lightweight_charts_core.charts.series import (
+from lightweight_charts_pro.charts.options.ui_options import LegendOptions
+from lightweight_charts_pro.charts.series import (
     AreaSeries,
     BandSeries,
     BarSeries,
@@ -71,22 +71,22 @@ from lightweight_charts_core.charts.series import (
 )
 
 # Import chart utilities and validators from core
-from lightweight_charts_core.charts.utils import PriceScaleConfig
-from lightweight_charts_core.charts.validators import (
+from lightweight_charts_pro.charts.utils import PriceScaleConfig
+from lightweight_charts_pro.charts.validators import (
     PriceScaleValidationError,
     PriceScaleValidator,
 )
-from lightweight_charts_core.data.annotation import (
+from lightweight_charts_pro.data.annotation import (
     AnnotationLayer,
     AnnotationManager,
     create_arrow_annotation,
     create_shape_annotation,
     create_text_annotation,
 )
-from lightweight_charts_core.data.trade import TradeData
+from lightweight_charts_pro.data.trade import TradeData
 
 # Import logging configuration from core
-from lightweight_charts_core.logging_config import get_logger, setup_logging
+from lightweight_charts_pro.logging_config import get_logger, setup_logging
 
 # Third Party Imports
 # (None in this module)

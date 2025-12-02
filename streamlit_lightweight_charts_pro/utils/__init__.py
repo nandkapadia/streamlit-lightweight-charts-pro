@@ -1,11 +1,11 @@
 """Utilities for Streamlit Lightweight Charts Pro.
 
-This module re-exports utilities from lightweight_charts_core and provides
+This module re-exports utilities from lightweight_charts_pro and provides
 additional Streamlit-specific utilities like profiling.
 """
 
 # Import all utilities from core
-from lightweight_charts_core.utils import (
+from lightweight_charts_pro.utils import (
     DEFAULT_CONFIG,
     CaseConverter,
     SerializableMixin,
@@ -24,7 +24,7 @@ from lightweight_charts_core.utils import (
 )
 
 # Also re-export profiler from core
-from lightweight_charts_core.utils.profiler import Profiler, profile_method
+from lightweight_charts_pro.utils.profiler import Profiler, profile_method
 
 __all__ = [
     "DEFAULT_CONFIG",

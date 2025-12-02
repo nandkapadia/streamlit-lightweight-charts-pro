@@ -1,11 +1,11 @@
 """Type definitions for Streamlit Lightweight Charts Pro.
 
-This module re-exports type definitions from lightweight_charts_core and adds
+This module re-exports type definitions from lightweight_charts_pro and adds
 any Streamlit-specific type definitions.
 """
 
 # Import all type definitions from core
-from lightweight_charts_core.type_definitions import (
+from lightweight_charts_pro.type_definitions import (
     AnnotationPosition,
     AnnotationType,
     Background,

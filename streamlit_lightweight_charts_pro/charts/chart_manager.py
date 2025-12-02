@@ -13,9 +13,9 @@ from typing import Any, Optional, Union
 
 import pandas as pd
 import streamlit as st
-from lightweight_charts_core.charts import BaseChartManager
-from lightweight_charts_core.data import OhlcvData
-from lightweight_charts_core.exceptions import (
+from lightweight_charts_pro.charts import BaseChartManager
+from lightweight_charts_pro.data import OhlcvData
+from lightweight_charts_pro.exceptions import (
     DuplicateError,
     NotFoundError,
     TypeValidationError,

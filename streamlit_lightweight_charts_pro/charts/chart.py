@@ -8,10 +8,10 @@ import time
 import uuid
 from typing import TYPE_CHECKING, Any, Optional, Union
 
-from lightweight_charts_core.charts import BaseChart
-from lightweight_charts_core.charts.options import ChartOptions
-from lightweight_charts_core.charts.series import Series
-from lightweight_charts_core.data import Annotation
+from lightweight_charts_pro.charts import BaseChart
+from lightweight_charts_pro.charts.options import ChartOptions
+from lightweight_charts_pro.charts.series import Series
+from lightweight_charts_pro.data import Annotation
 
 # Streamlit-specific imports
 from streamlit_lightweight_charts_pro.charts.managers import (

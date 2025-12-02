@@ -1,3 +1,47 @@
+Metadata-Version: 2.4
+Name: streamlit-lightweight-charts-pro
+Version: 0.3.0
+Summary: Streamlit wrapper for TradingView's lightweight-charts with ultra-simplified API and performance optimizations
+Author-email: Nand Kapadia <nand.kapadia@gmail.com>
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/nandkapadia/streamlit-lightweight-charts-pro
+Project-URL: Documentation, https://github.com/nandkapadia/streamlit-lightweight-charts-pro#readme
+Project-URL: Repository, https://github.com/nandkapadia/streamlit-lightweight-charts-pro
+Project-URL: Issues, https://github.com/nandkapadia/streamlit-lightweight-charts-pro/issues
+Keywords: streamlit,tradingview,charts,visualization,trading,financial
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Scientific/Engineering :: Visualization
+Classifier: Framework :: Streamlit
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: streamlit>=1.0
+Requires-Dist: pandas>=1.0
+Requires-Dist: numpy>=1.19
+Requires-Dist: lightweight-charts-pro@ file:///Users/nandkapadia/lightweight-charts-pro-python
+Provides-Extra: dev
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: isort>=5.12.0; extra == "dev"
+Requires-Dist: pylint>=3.0.0; extra == "dev"
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: ruff>=0.1.0; extra == "dev"
+Requires-Dist: mypy>=1.0.0; extra == "dev"
+Provides-Extra: test
+Requires-Dist: pytest>=7.0.0; extra == "test"
+Requires-Dist: pytest-cov>=4.0.0; extra == "test"
+Requires-Dist: pytest-xdist>=3.0.0; extra == "test"
+Requires-Dist: hypothesis>=6.0.0; extra == "test"
+Dynamic: license-file
+
 # Streamlit Lightweight Charts Pro
 
 [![PyPI version](https://badge.fury.io/py/streamlit_lightweight_charts_pro.svg)](https://badge.fury.io/py/streamlit_lightweight_charts_pro)

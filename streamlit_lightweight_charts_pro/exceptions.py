@@ -1,11 +1,11 @@
 """Custom exceptions for streamlit-lightweight-charts-pro.
 
-This module re-exports core exceptions from lightweight_charts_core and adds
+This module re-exports core exceptions from lightweight_charts_pro and adds
 Streamlit-specific exceptions.
 """
 
 # Re-export core exceptions
-from lightweight_charts_core.exceptions import (
+from lightweight_charts_pro.exceptions import (
     ColorValidationError,
     ColumnMappingRequiredError,
     ConfigurationError,
@@ -138,7 +138,7 @@ __all__ = [
     "AnnotationItemsTypeError",
     "BaseValueFormatError",
     "CliNotFoundError",
-    # Core exceptions (re-exported from lightweight_charts_core)
+    # Core exceptions (re-exported from lightweight_charts_pro)
     "ColorValidationError",
     "ColumnMappingRequiredError",
     "ComponentNotAvailableError",
