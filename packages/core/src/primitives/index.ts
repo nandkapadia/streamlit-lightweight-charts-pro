@@ -6,13 +6,19 @@
  */
 
 // Base primitives
-export { BasePanePrimitive } from './BasePanePrimitive';
-export type { BasePrimitiveConfig, PrimitivePriority } from './BasePanePrimitive';
+export { BasePanePrimitive, PrimitivePriority } from './BasePanePrimitive';
+export type { BasePrimitiveConfig } from './BasePanePrimitive';
 export { BaseSeriesPrimitive } from './BaseSeriesPrimitive';
 
 // UI primitives
 export { LegendPrimitive, createLegendPrimitive, DefaultLegendConfigs } from './LegendPrimitive';
-export { RangeSwitcherPrimitive, createRangeSwitcherPrimitive } from './RangeSwitcherPrimitive';
+export {
+  RangeSwitcherPrimitive,
+  createRangeSwitcherPrimitive,
+  DefaultRangeConfigs,
+  TimeRange,
+} from './RangeSwitcherPrimitive';
+export type { RangeConfig } from './RangeSwitcherPrimitive';
 export { TradeRectanglePrimitive } from './TradeRectanglePrimitive';
 // Note: ButtonPanelPrimitive requires React and is in the React frontend package
 

@@ -189,7 +189,11 @@ class ChartRenderer:
             if range_seconds is None or range_seconds <= data_timespan_seconds * 1.1:
                 filtered_ranges.append(range_config)
 
-        chart_config["rangeSwitcher"]["ranges"] = filtered_ranges
+        # If all ranges were filtered out, hide the range switcher
+        if not filtered_ranges:
+            chart_config["rangeSwitcher"]["visible"] = False
+        else:
+            chart_config["rangeSwitcher"]["ranges"] = filtered_ranges
         return chart_config
 
     def _calculate_data_timespan(

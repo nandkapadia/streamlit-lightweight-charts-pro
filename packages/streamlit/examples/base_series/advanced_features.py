@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options.price_format_options import PriceFormatOptions
-from streamlit_lightweight_charts_pro.charts.options.price_line_options import PriceLineOptions
+from lightweight_charts_core.charts.options.price_format_options import PriceFormatOptions
+from lightweight_charts_core.charts.options.price_line_options import PriceLineOptions
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape

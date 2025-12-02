@@ -5,7 +5,6 @@ that supports both single and dual trend line modes.
 """
 
 import pandas as pd
-
 from lightweight_charts_core.charts.series.trend_fill import TrendFillSeries
 from lightweight_charts_core.data.trend_fill import TrendFillData
 

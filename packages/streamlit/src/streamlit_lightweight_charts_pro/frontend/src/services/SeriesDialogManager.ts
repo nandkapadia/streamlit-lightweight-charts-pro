@@ -24,7 +24,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
-import { logger } from '../utils/logger';
+import { logger, KeyedSingletonManager, handleError, ErrorSeverity } from '@lightweight-charts-pro/core';
 import { StreamlitSeriesConfigService } from './StreamlitSeriesConfigService';
 import { SeriesType, SeriesConfiguration } from '../types/SeriesTypes';
 import { apiOptionsToDialogConfig } from '../series/UnifiedPropertyMapper';
@@ -33,8 +33,6 @@ import {
   SeriesInfo as DialogSeriesInfo,
   SeriesConfig,
 } from '../forms/SeriesSettingsDialog';
-import { KeyedSingletonManager } from '../utils/KeyedSingletonManager';
-import { handleError, ErrorSeverity } from '../utils/errorHandler';
 import { CSS_CLASSES } from '../config/positioningConfig';
 
 /**

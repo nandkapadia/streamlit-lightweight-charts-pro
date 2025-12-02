@@ -27,7 +27,7 @@
  * ```
  */
 
-import { UniversalSpacing } from '../primitives/PrimitiveDefaults';
+import { UniversalSpacing } from '@lightweight-charts-pro/core';
 
 /**
  * Standard margins used throughout the application

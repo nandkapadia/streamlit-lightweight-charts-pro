@@ -11,14 +11,17 @@ import {
   PropertyDescriptors,
   STANDARD_SERIES_PROPERTIES,
 } from '../core/UnifiedSeriesDescriptor';
-import { createBandSeries, type BandData } from '../../plugins/series/bandSeriesPlugin';
-import { createRibbonSeries, type RibbonData } from '../../plugins/series/ribbonSeriesPlugin';
 import {
+  createBandSeries,
+  type BandData,
+  createRibbonSeries,
+  type RibbonData,
   createGradientRibbonSeries,
   type GradientRibbonData,
-} from '../../plugins/series/gradientRibbonSeriesPlugin';
-import { createSignalSeries, type SignalData } from '../../plugins/series/signalSeriesPlugin';
-import { createTrendFillSeries } from '../../plugins/series/trendFillSeriesPlugin';
+  createSignalSeries,
+  type SignalData,
+  createTrendFillSeries,
+} from '@lightweight-charts-pro/core';
 
 /**
  * Band Series Descriptor

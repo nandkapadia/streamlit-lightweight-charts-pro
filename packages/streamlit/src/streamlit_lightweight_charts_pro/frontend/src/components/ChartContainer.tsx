@@ -44,9 +44,9 @@ import React, {
 import { flushSync } from 'react-dom';
 import { createChart, IChartApi } from 'lightweight-charts';
 import { ChartConfig } from '../types';
-import { cleanLineStyleOptions } from '../utils/lineStyle';
+import { cleanLineStyleOptions } from '@lightweight-charts-pro/core';
 import { ErrorBoundary } from './ErrorBoundary';
-import { logger } from '../utils/logger';
+import { logger } from '@lightweight-charts-pro/core';
 
 interface ChartContainerProps {
   chartConfig: ChartConfig;

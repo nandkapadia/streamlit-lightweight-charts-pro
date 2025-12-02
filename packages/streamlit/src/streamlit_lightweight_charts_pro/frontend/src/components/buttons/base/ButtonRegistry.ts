@@ -7,7 +7,7 @@
  */
 
 import { BaseButton } from './BaseButton';
-import { logger } from '../../../utils/logger';
+import { logger } from '@lightweight-charts-pro/core';
 
 /**
  * Button registry singleton

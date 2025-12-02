@@ -12,20 +12,20 @@ import random
 from datetime import datetime, timedelta
 
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.layout_options import LayoutOptions
-from streamlit_lightweight_charts_pro.charts.options.sync_options import SyncOptions
-from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
+from lightweight_charts_core.charts.options import ChartOptions
+from lightweight_charts_core.charts.options.layout_options import LayoutOptions
+from lightweight_charts_core.charts.options.sync_options import SyncOptions
+from lightweight_charts_core.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
-from streamlit_lightweight_charts_pro.charts.options.ui_options import (
+from lightweight_charts_core.charts.options.ui_options import (
     LegendOptions,
     RangeConfig,
     RangeSwitcherOptions,
     TimeRange,
 )
-from streamlit_lightweight_charts_pro.type_definitions.colors import BackgroundSolid
-from streamlit_lightweight_charts_pro.type_definitions.enums import TradeVisualization
+from lightweight_charts_core.type_definitions.colors import BackgroundSolid
+from lightweight_charts_core.type_definitions.enums import TradeVisualization
 
 from streamlit_lightweight_charts_pro import (
     AreaSeries,
@@ -44,7 +44,7 @@ from streamlit_lightweight_charts_pro import (
     create_arrow_annotation,
     create_text_annotation,
 )
-from streamlit_lightweight_charts_pro.data import (
+from lightweight_charts_core.data import (
     BandData,
     GradientRibbonData,
     OhlcvData,

@@ -15,8 +15,8 @@ import sys
 from pathlib import Path
 
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions, LineOptions
-from streamlit_lightweight_charts_pro.charts.options.layout_options import (
+from lightweight_charts_core.charts.options import ChartOptions, LineOptions
+from lightweight_charts_core.charts.options.layout_options import (
     LayoutOptions,
     PaneHeightOptions,
 )

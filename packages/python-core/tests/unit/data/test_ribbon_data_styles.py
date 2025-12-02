@@ -4,7 +4,6 @@ This module tests the RibbonData class with per-point color override functionali
 """
 
 import pytest
-
 from lightweight_charts_core.data.ribbon import RibbonData
 from lightweight_charts_core.exceptions import ColorValidationError
 

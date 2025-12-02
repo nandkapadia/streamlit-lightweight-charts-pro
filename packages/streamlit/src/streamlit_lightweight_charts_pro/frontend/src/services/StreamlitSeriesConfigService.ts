@@ -8,10 +8,8 @@
 
 import { Streamlit } from 'streamlit-component-lib';
 import { SeriesConfiguration, SeriesType } from '../types/SeriesTypes';
-import { logger } from '../utils/logger';
-import { Singleton } from '../utils/SingletonBase';
+import { logger, Singleton, handleError, ErrorSeverity } from '@lightweight-charts-pro/core';
 import { isStreamlitComponentReady } from '../hooks/useStreamlit';
-import { handleError, ErrorSeverity } from '../utils/errorHandler';
 import { TIMING } from '../config/positioningConfig';
 
 /**

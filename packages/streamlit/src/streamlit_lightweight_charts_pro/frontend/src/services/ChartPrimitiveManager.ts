@@ -46,16 +46,21 @@
  */
 
 import { IChartApi } from 'lightweight-charts';
-import { logger } from '../utils/logger';
-import { LegendPrimitive } from '../primitives/LegendPrimitive';
-import { RangeSwitcherPrimitive, DefaultRangeConfigs } from '../primitives/RangeSwitcherPrimitive';
-import { PrimitiveEventManager } from './PrimitiveEventManager';
-import { CornerLayoutManager } from './CornerLayoutManager';
+// Import from core package
+import {
+  logger,
+  LegendPrimitive,
+  RangeSwitcherPrimitive,
+  DefaultRangeConfigs,
+  PrimitiveEventManager,
+  CornerLayoutManager,
+  PaneCollapseManager,
+  PrimitivePriority,
+} from '@lightweight-charts-pro/core';
+// Streamlit-specific imports
 import { SeriesDialogManager } from './SeriesDialogManager';
-import { PaneCollapseManager } from './PaneCollapseManager';
 import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types';
 import { ExtendedSeriesApi, CrosshairEventData } from '../types/ChartInterfaces';
-import { PrimitivePriority } from '../primitives/BasePanePrimitive';
 import {
   ButtonPanelPrimitive,
   createButtonPanelPrimitive,

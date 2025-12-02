@@ -8,7 +8,7 @@
 import { getSeriesDescriptor } from '../series/UnifiedSeriesFactory';
 import { normalizeSeriesType } from '../series/utils/seriesTypeNormalizer';
 import type { PropertyType } from '../series/core/UnifiedSeriesDescriptor';
-import { logger } from '../utils/logger';
+import { logger } from '@lightweight-charts-pro/core';
 
 export type SettingType = 'boolean' | 'number' | 'color' | 'line' | 'lineStyle' | 'lineWidth';
 

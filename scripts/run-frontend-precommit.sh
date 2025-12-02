@@ -34,7 +34,7 @@ if [ ! -f "pyproject.toml" ]; then
 fi
 
 # Navigate to frontend directory
-FRONTEND_DIR="streamlit_lightweight_charts_pro/frontend"
+FRONTEND_DIR="packages/streamlit/src/streamlit_lightweight_charts_pro/frontend"
 
 if [ ! -d "$FRONTEND_DIR" ]; then
     print_error "Frontend directory not found: $FRONTEND_DIR"

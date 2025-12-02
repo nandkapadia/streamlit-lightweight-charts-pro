@@ -5,7 +5,7 @@
 echo "Rebuilding frontend for streamlit-lightweight-charts-pro..."
 
 # Navigate to the frontend directory
-cd streamlit_lightweight_charts_pro/frontend
+cd packages/streamlit/src/streamlit_lightweight_charts_pro/frontend
 
 # Check if node_modules exists
 if [ ! -d "node_modules" ]; then

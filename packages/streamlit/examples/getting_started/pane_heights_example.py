@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options import (
+from lightweight_charts_core.charts.options import (
     ChartOptions,
     LayoutOptions,
     PaneHeightOptions,

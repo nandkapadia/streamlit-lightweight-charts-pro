@@ -33,7 +33,7 @@
  */
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { logger } from '../utils/logger';
+import { logger } from '@lightweight-charts-pro/core';
 
 interface Props {
   children: ReactNode;

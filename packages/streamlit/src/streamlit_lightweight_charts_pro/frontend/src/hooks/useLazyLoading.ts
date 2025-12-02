@@ -15,7 +15,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { IChartApi, ITimeScaleApi, LogicalRange } from 'lightweight-charts';
 import { Streamlit } from 'streamlit-component-lib';
 import { SeriesConfig, LazyLoadingConfig, HistoryRequest } from '../types';
-import { logger } from '../utils/logger';
+import { logger } from '@lightweight-charts-pro/core';
 
 /** Configuration for lazy loading behavior */
 interface LazyLoadingOptions {

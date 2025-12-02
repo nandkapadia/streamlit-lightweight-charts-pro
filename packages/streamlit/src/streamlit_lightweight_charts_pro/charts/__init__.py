@@ -71,6 +71,9 @@ from lightweight_charts_core.charts.series import (
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
 
+# Note: options is available via streamlit_lightweight_charts_pro.charts.options
+# (it's a separate module file that re-exports from core)
+
 __all__ = [
     "AreaSeries",
     "BandSeries",

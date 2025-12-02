@@ -68,7 +68,7 @@ fi
 
 print_header "4. Security Checks (Bandit)"
 # Exclude cli.py - it's a development tool with safe subprocess usage (shell=False, no user input)
-if bandit -r streamlit_lightweight_charts_pro/ --exclude streamlit_lightweight_charts_pro/cli.py -f json -o bandit-report.json; then
+if bandit -r packages/streamlit/src/streamlit_lightweight_charts_pro/ --exclude packages/streamlit/src/streamlit_lightweight_charts_pro/cli.py -f json -o bandit-report.json; then
     print_success "Security checks passed"
     rm -f bandit-report.json
 else
@@ -97,7 +97,7 @@ fi
 # ============================================
 
 print_header "7. Frontend Dependencies"
-cd streamlit_lightweight_charts_pro/frontend
+cd packages/streamlit/src/streamlit_lightweight_charts_pro/frontend
 
 if [ ! -d "node_modules" ]; then
     echo "Installing frontend dependencies..."

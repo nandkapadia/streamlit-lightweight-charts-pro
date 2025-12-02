@@ -60,7 +60,6 @@ import React, {
   useTransition,
   useDeferredValue,
 } from 'react';
-import { logger } from './utils/logger';
 import {
   createChart,
   IChartApi,
@@ -91,19 +90,24 @@ import {
   MarkerData,
   Destroyable,
 } from './types/ChartInterfaces';
-import { createAnnotationVisualElements } from './services/annotationSystem';
-import { SignalSeries } from './plugins/series/signalSeriesPlugin';
-import { TradeRectanglePrimitive } from './primitives/TradeRectanglePrimitive';
-import { createTradeVisualElements } from './services/tradeVisualization';
-import { ChartReadyDetector } from './utils/chartReadyDetection';
-import { ChartCoordinateService } from './services/ChartCoordinateService';
+// Import from core package
+import {
+  logger,
+  createAnnotationVisualElements,
+  SignalSeries,
+  TradeRectanglePrimitive,
+  createTradeVisualElements,
+  ChartReadyDetector,
+  ChartCoordinateService,
+  CornerLayoutManager,
+  TooltipPlugin,
+  cleanLineStyleOptions,
+  getCachedDOMElement,
+  createOptimizedStylesAdvanced,
+} from '@lightweight-charts-pro/core';
+// Streamlit-specific services
 import { ChartPrimitiveManager } from './services/ChartPrimitiveManager';
-import { CornerLayoutManager } from './services/CornerLayoutManager';
-import { TooltipPlugin } from './plugins/chart/tooltipPlugin';
-
-import { cleanLineStyleOptions } from './utils/lineStyle';
 import { createSeriesWithConfig } from './series/UnifiedSeriesFactory';
-import { getCachedDOMElement, createOptimizedStylesAdvanced } from './utils/performance';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { react19Monitor } from './utils/react19PerformanceMonitor';
 import { dialogConfigToApiOptions } from './series/UnifiedPropertyMapper';

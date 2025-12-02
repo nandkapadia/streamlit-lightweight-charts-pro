@@ -26,9 +26,9 @@ import {
 import { UnifiedSeriesDescriptor, extractDefaultOptions } from './core/UnifiedSeriesDescriptor';
 import { BUILTIN_SERIES_DESCRIPTORS } from './descriptors/builtinSeriesDescriptors';
 import { CUSTOM_SERIES_DESCRIPTORS } from './descriptors/customSeriesDescriptors';
-import { cleanLineStyleOptions } from '../utils/lineStyle';
-import { logger } from '../utils/logger';
-import { createTradeVisualElements } from '../services/tradeVisualization';
+import { cleanLineStyleOptions } from '@lightweight-charts-pro/core';
+import { logger } from '@lightweight-charts-pro/core';
+import { createTradeVisualElements } from '@lightweight-charts-pro/core';
 import { normalizeSeriesType } from './utils/seriesTypeNormalizer';
 import type { TradeConfig, TradeVisualizationOptions } from '../types';
 import type { ExtendedChartApi } from '../types/ChartInterfaces';

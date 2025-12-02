@@ -23,7 +23,6 @@ import time
 
 # Third-party imports
 import pytest
-
 from lightweight_charts_core.charts.options.ui_options import (
     LegendOptions,
     RangeConfig,

@@ -11,7 +11,7 @@ import {
 } from './core/UnifiedSeriesDescriptor';
 import { getSeriesDescriptor } from './UnifiedSeriesFactory';
 import { normalizeSeriesType } from './utils/seriesTypeNormalizer';
-import { logger } from '../utils/logger';
+import { logger } from '@lightweight-charts-pro/core';
 
 /**
  * Line style conversion maps (backward compatibility)

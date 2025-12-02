@@ -5,7 +5,7 @@ for both Options and Series classes, including nested object handling.
 """
 
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options import LineOptions
+from lightweight_charts_core.charts.options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.type_definitions.enums import LineStyle
 

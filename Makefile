@@ -132,15 +132,15 @@ setup-branch-protection:  ## Setup GitHub branch protection rules
 
 test-frontend:  ## Run frontend tests and checks
 	@echo "Running frontend tests..."
-	@cd streamlit_lightweight_charts_pro/frontend && npm run test:all
+	@cd packages/streamlit/src/streamlit_lightweight_charts_pro/frontend && npm run test:all
 
 format-frontend:  ## Format frontend code
 	@echo "Formatting frontend code..."
-	@cd streamlit_lightweight_charts_pro/frontend && npm run format
+	@cd packages/streamlit/src/streamlit_lightweight_charts_pro/frontend && npm run format
 
 lint-frontend:  ## Lint frontend code
 	@echo "Linting frontend code..."
-	@cd streamlit_lightweight_charts_pro/frontend && npm run lint
+	@cd packages/streamlit/src/streamlit_lightweight_charts_pro/frontend && npm run lint
 
 # Documentation commands
 docs-serve:  ## Serve documentation locally

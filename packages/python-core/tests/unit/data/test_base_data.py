@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 
 import pandas as pd
 import pytest
-
 from lightweight_charts_core.data import LineData
 from lightweight_charts_core.exceptions import (
     ColorValidationError,

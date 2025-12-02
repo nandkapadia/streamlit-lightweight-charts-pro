@@ -86,7 +86,7 @@ def build_frontend():
 
     # Get the directory containing this setup.py
     setup_dir = Path(__file__).parent
-    frontend_dir = setup_dir / "streamlit_lightweight_charts_pro" / "frontend"
+    frontend_dir = setup_dir / "packages" / "streamlit" / "src" / "streamlit_lightweight_charts_pro" / "frontend"
 
     if not frontend_dir.exists():
         print(f"❌ Frontend directory not found: {frontend_dir}")
@@ -141,7 +141,7 @@ def build_frontend():
 
 def ensure_frontend_built():
     """Ensure frontend is built before packaging."""
-    frontend_dir = Path(__file__).parent / "streamlit_lightweight_charts_pro" / "frontend"
+    frontend_dir = Path(__file__).parent / "packages" / "streamlit" / "src" / "streamlit_lightweight_charts_pro" / "frontend"
     build_dir = frontend_dir / "build"
 
     if not build_dir.exists() or not (build_dir / "static").exists():
@@ -231,7 +231,8 @@ if __name__ == "__main__":
             ),
         },
         license="MIT",
-        packages=find_packages(),
+        packages=find_packages(where="packages/streamlit/src"),
+        package_dir={"": "packages/streamlit/src"},
         include_package_data=True,
         package_data={
             "streamlit_lightweight_charts_pro": [

@@ -5,7 +5,6 @@ data validation, property methods, and edge cases.
 """
 
 import pytest
-
 from lightweight_charts_core.data.trend_fill import TrendFillData
 from lightweight_charts_core.exceptions import (
     TrendDirectionIntegerError,

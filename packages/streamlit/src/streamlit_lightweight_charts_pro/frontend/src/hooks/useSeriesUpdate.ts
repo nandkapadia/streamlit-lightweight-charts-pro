@@ -25,7 +25,7 @@
 
 import { useCallback, useEffect } from 'react';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
-import { logger } from '../utils/logger';
+import { logger } from '@lightweight-charts-pro/core';
 
 /**
  * Series configuration patch from Python backend.

@@ -10,8 +10,8 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options import ChartOptions
-from streamlit_lightweight_charts_pro.charts.options.trade_visualization_options import (
+from lightweight_charts_core.charts.options import ChartOptions
+from lightweight_charts_core.charts.options.trade_visualization_options import (
     TradeVisualizationOptions,
 )
 from streamlit_lightweight_charts_pro.type_definitions.enums import TradeType, TradeVisualization

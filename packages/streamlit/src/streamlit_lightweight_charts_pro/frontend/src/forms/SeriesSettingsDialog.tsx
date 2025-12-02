@@ -13,7 +13,7 @@
 
 import React, { useState, useCallback, useTransition, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { logger } from '../utils/logger';
+import { logger } from '@lightweight-charts-pro/core';
 import { LineEditorDialog } from './LineEditorDialog';
 import { ColorPickerDialog } from './ColorPickerDialog';
 import { SeriesSettingsRenderer } from '../components/SeriesSettingsRenderer';
@@ -22,7 +22,7 @@ import {
   apiOptionsToDialogConfig,
   dialogConfigToApiOptions,
 } from '../series/UnifiedPropertyMapper';
-import { toCss, extractColorAndOpacity } from '../utils/colorUtils';
+import { toCss, extractColorAndOpacity } from '@lightweight-charts-pro/core';
 import '../styles/seriesConfigDialog.css';
 
 /**

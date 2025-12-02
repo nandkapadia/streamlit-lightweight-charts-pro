@@ -44,8 +44,8 @@ import {
 } from './types/ChartInterfaces';
 
 // Range Switcher Configuration
-// Import the improved RangeConfig and TimeRange from RangeSwitcherPrimitive
-import type { RangeConfig as ImportedRangeConfig } from './primitives/RangeSwitcherPrimitive';
+// Import the improved RangeConfig and TimeRange from core
+import type { RangeConfig as ImportedRangeConfig } from '@lightweight-charts-pro/core';
 
 // Enhanced Trade Configuration - Core fields only
 export interface TradeConfig {
@@ -478,8 +478,8 @@ export interface ChartConfig {
   position?: ChartPosition; // Add positioning configuration
   // paneHeights is now accessed from chart.layout.paneHeights
 }
-export type { RangeConfig } from './primitives/RangeSwitcherPrimitive';
-export { TimeRange } from './primitives/RangeSwitcherPrimitive';
+export type { RangeConfig } from '@lightweight-charts-pro/core';
+export { TimeRange } from '@lightweight-charts-pro/core';
 
 export interface RangeSwitcherConfig {
   ranges: ImportedRangeConfig[];

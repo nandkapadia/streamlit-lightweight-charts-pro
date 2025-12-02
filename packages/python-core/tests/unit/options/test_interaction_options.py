@@ -9,7 +9,6 @@ This module contains comprehensive tests for interaction-related option classes:
 """
 
 import pytest
-
 from lightweight_charts_core.charts.options.interaction_options import (
     CrosshairLineOptions,
     CrosshairOptions,

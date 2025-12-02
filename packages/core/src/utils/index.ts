@@ -11,7 +11,7 @@ export { cleanupInstance } from './Disposable';
 
 // Singleton patterns
 export { KeyedSingletonManager } from './KeyedSingletonManager';
-export { SingletonBase } from './SingletonBase';
+export { SingletonBase, createSingleton, Singleton } from './SingletonBase';
 
 // Chart utilities
 export { ChartReadyDetector } from './chartReadyDetection';

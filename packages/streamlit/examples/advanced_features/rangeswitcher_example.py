@@ -14,7 +14,7 @@ A comprehensive trading chart example featuring:
 import numpy as np
 import pandas as pd
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options.ui_options import (
+from lightweight_charts_core.charts.options.ui_options import (
     LegendOptions,
     RangeConfig,
     RangeSwitcherOptions,

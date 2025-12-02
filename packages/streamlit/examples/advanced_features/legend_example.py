@@ -7,11 +7,11 @@ including multi-pane charts with legends for each pane and custom HTML templates
 import numpy as np
 import pandas as pd
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options.layout_options import (
+from lightweight_charts_core.charts.options.layout_options import (
     LayoutOptions,
     PaneHeightOptions,
 )
-from streamlit_lightweight_charts_pro.charts.options.ui_options import LegendOptions
+from lightweight_charts_core.charts.options.ui_options import LegendOptions
 
 from streamlit_lightweight_charts_pro import AreaSeries, Chart, ChartOptions, LineSeries
 from streamlit_lightweight_charts_pro.data import AreaData, CandlestickData, HistogramData, LineData

@@ -29,7 +29,7 @@
  * ```
  */
 
-import { logger } from './logger';
+import { logger } from '@lightweight-charts-pro/core';
 
 interface React19Metrics {
   transitionDuration: number;

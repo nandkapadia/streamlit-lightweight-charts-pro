@@ -1,7 +1,6 @@
 """Comprehensive tests for chainable decorators across all Options classes."""
 
 import pytest
-
 from lightweight_charts_core.charts.options import (
     CrosshairOptions,
     LayoutOptions,

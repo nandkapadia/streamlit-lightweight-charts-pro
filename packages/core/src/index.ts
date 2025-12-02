@@ -54,6 +54,8 @@ export {
   DefaultLegendConfigs,
   RangeSwitcherPrimitive,
   createRangeSwitcherPrimitive,
+  DefaultRangeConfigs,
+  TimeRange,
   TradeRectanglePrimitive,
   BandPrimitive,
   RibbonPrimitive,
@@ -61,8 +63,11 @@ export {
   SignalPrimitive,
   TrendFillPrimitive,
   PrimitiveStylingUtils,
+  UniversalSpacing,
+  ButtonDimensions,
+  PrimitivePriority,
 } from './primitives';
-export type { BasePrimitiveConfig, PrimitivePriority } from './primitives';
+export type { BasePrimitiveConfig } from './primitives';
 
 // =============================================================================
 // SERIES - Unified series factory and descriptors
@@ -98,6 +103,8 @@ export {
   PrimitiveEventManager,
   TemplateEngine,
   TradeTemplateProcessor,
+  createAnnotationVisualElements,
+  createTradeVisualElements,
 } from './services';
 
 // =============================================================================
@@ -120,6 +127,8 @@ export * from './config';
 export {
   KeyedSingletonManager,
   SingletonBase,
+  Singleton,
+  createSingleton,
   ChartReadyDetector,
   logger,
   LogLevel,
@@ -165,4 +174,5 @@ export {
   memoize,
   batchDOMUpdates,
   getCachedDimensions,
+  createOptimizedStylesAdvanced,
 } from './utils/performance';

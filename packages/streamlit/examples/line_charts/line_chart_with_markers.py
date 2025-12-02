@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 import streamlit as st
-from streamlit_lightweight_charts_pro.charts.options import LineOptions
+from lightweight_charts_core.charts.options import LineOptions
 from streamlit_lightweight_charts_pro.charts.series import LineSeries
 from streamlit_lightweight_charts_pro.data.marker import BarMarker
 from streamlit_lightweight_charts_pro.type_definitions.enums import MarkerPosition, MarkerShape
