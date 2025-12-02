@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ribbon Custom Series - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        #container { width: 800px; height: 400px; margin: 20px; }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <script>
+        function runTestCase(container) {
+            const chart = LightweightCharts.createChart(container, {
+                width: 800,
+                height: 400,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { color: '#f0f0f0' } },
+            });
+
+            // Generate ribbon data (two lines with fill between)
+            const line1Data = [];
+            const line2Data = [];
+
+            for (let i = 0; i < 50; i++) {
+                const time = '2024-01-' + String(i + 1).padStart(2, '0');
+                const base = 100 + i * 0.6;
+
+                line1Data.push({ time, value: base + Math.sin(i / 5) * 12 });
+                line2Data.push({ time, value: base + Math.cos(i / 4) * 10 });
+            }
+
+            // Create area series to simulate ribbon fill
+            const ribbonArea = chart.addSeries(LightweightCharts.AreaSeries);
+            ribbonArea.applyOptions({
+                topColor: 'rgba(156, 39, 176, 0.4)',
+                bottomColor: 'rgba(156, 39, 176, 0.1)',
+                lineColor: '#9C27B0',
+                lineWidth: 2,
+            });
+            ribbonArea.setData(line1Data);
+
+            // Second line of ribbon
+            const line2Series = chart.addSeries(LightweightCharts.LineSeries);
+            line2Series.applyOptions({
+                color: '#E91E63',
+                lineWidth: 2,
+            });
+            line2Series.setData(line2Data);
+
+            chart.timeScale().fitContent();
+        }
+
+        window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+    </script>
+</body>
+</html>

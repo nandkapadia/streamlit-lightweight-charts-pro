@@ -1,0 +1,23 @@
+# Test coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Build outputs
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.log
+.DS_Store
+
+# Test outputs
+test-results/
+playwright-report/

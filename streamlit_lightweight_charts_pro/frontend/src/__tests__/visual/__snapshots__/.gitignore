@@ -1,0 +1,5 @@
+# Ignore diff images (temporary artifacts)
+__diffs__/
+
+# Keep baseline images (committed to repo)
+!*.png

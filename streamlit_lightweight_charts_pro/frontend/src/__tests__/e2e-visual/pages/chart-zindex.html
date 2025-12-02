@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chart Z-Index - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
+        .chart-wrapper {
+            position: relative;
+            width: 600px;
+            height: 300px;
+        }
+        #chart-1 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            border: 2px solid #2196F3;
+        }
+        #chart-2 {
+            position: absolute;
+            top: 100px;
+            left: 100px;
+            z-index: 2;
+            border: 2px solid #4CAF50;
+        }
+        #overlay {
+            position: absolute;
+            top: 200px;
+            left: 200px;
+            z-index: 3;
+            padding: 10px;
+            background: rgba(255, 152, 0, 0.9);
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-wrapper">
+        <div id="chart-1"></div>
+        <div id="chart-2"></div>
+        <div id="overlay">Overlay (z-index: 3)</div>
+    </div>
+
+    <script>
+function runTestCase(container) {
+    // Use LightweightCharts directly
+
+            const chart1 = LightweightCharts.createChart(document.getElementById('chart-1'), {
+                width: 400,
+                height: 200,
+                layout: { background: { color: '#E3F2FD' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+            });
+
+            const series1 = chart.addSeries(LightweightCharts.LineSeries);
+            series1.applyOptions({ color: '#2196F3', lineWidth: 2 });
+            const data1 = [];
+            for (let i = 0; i < 20; i++) {
+                data1.push({
+                    time: '2024-01-' + String(i + 1).padStart(2, '0'),
+                    value: 100 + i * 2
+                });
+            }
+            series1.setData(data1);
+            chart1.timeScale().fitContent();
+
+            const chart2 = LightweightCharts.createChart(document.getElementById('chart-2'), {
+                width: 400,
+                height: 200,
+                layout: { background: { color: '#E8F5E9' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+            });
+
+            const series2 = chart.addSeries(LightweightCharts.LineSeries);
+            series2.applyOptions({ color: '#4CAF50', lineWidth: 2 });
+            const data2 = [];
+            for (let i = 0; i < 20; i++) {
+                data2.push({
+                    time: '2024-01-' + String(i + 1).padStart(2, '0'),
+                    value: 120 - i * 1.5
+                });
+            }
+            series2.setData(data2);
+            chart2.timeScale().fitContent();
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('chart-1')));
+</script>
+</body>
+</html>

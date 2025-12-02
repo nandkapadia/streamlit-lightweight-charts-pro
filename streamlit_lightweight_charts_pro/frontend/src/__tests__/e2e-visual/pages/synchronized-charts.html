@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Synchronized Charts - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
+        #container { width: 840px; }
+        .sync-chart { width: 800px; height: 250px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="chart-1" class="sync-chart"></div>
+        <div id="chart-2" class="sync-chart"></div>
+    </div>
+
+    <script>
+function runTestCase(container) {
+    const chart1 = LightweightCharts.createChart(document.getElementById('chart-1'), {
+                width: 800,
+                height: 250,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+            });
+
+            const chart2 = LightweightCharts.createChart(document.getElementById('chart-2'), {
+                width: 800,
+                height: 250,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+            });
+
+            const data = [];
+            for (let i = 0; i < 50; i++) {
+                data.push({
+                    time: '2024-01-' + String(i + 1).padStart(2, '0'),
+                    value: 100 + i * 0.5 + Math.sin(i / 5) * 10
+                });
+            }
+
+            const series1 = chart1.addSeries(LightweightCharts.LineSeries);
+            series1.applyOptions({ color: '#2196F3' });
+            series1.setData(data);
+
+            const series2 = chart2.addSeries(LightweightCharts.LineSeries);
+            series2.applyOptions({ color: '#4CAF50' });
+            series2.setData(data.map(d => ({ time: d.time, value: d.value + 20 })));
+
+            // Synchronize time scales
+            chart1.timeScale().subscribeVisibleTimeRangeChange(range => {
+                if (range) chart2.timeScale().setVisibleRange(range);
+            });
+
+            chart2.timeScale().subscribeVisibleTimeRangeChange(range => {
+                if (range) chart1.timeScale().setVisibleRange(range);
+            });
+
+            chart1.timeScale().fitContent();
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('chart-1')));
+</script>
+</body>
+</html>

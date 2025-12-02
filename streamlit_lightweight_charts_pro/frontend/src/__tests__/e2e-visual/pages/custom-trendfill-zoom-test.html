@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TrendFill Series Zoom Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #chart-container { width: 800px; height: 400px; background: white; }
+    </style>
+</head>
+<body>
+    <div id="chart-container"></div>
+    <script>
+function runTestCase() {
+    const priceData = [];
+    const uptrendData = [];
+    const downtrendData = [];
+    const startDate = new Date('2024-01-01');
+
+    for (let i = 0; i < 60; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        // Create wave pattern
+        const price = 100 + Math.sin(i / 12) * 30;
+        priceData.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+
+        // Determine trend
+        const trend = Math.cos(i / 12);
+        if (trend > 0) {
+            uptrendData.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+        } else {
+            downtrendData.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+        }
+    }
+
+    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+        handleScroll: { mouseWheel: true },
+        handleScale: { mouseWheel: true },
+    });
+
+    // Main line series
+    const lineSeries = chart.addSeries(LightweightCharts.LineSeries);
+    lineSeries.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    lineSeries.setData(priceData);
+
+    // Uptrend fill (green)
+    const uptrendSeries = chart.addSeries(LightweightCharts.AreaSeries);
+    uptrendSeries.applyOptions({
+        topColor: 'rgba(76, 175, 80, 0.4)',
+        bottomColor: 'rgba(76, 175, 80, 0.1)',
+        lineColor: 'transparent',
+        lineWidth: 0,
+        priceLineVisible: false,
+    });
+    uptrendSeries.setData(uptrendData);
+
+    // Downtrend fill (red)
+    const downtrendSeries = chart.addSeries(LightweightCharts.AreaSeries);
+    downtrendSeries.applyOptions({
+        topColor: 'rgba(244, 67, 54, 0.4)',
+        bottomColor: 'rgba(244, 67, 54, 0.1)',
+        lineColor: 'transparent',
+        lineWidth: 0,
+        priceLineVisible: false,
+    });
+    downtrendSeries.setData(downtrendData);
+
+    chart.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>ARIA Labels</title>
+<script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+<style>* { margin: 0; padding: 0; } body { padding: 20px; } button { padding: 8px 16px; margin-right: 8px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; } #chart-container { width: 800px; height: 400px; margin-top: 15px; }</style>
+</head><body>
+<div role="toolbar" aria-label="Chart Controls">
+    <button aria-label="Zoom In" data-action="zoom-in">+</button>
+    <button aria-label="Zoom Out" data-action="zoom-out">-</button>
+    <button aria-label="Reset View" data-action="reset">Reset</button>
+</div>
+<div id="chart-container" aria-label="Trading Chart" role="img"></div>
+<script>
+function runTestCase(container) {
+    // Use LightweightCharts directly
+    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), { width: 800, height: 400, layout: { background: { color: '#FFFFFF' } } });
+    const series = chart.addSeries(LightweightCharts.LineSeries);
+            series.applyOptions({ color: '#2196F3' });
+    const data = []; for (let i = 0; i < 50; i++) data.push({ time: '2024-01-'+String(i+1).padStart(2,'0'), value: 100+i*0.6+Math.sin(i/5)*12 });
+    series.setData(data); chart.timeScale().fitContent();
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('chart-container')));
+</script></body></html>

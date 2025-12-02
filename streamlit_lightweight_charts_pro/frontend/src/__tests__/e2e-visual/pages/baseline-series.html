@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baseline Series - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: #ffffff; }
+        #container { width: 800px; height: 400px; margin: 20px; }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <script>
+        function runTestCase(container) {
+            const chart = LightweightCharts.createChart(container, {
+                width: 800,
+                height: 400,
+                layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+                grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+            });
+
+            const baselineSeries = chart.addSeries(LightweightCharts.BaselineSeries);
+            baselineSeries.applyOptions({
+                baseValue: { type: 'price', price: 100 },
+                topLineColor: '#4CAF50',
+                topFillColor1: 'rgba(76, 175, 80, 0.28)',
+                topFillColor2: 'rgba(76, 175, 80, 0.05)',
+                bottomLineColor: '#F44336',
+                bottomFillColor1: 'rgba(244, 67, 54, 0.05)',
+                bottomFillColor2: 'rgba(244, 67, 54, 0.28)',
+            });
+
+            const data = [];
+            const startDate = new Date('2024-01-01');
+            const baselineValue = 100;
+
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const value = baselineValue + Math.sin(i / 4) * 15 + (i - 15) * 0.3;
+
+                data.push({
+                    time: date.toISOString().split('T')[0],
+                    value: parseFloat(value.toFixed(2)),
+                });
+            }
+
+            baselineSeries.setData(data);
+            chart.timeScale().fitContent();
+        }
+
+        runTestCase(document.getElementById('container'));
+        window.testCaseReady = Promise.resolve();
+        window.chartReady = true;
+    </script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Series Dialog Line Style Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #container {
+            width: 800px;
+            height: 400px;
+            position: relative;
+            background: white;
+        }
+        #chart { width: 100%; height: 100%; }
+
+        .series-config-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            border: 1px solid #666;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            z-index: 10;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+        .dialog-overlay.open { display: block; }
+
+        .series-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            min-width: 320px;
+            z-index: 101;
+        }
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .dialog-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .dialog-close {
+            border: none;
+            background: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2196F3;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            min-width: 30px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="chart"></div>
+        <button class="series-config-button" data-testid="series-config-button">⚙️</button>
+    </div>
+
+    <div class="dialog-overlay" id="overlay">
+        <div class="series-dialog" data-testid="series-config-dialog" onclick="event.stopPropagation()">
+            <div class="dialog-header">
+                <span class="dialog-title">Line Style</span>
+                <button class="dialog-close" data-testid="dialog-close">×</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Line Width</label>
+                <div class="slider-container">
+                    <input type="range" min="1" max="5" value="2"
+                           data-testid="line-width-slider" id="width-slider">
+                    <span class="slider-value" id="width-value">2</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Line Style</label>
+                <select data-testid="line-style-dropdown" id="style-dropdown">
+                    <option value="0">Solid</option>
+                    <option value="1" data-testid="line-style-dashed">Dashed</option>
+                    <option value="2" data-testid="line-style-dotted">Dotted</option>
+                    <option value="3">Large Dashed</option>
+                    <option value="4">Sparse Dotted</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+let chart, series, currentWidth = 2, currentStyle = 0;
+
+function runTestCase() {
+    const data = [];
+    const startDate = new Date('2024-01-01');
+
+    for (let i = 0; i < 60; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const price = 100 + i * 0.5 + Math.sin(i / 8) * 15;
+
+        data.push({ time: dateStr, value: parseFloat(price.toFixed(2)) });
+    }
+
+    chart = LightweightCharts.createChart(document.getElementById('chart'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+    });
+
+    series = chart.addSeries(LightweightCharts.LineSeries);
+    series.applyOptions({ color: '#2196F3', lineWidth: currentWidth, lineStyle: currentStyle });
+    series.setData(data);
+
+    // Dialog control
+    const configButton = document.querySelector('[data-testid="series-config-button"]');
+    const overlay = document.getElementById('overlay');
+    const closeButton = document.querySelector('[data-testid="dialog-close"]');
+    const widthSlider = document.getElementById('width-slider');
+    const widthValue = document.getElementById('width-value');
+    const styleDropdown = document.getElementById('style-dropdown');
+
+    configButton.onclick = () => {
+        overlay.classList.add('open');
+    };
+
+    closeButton.onclick = () => {
+        overlay.classList.remove('open');
+    };
+
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            overlay.classList.remove('open');
+        }
+    };
+
+    // Line width slider
+    widthSlider.oninput = (e) => {
+        currentWidth = parseInt(e.target.value);
+        widthValue.textContent = currentWidth;
+        series.applyOptions({ lineWidth: currentWidth });
+    };
+
+    // Line style dropdown
+    styleDropdown.onchange = (e) => {
+        currentStyle = parseInt(e.target.value);
+        series.applyOptions({ lineStyle: currentStyle });
+    };
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.classList.contains('open')) {
+            overlay.classList.remove('open');
+        }
+    });
+
+    chart.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase());
+</script>
+</body>
+</html>

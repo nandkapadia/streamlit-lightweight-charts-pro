@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Band Series Pan Test - E2E Visual Test</title>
+    <script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; background: #f5f5f5; }
+        #chart-container { width: 800px; height: 400px; background: white; }
+    </style>
+</head>
+<body>
+    <div id="chart-container"></div>
+    <script>
+function runTestCase(container) {
+    const upperData = [];
+    const middleData = [];
+    const lowerData = [];
+    const startDate = new Date('2024-01-01');
+
+    for (let i = 0; i < 100; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const middle = 100 + i * 0.3 + Math.sin(i / 8) * 15;
+        const bandWidth = 10;
+
+        upperData.push({ time: dateStr, value: parseFloat((middle + bandWidth).toFixed(2)) });
+        middleData.push({ time: dateStr, value: parseFloat(middle.toFixed(2)) });
+        lowerData.push({ time: dateStr, value: parseFloat((middle - bandWidth).toFixed(2)) });
+    }
+
+    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), {
+        width: 800,
+        height: 400,
+        layout: { background: { color: '#FFFFFF' }, textColor: '#000000' },
+        timeScale: { rightOffset: 10, barSpacing: 8 },
+    });
+
+    // Upper band line
+    const upperSeries = chart.addSeries(LightweightCharts.LineSeries);
+    upperSeries.applyOptions({ color: '#4CAF50', lineWidth: 1, lineStyle: 1 });
+    upperSeries.setData(upperData);
+
+    // Middle line
+    const middleSeries = chart.addSeries(LightweightCharts.LineSeries);
+    middleSeries.applyOptions({ color: '#2196F3', lineWidth: 2 });
+    middleSeries.setData(middleData);
+
+    // Lower band line
+    const lowerSeries = chart.addSeries(LightweightCharts.LineSeries);
+    lowerSeries.applyOptions({ color: '#F44336', lineWidth: 1, lineStyle: 1 });
+    lowerSeries.setData(lowerData);
+
+    // Fill between upper and middle
+    const upperFillSeries = chart.addSeries(LightweightCharts.AreaSeries);
+    upperFillSeries.applyOptions({
+        topColor: 'rgba(76, 175, 80, 0.1)',
+        bottomColor: 'rgba(76, 175, 80, 0.05)',
+        lineColor: 'transparent',
+        lineWidth: 0,
+    });
+    upperFillSeries.setData(upperData);
+
+    chart.timeScale().fitContent();
+}
+
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('chart-container')));
+</script>
+</body>
+</html>

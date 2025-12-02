@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>CSS Variables Chart</title>
+<script src="https://unpkg.com/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js"></script>
+<style>:root { --chart-bg: #ffffff; --chart-line: #e91e63; } * { margin: 0; padding: 0; } body { padding: 20px; } #container { width: 800px; height: 400px; }</style>
+</head><body>
+<div id="container"></div>
+<script>
+function runTestCase(container) {
+    const chartBg = getComputedStyle(document.documentElement).getPropertyValue('--chart-bg').trim();
+    const chartLine = getComputedStyle(document.documentElement).getPropertyValue('--chart-line').trim();
+    // Use LightweightCharts directly
+    const chart = LightweightCharts.createChart(document.getElementById('container'), { width: 800, height: 400, layout: { background: { color: chartBg } } });
+    const series = chart.addSeries(LightweightCharts.LineSeries);
+            series.applyOptions({ color: chartLine, lineWidth: 2 });
+    const data = []; for (let i = 0; i < 40; i++) data.push({ time: '2024-01-'+String(i+1).padStart(2,'0'), value: 100+i*0.5+Math.sin(i/5)*10 });
+    series.setData(data); chart.timeScale().fitContent();
+}
+window.testCaseReady = Promise.resolve(runTestCase(document.getElementById('container')));
+</script></body></html>
