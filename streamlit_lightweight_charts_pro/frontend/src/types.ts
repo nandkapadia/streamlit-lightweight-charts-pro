@@ -129,7 +129,8 @@ export interface Annotation {
   price: number;
   text: string;
   type: 'text' | 'arrow' | 'shape' | 'line' | 'rectangle' | 'circle';
-  position: 'above' | 'below' | 'inline';
+  /** Position relative to bar. 'above'/'below' are converted to 'aboveBar'/'belowBar' */
+  position: 'aboveBar' | 'belowBar' | 'inBar' | 'above' | 'below';
   color?: string;
   backgroundColor?: string;
   fontSize?: number;

@@ -38,6 +38,7 @@ export default [
   // TypeScript configuration with type-aware rules (selective)
   {
     files: ['**/*.{ts,tsx}'],
+    ignores: ['**/__tests__/**/*', '**/*.test.*', '**/*.spec.*'],
     languageOptions: {
       parser: typescript.parser,
       parserOptions: {
@@ -56,6 +57,7 @@ export default [
   // React and general rules
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
+    ignores: ['**/__tests__/**/*', '**/*.test.*', '**/*.spec.*'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

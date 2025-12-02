@@ -2515,6 +2515,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       };
     }, [cleanupCharts]);
 
+
     // React 18: Use deferredConfig for rendering optimizations
     const chartContainers = useMemo(() => {
       if (!deferredConfig || !deferredConfig.charts || deferredConfig.charts.length === 0) {

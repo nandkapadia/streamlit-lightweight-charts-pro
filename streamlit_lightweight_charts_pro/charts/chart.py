@@ -8,6 +8,7 @@ import time
 import uuid
 from typing import TYPE_CHECKING, Any, Optional, Union
 
+import streamlit as st
 from lightweight_charts_pro.charts import BaseChart
 from lightweight_charts_pro.charts.options import ChartOptions
 from lightweight_charts_pro.charts.series import Series

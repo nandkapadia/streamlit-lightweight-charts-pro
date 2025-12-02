@@ -10,7 +10,7 @@
  */
 
 import React, { useMemo, useEffect } from 'react';
-import { ButtonColors, ButtonDimensions, ButtonEffects } from '../primitives/PrimitiveDefaults';
+import { ButtonColors, ButtonDimensions, ButtonEffects } from '@lightweight-charts-pro/core';
 import { SeriesSettingsButton } from './buttons/types/SeriesSettingsButton';
 import { CollapseButton } from './buttons/types/CollapseButton';
 import { createButtonRegistry } from './buttons/base/ButtonRegistry';

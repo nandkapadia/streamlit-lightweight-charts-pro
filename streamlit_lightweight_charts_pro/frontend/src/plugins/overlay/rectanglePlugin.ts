@@ -37,11 +37,13 @@
  */
 
 import { IChartApi } from 'lightweight-charts';
-import { ChartReadyDetector } from '../../utils/chartReadyDetection';
-import { ResizeObserverManager } from '../../utils/resizeObserverManager';
-import { ChartCoordinateService } from '../../services/ChartCoordinateService';
-import { UniversalSpacing } from '../../primitives/PrimitiveDefaults';
-import { logger } from '../../utils/logger';
+import {
+  ChartReadyDetector,
+  ResizeObserverManager,
+  ChartCoordinateService,
+  UniversalSpacing,
+  logger,
+} from '@lightweight-charts-pro/core';
 
 /**
  * Configuration for a rectangle overlay.

@@ -9,6 +9,7 @@ import json
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Optional
 
+import streamlit as st
 import streamlit.components.v1 as components
 from lightweight_charts_pro.logging_config import get_logger
 
@@ -325,6 +326,28 @@ class ChartRenderer:
         Raises:
             ComponentNotAvailableError: If component cannot be loaded.
         """
+        # Render component (lazy loading is handled automatically via config)
+        return self._render_component(config, key, chart_options)
+
+    def _render_component(
+        self,
+        config: dict[str, Any],
+        key: str,
+        chart_options: Any,
+    ) -> Any:
+        """Internal method to render the Streamlit component.
+
+        Args:
+            config: Complete frontend configuration.
+            key: Unique key for the Streamlit component.
+            chart_options: Chart options for extracting height/width.
+
+        Returns:
+            The rendered Streamlit component.
+
+        Raises:
+            ComponentNotAvailableError: If component cannot be loaded.
+        """
         # Get component function
         component_func = get_component_func()
 
@@ -365,11 +388,6 @@ class ChartRenderer:
             session_state_manager: SessionStateManager for config persistence.
         """
         if response and isinstance(response, dict):
-            # Handle lazy loading history requests
-            if response.get("type") == "load_history":
-                self._handle_lazy_loading_request(response, key)
-                return
-
             # Check if we have series config changes from the frontend
             if response.get("type") == "series_config_changes":
                 changes = response.get("changes", [])
@@ -487,48 +505,3 @@ class ChartRenderer:
         except (KeyError, ValueError, TypeError, AttributeError):
             logger.exception("Error handling series settings response")
 
-    def _handle_lazy_loading_request(self, response: dict, key: str) -> None:
-        """Handle lazy loading history request from the frontend.
-
-        Args:
-            response: History request data from frontend.
-            key: Component key for session state.
-        """
-        try:
-            from streamlit_lightweight_charts_pro.lazy_loading import (
-                handle_lazy_load_response,
-            )
-
-            # Get history data from lazy loading manager
-            history_data = handle_lazy_load_response(response, key)
-
-            if history_data:
-                message_id = response.get("messageId", "")
-                # Escape message_id to prevent XSS attacks
-                safe_message_id = html.escape(str(message_id))
-                # Send response back to frontend via custom event
-                components.html(
-                    f"""
-                <script>
-                document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
-                    detail: {{
-                        messageId: '{safe_message_id}',
-                        response: {json.dumps(history_data)}
-                    }}
-                }}));
-                </script>
-                """,
-                    height=0,
-                )
-                logger.debug(
-                    "Sent lazy loading response for series %s with %d points",
-                    history_data.get("seriesId"),
-                    len(history_data.get("data", [])),
-                )
-            else:
-                logger.warning(
-                    "No history data found for series %s",
-                    response.get("seriesId"),
-                )
-        except (ImportError, KeyError, ValueError, TypeError):
-            logger.exception("Error handling lazy loading request")
