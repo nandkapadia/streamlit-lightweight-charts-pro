@@ -68,14 +68,17 @@ def generate_sample_data(points: int = 100) -> dict:
     base_time = datetime(2024, 1, 1)
     times = [(base_time + timedelta(hours=i)).strftime("%Y-%m-%dT%H:%M:%S") for i in range(points)]
 
-    # OHLCV data with realistic trends
+    # OHLCV data with realistic trends (dynamically scaled to point count)
     ohlcv_data = []
     base_price = 100
+
+    # Scale trend phases based on number of points
+    quarter = points // 4
     trend_phases = [
-        (0, 25, 1.5),  # Uptrend
-        (25, 50, -1.2),  # Downtrend
-        (50, 75, 2.0),  # Strong uptrend
-        (75, 100, -0.8),  # Mild downtrend
+        (0, quarter, 1.5),  # Uptrend
+        (quarter, quarter * 2, -1.2),  # Downtrend
+        (quarter * 2, quarter * 3, 2.0),  # Strong uptrend
+        (quarter * 3, points, -0.8),  # Mild downtrend
     ]
 
     for i in range(points):
@@ -278,16 +281,26 @@ def main():
     with col1:
         st.title("✓ Quick Visual Test")
     with col2:
-        data_points = st.number_input("Points", 50, 200, 100, 25, label_visibility="collapsed")
+        data_points = st.number_input("Points", 50, 2500, 100, 50, label_visibility="collapsed")
     with col3:
         if st.button("🔄 Regenerate", use_container_width=True):
+            # Clear any cached data to force regeneration
+            if 'data_seed' not in st.session_state:
+                st.session_state.data_seed = 0
+            st.session_state.data_seed += 1
             st.rerun()
 
-    # Generate data
+    # Generate data with seed for reproducibility
+    if 'data_seed' not in st.session_state:
+        st.session_state.data_seed = 0
+
+    # Use seed to ensure unique keys for charts when data changes
+    seed = st.session_state.data_seed
+
     with st.spinner("Generating data..."):
         data = generate_sample_data(data_points)
 
-    st.success(f"✅ Generated {data_points} points • Ready for visual check")
+    st.success(f"✅ Generated {data_points} points • Ready for visual check (seed: {seed})")
 
     # Organized in 2-column layout for quick scanning
     st.subheader("📊 Built-in Series")
@@ -295,17 +308,17 @@ def main():
 
     with col1:
         st.write("**Line**")
-        Chart(series=LineSeries(data=data["line_data"])).render(key="line")
+        Chart(series=LineSeries(data=data["line_data"])).render(key=f"line_{seed}")
 
         st.write("**Candlestick**")
-        Chart(series=CandlestickSeries(data=data["ohlcv_data"])).render(key="candle")
+        Chart(series=CandlestickSeries(data=data["ohlcv_data"])).render(key=f"candle_{seed}")
 
         st.write("**Area**")
-        Chart(series=AreaSeries(data=data["line_data"])).render(key="area")
+        Chart(series=AreaSeries(data=data["line_data"])).render(key=f"area_{seed}")
 
     with col2:
         st.write("**Histogram**")
-        Chart(series=HistogramSeries(data=data["volume_data"])).render(key="histogram")
+        Chart(series=HistogramSeries(data=data["volume_data"])).render(key=f"histogram_{seed}")
 
         st.write("**Baseline (with RangeSwitcher + Legend)**")
 
@@ -361,10 +374,10 @@ def main():
                     ],
                 ),
             ),
-        ).render(key="baseline")
+        ).render(key=f"baseline_{seed}")
 
         st.write("**Bar**")
-        Chart(series=BarSeries(data=data["ohlcv_data"])).render(key="bar")
+        Chart(series=BarSeries(data=data["ohlcv_data"])).render(key=f"bar_{seed}")
 
     st.subheader("🎨 Custom Series")
     col1, col2 = st.columns(2)
@@ -390,7 +403,7 @@ def main():
         trend_fill_chart = Chart(
             series=[candlestick_tf, trend_fill_series1],
         )
-        trend_fill_chart.render(key="trend_fill")
+        trend_fill_chart.render(key=f"trend_fill_{seed}")
 
         st.write("**Band (with per-point color styling)**")
         st.caption("Red colors every 20th point")
@@ -401,7 +414,7 @@ def main():
             band.lower_line.color = "#2196F3"  # pylint: disable=no-member
             band.upper_fill_color = "rgba(33, 150, 243, 0.1)"
             band.lower_fill_color = "rgba(76, 175, 80, 0.1)"
-            Chart(series=band).render(key="band")
+            Chart(series=band).render(key=f"band_{seed}")
         except Exception as e:
             st.error(f"Error rendering band: {e}")
 
@@ -411,7 +424,7 @@ def main():
         ribbon.upper_line.color = "#4CAF50"  # pylint: disable=no-member
         ribbon.lower_line.color = "#F44336"  # pylint: disable=no-member
         ribbon.fill_color = "rgba(76, 175, 80, 0.1)"
-        Chart(series=ribbon).render(key="ribbon")
+        Chart(series=ribbon).render(key=f"ribbon_{seed}")
 
     with col2:
         st.write("**Gradient Ribbon**")
@@ -425,7 +438,7 @@ def main():
                 LineSeries(data=data["line_data"]),
                 SignalSeries(data=data["signal_data"]),
             ],
-        ).render(key="signal")
+        ).render(key=f"signal_{seed}")
 
     st.subheader("🔧 Features")
     col1, col2 = st.columns(2)
@@ -439,7 +452,7 @@ def main():
         Chart(
             series=CandlestickSeries(data=data["ohlcv_data"]),
             annotations=annotations,
-        ).render(key="annotations")
+        ).render(key=f"annotations_{seed}")
 
         st.write("**Trades (Rectangles + Markers)**")
         trade_viz = TradeVisualizationOptions(
@@ -452,7 +465,7 @@ def main():
             options=ChartOptions(trade_visualization=trade_viz),
         )
         chart_with_trades.add_trades(data["trades"])
-        chart_with_trades.render(key="trades_both")
+        chart_with_trades.render(key=f"trades_both_{seed}")
 
         st.write("**Trades (Markers Only)**")
         trade_viz_markers = TradeVisualizationOptions(
@@ -469,7 +482,7 @@ def main():
             options=ChartOptions(trade_visualization=trade_viz_markers),
         )
         chart_markers_only.add_trades(data["trades"])
-        chart_markers_only.render(key="trades_markers")
+        chart_markers_only.render(key=f"trades_markers_{seed}")
 
     with col2:
         st.write("**Price + Volume (Overlay via Helper)**")
@@ -490,7 +503,7 @@ def main():
             price_type="candlestick",
             volume_kwargs={"up_color": "rgba(38,166,154,0.5)", "down_color": "rgba(239,83,80,0.5)"},
         )
-        price_volume_chart.render(key="price_volume_overlay")
+        price_volume_chart.render(key=f"price_volume_overlay_{seed}")
 
         st.write("**Multi-Pane (3 Panes)**")
         st.caption("Price + Volume + Indicator in separate panes")
@@ -500,7 +513,7 @@ def main():
                 HistogramSeries(data=data["volume_data"], pane_id=1),
                 LineSeries(data=data["line_data"], pane_id=2),
             ],
-        ).render(key="multi_pane_three")
+        ).render(key=f"multi_pane_three_{seed}")
 
     st.subheader("🎯 Multi-Series Chart (6-7 Series)")
     st.caption("Testing dialog box with multiple series - click legend to toggle visibility")
@@ -558,7 +571,7 @@ def main():
         ),
     )
 
-    multi_series_chart.render(key="multi_series_dialog_test")
+    multi_series_chart.render(key=f"multi_series_dialog_test_{seed}")
 
     st.subheader("📊 Linked Charts (ChartManager)")
     st.caption("Two charts synced via ChartManager - scroll/zoom one to sync both")
