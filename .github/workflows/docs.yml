@@ -60,7 +60,7 @@ jobs:
       - name: Install TypeScript dependencies
         working-directory: streamlit_lightweight_charts_pro/frontend
         run: |
-          npm ci
+          npm install
           npm install -D typedoc typedoc-plugin-markdown
 
       - name: Build Sphinx documentation
@@ -122,7 +122,7 @@ jobs:
 
       - name: Install TypeScript dependencies
         working-directory: streamlit_lightweight_charts_pro/frontend
-        run: npm ci
+        run: npm install
 
       - name: Validate JSDoc syntax
         working-directory: streamlit_lightweight_charts_pro/frontend
