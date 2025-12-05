@@ -14,7 +14,12 @@ from lightweight_charts_pro.charts.options.layout_options import (
 from lightweight_charts_pro.charts.options.ui_options import LegendOptions
 
 from streamlit_lightweight_charts_pro import AreaSeries, Chart, ChartOptions, LineSeries
-from streamlit_lightweight_charts_pro.data import AreaData, CandlestickData, HistogramData, LineData
+from streamlit_lightweight_charts_pro.data import (
+    AreaData,
+    CandlestickData,
+    HistogramData,
+    LineData,
+)
 
 # pylint: disable=no-member
 

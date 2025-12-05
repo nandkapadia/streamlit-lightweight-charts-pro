@@ -1,0 +1,149 @@
+# Pre-commit hooks for streamlit-lightweight-charts-pro
+# Dual-language project: Python + TypeScript/React
+#
+# Install: pre-commit install
+# Run manually: pre-commit run --all-files
+# Update hooks: pre-commit autoupdate
+
+repos:
+  # ==========================================================================
+  # General File Checks
+  # ==========================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: '(tsconfig.*\.json|package-lock\.json)'
+      - id: end-of-file-fixer
+        exclude: '(\.min\.(js|css)|build/|node_modules/)'
+      - id: trailing-whitespace
+        exclude: '(\.md|\.min\.(js|css)|build/|node_modules/)'
+      - id: detect-private-key
+
+  # ==========================================================================
+  # Python: Import Sorting
+  # ==========================================================================
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile', 'black', '--line-length', '99', '--float-to-top']
+        exclude: '^(streamlit_lightweight_charts_pro/frontend/|examples/)'
+
+  # ==========================================================================
+  # Python: Remove Unused Imports
+  # ==========================================================================
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.2.1
+    hooks:
+      - id: autoflake
+        args:
+          - '--in-place'
+          - '--remove-unused-variables'
+          - '--remove-all-unused-imports'
+        exclude: '^(streamlit_lightweight_charts_pro/frontend/|examples/)'
+
+  # ==========================================================================
+  # Python: Code Formatting
+  # ==========================================================================
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        args:
+          - '--line-length=99'
+          - '--preview'
+        exclude: '^(streamlit_lightweight_charts_pro/frontend/|examples/)'
+
+  # ==========================================================================
+  # Python: Linting
+  # ==========================================================================
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: ['--fix', '--exit-non-zero-on-fix']
+        exclude: '^(streamlit_lightweight_charts_pro/frontend/|examples/)'
+
+  # ==========================================================================
+  # Python: Docstring Validation
+  # ==========================================================================
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        args:
+          - '--convention=google'
+          - '--add-ignore=D100,D104,D105,D107'
+        exclude: '^(streamlit_lightweight_charts_pro/frontend/|tests/|examples/|setup\.py)'
+
+  # ==========================================================================
+  # TypeScript/JavaScript: Formatting
+  # ==========================================================================
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        types_or: [javascript, jsx, ts, tsx, json, css]
+        exclude: '(build/|node_modules/|package-lock\.json|\.min\.(js|css))'
+        files: '^streamlit_lightweight_charts_pro/frontend/src/'
+
+  # ==========================================================================
+  # Local Hooks (Custom)
+  # ==========================================================================
+  - repo: local
+    hooks:
+      # TypeScript: ESLint
+      - id: eslint-fix
+        name: ESLint (TypeScript)
+        entry: bash -c 'cd streamlit_lightweight_charts_pro/frontend && npx eslint --fix "src/**/*.{ts,tsx}"'
+        language: system
+        types: [file]
+        files: '\.(ts|tsx)$'
+        exclude: '(build/|node_modules/|\.config\.(js|ts))'
+        pass_filenames: false
+
+      # TypeScript: Type Check
+      - id: tsc-check
+        name: TypeScript Compile Check
+        entry: bash -c 'cd streamlit_lightweight_charts_pro/frontend && npx tsc --noEmit'
+        language: system
+        types: [typescript, tsx]
+        files: '^streamlit_lightweight_charts_pro/frontend/src/'
+        pass_filenames: false
+
+      # TypeScript: Validate JSDoc Syntax
+      - id: validate-jsdoc
+        name: Validate JSDoc Syntax
+        entry: bash -c 'cd streamlit_lightweight_charts_pro/frontend && npx eslint --no-eslintrc --plugin jsdoc --rule "jsdoc/check-syntax: error" --rule "jsdoc/check-param-names: error" --rule "jsdoc/require-param-type: error" --rule "jsdoc/require-returns-type: error" "src/**/*.{ts,tsx}" 2>&1 | grep -E "(error|warning)" && exit 1 || exit 0'
+        language: system
+        types: [typescript, tsx]
+        files: '^streamlit_lightweight_charts_pro/frontend/src/'
+        pass_filenames: false
+
+      # Ensure frontend build exists
+      - id: check-frontend-build
+        name: Check Frontend Build Exists
+        entry: bash -c 'if [ ! -d "streamlit_lightweight_charts_pro/frontend/build/static" ]; then echo "❌ Frontend build missing. Run: cd streamlit_lightweight_charts_pro/frontend && npm run build"; exit 1; fi'
+        language: system
+        pass_filenames: false
+        files: '^streamlit_lightweight_charts_pro/.*\.py$'
+
+# ==========================================================================
+# Configuration
+# ==========================================================================
+default_language_version:
+  python: python3.11
+  node: "20.10.0"
+
+default_stages: [commit]
+
+fail_fast: false
+
+minimum_pre_commit_version: '3.0.0'

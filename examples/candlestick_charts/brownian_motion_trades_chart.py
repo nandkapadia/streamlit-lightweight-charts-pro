@@ -424,7 +424,9 @@ def main():
         help="Height of the chart in pixels",
     )
 
-    show_grid = st.sidebar.checkbox("Show Grid", value=True, help="Display grid lines on the chart")
+    show_grid = st.sidebar.checkbox(
+        "Show Grid", value=True, help="Display grid lines on the chart"
+    )
 
     show_volume = st.sidebar.checkbox("Show Volume", value=True, help="Display volume histogram")
 
@@ -484,14 +486,14 @@ def main():
                     else "LONG"
                 ),
                 "Entry Time": (
-                    datetime.fromtimestamp(to_utc_timestamp(trade.entry_time)).strftime(
-                        "%Y-%m-%d %H:%M",
-                    )
+                    datetime.fromtimestamp(
+                        to_utc_timestamp(trade.entry_time)
+                    ).strftime("%Y-%m-%d %H:%M",)
                 ),
                 "Exit Time": (
-                    datetime.fromtimestamp(to_utc_timestamp(trade.exit_time)).strftime(
-                        "%Y-%m-%d %H:%M",
-                    )
+                    datetime.fromtimestamp(
+                        to_utc_timestamp(trade.exit_time)
+                    ).strftime("%Y-%m-%d %H:%M",)
                 ),
                 "Entry Price": f"${trade.entry_price:.2f}",
                 "Exit Price": f"${trade.exit_price:.2f}",
@@ -554,7 +556,10 @@ def main():
                 "volume": "volume",
             },
             price_type="candlestick",
-            volume_kwargs={"up_color": "rgba(38,166,154,0.5)", "down_color": "rgba(239,83,80,0.5)"},
+            volume_kwargs={
+                "up_color": "rgba(38,166,154,0.5)",
+                "down_color": "rgba(239,83,80,0.5)",
+            },
         )
     else:
         # Add only candlestick series without volume

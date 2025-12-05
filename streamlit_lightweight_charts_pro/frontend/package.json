@@ -100,7 +100,9 @@
     "code-quality": "npm run format && npm run lint && npm run type-check",
     "precommit": "npm run code-quality",
     "test:quick": "NODE_OPTIONS='--max-old-space-size=4096' vitest run src/__tests__/config src/__tests__/utils --pool=threads --no-coverage",
-    "test:batched": "bash run-tests-batched.sh"
+    "test:batched": "bash run-tests-batched.sh",
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch"
   },
   "browserslist": {
     "production": [

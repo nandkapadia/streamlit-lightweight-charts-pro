@@ -9,7 +9,6 @@ import json
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Optional
 
-import streamlit as st
 import streamlit.components.v1 as components
 from lightweight_charts_pro.logging_config import get_logger
 
@@ -326,7 +325,7 @@ class ChartRenderer:
         Raises:
             ComponentNotAvailableError: If component cannot be loaded.
         """
-        # Render component (lazy loading is handled automatically via config)
+        # Render component with frontend configuration
         return self._render_component(config, key, chart_options)
 
     def _render_component(
@@ -504,4 +503,3 @@ class ChartRenderer:
 
         except (KeyError, ValueError, TypeError, AttributeError):
             logger.exception("Error handling series settings response")
-

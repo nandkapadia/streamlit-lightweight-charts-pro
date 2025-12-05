@@ -219,7 +219,7 @@ def debug_component_status() -> dict[str, Any]:
         # Will be set to True if frontend directory exists
         "frontend_dir_exists": False,
         # Type of component function (or None if not initialized)
-        "component_type": (type(_component_func).__name__ if _component_func else None),
+        "component_type": type(_component_func).__name__ if _component_func else None,
     }
 
     # Only check filesystem paths in production mode

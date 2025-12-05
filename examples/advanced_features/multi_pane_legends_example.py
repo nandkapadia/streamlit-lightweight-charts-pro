@@ -240,7 +240,9 @@ multi_pane_chart.series[3].legend = LegendOptions(
     padding=5,
     margin=4,
     z_index=1000,
-    text="<div style='color: #9c27b0; font-size: 11px;'><strong>RSI (14)</strong>: $$value$$</div>",
+    text=(
+        "<div style='color: #9c27b0; font-size: 11px;'><strong>RSI (14)</strong>: $$value$$</div>"
+    ),
 )
 
 multi_pane_chart.series[5].legend = LegendOptions(

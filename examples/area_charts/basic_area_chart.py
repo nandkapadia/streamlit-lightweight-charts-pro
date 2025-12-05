@@ -43,7 +43,9 @@ def main():
     st.subheader("Method 2: Using DataFrame")
     st.write("Creating AreaSeries from pandas DataFrame:")
 
-    area_series_df = AreaSeries(data=df_data, column_mapping={"time": "datetime", "value": "value"})
+    area_series_df = AreaSeries(
+        data=df_data, column_mapping={"time": "datetime", "value": "value"}
+    )
 
     dataframe_chart = Chart()
     dataframe_chart.add_series(area_series_df)

@@ -24,6 +24,16 @@ from lightweight_charts_pro.charts.options.ui_options import (
     RangeSwitcherOptions,
     TimeRange,
 )
+from lightweight_charts_pro.data import (
+    BandData,
+    GradientRibbonData,
+    OhlcvData,
+    RibbonData,
+    SignalData,
+    SingleValueData,
+    TradeData,
+    TrendFillData,
+)
 from lightweight_charts_pro.type_definitions.colors import BackgroundSolid
 from lightweight_charts_pro.type_definitions.enums import TradeVisualization
 
@@ -43,16 +53,6 @@ from streamlit_lightweight_charts_pro import (
     TrendFillSeries,
     create_arrow_annotation,
     create_text_annotation,
-)
-from lightweight_charts_pro.data import (
-    BandData,
-    GradientRibbonData,
-    OhlcvData,
-    RibbonData,
-    SignalData,
-    SingleValueData,
-    TradeData,
-    TrendFillData,
 )
 
 
@@ -229,7 +229,9 @@ def generate_sample_data(points: int = 100) -> dict:
     # Signal data (buy/sell markers)
     # Create alternating signal values: False (neutral) and True (signal)
     # Both bool and int (0, 1, 2) are supported - frontend converts bool to int automatically
-    signal_data = [SignalData(time=times[i], value=bool((i // 8) % 2)) for i in range(0, points, 8)]
+    signal_data = [
+        SignalData(time=times[i], value=bool((i // 8) % 2)) for i in range(0, points, 8)
+    ]
 
     # Trade data
     trades = [
@@ -285,13 +287,13 @@ def main():
     with col3:
         if st.button("🔄 Regenerate", use_container_width=True):
             # Clear any cached data to force regeneration
-            if 'data_seed' not in st.session_state:
+            if "data_seed" not in st.session_state:
                 st.session_state.data_seed = 0
             st.session_state.data_seed += 1
             st.rerun()
 
     # Generate data with seed for reproducibility
-    if 'data_seed' not in st.session_state:
+    if "data_seed" not in st.session_state:
         st.session_state.data_seed = 0
 
     # Use seed to ensure unique keys for charts when data changes
@@ -501,7 +503,10 @@ def main():
                 "volume": "volume",
             },
             price_type="candlestick",
-            volume_kwargs={"up_color": "rgba(38,166,154,0.5)", "down_color": "rgba(239,83,80,0.5)"},
+            volume_kwargs={
+                "up_color": "rgba(38,166,154,0.5)",
+                "down_color": "rgba(239,83,80,0.5)",
+            },
         )
         price_volume_chart.render(key=f"price_volume_overlay_{seed}")
 

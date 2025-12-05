@@ -20,7 +20,9 @@ sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 def main():
     """Demonstrate customized CandlestickSeries functionality."""
     st.title("Customized Candlestick Chart Example")
-    st.write("This example shows how to customize candlestick charts with various styling options.")
+    st.write(
+        "This example shows how to customize candlestick charts with various styling options."
+    )
 
     # Get sample data
     candlestick_data = get_candlestick_data()

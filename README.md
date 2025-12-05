@@ -6,14 +6,25 @@
 
 **Professional-grade financial charting library for Streamlit applications**
 
-Streamlit Lightweight Charts Pro is a comprehensive Streamlit wrapper that brings TradingView's powerful lightweight-charts library to Streamlit with an intuitive, fluent API. Built on top of `lightweight-charts-core`, it provides seamless integration with Streamlit's component system.
+Streamlit Lightweight Charts Pro is a comprehensive Streamlit wrapper that brings TradingView's powerful lightweight-charts library to Streamlit with an intuitive, fluent API. Built on top of `lightweight-charts-pro`, it provides seamless integration with Streamlit's component system.
 
 ## 📚 Documentation
 
-- **[Examples](examples/)** - Comprehensive code examples and tutorials
-- **[GitHub Repository](https://github.com/nandkapadia/streamlit-lightweight-charts-pro)** - Source code and issue tracking
-- **[PyPI Package](https://pypi.org/project/streamlit-lightweight-charts-pro/)** - Installation and package info
-- **[Migration Guide](MIGRATION.md)** - Upgrading from previous versions
+This project has comprehensive, multi-layered documentation:
+
+- **[📖 Official Documentation](https://nandkapadia.github.io/streamlit-lightweight-charts-pro/)** - Complete API reference, tutorials, and guides
+- **[📝 GitHub Wiki](https://github.com/nandkapadia/streamlit-lightweight-charts-pro/wiki)** - Quick-start guides, FAQ, code recipes, troubleshooting
+- **[🔧 Setup Guides](DOCUMENTATION.md)** - Documentation infrastructure and setup
+- **[📁 Examples](examples/)** - Comprehensive code examples and tutorials
+- **[🔄 Migration Guide](MIGRATION.md)** - Upgrading from previous versions
+
+### Quick Links
+
+- [Installation Guide](https://github.com/nandkapadia/streamlit-lightweight-charts-pro/wiki/Installation-Guide)
+- [Quick Start Tutorial](https://github.com/nandkapadia/streamlit-lightweight-charts-pro/wiki/Quick-Start-Tutorial)
+- [Code Recipes](https://github.com/nandkapadia/streamlit-lightweight-charts-pro/wiki/Code-Recipes) - 50+ copy-paste examples
+- [FAQ](https://github.com/nandkapadia/streamlit-lightweight-charts-pro/wiki/FAQ)
+- [Troubleshooting](https://github.com/nandkapadia/streamlit-lightweight-charts-pro/wiki/Troubleshooting)
 
 ## ✨ Features
 
@@ -84,10 +95,15 @@ renderChart([
 ## 🏗️ Architecture
 
 This package is a Streamlit-specific wrapper that:
-- Extends `BaseChart` and `BaseChartManager` from `lightweight-charts-core`
-- Provides Streamlit component integration
+- Extends `BaseChart` and `BaseChartManager` from `lightweight-charts-pro`
+- Provides Streamlit component integration via custom React component
 - Manages session state and component lifecycle
 - Renders charts using Streamlit's bi-directional component system
+
+The package consists of:
+- **Python wrapper**: Streamlit integration and session state management
+- **React frontend**: Custom TypeScript/React component built on TradingView's lightweight-charts
+- **Core dependency**: `lightweight-charts-pro` provides chart classes and utilities
 
 ## 📖 Examples
 
@@ -100,7 +116,7 @@ Check out the `examples/` directory for comprehensive examples:
 
 ## 🔄 Migration from v0.2.x to v0.3.x
 
-Version 0.3.0 introduces a new architecture with `lightweight-charts-core` as a separate package. See [MIGRATION.md](MIGRATION.md) for details on updating your code.
+Version 0.3.0 renames the core dependency from `lightweight-charts-core` to `lightweight-charts-pro`. See [MIGRATION.md](MIGRATION.md) for details on updating your code.
 
 ## 📄 License
 

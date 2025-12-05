@@ -1,0 +1,45 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "Streamlit Lightweight Charts Pro - Frontend API",
+  "entryPoints": ["./src"],
+  "entryPointStrategy": "expand",
+  "out": "../../docs/typescript",
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/node_modules/**",
+    "**/build/**",
+    "**/__tests__/**"
+  ],
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeExternals": true,
+  "includeVersion": true,
+  "readme": "../../README.md",
+  "plugin": ["typedoc-plugin-markdown"],
+  "theme": "default",
+  "categorizeByGroup": true,
+  "defaultCategory": "Other",
+  "categoryOrder": [
+    "Components",
+    "Hooks",
+    "Services",
+    "Primitives",
+    "Utils",
+    "Types",
+    "*"
+  ],
+  "sort": ["source-order"],
+  "searchInComments": true,
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": false
+  },
+  "commentStyle": "all",
+  "jsDocCompatibility": true,
+  "emit": "docs",
+  "compilerOptions": {
+    "skipLibCheck": true
+  }
+}

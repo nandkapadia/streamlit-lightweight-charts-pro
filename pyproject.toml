@@ -14,7 +14,7 @@ dependencies = [
     "streamlit>=1.0",
     "pandas>=1.0",
     "numpy>=1.19",
-    "lightweight-charts-pro @ file:///Users/nandkapadia/lightweight-charts-pro-python",
+    "lightweight-charts-pro @ git+https://github.com/nandkapadia/lightweight-charts-pro-python.git@dev",
 ]
 keywords = ["streamlit", "tradingview", "charts", "visualization", "trading", "financial"]
 classifiers = [

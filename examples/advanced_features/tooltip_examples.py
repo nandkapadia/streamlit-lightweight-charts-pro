@@ -211,7 +211,9 @@ def example_multi_series_tooltip():
 def example_trade_tooltip():
     """Example 4: Trade tooltip with trade visualization."""
     st.header("Example 4: Trade Tooltip with Trade Visualization")
-    st.write("This example shows trades with custom tooltips using the trade visualization system.")
+    st.write(
+        "This example shows trades with custom tooltips using the trade visualization system."
+    )
 
     ohlc_data, _, _ = create_sample_data()
     trades = create_sample_trades()

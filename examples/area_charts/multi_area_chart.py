@@ -109,7 +109,9 @@ def main():
     st.write("Showing three different datasets with distinct styling:")
 
     # Create a third dataset by scaling the line data
-    scaled_data = [type(point)(time=point.time, value=point.value * 2 + 100) for point in line_data]
+    scaled_data = [
+        type(point)(time=point.time, value=point.value * 2 + 100) for point in line_data
+    ]
 
     # Area 1 - Solid style
     area1_style = AreaSeries(

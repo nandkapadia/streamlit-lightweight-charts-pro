@@ -29,7 +29,12 @@ from streamlit_lightweight_charts_pro import (
     HistogramSeries,
     LineSeries,
 )
-from streamlit_lightweight_charts_pro.data import AreaData, CandlestickData, HistogramData, LineData
+from streamlit_lightweight_charts_pro.data import (
+    AreaData,
+    CandlestickData,
+    HistogramData,
+    LineData,
+)
 
 # pylint: disable=no-member
 

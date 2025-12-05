@@ -49,7 +49,9 @@ def main():
     st.write(df_data.head())
 
     # Create series with DataFrame and column mapping
-    series_from_df = LineSeries(data=df_data, column_mapping={"time": "datetime", "value": "close"})
+    series_from_df = LineSeries(
+        data=df_data, column_mapping={"time": "datetime", "value": "close"}
+    )
 
     st.write("**Series from DataFrame:**")
     st.write(f"Number of data points: {len(series_from_df.data)}")

@@ -49,7 +49,9 @@ def generate_sample_data():
 
 def main():
     st.title("Auto-Size and Double-Click FitContent Example")
-    st.write("This example demonstrates auto-sizing and double-click to fit content functionality.")
+    st.write(
+        "This example demonstrates auto-sizing and double-click to fit content functionality."
+    )
 
     # Generate sample data
     data = generate_sample_data()

@@ -20,7 +20,9 @@ sys.path.insert(0, str(Path(__file__).parent / ".." / ".."))
 def main():
     """Demonstrate basic Series functionality."""
     st.title("Basic Series Usage")
-    st.write("This example shows the fundamental Series functionality that all series types share.")
+    st.write(
+        "This example shows the fundamental Series functionality that all series types share."
+    )
 
     # Get sample data
     data = get_line_data()

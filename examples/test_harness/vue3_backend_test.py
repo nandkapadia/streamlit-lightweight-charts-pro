@@ -681,7 +681,7 @@ def main():
         )
 
         st.code(
-            "# Run Vue3 tests\n" "cd packages/vue3\n" "npm test",
+            "# Run Vue3 tests\ncd packages/vue3\nnpm test",
             language="bash",
         )
 

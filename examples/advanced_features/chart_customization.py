@@ -64,7 +64,9 @@ def create_sample_data():
 def main():
     """Demonstrate chart customization options."""
     st.title("🎨 Chart Customization")
-    st.markdown("Learn how to customize your charts with colors, styles, and professional options.")
+    st.markdown(
+        "Learn how to customize your charts with colors, styles, and professional options."
+    )
 
     # Get sample data
     data = create_sample_data()

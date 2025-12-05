@@ -1,0 +1,138 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'docs/**'
+      - 'streamlit_lightweight_charts_pro/**/*.py'
+      - 'streamlit_lightweight_charts_pro/frontend/src/**/*.ts'
+      - 'streamlit_lightweight_charts_pro/frontend/src/**/*.tsx'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'docs/**'
+      - 'streamlit_lightweight_charts_pro/**/*.py'
+      - 'streamlit_lightweight_charts_pro/frontend/src/**/*.ts'
+      - 'streamlit_lightweight_charts_pro/frontend/src/**/*.tsx'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: streamlit_lightweight_charts_pro/frontend/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install sphinx sphinx-rtd-theme
+
+      - name: Install TypeScript dependencies
+        working-directory: streamlit_lightweight_charts_pro/frontend
+        run: |
+          npm ci
+          npm install -D typedoc typedoc-plugin-markdown
+
+      - name: Build Sphinx documentation
+        working-directory: docs
+        run: |
+          sphinx-build -b html source build/html -W --keep-going
+
+      - name: Build TypeDoc documentation
+        working-directory: streamlit_lightweight_charts_pro/frontend
+        run: |
+          npm run docs
+
+      - name: Combine documentation
+        run: |
+          mkdir -p docs/build/html/typescript
+          cp -r docs/typescript/* docs/build/html/typescript/ || true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/build/html
+
+  deploy-docs:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  validate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check Python docstrings
+        run: |
+          pip install pydocstyle
+          pydocstyle streamlit_lightweight_charts_pro \
+            --convention=google \
+            --add-ignore=D100,D104,D105,D107 \
+            --exclude=frontend,tests,examples,setup.py
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install TypeScript dependencies
+        working-directory: streamlit_lightweight_charts_pro/frontend
+        run: npm ci
+
+      - name: Validate JSDoc syntax
+        working-directory: streamlit_lightweight_charts_pro/frontend
+        run: |
+          npx eslint \
+            --no-eslintrc \
+            --plugin jsdoc \
+            --rule "jsdoc/check-syntax: error" \
+            --rule "jsdoc/check-param-names: error" \
+            --rule "jsdoc/require-param-type: error" \
+            --rule "jsdoc/require-returns-type: error" \
+            "src/**/*.{ts,tsx}"

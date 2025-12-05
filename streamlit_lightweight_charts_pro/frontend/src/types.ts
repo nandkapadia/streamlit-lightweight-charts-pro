@@ -325,9 +325,6 @@ export interface SeriesConfig {
   tooltip?: TooltipConfig; // Add tooltip configuration
   legend?: LegendData | null; // Add series-level legend support
   paneId?: number; // Add support for multi-pane charts
-  // Lazy loading configuration
-  lazyLoading?: LazyLoadingConfig;
-  seriesId?: string; // Unique series identifier for lazy loading
   // Signal series support
   signalData?: SignalData[];
 
@@ -561,85 +558,6 @@ export interface TooltipConfig {
   dateFormat?: string;
   showTime?: boolean;
   timeFormat?: string;
-}
-
-// Lazy Loading Types
-/**
- * Configuration for lazy loading of chart data.
- * When enabled, only initial chunk is loaded and more data
- * is requested as user scrolls/pans the chart.
- */
-export interface LazyLoadingConfig {
-  /** Whether lazy loading is enabled for this series */
-  enabled: boolean;
-  /** Total count of data points available */
-  totalCount: number;
-  /** Size of each chunk to load */
-  chunkSize: number;
-  /** Whether there's more data before the current range */
-  hasMoreBefore: boolean;
-  /** Whether there's more data after the current range */
-  hasMoreAfter: boolean;
-  /** Information about the current chunk */
-  chunkInfo?: ChunkInfo;
-}
-
-/**
- * Information about a loaded data chunk.
- */
-export interface ChunkInfo {
-  /** Start index in the full dataset */
-  startIndex: number;
-  /** End index in the full dataset */
-  endIndex: number;
-  /** Earliest timestamp in the chunk */
-  startTime: number;
-  /** Latest timestamp in the chunk */
-  endTime: number;
-  /** Number of data points in the chunk */
-  count: number;
-}
-
-/**
- * Request for historical data from the backend.
- */
-export interface HistoryRequest {
-  /** Type identifier for the request */
-  type: 'load_history';
-  /** ID of the chart requesting data */
-  chartId: string;
-  /** ID of the pane containing the series */
-  paneId: number;
-  /** ID of the series requesting data */
-  seriesId: string;
-  /** Load data before this timestamp */
-  beforeTime: number;
-  /** Direction of load ('before' for older, 'after' for newer) */
-  direction: 'before' | 'after';
-  /** Number of data points to load */
-  count: number;
-  /** Unique message ID for tracking */
-  messageId: string;
-}
-
-/**
- * Response containing historical data from the backend.
- */
-export interface HistoryResponse {
-  /** Series ID the data belongs to */
-  seriesId: string;
-  /** Pane ID the series belongs to */
-  paneId: number;
-  /** The loaded data points */
-  data: SeriesDataPoint[];
-  /** Updated chunk information */
-  chunkInfo: ChunkInfo;
-  /** Whether there's more data before this chunk */
-  hasMoreBefore: boolean;
-  /** Whether there's more data after this chunk */
-  hasMoreAfter: boolean;
-  /** Total data points available */
-  totalCount: number;
 }
 
 // Extend Window interface for chart plugins

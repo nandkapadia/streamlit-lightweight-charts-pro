@@ -246,14 +246,14 @@ def main():
                     else "LONG"
                 ),
                 "Entry Time": (
-                    datetime.fromtimestamp(to_utc_timestamp(trade.entry_time)).strftime(
-                        "%Y-%m-%d %H:%M",
-                    )
+                    datetime.fromtimestamp(
+                        to_utc_timestamp(trade.entry_time)
+                    ).strftime("%Y-%m-%d %H:%M",)
                 ),
                 "Exit Time": (
-                    datetime.fromtimestamp(to_utc_timestamp(trade.exit_time)).strftime(
-                        "%Y-%m-%d %H:%M",
-                    )
+                    datetime.fromtimestamp(
+                        to_utc_timestamp(trade.exit_time)
+                    ).strftime("%Y-%m-%d %H:%M",)
                 ),
                 "Entry Price": f"${trade.entry_price:.2f}",
                 "Exit Price": f"${trade.exit_price:.2f}",

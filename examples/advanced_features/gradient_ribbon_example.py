@@ -33,7 +33,9 @@ def create_sample_gradient_data():
         gradient_value = 0.3 + 0.4 * (i / len(dates)) + 0.3 * (i % 15) / 15
 
         data.append(
-            GradientRibbonData(str(date.date()), upper=upper, lower=lower, gradient=gradient_value),
+            GradientRibbonData(
+                str(date.date()), upper=upper, lower=lower, gradient=gradient_value
+            ),
         )
 
     return data

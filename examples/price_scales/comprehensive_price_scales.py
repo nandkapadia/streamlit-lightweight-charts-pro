@@ -49,18 +49,26 @@ def generate_sample_data():
     price_dataframe = pd.DataFrame(
         {
             "time": dates,
-            "open": 100
-            + pd.Series(range(100)).cumsum() * 0.5
-            + pd.Series(range(100)).apply(lambda x: (-1) ** x * 2),
-            "high": 102
-            + pd.Series(range(100)).cumsum() * 0.5
-            + pd.Series(range(100)).apply(lambda x: (-1) ** x * 3),
-            "low": 98
-            + pd.Series(range(100)).cumsum() * 0.5
-            + pd.Series(range(100)).apply(lambda x: (-1) ** x * 1),
-            "close": 101
-            + pd.Series(range(100)).cumsum() * 0.5
-            + pd.Series(range(100)).apply(lambda x: (-1) ** x * 2),
+            "open": (
+                100
+                + pd.Series(range(100)).cumsum() * 0.5
+                + pd.Series(range(100)).apply(lambda x: (-1) ** x * 2)
+            ),
+            "high": (
+                102
+                + pd.Series(range(100)).cumsum() * 0.5
+                + pd.Series(range(100)).apply(lambda x: (-1) ** x * 3)
+            ),
+            "low": (
+                98
+                + pd.Series(range(100)).cumsum() * 0.5
+                + pd.Series(range(100)).apply(lambda x: (-1) ** x * 1)
+            ),
+            "close": (
+                101
+                + pd.Series(range(100)).cumsum() * 0.5
+                + pd.Series(range(100)).apply(lambda x: (-1) ** x * 2)
+            ),
             "volume": [1000000 + i * 10000 for i in range(100)],
         }
     )

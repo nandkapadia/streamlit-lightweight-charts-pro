@@ -139,7 +139,9 @@ EXAMPLE_CATEGORIES = {
             },
             "multi_pane_charts.py": {
                 "title": "Multi-Pane Charts",
-                "description": "Create professional multi-pane charts with different series types.",
+                "description": (
+                    "Create professional multi-pane charts with different series types."
+                ),
                 "path": "advanced_features/multi_pane_charts.py",
             },
             "interactive_features.py": {

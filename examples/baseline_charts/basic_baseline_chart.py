@@ -106,7 +106,9 @@ def main():
     # Show baseline configuration
     st.subheader("Baseline Configuration")
     st.write(f"Base value: {baseline_series.base_value}")  # pylint: disable=no-member
-    st.write(f"Relative gradient: {baseline_series.relative_gradient}")  # pylint: disable=no-member
+    st.write(
+        f"Relative gradient: {baseline_series.relative_gradient}"
+    )  # pylint: disable=no-member
 
     # Show the raw data
     st.subheader("Raw Data")

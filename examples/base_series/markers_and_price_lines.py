@@ -190,7 +190,9 @@ def main():
 
     # Add multiple price lines
     multi_lines_series.add_price_line(PriceLineOptions(price=30.0, color="#FF0000", title="Upper"))
-    multi_lines_series.add_price_line(PriceLineOptions(price=25.0, color="#00FF00", title="Middle"))
+    multi_lines_series.add_price_line(
+        PriceLineOptions(price=25.0, color="#00FF00", title="Middle")
+    )
     multi_lines_series.add_price_line(PriceLineOptions(price=20.0, color="#0000FF", title="Lower"))
 
     chart = Chart(series=multi_lines_series)
@@ -245,7 +247,9 @@ def main():
             text="Initial",
         ),
     )
-    management_series.add_price_line(PriceLineOptions(price=30.0, color="#FF0000", title="Initial"))
+    management_series.add_price_line(
+        PriceLineOptions(price=30.0, color="#FF0000", title="Initial")
+    )
 
     st.write("**Initial Configuration:**")
     st.write(f"Number of markers: {len(management_series.markers)}")

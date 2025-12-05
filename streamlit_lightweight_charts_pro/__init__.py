@@ -106,14 +106,7 @@ from streamlit_lightweight_charts_pro.data import (
     SingleValueData,
 )
 
-# Import lazy loading support
-from streamlit_lightweight_charts_pro.lazy_loading import (
-    CHUNK_SIZE_THRESHOLD,
-    DEFAULT_CHUNK_SIZE,
-    LazyLoadingManager,
-    get_lazy_loading_manager,
-    lazy_chart,
-)
+# Local Imports
 from streamlit_lightweight_charts_pro.type_definitions import (
     ChartType,
     ColumnNames,
@@ -205,8 +198,6 @@ _check_frontend_build()
 # This list defines what is available when importing from the main package
 # Organized by category for better maintainability and documentation
 __all__ = [
-    "CHUNK_SIZE_THRESHOLD",
-    "DEFAULT_CHUNK_SIZE",
     # Data models
     "Annotation",
     "AnnotationLayer",
@@ -234,7 +225,6 @@ __all__ = [
     "HistogramData",
     "HistogramSeries",
     "LayoutOptions",
-    "LazyLoadingManager",
     "LegendOptions",
     "LineData",
     "LineSeries",
@@ -264,10 +254,7 @@ __all__ = [
     "create_arrow_annotation",
     "create_shape_annotation",
     "create_text_annotation",
-    "get_lazy_loading_manager",
     # Logging
     "get_logger",
-    # Lazy loading
-    "lazy_chart",
     "setup_logging",
 ]

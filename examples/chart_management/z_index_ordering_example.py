@@ -142,7 +142,12 @@ histogram_series_pane1.z_index = 15
 
 # Create multi-pane chart
 multi_pane_chart = Chart(
-    series=[line_series_pane0, candlestick_series_pane0, area_series_pane1, histogram_series_pane1],
+    series=[
+        line_series_pane0,
+        candlestick_series_pane0,
+        area_series_pane1,
+        histogram_series_pane1,
+    ],
 )
 multi_pane_chart.update_options(height=500, title="Multi-Pane Z-Index Ordering")
 
