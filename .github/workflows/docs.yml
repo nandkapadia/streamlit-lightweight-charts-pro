@@ -57,26 +57,10 @@ jobs:
           pip install -e ".[dev]"
           pip install sphinx sphinx-rtd-theme
 
-      - name: Install TypeScript dependencies
-        working-directory: streamlit_lightweight_charts_pro/frontend
-        run: |
-          npm install
-          npm install -D typedoc typedoc-plugin-markdown
-
       - name: Build Sphinx documentation
         working-directory: docs
         run: |
           sphinx-build -b html source build/html --keep-going
-
-      - name: Build TypeDoc documentation
-        working-directory: streamlit_lightweight_charts_pro/frontend
-        run: |
-          npm run docs
-
-      - name: Combine documentation
-        run: |
-          mkdir -p docs/build/html/typescript
-          cp -r docs/typescript/* docs/build/html/typescript/ || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -114,24 +98,3 @@ jobs:
             --add-ignore=D100,D104,D105,D107 \
             --match='.*\.py' \
             --match-dir='(?!frontend|tests|examples|__pycache__|build|dist)[^/]*'
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install TypeScript dependencies
-        working-directory: streamlit_lightweight_charts_pro/frontend
-        run: npm install
-
-      - name: Validate JSDoc syntax
-        working-directory: streamlit_lightweight_charts_pro/frontend
-        run: |
-          npx eslint \
-            --no-eslintrc \
-            --plugin jsdoc \
-            --rule "jsdoc/check-syntax:error" \
-            --rule "jsdoc/check-param-names:error" \
-            --rule "jsdoc/require-param-type:error" \
-            --rule "jsdoc/require-returns-type:error" \
-            "src/**/*.{ts,tsx}"
