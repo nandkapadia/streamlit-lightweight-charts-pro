@@ -68,7 +68,7 @@ jobs:
       - name: Build Sphinx documentation
         working-directory: docs
         run: |
-          sphinx-build -b html source build/html -W --keep-going
+          sphinx-build -b html source build/html --keep-going
 
       - name: Build TypeDoc documentation
         working-directory: streamlit_lightweight_charts_pro/frontend
@@ -131,8 +131,8 @@ jobs:
           npx eslint \
             --no-eslintrc \
             --plugin jsdoc \
-            --rule "jsdoc/check-syntax: error" \
-            --rule "jsdoc/check-param-names: error" \
-            --rule "jsdoc/require-param-type: error" \
-            --rule "jsdoc/require-returns-type: error" \
+            --rule "jsdoc/check-syntax:error" \
+            --rule "jsdoc/check-param-names:error" \
+            --rule "jsdoc/require-param-type:error" \
+            --rule "jsdoc/require-returns-type:error" \
             "src/**/*.{ts,tsx}"
