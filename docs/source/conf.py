@@ -13,6 +13,9 @@ import sys
 # Add project root to Python path for autodoc
 sys.path.insert(0, os.path.abspath("../.."))
 
+# Mock imports that fail during doc build
+autodoc_mock_imports = ['streamlit', 'streamlit.components.v1']
+
 # -- Project information -----------------------------------------------------
 project = "Streamlit Lightweight Charts Pro"
 copyright = "2025, Nand Kapadia"

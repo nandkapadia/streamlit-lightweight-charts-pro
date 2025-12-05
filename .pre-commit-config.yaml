@@ -114,23 +114,23 @@ repos:
         name: TypeScript Compile Check
         entry: bash -c 'cd streamlit_lightweight_charts_pro/frontend && npx tsc --noEmit'
         language: system
-        types: [typescript, tsx]
+        types: [ts, tsx]
         files: '^streamlit_lightweight_charts_pro/frontend/src/'
         pass_filenames: false
 
       # TypeScript: Validate JSDoc Syntax
       - id: validate-jsdoc
         name: Validate JSDoc Syntax
-        entry: bash -c 'cd streamlit_lightweight_charts_pro/frontend && npx eslint --no-eslintrc --plugin jsdoc --rule "jsdoc/check-syntax: error" --rule "jsdoc/check-param-names: error" --rule "jsdoc/require-param-type: error" --rule "jsdoc/require-returns-type: error" "src/**/*.{ts,tsx}" 2>&1 | grep -E "(error|warning)" && exit 1 || exit 0'
+        entry: bash -c 'cd streamlit_lightweight_charts_pro/frontend && npx eslint --no-eslintrc --plugin jsdoc --rule "jsdoc/check-syntax:error" --rule "jsdoc/check-param-names:error" --rule "jsdoc/require-param-type:error" --rule "jsdoc/require-returns-type:error" "src/**/*.{ts,tsx}" 2>&1 | grep -E "(error|warning)" && exit 1 || exit 0'
         language: system
-        types: [typescript, tsx]
+        types: [ts, tsx]
         files: '^streamlit_lightweight_charts_pro/frontend/src/'
         pass_filenames: false
 
       # Ensure frontend build exists
       - id: check-frontend-build
         name: Check Frontend Build Exists
-        entry: bash -c 'if [ ! -d "streamlit_lightweight_charts_pro/frontend/build/static" ]; then echo "❌ Frontend build missing. Run: cd streamlit_lightweight_charts_pro/frontend && npm run build"; exit 1; fi'
+        entry: bash -c 'if [ ! -d "streamlit_lightweight_charts_pro/frontend/build/static" ]; then echo "Frontend build missing. Run - cd streamlit_lightweight_charts_pro/frontend && npm run build"; exit 1; fi'
         language: system
         pass_filenames: false
         files: '^streamlit_lightweight_charts_pro/.*\.py$'

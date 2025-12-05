@@ -1,0 +1,43 @@
+[**Streamlit Lightweight Charts Pro - Frontend API v0.3.0**](../../../README.md)
+
+***
+
+[Streamlit Lightweight Charts Pro - Frontend API](../../../modules.md) / [components/ErrorBoundary](../README.md) / useErrorHandler
+
+# Function: useErrorHandler()
+
+> **useErrorHandler**(): `object`
+
+Defined in: [streamlit-lightweight-charts-pro/streamlit\_lightweight\_charts\_pro/frontend/src/components/ErrorBoundary.tsx:183](https://github.com/nandkapadia/streamlit-lightweight-charts-pro/blob/c6b373832ceaa92d00f67cbc4960ae43c5d25619/streamlit_lightweight_charts_pro/frontend/src/components/ErrorBoundary.tsx#L183)
+
+Hook for functional components
+
+## Returns
+
+`object`
+
+### error
+
+> **error**: `Error` \| `null`
+
+### handleError()
+
+> **handleError**: (`error`) => `void`
+
+#### Parameters
+
+##### error
+
+`Error`
+
+#### Returns
+
+`void`
+
+### clearError()
+
+> **clearError**: () => `void`
+
+#### Returns
+
+`void`

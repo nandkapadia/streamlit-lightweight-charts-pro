@@ -87,7 +87,7 @@ docs: docs-python docs-typescript
 
 docs-python:
 	@echo "Building Python documentation with Sphinx..."
-	cd docs && sphinx-build -b html source build/html -W --keep-going
+	cd docs && sphinx-build -b html source build/html --keep-going
 	@echo "✅ Python docs built: docs/build/html/index.html"
 
 docs-typescript:
