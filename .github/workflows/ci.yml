@@ -37,7 +37,7 @@ jobs:
     - name: Build frontend
       run: |
         cd streamlit_lightweight_charts_pro/frontend
-        npm ci
+        npm install
         npm run build
 
     - name: Run Python tests
@@ -71,7 +71,7 @@ jobs:
     - name: Build frontend
       run: |
         cd streamlit_lightweight_charts_pro/frontend
-        npm ci
+        npm install
         npm run build
 
     - name: Build Python package
