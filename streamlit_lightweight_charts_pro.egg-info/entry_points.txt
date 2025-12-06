@@ -1,2 +1,0 @@
-[console_scripts]
-streamlit-lightweight-charts-pro = streamlit_lightweight_charts_pro.cli:main
