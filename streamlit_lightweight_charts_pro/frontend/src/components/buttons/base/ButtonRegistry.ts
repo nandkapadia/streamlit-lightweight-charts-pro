@@ -6,8 +6,8 @@
  * buttons can be registered dynamically.
  */
 
-import { BaseButton } from './BaseButton';
-import { logger } from '@lightweight-charts-pro/core';
+import { BaseButton } from "./BaseButton";
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
 
 /**
  * Button registry singleton
@@ -32,15 +32,20 @@ export class ButtonRegistry {
     const id = button.getId();
 
     if (this.buttons.has(id)) {
-      logger.warn(`Button with ID '${id}' already registered, replacing`, 'ButtonRegistry');
+      logger.warn(
+        `Button with ID '${id}' already registered, replacing`,
+        "ButtonRegistry",
+      );
     }
 
     this.buttons.set(id, button);
 
     // Insert button in order based on priority
-    const insertIndex = this.buttonOrder.findIndex(existingId => {
+    const insertIndex = this.buttonOrder.findIndex((existingId) => {
       const existingButton = this.buttons.get(existingId);
-      return (existingButton && priority < (existingButton as any).priority) || 100;
+      return (
+        (existingButton && priority < (existingButton as any).priority) || 100
+      );
     });
 
     if (insertIndex === -1) {
@@ -55,12 +60,15 @@ export class ButtonRegistry {
    */
   public unregister(id: string): void {
     if (!this.buttons.has(id)) {
-      logger.warn(`Button with ID '${id}' not found in registry`, 'ButtonRegistry');
+      logger.warn(
+        `Button with ID '${id}' not found in registry`,
+        "ButtonRegistry",
+      );
       return;
     }
 
     this.buttons.delete(id);
-    this.buttonOrder = this.buttonOrder.filter(buttonId => buttonId !== id);
+    this.buttonOrder = this.buttonOrder.filter((buttonId) => buttonId !== id);
   }
 
   /**
@@ -75,7 +83,7 @@ export class ButtonRegistry {
    */
   public getAllButtons(): BaseButton[] {
     return this.buttonOrder
-      .map(id => this.buttons.get(id))
+      .map((id) => this.buttons.get(id))
       .filter((button): button is BaseButton => button !== undefined);
   }
 
@@ -83,7 +91,7 @@ export class ButtonRegistry {
    * Get all visible buttons in order
    */
   public getVisibleButtons(): BaseButton[] {
-    return this.getAllButtons().filter(button => button.isVisible());
+    return this.getAllButtons().filter((button) => button.isVisible());
   }
 
   /**
@@ -113,9 +121,12 @@ export class ButtonRegistry {
    */
   public setButtonOrder(order: string[]): void {
     // Validate that all IDs exist
-    const invalidIds = order.filter(id => !this.buttons.has(id));
+    const invalidIds = order.filter((id) => !this.buttons.has(id));
     if (invalidIds.length > 0) {
-      logger.warn(`Invalid button IDs in order: ${invalidIds.join(', ')}`, 'ButtonRegistry');
+      logger.warn(
+        `Invalid button IDs in order: ${invalidIds.join(", ")}`,
+        "ButtonRegistry",
+      );
       return;
     }
 

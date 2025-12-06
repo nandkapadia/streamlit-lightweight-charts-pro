@@ -11,19 +11,29 @@
  * - Scroll arrows and fade indicators for many tabs
  */
 
-import React, { useState, useCallback, useTransition, useMemo, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { logger } from '@lightweight-charts-pro/core';
-import { LineEditorDialog } from './LineEditorDialog';
-import { ColorPickerDialog } from './ColorPickerDialog';
-import { SeriesSettingsRenderer } from '../components/SeriesSettingsRenderer';
-import { getSeriesSettings } from '../config/seriesSettingsRegistry';
+import React, {
+  useState,
+  useCallback,
+  useTransition,
+  useMemo,
+  useEffect,
+  useRef,
+} from "react";
+import { createPortal } from "react-dom";
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
+import { LineEditorDialog } from "./LineEditorDialog";
+import { ColorPickerDialog } from "./ColorPickerDialog";
+import { SeriesSettingsRenderer } from "../components/SeriesSettingsRenderer";
+import { getSeriesSettings } from "../config/seriesSettingsRegistry";
 import {
   apiOptionsToDialogConfig,
   dialogConfigToApiOptions,
-} from '../series/UnifiedPropertyMapper';
-import { toCss, extractColorAndOpacity } from '@lightweight-charts-pro/core';
-import '../styles/seriesConfigDialog.css';
+} from "../series/UnifiedPropertyMapper";
+import {
+  toCss,
+  extractColorAndOpacity,
+} from "@nandkapadia/lightweight-charts-pro-core";
+import "../styles/seriesConfigDialog.css";
 
 /**
  * Series configuration interface matching LightweightCharts API
@@ -42,18 +52,18 @@ export interface SeriesConfig {
 
   // Line series settings (matching LineSeriesOptions)
   color?: string;
-  lineStyle?: number | 'solid' | 'dashed' | 'dotted'; // Support both number and string
+  lineStyle?: number | "solid" | "dashed" | "dotted"; // Support both number and string
   lineWidth?: number;
 
   // Ribbon-specific settings (for ribbon series)
   upperLine?: {
     color?: string;
-    lineStyle?: 'solid' | 'dashed' | 'dotted';
+    lineStyle?: "solid" | "dashed" | "dotted";
     lineWidth?: number;
   };
   lowerLine?: {
     color?: string;
-    lineStyle?: 'solid' | 'dashed' | 'dotted';
+    lineStyle?: "solid" | "dashed" | "dotted";
     lineWidth?: number;
   };
   fill?: boolean;
@@ -68,17 +78,17 @@ export interface SeriesInfo {
   id: string;
   displayName: string;
   type:
-    | 'line'
-    | 'ribbon'
-    | 'area'
-    | 'candlestick'
-    | 'bar'
-    | 'histogram'
-    | 'supertrend'
-    | 'bollinger_bands'
-    | 'sma'
-    | 'ema'
-    | 'signal';
+    | "line"
+    | "ribbon"
+    | "area"
+    | "candlestick"
+    | "bar"
+    | "histogram"
+    | "supertrend"
+    | "bollinger_bands"
+    | "sma"
+    | "ema"
+    | "signal";
 }
 
 /**
@@ -86,7 +96,7 @@ export interface SeriesInfo {
  */
 export interface LineConfig {
   color: string;
-  style: 'solid' | 'dashed' | 'dotted';
+  style: "solid" | "dashed" | "dotted";
   width: number;
 }
 
@@ -123,7 +133,9 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   onSettingsChanged: _onSettingsChanged,
 }) => {
   // State management
-  const [activeSeriesId, setActiveSeriesId] = useState<string>(seriesList[0]?.id || '');
+  const [activeSeriesId, setActiveSeriesId] = useState<string>(
+    seriesList[0]?.id || "",
+  );
   const [lineEditorOpen, setLineEditorOpen] = useState<{
     isOpen: boolean;
     lineType?: string;
@@ -153,11 +165,11 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   useEffect(() => {
     const flatConfigsFromProps: Record<string, Partial<SeriesConfig>> = {};
 
-    seriesList.forEach(series => {
+    seriesList.forEach((series) => {
       if (seriesConfigs[series.id]) {
         flatConfigsFromProps[series.id] = dialogConfigToApiOptions(
           series.type,
-          seriesConfigs[series.id]
+          seriesConfigs[series.id],
         );
       }
     });
@@ -186,12 +198,13 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       }
 
       // Priority 4: Fall back to "Series Type + Number" format
-      const typeDisplayName = series.type.charAt(0).toUpperCase() + series.type.slice(1);
+      const typeDisplayName =
+        series.type.charAt(0).toUpperCase() + series.type.slice(1);
       const seriesNumber = index + 1;
       const fallbackTitle = `${typeDisplayName} Series ${seriesNumber}`;
       return fallbackTitle;
     },
-    [seriesConfigs]
+    [seriesConfigs],
   );
 
   // Store previously focused element for restoration
@@ -208,17 +221,18 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   }, []);
 
   // Handle scroll button clicks
-  const scrollTabs = useCallback((direction: 'left' | 'right') => {
+  const scrollTabs = useCallback((direction: "left" | "right") => {
     const container = tabContainerRef.current;
     if (!container) return;
 
     const scrollAmount = 200; // pixels to scroll
     const newScrollLeft =
-      container.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
+      container.scrollLeft +
+      (direction === "left" ? -scrollAmount : scrollAmount);
 
     container.scrollTo({
       left: newScrollLeft,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
   }, []);
 
@@ -239,7 +253,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
     // Add scroll event listener
     const handleScroll = () => updateScrollButtons();
-    container.addEventListener('scroll', handleScroll);
+    container.addEventListener("scroll", handleScroll);
 
     // Add resize observer to handle window resizing
     const resizeObserver = new ResizeObserver(() => {
@@ -250,7 +264,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
     return () => {
       clearTimeout(timeoutId);
-      container.removeEventListener('scroll', handleScroll);
+      container.removeEventListener("scroll", handleScroll);
       resizeObserver.disconnect();
     };
   }, [updateScrollButtons, seriesList]);
@@ -262,15 +276,15 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       previousFocusRef.current = document.activeElement as HTMLElement;
 
       // Add modal class to body
-      document.body.classList.add('modal-open', 'series-dialog-open');
+      document.body.classList.add("modal-open", "series-dialog-open");
 
       // Prevent body scroll
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
       // Restore body state when dialog closes
-      document.body.classList.remove('modal-open', 'series-dialog-open');
-      document.body.style.overflow = '';
-      document.body.style.pointerEvents = '';
+      document.body.classList.remove("modal-open", "series-dialog-open");
+      document.body.style.overflow = "";
+      document.body.style.pointerEvents = "";
 
       // Blur the previously focused element (button) to allow chart interaction
       setTimeout(() => {
@@ -279,7 +293,11 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           try {
             (previousFocusRef.current as HTMLElement).blur();
           } catch (error) {
-            logger.info('Could not blur previous element', 'SeriesSettings', error);
+            logger.info(
+              "Could not blur previous element",
+              "SeriesSettings",
+              error,
+            );
           }
         }
 
@@ -292,7 +310,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         }
 
         // Final check: ensure body doesn't block pointer events
-        document.body.style.pointerEvents = '';
+        document.body.style.pointerEvents = "";
       }, 50);
     }
   }, [isOpen]);
@@ -300,9 +318,9 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   // Cleanup effect to ensure body state is always reset on unmount
   useEffect(() => {
     return () => {
-      document.body.classList.remove('modal-open', 'series-dialog-open');
-      document.body.style.overflow = '';
-      document.body.style.pointerEvents = '';
+      document.body.classList.remove("modal-open", "series-dialog-open");
+      document.body.style.overflow = "";
+      document.body.style.pointerEvents = "";
     };
   }, []);
 
@@ -310,7 +328,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   const handleConfigChange = useCallback(
     async (seriesId: string, configPatch: Partial<SeriesConfig>) => {
       // Get series type for conversion
-      const series = seriesList.find(s => s.id === seriesId);
+      const series = seriesList.find((s) => s.id === seriesId);
       const seriesType = series?.type;
 
       // Convert dialog config (nested) to API options (flat) if series type is known
@@ -319,7 +337,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         : configPatch;
 
       // RESPONSIVENESS FIX: Direct state update for immediate visual feedback
-      setOptimisticConfigs(prev => ({
+      setOptimisticConfigs((prev) => ({
         ...prev,
         [seriesId]: { ...prev[seriesId], ...flatConfigPatch },
       }));
@@ -329,11 +347,11 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         onConfigChange(seriesId, flatConfigPatch);
       }
     },
-    [onConfigChange, seriesList]
+    [onConfigChange, seriesList],
   );
 
   // Get current series info and config
-  const activeSeriesInfo = seriesList.find(s => s.id === activeSeriesId);
+  const activeSeriesInfo = seriesList.find((s) => s.id === activeSeriesId);
 
   // Convert API options (flat) to dialog config (nested) for UI display
   const activeSeriesConfig = useMemo(() => {
@@ -347,7 +365,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   // Get settings for active series type
   const seriesSettings = useMemo(
     () => getSeriesSettings(activeSeriesInfo?.type),
-    [activeSeriesInfo?.type]
+    [activeSeriesInfo?.type],
   );
 
   // Close handler - just close the dialog, focus restoration handled by useEffect
@@ -358,7 +376,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         if (lineEditorOpen.isOpen) {
           setLineEditorOpen({ isOpen: false });
         } else if (colorPickerOpen.isOpen) {
@@ -368,17 +386,29 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         }
       }
     },
-    [lineEditorOpen.isOpen, colorPickerOpen.isOpen, handleCloseWithFocusRestore]
+    [
+      lineEditorOpen.isOpen,
+      colorPickerOpen.isOpen,
+      handleCloseWithFocusRestore,
+    ],
   );
 
   // Handle backdrop click
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget && !lineEditorOpen.isOpen && !colorPickerOpen.isOpen) {
+      if (
+        e.target === e.currentTarget &&
+        !lineEditorOpen.isOpen &&
+        !colorPickerOpen.isOpen
+      ) {
         handleCloseWithFocusRestore();
       }
     },
-    [lineEditorOpen.isOpen, colorPickerOpen.isOpen, handleCloseWithFocusRestore]
+    [
+      lineEditorOpen.isOpen,
+      colorPickerOpen.isOpen,
+      handleCloseWithFocusRestore,
+    ],
   );
 
   // Line editor handlers
@@ -388,29 +418,29 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       const lineConfig = (activeSeriesConfig as any)[lineType] || {};
 
       // Convert number style to string (TradingView LineStyle enum to dialog format)
-      const numberToStyle: Record<number, 'solid' | 'dotted' | 'dashed'> = {
-        0: 'solid',
-        1: 'dotted',
-        2: 'dashed',
+      const numberToStyle: Record<number, "solid" | "dotted" | "dashed"> = {
+        0: "solid",
+        1: "dotted",
+        2: "dashed",
       };
 
       // If lineStyle is a number, convert it; otherwise use it as-is (or default to 'solid')
       const styleValue =
-        typeof lineConfig.lineStyle === 'number'
-          ? (numberToStyle[lineConfig.lineStyle] ?? 'solid')
-          : lineConfig.lineStyle || 'solid';
+        typeof lineConfig.lineStyle === "number"
+          ? (numberToStyle[lineConfig.lineStyle] ?? "solid")
+          : lineConfig.lineStyle || "solid";
 
       setLineEditorOpen({
         isOpen: true,
         lineType,
         config: {
-          color: lineConfig.color || '#2196F3',
+          color: lineConfig.color || "#2196F3",
           style: styleValue,
           width: lineConfig.lineWidth || 1,
         },
       });
     },
-    [activeSeriesConfig]
+    [activeSeriesConfig],
   );
 
   const handleLineEditorSave = useCallback(
@@ -434,7 +464,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       }
       setLineEditorOpen({ isOpen: false });
     },
-    [activeSeriesId, lineEditorOpen.lineType, handleConfigChange]
+    [activeSeriesId, lineEditorOpen.lineType, handleConfigChange],
   );
 
   // Color picker handlers
@@ -446,10 +476,11 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
       // If undefined, show as transparent (0% opacity) in the dialog
       // Otherwise use the actual color value
-      const displayValue = wasUndefined ? 'rgba(0,0,0,0)' : colorValue;
+      const displayValue = wasUndefined ? "rgba(0,0,0,0)" : colorValue;
 
       // Extract hex color and opacity from the color value (supports both hex and rgba)
-      const { color: currentColor, opacity: currentOpacity } = extractColorAndOpacity(displayValue);
+      const { color: currentColor, opacity: currentOpacity } =
+        extractColorAndOpacity(displayValue);
 
       setColorPickerOpen({
         isOpen: true,
@@ -459,7 +490,7 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         wasUndefined,
       });
     },
-    [activeSeriesConfig]
+    [activeSeriesConfig],
   );
 
   const handleColorPickerSave = useCallback(
@@ -468,7 +499,9 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         // If it was originally undefined and the user leaves it as transparent (0% opacity),
         // save it back as undefined to preserve the original state
         const finalValue =
-          colorPickerOpen.wasUndefined && opacity === 0 ? undefined : toCss(color, opacity);
+          colorPickerOpen.wasUndefined && opacity === 0
+            ? undefined
+            : toCss(color, opacity);
 
         // Schema-aware: save to the property specified in the schema
         const configPatch: any = {
@@ -479,127 +512,133 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       }
       setColorPickerOpen({ isOpen: false });
     },
-    [activeSeriesId, colorPickerOpen.colorType, colorPickerOpen.wasUndefined, handleConfigChange]
+    [
+      activeSeriesId,
+      colorPickerOpen.colorType,
+      colorPickerOpen.wasUndefined,
+      handleConfigChange,
+    ],
   );
 
   if (!isOpen) return null;
 
   return createPortal(
     <div
-      className='series-config-overlay'
+      className="series-config-overlay"
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
-      role='dialog'
-      aria-modal='true'
-      aria-labelledby='series-settings-title'
-      aria-describedby='series-settings-description'
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="series-settings-title"
+      aria-describedby="series-settings-description"
       tabIndex={-1}
       style={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backgroundColor: "rgba(0, 0, 0, 0.4)",
         zIndex: 10000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       <div
-        className='series-config-dialog'
+        className="series-config-dialog"
         style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '6px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-          width: '440px',
-          maxHeight: '85vh',
-          display: 'flex',
-          flexDirection: 'column',
-          border: '1px solid #e0e0e0',
-          color: '#333333',
+          backgroundColor: "#ffffff",
+          borderRadius: "6px",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
+          width: "440px",
+          maxHeight: "85vh",
+          display: "flex",
+          flexDirection: "column",
+          border: "1px solid #e0e0e0",
+          color: "#333333",
         }}
       >
         {/* Accessibility description */}
-        <p id='series-settings-description' className='visually-hidden'>
-          Configure series options for this pane. Use Tab to navigate between controls, Escape to
-          close.
+        <p id="series-settings-description" className="visually-hidden">
+          Configure series options for this pane. Use Tab to navigate between
+          controls, Escape to close.
         </p>
 
         {/* Header */}
         <div
-          className='series-config-header'
+          className="series-config-header"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '8px 12px',
-            borderBottom: '1px solid #e0e0e0',
-            minHeight: '36px',
-            height: 'auto',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "8px 12px",
+            borderBottom: "1px solid #e0e0e0",
+            minHeight: "36px",
+            height: "auto",
           }}
         >
           <div
-            id='series-settings-title'
+            id="series-settings-title"
             style={{
-              fontSize: '20px',
-              fontWeight: '600',
-              color: '#333333',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              padding: '0',
-              minHeight: '24px',
-              lineHeight: '1.4',
-              display: 'flex',
-              alignItems: 'center',
-              flex: '1',
-              gap: '8px',
+              fontSize: "20px",
+              fontWeight: "600",
+              color: "#333333",
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              padding: "0",
+              minHeight: "24px",
+              lineHeight: "1.4",
+              display: "flex",
+              alignItems: "center",
+              flex: "1",
+              gap: "8px",
             }}
           >
             Settings
             {isPending && (
               <span
                 style={{
-                  fontSize: '14px',
-                  color: '#2196F3',
-                  animation: 'pulse 1.5s ease-in-out infinite',
+                  fontSize: "14px",
+                  color: "#2196F3",
+                  animation: "pulse 1.5s ease-in-out infinite",
                 }}
-                title='Applying changes...'
+                title="Applying changes..."
               >
                 ⏳
               </span>
             )}
           </div>
           <button
-            className='close-button'
+            className="close-button"
             onClick={handleCloseWithFocusRestore}
-            aria-label='Close dialog'
+            aria-label="Close dialog"
             style={{
-              width: '32px',
-              height: '32px',
-              border: 'none',
-              backgroundColor: 'transparent',
-              cursor: 'pointer',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#666666',
-              fontSize: '18px',
-              transition: 'background-color 0.1s ease, transform 0.1s ease',
+              width: "32px",
+              height: "32px",
+              border: "none",
+              backgroundColor: "transparent",
+              cursor: "pointer",
+              borderRadius: "4px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#666666",
+              fontSize: "18px",
+              transition: "background-color 0.1s ease, transform 0.1s ease",
             }}
-            onMouseEnter={e => {
-              (e.target as HTMLElement).style.backgroundColor = '#f5f5f5';
+            onMouseEnter={(e) => {
+              (e.target as HTMLElement).style.backgroundColor = "#f5f5f5";
             }}
-            onMouseLeave={e => {
-              (e.target as HTMLElement).style.backgroundColor = 'transparent';
-              (e.target as HTMLElement).style.transform = 'scale(1)';
+            onMouseLeave={(e) => {
+              (e.target as HTMLElement).style.backgroundColor = "transparent";
+              (e.target as HTMLElement).style.transform = "scale(1)";
             }}
-            onMouseDown={e => {
-              (e.target as HTMLElement).style.transform = 'scale(0.95)';
+            onMouseDown={(e) => {
+              (e.target as HTMLElement).style.transform = "scale(0.95)";
             }}
-            onMouseUp={e => {
-              (e.target as HTMLElement).style.transform = 'scale(1)';
+            onMouseUp={(e) => {
+              (e.target as HTMLElement).style.transform = "scale(1)";
             }}
           >
             ×
@@ -609,39 +648,39 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
         {/* Series Tabs with Scroll Navigation */}
         <div
           style={{
-            position: 'relative',
-            backgroundColor: '#f8f9fa',
-            borderBottom: '1px solid #e0e0e0',
+            position: "relative",
+            backgroundColor: "#f8f9fa",
+            borderBottom: "1px solid #e0e0e0",
           }}
         >
           {/* Left scroll button */}
           {canScrollLeft && (
             <button
-              onClick={() => scrollTabs('left')}
-              aria-label='Scroll tabs left'
+              onClick={() => scrollTabs("left")}
+              aria-label="Scroll tabs left"
               style={{
-                position: 'absolute',
+                position: "absolute",
                 left: 0,
                 top: 0,
                 bottom: 0,
-                width: '32px',
-                border: 'none',
-                backgroundColor: '#f8f9fa',
-                color: '#787b86',
-                cursor: 'pointer',
+                width: "32px",
+                border: "none",
+                backgroundColor: "#f8f9fa",
+                color: "#787b86",
+                cursor: "pointer",
                 zIndex: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px',
-                borderRight: '1px solid #e0e0e0',
-                transition: 'color 0.2s ease',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "16px",
+                borderRight: "1px solid #e0e0e0",
+                transition: "color 0.2s ease",
               }}
-              onMouseEnter={e => {
-                (e.target as HTMLElement).style.color = '#131722';
+              onMouseEnter={(e) => {
+                (e.target as HTMLElement).style.color = "#131722";
               }}
-              onMouseLeave={e => {
-                (e.target as HTMLElement).style.color = '#787b86';
+              onMouseLeave={(e) => {
+                (e.target as HTMLElement).style.color = "#787b86";
               }}
             >
               ‹
@@ -652,14 +691,14 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           {canScrollLeft && (
             <div
               style={{
-                position: 'absolute',
-                left: canScrollLeft ? '32px' : '0',
+                position: "absolute",
+                left: canScrollLeft ? "32px" : "0",
                 top: 0,
                 bottom: 0,
-                width: '20px',
+                width: "20px",
                 background:
-                  'linear-gradient(to right, rgba(248, 249, 250, 0.9), rgba(248, 249, 250, 0))',
-                pointerEvents: 'none',
+                  "linear-gradient(to right, rgba(248, 249, 250, 0.9), rgba(248, 249, 250, 0))",
+                pointerEvents: "none",
                 zIndex: 1,
               }}
             />
@@ -668,15 +707,15 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           {/* Tabs container */}
           <div
             ref={tabContainerRef}
-            className='series-config-tabs'
+            className="series-config-tabs"
             style={{
-              display: 'flex',
-              overflowX: 'auto',
-              minHeight: '36px',
-              scrollbarWidth: 'none', // Firefox
-              msOverflowStyle: 'none', // IE/Edge
-              paddingLeft: canScrollLeft ? '32px' : '0',
-              paddingRight: canScrollRight ? '32px' : '0',
+              display: "flex",
+              overflowX: "auto",
+              minHeight: "36px",
+              scrollbarWidth: "none", // Firefox
+              msOverflowStyle: "none", // IE/Edge
+              paddingLeft: canScrollLeft ? "32px" : "0",
+              paddingRight: canScrollRight ? "32px" : "0",
             }}
           >
             {/* Hide scrollbar for Chrome/Safari/Opera */}
@@ -692,37 +731,40 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
               return (
                 <button
                   key={series.id}
-                  className={`tab ${activeSeriesId === series.id ? 'active' : ''}`}
+                  className={`tab ${activeSeriesId === series.id ? "active" : ""}`}
                   onClick={() => setActiveSeriesId(series.id)}
                   aria-selected={activeSeriesId === series.id}
-                  role='tab'
+                  role="tab"
                   title={tabTitle} // Tooltip showing full name
                   style={{
-                    padding: '8px 12px',
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    color: activeSeriesId === series.id ? '#131722' : '#787b86',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
+                    padding: "8px 12px",
+                    border: "none",
+                    backgroundColor: "transparent",
+                    color: activeSeriesId === series.id ? "#131722" : "#787b86",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    cursor: "pointer",
                     borderBottom:
-                      activeSeriesId === series.id ? '2px solid #2962ff' : '2px solid transparent',
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    whiteSpace: 'nowrap',
-                    minHeight: '36px',
-                    lineHeight: '1.4',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                      activeSeriesId === series.id
+                        ? "2px solid #2962ff"
+                        : "2px solid transparent",
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    whiteSpace: "nowrap",
+                    minHeight: "36px",
+                    lineHeight: "1.4",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  onMouseEnter={e => {
+                  onMouseEnter={(e) => {
                     if (activeSeriesId !== series.id) {
-                      (e.target as HTMLElement).style.color = '#131722';
+                      (e.target as HTMLElement).style.color = "#131722";
                     }
                   }}
-                  onMouseLeave={e => {
+                  onMouseLeave={(e) => {
                     if (activeSeriesId !== series.id) {
-                      (e.target as HTMLElement).style.color = '#787b86';
+                      (e.target as HTMLElement).style.color = "#787b86";
                     }
                   }}
                 >
@@ -736,14 +778,14 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           {canScrollRight && (
             <div
               style={{
-                position: 'absolute',
-                right: canScrollRight ? '32px' : '0',
+                position: "absolute",
+                right: canScrollRight ? "32px" : "0",
                 top: 0,
                 bottom: 0,
-                width: '20px',
+                width: "20px",
                 background:
-                  'linear-gradient(to left, rgba(248, 249, 250, 0.9), rgba(248, 249, 250, 0))',
-                pointerEvents: 'none',
+                  "linear-gradient(to left, rgba(248, 249, 250, 0.9), rgba(248, 249, 250, 0))",
+                pointerEvents: "none",
                 zIndex: 1,
               }}
             />
@@ -752,31 +794,31 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
           {/* Right scroll button */}
           {canScrollRight && (
             <button
-              onClick={() => scrollTabs('right')}
-              aria-label='Scroll tabs right'
+              onClick={() => scrollTabs("right")}
+              aria-label="Scroll tabs right"
               style={{
-                position: 'absolute',
+                position: "absolute",
                 right: 0,
                 top: 0,
                 bottom: 0,
-                width: '32px',
-                border: 'none',
-                backgroundColor: '#f8f9fa',
-                color: '#787b86',
-                cursor: 'pointer',
+                width: "32px",
+                border: "none",
+                backgroundColor: "#f8f9fa",
+                color: "#787b86",
+                cursor: "pointer",
                 zIndex: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px',
-                borderLeft: '1px solid #e0e0e0',
-                transition: 'color 0.2s ease',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "16px",
+                borderLeft: "1px solid #e0e0e0",
+                transition: "color 0.2s ease",
               }}
-              onMouseEnter={e => {
-                (e.target as HTMLElement).style.color = '#131722';
+              onMouseEnter={(e) => {
+                (e.target as HTMLElement).style.color = "#131722";
               }}
-              onMouseLeave={e => {
-                (e.target as HTMLElement).style.color = '#787b86';
+              onMouseLeave={(e) => {
+                (e.target as HTMLElement).style.color = "#787b86";
               }}
             >
               ›
@@ -786,69 +828,79 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
         {/* Settings Content */}
         <div
-          className='series-config-content'
+          className="series-config-content"
           style={{
-            flex: '1 1 auto',
-            overflowY: 'auto', // Only scroll when content exceeds max height
-            padding: '16px',
+            flex: "1 1 auto",
+            overflowY: "auto", // Only scroll when content exceeds max height
+            padding: "16px",
             minHeight: 0, // Allow flex shrinking
           }}
         >
           <form
             style={{
-              fontSize: '13px',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontSize: "13px",
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             }}
           >
-            <input type='hidden' name='seriesId' value={activeSeriesId} />
+            <input type="hidden" name="seriesId" value={activeSeriesId} />
 
             {/* Common Settings */}
-            <div className='settings-section'>
-              <div className='checkbox-row'>
+            <div className="settings-section">
+              <div className="checkbox-row">
                 <input
-                  type='checkbox'
-                  id='visible'
-                  name='visible'
+                  type="checkbox"
+                  id="visible"
+                  name="visible"
                   checked={activeSeriesConfig.visible !== false}
-                  onChange={e => handleConfigChange(activeSeriesId, { visible: e.target.checked })}
-                  aria-label='Series visible'
+                  onChange={(e) =>
+                    handleConfigChange(activeSeriesId, {
+                      visible: e.target.checked,
+                    })
+                  }
+                  aria-label="Series visible"
                 />
-                <label htmlFor='visible'>Visible</label>
+                <label htmlFor="visible">Visible</label>
               </div>
 
               {/* Hide last value and price line options for Signal series (not applicable) */}
-              {activeSeriesInfo?.type !== 'signal' && (
+              {activeSeriesInfo?.type !== "signal" && (
                 <>
-                  <div className='checkbox-row'>
+                  <div className="checkbox-row">
                     <input
-                      type='checkbox'
-                      id='lastValueVisible'
-                      name='lastValueVisible'
+                      type="checkbox"
+                      id="lastValueVisible"
+                      name="lastValueVisible"
                       checked={activeSeriesConfig.lastValueVisible !== false}
-                      onChange={e =>
-                        handleConfigChange(activeSeriesId, { lastValueVisible: e.target.checked })
+                      onChange={(e) =>
+                        handleConfigChange(activeSeriesId, {
+                          lastValueVisible: e.target.checked,
+                        })
                       }
-                      aria-label='Show last value'
+                      aria-label="Show last value"
                     />
-                    <label htmlFor='lastValueVisible'>Last Value Visible</label>
+                    <label htmlFor="lastValueVisible">Last Value Visible</label>
                   </div>
 
-                  <div className='checkbox-row'>
+                  <div className="checkbox-row">
                     <input
-                      type='checkbox'
-                      id='priceLineVisible'
-                      name='priceLineVisible'
+                      type="checkbox"
+                      id="priceLineVisible"
+                      name="priceLineVisible"
                       checked={activeSeriesConfig.priceLineVisible !== false}
-                      onChange={e => {
+                      onChange={(e) => {
                         // When hiding price line, also hide axis label for cleaner chart
                         const config = e.target.checked
                           ? { priceLineVisible: true }
-                          : { priceLineVisible: false, axisLabelVisible: false };
+                          : {
+                              priceLineVisible: false,
+                              axisLabelVisible: false,
+                            };
                         void handleConfigChange(activeSeriesId, config);
                       }}
-                      aria-label='Show price line'
+                      aria-label="Show price line"
                     />
-                    <label htmlFor='priceLineVisible'>Price Line</label>
+                    <label htmlFor="priceLineVisible">Price Line</label>
                   </div>
                 </>
               )}
@@ -859,14 +911,20 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
               <SeriesSettingsRenderer
                 settings={seriesSettings}
                 seriesConfig={activeSeriesConfig}
-                onConfigChange={config => handleConfigChange(activeSeriesId, config)}
+                onConfigChange={(config) =>
+                  handleConfigChange(activeSeriesId, config)
+                }
                 onOpenLineEditor={openLineEditor}
                 onOpenColorPicker={openColorPicker}
               />
             )}
 
             {/* Submit button for form action (hidden) */}
-            <button type='submit' style={{ display: 'none' }} disabled={isPending}>
+            <button
+              type="submit"
+              style={{ display: "none" }}
+              disabled={isPending}
+            >
               Apply Settings
             </button>
           </form>
@@ -874,76 +932,78 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
 
         {/* Footer */}
         <div
-          className='series-config-footer'
+          className="series-config-footer"
           style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            padding: '12px 12px',
-            borderTop: '1px solid #e0e3e7',
-            backgroundColor: '#ffffff',
-            minHeight: '28px',
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            padding: "12px 12px",
+            borderTop: "1px solid #e0e3e7",
+            backgroundColor: "#ffffff",
+            minHeight: "28px",
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button
               style={{
-                padding: '6px 16px',
-                border: '1px solid #e0e3e7',
-                borderRadius: '4px',
-                backgroundColor: '#ffffff',
-                color: '#131722',
-                fontSize: '13px',
-                fontWeight: '400',
-                cursor: 'pointer',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                minHeight: '28px',
-                transition: 'background-color 0.1s ease, transform 0.05s ease',
+                padding: "6px 16px",
+                border: "1px solid #e0e3e7",
+                borderRadius: "4px",
+                backgroundColor: "#ffffff",
+                color: "#131722",
+                fontSize: "13px",
+                fontWeight: "400",
+                cursor: "pointer",
+                fontFamily:
+                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                minHeight: "28px",
+                transition: "background-color 0.1s ease, transform 0.05s ease",
               }}
               onClick={handleCloseWithFocusRestore}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f8f9fa";
               }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-                e.currentTarget.style.transform = 'scale(1)';
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#ffffff";
+                e.currentTarget.style.transform = "scale(1)";
               }}
-              onMouseDown={e => {
-                e.currentTarget.style.transform = 'scale(0.97)';
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = "scale(0.97)";
               }}
-              onMouseUp={e => {
-                e.currentTarget.style.transform = 'scale(1)';
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
               }}
             >
               Cancel
             </button>
             <button
               style={{
-                padding: '6px 16px',
-                border: '1px solid #2962ff',
-                borderRadius: '4px',
-                backgroundColor: '#2962ff',
-                color: '#ffffff',
-                fontSize: '13px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                minHeight: '28px',
-                transition: 'background-color 0.1s ease, transform 0.05s ease',
+                padding: "6px 16px",
+                border: "1px solid #2962ff",
+                borderRadius: "4px",
+                backgroundColor: "#2962ff",
+                color: "#ffffff",
+                fontSize: "13px",
+                fontWeight: "500",
+                cursor: "pointer",
+                fontFamily:
+                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                minHeight: "28px",
+                transition: "background-color 0.1s ease, transform 0.05s ease",
               }}
               onClick={handleCloseWithFocusRestore}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = '#1e53e5';
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#1e53e5";
               }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = '#2962ff';
-                e.currentTarget.style.transform = 'scale(1)';
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#2962ff";
+                e.currentTarget.style.transform = "scale(1)";
               }}
-              onMouseDown={e => {
-                e.currentTarget.style.transform = 'scale(0.97)';
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = "scale(0.97)";
               }}
-              onMouseUp={e => {
-                e.currentTarget.style.transform = 'scale(1)';
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
               }}
             >
               OK
@@ -965,13 +1025,13 @@ export const SeriesSettingsDialog: React.FC<SeriesSettingsDialogProps> = ({
       {colorPickerOpen.isOpen && (
         <ColorPickerDialog
           isOpen={true}
-          color={colorPickerOpen.currentColor || '#2196F3'}
+          color={colorPickerOpen.currentColor || "#2196F3"}
           opacity={colorPickerOpen.currentOpacity || 20}
           onSave={handleColorPickerSave}
           onCancel={() => setColorPickerOpen({ isOpen: false })}
         />
       )}
     </div>,
-    document.body
+    document.body,
   );
 };

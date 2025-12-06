@@ -32,8 +32,8 @@
  * ```
  */
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { logger } from '@lightweight-charts-pro/core';
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
 
 interface Props {
   children: ReactNode;
@@ -75,7 +75,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // Auto-reset on resetKeys change
     if (hasError && resetKeys && prevProps.resetKeys) {
-      if (resetKeys.some((key, index) => key !== prevProps.resetKeys?.[index])) {
+      if (
+        resetKeys.some((key, index) => key !== prevProps.resetKeys?.[index])
+      ) {
         this.resetErrorBoundary();
       }
     }
@@ -98,8 +100,8 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     // Log error for debugging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      logger.error('ErrorBoundary caught an error', 'ErrorBoundary', _error);
+    if (process.env.NODE_ENV === "development") {
+      logger.error("ErrorBoundary caught an error", "ErrorBoundary", _error);
     }
   }
 
@@ -128,43 +130,43 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div
           style={{
-            padding: '20px',
-            border: '1px solid #ff6b6b',
-            borderRadius: '8px',
-            backgroundColor: '#fff5f5',
-            color: '#d63031',
-            textAlign: 'center',
-            margin: '10px 0',
+            padding: "20px",
+            border: "1px solid #ff6b6b",
+            borderRadius: "8px",
+            backgroundColor: "#fff5f5",
+            color: "#d63031",
+            textAlign: "center",
+            margin: "10px 0",
           }}
         >
           <h3>Chart Error</h3>
           <p>Something went wrong while rendering the chart.</p>
-          <div style={{ marginTop: '15px' }}>
+          <div style={{ marginTop: "15px" }}>
             <button
               onClick={this.handleRetry}
               style={{
-                padding: '10px 20px',
-                backgroundColor: '#ff6b6b',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                marginRight: '10px',
-                fontWeight: '500',
+                padding: "10px 20px",
+                backgroundColor: "#ff6b6b",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                marginRight: "10px",
+                fontWeight: "500",
               }}
             >
               🔄 Try Again
             </button>
-            {process.env.NODE_ENV === 'development' && (
+            {process.env.NODE_ENV === "development" && (
               <button
                 style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#74b9ff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: '500',
+                  padding: "10px 20px",
+                  backgroundColor: "#74b9ff",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: "500",
                 }}
               >
                 🐛 Log Error

@@ -9,11 +9,11 @@
  * - State synchronization with backend memory
  */
 
-import { useCallback } from 'react';
-import { Streamlit } from 'streamlit-component-lib';
-import type { SeriesConfig } from '../forms/SeriesSettingsDialog';
-import { logger } from '@lightweight-charts-pro/core';
-import { isStreamlitComponentReady } from './useStreamlit';
+import { useCallback } from "react";
+import { Streamlit } from "streamlit-component-lib";
+import type { SeriesConfig } from "../forms/SeriesSettingsDialog";
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
+import { isStreamlitComponentReady } from "./useStreamlit";
 
 // Get Streamlit object from imported module
 const getStreamlit = () => {
@@ -50,92 +50,120 @@ export function useSeriesSettingsAPI() {
   /**
    * Get current state for a pane from the backend
    */
-  const getPaneState = useCallback(async (paneId: string): Promise<PaneState | null> => {
-    try {
-      // Send request to Streamlit backend
-      const response = await new Promise<APIResponse<PaneState>>(resolve => {
-        const messageId = `get_pane_state_${Date.now()}`;
+  const getPaneState = useCallback(
+    async (paneId: string): Promise<PaneState | null> => {
+      try {
+        // Send request to Streamlit backend
+        const response = await new Promise<APIResponse<PaneState>>(
+          (resolve) => {
+            const messageId = `get_pane_state_${Date.now()}`;
 
-        // Set up response listener
-        const handleResponse = (event: CustomEvent) => {
-          if (event.detail.messageId === messageId) {
-            document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-            resolve(event.detail.response);
-          }
-        };
+            // Set up response listener
+            const handleResponse = (event: CustomEvent) => {
+              if (event.detail.messageId === messageId) {
+                document.removeEventListener(
+                  "streamlit:apiResponse",
+                  handleResponse as EventListener,
+                );
+                resolve(event.detail.response);
+              }
+            };
 
-        document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
+            document.addEventListener(
+              "streamlit:apiResponse",
+              handleResponse as EventListener,
+            );
 
-        // Check if Streamlit component is ready before sending request
-        if (!isStreamlitComponentReady()) {
-          logger.warn(
-            'Streamlit component not ready, skipping getPaneState request',
-            'useSeriesSettingsAPI'
-          );
-          document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-          resolve({ success: false, error: 'Streamlit not ready' });
-          return;
+            // Check if Streamlit component is ready before sending request
+            if (!isStreamlitComponentReady()) {
+              logger.warn(
+                "Streamlit component not ready, skipping getPaneState request",
+                "useSeriesSettingsAPI",
+              );
+              document.removeEventListener(
+                "streamlit:apiResponse",
+                handleResponse as EventListener,
+              );
+              resolve({ success: false, error: "Streamlit not ready" });
+              return;
+            }
+
+            // Send request
+            const streamlit = getStreamlit();
+            streamlit.setComponentValue({
+              type: "get_pane_state",
+              messageId,
+              paneId,
+            });
+
+            // Timeout after 5 seconds
+            setTimeout(() => {
+              document.removeEventListener(
+                "streamlit:apiResponse",
+                handleResponse as EventListener,
+              );
+              resolve({ success: false, error: "Request timeout" });
+            }, 5000);
+          },
+        );
+
+        if (response.success && response.data) {
+          return response.data;
+        } else {
+          return null;
         }
-
-        // Send request
-        const streamlit = getStreamlit();
-        streamlit.setComponentValue({
-          type: 'get_pane_state',
-          messageId,
-          paneId,
-        });
-
-        // Timeout after 5 seconds
-        setTimeout(() => {
-          document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-          resolve({ success: false, error: 'Request timeout' });
-        }, 5000);
-      });
-
-      if (response.success && response.data) {
-        return response.data;
-      } else {
+      } catch (error) {
+        logger.error(
+          "Failed to get series settings from backend",
+          "useSeriesSettingsAPI",
+          error,
+        );
         return null;
       }
-    } catch (error) {
-      logger.error('Failed to get series settings from backend', 'useSeriesSettingsAPI', error);
-      return null;
-    }
-  }, []);
+    },
+    [],
+  );
 
   /**
    * Update series settings in the backend
    */
   const updateSeriesSettings = useCallback(
-    async (paneId: string, seriesId: string, config: Partial<SeriesConfig>): Promise<boolean> => {
+    async (
+      paneId: string,
+      seriesId: string,
+      config: Partial<SeriesConfig>,
+    ): Promise<boolean> => {
       try {
         // Send patch to Streamlit backend
-        const response = await new Promise<APIResponse>(resolve => {
+        const response = await new Promise<APIResponse>((resolve) => {
           const messageId = `update_series_settings_${Date.now()}`;
 
           // Set up response listener
           const handleResponse = (event: CustomEvent) => {
             if (event.detail.messageId === messageId) {
               document.removeEventListener(
-                'streamlit:apiResponse',
-                handleResponse as EventListener
+                "streamlit:apiResponse",
+                handleResponse as EventListener,
               );
               resolve(event.detail.response);
             }
           };
 
-          document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
+          document.addEventListener(
+            "streamlit:apiResponse",
+            handleResponse as EventListener,
+          );
 
           // Check if Streamlit component is ready before sending update
           if (!isStreamlitComponentReady()) {
-            resolve({ success: false, error: 'Streamlit not ready' });
+            resolve({ success: false, error: "Streamlit not ready" });
             return;
           }
 
           // Send patch
           const streamlit = getStreamlit();
           streamlit.setComponentValue({
-            type: 'update_series_settings',
+            type: "update_series_settings",
             messageId,
             paneId,
             seriesId,
@@ -144,8 +172,11 @@ export function useSeriesSettingsAPI() {
 
           // Timeout after 5 seconds
           setTimeout(() => {
-            document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-            resolve({ success: false, error: 'Request timeout' });
+            document.removeEventListener(
+              "streamlit:apiResponse",
+              handleResponse as EventListener,
+            );
+            resolve({ success: false, error: "Request timeout" });
           }, 5000);
         });
 
@@ -155,63 +186,83 @@ export function useSeriesSettingsAPI() {
           return false;
         }
       } catch (error) {
-        logger.error('Failed to update series settings in backend', 'useSeriesSettingsAPI', error);
+        logger.error(
+          "Failed to update series settings in backend",
+          "useSeriesSettingsAPI",
+          error,
+        );
         return false;
       }
     },
-    []
+    [],
   );
 
   /**
    * Batch update multiple series settings
    */
-  const updateMultipleSettings = useCallback(async (patches: SettingsPatch[]): Promise<boolean> => {
-    try {
-      // Send batch patch to Streamlit backend
-      const response = await new Promise<APIResponse>(resolve => {
-        const messageId = `update_multiple_settings_${Date.now()}`;
+  const updateMultipleSettings = useCallback(
+    async (patches: SettingsPatch[]): Promise<boolean> => {
+      try {
+        // Send batch patch to Streamlit backend
+        const response = await new Promise<APIResponse>((resolve) => {
+          const messageId = `update_multiple_settings_${Date.now()}`;
 
-        // Set up response listener
-        const handleResponse = (event: CustomEvent) => {
-          if (event.detail.messageId === messageId) {
-            document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-            resolve(event.detail.response);
+          // Set up response listener
+          const handleResponse = (event: CustomEvent) => {
+            if (event.detail.messageId === messageId) {
+              document.removeEventListener(
+                "streamlit:apiResponse",
+                handleResponse as EventListener,
+              );
+              resolve(event.detail.response);
+            }
+          };
+
+          document.addEventListener(
+            "streamlit:apiResponse",
+            handleResponse as EventListener,
+          );
+
+          // Check if Streamlit component is ready before sending batch update
+          if (!isStreamlitComponentReady()) {
+            resolve({ success: false, error: "Streamlit not ready" });
+            return;
           }
-        };
 
-        document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
+          // Send batch
+          const streamlit = getStreamlit();
+          streamlit.setComponentValue({
+            type: "update_multiple_settings",
+            messageId,
+            patches,
+          });
 
-        // Check if Streamlit component is ready before sending batch update
-        if (!isStreamlitComponentReady()) {
-          resolve({ success: false, error: 'Streamlit not ready' });
-          return;
-        }
-
-        // Send batch
-        const streamlit = getStreamlit();
-        streamlit.setComponentValue({
-          type: 'update_multiple_settings',
-          messageId,
-          patches,
+          // Timeout after 10 seconds for batch operations
+          setTimeout(() => {
+            document.removeEventListener(
+              "streamlit:apiResponse",
+              handleResponse as EventListener,
+            );
+            resolve({ success: false, error: "Request timeout" });
+          }, 10000);
         });
 
-        // Timeout after 10 seconds for batch operations
-        setTimeout(() => {
-          document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-          resolve({ success: false, error: 'Request timeout' });
-        }, 10000);
-      });
-
-      if (response.success) {
-        return true;
-      } else {
+        if (response.success) {
+          return true;
+        } else {
+          return false;
+        }
+      } catch (error) {
+        logger.error(
+          "Failed to update series settings in backend",
+          "useSeriesSettingsAPI",
+          error,
+        );
         return false;
       }
-    } catch (error) {
-      logger.error('Failed to update series settings in backend', 'useSeriesSettingsAPI', error);
-      return false;
-    }
-  }, []);
+    },
+    [],
+  );
 
   /**
    * Reset series to defaults
@@ -220,43 +271,51 @@ export function useSeriesSettingsAPI() {
     async (paneId: string, seriesId: string): Promise<SeriesConfig | null> => {
       try {
         // Send reset request to Streamlit backend
-        const response = await new Promise<APIResponse<SeriesConfig>>(resolve => {
-          const messageId = `reset_series_defaults_${Date.now()}`;
+        const response = await new Promise<APIResponse<SeriesConfig>>(
+          (resolve) => {
+            const messageId = `reset_series_defaults_${Date.now()}`;
 
-          // Set up response listener
-          const handleResponse = (event: CustomEvent) => {
-            if (event.detail.messageId === messageId) {
-              document.removeEventListener(
-                'streamlit:apiResponse',
-                handleResponse as EventListener
-              );
-              resolve(event.detail.response);
+            // Set up response listener
+            const handleResponse = (event: CustomEvent) => {
+              if (event.detail.messageId === messageId) {
+                document.removeEventListener(
+                  "streamlit:apiResponse",
+                  handleResponse as EventListener,
+                );
+                resolve(event.detail.response);
+              }
+            };
+
+            document.addEventListener(
+              "streamlit:apiResponse",
+              handleResponse as EventListener,
+            );
+
+            // Check if Streamlit component is ready before sending reset request
+            if (!isStreamlitComponentReady()) {
+              resolve({ success: false, error: "Streamlit not ready" });
+              return;
             }
-          };
 
-          document.addEventListener('streamlit:apiResponse', handleResponse as EventListener);
+            // Send reset request
+            const streamlit = getStreamlit();
+            streamlit.setComponentValue({
+              type: "reset_series_defaults",
+              messageId,
+              paneId,
+              seriesId,
+            });
 
-          // Check if Streamlit component is ready before sending reset request
-          if (!isStreamlitComponentReady()) {
-            resolve({ success: false, error: 'Streamlit not ready' });
-            return;
-          }
-
-          // Send reset request
-          const streamlit = getStreamlit();
-          streamlit.setComponentValue({
-            type: 'reset_series_defaults',
-            messageId,
-            paneId,
-            seriesId,
-          });
-
-          // Timeout after 5 seconds
-          setTimeout(() => {
-            document.removeEventListener('streamlit:apiResponse', handleResponse as EventListener);
-            resolve({ success: false, error: 'Request timeout' });
-          }, 5000);
-        });
+            // Timeout after 5 seconds
+            setTimeout(() => {
+              document.removeEventListener(
+                "streamlit:apiResponse",
+                handleResponse as EventListener,
+              );
+              resolve({ success: false, error: "Request timeout" });
+            }, 5000);
+          },
+        );
 
         if (response.success && response.data) {
           return response.data;
@@ -264,11 +323,15 @@ export function useSeriesSettingsAPI() {
           return null;
         }
       } catch (error) {
-        logger.error('Failed to get series settings from backend', 'useSeriesSettingsAPI', error);
+        logger.error(
+          "Failed to get series settings from backend",
+          "useSeriesSettingsAPI",
+          error,
+        );
         return null;
       }
     },
-    []
+    [],
   );
 
   /**
@@ -280,11 +343,17 @@ export function useSeriesSettingsAPI() {
     };
 
     // Listen for settings change events from backend
-    document.addEventListener('streamlit:settingsChanged', handleSettingsChange);
+    document.addEventListener(
+      "streamlit:settingsChanged",
+      handleSettingsChange,
+    );
 
     // Return cleanup function
     return () => {
-      document.removeEventListener('streamlit:settingsChanged', handleSettingsChange);
+      document.removeEventListener(
+        "streamlit:settingsChanged",
+        handleSettingsChange,
+      );
     };
   }, []);
 

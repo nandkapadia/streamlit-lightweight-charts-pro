@@ -24,8 +24,8 @@ This document provides comprehensive guidance for AI assistants working on the s
 - **Trading-focused**: Quantitative trading features (avoid lookahead bias)
 
 ### Core Dependencies
-- **Python**: `lightweight-charts-pro` (framework-agnostic core)
-- **TypeScript**: `@lightweight-charts-pro/core` (shared utilities)
+- **Python**: `lightweight-charts-pro` (framework-agnostic core, published on PyPI)
+- **TypeScript**: `@nandkapadia/lightweight-charts-pro-core` (shared utilities, published on npm)
 - **Streamlit**: Custom component with bidirectional communication
 - **React 19**: Latest concurrent features
 
@@ -51,7 +51,7 @@ React Frontend (TypeScript)
     ├── Services (primitives, dialogs, state)
     └── TradingView lightweight-charts API
         ↓
-@lightweight-charts-pro/core (shared TypeScript)
+@nandkapadia/lightweight-charts-pro-core (shared TypeScript)
 ```
 
 ### Directory Structure
@@ -237,7 +237,7 @@ import { Streamlit } from 'streamlit-component-lib';
 // Local Imports
 import { SeriesConfig } from '../types';
 import { UnifiedSeriesFactory } from '../series/UnifiedSeriesFactory';
-import { logger } from '@lightweight-charts-pro/core';
+import { logger } from '@nandkapadia/lightweight-charts-pro-core';
 ```
 
 #### Formatting Pipeline
@@ -543,7 +543,7 @@ dependencies = [
     "streamlit>=1.0",  # Update minimum version if needed
     "pandas>=1.0",
     "numpy>=1.19",
-    "lightweight-charts-pro @ git+https://github.com/nandkapadia/lightweight-charts-pro-python.git@dev",
+    "lightweight-charts-pro>=0.1.0",  # Published on PyPI
 ]
 ```
 
@@ -746,8 +746,10 @@ When working with trading-related features:
 ## Additional Resources
 
 - **Main Repo**: https://github.com/nandkapadia/streamlit-lightweight-charts-pro
-- **Core Python Package**: https://github.com/nandkapadia/lightweight-charts-pro-python
-- **Core TypeScript Package**: https://github.com/nandkapadia/lightweight-charts-pro-frontend
+- **Core Python Package (PyPI)**: https://pypi.org/project/lightweight-charts-pro/
+- **Core Python Package (GitHub)**: https://github.com/nandkapadia/lightweight-charts-pro-python
+- **Core TypeScript Package (npm)**: https://www.npmjs.com/package/@nandkapadia/lightweight-charts-pro-core
+- **Core TypeScript Package (GitHub)**: https://github.com/nandkapadia/lightweight-charts-pro-frontend
 - **TradingView Charts**: https://tradingview.github.io/lightweight-charts/
 - **Streamlit Components**: https://docs.streamlit.io/library/components
 

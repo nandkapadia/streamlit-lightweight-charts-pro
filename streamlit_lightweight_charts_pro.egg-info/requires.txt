@@ -1,7 +1,7 @@
 streamlit>=1.0
 pandas>=1.0
 numpy>=1.19
-lightweight-charts-pro@ file:///Users/nandkapadia/lightweight-charts-pro-python
+lightweight-charts-pro>=0.1.0
 
 [dev]
 black>=23.0.0

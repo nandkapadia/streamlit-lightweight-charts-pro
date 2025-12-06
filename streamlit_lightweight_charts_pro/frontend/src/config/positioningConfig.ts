@@ -27,7 +27,7 @@
  * ```
  */
 
-import { UniversalSpacing } from '@lightweight-charts-pro/core';
+import { UniversalSpacing } from "@nandkapadia/lightweight-charts-pro-core";
 
 /**
  * Standard margins used throughout the application
@@ -142,7 +142,9 @@ export const TIMING = {
 /**
  * Get margin configuration by feature type
  */
-export function getMargins(feature: keyof typeof MARGINS): (typeof MARGINS)[keyof typeof MARGINS] {
+export function getMargins(
+  feature: keyof typeof MARGINS,
+): (typeof MARGINS)[keyof typeof MARGINS] {
   return MARGINS[feature] || MARGINS.content;
 }
 
@@ -150,7 +152,7 @@ export function getMargins(feature: keyof typeof MARGINS): (typeof MARGINS)[keyo
  * Get dimension configuration by component type
  */
 export function getDimensions(
-  component: keyof typeof DIMENSIONS
+  component: keyof typeof DIMENSIONS,
 ): (typeof DIMENSIONS)[keyof typeof DIMENSIONS] {
   return DIMENSIONS[component] || DIMENSIONS.chart;
 }
@@ -169,7 +171,7 @@ export function validateConfiguration(): boolean {
   // Ensure all dimensions are positive
   for (const [, value] of Object.entries(DIMENSIONS)) {
     for (const [, val] of Object.entries(value)) {
-      if (typeof val === 'number' && val < 0) {
+      if (typeof val === "number" && val < 0) {
         return false;
       }
     }
@@ -195,15 +197,17 @@ export const CSS_CLASSES = {
   /**
    * Generate series configuration dialog container class name
    */
-  seriesDialogContainer: (paneId: number): string => `series-config-dialog-container-${paneId}`,
+  seriesDialogContainer: (paneId: number): string =>
+    `series-config-dialog-container-${paneId}`,
 
   /**
    * Generate pane button panel container class name
    */
-  paneButtonPanelContainer: (paneId: number): string => `pane-button-panel-container-${paneId}`,
+  paneButtonPanelContainer: (paneId: number): string =>
+    `pane-button-panel-container-${paneId}`,
 } as const;
 
 // Validate configuration on load
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   validateConfiguration();
 }

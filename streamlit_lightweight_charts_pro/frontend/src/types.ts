@@ -35,17 +35,17 @@
  * ```
  */
 
-import { Time, SeriesMarker } from 'lightweight-charts';
+import { Time, SeriesMarker } from "lightweight-charts";
 import {
   SeriesDataPoint,
   SeriesOptionsConfig,
   PriceScaleConfig,
   LegendData,
-} from './types/ChartInterfaces';
+} from "./types/ChartInterfaces";
 
 // Range Switcher Configuration
 // Import the improved RangeConfig and TimeRange from core
-import type { RangeConfig as ImportedRangeConfig } from '@lightweight-charts-pro/core';
+import type { RangeConfig as ImportedRangeConfig } from "@nandkapadia/lightweight-charts-pro-core";
 
 // Enhanced Trade Configuration - Core fields only
 export interface TradeConfig {
@@ -65,7 +65,7 @@ export interface TradeConfig {
 
 // Trade Visualization Options
 export interface TradeVisualizationOptions {
-  style: 'markers' | 'rectangles' | 'both' | 'lines' | 'arrows' | 'zones';
+  style: "markers" | "rectangles" | "both" | "lines" | "arrows" | "zones";
 
   // Marker options
   entryMarkerColorLong?: string;
@@ -78,10 +78,10 @@ export interface TradeVisualizationOptions {
   // Marker template options
   entryMarkerTemplate?: string; // Custom HTML template for entry markers
   exitMarkerTemplate?: string; // Custom HTML template for exit markers
-  entryMarkerShape?: 'arrowUp' | 'arrowDown' | 'circle' | 'square';
-  exitMarkerShape?: 'arrowUp' | 'arrowDown' | 'circle' | 'square';
-  entryMarkerPosition?: 'belowBar' | 'aboveBar';
-  exitMarkerPosition?: 'belowBar' | 'aboveBar';
+  entryMarkerShape?: "arrowUp" | "arrowDown" | "circle" | "square";
+  exitMarkerShape?: "arrowUp" | "arrowDown" | "circle" | "square";
+  entryMarkerPosition?: "belowBar" | "aboveBar";
+  exitMarkerPosition?: "belowBar" | "aboveBar";
   showMarkerText?: boolean;
 
   // Rectangle options
@@ -90,7 +90,7 @@ export interface TradeVisualizationOptions {
   rectangleColorProfit?: string;
   rectangleColorLoss?: string;
   rectangleShowText?: boolean;
-  rectangleTextPosition?: 'inside' | 'above' | 'below';
+  rectangleTextPosition?: "inside" | "above" | "below";
   rectangleTextFontSize?: number;
   rectangleTextColor?: string;
   rectangleTextBackground?: string;
@@ -128,9 +128,9 @@ export interface Annotation {
   time: string;
   price: number;
   text: string;
-  type: 'text' | 'arrow' | 'shape' | 'line' | 'rectangle' | 'circle';
+  type: "text" | "arrow" | "shape" | "line" | "rectangle" | "circle";
   /** Position relative to bar. 'above'/'below' are converted to 'aboveBar'/'belowBar' */
-  position: 'aboveBar' | 'belowBar' | 'inBar' | 'above' | 'below';
+  position: "aboveBar" | "belowBar" | "inBar" | "above" | "below";
   color?: string;
   backgroundColor?: string;
   fontSize?: number;
@@ -153,7 +153,7 @@ export interface AnnotationText {
   backgroundColor: string;
   fontSize: number;
   fontFamily: string;
-  position: 'aboveBar' | 'belowBar';
+  position: "aboveBar" | "belowBar";
 }
 
 // Chart coordinate and layout types
@@ -237,7 +237,7 @@ export interface ButtonPanelConfig {
   buttonBackground?: string;
   buttonHoverBackground?: string;
   buttonBorderRadius?: number;
-  corner?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'; // Corner position for the button panel
+  corner?: "top-left" | "top-right" | "bottom-left" | "bottom-right"; // Corner position for the button panel
   zIndex?: number; // Z-index for button positioning
   showTooltip?: boolean;
   tooltipText?: {
@@ -252,7 +252,7 @@ export interface ButtonPanelConfig {
   onSeriesConfigChange?: (
     _paneId: number,
     _seriesId: string,
-    _config: Record<string, unknown>
+    _config: Record<string, unknown>,
   ) => void;
 }
 
@@ -286,16 +286,16 @@ export interface LineOptions {
 // Enhanced Series Configuration
 export interface SeriesConfig {
   type:
-    | 'Area'
-    | 'Band'
-    | 'Baseline'
-    | 'Histogram'
-    | 'Line'
-    | 'Bar'
-    | 'Candlestick'
-    | 'signal'
-    | 'trend_fill'
-    | 'ribbon';
+    | "Area"
+    | "Band"
+    | "Baseline"
+    | "Histogram"
+    | "Line"
+    | "Bar"
+    | "Candlestick"
+    | "signal"
+    | "trend_fill"
+    | "ribbon";
   data: SeriesDataPoint[];
   options?: SeriesOptionsConfig;
   name?: string;
@@ -347,7 +347,7 @@ export interface SeriesConfig {
   invertFilledArea?: boolean;
   // Price line properties
   priceLineVisible?: boolean;
-  priceLineSource?: 'lastBar' | 'lastVisible';
+  priceLineSource?: "lastBar" | "lastVisible";
   priceLineWidth?: number;
   priceLineColor?: string;
   priceLineStyle?: number;
@@ -360,8 +360,8 @@ export interface ChartPosition {
   width?: number | string; // CSS width (px or %)
   height?: number | string; // CSS height (px or %)
   zIndex?: number; // CSS z-index
-  position?: 'absolute' | 'relative' | 'fixed' | 'static'; // CSS position type
-  display?: 'block' | 'inline-block' | 'flex' | 'grid'; // CSS display type
+  position?: "absolute" | "relative" | "fixed" | "static"; // CSS position type
+  display?: "block" | "inline-block" | "flex" | "grid"; // CSS display type
   margin?: string; // CSS margin shorthand
   padding?: string; // CSS padding shorthand
   border?: string; // CSS border shorthand
@@ -386,8 +386,18 @@ export interface ChartConfig {
     };
     crosshair?: {
       mode?: number;
-      vertLine?: { color?: string; width?: number; style?: number; visible?: boolean };
-      horzLine?: { color?: string; width?: number; style?: number; visible?: boolean };
+      vertLine?: {
+        color?: string;
+        width?: number;
+        style?: number;
+        visible?: boolean;
+      };
+      horzLine?: {
+        color?: string;
+        width?: number;
+        style?: number;
+        visible?: boolean;
+      };
     };
     timeScale?: {
       rightOffset?: number;
@@ -476,12 +486,12 @@ export interface ChartConfig {
   position?: ChartPosition; // Add positioning configuration
   // paneHeights is now accessed from chart.layout.paneHeights
 }
-export type { RangeConfig } from '@lightweight-charts-pro/core';
-export { TimeRange } from '@lightweight-charts-pro/core';
+export type { RangeConfig } from "@nandkapadia/lightweight-charts-pro-core";
+export { TimeRange } from "@nandkapadia/lightweight-charts-pro-core";
 
 export interface RangeSwitcherConfig {
   ranges: ImportedRangeConfig[];
-  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  position: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   visible: boolean;
   defaultRange?: string;
   interval?: string; // Data interval (e.g., '1m', '5m', '1h', '1d') for accurate range calculations
@@ -490,7 +500,7 @@ export interface RangeSwitcherConfig {
 // Legend Configuration
 export interface LegendConfig {
   visible?: boolean;
-  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   symbolName?: string;
   textColor?: string;
   backgroundColor?: string;
@@ -538,9 +548,9 @@ export interface TooltipField {
 
 export interface TooltipConfig {
   enabled: boolean;
-  type: 'ohlc' | 'single' | 'multi' | 'custom';
+  type: "ohlc" | "single" | "multi" | "custom";
   fields: TooltipField[];
-  position?: 'cursor' | 'fixed' | 'auto';
+  position?: "cursor" | "fixed" | "auto";
   offset?: { x: number; y: number };
   style?: {
     backgroundColor?: string;

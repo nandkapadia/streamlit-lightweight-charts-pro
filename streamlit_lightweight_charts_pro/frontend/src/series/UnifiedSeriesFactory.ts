@@ -21,19 +21,22 @@ import {
   createSeriesMarkers,
   Time,
   SeriesOptionsMap,
-} from 'lightweight-charts';
+} from "lightweight-charts";
 
-import { UnifiedSeriesDescriptor, extractDefaultOptions } from './core/UnifiedSeriesDescriptor';
-import { BUILTIN_SERIES_DESCRIPTORS } from './descriptors/builtinSeriesDescriptors';
-import { CUSTOM_SERIES_DESCRIPTORS } from './descriptors/customSeriesDescriptors';
-import { cleanLineStyleOptions } from '@lightweight-charts-pro/core';
-import { logger } from '@lightweight-charts-pro/core';
-import { createTradeVisualElements } from '@lightweight-charts-pro/core';
-import { normalizeSeriesType } from './utils/seriesTypeNormalizer';
-import type { TradeConfig, TradeVisualizationOptions } from '../types';
-import type { ExtendedChartApi } from '../types/ChartInterfaces';
-import type { SeriesDataPoint } from '../types/seriesFactory';
-import type { LegendManager } from '../types/global';
+import {
+  UnifiedSeriesDescriptor,
+  extractDefaultOptions,
+} from "./core/UnifiedSeriesDescriptor";
+import { BUILTIN_SERIES_DESCRIPTORS } from "./descriptors/builtinSeriesDescriptors";
+import { CUSTOM_SERIES_DESCRIPTORS } from "./descriptors/customSeriesDescriptors";
+import { cleanLineStyleOptions } from "@nandkapadia/lightweight-charts-pro-core";
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
+import { createTradeVisualElements } from "@nandkapadia/lightweight-charts-pro-core";
+import { normalizeSeriesType } from "./utils/seriesTypeNormalizer";
+import type { TradeConfig, TradeVisualizationOptions } from "../types";
+import type { ExtendedChartApi } from "../types/ChartInterfaces";
+import type { SeriesDataPoint } from "../types/seriesFactory";
+import type { LegendManager } from "../types/global";
 
 /**
  * Custom error class for series creation failures
@@ -42,10 +45,10 @@ export class SeriesCreationError extends Error {
   constructor(
     public seriesType: string,
     public reason: string,
-    public originalError?: Error
+    public originalError?: Error,
   ) {
     super(`Failed to create ${seriesType} series: ${reason}`);
-    this.name = 'SeriesCreationError';
+    this.name = "SeriesCreationError";
   }
 }
 
@@ -54,24 +57,26 @@ export class SeriesCreationError extends Error {
  */
 const SERIES_REGISTRY = new Map<string, UnifiedSeriesDescriptor>([
   // Built-in series
-  ['Line', BUILTIN_SERIES_DESCRIPTORS.Line],
-  ['Area', BUILTIN_SERIES_DESCRIPTORS.Area],
-  ['Histogram', BUILTIN_SERIES_DESCRIPTORS.Histogram],
-  ['Bar', BUILTIN_SERIES_DESCRIPTORS.Bar],
-  ['Candlestick', BUILTIN_SERIES_DESCRIPTORS.Candlestick],
-  ['Baseline', BUILTIN_SERIES_DESCRIPTORS.Baseline],
+  ["Line", BUILTIN_SERIES_DESCRIPTORS.Line],
+  ["Area", BUILTIN_SERIES_DESCRIPTORS.Area],
+  ["Histogram", BUILTIN_SERIES_DESCRIPTORS.Histogram],
+  ["Bar", BUILTIN_SERIES_DESCRIPTORS.Bar],
+  ["Candlestick", BUILTIN_SERIES_DESCRIPTORS.Candlestick],
+  ["Baseline", BUILTIN_SERIES_DESCRIPTORS.Baseline],
   // Custom series
-  ['Band', CUSTOM_SERIES_DESCRIPTORS.Band],
-  ['Ribbon', CUSTOM_SERIES_DESCRIPTORS.Ribbon],
-  ['GradientRibbon', CUSTOM_SERIES_DESCRIPTORS.GradientRibbon],
-  ['Signal', CUSTOM_SERIES_DESCRIPTORS.Signal],
-  ['TrendFill', CUSTOM_SERIES_DESCRIPTORS.TrendFill],
+  ["Band", CUSTOM_SERIES_DESCRIPTORS.Band],
+  ["Ribbon", CUSTOM_SERIES_DESCRIPTORS.Ribbon],
+  ["GradientRibbon", CUSTOM_SERIES_DESCRIPTORS.GradientRibbon],
+  ["Signal", CUSTOM_SERIES_DESCRIPTORS.Signal],
+  ["TrendFill", CUSTOM_SERIES_DESCRIPTORS.TrendFill],
 ]);
 
 /**
  * Get series descriptor by type
  */
-export function getSeriesDescriptor(seriesType: string): UnifiedSeriesDescriptor | undefined {
+export function getSeriesDescriptor(
+  seriesType: string,
+): UnifiedSeriesDescriptor | undefined {
   return SERIES_REGISTRY.get(seriesType);
 }
 
@@ -109,7 +114,7 @@ export function isCustomSeries(seriesType: string): boolean {
  */
 function flattenLineOptions(
   options: Record<string, unknown>,
-  descriptor: UnifiedSeriesDescriptor<unknown>
+  descriptor: UnifiedSeriesDescriptor<unknown>,
 ): Record<string, unknown> {
   const flattened: Record<string, unknown> = { ...options };
 
@@ -119,7 +124,7 @@ function flattenLineOptions(
   if (options.lineOptions) {
     // Find the first line property in the descriptor (mainLine for builtin series)
     const linePropertyEntry = Object.entries(descriptor.properties).find(
-      ([, propDesc]) => propDesc.type === 'line' && propDesc.apiMapping
+      ([, propDesc]) => propDesc.type === "line" && propDesc.apiMapping,
     );
 
     if (linePropertyEntry) {
@@ -130,21 +135,34 @@ function flattenLineOptions(
       delete flattened.lineOptions;
 
       // Flatten using the descriptor's apiMapping
-      if (typeof lineObj === 'object' && lineObj !== null && !Array.isArray(lineObj)) {
+      if (
+        typeof lineObj === "object" &&
+        lineObj !== null &&
+        !Array.isArray(lineObj)
+      ) {
         const lineObjTyped = lineObj as Record<string, unknown>;
 
         // Map color using descriptor's colorKey (e.g., 'color' for Line, 'lineColor' for Area)
-        if (lineObjTyped.color !== undefined && linePropDesc.apiMapping?.colorKey) {
+        if (
+          lineObjTyped.color !== undefined &&
+          linePropDesc.apiMapping?.colorKey
+        ) {
           flattened[linePropDesc.apiMapping.colorKey] = lineObjTyped.color;
         }
 
         // Map line width
-        if (lineObjTyped.lineWidth !== undefined && linePropDesc.apiMapping?.widthKey) {
+        if (
+          lineObjTyped.lineWidth !== undefined &&
+          linePropDesc.apiMapping?.widthKey
+        ) {
           flattened[linePropDesc.apiMapping.widthKey] = lineObjTyped.lineWidth;
         }
 
         // Map line style
-        if (lineObjTyped.lineStyle !== undefined && linePropDesc.apiMapping?.styleKey) {
+        if (
+          lineObjTyped.lineStyle !== undefined &&
+          linePropDesc.apiMapping?.styleKey
+        ) {
           flattened[linePropDesc.apiMapping.styleKey] = lineObjTyped.lineStyle;
         }
 
@@ -162,19 +180,23 @@ function flattenLineOptions(
           flattened.pointMarkersRadius = lineObjTyped.pointMarkersRadius;
         }
         if (lineObjTyped.crosshairMarkerVisible !== undefined) {
-          flattened.crosshairMarkerVisible = lineObjTyped.crosshairMarkerVisible;
+          flattened.crosshairMarkerVisible =
+            lineObjTyped.crosshairMarkerVisible;
         }
         if (lineObjTyped.crosshairMarkerRadius !== undefined) {
           flattened.crosshairMarkerRadius = lineObjTyped.crosshairMarkerRadius;
         }
         if (lineObjTyped.crosshairMarkerBorderColor !== undefined) {
-          flattened.crosshairMarkerBorderColor = lineObjTyped.crosshairMarkerBorderColor;
+          flattened.crosshairMarkerBorderColor =
+            lineObjTyped.crosshairMarkerBorderColor;
         }
         if (lineObjTyped.crosshairMarkerBackgroundColor !== undefined) {
-          flattened.crosshairMarkerBackgroundColor = lineObjTyped.crosshairMarkerBackgroundColor;
+          flattened.crosshairMarkerBackgroundColor =
+            lineObjTyped.crosshairMarkerBackgroundColor;
         }
         if (lineObjTyped.crosshairMarkerBorderWidth !== undefined) {
-          flattened.crosshairMarkerBorderWidth = lineObjTyped.crosshairMarkerBorderWidth;
+          flattened.crosshairMarkerBorderWidth =
+            lineObjTyped.crosshairMarkerBorderWidth;
         }
         if (lineObjTyped.lastPriceAnimation !== undefined) {
           flattened.lastPriceAnimation = lineObjTyped.lastPriceAnimation;
@@ -186,11 +208,15 @@ function flattenLineOptions(
   // Process each property in the descriptor (for custom series with named line properties)
   for (const [propName, propDesc] of Object.entries(descriptor.properties)) {
     // Check if this is a line property with apiMapping and the option exists
-    if (propDesc.type === 'line' && propDesc.apiMapping && options[propName]) {
+    if (propDesc.type === "line" && propDesc.apiMapping && options[propName]) {
       const lineObj = options[propName];
 
       // Only flatten if it's an object (nested format from Python)
-      if (typeof lineObj === 'object' && lineObj !== null && !Array.isArray(lineObj)) {
+      if (
+        typeof lineObj === "object" &&
+        lineObj !== null &&
+        !Array.isArray(lineObj)
+      ) {
         // Remove the nested object
         delete flattened[propName];
 
@@ -203,53 +229,64 @@ function flattenLineOptions(
         }
 
         // Map line width
-        if (lineObjTyped.lineWidth !== undefined && propDesc.apiMapping.widthKey) {
+        if (
+          lineObjTyped.lineWidth !== undefined &&
+          propDesc.apiMapping.widthKey
+        ) {
           flattened[propDesc.apiMapping.widthKey] = lineObjTyped.lineWidth;
         }
 
         // Map line style
-        if (lineObjTyped.lineStyle !== undefined && propDesc.apiMapping.styleKey) {
+        if (
+          lineObjTyped.lineStyle !== undefined &&
+          propDesc.apiMapping.styleKey
+        ) {
           flattened[propDesc.apiMapping.styleKey] = lineObjTyped.lineStyle;
         }
 
         // Map line visibility (CRITICAL: was missing before!)
         // e.g., 'upperLine' → 'upperLineVisible', 'middleLine' → 'middleLineVisible'
         if (lineObjTyped.lineVisible !== undefined) {
-          const visibilityKey = propName + 'Visible';
+          const visibilityKey = propName + "Visible";
           flattened[visibilityKey] = lineObjTyped.lineVisible;
         }
 
         // Map additional LineOptions properties (if present in nested object)
         // These are typically not used by custom series but included for completeness
         if (lineObjTyped.lineType !== undefined) {
-          flattened[propName + 'Type'] = lineObjTyped.lineType;
+          flattened[propName + "Type"] = lineObjTyped.lineType;
         }
         if (lineObjTyped.pointMarkersVisible !== undefined) {
-          flattened[propName + 'PointMarkersVisible'] = lineObjTyped.pointMarkersVisible;
+          flattened[propName + "PointMarkersVisible"] =
+            lineObjTyped.pointMarkersVisible;
         }
         if (lineObjTyped.pointMarkersRadius !== undefined) {
-          flattened[propName + 'PointMarkersRadius'] = lineObjTyped.pointMarkersRadius;
+          flattened[propName + "PointMarkersRadius"] =
+            lineObjTyped.pointMarkersRadius;
         }
         if (lineObjTyped.crosshairMarkerVisible !== undefined) {
-          flattened[propName + 'CrosshairMarkerVisible'] = lineObjTyped.crosshairMarkerVisible;
+          flattened[propName + "CrosshairMarkerVisible"] =
+            lineObjTyped.crosshairMarkerVisible;
         }
         if (lineObjTyped.crosshairMarkerRadius !== undefined) {
-          flattened[propName + 'CrosshairMarkerRadius'] = lineObjTyped.crosshairMarkerRadius;
+          flattened[propName + "CrosshairMarkerRadius"] =
+            lineObjTyped.crosshairMarkerRadius;
         }
         if (lineObjTyped.crosshairMarkerBorderColor !== undefined) {
-          flattened[propName + 'CrosshairMarkerBorderColor'] =
+          flattened[propName + "CrosshairMarkerBorderColor"] =
             lineObjTyped.crosshairMarkerBorderColor;
         }
         if (lineObjTyped.crosshairMarkerBackgroundColor !== undefined) {
-          flattened[propName + 'CrosshairMarkerBackgroundColor'] =
+          flattened[propName + "CrosshairMarkerBackgroundColor"] =
             lineObjTyped.crosshairMarkerBackgroundColor;
         }
         if (lineObjTyped.crosshairMarkerBorderWidth !== undefined) {
-          flattened[propName + 'CrosshairMarkerBorderWidth'] =
+          flattened[propName + "CrosshairMarkerBorderWidth"] =
             lineObjTyped.crosshairMarkerBorderWidth;
         }
         if (lineObjTyped.lastPriceAnimation !== undefined) {
-          flattened[propName + 'LastPriceAnimation'] = lineObjTyped.lastPriceAnimation;
+          flattened[propName + "LastPriceAnimation"] =
+            lineObjTyped.lastPriceAnimation;
         }
       }
     }
@@ -273,18 +310,18 @@ export function createSeries(
   seriesType: string,
   data: any[],
   userOptions: Partial<SeriesOptionsCommon> = {},
-  paneId: number = 0
+  paneId: number = 0,
 ): ISeriesApi<any> {
   try {
     // Validate inputs
     if (!chart) {
-      throw new SeriesCreationError(seriesType, 'Chart instance is required');
+      throw new SeriesCreationError(seriesType, "Chart instance is required");
     }
 
-    if (!seriesType || typeof seriesType !== 'string') {
+    if (!seriesType || typeof seriesType !== "string") {
       throw new SeriesCreationError(
-        seriesType || 'unknown',
-        'Series type must be a non-empty string'
+        seriesType || "unknown",
+        "Series type must be a non-empty string",
       );
     }
 
@@ -294,10 +331,10 @@ export function createSeries(
     // Get descriptor
     const descriptor = SERIES_REGISTRY.get(mappedType);
     if (!descriptor) {
-      const availableTypes = Array.from(SERIES_REGISTRY.keys()).join(', ');
+      const availableTypes = Array.from(SERIES_REGISTRY.keys()).join(", ");
       throw new SeriesCreationError(
         seriesType,
-        `Unknown series type '${seriesType}' (normalized to '${mappedType}'). Available types: ${availableTypes}`
+        `Unknown series type '${seriesType}' (normalized to '${mappedType}'). Available types: ${availableTypes}`,
       );
     }
 
@@ -331,13 +368,13 @@ export function createSeries(
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(
       `Series creation failed for ${seriesType}: ${errorMessage}`,
-      'UnifiedSeriesFactory',
-      error
+      "UnifiedSeriesFactory",
+      error,
     );
     throw new SeriesCreationError(
       seriesType,
       `Series creation failed: ${errorMessage}`,
-      error as Error
+      error as Error,
     );
   }
 }
@@ -349,13 +386,15 @@ export function createSeries(
  * @returns Default options object
  * @throws {SeriesCreationError} If series type is unknown
  */
-export function getDefaultOptions(seriesType: string): Partial<SeriesOptionsCommon> {
+export function getDefaultOptions(
+  seriesType: string,
+): Partial<SeriesOptionsCommon> {
   const descriptor = SERIES_REGISTRY.get(seriesType);
   if (!descriptor) {
-    const availableTypes = Array.from(SERIES_REGISTRY.keys()).join(', ');
+    const availableTypes = Array.from(SERIES_REGISTRY.keys()).join(", ");
     throw new SeriesCreationError(
       seriesType,
-      `Unknown series type. Available types: ${availableTypes}`
+      `Unknown series type. Available types: ${availableTypes}`,
     );
   }
   return extractDefaultOptions(descriptor);
@@ -366,7 +405,9 @@ export function getDefaultOptions(seriesType: string): Partial<SeriesOptionsComm
  *
  * @param descriptor - Custom series descriptor
  */
-export function registerSeriesDescriptor(descriptor: UnifiedSeriesDescriptor): void {
+export function registerSeriesDescriptor(
+  descriptor: UnifiedSeriesDescriptor,
+): void {
   SERIES_REGISTRY.set(descriptor.type, descriptor);
 }
 
@@ -385,8 +426,12 @@ export function unregisterSeriesDescriptor(seriesType: string): boolean {
  * @param category - Category name (e.g., 'Basic', 'Custom')
  * @returns Array of descriptors in that category
  */
-export function getSeriesDescriptorsByCategory(category: string): UnifiedSeriesDescriptor[] {
-  return Array.from(SERIES_REGISTRY.values()).filter(desc => desc.category === category);
+export function getSeriesDescriptorsByCategory(
+  category: string,
+): UnifiedSeriesDescriptor[] {
+  return Array.from(SERIES_REGISTRY.values()).filter(
+    (desc) => desc.category === category,
+  );
 }
 
 /**
@@ -430,7 +475,7 @@ export interface ExtendedSeriesConfig {
   /** Show price line */
   priceLineVisible?: boolean;
   /** Price line source (0 = lastBar, 1 = lastVisible, or string 'lastBar'/'lastVisible') */
-  priceLineSource?: number | 'lastBar' | 'lastVisible';
+  priceLineSource?: number | "lastBar" | "lastVisible";
   /** Price line width */
   priceLineWidth?: number;
   /** Price line color */
@@ -469,7 +514,7 @@ export interface ExtendedSeriesApi extends ISeriesApi<keyof SeriesOptionsMap> {
  */
 export function createSeriesWithConfig(
   chart: IChartApi,
-  config: ExtendedSeriesConfig
+  config: ExtendedSeriesConfig,
 ): ExtendedSeriesApi | null {
   try {
     const {
@@ -491,7 +536,13 @@ export function createSeriesWithConfig(
 
     // Step 1: Create the series using basic createSeries
     // Note: createSeries already handles data sorting and setting via descriptors
-    const series = createSeries(chart, type, data, options, paneId) as ExtendedSeriesApi;
+    const series = createSeries(
+      chart,
+      type,
+      data,
+      options,
+      paneId,
+    ) as ExtendedSeriesApi;
 
     // Step 2: Data is already set by descriptor's create method (with sorting/deduplication)
     // No need to set data again here - descriptor handles it properly
@@ -502,7 +553,11 @@ export function createSeriesWithConfig(
         const cleanedPriceScale = cleanLineStyleOptions(priceScale);
         series.priceScale().applyOptions(cleanedPriceScale);
       } catch (error) {
-        logger.warn('Failed to configure price scale', 'UnifiedSeriesFactory', error);
+        logger.warn(
+          "Failed to configure price scale",
+          "UnifiedSeriesFactory",
+          error,
+        );
       }
     }
 
@@ -512,7 +567,11 @@ export function createSeriesWithConfig(
         try {
           series.createPriceLine(priceLine as any); // Type assertion needed for dynamic price line creation
         } catch (error) {
-          logger.warn('Failed to create price line', 'UnifiedSeriesFactory', error);
+          logger.warn(
+            "Failed to create price line",
+            "UnifiedSeriesFactory",
+            error,
+          );
         }
       });
     }
@@ -520,10 +579,13 @@ export function createSeriesWithConfig(
     // Step 5: Add markers if provided
     if (markers && Array.isArray(markers) && markers.length > 0) {
       try {
-        const snappedMarkers = applyTimestampSnapping(markers, data as SeriesDataPoint[]);
+        const snappedMarkers = applyTimestampSnapping(
+          markers,
+          data as SeriesDataPoint[],
+        );
         createSeriesMarkers(series, snappedMarkers);
       } catch (error) {
-        logger.warn('Failed to set markers', 'UnifiedSeriesFactory', error);
+        logger.warn("Failed to set markers", "UnifiedSeriesFactory", error);
       }
     }
 
@@ -557,11 +619,21 @@ export function createSeriesWithConfig(
         const legendManager = window.paneLegendManagers?.[chartId]?.[paneId] as
           | LegendManager
           | undefined;
-        if (legendManager && typeof legendManager.addSeriesLegend === 'function') {
-          legendManager.addSeriesLegend(seriesId || `series-${Date.now()}`, config);
+        if (
+          legendManager &&
+          typeof legendManager.addSeriesLegend === "function"
+        ) {
+          legendManager.addSeriesLegend(
+            seriesId || `series-${Date.now()}`,
+            config,
+          );
         }
       } catch (error) {
-        logger.warn('Failed to register series legend', 'UnifiedSeriesFactory', error);
+        logger.warn(
+          "Failed to register series legend",
+          "UnifiedSeriesFactory",
+          error,
+        );
       }
     }
 
@@ -570,7 +642,11 @@ export function createSeriesWithConfig(
     if (trades && tradeVisualizationOptions && trades.length > 0) {
       try {
         // Create trade visual elements (markers, rectangles, annotations)
-        const visualElements = createTradeVisualElements(trades, tradeVisualizationOptions, data);
+        const visualElements = createTradeVisualElements(
+          trades,
+          tradeVisualizationOptions,
+          data,
+        );
 
         // Add trade markers to the series
         if (visualElements.markers && visualElements.markers.length > 0) {
@@ -578,7 +654,11 @@ export function createSeriesWithConfig(
         }
 
         // Store rectangle data for later processing by the chart component
-        if (visualElements.rectangles && visualElements.rectangles.length > 0 && chartId) {
+        if (
+          visualElements.rectangles &&
+          visualElements.rectangles.length > 0 &&
+          chartId
+        ) {
           const extendedChart = chart as ExtendedChartApi;
           if (!extendedChart._pendingTradeRectangles) {
             extendedChart._pendingTradeRectangles = [];
@@ -590,13 +670,21 @@ export function createSeriesWithConfig(
           });
         }
       } catch (error) {
-        logger.warn('Failed to create trade visualization', 'UnifiedSeriesFactory', error);
+        logger.warn(
+          "Failed to create trade visualization",
+          "UnifiedSeriesFactory",
+          error,
+        );
       }
     }
 
     return series;
   } catch (error) {
-    logger.error('Series creation with config failed', 'UnifiedSeriesFactory', error);
+    logger.error(
+      "Series creation with config failed",
+      "UnifiedSeriesFactory",
+      error,
+    );
     return null;
   }
 }
@@ -610,7 +698,7 @@ export function createSeriesWithConfig(
  */
 function applyTimestampSnapping(
   markers: SeriesMarker<Time>[],
-  chartData?: SeriesDataPoint[]
+  chartData?: SeriesDataPoint[],
 ): SeriesMarker<Time>[] {
   if (!chartData || chartData.length === 0) {
     return markers;
@@ -618,10 +706,10 @@ function applyTimestampSnapping(
 
   // Extract available timestamps from chart data
   const availableTimes = chartData
-    .map(item => {
-      if (typeof item.time === 'number') {
+    .map((item) => {
+      if (typeof item.time === "number") {
         return item.time;
-      } else if (typeof item.time === 'string') {
+      } else if (typeof item.time === "string") {
         return Math.floor(new Date(item.time).getTime() / 1000);
       }
       return null;
@@ -633,8 +721,8 @@ function applyTimestampSnapping(
   }
 
   // Apply timestamp snapping to each marker
-  return markers.map(marker => {
-    if (marker.time && typeof marker.time === 'number') {
+  return markers.map((marker) => {
+    if (marker.time && typeof marker.time === "number") {
       // Find nearest available timestamp
       const nearestTime = availableTimes.reduce((nearest, current) => {
         const currentDiff = Math.abs(current - (marker.time as number));
@@ -659,12 +747,12 @@ function applyTimestampSnapping(
  */
 export function updateSeriesData(
   series: ISeriesApi<keyof SeriesOptionsMap>,
-  data: SeriesDataPoint[]
+  data: SeriesDataPoint[],
 ): void {
   try {
     series.setData(data as never[]);
   } catch (error) {
-    logger.error('Failed to update series data', 'UnifiedSeriesFactory', error);
+    logger.error("Failed to update series data", "UnifiedSeriesFactory", error);
     throw error;
   }
 }
@@ -679,13 +767,19 @@ export function updateSeriesData(
 export function updateSeriesMarkers(
   series: ISeriesApi<any>,
   markers: SeriesMarker<any>[],
-  data?: SeriesDataPoint[]
+  data?: SeriesDataPoint[],
 ): void {
   try {
-    const snappedMarkers = data ? applyTimestampSnapping(markers, data) : markers;
+    const snappedMarkers = data
+      ? applyTimestampSnapping(markers, data)
+      : markers;
     createSeriesMarkers(series, snappedMarkers);
   } catch (error) {
-    logger.error('Failed to update series markers', 'UnifiedSeriesFactory', error);
+    logger.error(
+      "Failed to update series markers",
+      "UnifiedSeriesFactory",
+      error,
+    );
     throw error;
   }
 }
@@ -698,13 +792,17 @@ export function updateSeriesMarkers(
  */
 export function updateSeriesOptions(
   series: ISeriesApi<any>,
-  options: Partial<SeriesOptionsCommon>
+  options: Partial<SeriesOptionsCommon>,
 ): void {
   try {
     const cleanedOptions = cleanLineStyleOptions(options);
     series.applyOptions(cleanedOptions);
   } catch (error) {
-    logger.error('Failed to update series options', 'UnifiedSeriesFactory', error);
+    logger.error(
+      "Failed to update series options",
+      "UnifiedSeriesFactory",
+      error,
+    );
     throw error;
   }
 }

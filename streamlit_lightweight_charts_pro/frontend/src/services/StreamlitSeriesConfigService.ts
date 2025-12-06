@@ -6,11 +6,16 @@
  * across component redraws and browser sessions.
  */
 
-import { Streamlit } from 'streamlit-component-lib';
-import { SeriesConfiguration, SeriesType } from '../types/SeriesTypes';
-import { logger, Singleton, handleError, ErrorSeverity } from '@lightweight-charts-pro/core';
-import { isStreamlitComponentReady } from '../hooks/useStreamlit';
-import { TIMING } from '../config/positioningConfig';
+import { Streamlit } from "streamlit-component-lib";
+import { SeriesConfiguration, SeriesType } from "../types/SeriesTypes";
+import {
+  logger,
+  Singleton,
+  handleError,
+  ErrorSeverity,
+} from "@nandkapadia/lightweight-charts-pro-core";
+import { isStreamlitComponentReady } from "../hooks/useStreamlit";
+import { TIMING } from "../config/positioningConfig";
 
 /**
  * Event data for series configuration changes.
@@ -80,7 +85,7 @@ export class StreamlitSeriesConfigService {
     seriesId: string,
     seriesType: SeriesType,
     config: SeriesConfiguration,
-    chartId?: string
+    chartId?: string,
   ): void {
     const event: SeriesConfigChangeEvent = {
       paneId,
@@ -88,7 +93,7 @@ export class StreamlitSeriesConfigService {
       seriesType,
       config: { ...config }, // Deep copy to avoid mutations
       timestamp: Date.now(),
-      chartId: chartId || 'default',
+      chartId: chartId || "default",
     };
 
     // Update local state immediately
@@ -107,9 +112,9 @@ export class StreamlitSeriesConfigService {
   public getSeriesConfig(
     paneId: number,
     seriesId: string,
-    chartId?: string
+    chartId?: string,
   ): SeriesConfiguration | null {
-    const cId = chartId || 'default';
+    const cId = chartId || "default";
     return this.configState[cId]?.[paneId]?.[seriesId]?.config || null;
   }
 
@@ -117,7 +122,7 @@ export class StreamlitSeriesConfigService {
    * Get all configurations for a specific chart
    */
   public getChartConfig(chartId?: string): SeriesConfigState[string] | null {
-    const cId = chartId || 'default';
+    const cId = chartId || "default";
     return this.configState[cId] || null;
   }
 
@@ -155,7 +160,7 @@ export class StreamlitSeriesConfigService {
    */
   private updateLocalState(event: SeriesConfigChangeEvent): void {
     const { paneId, seriesId, seriesType, config, timestamp, chartId } = event;
-    const cId = chartId || 'default';
+    const cId = chartId || "default";
 
     // Ensure nested structure exists
     if (!this.configState[cId]) {
@@ -197,7 +202,7 @@ export class StreamlitSeriesConfigService {
     try {
       // Prepare payload for backend sync
       const payload = {
-        type: 'series_config_changes',
+        type: "series_config_changes",
         changes: [...this.pendingChanges],
         completeState: this.getCompleteState(),
         timestamp: Date.now(),
@@ -205,7 +210,10 @@ export class StreamlitSeriesConfigService {
 
       // Send to Streamlit backend only if component is ready
       if (!isStreamlitComponentReady()) {
-        logger.warn('Streamlit component not ready, skipping sync', 'StreamlitSeriesConfigService');
+        logger.warn(
+          "Streamlit component not ready, skipping sync",
+          "StreamlitSeriesConfigService",
+        );
         return;
       }
 
@@ -213,20 +221,32 @@ export class StreamlitSeriesConfigService {
       this.pendingChanges = [];
 
       // Send configuration to backend for persistence
-      if (typeof Streamlit !== 'undefined' && Streamlit.setComponentValue) {
+      if (typeof Streamlit !== "undefined" && Streamlit.setComponentValue) {
         Streamlit.setComponentValue(payload);
-        logger.debug('Sent series config to backend', 'StreamlitSeriesConfigService', payload);
+        logger.debug(
+          "Sent series config to backend",
+          "StreamlitSeriesConfigService",
+          payload,
+        );
       } else {
         logger.warn(
-          'Streamlit not available or setComponentValue not found',
-          'StreamlitSeriesConfigService'
+          "Streamlit not available or setComponentValue not found",
+          "StreamlitSeriesConfigService",
         );
       }
     } catch (error) {
-      logger.error('Error syncing to backend', 'StreamlitSeriesConfigService', error);
+      logger.error(
+        "Error syncing to backend",
+        "StreamlitSeriesConfigService",
+        error,
+      );
       // Backend sync errors are non-critical - log as warning
       // Don't clear pending changes on error - they can be retried
-      handleError(error, 'StreamlitSeriesConfigService.syncToBackend', ErrorSeverity.WARNING);
+      handleError(
+        error,
+        "StreamlitSeriesConfigService.syncToBackend",
+        ErrorSeverity.WARNING,
+      );
     }
   }
 
@@ -235,7 +255,7 @@ export class StreamlitSeriesConfigService {
    */
   public restoreFromBackend(backendState: any): void {
     try {
-      if (backendState && typeof backendState === 'object') {
+      if (backendState && typeof backendState === "object") {
         // Validate and restore state structure
         if (backendState.completeState) {
           this.configState = backendState.completeState;
@@ -247,9 +267,9 @@ export class StreamlitSeriesConfigService {
             // Validate change object has required properties before processing
             if (
               change &&
-              typeof change === 'object' &&
-              typeof change.paneId === 'number' &&
-              typeof change.seriesId === 'string' &&
+              typeof change === "object" &&
+              typeof change.paneId === "number" &&
+              typeof change.seriesId === "string" &&
               change.config
             ) {
               this.updateLocalState(change);
@@ -261,8 +281,8 @@ export class StreamlitSeriesConfigService {
       // Config send failures should propagate
       handleError(
         error,
-        'StreamlitSeriesConfigService.sendSeriesConfiguration',
-        ErrorSeverity.ERROR
+        "StreamlitSeriesConfigService.sendSeriesConfiguration",
+        ErrorSeverity.ERROR,
       );
     }
   }
@@ -282,39 +302,42 @@ export class StreamlitSeriesConfigService {
   /**
    * Infer series type from configuration or series ID
    */
-  private inferSeriesType(config: SeriesConfiguration, seriesId: string): SeriesType {
+  private inferSeriesType(
+    config: SeriesConfiguration,
+    seriesId: string,
+  ): SeriesType {
     // Check if config contains series-specific properties
     if (config.period !== undefined && config.multiplier !== undefined) {
-      return 'supertrend';
+      return "supertrend";
     }
     if (config.length !== undefined && config.stdDev !== undefined) {
-      return 'bollinger_bands';
+      return "bollinger_bands";
     }
     if (config.length !== undefined && config.source !== undefined) {
-      if (seriesId.includes('sma') || seriesId.includes('simple')) {
-        return 'sma';
+      if (seriesId.includes("sma") || seriesId.includes("simple")) {
+        return "sma";
       }
-      if (seriesId.includes('ema') || seriesId.includes('exponential')) {
-        return 'ema';
+      if (seriesId.includes("ema") || seriesId.includes("exponential")) {
+        return "ema";
       }
     }
 
     // Infer from series ID patterns
-    if (seriesId.includes('candlestick') || seriesId.includes('candle')) {
-      return 'candlestick';
+    if (seriesId.includes("candlestick") || seriesId.includes("candle")) {
+      return "candlestick";
     }
-    if (seriesId.includes('histogram') || seriesId.includes('volume')) {
-      return 'histogram';
+    if (seriesId.includes("histogram") || seriesId.includes("volume")) {
+      return "histogram";
     }
-    if (seriesId.includes('area')) {
-      return 'area';
+    if (seriesId.includes("area")) {
+      return "area";
     }
-    if (seriesId.includes('bar')) {
-      return 'bar';
+    if (seriesId.includes("bar")) {
+      return "bar";
     }
 
     // Default to line series
-    return 'line';
+    return "line";
   }
 
   /**
@@ -330,10 +353,11 @@ export class StreamlitSeriesConfigService {
       (total, chartConfig) =>
         total +
         Object.values(chartConfig).reduce(
-          (chartTotal, paneConfig) => chartTotal + Object.keys(paneConfig).length,
-          0
+          (chartTotal, paneConfig) =>
+            chartTotal + Object.keys(paneConfig).length,
+          0,
         ),
-      0
+      0,
     );
 
     return {

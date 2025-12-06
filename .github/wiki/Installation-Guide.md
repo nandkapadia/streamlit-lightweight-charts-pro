@@ -149,14 +149,14 @@ streamlit cache clear
 
 **Solution**:
 
-The `lightweight-charts-pro` Python package is automatically installed as a dependency. If you get import errors:
+The `lightweight-charts-pro` Python package is automatically installed as a dependency from PyPI. If you get import errors:
 
 ```bash
 # Reinstall with dependencies
 pip install --force-reinstall streamlit-lightweight-charts-pro
 
 # Or manually install dependency
-pip install git+https://github.com/nandkapadia/lightweight-charts-pro-python.git@dev
+pip install lightweight-charts-pro
 ```
 
 ### Issue: Version conflicts

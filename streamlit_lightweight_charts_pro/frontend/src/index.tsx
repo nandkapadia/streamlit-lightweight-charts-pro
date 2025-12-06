@@ -14,24 +14,24 @@
  */
 
 // Standard Imports
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from "react";
 
 // Utility Imports
-import { logger } from '@lightweight-charts-pro/core';
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
 
 // Third Party Imports
-import { createRoot } from 'react-dom/client';
-import { Streamlit } from 'streamlit-component-lib';
+import { createRoot } from "react-dom/client";
+import { Streamlit } from "streamlit-component-lib";
 
 // Local Imports
-import LightweightCharts from './LightweightCharts';
-import { ComponentConfig } from './types';
-import { ResizeObserverManager } from '@lightweight-charts-pro/core';
+import LightweightCharts from "./LightweightCharts";
+import { ComponentConfig } from "./types";
+import { ResizeObserverManager } from "@nandkapadia/lightweight-charts-pro-core";
 import {
   useStreamlitRenderData,
   useStreamlitFrameHeight,
   isStreamlitComponentReady,
-} from './hooks/useStreamlit';
+} from "./hooks/useStreamlit";
 
 /**
  * Main App component that renders the LightweightCharts component.
@@ -52,9 +52,13 @@ const App: React.FC = () => {
   useEffect(() => {
     if (renderData?.args) {
       // Check if this is a config_change event
-      if (renderData.args && typeof renderData.args === 'object' && 'type' in renderData.args) {
+      if (
+        renderData.args &&
+        typeof renderData.args === "object" &&
+        "type" in renderData.args
+      ) {
         const eventData = renderData.args as any;
-        if (eventData.type === 'config_change') {
+        if (eventData.type === "config_change") {
           // Set the config change state to pass to LightweightCharts component
           setConfigChange({
             paneId: eventData.paneId,
@@ -78,7 +82,9 @@ const App: React.FC = () => {
   const [configChange, setConfigChange] = useState<any>(null);
 
   // Resize observer manager for responsive behavior
-  const resizeObserverManager = useRef<ResizeObserverManager>(new ResizeObserverManager());
+  const resizeObserverManager = useRef<ResizeObserverManager>(
+    new ResizeObserverManager(),
+  );
 
   // Height reporting state management
   const heightReportTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -99,7 +105,7 @@ const App: React.FC = () => {
   const handleChartsReady = () => {
     isReadyRef.current = true;
     // Charts are ready - trigger initial height report
-    reportHeightWithFallback().catch(error => {});
+    reportHeightWithFallback().catch((error) => {});
   };
 
   // Enhanced height reporting with multiple detection methods and loop prevention
@@ -120,21 +126,30 @@ const App: React.FC = () => {
       // Method 1: Try container dimensions first
       let containerHeight = 0;
       const config = renderData?.args?.config as ComponentConfig;
-      const chartHeight = renderData?.args?.height || config?.charts?.[0]?.chart?.height || 400;
+      const chartHeight =
+        renderData?.args?.height || config?.charts?.[0]?.chart?.height || 400;
 
       try {
         containerHeight = containerRef.current.scrollHeight;
       } catch (error) {
-        logger.error('Failed to set Streamlit component ready', 'StreamlitComponent', error);
+        logger.error(
+          "Failed to set Streamlit component ready",
+          "StreamlitComponent",
+          error,
+        );
       }
 
       // Method 2: Try computed styles
-      if (!containerHeight && typeof window !== 'undefined') {
+      if (!containerHeight && typeof window !== "undefined") {
         try {
           const computedStyle = window.getComputedStyle(containerRef.current);
           containerHeight = parseInt(computedStyle.height) || 0;
         } catch (error) {
-          logger.error('Failed to get computed style height', 'StreamlitComponent', error);
+          logger.error(
+            "Failed to get computed style height",
+            "StreamlitComponent",
+            error,
+          );
         }
       }
 
@@ -143,7 +158,11 @@ const App: React.FC = () => {
         try {
           containerHeight = containerRef.current.offsetHeight;
         } catch (error) {
-          logger.error('Failed to get offset height', 'StreamlitComponent', error);
+          logger.error(
+            "Failed to get offset height",
+            "StreamlitComponent",
+            error,
+          );
         }
       }
 
@@ -152,7 +171,11 @@ const App: React.FC = () => {
         try {
           containerHeight = containerRef.current.clientHeight;
         } catch (error) {
-          logger.error('Failed to get client height', 'StreamlitComponent', error);
+          logger.error(
+            "Failed to get client height",
+            "StreamlitComponent",
+            error,
+          );
         }
       }
 
@@ -163,7 +186,9 @@ const App: React.FC = () => {
       const finalHeight = totalHeight;
 
       // Check if this height is different from what we last reported
-      const heightDifference = Math.abs(finalHeight - lastReportedHeight.current);
+      const heightDifference = Math.abs(
+        finalHeight - lastReportedHeight.current,
+      );
 
       // Only report if height has changed significantly (more than 5px to account for small variations)
       if (heightDifference > 5 && pendingHeightReport.current !== finalHeight) {
@@ -177,18 +202,26 @@ const App: React.FC = () => {
         if (
           isMountedRef.current &&
           isStreamlitComponentReady() &&
-          typeof Streamlit !== 'undefined' &&
+          typeof Streamlit !== "undefined" &&
           Streamlit.setFrameHeight
         ) {
           try {
             Streamlit.setFrameHeight(finalHeight);
           } catch (error) {
-            logger.error('Failed to set Streamlit frame height', 'StreamlitComponent', error);
+            logger.error(
+              "Failed to set Streamlit frame height",
+              "StreamlitComponent",
+              error,
+            );
           }
         }
       }
     } catch (error) {
-      logger.error('Failed to report height to Streamlit', 'StreamlitComponent', error);
+      logger.error(
+        "Failed to report height to Streamlit",
+        "StreamlitComponent",
+        error,
+      );
     } finally {
       // Clear reporting flag after a short delay
       setTimeout(() => {
@@ -222,7 +255,7 @@ const App: React.FC = () => {
       // Check again if component is still mounted before reporting
       if (isMountedRef.current && !isReportingHeight.current) {
         lastReportTime.current = Date.now();
-        reportHeightWithFallback().catch(error => {});
+        reportHeightWithFallback().catch((error) => {});
       }
     }, 1000); // Increased to 1000ms to reduce frequency
   }, [reportHeightWithFallback]);
@@ -232,13 +265,13 @@ const App: React.FC = () => {
     if (!containerRef.current) return undefined;
 
     // Report height immediately
-    reportHeightWithFallback().catch(error => {});
+    reportHeightWithFallback().catch((error) => {});
 
     // Set up ResizeObserver for height changes
     resizeObserverManager.current.addObserver(
-      'streamlit-container',
+      "streamlit-container",
       containerRef.current,
-      entry => {
+      (entry) => {
         // Don't process resize events if component is not mounted or if we're currently reporting height
         if (!isMountedRef.current || isReportingHeight.current) {
           return;
@@ -247,7 +280,7 @@ const App: React.FC = () => {
         // Handle both single entry and array of entries
         const entries = Array.isArray(entry) ? entry : [entry];
 
-        entries.forEach(singleEntry => {
+        entries.forEach((singleEntry) => {
           if (singleEntry.target === containerRef.current) {
             const { width, height } = singleEntry.contentRect;
 
@@ -269,7 +302,7 @@ const App: React.FC = () => {
           }
         });
       },
-      { throttleMs: 500, debounceMs: 300 } // Much higher throttling to prevent infinite loops
+      { throttleMs: 500, debounceMs: 300 }, // Much higher throttling to prevent infinite loops
     );
 
     return () => {
@@ -282,7 +315,7 @@ const App: React.FC = () => {
   // Enhanced height reporting with window resize
   useEffect(() => {
     // Only add resize listener in browser environment
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
@@ -290,10 +323,10 @@ const App: React.FC = () => {
       debouncedReportHeight();
     };
 
-    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener("resize", handleWindowResize);
 
     return () => {
-      window.removeEventListener('resize', handleWindowResize);
+      window.removeEventListener("resize", handleWindowResize);
     };
   }, [debouncedReportHeight]);
 
@@ -329,7 +362,11 @@ const App: React.FC = () => {
 
   // Report height when height prop changes (with more conservative approach)
   useEffect(() => {
-    if (isReadyRef.current && isMountedRef.current && !isReportingHeight.current) {
+    if (
+      isReadyRef.current &&
+      isMountedRef.current &&
+      !isReportingHeight.current
+    ) {
       // Only report if height has actually changed significantly
       const newHeight = renderData?.args?.height || 400;
       if (Math.abs(newHeight - lastReportedHeight.current) > 20) {
@@ -340,7 +377,11 @@ const App: React.FC = () => {
 
   // Report height when config changes (with more conservative approach)
   useEffect(() => {
-    if (isReadyRef.current && isMountedRef.current && !isReportingHeight.current) {
+    if (
+      isReadyRef.current &&
+      isMountedRef.current &&
+      !isReportingHeight.current
+    ) {
       // Longer delay to ensure charts have rendered and prevent immediate loops
       setTimeout(() => {
         if (!isReportingHeight.current) {
@@ -357,11 +398,17 @@ const App: React.FC = () => {
   const config = renderData.args?.config as ComponentConfig;
 
   // Extract height and width from JSON config instead of separate parameters
-  const height = (renderData.args?.height as number) || config?.charts?.[0]?.chart?.height || 400;
-  const width = (renderData.args?.width as number) || config?.charts?.[0]?.chart?.width || null;
+  const height =
+    (renderData.args?.height as number) ||
+    config?.charts?.[0]?.chart?.height ||
+    400;
+  const width =
+    (renderData.args?.width as number) ||
+    config?.charts?.[0]?.chart?.width ||
+    null;
 
   return (
-    <div ref={containerRef} style={{ width: '100%', minHeight: height }}>
+    <div ref={containerRef} style={{ width: "100%", minHeight: height }}>
       <LightweightCharts
         config={config}
         height={height}
@@ -378,22 +425,22 @@ export default App;
 
 // Render the app with proper DOM ready check
 function renderApp() {
-  const rootElement = document.getElementById('root');
+  const rootElement = document.getElementById("root");
   if (rootElement) {
     const root = createRoot(rootElement);
     root.render(
       <React.StrictMode>
         <App />
-      </React.StrictMode>
+      </React.StrictMode>,
     );
   } else {
-    logger.error('Root element not found', 'StreamlitComponent');
+    logger.error("Root element not found", "StreamlitComponent");
   }
 }
 
 // Ensure DOM is ready before rendering
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', renderApp);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", renderApp);
 } else {
   renderApp();
 }

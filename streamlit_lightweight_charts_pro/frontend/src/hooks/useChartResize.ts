@@ -24,10 +24,10 @@
  * ```
  */
 
-import { useCallback, useRef, useEffect } from 'react';
-import { IChartApi } from 'lightweight-charts';
-import { ChartConfig } from '../types';
-import { logger } from '@lightweight-charts-pro/core';
+import { useCallback, useRef, useEffect } from "react";
+import { IChartApi } from "lightweight-charts";
+import { ChartConfig } from "../types";
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
 
 export interface UseChartResizeOptions {
   /**
@@ -51,13 +51,20 @@ export interface UseChartResizeReturn {
   /**
    * Get container dimensions
    */
-  getContainerDimensions(container: HTMLElement): { width: number; height: number };
+  getContainerDimensions(container: HTMLElement): {
+    width: number;
+    height: number;
+  };
 
   /**
    * Setup auto-sizing for a chart
    * Creates a ResizeObserver that watches the container and resizes the chart accordingly
    */
-  setupAutoSizing(chart: IChartApi, container: HTMLElement, chartConfig: ChartConfig): void;
+  setupAutoSizing(
+    chart: IChartApi,
+    container: HTMLElement,
+    chartConfig: ChartConfig,
+  ): void;
 
   /**
    * Manually resize a chart
@@ -77,7 +84,9 @@ export interface UseChartResizeReturn {
  * @param options - Configuration options for chart resizing
  * @returns Object with resize helper functions
  */
-export function useChartResize(options: UseChartResizeOptions): UseChartResizeReturn {
+export function useChartResize(
+  options: UseChartResizeOptions,
+): UseChartResizeReturn {
   const { width, height, debounceMs = 100 } = options;
 
   // Store resize observers for cleanup
@@ -110,14 +119,23 @@ export function useChartResize(options: UseChartResizeOptions): UseChartResizeRe
    * Uses ref to always access latest options values
    */
   const debouncedResizeHandler = useCallback(
-    (chartId: string, chart: IChartApi, container: HTMLElement, chartConfig: ChartConfig) => {
+    (
+      chartId: string,
+      chart: IChartApi,
+      container: HTMLElement,
+      chartConfig: ChartConfig,
+    ) => {
       // Clear existing timer
       if (debounceTimersRef.current[chartId]) {
         clearTimeout(debounceTimersRef.current[chartId]);
       }
 
       // Get latest options from ref to avoid stale closure
-      const { width: currentWidth, height: currentHeight, debounceMs: currentDebounceMs } = optionsRef.current;
+      const {
+        width: currentWidth,
+        height: currentHeight,
+        debounceMs: currentDebounceMs,
+      } = optionsRef.current;
 
       // Set new timer
       debounceTimersRef.current[chartId] = setTimeout(() => {
@@ -136,11 +154,11 @@ export function useChartResize(options: UseChartResizeOptions): UseChartResizeRe
             chart.resize(newWidth, newHeight);
           }
         } catch (error) {
-          logger.warn('Chart auto-resize failed', 'useChartResize', error);
+          logger.warn("Chart auto-resize failed", "useChartResize", error);
         }
       }, currentDebounceMs);
     },
-    [getContainerDimensions]
+    [getContainerDimensions],
   );
 
   /**
@@ -150,38 +168,45 @@ export function useChartResize(options: UseChartResizeOptions): UseChartResizeRe
   const setupAutoSizing = useCallback(
     (chart: IChartApi, container: HTMLElement, chartConfig: ChartConfig) => {
       // Only setup auto-sizing if explicitly enabled
-      if (chartConfig.autoSize || chartConfig.autoWidth || chartConfig.autoHeight) {
-        const chartId = chart.chartElement().id || 'default';
+      if (
+        chartConfig.autoSize ||
+        chartConfig.autoWidth ||
+        chartConfig.autoHeight
+      ) {
+        const chartId = chart.chartElement().id || "default";
 
         // Create ResizeObserver if available
         const observer =
-          typeof ResizeObserver !== 'undefined'
+          typeof ResizeObserver !== "undefined"
             ? new ResizeObserver(() => {
                 debouncedResizeHandler(chartId, chart, container, chartConfig);
               })
             : null;
 
-        if (observer && typeof observer.observe === 'function') {
+        if (observer && typeof observer.observe === "function") {
           observer.observe(container);
         }
 
         resizeObserverRef.current = observer;
       }
     },
-    [debouncedResizeHandler]
+    [debouncedResizeHandler],
   );
 
   /**
    * Manually resize a chart
    * Useful for programmatic resizing outside of auto-sizing
    */
-  const resizeChart = useCallback((chart: IChartApi, chartWidth: number, chartHeight: number) => {
-    try {
-      chart.resize(chartWidth, chartHeight);
-    } catch (error) {
-      logger.warn('Manual chart resize failed', 'useChartResize', error);
-    }
-  }, []);
+  const resizeChart = useCallback(
+    (chart: IChartApi, chartWidth: number, chartHeight: number) => {
+      try {
+        chart.resize(chartWidth, chartHeight);
+      } catch (error) {
+        logger.warn("Manual chart resize failed", "useChartResize", error);
+      }
+    },
+    [],
+  );
 
   /**
    * Cleanup all resize observers and timers
@@ -194,7 +219,7 @@ export function useChartResize(options: UseChartResizeOptions): UseChartResizeRe
     }
 
     // Clear all pending debounce timers
-    Object.values(debounceTimersRef.current).forEach(timer => {
+    Object.values(debounceTimersRef.current).forEach((timer) => {
       clearTimeout(timer);
     });
     debounceTimersRef.current = {};

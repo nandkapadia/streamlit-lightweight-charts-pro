@@ -8,20 +8,20 @@
 import {
   dialogConfigToApiOptions as descriptorDialogToApi,
   apiOptionsToDialogConfig as descriptorApiToDialog,
-} from './core/UnifiedSeriesDescriptor';
-import { getSeriesDescriptor } from './UnifiedSeriesFactory';
-import { normalizeSeriesType } from './utils/seriesTypeNormalizer';
-import { logger } from '@lightweight-charts-pro/core';
+} from "./core/UnifiedSeriesDescriptor";
+import { getSeriesDescriptor } from "./UnifiedSeriesFactory";
+import { normalizeSeriesType } from "./utils/seriesTypeNormalizer";
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
 
 /**
  * Line style conversion maps (backward compatibility)
  */
 export const LINE_STYLE_TO_STRING: Record<number, string> = {
-  0: 'solid',
-  1: 'dotted',
-  2: 'dashed',
-  3: 'large_dashed',
-  4: 'sparse_dotted',
+  0: "solid",
+  1: "dotted",
+  2: "dashed",
+  3: "large_dashed",
+  4: "sparse_dotted",
 };
 
 export const STRING_TO_LINE_STYLE: Record<string, number> = {
@@ -39,14 +39,17 @@ export const STRING_TO_LINE_STYLE: Record<string, number> = {
  * @param apiOptions - Flat options from series.options()
  * @returns Nested config for dialog
  */
-export function apiOptionsToDialogConfig(seriesType: string, apiOptions: any): any {
+export function apiOptionsToDialogConfig(
+  seriesType: string,
+  apiOptions: any,
+): any {
   // Normalize series type (e.g., 'line' -> 'Line', 'band' -> 'Band')
   const normalizedType = normalizeSeriesType(seriesType);
   const descriptor = getSeriesDescriptor(normalizedType);
   if (!descriptor) {
     logger.warn(
       `Unknown series type: ${seriesType} (normalized to ${normalizedType})`,
-      'UnifiedPropertyMapper'
+      "UnifiedPropertyMapper",
     );
     return apiOptions; // Fallback: return as-is
   }
@@ -61,7 +64,10 @@ export function apiOptionsToDialogConfig(seriesType: string, apiOptions: any): a
  * @param dialogConfig - Nested config from dialog
  * @returns Flat options for series.applyOptions()
  */
-export function dialogConfigToApiOptions(seriesType: string, dialogConfig: any): any {
+export function dialogConfigToApiOptions(
+  seriesType: string,
+  dialogConfig: any,
+): any {
   // Normalize series type (e.g., 'line' -> 'Line', 'band' -> 'Band')
   const normalizedType = normalizeSeriesType(seriesType);
 
@@ -69,7 +75,7 @@ export function dialogConfigToApiOptions(seriesType: string, dialogConfig: any):
   if (!descriptor) {
     logger.warn(
       `Unknown series type: ${seriesType} (normalized to ${normalizedType})`,
-      'UnifiedPropertyMapper'
+      "UnifiedPropertyMapper",
     );
     return dialogConfig; // Fallback: return as-is
   }

@@ -45,7 +45,7 @@
  * ```
  */
 
-import { IChartApi } from 'lightweight-charts';
+import { IChartApi } from "lightweight-charts";
 // Import from core package
 import {
   logger,
@@ -56,15 +56,22 @@ import {
   CornerLayoutManager,
   PaneCollapseManager,
   PrimitivePriority,
-} from '@lightweight-charts-pro/core';
+} from "@nandkapadia/lightweight-charts-pro-core";
 // Streamlit-specific imports
-import { SeriesDialogManager } from './SeriesDialogManager';
-import { LegendConfig, RangeSwitcherConfig, PaneCollapseConfig } from '../types';
-import { ExtendedSeriesApi, CrosshairEventData } from '../types/ChartInterfaces';
+import { SeriesDialogManager } from "./SeriesDialogManager";
+import {
+  LegendConfig,
+  RangeSwitcherConfig,
+  PaneCollapseConfig,
+} from "../types";
+import {
+  ExtendedSeriesApi,
+  CrosshairEventData,
+} from "../types/ChartInterfaces";
 import {
   ButtonPanelPrimitive,
   createButtonPanelPrimitive,
-} from '../primitives/ButtonPanelPrimitive';
+} from "../primitives/ButtonPanelPrimitive";
 
 /**
  * ChartPrimitiveManager - Centralized primitive lifecycle manager
@@ -82,8 +89,10 @@ export class ChartPrimitiveManager {
   private chart: IChartApi;
   private chartId: string;
   private eventManager: PrimitiveEventManager;
-  private primitives: Map<string, LegendPrimitive | RangeSwitcherPrimitive | ButtonPanelPrimitive> =
-    new Map();
+  private primitives: Map<
+    string,
+    LegendPrimitive | RangeSwitcherPrimitive | ButtonPanelPrimitive
+  > = new Map();
   private legendCounter: number = 0;
 
   private constructor(chart: IChartApi, chartId: string) {
@@ -96,13 +105,21 @@ export class ChartPrimitiveManager {
   /**
    * Get or create primitive manager for a chart
    */
-  public static getInstance(chart: IChartApi, chartId: string): ChartPrimitiveManager {
+  public static getInstance(
+    chart: IChartApi,
+    chartId: string,
+  ): ChartPrimitiveManager {
     if (!ChartPrimitiveManager.instances.has(chartId)) {
-      ChartPrimitiveManager.instances.set(chartId, new ChartPrimitiveManager(chart, chartId));
+      ChartPrimitiveManager.instances.set(
+        chartId,
+        new ChartPrimitiveManager(chart, chartId),
+      );
     }
     const instance = ChartPrimitiveManager.instances.get(chartId);
     if (!instance) {
-      throw new Error(`ChartPrimitiveManager instance not found for chartId: ${chartId}`);
+      throw new Error(
+        `ChartPrimitiveManager instance not found for chartId: ${chartId}`,
+      );
     }
     return instance;
   }
@@ -131,12 +148,14 @@ export class ChartPrimitiveManager {
   /**
    * Add range switcher primitive
    */
-  public addRangeSwitcher(config: RangeSwitcherConfig): { destroy: () => void } {
+  public addRangeSwitcher(config: RangeSwitcherConfig): {
+    destroy: () => void;
+  } {
     const primitiveId = `range-switcher-${this.chartId}`;
 
     try {
       const rangeSwitcher = new RangeSwitcherPrimitive(primitiveId, {
-        corner: config.position || 'top-right',
+        corner: config.position || "top-right",
         priority: PrimitivePriority.RANGE_SWITCHER,
         ranges: config.ranges || [...DefaultRangeConfigs.trading],
       });
@@ -163,22 +182,22 @@ export class ChartPrimitiveManager {
     config: LegendConfig,
     isPanePrimitive: boolean = false,
     paneId: number = 0,
-    seriesReference?: ExtendedSeriesApi
+    seriesReference?: ExtendedSeriesApi,
   ): { destroy: () => void; primitiveId: string } {
     const primitiveId = `legend-${this.chartId}-${++this.legendCounter}`;
 
     try {
       const legend = new LegendPrimitive(primitiveId, {
-        corner: config.position || 'top-left',
+        corner: config.position || "top-left",
         priority: PrimitivePriority.LEGEND,
-        text: config.text || '$$value$$',
-        valueFormat: config.valueFormat || '.2f',
+        text: config.text || "$$value$$",
+        valueFormat: config.valueFormat || ".2f",
         isPanePrimitive,
         paneId,
         visible: config.visible !== false, // Pass visible from config
         style: {
-          backgroundColor: config.backgroundColor || 'rgba(0, 0, 0, 0.8)',
-          color: config.textColor || 'white',
+          backgroundColor: config.backgroundColor || "rgba(0, 0, 0, 0.8)",
+          color: config.textColor || "white",
         },
       });
 
@@ -202,7 +221,7 @@ export class ChartPrimitiveManager {
         primitiveId, // Return primitiveId so caller can access the primitive later
       };
     } catch {
-      return { destroy: () => {}, primitiveId: '' };
+      return { destroy: () => {}, primitiveId: "" };
     }
   }
 
@@ -211,7 +230,7 @@ export class ChartPrimitiveManager {
    */
   public addButtonPanel(
     paneId: number,
-    config: PaneCollapseConfig = {}
+    config: PaneCollapseConfig = {},
   ): { destroy: () => void; plugin: ButtonPanelPrimitive } {
     const primitiveId = `button-panel-${this.chartId}-${paneId}`;
 
@@ -219,7 +238,7 @@ export class ChartPrimitiveManager {
       const buttonPanel = createButtonPanelPrimitive(
         paneId,
         {
-          corner: config.corner || 'top-right',
+          corner: config.corner || "top-right",
           priority: PrimitivePriority.MINIMIZE_BUTTON,
           paneId,
           chartId: this.chartId,
@@ -237,7 +256,7 @@ export class ChartPrimitiveManager {
           onPaneExpand: config.onPaneExpand,
           onSeriesConfigChange: config.onSeriesConfigChange,
         },
-        this.chartId
+        this.chartId,
       );
 
       // Use the same attachment pattern as legends for consistent behavior
@@ -259,12 +278,12 @@ export class ChartPrimitiveManager {
         plugin: createButtonPanelPrimitive(
           paneId,
           {
-            corner: 'top-right',
+            corner: "top-right",
             priority: PrimitivePriority.MINIMIZE_BUTTON,
             paneId,
             chartId: this.chartId,
           },
-          this.chartId
+          this.chartId,
         ),
       };
     }
@@ -288,12 +307,12 @@ export class ChartPrimitiveManager {
       try {
         // Detach from all panes (does nothing if not attached to that pane)
         const panes = this.chart.panes();
-        panes.forEach(pane => {
+        panes.forEach((pane) => {
           pane.detachPrimitive(primitive);
         });
         this.primitives.delete(primitiveId);
       } catch {
-        logger.error('Failed to destroy primitive', 'ChartPrimitiveManager');
+        logger.error("Failed to destroy primitive", "ChartPrimitiveManager");
       }
     }
   }
@@ -302,8 +321,12 @@ export class ChartPrimitiveManager {
    * Get primitive by ID
    */
   public getPrimitive(
-    primitiveId: string
-  ): LegendPrimitive | RangeSwitcherPrimitive | ButtonPanelPrimitive | undefined {
+    primitiveId: string,
+  ):
+    | LegendPrimitive
+    | RangeSwitcherPrimitive
+    | ButtonPanelPrimitive
+    | undefined {
     return this.primitives.get(primitiveId);
   }
 
@@ -326,11 +349,14 @@ export class ChartPrimitiveManager {
       try {
         // Detach from all panes (does nothing if not attached to that pane)
         const panes = this.chart.panes();
-        panes.forEach(pane => {
+        panes.forEach((pane) => {
           pane.detachPrimitive(primitive);
         });
       } catch {
-        logger.error('Failed to detach primitive from pane', 'ChartPrimitiveManager');
+        logger.error(
+          "Failed to detach primitive from pane",
+          "ChartPrimitiveManager",
+        );
       }
     }
 
@@ -358,7 +384,7 @@ export class ChartPrimitiveManager {
   private attachToPaneAsFallback(
     primitive: LegendPrimitive | RangeSwitcherPrimitive | ButtonPanelPrimitive,
     isPanePrimitive: boolean,
-    paneId: number
+    paneId: number,
   ): void {
     if (isPanePrimitive && paneId >= 0) {
       // Get pane and attach to it

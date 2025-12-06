@@ -9,11 +9,15 @@
  * added via the customButtons prop.
  */
 
-import React, { useMemo, useEffect } from 'react';
-import { ButtonColors, ButtonDimensions, ButtonEffects } from '@lightweight-charts-pro/core';
-import { SeriesSettingsButton } from './buttons/types/SeriesSettingsButton';
-import { CollapseButton } from './buttons/types/CollapseButton';
-import { createButtonRegistry } from './buttons/base/ButtonRegistry';
+import React, { useMemo, useEffect } from "react";
+import {
+  ButtonColors,
+  ButtonDimensions,
+  ButtonEffects,
+} from "@nandkapadia/lightweight-charts-pro-core";
+import { SeriesSettingsButton } from "./buttons/types/SeriesSettingsButton";
+import { CollapseButton } from "./buttons/types/CollapseButton";
+import { createButtonRegistry } from "./buttons/base/ButtonRegistry";
 
 /**
  * Props for the ButtonPanelComponent.
@@ -49,7 +53,7 @@ interface ButtonPanelComponentProps {
     showTooltip?: boolean;
   };
   /** Custom buttons to add to the panel (in addition to gear and collapse) */
-  customButtons?: import('./buttons/base/BaseButton').BaseButton[];
+  customButtons?: import("./buttons/base/BaseButton").BaseButton[];
 }
 
 /**
@@ -120,11 +124,12 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
       background: config.buttonBackground ?? ButtonColors.DEFAULT_BACKGROUND,
       borderRadius: config.buttonBorderRadius ?? 3,
       hoverColor: config.buttonHoverColor ?? ButtonColors.HOVER_COLOR,
-      hoverBackground: config.buttonHoverBackground ?? ButtonColors.HOVER_BACKGROUND,
+      hoverBackground:
+        config.buttonHoverBackground ?? ButtonColors.HOVER_BACKGROUND,
       border: ButtonEffects.DEFAULT_BORDER,
       hoverBoxShadow: ButtonEffects.HOVER_BOX_SHADOW,
     }),
-    [config]
+    [config],
   );
 
   // Initialize buttons when dependencies change
@@ -136,7 +141,7 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
     if (showSeriesSettingsButton) {
       const settingsButton = new SeriesSettingsButton({
         id: `series-settings-button-pane-${paneId}`,
-        tooltip: 'Series Settings',
+        tooltip: "Series Settings",
         onSeriesSettingsClick: onGearClick,
         styling: buttonStyling,
       });
@@ -147,7 +152,7 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
     if (showCollapseButton) {
       const collapseButton = new CollapseButton({
         id: `collapse-button-pane-${paneId}`,
-        tooltip: isCollapsed ? 'Expand pane' : 'Collapse pane',
+        tooltip: isCollapsed ? "Expand pane" : "Collapse pane",
         isCollapsed: isCollapsed,
         onCollapseClick: onCollapseClick,
         styling: buttonStyling,
@@ -183,14 +188,14 @@ export const ButtonPanelComponent: React.FC<ButtonPanelComponentProps> = ({
   const buttons = registry.getVisibleButtons();
 
   const panelStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: '4px',
+    display: "flex",
+    gap: "4px",
     zIndex: 1000,
   };
 
   return (
-    <div className='button-panel' style={panelStyle}>
-      {buttons.map(button => (
+    <div className="button-panel" style={panelStyle}>
+      {buttons.map((button) => (
         <React.Fragment key={button.getId()}>{button.render()}</React.Fragment>
       ))}
     </div>

@@ -5,12 +5,18 @@
  * This replaces the old manual settings definitions.
  */
 
-import { getSeriesDescriptor } from '../series/UnifiedSeriesFactory';
-import { normalizeSeriesType } from '../series/utils/seriesTypeNormalizer';
-import type { PropertyType } from '../series/core/UnifiedSeriesDescriptor';
-import { logger } from '@lightweight-charts-pro/core';
+import { getSeriesDescriptor } from "../series/UnifiedSeriesFactory";
+import { normalizeSeriesType } from "../series/utils/seriesTypeNormalizer";
+import type { PropertyType } from "../series/core/UnifiedSeriesDescriptor";
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
 
-export type SettingType = 'boolean' | 'number' | 'color' | 'line' | 'lineStyle' | 'lineWidth';
+export type SettingType =
+  | "boolean"
+  | "number"
+  | "color"
+  | "line"
+  | "lineStyle"
+  | "lineWidth";
 
 export interface SeriesSettings {
   [propertyName: string]: SettingType;
@@ -30,7 +36,10 @@ function propertyTypeToSettingType(propertyType: PropertyType): SettingType {
  * @param primitive - Optional primitive instance to check for static getSettings()
  * @returns Settings object mapping property names to types
  */
-export function getSeriesSettings(seriesType: string | undefined, primitive?: any): SeriesSettings {
+export function getSeriesSettings(
+  seriesType: string | undefined,
+  primitive?: any,
+): SeriesSettings {
   if (!seriesType) return {};
 
   // Normalize type using centralized utility
@@ -41,7 +50,11 @@ export function getSeriesSettings(seriesType: string | undefined, primitive?: an
     try {
       return primitive.constructor.getSettings();
     } catch (error) {
-      logger.warn(`Error calling getSettings on ${seriesType}`, 'seriesSettingsRegistry', error);
+      logger.warn(
+        `Error calling getSettings on ${seriesType}`,
+        "seriesSettingsRegistry",
+        error,
+      );
     }
   }
 
@@ -50,7 +63,7 @@ export function getSeriesSettings(seriesType: string | undefined, primitive?: an
   if (!descriptor) {
     logger.warn(
       `Unknown series type: ${seriesType} (normalized to ${mappedType})`,
-      'seriesSettingsRegistry'
+      "seriesSettingsRegistry",
     );
     return {};
   }

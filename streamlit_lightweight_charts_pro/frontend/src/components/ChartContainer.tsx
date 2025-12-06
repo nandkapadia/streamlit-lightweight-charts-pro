@@ -40,13 +40,13 @@ import React, {
   useState,
   useTransition,
   useDeferredValue,
-} from 'react';
-import { flushSync } from 'react-dom';
-import { createChart, IChartApi } from 'lightweight-charts';
-import { ChartConfig } from '../types';
-import { cleanLineStyleOptions } from '@lightweight-charts-pro/core';
-import { ErrorBoundary } from './ErrorBoundary';
-import { logger } from '@lightweight-charts-pro/core';
+} from "react";
+import { flushSync } from "react-dom";
+import { createChart, IChartApi } from "lightweight-charts";
+import { ChartConfig } from "../types";
+import { cleanLineStyleOptions } from "@nandkapadia/lightweight-charts-pro-core";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
 
 interface ChartContainerProps {
   chartConfig: ChartConfig;
@@ -59,7 +59,15 @@ interface ChartContainerProps {
 }
 
 export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
-  ({ chartConfig, chartId, containerId, width, height, onChartReady, onChartError }) => {
+  ({
+    chartConfig,
+    chartId,
+    containerId,
+    width,
+    height,
+    onChartReady,
+    onChartError,
+  }) => {
     const chartRef = useRef<IChartApi | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
@@ -71,11 +79,11 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
     // Create chart options with proper styling (using deferred config for better performance)
     const chartOptions = cleanLineStyleOptions({
       width:
-        typeof deferredChartConfig.chart?.width === 'number'
+        typeof deferredChartConfig.chart?.width === "number"
           ? deferredChartConfig.chart.width
           : width || undefined,
       height:
-        typeof deferredChartConfig.chart?.height === 'number'
+        typeof deferredChartConfig.chart?.height === "number"
           ? deferredChartConfig.chart.height
           : deferredChartConfig.chart?.height || height || undefined,
       ...deferredChartConfig.chart,
@@ -83,15 +91,15 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
 
     // Container styles
     const containerStyle: React.CSSProperties = {
-      width: width ? `${width}px` : '100%',
-      height: height ? `${height}px` : '400px',
-      position: 'relative',
+      width: width ? `${width}px` : "100%",
+      height: height ? `${height}px` : "400px",
+      position: "relative",
     };
 
     const chartContainerStyle: React.CSSProperties = {
-      width: '100%',
-      height: '100%',
-      position: 'relative',
+      width: "100%",
+      height: "100%",
+      position: "relative",
     };
 
     // Initialize chart with React 19 optimizations
@@ -101,7 +109,10 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
       startChartTransition(() => {
         try {
           // Create the chart
-          const chart = createChart(containerRef.current as HTMLDivElement, chartOptions as any);
+          const chart = createChart(
+            containerRef.current as HTMLDivElement,
+            chartOptions as any,
+          );
           chartRef.current = chart;
 
           // Use flushSync for critical DOM update to ensure immediate visual feedback
@@ -119,7 +130,14 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
           }
         }
       });
-    }, [chartOptions, chartId, onChartReady, onChartError, isInitialized, startChartTransition]);
+    }, [
+      chartOptions,
+      chartId,
+      onChartReady,
+      onChartError,
+      isInitialized,
+      startChartTransition,
+    ]);
 
     // Cleanup chart
     const cleanup = useCallback(() => {
@@ -127,7 +145,11 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
         try {
           chartRef.current.remove();
         } catch (error) {
-          logger.error('Failed to remove chart during cleanup', 'ChartContainer', error);
+          logger.error(
+            "Failed to remove chart during cleanup",
+            "ChartContainer",
+            error,
+          );
         }
         chartRef.current = null;
         setIsInitialized(false);
@@ -169,7 +191,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
     return (
       <ErrorBoundary
         resetKeys={[chartId, JSON.stringify(chartConfig)]}
-        onError={error => {
+        onError={(error) => {
           if (onChartError) {
             onChartError(error, chartId);
           }
@@ -179,28 +201,32 @@ export const ChartContainer: React.FC<ChartContainerProps> = React.memo(
           {isPendingChart && (
             <div
               style={{
-                position: 'absolute',
+                position: "absolute",
                 top: 0,
                 left: 0,
                 right: 0,
                 bottom: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
                 zIndex: 1000,
-                fontSize: '14px',
-                color: '#666',
+                fontSize: "14px",
+                color: "#666",
               }}
             >
               Loading chart...
             </div>
           )}
-          <div id={containerId} ref={containerRef} style={chartContainerStyle} />
+          <div
+            id={containerId}
+            ref={containerRef}
+            style={chartContainerStyle}
+          />
         </div>
       </ErrorBoundary>
     );
-  }
+  },
 );
 
-ChartContainer.displayName = 'ChartContainer';
+ChartContainer.displayName = "ChartContainer";

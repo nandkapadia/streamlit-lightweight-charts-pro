@@ -36,14 +36,14 @@
  * ```
  */
 
-import { IChartApi } from 'lightweight-charts';
+import { IChartApi } from "lightweight-charts";
 import {
   ChartReadyDetector,
   ResizeObserverManager,
   ChartCoordinateService,
   UniversalSpacing,
   logger,
-} from '@lightweight-charts-pro/core';
+} from "@nandkapadia/lightweight-charts-pro-core";
 
 /**
  * Configuration for a rectangle overlay.
@@ -123,7 +123,7 @@ export class RectangleOverlayPlugin {
     // Draw rectangles
     const ctx = this.ctx; // We already checked ctx exists above
     this.rectangles.forEach((rect, _index) => {
-      ctx.fillStyle = rect.color || '#000000';
+      ctx.fillStyle = rect.color || "#000000";
 
       // Ensure proper rectangle dimensions (handle inverted Y coordinates)
       const x = Math.min(rect.x1, rect.x2);
@@ -146,10 +146,14 @@ export class RectangleOverlayPlugin {
       }
 
       // Wait for chart to be fully ready
-      const isReady = await ChartReadyDetector.waitForChartReady(this.chart, container, {
-        minWidth: 200,
-        minHeight: 200,
-      });
+      const isReady = await ChartReadyDetector.waitForChartReady(
+        this.chart,
+        container,
+        {
+          minWidth: 200,
+          minHeight: 200,
+        },
+      );
 
       if (!isReady) {
         return;
@@ -166,7 +170,11 @@ export class RectangleOverlayPlugin {
         this.render();
       }
     } catch (error) {
-      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
+      logger.error(
+        "Rectangle overlay operation failed",
+        "RectangleOverlayPlugin",
+        error,
+      );
     }
   }
 
@@ -175,30 +183,34 @@ export class RectangleOverlayPlugin {
 
     try {
       // Create canvas overlay
-      this.canvas = document.createElement('canvas');
-      this.canvas.style.position = 'absolute';
-      this.canvas.style.top = '0';
-      this.canvas.style.left = '0';
-      this.canvas.style.pointerEvents = 'none';
+      this.canvas = document.createElement("canvas");
+      this.canvas.style.position = "absolute";
+      this.canvas.style.top = "0";
+      this.canvas.style.left = "0";
+      this.canvas.style.pointerEvents = "none";
 
       // Set Z-index from config or use default of 20
       const defaultZIndex = 20;
       this.canvas.style.zIndex = defaultZIndex.toString();
 
       if (this.container && this.container.style) {
-        this.container.style.position = 'relative';
+        this.container.style.position = "relative";
         this.container.appendChild(this.canvas);
       }
 
       // Get canvas context
-      this.ctx = this.canvas.getContext('2d');
+      this.ctx = this.canvas.getContext("2d");
       if (!this.ctx) {
-        throw new Error('Failed to get canvas context');
+        throw new Error("Failed to get canvas context");
       }
 
       // Set initial canvas size
     } catch (error) {
-      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
+      logger.error(
+        "Rectangle overlay operation failed",
+        "RectangleOverlayPlugin",
+        error,
+      );
     }
   }
 
@@ -207,15 +219,15 @@ export class RectangleOverlayPlugin {
 
     // Use our ResizeObserverManager for better handling
     this.resizeObserverManager.addObserver(
-      'rectangle-plugin',
+      "rectangle-plugin",
       this.container,
-      entry => {
+      (entry) => {
         if (this.isDisposed) return;
 
         // Handle both single entry and array of entries
         const entries = Array.isArray(entry) ? entry : [entry];
 
-        entries.forEach(singleEntry => {
+        entries.forEach((singleEntry) => {
           const { width, height } = singleEntry.contentRect;
 
           // Check if dimensions are valid before resizing
@@ -224,7 +236,7 @@ export class RectangleOverlayPlugin {
           }
         });
       },
-      { throttleMs: 100, debounceMs: 50 }
+      { throttleMs: 100, debounceMs: 50 },
     );
   }
 
@@ -252,7 +264,11 @@ export class RectangleOverlayPlugin {
         }
       });
     } catch (error) {
-      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
+      logger.error(
+        "Rectangle overlay operation failed",
+        "RectangleOverlayPlugin",
+        error,
+      );
     }
   }
 
@@ -265,13 +281,16 @@ export class RectangleOverlayPlugin {
       const dimensions = await coordinateService.getChartDimensionsWithFallback(
         this.chart,
         this.container,
-        { minWidth: 200, minHeight: 200 }
+        { minWidth: 200, minHeight: 200 },
       );
 
       const { width, height } = dimensions.container;
 
       // Only resize if dimensions actually changed
-      if (width !== this.lastCanvasSize.width || height !== this.lastCanvasSize.height) {
+      if (
+        width !== this.lastCanvasSize.width ||
+        height !== this.lastCanvasSize.height
+      ) {
         this.canvas.width = width;
         this.canvas.height = height;
         this.lastCanvasSize = { width, height };
@@ -331,7 +350,10 @@ export class RectangleOverlayPlugin {
       height = Math.max(height, 200);
 
       // Only resize if dimensions actually changed
-      if (width !== this.lastCanvasSize.width || height !== this.lastCanvasSize.height) {
+      if (
+        width !== this.lastCanvasSize.width ||
+        height !== this.lastCanvasSize.height
+      ) {
         this.canvas.width = width;
         this.canvas.height = height;
         this.lastCanvasSize = { width, height };
@@ -342,7 +364,11 @@ export class RectangleOverlayPlugin {
         this.scheduleRedraw();
       }
     } catch (error) {
-      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
+      logger.error(
+        "Rectangle overlay operation failed",
+        "RectangleOverlayPlugin",
+        error,
+      );
     }
   }
 
@@ -352,7 +378,11 @@ export class RectangleOverlayPlugin {
     try {
       await this.resizeCanvas();
     } catch (error) {
-      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
+      logger.error(
+        "Rectangle overlay operation failed",
+        "RectangleOverlayPlugin",
+        error,
+      );
     }
   }
 
@@ -376,11 +406,15 @@ export class RectangleOverlayPlugin {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
       // Draw all rectangles
-      this.rectangles.forEach(rect => {
+      this.rectangles.forEach((rect) => {
         this.drawRectangle(rect);
       });
     } catch (error) {
-      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
+      logger.error(
+        "Rectangle overlay operation failed",
+        "RectangleOverlayPlugin",
+        error,
+      );
     }
   }
 
@@ -388,7 +422,17 @@ export class RectangleOverlayPlugin {
     if (!this.ctx || !this.canvas) return;
 
     try {
-      const { x1, y1, x2, y2, color, borderColor, borderWidth, fillOpacity, borderOpacity } = rect;
+      const {
+        x1,
+        y1,
+        x2,
+        y2,
+        color,
+        borderColor,
+        borderWidth,
+        fillOpacity,
+        borderOpacity,
+      } = rect;
 
       // Calculate actual coordinates based on chart scale
       const actualCoords = this.calculateActualCoordinates(x1, y1, x2, y2);
@@ -427,14 +471,29 @@ export class RectangleOverlayPlugin {
 
       // Draw label if specified
       if (rect.label) {
-        this.drawLabel(rect, rectX, rectY, rectX + rectWidth, rectY + rectHeight);
+        this.drawLabel(
+          rect,
+          rectX,
+          rectY,
+          rectX + rectWidth,
+          rectY + rectHeight,
+        );
       }
     } catch (error) {
-      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
+      logger.error(
+        "Rectangle overlay operation failed",
+        "RectangleOverlayPlugin",
+        error,
+      );
     }
   }
 
-  private calculateActualCoordinates(x1: number, y1: number, x2: number, y2: number) {
+  private calculateActualCoordinates(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+  ) {
     if (!this.chart || !this.canvas) return null;
 
     try {
@@ -442,7 +501,11 @@ export class RectangleOverlayPlugin {
       try {
         // For now, just use pixel coordinates directly
       } catch (error) {
-        logger.error('Rectangle operation failed', 'RectangleOverlayPlugin', error);
+        logger.error(
+          "Rectangle operation failed",
+          "RectangleOverlayPlugin",
+          error,
+        );
       }
 
       // Method 2: Use pixel coordinates directly
@@ -457,7 +520,13 @@ export class RectangleOverlayPlugin {
     }
   }
 
-  private drawLabel(rect: RectangleConfig, x1: number, y1: number, x2: number, y2: number) {
+  private drawLabel(
+    rect: RectangleConfig,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+  ) {
     if (!this.ctx || !rect.label) return;
 
     try {
@@ -466,9 +535,9 @@ export class RectangleOverlayPlugin {
 
       // Set label style
       this.ctx.font = `${rect.labelFontSize || 12}px Arial`;
-      this.ctx.fillStyle = rect.labelColor || '#000000';
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'bottom';
+      this.ctx.fillStyle = rect.labelColor || "#000000";
+      this.ctx.textAlign = "center";
+      this.ctx.textBaseline = "bottom";
 
       // Draw label background if specified
       if (rect.labelBackground) {
@@ -478,16 +547,25 @@ export class RectangleOverlayPlugin {
         const bgHeight = (rect.labelFontSize || 12) + padding * 2;
 
         this.ctx.fillStyle = rect.labelBackground;
-        this.ctx.fillRect(labelX - bgWidth / 2, labelY - bgHeight + padding, bgWidth, bgHeight);
+        this.ctx.fillRect(
+          labelX - bgWidth / 2,
+          labelY - bgHeight + padding,
+          bgWidth,
+          bgHeight,
+        );
 
         // Reset text color
-        this.ctx.fillStyle = rect.labelColor || '#000000';
+        this.ctx.fillStyle = rect.labelColor || "#000000";
       }
 
       // Draw label text
       this.ctx.fillText(rect.label, labelX, labelY);
     } catch (error) {
-      logger.error('Rectangle overlay operation failed', 'RectangleOverlayPlugin', error);
+      logger.error(
+        "Rectangle overlay operation failed",
+        "RectangleOverlayPlugin",
+        error,
+      );
     }
   }
 
@@ -523,7 +601,7 @@ export class RectangleOverlayPlugin {
   }
 
   removeRectangle(id: string) {
-    const index = this.rectangles.findIndex(r => r.id === id);
+    const index = this.rectangles.findIndex((r) => r.id === id);
     if (index !== -1) {
       this.rectangles.splice(index, 1);
       this.updateCanvasZIndex();
@@ -532,7 +610,7 @@ export class RectangleOverlayPlugin {
   }
 
   updateRectangle(id: string, updates: Partial<RectangleConfig>) {
-    const rect = this.rectangles.find(r => r.id === id);
+    const rect = this.rectangles.find((r) => r.id === id);
     if (rect) {
       Object.assign(rect, updates);
       this.updateCanvasZIndex();

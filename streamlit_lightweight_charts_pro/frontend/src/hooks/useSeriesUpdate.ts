@@ -23,9 +23,9 @@
  * ```
  */
 
-import { useCallback, useEffect } from 'react';
-import { IChartApi, ISeriesApi } from 'lightweight-charts';
-import { logger } from '@lightweight-charts-pro/core';
+import { useCallback, useEffect } from "react";
+import { IChartApi, ISeriesApi } from "lightweight-charts";
+import { logger } from "@nandkapadia/lightweight-charts-pro-core";
 
 /**
  * Series configuration patch from Python backend.
@@ -80,7 +80,11 @@ export interface UseSeriesUpdateReturn {
    * @param seriesId - The series identifier
    * @param configPatch - Partial configuration to apply
    */
-  applySeriesConfig(paneId: string, seriesId: string, configPatch: SeriesConfigPatch): void;
+  applySeriesConfig(
+    paneId: string,
+    seriesId: string,
+    configPatch: SeriesConfigPatch,
+  ): void;
 
   /**
    * Map dialog config format to LightweightCharts API format
@@ -98,7 +102,9 @@ export interface UseSeriesUpdateReturn {
  * @param options - Configuration options for series updates
  * @returns Object with series update helper functions
  */
-export function useSeriesUpdate(options: UseSeriesUpdateOptions): UseSeriesUpdateReturn {
+export function useSeriesUpdate(
+  options: UseSeriesUpdateOptions,
+): UseSeriesUpdateReturn {
   const { configChange, chartRefs, seriesRefs } = options;
 
   /**
@@ -110,48 +116,48 @@ export function useSeriesUpdate(options: UseSeriesUpdateOptions): UseSeriesUpdat
       const apiConfig: Record<string, any> = {};
 
       // Basic visibility options
-      if ('visible' in configPatch) {
+      if ("visible" in configPatch) {
         apiConfig.visible = configPatch.visible;
       }
 
-      if ('last_value_visible' in configPatch) {
+      if ("last_value_visible" in configPatch) {
         apiConfig.lastValueVisible = configPatch.last_value_visible;
       }
 
-      if ('price_line' in configPatch) {
+      if ("price_line" in configPatch) {
         apiConfig.priceLineVisible = configPatch.price_line;
       }
 
       // Color and styling options
-      if ('color' in configPatch) {
+      if ("color" in configPatch) {
         apiConfig.color = configPatch.color;
       }
 
-      if ('line_width' in configPatch) {
+      if ("line_width" in configPatch) {
         apiConfig.lineWidth = configPatch.line_width;
       }
 
-      if ('line_style' in configPatch) {
+      if ("line_style" in configPatch) {
         apiConfig.lineStyle = configPatch.line_style;
       }
 
-      if ('line_visible' in configPatch) {
+      if ("line_visible" in configPatch) {
         apiConfig.lineVisible = configPatch.line_visible;
       }
 
       // Marker options
-      if ('markers' in configPatch) {
+      if ("markers" in configPatch) {
         apiConfig.pointMarkersVisible = configPatch.markers;
       }
 
       // Title updates
-      if ('title' in configPatch) {
+      if ("title" in configPatch) {
         apiConfig.title = configPatch.title;
       }
 
       return apiConfig;
     },
-    []
+    [],
   );
 
   /**
@@ -159,7 +165,11 @@ export function useSeriesUpdate(options: UseSeriesUpdateOptions): UseSeriesUpdat
    * Finds the series by paneId and seriesId, then applies the configuration
    */
   const applySeriesConfig = useCallback(
-    (paneId: string, seriesId: string, configPatch: SeriesConfigPatch): void => {
+    (
+      paneId: string,
+      seriesId: string,
+      configPatch: SeriesConfigPatch,
+    ): void => {
       // Find the appropriate chart and series to update
       Object.entries(chartRefs.current).forEach(([chartId, chart]) => {
         if (!chart) return;
@@ -184,11 +194,11 @@ export function useSeriesUpdate(options: UseSeriesUpdateOptions): UseSeriesUpdat
             }
           });
         } catch (error) {
-          logger.warn('Error applying series config', 'useSeriesUpdate', error);
+          logger.warn("Error applying series config", "useSeriesUpdate", error);
         }
       });
     },
-    [chartRefs, seriesRefs, mapDialogConfigToAPI]
+    [chartRefs, seriesRefs, mapDialogConfigToAPI],
   );
 
   /**
