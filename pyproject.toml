@@ -20,6 +20,7 @@ keywords = ["streamlit", "tradingview", "charts", "visualization", "trading", "f
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
@@ -28,7 +29,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: Visualization",
-    "Framework :: Streamlit",
+    "Topic :: Office/Business :: Financial",
 ]
 
 [project.urls]

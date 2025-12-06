@@ -11,6 +11,7 @@ Project-URL: Issues, https://github.com/nandkapadia/streamlit-lightweight-charts
 Keywords: streamlit,tradingview,charts,visualization,trading,financial
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Financial and Insurance Industry
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.9
@@ -19,7 +20,7 @@ Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Scientific/Engineering :: Visualization
-Classifier: Framework :: Streamlit
+Classifier: Topic :: Office/Business :: Financial
 Requires-Python: >=3.9
 Description-Content-Type: text/markdown
 License-File: LICENSE
