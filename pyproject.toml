@@ -14,6 +14,7 @@ dependencies = [
     "streamlit>=1.0",
     "pandas>=1.0",
     "numpy>=1.19",
+    "lightweight-charts-pro>=0.1.0",
 ]
 keywords = ["streamlit", "tradingview", "charts", "visualization", "trading", "financial"]
 classifiers = [

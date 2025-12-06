@@ -1,0 +1,23 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting lightweight-charts-pro
+  Downloading lightweight_charts_pro-0.1.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting pandas>=2.0.0 (from lightweight-charts-pro)
+  Downloading pandas-2.3.3-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (91 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 91.2/91.2 kB 28.2 MB/s eta 0:00:00
+Collecting numpy>=1.24.0 (from lightweight-charts-pro)
+  Downloading numpy-2.3.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.1/62.1 kB 19.1 MB/s eta 0:00:00
+Requirement already satisfied: python-dateutil>=2.8.2 in /usr/lib/python3/dist-packages (from pandas>=2.0.0->lightweight-charts-pro) (2.8.2)
+Requirement already satisfied: pytz>=2020.1 in /usr/lib/python3/dist-packages (from pandas>=2.0.0->lightweight-charts-pro) (2024.1)
+Collecting tzdata>=2022.7 (from pandas>=2.0.0->lightweight-charts-pro)
+  Downloading tzdata-2025.2-py2.py3-none-any.whl.metadata (1.4 kB)
+Downloading lightweight_charts_pro-0.1.0-py3-none-any.whl (208 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 208.0/208.0 kB 27.0 MB/s eta 0:00:00
+Downloading numpy-2.3.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.6/16.6 MB 39.0 MB/s eta 0:00:00
+Downloading pandas-2.3.3-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.4/12.4 MB 32.3 MB/s eta 0:00:00
+Downloading tzdata-2025.2-py2.py3-none-any.whl (347 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 347.8/347.8 kB 33.9 MB/s eta 0:00:00
+Installing collected packages: tzdata, numpy, pandas, lightweight-charts-pro
+Successfully installed lightweight-charts-pro-0.1.0 numpy-2.3.5 pandas-2.3.3 tzdata-2025.2
