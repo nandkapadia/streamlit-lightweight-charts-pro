@@ -28,8 +28,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20.x'
-        cache: 'npm'
-        cache-dependency-path: streamlit_lightweight_charts_pro/frontend/package-lock.json
 
     - name: Install Python dependencies
       run: |
