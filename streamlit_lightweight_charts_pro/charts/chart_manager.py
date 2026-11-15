@@ -6,21 +6,15 @@ BaseChartManager with Streamlit-specific rendering capabilities.
 
 import hashlib
 import json
-import time
-import uuid
 from collections.abc import Sequence
 from typing import Any, Optional, Union
 
 import pandas as pd
 import streamlit as st
+
 from lightweight_charts_pro.charts import BaseChartManager
 from lightweight_charts_pro.data import OhlcvData
-from lightweight_charts_pro.exceptions import (
-    DuplicateError,
-    NotFoundError,
-    TypeValidationError,
-)
-
+from lightweight_charts_pro.exceptions import DuplicateError, NotFoundError, TypeValidationError
 from streamlit_lightweight_charts_pro.charts.chart import Chart
 
 
@@ -236,10 +230,10 @@ class ChartManager(BaseChartManager):
         if interval is not None:
             self.display_interval = interval
 
-        # Generate key if not provided
+        # Prefer a stable key so Streamlit session state and chart DOM survive reruns.
+        # Callers with multiple managers on one page must pass distinct keys.
         if key is None or not isinstance(key, str) or not key.strip():
-            unique_id = str(uuid.uuid4())[:8]
-            key = f"chart_manager_{int(time.time() * 1000)}_{unique_id}"
+            key = "chart-manager"
 
         # Auto-detect changes using session state
         self._auto_detect_changes(key)

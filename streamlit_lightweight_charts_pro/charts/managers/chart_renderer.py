@@ -10,15 +10,10 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, Optional
 
 import streamlit.components.v1 as components
-from lightweight_charts_pro.logging_config import get_logger
 
-from streamlit_lightweight_charts_pro.charts.series_settings_api import (
-    get_series_settings_api,
-)
-from streamlit_lightweight_charts_pro.component import (
-    get_component_func,
-    reinitialize_component,
-)
+from lightweight_charts_pro.logging_config import get_logger
+from streamlit_lightweight_charts_pro.charts.series_settings_api import get_series_settings_api
+from streamlit_lightweight_charts_pro.component import get_component_func, reinitialize_component
 from streamlit_lightweight_charts_pro.exceptions import ComponentNotAvailableError
 
 if TYPE_CHECKING:
@@ -360,11 +355,24 @@ class ChartRenderer:
         # Build component kwargs
         kwargs: dict[str, Any] = {"config": config}
 
-        # Extract height and width from chart options
+        # Extract height and width from chart options.
+        # When auto_size / auto_height / auto_width is on, omit fixed dimensions so
+        # the frontend does not receive Python's default height=400 as a hard pin.
         if chart_options:
-            if hasattr(chart_options, "height") and chart_options.height is not None:
+            auto_size = bool(getattr(chart_options, "auto_size", False))
+            auto_height = bool(getattr(chart_options, "auto_height", False))
+            auto_width = bool(getattr(chart_options, "auto_width", False))
+            if (
+                hasattr(chart_options, "height")
+                and chart_options.height is not None
+                and not (auto_size or auto_height)
+            ):
                 kwargs["height"] = chart_options.height
-            if hasattr(chart_options, "width") and chart_options.width is not None:
+            if (
+                hasattr(chart_options, "width")
+                and chart_options.width is not None
+                and not (auto_size or auto_width)
+            ):
                 kwargs["width"] = chart_options.width
 
         kwargs["key"] = key
