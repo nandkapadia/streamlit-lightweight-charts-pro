@@ -4,10 +4,10 @@
 
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import LightweightCharts from '../../LightweightCharts';
 import { ComponentConfig } from '../../types';
-import { resetMocks } from '../../test-utils/lightweightChartsMocks';
+import { createChart, mockChart, resetMocks } from '../../test-utils/lightweightChartsMocks';
 
 // Use unified mock system with proper vi.mock pattern
 vi.mock('lightweight-charts', async () => {
@@ -281,6 +281,46 @@ describe('LightweightCharts Component', () => {
       await waitFor(() => {
         expect(container.querySelector('[id^="chart-container-"]')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Chart creation options', () => {
+    it('stops the crosshair snapping to hidden series by default', async () => {
+      render(<LightweightCharts config={mockConfig} />);
+
+      await waitFor(() => expect(createChart).toHaveBeenCalled());
+      const options = createChart.mock.calls[0][1];
+      expect(options.crosshair.doNotSnapToHiddenSeriesIndices).toBe(true);
+    });
+  });
+
+  describe('Sizing', () => {
+    afterEach(() => {
+      mockChart.autoSizeActive.mockReturnValue(false);
+    });
+
+    it('leaves sizing to the library when autoSize is active', async () => {
+      mockChart.autoSizeActive.mockReturnValue(true);
+      const autoSizeConfig: ComponentConfig = {
+        ...mockConfig,
+        charts: [
+          { ...mockConfig.charts[0], chart: { ...mockConfig.charts[0].chart, autoSize: true } },
+        ],
+      };
+
+      render(<LightweightCharts config={autoSizeConfig} />);
+
+      await waitFor(() => expect(createChart).toHaveBeenCalled());
+      expect(createChart.mock.calls[0][1].autoSize).toBe(true);
+      expect(mockChart.resize).not.toHaveBeenCalled();
+    });
+
+    it('sizes the chart itself when autoSize is off', async () => {
+      mockChart.autoSizeActive.mockReturnValue(false);
+
+      render(<LightweightCharts config={mockConfig} />);
+
+      await waitFor(() => expect(mockChart.resize).toHaveBeenCalledWith(800, 400));
     });
   });
 });

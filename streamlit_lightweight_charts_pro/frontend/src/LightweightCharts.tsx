@@ -24,7 +24,7 @@
  *
  * Features:
  * - React 19 optimizations (transitions, deferred values)
- * - Automatic resize handling with ResizeObserver
+ * - Automatic resizing via the library's autoSize option
  * - Performance monitoring (optional)
  * - Memory leak prevention with comprehensive cleanup
  * - Error handling with fallback UI
@@ -108,6 +108,10 @@ import {
 // Streamlit-specific services
 import { ChartPrimitiveManager } from "./services/ChartPrimitiveManager";
 import { createSeriesWithConfig } from "./series/UnifiedSeriesFactory";
+import {
+  applyChartOptionDefaults,
+  pinnedContainerSize,
+} from "./utils/chartOptionDefaults";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { react19Monitor } from "./utils/react19PerformanceMonitor";
 import { dialogConfigToApiOptions } from "./series/UnifiedPropertyMapper";
@@ -316,14 +320,9 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
     const seriesRefs = useRef<{ [key: string]: ExtendedSeriesApi[] }>({});
     const signalPluginRefs = useRef<{ [key: string]: SignalSeries }>({});
     const chartConfigs = useRef<{ [key: string]: ChartConfig }>({});
-    const resizeObserverRef = useRef<ResizeObserver | null>(null);
-    const legendResizeObserverRefs = useRef<{ [key: string]: ResizeObserver }>(
-      {},
-    );
     const isInitializedRef = useRef<boolean>(false);
     const isDisposingRef = useRef<boolean>(false);
     const chartContainersRef = useRef<{ [key: string]: HTMLElement }>({});
-    const debounceTimersRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
     // Store function references to avoid dependency issues
     const functionRefs = useRef<{
@@ -377,13 +376,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             legendsConfig: { [paneId: string]: LegendConfig },
           ) => Promise<void>)
         | null;
-      setupAutoSizing:
-        | ((
-            chart: IChartApi,
-            container: HTMLElement,
-            chartConfig: ChartConfig,
-          ) => void)
-        | null;
       setupChartSynchronization:
         | ((
             chart: IChartApi,
@@ -407,90 +399,11 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       addRangeSwitcher: null,
       addLegend: null,
       updateLegendPositions: null,
-      setupAutoSizing: null,
       setupChartSynchronization: null,
       setupFitContent: null,
       setupPaneCollapseSupport: null,
       cleanupCharts: null,
     });
-
-    // Performance optimization: Memoize container dimensions calculation
-    const getContainerDimensions = useCallback((container: HTMLElement) => {
-      const rect = container.getBoundingClientRect();
-      return {
-        width: rect.width,
-        height: rect.height,
-      };
-    }, []);
-
-    // Performance optimization: Debounced resize handler
-    const debouncedResizeHandler = useCallback(
-      (
-        chartId: string,
-        chart: IChartApi,
-        container: HTMLElement,
-        chartConfig: ChartConfig,
-      ) => {
-        // Clear existing timer
-        if (debounceTimersRef.current[chartId]) {
-          clearTimeout(debounceTimersRef.current[chartId]);
-        }
-
-        // Set new timer
-        debounceTimersRef.current[chartId] = setTimeout(() => {
-          try {
-            const dimensions = getContainerDimensions(container);
-            const newWidth = chartConfig.autoWidth
-              ? dimensions.width
-              : chartConfig.chart?.width || width;
-            // Prioritize height from chart options (JSON config) over autoHeight
-            const newHeight =
-              chartConfig.chart?.height ||
-              (chartConfig.autoHeight ? dimensions.height : height) ||
-              dimensions.height;
-
-            if (newHeight != null && newWidth != null) {
-              chart.resize(newWidth, newHeight);
-            }
-          } catch (error) {
-            logger.warn("Chart auto-resize failed", "LightweightCharts", error);
-          }
-        }, 100); // 100ms debounce
-      },
-      [width, height, getContainerDimensions],
-    );
-
-    // Function to setup auto-sizing for a chart
-    const setupAutoSizing = useCallback(
-      (chart: IChartApi, container: HTMLElement, chartConfig: ChartConfig) => {
-        // Auto-sizing implementation
-        if (
-          chartConfig.autoSize ||
-          chartConfig.autoWidth ||
-          chartConfig.autoHeight
-        ) {
-          const chartId = chart.chartElement().id || "default";
-
-          const resizeObserver =
-            typeof ResizeObserver !== "undefined"
-              ? new ResizeObserver(() => {
-                  debouncedResizeHandler(
-                    chartId,
-                    chart,
-                    container,
-                    chartConfig,
-                  );
-                })
-              : null;
-
-          if (resizeObserver && typeof resizeObserver.observe === "function") {
-            resizeObserver.observe(container);
-          }
-          resizeObserverRef.current = resizeObserver;
-        }
-      },
-      [debouncedResizeHandler],
-    );
 
     const setupChartSynchronization = useCallback(
       (
@@ -981,41 +894,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         isDisposingRef.current = true;
       }
 
-      // Clear all debounce timers
-      Object.values(debounceTimersRef.current).forEach((timer) => {
-        if (timer) clearTimeout(timer);
-      });
-      debounceTimersRef.current = {};
-
-      // Disconnect resize observer
-      if (resizeObserverRef.current) {
-        try {
-          resizeObserverRef.current.disconnect();
-        } catch (error) {
-          logger.warn("ResizeObserver already disconnected", "Cleanup", error);
-        }
-        resizeObserverRef.current = null;
-      }
-
       // Clean up signal series plugins
       // Note: SignalSeries instances don't need explicit cleanup as they are
       // managed by the chart's series lifecycle
       signalPluginRefs.current = {};
-
-      // Clean up legend resize observers
-      Object.values(legendResizeObserverRefs.current).forEach(
-        (resizeObserver) => {
-          try {
-            resizeObserver.disconnect();
-          } catch (error) {
-            logger.warn(
-              "Legend ResizeObserver already disconnected",
-              "Cleanup",
-              error,
-            );
-          }
-        },
-      );
 
       // Legend cleanup is now handled automatically by pane primitives
 
@@ -1153,7 +1035,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       seriesRefs.current = {};
       signalPluginRefs.current = {};
       chartConfigs.current = {};
-      legendResizeObserverRefs.current = {};
       chartContainersRef.current = {};
 
       // Reset initialization flag
@@ -1611,8 +1492,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       [],
     );
 
-    // Store legend element references for dynamic updates
-    const legendElementsRef = useRef<Map<string, HTMLElement>>(new Map());
     const legendSeriesDataRef = useRef<
       Map<
         string,
@@ -1951,15 +1830,18 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             ...chartConfig,
             chartId,
             containerId: `chart-container-${chartId}`,
-            chartOptions: cleanLineStyleOptions({
-              width: chartConfig.chart?.autoWidth
-                ? undefined
-                : chartConfig.chart?.width || width || undefined,
-              height: chartConfig.chart?.autoHeight
-                ? undefined
-                : chartConfig.chart?.height || height || undefined,
-              ...chartConfig.chart,
-            }),
+            chartOptions: applyChartOptionDefaults(
+              cleanLineStyleOptions({
+                width: chartConfig.chart?.autoWidth
+                  ? undefined
+                  : chartConfig.chart?.width || width || undefined,
+                height: chartConfig.chart?.autoHeight
+                  ? undefined
+                  : chartConfig.chart?.height || height || undefined,
+                ...chartConfig.chart,
+              }),
+              chartConfig,
+            ),
           };
         },
       );
@@ -2140,59 +2022,25 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             }
             window.chartApiMap[chartId] = chart;
 
-            // Add resize observer to reposition legends when container resizes
-            const resizeObserver =
-              typeof ResizeObserver !== "undefined"
-                ? new ResizeObserver((entries) => {
-                    for (const entry of entries) {
-                      if (entry.target === container) {
-                        // Trigger legend repositioning for all panes
-                        setTimeout(() => {
-                          const legendElements = legendElementsRef.current;
-                          if (legendElements) {
-                            // Legend repositioning is now handled by direct DOM manipulation
-                          }
-                        }, 100); // Small delay to ensure resize is complete
-                      }
-                    }
-                  })
-                : null;
-
-            // Start observing the container for size changes
-            if (
-              resizeObserver &&
-              typeof resizeObserver.observe === "function"
-            ) {
-              resizeObserver.observe(container);
-            }
-
-            // Store the observer reference for cleanup
-            if (!window.chartResizeObservers) {
-              window.chartResizeObservers = {};
-            }
-            if (resizeObserver) {
-              window.chartResizeObservers[chartId] = resizeObserver;
-            }
-
-            // Calculate chart dimensions once
-            const containerRect = container.getBoundingClientRect();
-            const chartWidth = chartConfig.autoWidth
-              ? containerRect.width
-              : (chartOptions && chartOptions.width) ||
+            // With autoSize the library tracks the container itself and ignores resize()
+            if (!chart.autoSizeActive()) {
+              const containerRect = container.getBoundingClientRect();
+              const chartWidth =
+                (chartOptions && chartOptions.width) ||
                 width ||
                 containerRect.width;
-            // Prioritize height from chart options (JSON config) over autoHeight
-            const chartHeight =
-              (chartOptions && chartOptions.height) ||
-              (chartConfig.autoHeight ? containerRect.height : height) ||
-              containerRect.height;
+              // Prioritize height from chart options (JSON config)
+              const chartHeight =
+                (chartOptions && chartOptions.height) ||
+                height ||
+                containerRect.height;
 
-            // Ensure minimum dimensions
-            const finalWidth = Math.max(Number(chartWidth) || 400, 200);
-            const finalHeight = Math.max(Number(chartHeight) || 400, 200);
+              // Ensure minimum dimensions
+              const finalWidth = Math.max(Number(chartWidth) || 400, 200);
+              const finalHeight = Math.max(Number(chartHeight) || 400, 200);
 
-            // Resize chart once with calculated dimensions
-            chart.resize(finalWidth, finalHeight);
+              chart.resize(finalWidth, finalHeight);
+            }
 
             // Apply layout.panes options if present
             if (chartOptions.layout && (chartOptions as any).layout?.panes) {
@@ -2656,23 +2504,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     });
 
                     // Initial fitContent is now handled by handleDataLoaded function with proper tracking
-
-                    // Observe the chart element for size changes
-                    if (
-                      resizeObserver &&
-                      typeof resizeObserver.observe === "function"
-                    ) {
-                      const chartElement = chart.chartElement();
-                      if (chartElement) {
-                        resizeObserver.observe(chartElement);
-                      }
-                    }
-
-                    // Store the resize observer for cleanup
-                    if (resizeObserver) {
-                      legendResizeObserverRefs.current[chartId] =
-                        resizeObserver;
-                    }
                   } catch {
                     // Error during chart initialization
                   }
@@ -2681,14 +2512,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               .catch(() => {
                 // Chart readiness detection failed, skip legend setup
               });
-
-            // Setup auto-sizing for the chart
-            functionRefs.current.setupAutoSizing?.(
-              chart,
-              container,
-              chartConfig,
-            );
-
             // Setup chart synchronization if enabled (throttling already applied)
             if (config.syncConfig && config.syncConfig.enabled) {
               const chartGroupId = chartConfig.chartGroupId || 0;
@@ -2885,7 +2708,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         addRangeSwitcher,
         addLegend,
         updateLegendPositions,
-        setupAutoSizing,
         setupChartSynchronization,
         setupFitContent,
         setupPaneCollapseSupport,
@@ -2899,7 +2721,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       addRangeSwitcher,
       addLegend,
       updateLegendPositions,
-      setupAutoSizing,
       setupChartSynchronization,
       setupFitContent,
       setupPaneCollapseSupport,
@@ -2962,8 +2783,13 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           !!shouldAutoSize,
           chartOptions,
         );
+        const pinnedSize = pinnedContainerSize(chartConfig, {
+          width: chartOptions.width || width,
+          height: chartOptions.height || height,
+        });
         const containerStyle = {
           ...styles.container,
+          ...pinnedSize,
           minWidth:
             chartOptions.minWidth ||
             chartConfig.minWidth ||
@@ -2976,7 +2802,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           maxHeight: chartOptions.maxHeight || chartConfig.maxHeight,
         };
 
-        const chartContainerStyle = styles.chartContainer;
+        const chartContainerStyle = { ...styles.chartContainer, ...pinnedSize };
 
         return (
           <div key={chartId} style={containerStyle}>
@@ -3021,33 +2847,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
               // Apply the options to the series
               if (Object.keys(apiConfig).length > 0) {
                 series.applyOptions(apiConfig);
-
-                // CRITICAL FIX: Force primitives to redraw with new options
-                // Primitives read options from series dynamically via series.options()
-                // but need explicit update trigger to redraw
-                requestAnimationFrame(() => {
-                  try {
-                    // Trigger chart redraw by temporarily adjusting size
-                    // This forces all primitives to re-render with updated options
-                    const container = chart.chartElement();
-                    if (container) {
-                      // Store current size
-                      const rect = container.getBoundingClientRect();
-                      // Trigger resize event (forces complete redraw including primitives)
-                      chart.resize(rect.width, rect.height);
-                    }
-                  } catch {
-                    // Fallback: gentle update via timeScale access
-                    try {
-                      chart.timeScale().getVisibleRange();
-                    } catch {
-                      logger.warn(
-                        "Chart update after config change failed (non-critical)",
-                        "SeriesConfig",
-                      );
-                    }
-                  }
-                });
               }
             }
           });

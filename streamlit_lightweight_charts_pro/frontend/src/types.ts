@@ -386,6 +386,7 @@ export interface ChartConfig {
     };
     crosshair?: {
       mode?: number;
+      doNotSnapToHiddenSeriesIndices?: boolean;
       vertLine?: {
         color?: string;
         width?: number;
@@ -447,6 +448,7 @@ export interface ChartConfig {
     // Chart behavior
     fitContentOnLoad?: boolean;
     handleDoubleClick?: boolean;
+    autoSize?: boolean;
     autoWidth?: boolean;
     autoHeight?: boolean;
     minWidth?: number;

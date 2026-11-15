@@ -668,7 +668,6 @@ declare global {
     seriesRefsMap?: Record<string, ExtendedSeriesApi[]>;
     paneWrappers?: Record<string, Record<string, unknown>>;
     paneButtonPanelWidgets?: Record<string, unknown[]>;
-    chartResizeObservers?: Record<string, ResizeObserver>;
     paneLegendManagers?: Record<string, Record<number, unknown>>;
     chartPlugins?: Map<string, unknown>;
   }
