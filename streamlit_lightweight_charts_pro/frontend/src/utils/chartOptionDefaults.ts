@@ -4,7 +4,20 @@
 
 import type { ChartConfig } from '../types';
 
-type LegacySizingFlags = Pick<ChartConfig, 'autoSize' | 'autoWidth' | 'autoHeight'>;
+export type LegacySizingFlags = Pick<ChartConfig, 'autoSize' | 'autoWidth' | 'autoHeight'>;
+
+/**
+ * Resolve autoSize / autoWidth / autoHeight from either top-level chartConfig or
+ * nested chartConfig.chart (Python serializes them under `chart`).
+ */
+export function resolveLegacySizing(config: ChartConfig | LegacySizingFlags): LegacySizingFlags {
+  const nested = (config as ChartConfig).chart ?? {};
+  return {
+    autoSize: (config as ChartConfig).autoSize ?? nested.autoSize,
+    autoWidth: (config as ChartConfig).autoWidth ?? nested.autoWidth,
+    autoHeight: (config as ChartConfig).autoHeight ?? nested.autoHeight,
+  };
+}
 
 /**
  * Returns a copy of `chartOptions` with this component's defaults filled in.

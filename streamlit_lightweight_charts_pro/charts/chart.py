@@ -4,21 +4,15 @@ This module provides the Chart class for Streamlit, which extends BaseChart
 with Streamlit-specific rendering capabilities.
 """
 
-import time
-import uuid
 from typing import TYPE_CHECKING, Any, Optional, Union
 
-import streamlit as st
 from lightweight_charts_pro.charts import BaseChart
 from lightweight_charts_pro.charts.options import ChartOptions
 from lightweight_charts_pro.charts.series import Series
 from lightweight_charts_pro.data import Annotation
 
 # Streamlit-specific imports
-from streamlit_lightweight_charts_pro.charts.managers import (
-    ChartRenderer,
-    SessionStateManager,
-)
+from streamlit_lightweight_charts_pro.charts.managers import ChartRenderer, SessionStateManager
 
 if TYPE_CHECKING:
     from streamlit_lightweight_charts_pro.charts.chart_manager import ChartManager
@@ -97,11 +91,16 @@ class Chart(BaseChart):
         """
         return self._session_state_manager.get_stored_series_config(key, series_index, pane_id)
 
-    def to_frontend_config(self) -> dict[str, Any]:
+    def to_frontend_config(self, chart_id: Optional[str] = None) -> dict[str, Any]:
         """Convert chart to frontend configuration dictionary.
 
         Extends the base implementation to use ChartRenderer for generating
         the complete frontend configuration with sync support.
+
+        Args:
+            chart_id: Stable chart id for the frontend. Defaults to "chart-0".
+                Prefer the Streamlit key (or a ChartManager id) so reruns do not
+                remount an empty container.
 
         Returns:
             Complete chart configuration ready for frontend rendering.
@@ -135,7 +134,7 @@ class Chart(BaseChart):
 
         # Generate complete frontend configuration using ChartRenderer
         config = self._chart_renderer.generate_frontend_config(
-            chart_id=f"chart-{id(self)}",
+            chart_id=chart_id or "chart-0",
             chart_options=self.options,
             series_configs=series_configs,
             annotations_config=annotations_config,
@@ -162,10 +161,10 @@ class Chart(BaseChart):
         Returns:
             The rendered Streamlit component.
         """
-        # Generate a unique key if none provided
+        # Prefer a stable key so Streamlit and the frontend chartId survive reruns.
+        # Callers with multiple charts on one page must pass distinct keys.
         if key is None or not isinstance(key, str) or not key.strip():
-            unique_id = str(uuid.uuid4())[:8]
-            key = f"chart_{int(time.time() * 1000)}_{unique_id}"
+            key = "chart-0"
 
         # Reset config application flag for this render cycle
         self._session_state_manager.reset_config_applied_flag()
@@ -179,7 +178,7 @@ class Chart(BaseChart):
             )
 
         # Generate chart configuration after configs are applied
-        config = self.to_frontend_config()
+        config = self.to_frontend_config(chart_id=key)
 
         # Render component using ChartRenderer
         result = self._chart_renderer.render(config, key, self.options)

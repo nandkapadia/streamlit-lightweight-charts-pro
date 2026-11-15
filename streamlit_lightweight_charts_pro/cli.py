@@ -169,8 +169,7 @@ def build_frontend():
 
         # Build completed successfully
         print("✅ Frontend build successful!")
-        # Return True to indicate success
-        # Note: No explicit return needed as we reach end of try block
+        return True
 
     except subprocess.CalledProcessError as e:
         # NPM command failed (non-zero exit code)

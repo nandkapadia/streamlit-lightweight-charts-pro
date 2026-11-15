@@ -357,8 +357,8 @@ export function logReact19Performance(options?: {
   const isDevelopment =
     (typeof process !== "undefined" &&
       process.env?.NODE_ENV === "development") ||
-    // @ts-expect-error - Vite-specific env property
     (typeof import.meta !== "undefined" &&
+      // @ts-expect-error - Vite-specific env property
       import.meta.env?.MODE === "development");
 
   if (!options?.skipEnvCheck && !isDevelopment) {

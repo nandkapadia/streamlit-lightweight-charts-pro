@@ -111,6 +111,7 @@ import { createSeriesWithConfig } from "./series/UnifiedSeriesFactory";
 import {
   applyChartOptionDefaults,
   pinnedContainerSize,
+  resolveLegacySizing,
 } from "./utils/chartOptionDefaults";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { react19Monitor } from "./utils/react19PerformanceMonitor";
@@ -1826,21 +1827,27 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
           // Chart configuration processed
 
+          const nestedChart = chartConfig.chart ?? {};
+          const sizing = resolveLegacySizing(chartConfig);
           return {
             ...chartConfig,
             chartId,
             containerId: `chart-container-${chartId}`,
             chartOptions: applyChartOptionDefaults(
               cleanLineStyleOptions({
-                width: chartConfig.chart?.autoWidth
-                  ? undefined
-                  : chartConfig.chart?.width || width || undefined,
-                height: chartConfig.chart?.autoHeight
-                  ? undefined
-                  : chartConfig.chart?.height || height || undefined,
-                ...chartConfig.chart,
+                // Spread nested options first so autoSize/autoHeight can clear
+                // Python's default height: 400 afterwards.
+                ...nestedChart,
+                width:
+                  sizing.autoSize || sizing.autoWidth
+                    ? undefined
+                    : nestedChart.width || width || undefined,
+                height:
+                  sizing.autoSize || sizing.autoHeight
+                    ? undefined
+                    : nestedChart.height || height || undefined,
               }),
-              chartConfig,
+              sizing,
             ),
           };
         },
@@ -2770,20 +2777,22 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         const containerId = `chart-container-${chartId}`;
 
         // Determine container styling based on auto-sizing options
-        const shouldAutoSize =
-          chartConfig.autoSize ||
-          chartConfig.autoWidth ||
-          chartConfig.autoHeight;
+        const sizing = resolveLegacySizing(chartConfig);
+        const shouldAutoSize = !!(
+          sizing.autoSize ||
+          sizing.autoWidth ||
+          sizing.autoHeight
+        );
         const chartOptions = chartConfig.chart || {};
 
         // Use optimized style creation with memoization
         const styles = createOptimizedStylesAdvanced(
           width,
           height,
-          !!shouldAutoSize,
+          shouldAutoSize,
           chartOptions,
         );
-        const pinnedSize = pinnedContainerSize(chartConfig, {
+        const pinnedSize = pinnedContainerSize(sizing, {
           width: chartOptions.width || width,
           height: chartOptions.height || height,
         });

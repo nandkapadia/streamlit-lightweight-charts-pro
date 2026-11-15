@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { applyChartOptionDefaults, pinnedContainerSize } from '../../utils/chartOptionDefaults';
+import {
+  applyChartOptionDefaults,
+  pinnedContainerSize,
+  resolveLegacySizing,
+} from '../../utils/chartOptionDefaults';
 
 describe('applyChartOptionDefaults', () => {
   describe('crosshair snapping to hidden series', () => {
@@ -57,6 +61,23 @@ describe('applyChartOptionDefaults', () => {
         expect(result.autoSize).toBe(true);
       }
     );
+  });
+});
+
+describe('resolveLegacySizing', () => {
+  it('reads nested chart.autoSize when top-level flags are unset', () => {
+    expect(
+      resolveLegacySizing({ chart: { autoSize: true, autoWidth: true } } as never)
+    ).toEqual({ autoSize: true, autoWidth: true, autoHeight: undefined });
+  });
+
+  it('prefers top-level flags over nested chart flags', () => {
+    expect(
+      resolveLegacySizing({
+        autoHeight: true,
+        chart: { autoHeight: false, autoSize: true },
+      } as never)
+    ).toEqual({ autoSize: true, autoWidth: undefined, autoHeight: true });
   });
 });
 

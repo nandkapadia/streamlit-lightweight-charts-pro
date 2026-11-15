@@ -126,8 +126,16 @@ const App: React.FC = () => {
       // Method 1: Try container dimensions first
       let containerHeight = 0;
       const config = renderData?.args?.config as ComponentConfig;
+      const nestedChart = config?.charts?.[0]?.chart;
+      const autoSized =
+        nestedChart?.autoSize ||
+        nestedChart?.autoHeight ||
+        config?.charts?.[0]?.autoSize ||
+        config?.charts?.[0]?.autoHeight;
       const chartHeight =
-        renderData?.args?.height || config?.charts?.[0]?.chart?.height || 400;
+        renderData?.args?.height ||
+        nestedChart?.height ||
+        (autoSized ? undefined : 400);
 
       try {
         containerHeight = containerRef.current.scrollHeight;
@@ -397,18 +405,29 @@ const App: React.FC = () => {
 
   const config = renderData.args?.config as ComponentConfig;
 
-  // Extract height and width from JSON config instead of separate parameters
+  // Extract height and width from JSON config instead of separate parameters.
+  // When autoSize/autoHeight is set, do not force the Python default 400 into props.
+  const nestedChart = config?.charts?.[0]?.chart;
+  const autoSized = !!(
+    nestedChart?.autoSize ||
+    nestedChart?.autoHeight ||
+    config?.charts?.[0]?.autoSize ||
+    config?.charts?.[0]?.autoHeight
+  );
   const height =
     (renderData.args?.height as number) ||
-    config?.charts?.[0]?.chart?.height ||
-    400;
+    nestedChart?.height ||
+    (autoSized ? undefined : 400);
   const width =
     (renderData.args?.width as number) ||
-    config?.charts?.[0]?.chart?.width ||
+    nestedChart?.width ||
     null;
 
   return (
-    <div ref={containerRef} style={{ width: "100%", minHeight: height }}>
+    <div
+      ref={containerRef}
+      style={{ width: "100%", minHeight: height ?? (autoSized ? 200 : 400) }}
+    >
       <LightweightCharts
         config={config}
         height={height}
