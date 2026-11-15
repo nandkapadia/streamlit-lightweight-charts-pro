@@ -73,8 +73,6 @@ import {
   ComponentConfig,
   ChartConfig,
   SeriesConfig,
-  TradeConfig,
-  TradeVisualizationOptions,
   Annotation,
   AnnotationLayer,
   LegendConfig,
@@ -87,7 +85,6 @@ import {
   ExtendedChartApi,
   SeriesDataPoint,
   AnnotationLayers,
-  MarkerData,
   Destroyable,
 } from "./types/ChartInterfaces";
 // Import from core package
@@ -96,7 +93,6 @@ import {
   createAnnotationVisualElements,
   SignalSeries,
   TradeRectanglePrimitive,
-  createTradeVisualElements,
   ChartReadyDetector,
   ChartCoordinateService,
   CornerLayoutManager,
@@ -118,59 +114,59 @@ import { react19Monitor } from "./utils/react19PerformanceMonitor";
 import { dialogConfigToApiOptions } from "./series/UnifiedPropertyMapper";
 
 /**
- * Finds the nearest available time in chart data to a target timestamp.
+ * Take this series' queued trade rectangles off the chart.
  *
- * Used for synchronizing annotations and trades with actual data points,
- * ensuring visual elements align with existing chart data.
- *
- * @param targetTime - Target timestamp in seconds
- * @param chartData - Array of chart data points with time property
- * @returns Nearest timestamp in seconds, or null if no valid data
- *
- * @example
- * ```typescript
- * const nearestTime = findNearestTime(1704067200, chartData);
- * if (nearestTime) {
- *   marker.time = nearestTime;
- * }
- * ```
+ * UnifiedSeriesFactory already created the rectangle data and any trade
+ * markers. Claiming them here keeps a second visualization pass from drawing
+ * the same trades again.
  */
-const findNearestTime = (
-  targetTime: number,
-  chartData: SeriesDataPoint[],
-): number | null => {
-  if (!chartData || chartData.length === 0) {
-    return null;
+const claimPendingTradeRectangles = (
+  chart: IChartApi,
+  series: ExtendedSeriesApi,
+): Array<Record<string, unknown>> => {
+  const extendedChart = chart as ExtendedChartApi;
+  const pending = extendedChart._pendingTradeRectangles;
+  if (!pending || pending.length === 0) {
+    return [];
   }
 
-  let nearestTime: number | null = null;
-  let minDiff = Infinity;
-
-  for (const item of chartData) {
-    if (!item.time) continue;
-
-    let itemTime: number | null = null;
-
-    if (typeof item.time === "number") {
-      itemTime =
-        item.time > 1000000000000 ? Math.floor(item.time / 1000) : item.time;
-    } else if (typeof item.time === "string") {
-      const parsed = new Date(item.time).getTime();
-      if (!isNaN(parsed)) {
-        itemTime = Math.floor(parsed / 1000);
-      }
+  const claimed: Array<Record<string, unknown>> = [];
+  const remaining: typeof pending = [];
+  pending.forEach((entry) => {
+    if ("rectangles" in entry && entry.series === series) {
+      entry.rectangles.forEach((rectangle) => {
+        claimed.push(rectangle as unknown as Record<string, unknown>);
+      });
+    } else {
+      remaining.push(entry);
     }
+  });
+  extendedChart._pendingTradeRectangles = remaining;
+  return claimed;
+};
 
-    if (itemTime === null) continue;
-
-    const diff = Math.abs(itemTime - targetTime);
-    if (diff < minDiff) {
-      minDiff = diff;
-      nearestTime = itemTime;
+/** Attach trade rectangles that the series factory already created. */
+const attachTradeRectangles = (
+  series: ExtendedSeriesApi,
+  rectangles: Array<Record<string, unknown>>,
+): void => {
+  rectangles.forEach((rectangleData) => {
+    try {
+      series.attachPrimitive(
+        new TradeRectanglePrimitive(
+          rectangleData as unknown as ConstructorParameters<
+            typeof TradeRectanglePrimitive
+          >[0],
+        ) as Parameters<ExtendedSeriesApi["attachPrimitive"]>[0],
+      );
+    } catch (error) {
+      logger.error(
+        "Error attaching trade visualization primitive",
+        "TradeViz",
+        error,
+      );
     }
-  }
-
-  return nearestTime;
+  });
 };
 
 // Global type declarations for window extensions
@@ -327,15 +323,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
     // Store function references to avoid dependency issues
     const functionRefs = useRef<{
-      addTradeVisualization:
-        | ((
-            chart: IChartApi,
-            series: ExtendedSeriesApi,
-            trades: TradeConfig[],
-            options: TradeVisualizationOptions,
-            chartData?: SeriesDataPoint[],
-          ) => Promise<void>)
-        | null;
       addAnnotations:
         | ((
             chart: IChartApi,
@@ -393,7 +380,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         | null;
       cleanupCharts: (() => void) | null;
     }>({
-      addTradeVisualization: null,
       addAnnotations: null,
       addModularTooltip: null,
       addAnnotationLayers: null,
@@ -1045,166 +1031,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       // This allows subsequent reinitializations to proceed
       isDisposingRef.current = false;
     }, []);
-
-    const addTradeVisualization = useCallback(
-      async (
-        _chart: IChartApi,
-        series: ExtendedSeriesApi,
-        trades: TradeConfig[],
-        options: TradeVisualizationOptions,
-        chartData?: SeriesDataPoint[],
-      ) => {
-        if (!trades || trades.length === 0) {
-          return;
-        }
-
-        try {
-          // Use the new unified trade visualization system
-          const visualElements = createTradeVisualElements(
-            trades,
-            options,
-            chartData,
-          );
-          const primitives: unknown[] = [];
-
-          // Convert rectangles to primitives
-          if (visualElements.rectangles.length > 0) {
-            const rectanglePrimitives = visualElements.rectangles
-              .map(
-                (rectangleData) => new TradeRectanglePrimitive(rectangleData),
-              )
-              .filter((primitive) => primitive !== null);
-
-            primitives.push(...rectanglePrimitives);
-          }
-
-          // Attach primitives to the series (official TradingView approach)
-          if (primitives.length > 0) {
-            primitives.forEach((primitive) => {
-              try {
-                series.attachPrimitive(
-                  primitive as Parameters<typeof series.attachPrimitive>[0],
-                );
-              } catch (error) {
-                logger.error(
-                  "Error attaching trade visualization primitive",
-                  "TradeViz",
-                  error,
-                );
-              }
-            });
-          }
-
-          // Add entry/exit markers if style includes markers
-          if (options.style === "markers" || options.style === "both") {
-            const markers: MarkerData[] = [];
-
-            trades.forEach((trade) => {
-              // Parse and adjust timestamps using findNearestTime (same logic as rectangles)
-              const originalEntryTime =
-                typeof trade.entryTime === "string"
-                  ? Math.floor(new Date(trade.entryTime).getTime() / 1000)
-                  : trade.entryTime;
-              const originalExitTime =
-                typeof trade.exitTime === "string"
-                  ? Math.floor(new Date(trade.exitTime).getTime() / 1000)
-                  : trade.exitTime;
-
-              // Find nearest available times in chart data
-              let adjustedEntryTime = originalEntryTime;
-              let adjustedExitTime = originalExitTime;
-
-              if (chartData && chartData.length > 0) {
-                const nearestEntryTime = findNearestTime(
-                  originalEntryTime as number,
-                  chartData,
-                );
-                const nearestExitTime = findNearestTime(
-                  originalExitTime as number,
-                  chartData,
-                );
-
-                if (nearestEntryTime) adjustedEntryTime = nearestEntryTime;
-                if (nearestExitTime) adjustedExitTime = nearestExitTime;
-              }
-
-              // Entry marker
-              if (adjustedEntryTime && typeof trade.entryPrice === "number") {
-                const isLong = trade.tradeType === "long";
-                const markerText = options.showPnlInMarkers
-                  ? `Entry: ${trade.entryPrice}`
-                  : trade.notes || trade.text || "";
-
-                markers.push({
-                  time: adjustedEntryTime as UTCTimestamp,
-                  position: isLong ? "belowBar" : "aboveBar",
-                  color: isLong
-                    ? options.entryMarkerColorLong || "#2196F3"
-                    : options.entryMarkerColorShort || "#FF9800",
-                  shape: isLong ? "arrowUp" : "arrowDown",
-                  size: options.markerSize || 5,
-                  text: markerText,
-                });
-              }
-
-              // Exit marker
-              if (adjustedExitTime && typeof trade.exitPrice === "number") {
-                const isLong = trade.tradeType === "long";
-                const isProfit =
-                  trade.isProfitable || (trade.pnl && trade.pnl >= 0);
-                let markerText = "";
-
-                if (options.showPnlInMarkers) {
-                  markerText = `Exit: ${trade.exitPrice}`;
-                  if (trade.pnl)
-                    markerText += ` (${trade.pnl > 0 ? "+" : ""}${trade.pnl.toFixed(2)})`;
-                  else if (trade.pnlPercentage)
-                    markerText += ` (${trade.pnlPercentage > 0 ? "+" : ""}${trade.pnlPercentage.toFixed(1)}%)`;
-                }
-
-                markers.push({
-                  time: adjustedExitTime as UTCTimestamp,
-                  position: isLong ? "aboveBar" : "belowBar",
-                  color: isProfit
-                    ? options.exitMarkerColorProfit || "#4CAF50"
-                    : options.exitMarkerColorLoss || "#F44336",
-                  shape: isLong ? "arrowDown" : "arrowUp",
-                  size: options.markerSize || 5,
-                  text: markerText,
-                });
-              }
-            });
-
-            if (markers.length > 0) {
-              try {
-                // Use createSeriesMarkers instead of setMarkers for compatibility
-                createSeriesMarkers(
-                  series as Parameters<typeof createSeriesMarkers>[0],
-                  markers as Parameters<typeof createSeriesMarkers>[1],
-                );
-              } catch {
-                logger.error("An error occurred", "LightweightCharts");
-              }
-            }
-          }
-
-          // Handle other style options
-          if (
-            options.style === "lines" ||
-            options.style === "arrows" ||
-            options.style === "zones"
-          ) {
-            // Style not yet implemented
-          }
-        } catch (error) {
-          logger.error("Trade visualization error", "LightweightCharts", error);
-        }
-      },
-      [],
-    );
-
-    // Trade visualization is now handled synchronously in createSeries function
-    // No need for addTradeVisualizationWhenReady anymore
 
     const addAnnotations = useCallback(
       (_chart: IChartApi, annotations: Annotation[] | AnnotationLayers) => {
@@ -2232,82 +2058,40 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
                       // Series legends are now handled directly in seriesFactory.ts
 
-                      // Handle trade visualization for this series
-
-                      if (
+                      // The series factory already created trade markers, merged
+                      // with any user markers, and queued rectangles. Attach
+                      // those rectangles only. A second marker pass would
+                      // replace the user markers.
+                      const tradeRectangles =
                         seriesConfig.trades &&
                         seriesConfig.tradeVisualizationOptions
-                      ) {
-                        // CRITICAL: Wait for chart to be ready before attaching primitives
+                          ? claimPendingTradeRectangles(chart, series)
+                          : [];
 
+                      if (tradeRectangles.length > 0) {
                         try {
-                          // Don't block - use setTimeout to wait for chart readiness asynchronously
                           setTimeout(() => {
-                            (async () => {
+                            void (async () => {
                               try {
-                                // Wait for chart's coordinate system to be fully initialized
-                                const isReady =
-                                  await ChartReadyDetector.waitForChartReadyForPrimitives(
-                                    chart,
-                                    series,
-                                    {
-                                      maxAttempts: 100,
-                                      baseDelay: 100,
-                                      requireData: true,
-                                    },
-                                  );
-
-                                if (
-                                  isReady &&
-                                  seriesConfig.trades &&
-                                  seriesConfig.tradeVisualizationOptions
-                                ) {
-                                  await addTradeVisualization(
-                                    chart,
-                                    series,
-                                    seriesConfig.trades,
-                                    seriesConfig.tradeVisualizationOptions,
-                                    seriesConfig.data,
-                                  );
-                                } else {
-                                  // Try to attach primitives anyway - sometimes coordinates work even if tests fail
-
-                                  try {
-                                    if (
-                                      seriesConfig.trades &&
-                                      seriesConfig.tradeVisualizationOptions
-                                    ) {
-                                      await addTradeVisualization(
-                                        chart,
-                                        series,
-                                        seriesConfig.trades,
-                                        seriesConfig.tradeVisualizationOptions,
-                                        seriesConfig.data,
-                                      );
-                                    }
-                                  } catch (attachError) {
-                                    logger.error(
-                                      "Plugin attachment failed",
-                                      "Plugin",
-                                      attachError,
-                                    );
-                                  }
-                                }
+                                await ChartReadyDetector.waitForChartReadyForPrimitives(
+                                  chart,
+                                  series,
+                                  {
+                                    maxAttempts: 100,
+                                    baseDelay: 100,
+                                    requireData: true,
+                                  },
+                                );
                               } catch (error) {
                                 logger.error(
-                                  "Error in chart readiness or trade visualization",
+                                  "Error waiting for chart before trade rectangles",
                                   "LightweightCharts",
                                   error,
                                 );
                               }
-                            })().catch((error: Error) =>
-                              logger.error(
-                                "Async operation failed",
-                                "LightweightCharts",
-                                error,
-                              ),
-                            );
-                          }, 50); // Small delay to let chart initialization complete
+                              attachTradeRectangles(series, tradeRectangles);
+                            })();
+                          }, 50);
                         } catch (error) {
                           logger.error(
                             "Error setting up trade visualization",
@@ -2315,8 +2099,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                             error,
                           );
                         }
-                      } else {
-                        // No trade visualization options provided
                       }
 
                       // Add series-level annotations
@@ -2695,20 +2477,12 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           }
         }, 50);
       },
-      [
-        processedChartConfigs,
-        config?.syncConfig,
-        width,
-        height,
-        onChartsReady,
-        addTradeVisualization,
-      ],
+      [processedChartConfigs, config?.syncConfig, width, height, onChartsReady],
     );
 
     // Update function references to avoid dependency issues
     useEffect(() => {
       functionRefs.current = {
-        addTradeVisualization,
         addAnnotations,
         addModularTooltip,
         addAnnotationLayers,
@@ -2721,7 +2495,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         cleanupCharts,
       };
     }, [
-      addTradeVisualization,
       addAnnotations,
       addModularTooltip,
       addAnnotationLayers,

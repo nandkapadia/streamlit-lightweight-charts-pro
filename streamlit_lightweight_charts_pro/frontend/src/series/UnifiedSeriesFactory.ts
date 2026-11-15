@@ -576,16 +576,18 @@ export function createSeriesWithConfig(
       });
     }
 
-    // Step 5: Add markers if provided
+    // Step 5: Collect user markers. They are applied once, together with any
+    // trade markers, so a later createSeriesMarkers call cannot replace them.
+    let userMarkers: SeriesMarker<Time>[] = [];
     if (markers && Array.isArray(markers) && markers.length > 0) {
       try {
-        const snappedMarkers = applyTimestampSnapping(
+        userMarkers = applyTimestampSnapping(
           markers,
           data as SeriesDataPoint[],
         );
-        createSeriesMarkers(series, snappedMarkers);
       } catch (error) {
-        logger.warn("Failed to set markers", "UnifiedSeriesFactory", error);
+        logger.warn("Failed to snap markers", "UnifiedSeriesFactory", error);
+        userMarkers = markers;
       }
     }
 
@@ -637,28 +639,23 @@ export function createSeriesWithConfig(
       }
     }
 
-    // Step 8: Handle trade visualization
+    // Step 8: Handle trade visualization. Markers are merged with user markers
+    // below. Rectangles are queued for the chart component to attach.
     const { trades, tradeVisualizationOptions } = config;
+    let tradeMarkers: SeriesMarker<Time>[] = [];
     if (trades && tradeVisualizationOptions && trades.length > 0) {
       try {
-        // Create trade visual elements (markers, rectangles, annotations)
         const visualElements = createTradeVisualElements(
           trades,
           tradeVisualizationOptions,
           data,
         );
 
-        // Add trade markers to the series
         if (visualElements.markers && visualElements.markers.length > 0) {
-          createSeriesMarkers(series, visualElements.markers);
+          tradeMarkers = visualElements.markers;
         }
 
-        // Store rectangle data for later processing by the chart component
-        if (
-          visualElements.rectangles &&
-          visualElements.rectangles.length > 0 &&
-          chartId
-        ) {
+        if (visualElements.rectangles && visualElements.rectangles.length > 0) {
           const extendedChart = chart as ExtendedChartApi;
           if (!extendedChart._pendingTradeRectangles) {
             extendedChart._pendingTradeRectangles = [];
@@ -666,7 +663,7 @@ export function createSeriesWithConfig(
           extendedChart._pendingTradeRectangles.push({
             rectangles: visualElements.rectangles,
             series: series,
-            chartId: chartId,
+            chartId: chartId || "",
           });
         }
       } catch (error) {
@@ -675,6 +672,15 @@ export function createSeriesWithConfig(
           "UnifiedSeriesFactory",
           error,
         );
+      }
+    }
+
+    const seriesMarkers = userMarkers.concat(tradeMarkers);
+    if (seriesMarkers.length > 0) {
+      try {
+        createSeriesMarkers(series, seriesMarkers);
+      } catch (error) {
+        logger.warn("Failed to set markers", "UnifiedSeriesFactory", error);
       }
     }
 

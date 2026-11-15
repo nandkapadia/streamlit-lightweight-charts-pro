@@ -3,16 +3,16 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   createSeries,
   createSeriesWithConfig,
   ExtendedSeriesConfig,
-} from '../../series/UnifiedSeriesFactory';
-import { IChartApi } from 'lightweight-charts';
+} from "../../series/UnifiedSeriesFactory";
+import { IChartApi, createSeriesMarkers } from "lightweight-charts";
 
 // Mock the logger
-vi.mock('../../utils/logger', () => ({
+vi.mock("../../utils/logger", () => ({
   logger: {
     error: vi.fn(),
     warn: vi.fn(),
@@ -22,13 +22,13 @@ vi.mock('../../utils/logger', () => ({
 }));
 
 // Mock cleanLineStyleOptions
-vi.mock('../../utils/lineStyle', () => ({
+vi.mock("../../utils/lineStyle", () => ({
   cleanLineStyleOptions: (options: any) => options,
 }));
 
 // Mock createSeriesMarkers
-vi.mock('lightweight-charts', async () => {
-  const actual = await vi.importActual('lightweight-charts');
+vi.mock("lightweight-charts", async () => {
+  const actual = await vi.importActual("lightweight-charts");
   return {
     ...actual,
     createSeriesMarkers: vi.fn(),
@@ -36,14 +36,14 @@ vi.mock('lightweight-charts', async () => {
 });
 
 // Mock trade visualization
-vi.mock('../../services/tradeVisualization', () => ({
+vi.mock("../../services/tradeVisualization", () => ({
   createTradeVisualElements: vi.fn(() => ({
     markers: [],
     rectangles: [],
   })),
 }));
 
-describe('UnifiedSeriesFactory - Title Handling', () => {
+describe("UnifiedSeriesFactory - Title Handling", () => {
   let mockChart: IChartApi;
   let mockSeries: any;
   let capturedOptions: any = null;
@@ -72,56 +72,56 @@ describe('UnifiedSeriesFactory - Title Handling', () => {
     vi.clearAllMocks();
   });
 
-  describe('createSeries - Basic Title Handling', () => {
-    it('should pass title from options to series', () => {
+  describe("createSeries - Basic Title Handling", () => {
+    it("should pass title from options to series", () => {
       const options = {
-        title: 'Custom Line Title',
-        color: '#2196F3',
+        title: "Custom Line Title",
+        color: "#2196F3",
       };
 
-      createSeries(mockChart, 'Line', [], options);
+      createSeries(mockChart, "Line", [], options);
 
       expect(mockChart.addSeries).toHaveBeenCalled();
       expect(capturedOptions).toMatchObject({
-        title: 'Custom Line Title',
-        color: '#2196F3',
-        _seriesType: 'Line',
+        title: "Custom Line Title",
+        color: "#2196F3",
+        _seriesType: "Line",
       });
     });
 
-    it('should work without title in options', () => {
+    it("should work without title in options", () => {
       const options: Record<string, unknown> = {
-        color: '#2196F3',
+        color: "#2196F3",
       };
 
-      createSeries(mockChart, 'Line', [], options);
+      createSeries(mockChart, "Line", [], options);
 
       expect(mockChart.addSeries).toHaveBeenCalled();
       expect(capturedOptions).toMatchObject({
-        color: '#2196F3',
-        _seriesType: 'Line',
+        color: "#2196F3",
+        _seriesType: "Line",
       });
       expect(capturedOptions.title).toBeUndefined();
     });
 
-    it('should handle empty string title', () => {
+    it("should handle empty string title", () => {
       const options = {
-        title: '',
-        color: '#2196F3',
+        title: "",
+        color: "#2196F3",
       };
 
-      createSeries(mockChart, 'Line', [], options);
+      createSeries(mockChart, "Line", [], options);
 
       expect(capturedOptions).toMatchObject({
-        title: '',
-        color: '#2196F3',
+        title: "",
+        color: "#2196F3",
       });
     });
 
-    it('should handle title for different series types', () => {
-      const seriesTypes = ['Area', 'Candlestick', 'Bar', 'Histogram'];
+    it("should handle title for different series types", () => {
+      const seriesTypes = ["Area", "Candlestick", "Bar", "Histogram"];
 
-      seriesTypes.forEach(type => {
+      seriesTypes.forEach((type) => {
         vi.clearAllMocks();
         capturedOptions = null;
 
@@ -140,16 +140,16 @@ describe('UnifiedSeriesFactory - Title Handling', () => {
     });
   });
 
-  describe('createSeriesWithConfig - Title Extraction', () => {
-    it('should extract title from top-level config and merge into options', () => {
+  describe("createSeriesWithConfig - Title Extraction", () => {
+    it("should extract title from top-level config and merge into options", () => {
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
+        type: "Line",
         data: [],
         options: {
-          color: '#2196F3',
+          color: "#2196F3",
           lineWidth: 2,
         },
-        title: 'NIFTY50 OHLC', // Top-level title (sent from Python)
+        title: "NIFTY50 OHLC", // Top-level title (sent from Python)
       };
 
       createSeriesWithConfig(mockChart, config);
@@ -157,36 +157,36 @@ describe('UnifiedSeriesFactory - Title Handling', () => {
       // Title should be merged into options before passing to createSeries
       expect(mockChart.addSeries).toHaveBeenCalled();
       expect(capturedOptions).toMatchObject({
-        title: 'NIFTY50 OHLC',
-        color: '#2196F3',
+        title: "NIFTY50 OHLC",
+        color: "#2196F3",
         lineWidth: 2,
-        _seriesType: 'Line',
+        _seriesType: "Line",
       });
     });
 
-    it('should prefer top-level title over options title', () => {
+    it("should prefer top-level title over options title", () => {
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
+        type: "Line",
         data: [],
         options: {
-          title: 'Options Title',
-          color: '#2196F3',
+          title: "Options Title",
+          color: "#2196F3",
         },
-        title: 'Top Level Title', // Top-level title takes precedence (merged after options)
+        title: "Top Level Title", // Top-level title takes precedence (merged after options)
       };
 
       createSeriesWithConfig(mockChart, config);
 
       // Top-level title should take precedence (spread order: {...options, title})
-      expect(capturedOptions.title).toBe('Top Level Title');
+      expect(capturedOptions.title).toBe("Top Level Title");
     });
 
-    it('should handle missing title gracefully', () => {
+    it("should handle missing title gracefully", () => {
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
+        type: "Line",
         data: [],
         options: {
-          color: '#2196F3',
+          color: "#2196F3",
         },
         // No title property
       };
@@ -197,12 +197,12 @@ describe('UnifiedSeriesFactory - Title Handling', () => {
       expect(mockChart.addSeries).toHaveBeenCalled();
     });
 
-    it('should handle undefined title', () => {
+    it("should handle undefined title", () => {
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
+        type: "Line",
         data: [],
         options: {
-          color: '#2196F3',
+          color: "#2196F3",
         },
         title: undefined,
       };
@@ -211,79 +211,79 @@ describe('UnifiedSeriesFactory - Title Handling', () => {
 
       expect(mockChart.addSeries).toHaveBeenCalled();
       expect(capturedOptions).toMatchObject({
-        color: '#2196F3',
+        color: "#2196F3",
       });
       // Should not include title if undefined
       expect(capturedOptions.title).toBeUndefined();
     });
 
-    it('should work with empty options object', () => {
+    it("should work with empty options object", () => {
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
+        type: "Line",
         data: [],
         options: {},
-        title: 'Custom Title',
+        title: "Custom Title",
       };
 
       createSeriesWithConfig(mockChart, config);
 
       expect(capturedOptions).toMatchObject({
-        title: 'Custom Title',
+        title: "Custom Title",
       });
     });
 
-    it('should work without options object', () => {
+    it("should work without options object", () => {
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
+        type: "Line",
         data: [],
-        title: 'Custom Title',
+        title: "Custom Title",
       };
 
       createSeriesWithConfig(mockChart, config);
 
       expect(capturedOptions).toMatchObject({
-        title: 'Custom Title',
+        title: "Custom Title",
       });
     });
   });
 
-  describe('Python Integration - Title Flow', () => {
-    it('should handle Python-serialized candlestick series with title', () => {
+  describe("Python Integration - Title Flow", () => {
+    it("should handle Python-serialized candlestick series with title", () => {
       // Simulates Python sending: candlestick_series.title = "NIFTY50 OHLC"
       const config: ExtendedSeriesConfig = {
-        type: 'Candlestick',
-        title: 'NIFTY50 OHLC', // Python sends title at top level
+        type: "Candlestick",
+        title: "NIFTY50 OHLC", // Python sends title at top level
         data: [
-          { time: '2024-01-01', open: 100, high: 105, low: 95, close: 102 },
-          { time: '2024-01-02', open: 102, high: 108, low: 100, close: 107 },
+          { time: "2024-01-01", open: 100, high: 105, low: 95, close: 102 },
+          { time: "2024-01-02", open: 102, high: 108, low: 100, close: 107 },
         ],
         options: {
-          upColor: '#26a69a',
-          downColor: '#ef5350',
+          upColor: "#26a69a",
+          downColor: "#ef5350",
         },
       };
 
       createSeriesWithConfig(mockChart, config);
 
       expect(capturedOptions).toMatchObject({
-        title: 'NIFTY50 OHLC',
-        upColor: '#26a69a',
-        downColor: '#ef5350',
-        _seriesType: 'Candlestick',
+        title: "NIFTY50 OHLC",
+        upColor: "#26a69a",
+        downColor: "#ef5350",
+        _seriesType: "Candlestick",
       });
     });
 
-    it('should handle Python-serialized line series with title', () => {
+    it("should handle Python-serialized line series with title", () => {
       // Simulates Python sending: line_series.title = "SMA 20"
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
-        title: 'SMA 20',
+        type: "Line",
+        title: "SMA 20",
         data: [
-          { time: '2024-01-01', value: 100 },
-          { time: '2024-01-02', value: 102 },
+          { time: "2024-01-01", value: 100 },
+          { time: "2024-01-02", value: 102 },
         ],
         options: {
-          color: '#2196F3',
+          color: "#2196F3",
           lineWidth: 2,
         },
       };
@@ -291,35 +291,35 @@ describe('UnifiedSeriesFactory - Title Handling', () => {
       createSeriesWithConfig(mockChart, config);
 
       expect(capturedOptions).toMatchObject({
-        title: 'SMA 20',
-        color: '#2196F3',
+        title: "SMA 20",
+        color: "#2196F3",
         lineWidth: 2,
       });
     });
 
-    it('should handle multiple series with different titles', () => {
+    it("should handle multiple series with different titles", () => {
       const configs: ExtendedSeriesConfig[] = [
         {
-          type: 'Line',
-          title: 'Price',
+          type: "Line",
+          title: "Price",
           data: [],
-          options: { color: '#000000' },
+          options: { color: "#000000" },
         },
         {
-          type: 'Line',
-          title: 'SMA 50',
+          type: "Line",
+          title: "SMA 50",
           data: [],
-          options: { color: '#FF0000' },
+          options: { color: "#FF0000" },
         },
         {
-          type: 'Line',
-          title: 'EMA 20',
+          type: "Line",
+          title: "EMA 20",
           data: [],
-          options: { color: '#00FF00' },
+          options: { color: "#00FF00" },
         },
       ];
 
-      configs.forEach(config => {
+      configs.forEach((config) => {
         vi.clearAllMocks();
         capturedOptions = null;
         createSeriesWithConfig(mockChart, config);
@@ -333,25 +333,25 @@ describe('UnifiedSeriesFactory - Title Handling', () => {
     });
   });
 
-  describe('Edge Cases', () => {
-    it('should handle title with special characters', () => {
+  describe("Edge Cases", () => {
+    it("should handle title with special characters", () => {
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
-        title: 'Price @ $100.50 (USD)',
+        type: "Line",
+        title: "Price @ $100.50 (USD)",
         data: [],
       };
 
       createSeriesWithConfig(mockChart, config);
 
       expect(capturedOptions).toMatchObject({
-        title: 'Price @ $100.50 (USD)',
+        title: "Price @ $100.50 (USD)",
       });
     });
 
-    it('should handle very long title', () => {
-      const longTitle = 'A'.repeat(200);
+    it("should handle very long title", () => {
+      const longTitle = "A".repeat(200);
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
+        type: "Line",
         title: longTitle,
         data: [],
       };
@@ -363,67 +363,116 @@ describe('UnifiedSeriesFactory - Title Handling', () => {
       });
     });
 
-    it('should handle title with unicode characters', () => {
+    it("should handle title with unicode characters", () => {
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
-        title: '日本株価 📈',
+        type: "Line",
+        title: "日本株価 📈",
         data: [],
       };
 
       createSeriesWithConfig(mockChart, config);
 
       expect(capturedOptions).toMatchObject({
-        title: '日本株価 📈',
+        title: "日本株価 📈",
       });
     });
 
-    it('should handle whitespace-only title', () => {
+    it("should handle whitespace-only title", () => {
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
-        title: '   ',
+        type: "Line",
+        title: "   ",
         data: [],
       };
 
       createSeriesWithConfig(mockChart, config);
 
       expect(capturedOptions).toMatchObject({
-        title: '   ',
+        title: "   ",
       });
     });
   });
 
-  describe('Type Safety', () => {
-    it('should handle title as string type', () => {
+  describe("Type Safety", () => {
+    it("should handle title as string type", () => {
       const config: ExtendedSeriesConfig = {
-        type: 'Line',
-        title: 'String Title' as string,
+        type: "Line",
+        title: "String Title" as string,
         data: [],
       };
 
       createSeriesWithConfig(mockChart, config);
 
       expect(capturedOptions).toMatchObject({
-        title: 'String Title',
+        title: "String Title",
       });
     });
 
-    it('should handle title in ExtendedSeriesConfig type correctly', () => {
+    it("should handle title in ExtendedSeriesConfig type correctly", () => {
       // This test validates that title is properly typed in ExtendedSeriesConfig
       const config: ExtendedSeriesConfig = {
-        type: 'Candlestick',
-        title: 'Type Safe Title',
+        type: "Candlestick",
+        title: "Type Safe Title",
         data: [],
         options: {},
       };
 
       // TypeScript should not complain about title property
-      expect(config.title).toBe('Type Safe Title');
+      expect(config.title).toBe("Type Safe Title");
 
       createSeriesWithConfig(mockChart, config);
 
       expect(capturedOptions).toMatchObject({
-        title: 'Type Safe Title',
+        title: "Type Safe Title",
       });
+    });
+  });
+
+  describe("Trade markers", () => {
+    it("merges user markers with trade markers in one call", () => {
+      const userMarker = {
+        time: 1704067200,
+        position: "belowBar" as const,
+        color: "#111111",
+        shape: "circle" as const,
+        text: "user-marker",
+      };
+      const config: ExtendedSeriesConfig = {
+        type: "Line",
+        chartId: "chart-1",
+        data: [
+          { time: 1704067200, value: 100 },
+          { time: 1704153600, value: 110 },
+        ],
+        markers: [userMarker],
+        trades: [
+          {
+            entryTime: 1704067200,
+            entryPrice: 100,
+            exitTime: 1704153600,
+            exitPrice: 110,
+            quantity: 1,
+            tradeType: "long",
+            isProfitable: true,
+            id: "trade-1",
+          },
+        ],
+        tradeVisualizationOptions: { style: "both" },
+      };
+
+      createSeriesWithConfig(mockChart, config);
+
+      expect(createSeriesMarkers).toHaveBeenCalledTimes(1);
+      const appliedMarkers = vi.mocked(createSeriesMarkers).mock.calls[0][1];
+      expect(appliedMarkers).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ text: "user-marker", shape: "circle" }),
+        ]),
+      );
+      expect(appliedMarkers.length).toBeGreaterThan(1);
+      expect(
+        (mockChart as { _pendingTradeRectangles?: unknown[] })
+          ._pendingTradeRectangles?.length,
+      ).toBe(1);
     });
   });
 });
