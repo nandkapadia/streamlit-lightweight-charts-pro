@@ -31,6 +31,13 @@
 
 import { logger } from "@nandkapadia/lightweight-charts-pro-core";
 
+/** process is absent in some browser bundles; evaluate each call for tests. */
+function isDevelopmentEnv(): boolean {
+  return (
+    typeof process !== "undefined" && process.env?.NODE_ENV === "development"
+  );
+}
+
 interface React19Metrics {
   transitionDuration: number;
   suspenseLoadTime: number;
@@ -82,7 +89,7 @@ class React19PerformanceMonitor {
 
     this.activeTransitions.set(transitionId, metrics);
 
-    if (process.env.NODE_ENV === "development") {
+    if (isDevelopmentEnv()) {
       logger.info(
         `Starting transition: ${componentName} (${transitionType})`,
         "React19PerformanceMonitor",
@@ -108,7 +115,7 @@ class React19PerformanceMonitor {
       duration,
     );
 
-    if (process.env.NODE_ENV === "development") {
+    if (isDevelopmentEnv()) {
       const status = duration > 16 ? "⚠️ SLOW" : "✅ FAST";
       logger.info(
         `${status} React 19 Transition Completed: ${transition.componentName} (${transition.transitionType}) - ${duration.toFixed(2)}ms`,
@@ -133,7 +140,7 @@ class React19PerformanceMonitor {
   startSuspenseLoad(componentName: string): void {
     this.suspenseLoadTimes.set(componentName, performance.now());
 
-    if (process.env.NODE_ENV === "development") {
+    if (isDevelopmentEnv()) {
       logger.info(
         `Starting Suspense load: ${componentName}`,
         "React19PerformanceMonitor",
@@ -154,7 +161,7 @@ class React19PerformanceMonitor {
       loadTime,
     );
 
-    if (process.env.NODE_ENV === "development") {
+    if (isDevelopmentEnv()) {
       const status = loadTime > 1000 ? "⚠️ SLOW" : "✅ FAST";
       logger.info(
         `${status} Suspense load: ${componentName} - ${loadTime.toFixed(2)}ms`,
@@ -175,7 +182,7 @@ class React19PerformanceMonitor {
       processingTime,
     );
 
-    if (process.env.NODE_ENV === "development" && processingTime > 50) {
+    if (isDevelopmentEnv() && processingTime > 50) {
       logger.info(
         `Deferred value processing: ${valueName} - ${processingTime.toFixed(2)}ms`,
         "React19PerformanceMonitor",
@@ -189,7 +196,7 @@ class React19PerformanceMonitor {
   trackFlushSync(componentName: string, reason: string): void {
     this.metrics.flushSyncCount++;
 
-    if (process.env.NODE_ENV === "development") {
+    if (isDevelopmentEnv()) {
       logger.info(
         `flushSync called: ${componentName} - ${reason}`,
         "React19PerformanceMonitor",
@@ -383,7 +390,7 @@ export function logReact19Performance(options?: {
 // Store interval ID for potential cleanup
 let performanceLogIntervalId: ReturnType<typeof setInterval> | null = null;
 
-if (process.env.NODE_ENV === "development") {
+if (isDevelopmentEnv()) {
   performanceLogIntervalId = setInterval(logReact19Performance, 30000);
 }
 
@@ -402,10 +409,7 @@ export function stopPerformanceLogging(): void {
  * Start the automatic performance logging interval (development only).
  */
 export function startPerformanceLogging(): void {
-  if (
-    process.env.NODE_ENV === "development" &&
-    performanceLogIntervalId === null
-  ) {
+  if (isDevelopmentEnv() && performanceLogIntervalId === null) {
     performanceLogIntervalId = setInterval(logReact19Performance, 30000);
   }
 }

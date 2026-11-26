@@ -100,7 +100,10 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     // Log error for debugging (only in development)
-    if (process.env.NODE_ENV === "development") {
+    if (
+      typeof process !== "undefined" &&
+      process.env.NODE_ENV === "development"
+    ) {
       logger.error("ErrorBoundary caught an error", "ErrorBoundary", _error);
     }
   }
@@ -157,21 +160,22 @@ export class ErrorBoundary extends Component<Props, State> {
             >
               🔄 Try Again
             </button>
-            {process.env.NODE_ENV === "development" && (
-              <button
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#74b9ff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                }}
-              >
-                🐛 Log Error
-              </button>
-            )}
+            {typeof process !== "undefined" &&
+              process.env.NODE_ENV === "development" && (
+                <button
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#74b9ff",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontWeight: "500",
+                  }}
+                >
+                  🐛 Log Error
+                </button>
+              )}
           </div>
         </div>
       );

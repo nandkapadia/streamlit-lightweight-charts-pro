@@ -207,7 +207,7 @@ export const CSS_CLASSES = {
     `pane-button-panel-container-${paneId}`,
 } as const;
 
-// Validate configuration on load
-if (process.env.NODE_ENV === "development") {
+// Validate configuration on load (process is absent in some browser bundles)
+if (typeof process !== "undefined" && process.env.NODE_ENV === "development") {
   validateConfiguration();
 }
