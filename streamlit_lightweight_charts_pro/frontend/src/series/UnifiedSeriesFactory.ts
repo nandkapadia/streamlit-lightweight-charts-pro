@@ -712,7 +712,10 @@ function toMarkerTimestamp(time: Time): number {
     if (!Number.isNaN(num)) {
       return num > 1e11 ? Math.floor(num / 1000) : num;
     }
-    return Math.floor(new Date(time).getTime() / 1000);
+    const parsed = Date.parse(time);
+    return Number.isNaN(parsed)
+      ? Number.POSITIVE_INFINITY
+      : Math.floor(parsed / 1000);
   }
   if (
     typeof time === "object" &&
@@ -723,7 +726,8 @@ function toMarkerTimestamp(time: Time): number {
   ) {
     return Math.floor(Date.UTC(time.year, time.month - 1, time.day) / 1000);
   }
-  return 0;
+  // Unknown shapes sort last instead of collapsing to epoch 0
+  return Number.POSITIVE_INFINITY;
 }
 
 /**

@@ -43,11 +43,17 @@ class SessionStateManager:
         session_key = f"_chart_series_configs_{key}"
         st.session_state[session_key] = configs
 
-    def load_series_configs(self, key: str) -> dict[str, Any]:
+    def load_series_configs(
+        self,
+        key: str,
+        legacy_key: str | None = None,
+    ) -> dict[str, Any]:
         """Load series configurations from Streamlit session state.
 
         Args:
             key: Component key used to namespace the stored configs.
+            legacy_key: Optional older namespace to read when ``key`` is empty
+                (for example bare manager key before per-chart keys).
 
         Returns:
             Dictionary of series configurations or empty dict if none found.
@@ -56,7 +62,13 @@ class SessionStateManager:
             return {}
 
         session_key = f"_chart_series_configs_{key}"
-        return st.session_state.get(session_key, {})
+        configs = st.session_state.get(session_key, {})
+        if configs:
+            return configs
+        if legacy_key and legacy_key != key:
+            legacy_session_key = f"_chart_series_configs_{legacy_key}"
+            return st.session_state.get(legacy_session_key, {})
+        return {}
 
     def get_stored_series_config(
         self,
@@ -99,18 +111,22 @@ class SessionStateManager:
         if self.configs_applied:
             return
 
-        # Index is per pane, matching pane-{paneId}-series-{perPaneIndex}.
+        # Prefer per-pane indexes (pane-{paneId}-series-{perPaneIndex}).
+        # Fall back to legacy chart-wide indexes used before the ID fix.
         pane_counts: dict[int, int] = {}
-        for series in series_list:
+        for global_index, series in enumerate(series_list):
             raw_pane_id = getattr(series, "pane_id", 0)
             pane_id = 0 if raw_pane_id is None else int(raw_pane_id)
             per_pane_index = pane_counts.get(pane_id, 0)
             pane_counts[pane_id] = per_pane_index + 1
             series_id = f"pane-{pane_id}-series-{per_pane_index}"
+            legacy_series_id = f"pane-{pane_id}-series-{global_index}"
 
-            if series_id in stored_configs:
-                config = stored_configs[series_id]
+            config = stored_configs.get(series_id)
+            if config is None and legacy_series_id != series_id:
+                config = stored_configs.get(legacy_series_id)
 
+            if config is not None:
                 logger.debug("Applying stored config to %s: %s", series_id, config)
 
                 try:

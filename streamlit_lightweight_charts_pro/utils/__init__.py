@@ -84,6 +84,12 @@ from lightweight_charts_pro.utils import (
     snake_to_camel,  # Convert snake_case strings to camelCase
     validated_field,  # Decorator to add validation to field setters
 )
+from lightweight_charts_pro.utils.profiler import (
+    PerformanceProfiler as Profiler,
+)
+from lightweight_charts_pro.utils.profiler import (
+    profile_function as profile_method,
+)
 
 # Local Imports
 # (None - this module only re-exports utilities from core)
@@ -112,4 +118,7 @@ __all__ = [
     "validated_field",
     # Time utilities
     "normalize_time",
+    # Profiling (compat aliases)
+    "Profiler",
+    "profile_method",
 ]

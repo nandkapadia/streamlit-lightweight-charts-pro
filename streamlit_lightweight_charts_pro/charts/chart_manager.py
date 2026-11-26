@@ -239,12 +239,13 @@ class ChartManager(BaseChartManager):
         # Auto-detect changes using session state
         self._auto_detect_changes(key)
 
-        # Load and apply stored configs for each chart
+        # Load and apply stored configs for each chart (legacy bare key fallback)
         for chart_id, chart in self.charts.items():
             chart_key = f"{key}_{chart_id}"
             chart._session_state_manager.reset_config_applied_flag()  # pylint: disable=protected-access
             stored_configs = chart._session_state_manager.load_series_configs(
-                chart_key
+                chart_key,
+                legacy_key=key,
             )  # pylint: disable=protected-access
             if stored_configs:
                 chart._session_state_manager.apply_stored_configs_to_series(  # pylint: disable=protected-access
@@ -263,17 +264,26 @@ class ChartManager(BaseChartManager):
 
         # Handle response for the component
         if result:
+            # Persist series configs per chart; skip bare-key save in handle_response.
             first_chart._chart_renderer.handle_response(  # pylint: disable=protected-access
                 result,
                 key,
                 first_chart._session_state_manager,  # pylint: disable=protected-access
+                persist_series_configs=False,
             )
-            # Route per-chart series config changes to each chart's session state
             if isinstance(result, dict) and result.get("type") == "series_config_changes":
                 changes = result.get("changes", [])
+                chart_ids = set(self.charts)
                 for chart_id, chart in self.charts.items():
                     chart_changes = [
-                        c for c in changes if c.get("chartId") == chart_id or len(self.charts) == 1
+                        c
+                        for c in changes
+                        if c.get("chartId") == chart_id
+                        or (
+                            len(self.charts) == 1
+                            and c.get("chartId") in (None, "", "default", chart_id)
+                        )
+                        or (c.get("chartId") not in chart_ids and len(self.charts) == 1)
                     ]
                     if chart_changes:
                         chart_configs = {

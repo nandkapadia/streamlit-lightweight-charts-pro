@@ -380,18 +380,23 @@ class ChartRenderer:
         # Deliver series-settings replies computed on the previous run.
         # The component iframe listens for these on its own document; a
         # separate components.html iframe cannot reach that listener.
-        api_responses = self._api_responses_for_render(key)
+        api_responses = self._peek_api_responses(key)
         if api_responses:
             kwargs["apiResponses"] = api_responses
 
-        # Render component
-        return component_func(**kwargs)
+        # Render component; only mark replies delivered after a successful call.
+        result = component_func(**kwargs)
+        if api_responses:
+            self._mark_api_responses_delivered(key, api_responses)
+        return result
 
     def handle_response(
         self,
         response: Any,
         key: str,
         session_state_manager: Any,
+        *,
+        persist_series_configs: bool = True,
     ) -> None:
         """Handle component return value and save series configs.
 
@@ -399,10 +404,12 @@ class ChartRenderer:
             response: Response data from the frontend component.
             key: Component key for session state.
             session_state_manager: SessionStateManager for config persistence.
+            persist_series_configs: When False, skip writing series configs
+                under ``key`` (ChartManager persists per-chart keys itself).
         """
         if response and isinstance(response, dict):
             # Check if we have series config changes from the frontend
-            if response.get("type") == "series_config_changes":
+            if persist_series_configs and response.get("type") == "series_config_changes":
                 changes = response.get("changes", [])
                 if changes:
                     # Build a dictionary of all current series configs
@@ -429,20 +436,24 @@ class ChartRenderer:
         """Session-state key for replies already included in a render."""
         return f"_chart_api_delivered_{key}"
 
-    def _api_responses_for_render(self, key: str) -> list[dict[str, Any]]:
-        """Return queued series-settings replies for this component render.
-
-        Args:
-            key: Streamlit component key.
-
-        Returns:
-            JSON-ready reply objects, or an empty list when none are pending.
-        """
+    def _peek_api_responses(self, key: str) -> list[dict[str, Any]]:
+        """Return queued replies without clearing them until render succeeds."""
         if not key:
             return []
-        pending = st.session_state.pop(self._pending_api_key(key), [])
+        pending = st.session_state.get(self._pending_api_key(key), [])
         if not isinstance(pending, list):
             return []
+        return list(pending)
+
+    def _mark_api_responses_delivered(
+        self,
+        key: str,
+        pending: list[dict[str, Any]],
+    ) -> None:
+        """Clear pending replies and record message ids after a successful render."""
+        if not key:
+            return
+        st.session_state.pop(self._pending_api_key(key), None)
         delivered_key = self._delivered_api_key(key)
         delivered = st.session_state.get(delivered_key, [])
         if not isinstance(delivered, list):
@@ -452,7 +463,22 @@ class ChartRenderer:
                 delivered.append(item["messageId"])
         if delivered:
             st.session_state[delivered_key] = delivered[-50:]
-        return list(pending)
+
+    def _api_responses_for_render(self, key: str) -> list[dict[str, Any]]:
+        """Return queued series-settings replies for this component render.
+
+        Kept for callers/tests that expect the previous pop-on-read behavior.
+
+        Args:
+            key: Streamlit component key.
+
+        Returns:
+            JSON-ready reply objects, or an empty list when none are pending.
+        """
+        pending = self._peek_api_responses(key)
+        if pending:
+            self._mark_api_responses_delivered(key, pending)
+        return pending
 
     def _queue_api_response(self, key: str, payload: dict[str, Any]) -> None:
         """Queue a reply and rerun so the next render can pass it as args.
