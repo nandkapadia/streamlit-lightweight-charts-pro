@@ -30,6 +30,7 @@ import {
   handleError,
   ErrorSeverity,
 } from "@nandkapadia/lightweight-charts-pro-core";
+import { paneSeriesId } from "../utils/seriesIds";
 import { StreamlitSeriesConfigService } from "./StreamlitSeriesConfigService";
 import { SeriesType, SeriesConfiguration } from "../types/SeriesTypes";
 import { apiOptionsToDialogConfig } from "../series/UnifiedPropertyMapper";
@@ -126,6 +127,8 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
   private dialogStates = new Map<number, DialogState>();
   /** Manager configuration (chartId, callbacks) */
   private config: SeriesDialogConfig;
+  /** Chart identifier for storage scoping */
+  private chartId: string;
 
   /**
    * Private constructor (Singleton pattern)
@@ -142,11 +145,13 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
     chartApi: IChartApi,
     streamlitService: StreamlitSeriesConfigService,
     config: SeriesDialogConfig = {},
+    chartId = "default",
   ) {
     super();
     this.chartApi = chartApi;
     this.streamlitService = streamlitService;
     this.config = config;
+    this.chartId = chartId || config.chartId || "default";
   }
 
   /**
@@ -163,7 +168,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
       "SeriesDialogManager",
       key,
       () => {
-        return new SeriesDialogManager(chartApi, streamlitService, config);
+        return new SeriesDialogManager(chartApi, streamlitService, config, key);
       },
     );
     return instance;
@@ -211,7 +216,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
 
       // Try to restore config for each series
       paneSeries.forEach((series: ISeriesApi<any>, index: number) => {
-        const seriesId = `pane-${paneId}-series-${index}`;
+        const seriesId = paneSeriesId(paneId, index);
         const savedConfig = this.loadSeriesConfig(seriesId);
 
         if (savedConfig) {
@@ -469,7 +474,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
         const detectedSeries = this.detectSeriesInPane(paneId);
 
         detectedSeries.forEach((seriesInfo, index) => {
-          const seriesId = `pane-${paneId}-series-${index}`;
+          const seriesId = paneSeriesId(paneId, index);
 
           // Get existing config or create default
           let seriesConfig = state.seriesConfigs.get(seriesId);
@@ -784,7 +789,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
     config: SeriesConfiguration,
   ): void {
     try {
-      const storageKey = `series-config-${seriesId}`;
+      const storageKey = `series-config-${this.chartId}-${seriesId}`;
       sessionStorage.setItem(storageKey, JSON.stringify(config));
     } catch (error) {
       // sessionStorage save failures are non-critical - log as warning
@@ -802,7 +807,7 @@ export class SeriesDialogManager extends KeyedSingletonManager<SeriesDialogManag
    */
   private loadSeriesConfig(seriesId: string): SeriesConfiguration | null {
     try {
-      const storageKey = `series-config-${seriesId}`;
+      const storageKey = `series-config-${this.chartId}-${seriesId}`;
       const stored = sessionStorage.getItem(storageKey);
       if (stored) {
         const config = JSON.parse(stored) as SeriesConfiguration;

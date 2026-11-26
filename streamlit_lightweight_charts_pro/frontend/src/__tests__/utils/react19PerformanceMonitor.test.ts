@@ -6,21 +6,21 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { renderHook } from "@testing-library/react";
 import {
   react19Monitor,
   useReact19Performance,
   logReact19Performance,
-} from '../../utils/react19PerformanceMonitor';
-import { logger, LogLevel } from '../../utils/logger';
+} from "../../utils/react19PerformanceMonitor";
+import { logger, LogLevel } from "@nandkapadia/lightweight-charts-pro-core";
 
 // Mock performance API
 const mockPerformance = {
   now: vi.fn(() => Date.now()),
 };
 
-Object.defineProperty(global, 'performance', {
+Object.defineProperty(global, "performance", {
   value: mockPerformance,
   writable: true,
 });
@@ -35,20 +35,20 @@ const mockConsole = {
   info: vi.fn(),
 };
 
-Object.defineProperty(global, 'console', {
+Object.defineProperty(global, "console", {
   value: mockConsole,
   writable: true,
 });
 
-describe('React19PerformanceMonitor', () => {
+describe("React19PerformanceMonitor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     react19Monitor.reset();
     mockPerformance.now.mockReturnValue(1000);
 
     // Suppress console output during tests to reduce noise
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -56,11 +56,14 @@ describe('React19PerformanceMonitor', () => {
     vi.restoreAllMocks();
   });
 
-  describe('Transition Tracking', () => {
-    it('should start and end transition tracking', () => {
-      const transitionId = react19Monitor.startTransition('TestComponent', 'series');
+  describe("Transition Tracking", () => {
+    it("should start and end transition tracking", () => {
+      const transitionId = react19Monitor.startTransition(
+        "TestComponent",
+        "series",
+      );
 
-      expect(transitionId).toBe('TestComponent-series-1000');
+      expect(transitionId).toBe("TestComponent-series-1000");
 
       mockPerformance.now.mockReturnValue(1050);
       react19Monitor.endTransition(transitionId);
@@ -69,9 +72,12 @@ describe('React19PerformanceMonitor', () => {
       expect(report.metrics.transitionDuration).toBe(50);
     });
 
-    it('should track multiple concurrent transitions', () => {
-      const transition1 = react19Monitor.startTransition('Component1', 'series');
-      const transition2 = react19Monitor.startTransition('Component2', 'chart');
+    it("should track multiple concurrent transitions", () => {
+      const transition1 = react19Monitor.startTransition(
+        "Component1",
+        "series",
+      );
+      const transition2 = react19Monitor.startTransition("Component2", "chart");
 
       expect(transition1).not.toBe(transition2);
 
@@ -85,11 +91,14 @@ describe('React19PerformanceMonitor', () => {
       expect(report.metrics.transitionDuration).toBe(70); // Max of both transitions
     });
 
-    it('should track slow transitions in development', () => {
+    it("should track slow transitions in development", () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+      process.env.NODE_ENV = "development";
 
-      const transitionId = react19Monitor.startTransition('SlowComponent', 'sync');
+      const transitionId = react19Monitor.startTransition(
+        "SlowComponent",
+        "sync",
+      );
 
       mockPerformance.now.mockReturnValue(1200); // 200ms later
       react19Monitor.endTransition(transitionId);
@@ -100,59 +109,25 @@ describe('React19PerformanceMonitor', () => {
       process.env.NODE_ENV = originalEnv;
     });
 
-    it('should warn about slow transitions in production', () => {
+    it("should warn about slow transitions in production", () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+      process.env.NODE_ENV = "production";
 
       // Restore console.warn for this specific test
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-      const transitionId = react19Monitor.startTransition('SlowComponent', 'sync');
+      const transitionId = react19Monitor.startTransition(
+        "SlowComponent",
+        "sync",
+      );
 
       mockPerformance.now.mockReturnValue(1150); // 150ms later
       react19Monitor.endTransition(transitionId);
 
       // Logger adds timestamp and formatting to the message
       expect(consoleSpy).toHaveBeenCalled();
-      expect(consoleSpy.mock.calls[0][0]).toContain('Slow React 19 transition detected');
-
-      process.env.NODE_ENV = originalEnv;
-      consoleSpy.mockRestore();
-    });
-  });
-
-  describe('Suspense Tracking', () => {
-    it('should track Suspense loading times', () => {
-      react19Monitor.startSuspenseLoad('LazyChart');
-
-      mockPerformance.now.mockReturnValue(1500);
-      react19Monitor.endSuspenseLoad('LazyChart');
-
-      const report = react19Monitor.getPerformanceReport();
-      expect(report.metrics.suspenseLoadTime).toBe(500);
-    });
-
-    it('should log slow Suspense loading', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
-
-      // Set logger to INFO level to enable info logging
-      (logger as any).logLevel = LogLevel.INFO;
-
-      // Logger uses console.info for Suspense logging in development
-      const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
-
-      react19Monitor.startSuspenseLoad('SlowLazyComponent');
-
-      mockPerformance.now.mockReturnValue(2500); // 1500ms later
-      react19Monitor.endSuspenseLoad('SlowLazyComponent');
-
-      // Logger adds timestamp and formatting
-      expect(consoleSpy).toHaveBeenCalled();
-      // Check that it logged the slow Suspense load
-      const calls = consoleSpy.mock.calls.map(c => c[0]);
-      expect(calls.some((call: any) => call.includes('SLOW') && call.includes('Suspense'))).toBe(
-        true
+      expect(consoleSpy.mock.calls[0][0]).toContain(
+        "Slow React 19 transition detected",
       );
 
       process.env.NODE_ENV = originalEnv;
@@ -160,31 +135,40 @@ describe('React19PerformanceMonitor', () => {
     });
   });
 
-  describe('Deferred Value Tracking', () => {
-    it('should track deferred value processing', () => {
-      react19Monitor.trackDeferredValue('ChartData', 75);
+  describe("Suspense Tracking", () => {
+    it("should track Suspense loading times", () => {
+      react19Monitor.startSuspenseLoad("LazyChart");
+
+      mockPerformance.now.mockReturnValue(1500);
+      react19Monitor.endSuspenseLoad("LazyChart");
 
       const report = react19Monitor.getPerformanceReport();
-      expect(report.metrics.deferredValueDelay).toBe(75);
+      expect(report.metrics.suspenseLoadTime).toBe(500);
     });
 
-    it('should log slow deferred values', () => {
+    it("should log slow Suspense loading", () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+      process.env.NODE_ENV = "development";
 
       // Set logger to INFO level to enable info logging
       (logger as any).logLevel = LogLevel.INFO;
 
-      // Logger uses console.info for deferred value logging in development
-      const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+      // Logger uses console.info for Suspense logging in development
+      const consoleSpy = vi.spyOn(console, "info").mockImplementation(() => {});
 
-      react19Monitor.trackDeferredValue('SlowChartData', 80);
+      react19Monitor.startSuspenseLoad("SlowLazyComponent");
+
+      mockPerformance.now.mockReturnValue(2500); // 1500ms later
+      react19Monitor.endSuspenseLoad("SlowLazyComponent");
 
       // Logger adds timestamp and formatting
       expect(consoleSpy).toHaveBeenCalled();
-      const calls = consoleSpy.mock.calls.map(c => c[0]);
+      // Check that it logged the slow Suspense load
+      const calls = consoleSpy.mock.calls.map((c) => c[0]);
       expect(
-        calls.some((call: any) => call.includes('Deferred') && call.includes('SlowChartData'))
+        calls.some(
+          (call: any) => call.includes("SLOW") && call.includes("Suspense"),
+        ),
       ).toBe(true);
 
       process.env.NODE_ENV = originalEnv;
@@ -192,21 +176,56 @@ describe('React19PerformanceMonitor', () => {
     });
   });
 
-  describe('FlushSync Tracking', () => {
-    it('should track flushSync usage', () => {
-      react19Monitor.trackFlushSync('EmergencyUpdate', 'Critical data update');
+  describe("Deferred Value Tracking", () => {
+    it("should track deferred value processing", () => {
+      react19Monitor.trackDeferredValue("ChartData", 75);
+
+      const report = react19Monitor.getPerformanceReport();
+      expect(report.metrics.deferredValueDelay).toBe(75);
+    });
+
+    it("should log slow deferred values", () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = "development";
+
+      // Set logger to INFO level to enable info logging
+      (logger as any).logLevel = LogLevel.INFO;
+
+      // Logger uses console.info for deferred value logging in development
+      const consoleSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+
+      react19Monitor.trackDeferredValue("SlowChartData", 80);
+
+      // Logger adds timestamp and formatting
+      expect(consoleSpy).toHaveBeenCalled();
+      const calls = consoleSpy.mock.calls.map((c) => c[0]);
+      expect(
+        calls.some(
+          (call: any) =>
+            call.includes("Deferred") && call.includes("SlowChartData"),
+        ),
+      ).toBe(true);
+
+      process.env.NODE_ENV = originalEnv;
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("FlushSync Tracking", () => {
+    it("should track flushSync usage", () => {
+      react19Monitor.trackFlushSync("EmergencyUpdate", "Critical data update");
 
       const report = react19Monitor.getPerformanceReport();
       expect(report.metrics.flushSyncCount).toBe(1);
     });
 
-    it('should warn about excessive flushSync usage', () => {
+    it("should warn about excessive flushSync usage", () => {
       // Restore console.warn for this specific test
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
       // Trigger multiple flushSync calls
       for (let i = 0; i < 12; i++) {
-        react19Monitor.trackFlushSync('Component', `Update ${i}`);
+        react19Monitor.trackFlushSync("Component", `Update ${i}`);
       }
 
       // Logger adds timestamp and formatting, so just check the message is logged
@@ -216,18 +235,21 @@ describe('React19PerformanceMonitor', () => {
     });
   });
 
-  describe('Performance Reports', () => {
-    it('should generate comprehensive performance reports', () => {
-      const transitionId = react19Monitor.startTransition('TestComponent', 'series');
+  describe("Performance Reports", () => {
+    it("should generate comprehensive performance reports", () => {
+      const transitionId = react19Monitor.startTransition(
+        "TestComponent",
+        "series",
+      );
       mockPerformance.now.mockReturnValue(1050);
       react19Monitor.endTransition(transitionId);
 
-      react19Monitor.startSuspenseLoad('LazyComponent');
+      react19Monitor.startSuspenseLoad("LazyComponent");
       mockPerformance.now.mockReturnValue(1150);
-      react19Monitor.endSuspenseLoad('LazyComponent');
+      react19Monitor.endSuspenseLoad("LazyComponent");
 
-      react19Monitor.trackDeferredValue('ChartData', 30);
-      react19Monitor.trackFlushSync('UrgentUpdate', 'Data sync');
+      react19Monitor.trackDeferredValue("ChartData", 30);
+      react19Monitor.trackFlushSync("UrgentUpdate", "Data sync");
 
       const report = react19Monitor.getPerformanceReport();
 
@@ -239,47 +261,50 @@ describe('React19PerformanceMonitor', () => {
       expect(report.recommendations).toHaveLength(0);
     });
 
-    it('should provide performance recommendations', () => {
-      const transitionId = react19Monitor.startTransition('SlowComponent', 'series');
+    it("should provide performance recommendations", () => {
+      const transitionId = react19Monitor.startTransition(
+        "SlowComponent",
+        "series",
+      );
       mockPerformance.now.mockReturnValue(1200); // Slow transition
       react19Monitor.endTransition(transitionId);
 
-      react19Monitor.startSuspenseLoad('SlowLazyComponent');
+      react19Monitor.startSuspenseLoad("SlowLazyComponent");
       mockPerformance.now.mockReturnValue(3500); // Very slow loading
-      react19Monitor.endSuspenseLoad('SlowLazyComponent');
+      react19Monitor.endSuspenseLoad("SlowLazyComponent");
 
-      react19Monitor.trackDeferredValue('SlowChartData', 150); // Slow processing
+      react19Monitor.trackDeferredValue("SlowChartData", 150); // Slow processing
 
       // Multiple flushSync calls
       for (let i = 0; i < 6; i++) {
-        react19Monitor.trackFlushSync('Component', `Update ${i}`);
+        react19Monitor.trackFlushSync("Component", `Update ${i}`);
       }
 
       const report = react19Monitor.getPerformanceReport();
 
       expect(report.recommendations).toContain(
-        'Consider breaking down large transitions into smaller chunks'
+        "Consider breaking down large transitions into smaller chunks",
       );
       expect(report.recommendations).toContain(
-        'Suspense components are loading slowly - consider preloading'
+        "Suspense components are loading slowly - consider preloading",
       );
       expect(report.recommendations).toContain(
-        'Deferred values are processing slowly - optimize calculations'
+        "Deferred values are processing slowly - optimize calculations",
       );
       expect(report.recommendations).toContain(
-        'High flushSync usage detected - reduce synchronous updates'
+        "High flushSync usage detected - reduce synchronous updates",
       );
       expect(report.score).toBeLessThan(100);
     });
   });
 
-  describe('Current Insights', () => {
-    it('should provide real-time performance insights', () => {
-      react19Monitor.startTransition('Component1', 'series');
-      react19Monitor.startTransition('Component2', 'chart');
+  describe("Current Insights", () => {
+    it("should provide real-time performance insights", () => {
+      react19Monitor.startTransition("Component1", "series");
+      react19Monitor.startTransition("Component2", "chart");
 
-      react19Monitor.startSuspenseLoad('LazyComponent1');
-      react19Monitor.startSuspenseLoad('LazyComponent2');
+      react19Monitor.startSuspenseLoad("LazyComponent1");
+      react19Monitor.startSuspenseLoad("LazyComponent2");
 
       const insights = react19Monitor.getCurrentInsights();
 
@@ -288,11 +313,11 @@ describe('React19PerformanceMonitor', () => {
     });
   });
 
-  describe('Reset Functionality', () => {
-    it('should reset all metrics', () => {
-      react19Monitor.startTransition('TestComponent', 'series');
-      react19Monitor.startSuspenseLoad('LazyComponent');
-      react19Monitor.trackFlushSync('Component', 'Update');
+  describe("Reset Functionality", () => {
+    it("should reset all metrics", () => {
+      react19Monitor.startTransition("TestComponent", "series");
+      react19Monitor.startSuspenseLoad("LazyComponent");
+      react19Monitor.trackFlushSync("Component", "Update");
 
       react19Monitor.reset();
 
@@ -308,9 +333,9 @@ describe('React19PerformanceMonitor', () => {
   });
 });
 
-describe('useReact19Performance', () => {
-  it('should provide performance monitoring utilities', () => {
-    const { result } = renderHook(() => useReact19Performance('TestComponent'));
+describe("useReact19Performance", () => {
+  it("should provide performance monitoring utilities", () => {
+    const { result } = renderHook(() => useReact19Performance("TestComponent"));
 
     expect(result.current.startTransition).toBeInstanceOf(Function);
     expect(result.current.endTransition).toBeInstanceOf(Function);
@@ -322,19 +347,24 @@ describe('useReact19Performance', () => {
   });
 });
 
-describe('logReact19Performance', () => {
-  it('should log performance report in development', () => {
+describe("logReact19Performance", () => {
+  it("should log performance report in development", () => {
     const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
+    process.env.NODE_ENV = "development";
 
     // Set logger to INFO level to enable info logging
     (logger as any).logLevel = LogLevel.INFO;
 
     // Logger uses console.info for performance reports
-    const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const consoleInfoSpy = vi
+      .spyOn(console, "info")
+      .mockImplementation(() => {});
 
     // Trigger some activity to generate recommendations
-    const transitionId = react19Monitor.startTransition('TestComponent', 'sync');
+    const transitionId = react19Monitor.startTransition(
+      "TestComponent",
+      "sync",
+    );
     mockPerformance.now.mockReturnValue(1200); // 200ms slow transition
     react19Monitor.endTransition(transitionId);
 
@@ -347,12 +377,14 @@ describe('logReact19Performance', () => {
     consoleInfoSpy.mockRestore();
   });
 
-  it('should not log in production', () => {
+  it("should not log in production", () => {
     // Use vi.stubEnv for proper environment variable mocking
-    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv("NODE_ENV", "production");
 
     // Restore console methods for this specific test
-    const consoleGroupSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
+    const consoleGroupSpy = vi
+      .spyOn(console, "group")
+      .mockImplementation(() => {});
 
     logReact19Performance();
 

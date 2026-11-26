@@ -26,6 +26,7 @@
 import { useCallback, useEffect } from "react";
 import { IChartApi, ISeriesApi } from "lightweight-charts";
 import { logger } from "@nandkapadia/lightweight-charts-pro-core";
+import { normalizedPaneId, paneSeriesId } from "../utils/seriesIds";
 
 /**
  * Series configuration patch from Python backend.
@@ -175,15 +176,26 @@ export function useSeriesUpdate(
         if (!chart) return;
 
         try {
-          // Get chart series and find the matching one
+          // Get chart series and find the matching one.
+          // Y in pane-X-series-Y is the index within that pane.
           const chartSeries = seriesRefs.current[chartId] || [];
+          const paneCounters = new Map<string, number>();
+          const targetPane = normalizedPaneId(paneId);
 
-          chartSeries.forEach((series, index) => {
-            // Check if this is the target series
-            // The seriesId format is typically "pane-X-series-Y"
-            const expectedSeriesId = `pane-${paneId}-series-${index}`;
+          chartSeries.forEach((series) => {
+            const tagged = series as ISeriesApi<any> & {
+              paneId?: number | string;
+              seriesId?: string;
+            };
+            const seriesPane = normalizedPaneId(tagged.paneId);
+            if (seriesPane !== targetPane) {
+              return;
+            }
+            const perPaneIndex = paneCounters.get(seriesPane) ?? 0;
+            paneCounters.set(seriesPane, perPaneIndex + 1);
+            const expectedSeriesId = paneSeriesId(seriesPane, perPaneIndex);
 
-            if (seriesId === expectedSeriesId) {
+            if (seriesId === expectedSeriesId || tagged.seriesId === seriesId) {
               // Map dialog config to LightweightCharts API
               const apiConfig = mapDialogConfigToAPI(configPatch);
 

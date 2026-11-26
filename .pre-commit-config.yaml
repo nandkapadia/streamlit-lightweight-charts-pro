@@ -26,15 +26,7 @@ repos:
         exclude: '(\.md|\.min\.(js|css)|build/|node_modules/)'
       - id: detect-private-key
 
-  # ==========================================================================
-  # Python: Import Sorting
-  # ==========================================================================
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ['--profile', 'black', '--line-length', '99', '--float-to-top']
-        exclude: '^(streamlit_lightweight_charts_pro/frontend/|examples/)'
+  # Import sorting is handled by ruff (select includes "I") to avoid isort fights.
 
   # ==========================================================================
   # Python: Remove Unused Imports

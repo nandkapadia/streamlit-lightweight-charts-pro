@@ -71,6 +71,39 @@ const App: React.FC = () => {
     }
   }, [renderData]);
 
+  // Series-settings replies arrive as component args. Dispatch them inside
+  // this iframe so useSeriesSettingsAPI can resolve its pending requests.
+  const deliveredApiMessages = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const apiResponses = (
+      renderData?.args as { apiResponses?: unknown } | undefined
+    )?.apiResponses;
+    if (!Array.isArray(apiResponses)) {
+      return;
+    }
+    apiResponses.forEach((item) => {
+      if (!item || typeof item !== "object") {
+        return;
+      }
+      const message = item as { messageId?: string; response?: unknown };
+      if (
+        !message.messageId ||
+        deliveredApiMessages.current.has(message.messageId)
+      ) {
+        return;
+      }
+      deliveredApiMessages.current.add(message.messageId);
+      document.dispatchEvent(
+        new CustomEvent("streamlit:apiResponse", {
+          detail: {
+            messageId: message.messageId,
+            response: message.response,
+          },
+        }),
+      );
+    });
+  }, [renderData]);
+
   // DOM container reference for the chart
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -408,24 +441,33 @@ const App: React.FC = () => {
   // Extract height and width from JSON config instead of separate parameters.
   // When autoSize/autoHeight is set, ignore Python's default height=400 and any
   // matching args.height so the library can size from the container.
-  const nestedChart = config?.charts?.[0]?.chart;
-  const autoSized = !!(
-    nestedChart?.autoSize ||
-    nestedChart?.autoHeight ||
-    config?.charts?.[0]?.autoSize ||
-    config?.charts?.[0]?.autoHeight
+  const charts = config?.charts || [];
+  const autoHeightSized = charts.some(
+    (c: any) =>
+      c?.autoSize ||
+      c?.autoHeight ||
+      c?.chart?.autoSize ||
+      c?.chart?.autoHeight,
   );
-  const height = autoSized
+  const autoWidthSized = charts.some(
+    (c: any) =>
+      c?.autoSize || c?.autoWidth || c?.chart?.autoSize || c?.chart?.autoWidth,
+  );
+  const nestedChart = charts[0]?.chart;
+  const height = autoHeightSized
     ? undefined
     : (renderData.args?.height as number) || nestedChart?.height || 400;
-  const width = autoSized
+  const width = autoWidthSized
     ? undefined
     : (renderData.args?.width as number) || nestedChart?.width || null;
 
   return (
     <div
       ref={containerRef}
-      style={{ width: "100%", minHeight: height ?? (autoSized ? 200 : 400) }}
+      style={{
+        width: "100%",
+        minHeight: height ?? (autoHeightSized ? 200 : 400),
+      }}
     >
       <LightweightCharts
         config={config}

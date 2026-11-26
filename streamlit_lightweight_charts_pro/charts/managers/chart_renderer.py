@@ -4,12 +4,11 @@ This module handles the generation of frontend configuration and rendering
 of chart components in Streamlit.
 """
 
-import html
 import json
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
-import streamlit.components.v1 as components
+import streamlit as st
 
 from lightweight_charts_pro.logging_config import get_logger
 from streamlit_lightweight_charts_pro.charts.series_settings_api import get_series_settings_api
@@ -37,7 +36,7 @@ class ChartRenderer:
         chart_manager_ref: Optional reference to ChartManager for sync config.
     """
 
-    def __init__(self, chart_manager_ref: Optional["ChartManager"] = None):
+    def __init__(self, chart_manager_ref: "ChartManager" | None = None):
         """Initialize the ChartRenderer.
 
         Args:
@@ -52,8 +51,8 @@ class ChartRenderer:
         chart_options: Any,
         series_configs: list[dict[str, Any]],
         annotations_config: dict[str, Any],
-        trades_config: Optional[dict[str, Any]],
-        tooltip_configs: Optional[dict[str, Any]],
+        trades_config: dict[str, Any] | None,
+        tooltip_configs: dict[str, Any] | None,
         chart_group_id: int,
         price_scale_config: dict[str, Any],
     ) -> dict[str, Any]:
@@ -194,7 +193,7 @@ class ChartRenderer:
     def _calculate_data_timespan(
         self,
         series_configs: list[dict[str, Any]],
-    ) -> Optional[float]:
+    ) -> float | None:
         """Calculate the timespan of data across all series in seconds.
 
         Args:
@@ -238,7 +237,7 @@ class ChartRenderer:
 
         return max_time - min_time
 
-    def _convert_time_to_timestamp(self, time_value) -> Optional[float]:
+    def _convert_time_to_timestamp(self, time_value) -> float | None:
         """Convert various time formats to timestamp.
 
         Args:
@@ -247,7 +246,7 @@ class ChartRenderer:
         Returns:
             Timestamp in seconds or None if conversion fails.
         """
-        if isinstance(time_value, (int, float)):
+        if isinstance(time_value, int | float):
             return float(time_value)
         if isinstance(time_value, str):
             try:
@@ -263,7 +262,7 @@ class ChartRenderer:
             return time_value.timestamp()
         return None
 
-    def _get_range_seconds(self, range_config: dict[str, Any]) -> Optional[float]:
+    def _get_range_seconds(self, range_config: dict[str, Any]) -> float | None:
         """Extract seconds from range configuration.
 
         Args:
@@ -296,7 +295,7 @@ class ChartRenderer:
 
         if isinstance(range_value, str) and range_value in range_seconds_map:
             return range_seconds_map[range_value]
-        if isinstance(range_value, (int, float)):
+        if isinstance(range_value, int | float):
             return float(range_value)
 
         return None
@@ -378,6 +377,13 @@ class ChartRenderer:
         kwargs["key"] = key
         kwargs["default"] = None
 
+        # Deliver series-settings replies computed on the previous run.
+        # The component iframe listens for these on its own document; a
+        # separate components.html iframe cannot reach that listener.
+        api_responses = self._api_responses_for_render(key)
+        if api_responses:
+            kwargs["apiResponses"] = api_responses
+
         # Render component
         return component_func(**kwargs)
 
@@ -413,101 +419,199 @@ class ChartRenderer:
 
             # Handle series settings API responses
             series_api = get_series_settings_api(key)
-            self._handle_series_settings_response(response, series_api)
+            self._handle_series_settings_response(response, series_api, key)
 
-    def _handle_series_settings_response(self, response: dict, series_api) -> None:
-        """Handle series settings API responses from the frontend.
+    def _pending_api_key(self, key: str) -> str:
+        """Session-state key for replies waiting to be sent to the frontend."""
+        return f"_chart_api_pending_{key}"
+
+    def _delivered_api_key(self, key: str) -> str:
+        """Session-state key for replies already included in a render."""
+        return f"_chart_api_delivered_{key}"
+
+    def _api_responses_for_render(self, key: str) -> list[dict[str, Any]]:
+        """Return queued series-settings replies for this component render.
+
+        Args:
+            key: Streamlit component key.
+
+        Returns:
+            JSON-ready reply objects, or an empty list when none are pending.
+        """
+        if not key:
+            return []
+        pending = st.session_state.pop(self._pending_api_key(key), [])
+        if not isinstance(pending, list):
+            return []
+        delivered_key = self._delivered_api_key(key)
+        delivered = st.session_state.get(delivered_key, [])
+        if not isinstance(delivered, list):
+            delivered = []
+        for item in pending:
+            if isinstance(item, dict) and item.get("messageId"):
+                delivered.append(item["messageId"])
+        if delivered:
+            st.session_state[delivered_key] = delivered[-50:]
+        return list(pending)
+
+    def _queue_api_response(self, key: str, payload: dict[str, Any]) -> None:
+        """Queue a reply and rerun so the next render can pass it as args.
+
+        The frontend resolves ``streamlit:apiResponse`` from ``apiResponses``
+        on the following render. A message id is delivered once.
+
+        Args:
+            key: Streamlit component key.
+            payload: Object with ``messageId`` and ``response``.
+        """
+        message_id = payload.get("messageId")
+        if not key or not message_id:
+            return
+
+        delivered = st.session_state.get(self._delivered_api_key(key), [])
+        if not isinstance(delivered, list):
+            delivered = []
+        if message_id in delivered:
+            return
+
+        pending_key = self._pending_api_key(key)
+        pending = st.session_state.get(pending_key, [])
+        if not isinstance(pending, list):
+            pending = []
+
+        already_queued = any(
+            isinstance(item, dict) and item.get("messageId") == message_id for item in pending
+        )
+        if already_queued:
+            # This render already received the reply in its args.
+            delivered.append(message_id)
+            st.session_state[self._delivered_api_key(key)] = delivered[-50:]
+            st.session_state[pending_key] = [
+                item
+                for item in pending
+                if not (isinstance(item, dict) and item.get("messageId") == message_id)
+            ]
+            return
+
+        pending.append(payload)
+        st.session_state[pending_key] = pending
+        st.rerun()
+
+    @staticmethod
+    def _coerce_pane_id(value: Any) -> int:
+        """Coerce a frontend pane id to int.
+
+        Args:
+            value: Pane id from the component, which may be a string.
+
+        Returns:
+            Integer pane id, or 0 when the value cannot be parsed.
+        """
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return 0
+
+    @staticmethod
+    def _json_ready(payload: dict[str, Any]) -> dict[str, Any]:
+        """Return a JSON-serializable copy of a component arg.
+
+        Args:
+            payload: Reply payload that will be passed as a component arg.
+
+        Returns:
+            Payload with non-JSON values stringified.
+        """
+        return json.loads(json.dumps(payload, default=str))
+
+    def _handle_series_settings_response(self, response: dict, series_api, key: str) -> None:
+        """Handle series settings API requests from the frontend.
+
+        Applies the request to ``series_api`` and queues the acknowledgement
+        in session state. The next render passes it back as ``apiResponses``.
 
         Args:
             response: Response data from the frontend component.
             series_api: SeriesSettingsAPI instance for this chart.
+            key: Streamlit component key used to namespace the reply.
         """
         try:
-            if response.get("type") == "get_pane_state":
-                pane_id = response.get("paneId", 0)
-                message_id = response.get("messageId")
-
-                if message_id:
-                    pane_state = series_api.get_pane_state(pane_id)
-                    # Escape message_id to prevent XSS attacks
-                    safe_message_id = html.escape(str(message_id))
-                    components.html(
-                        f"""
-                    <script>
-                    document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
-                        detail: {{
-                            messageId: '{safe_message_id}',
-                            response: {json.dumps({"success": True, "data": pane_state})}
-                        }}
-                    }}));
-                    </script>
-                    """,
-                        height=0,
-                    )
-
-            elif response.get("type") == "update_series_settings":
-                pane_id = response.get("paneId", 0)
-                series_id = response.get("seriesId", "")
-                config = response.get("config", {})
-                message_id = response.get("messageId")
-
-                success = series_api.update_series_settings(pane_id, series_id, config)
-
-                if message_id:
-                    # Escape message_id to prevent XSS attacks
-                    safe_message_id = html.escape(str(message_id))
-                    components.html(
-                        f"""
-                    <script>
-                    document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
-                        detail: {{
-                            messageId: '{safe_message_id}',
-                            response: {json.dumps({"success": success})}
-                        }}
-                    }}));
-                    </script>
-                    """,
-                        height=0,
-                    )
-
-            elif response.get("type") == "reset_series_defaults":
-                pane_id = response.get("paneId", 0)
-                series_id = response.get("seriesId", "")
-                message_id = response.get("messageId")
-
-                if message_id:
-                    defaults = series_api.reset_series_to_defaults(pane_id, series_id)
-                    success = defaults is not None
-                    # Escape message_id to prevent XSS attacks
-                    safe_message_id = html.escape(str(message_id))
-                    components.html(
-                        f"""
-                    <script>
-                    document.dispatchEvent(new CustomEvent('streamlit:apiResponse', {{
-                        detail: {{
-                            messageId: '{safe_message_id}',
-                            response: {json.dumps({"success": success, "data": defaults or {}})}
-                        }}
-                    }}));
-                    </script>
-                    """,
-                        height=0,
-                    )
-
-            elif response.get("type") == "series_config_changes":
-                changes = response.get("changes", [])
-
-                for change in changes:
-                    pane_id = change.get("paneId", 0)
-                    series_id = change.get("seriesId", "")
-                    config = change.get("config", {})
-
-                    if series_id and config:
-                        success = series_api.update_series_settings(pane_id, series_id, config)
-                        if not success:
-                            logger.warning("Failed to store config for series %s", series_id)
-                    else:
-                        logger.warning("Skipping invalid change (missing seriesId or config)")
-
+            message_id = response.get("messageId")
+            if message_id:
+                delivered = st.session_state.get(self._delivered_api_key(key), [])
+                if isinstance(delivered, list) and message_id in delivered:
+                    return
+            reply = self._series_settings_reply(response, series_api)
+            if reply is not None:
+                self._queue_api_response(key, reply)
         except (KeyError, ValueError, TypeError, AttributeError):
             logger.exception("Error handling series settings response")
+
+    def _series_settings_reply(self, response: dict, series_api) -> dict[str, Any] | None:
+        """Apply one series-settings request and build its reply.
+
+        Args:
+            response: Frontend component value.
+            series_api: SeriesSettingsAPI instance for this chart.
+
+        Returns:
+            Reply payload for the frontend, or None when no ack is required.
+        """
+        response_type = response.get("type")
+        message_id = response.get("messageId")
+        body: dict[str, Any] | None = None
+
+        if response_type == "get_pane_state":
+            pane_id = self._coerce_pane_id(response.get("paneId", 0))
+            body = {"success": True, "data": series_api.get_pane_state(pane_id)}
+        elif response_type == "update_series_settings":
+            pane_id = self._coerce_pane_id(response.get("paneId", 0))
+            series_id = response.get("seriesId", "")
+            config = response.get("config", {})
+            success = series_api.update_series_settings(pane_id, series_id, config)
+            body = {"success": success}
+        elif response_type == "reset_series_defaults":
+            pane_id = self._coerce_pane_id(response.get("paneId", 0))
+            series_id = response.get("seriesId", "")
+            defaults = series_api.reset_series_to_defaults(pane_id, series_id)
+            body = {"success": defaults is not None, "data": defaults or {}}
+        elif response_type == "update_multiple_settings":
+            success = True
+            for patch in response.get("patches") or []:
+                if not isinstance(patch, dict):
+                    success = False
+                    continue
+                updated = series_api.update_series_settings(
+                    self._coerce_pane_id(patch.get("paneId", 0)),
+                    patch.get("seriesId", ""),
+                    patch.get("config", {}),
+                )
+                success = success and updated
+            body = {"success": success}
+        elif response_type == "series_config_changes":
+            self._store_series_config_changes(response, series_api)
+
+        if body is None or not message_id:
+            return None
+        return self._json_ready({"messageId": str(message_id), "response": body})
+
+    def _store_series_config_changes(self, response: dict, series_api) -> None:
+        """Persist batched series config changes from the frontend.
+
+        Args:
+            response: Component value with a ``changes`` list.
+            series_api: SeriesSettingsAPI instance for this chart.
+        """
+        for change in response.get("changes", []):
+            if not isinstance(change, dict):
+                logger.warning("Skipping invalid change (missing seriesId or config)")
+                continue
+            pane_id = self._coerce_pane_id(change.get("paneId", 0))
+            series_id = change.get("seriesId", "")
+            config = change.get("config", {})
+            if series_id and config:
+                success = series_api.update_series_settings(pane_id, series_id, config)
+                if not success:
+                    logger.warning("Failed to store config for series %s", series_id)
+            else:
+                logger.warning("Skipping invalid change (missing seriesId or config)")

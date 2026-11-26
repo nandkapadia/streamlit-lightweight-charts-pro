@@ -9,59 +9,64 @@ export default defineConfig({
     projects: [
       // Unit tests
       {
-        environment: 'jsdom',
-        globals: true,
-        setupFiles: ['./src/setupTests.ts'],
-        include: [
-          'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
-          '!src/__tests__/visual/**',
-          '!src/__tests__/e2e-visual/**',
-          '!src/**/*.e2e.test.ts',  // Exclude Playwright E2E tests
-        ],
-        exclude: ['node_modules', 'build', 'dist', '**/*.e2e.test.ts'],
-        name: 'unit',
-        // Ensure jsdom is available before tests run
-        environmentOptions: {
-          jsdom: {
-            resources: 'usable',
-            runScripts: 'dangerously',
+        extends: true,
+        test: {
+          environment: 'jsdom',
+          globals: true,
+          setupFiles: ['./src/setupTests.ts'],
+          include: [
+            'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+            '!src/__tests__/visual/**',
+            '!src/__tests__/e2e-visual/**',
+            '!src/**/*.e2e.test.ts',  // Exclude Playwright E2E tests
+          ],
+          exclude: ['node_modules', 'build', 'dist', '**/*.e2e.test.ts'],
+          name: 'unit',
+          // Ensure jsdom is available before tests run
+          environmentOptions: {
+            jsdom: {
+              resources: 'usable',
+              runScripts: 'dangerously',
+            },
           },
         },
       },
       // Visual regression tests
       {
-        environment: 'jsdom',
-        globals: true,
-        setupFiles: ['./src/__tests__/visual/setup.ts'],
-        include: ['src/__tests__/visual/**/*.visual.test.ts'],
-        exclude: [
-          'node_modules',
-          'build',
-          'dist',
-          'src/__tests__/visual/__snapshots__',
-          'src/__tests__/visual/utils',
-          '**/*.e2e.test.ts',  // Exclude Playwright E2E tests
-        ],
-        name: 'visual',
-        testTimeout: 30000,
-        pool: 'forks',
-        poolOptions: {
-          forks: {
-            singleFork: true,
-            isolate: true,
-            maxForks: 1,
-            minForks: 1,
+        test: {
+          environment: 'jsdom',
+          globals: true,
+          setupFiles: ['./src/__tests__/visual/setup.ts'],
+          include: ['src/__tests__/visual/**/*.visual.test.ts'],
+          exclude: [
+            'node_modules',
+            'build',
+            'dist',
+            'src/__tests__/visual/__snapshots__',
+            'src/__tests__/visual/utils',
+            '**/*.e2e.test.ts',  // Exclude Playwright E2E tests
+          ],
+          name: 'visual',
+          testTimeout: 30000,
+          pool: 'forks',
+          poolOptions: {
+            forks: {
+              singleFork: true,
+              isolate: true,
+              maxForks: 1,
+              minForks: 1,
+            },
           },
+          maxConcurrency: 1,
+          sequence: {
+            shuffle: false,
+            concurrent: false,
+            hooks: 'stack',
+          },
+          fileParallelism: false,
+          hookTimeout: 30000,
+          logHeapUsage: true,
         },
-        maxConcurrency: 1,
-        sequence: {
-          shuffle: false,
-          concurrent: false,
-          hooks: 'stack',
-        },
-        fileParallelism: false,
-        hookTimeout: 30000,
-        logHeapUsage: true,
       },
     ],
 

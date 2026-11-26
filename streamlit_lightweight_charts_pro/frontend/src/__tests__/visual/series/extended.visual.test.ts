@@ -17,7 +17,7 @@
  * @group extended
  */
 
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from "vitest";
 import {
   renderChart,
   cleanupChartRender,
@@ -27,16 +27,18 @@ import {
   generateGradientRibbonData,
   TestColors,
   type ChartRenderResult,
-} from '../utils';
-import { createTrendFillSeries } from '../../../plugins/series/trendFillSeriesPlugin';
-import { createGradientRibbonSeries } from '../../../plugins/series/gradientRibbonSeriesPlugin';
-import { LineStyle } from '../../../utils/renderingUtils';
+} from "../utils";
+import {
+  createGradientRibbonSeries,
+  createTrendFillSeries,
+} from "@nandkapadia/lightweight-charts-pro-core";
+import { LineStyle } from "@nandkapadia/lightweight-charts-pro-core/utils";
 
 // ============================================================================
 // TrendFill Series Per-Point Styling Visual Tests
 // ============================================================================
 
-describe('TrendFill Series Per-Point Styling', () => {
+describe("TrendFill Series Per-Point Styling", () => {
   let renderResult: ChartRenderResult | null = null;
 
   afterEach(() => {
@@ -46,12 +48,12 @@ describe('TrendFill Series Per-Point Styling', () => {
     }
   });
 
-  it('renders trendfill with per-point uptrend line color override', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders trendfill with per-point uptrend line color override", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateTrendFillData(30, 100).map((point, i) => ({
         ...point,
         ...(i === 15 && point.trendDirection === 1
-          ? { styles: { uptrendLine: { color: '#FF00FF', width: 4 } } }
+          ? { styles: { uptrendLine: { color: "#FF00FF", width: 4 } } }
           : {}),
       }));
       const series = createTrendFillSeries(chart, {
@@ -62,20 +64,20 @@ describe('TrendFill Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('trendfill-per-point-uptrend-color'),
+      sanitizeTestName("trendfill-per-point-uptrend-color"),
       renderResult.imageData,
-      { threshold: 0.1, tolerance: 1.0 }
+      { threshold: 0.1, tolerance: 1.0 },
     );
 
     expect(result.matches).toBe(true);
   });
 
-  it('renders trendfill with per-point downtrend line color override', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders trendfill with per-point downtrend line color override", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateTrendFillData(30, 100).map((point, i) => ({
         ...point,
         ...(i === 15 && point.trendDirection === -1
-          ? { styles: { downtrendLine: { color: '#0000FF', width: 4 } } }
+          ? { styles: { downtrendLine: { color: "#0000FF", width: 4 } } }
           : {}),
       }));
       const series = createTrendFillSeries(chart, {
@@ -86,23 +88,26 @@ describe('TrendFill Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('trendfill-per-point-downtrend-color'),
+      sanitizeTestName("trendfill-per-point-downtrend-color"),
       renderResult.imageData,
-      { threshold: 0.1, tolerance: 1.0 }
+      { threshold: 0.1, tolerance: 1.0 },
     );
 
     expect(result.matches).toBe(true);
   });
 
-  it('renders trendfill with per-point fill color override', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders trendfill with per-point fill color override", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateTrendFillData(30, 100).map((point, i) => ({
         ...point,
         ...(i >= 10 && i <= 15
           ? {
               styles: {
-                uptrendFill: { color: 'rgba(255, 0, 255, 0.4)', visible: true },
-                downtrendFill: { color: 'rgba(0, 255, 255, 0.4)', visible: true },
+                uptrendFill: { color: "rgba(255, 0, 255, 0.4)", visible: true },
+                downtrendFill: {
+                  color: "rgba(0, 255, 255, 0.4)",
+                  visible: true,
+                },
               },
             }
           : {}),
@@ -110,23 +115,23 @@ describe('TrendFill Series Per-Point Styling', () => {
       const series = createTrendFillSeries(chart, {
         uptrendLineColor: TestColors.GREEN,
         downtrendLineColor: TestColors.RED,
-        uptrendFillColor: 'rgba(76, 175, 80, 0.3)',
-        downtrendFillColor: 'rgba(244, 67, 54, 0.3)',
+        uptrendFillColor: "rgba(76, 175, 80, 0.3)",
+        downtrendFillColor: "rgba(244, 67, 54, 0.3)",
       });
       series.setData(data);
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('trendfill-per-point-fill-colors'),
+      sanitizeTestName("trendfill-per-point-fill-colors"),
       renderResult.imageData,
-      { threshold: 0.1, tolerance: 1.0 }
+      { threshold: 0.1, tolerance: 1.0 },
     );
 
     expect(result.matches).toBe(true);
   });
 
-  it('renders trendfill with per-point line width override', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders trendfill with per-point line width override", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateTrendFillData(30, 100).map((point, i) => ({
         ...point,
         ...(i >= 10 && i <= 15
@@ -148,16 +153,16 @@ describe('TrendFill Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('trendfill-per-point-line-width'),
+      sanitizeTestName("trendfill-per-point-line-width"),
       renderResult.imageData,
-      { threshold: 0.1, tolerance: 1.0 }
+      { threshold: 0.1, tolerance: 1.0 },
     );
 
     expect(result.matches).toBe(true);
   });
 
-  it('renders trendfill with per-point line style override (dotted/dashed)', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders trendfill with per-point line style override (dotted/dashed)", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateTrendFillData(30, 100).map((point, i) => ({
         ...point,
         ...(i >= 10 && i <= 15
@@ -177,26 +182,42 @@ describe('TrendFill Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('trendfill-per-point-line-styles'),
+      sanitizeTestName("trendfill-per-point-line-styles"),
       renderResult.imageData,
-      { threshold: 0.1, tolerance: 1.0 }
+      { threshold: 0.1, tolerance: 1.0 },
     );
 
     expect(result.matches).toBe(true);
   });
 
-  it('renders trendfill with complete per-point styling', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders trendfill with complete per-point styling", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateTrendFillData(30, 100).map((point, i) => ({
         ...point,
         ...(i === 15
           ? {
               styles: {
-                uptrendLine: { color: '#FF00FF', width: 5, style: LineStyle.Dashed },
-                downtrendLine: { color: '#00FFFF', width: 5, style: LineStyle.Dotted },
-                uptrendFill: { color: 'rgba(255, 0, 255, 0.5)', visible: true },
-                downtrendFill: { color: 'rgba(0, 255, 255, 0.5)', visible: true },
-                baseLine: { color: '#FFFF00', width: 3, style: LineStyle.Solid, visible: true },
+                uptrendLine: {
+                  color: "#FF00FF",
+                  width: 5,
+                  style: LineStyle.Dashed,
+                },
+                downtrendLine: {
+                  color: "#00FFFF",
+                  width: 5,
+                  style: LineStyle.Dotted,
+                },
+                uptrendFill: { color: "rgba(255, 0, 255, 0.5)", visible: true },
+                downtrendFill: {
+                  color: "rgba(0, 255, 255, 0.5)",
+                  visible: true,
+                },
+                baseLine: {
+                  color: "#FFFF00",
+                  width: 3,
+                  style: LineStyle.Solid,
+                  visible: true,
+                },
               },
             }
           : {}),
@@ -210,23 +231,23 @@ describe('TrendFill Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('trendfill-per-point-complete'),
+      sanitizeTestName("trendfill-per-point-complete"),
       renderResult.imageData,
-      { threshold: 0.1, tolerance: 1.0 }
+      { threshold: 0.1, tolerance: 1.0 },
     );
 
     expect(result.matches).toBe(true);
   });
 
-  it('renders trendfill with mixed per-point styling', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders trendfill with mixed per-point styling", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateTrendFillData(30, 100).map((point, i) => ({
         ...point,
         ...(i % 5 === 0
           ? {
               styles: {
-                uptrendLine: { color: '#FF0000' },
-                downtrendLine: { color: '#0000FF' },
+                uptrendLine: { color: "#FF0000" },
+                downtrendLine: { color: "#0000FF" },
               },
             }
           : {}),
@@ -239,9 +260,9 @@ describe('TrendFill Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('trendfill-per-point-mixed'),
+      sanitizeTestName("trendfill-per-point-mixed"),
       renderResult.imageData,
-      { threshold: 0.1, tolerance: 1.0 }
+      { threshold: 0.1, tolerance: 1.0 },
     );
 
     expect(result.matches).toBe(true);
@@ -252,7 +273,7 @@ describe('TrendFill Series Per-Point Styling', () => {
 // GradientRibbon Series Per-Point Styling Visual Tests
 // ============================================================================
 
-describe('GradientRibbon Series Per-Point Styling', () => {
+describe("GradientRibbon Series Per-Point Styling", () => {
   let renderResult: ChartRenderResult | null = null;
 
   afterEach(() => {
@@ -262,15 +283,15 @@ describe('GradientRibbon Series Per-Point Styling', () => {
     }
   });
 
-  it('renders gradient ribbon with per-point line color override', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders gradient ribbon with per-point line color override", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateGradientRibbonData(30, 100).map((point, i) => ({
         ...point,
         ...(i === 15
           ? {
               styles: {
-                upperLine: { color: '#FF0000', width: 4 },
-                lowerLine: { color: '#0000FF', width: 4 },
+                upperLine: { color: "#FF0000", width: 4 },
+                lowerLine: { color: "#0000FF", width: 4 },
               },
             }
           : {}),
@@ -285,16 +306,16 @@ describe('GradientRibbon Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('gradient-ribbon-per-point-line-colors'),
+      sanitizeTestName("gradient-ribbon-per-point-line-colors"),
       renderResult.imageData,
-      { threshold: 0.2, tolerance: 2.5 }
+      { threshold: 0.2, tolerance: 2.5 },
     );
 
     expect(result.matches).toBe(true);
   });
 
-  it('renders gradient ribbon with per-point gradient color override', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders gradient ribbon with per-point gradient color override", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateGradientRibbonData(30, 100).map((point, i) => ({
         ...point,
         ...(i >= 10 && i <= 15
@@ -318,16 +339,16 @@ describe('GradientRibbon Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('gradient-ribbon-per-point-gradient'),
+      sanitizeTestName("gradient-ribbon-per-point-gradient"),
       renderResult.imageData,
-      { threshold: 0.2, tolerance: 2.5 }
+      { threshold: 0.2, tolerance: 2.5 },
     );
 
     expect(result.matches).toBe(true);
   });
 
-  it('renders gradient ribbon with per-point line width override', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders gradient ribbon with per-point line width override", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateGradientRibbonData(30, 100).map((point, i) => ({
         ...point,
         ...(i >= 10 && i <= 15
@@ -351,16 +372,16 @@ describe('GradientRibbon Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('gradient-ribbon-per-point-line-width'),
+      sanitizeTestName("gradient-ribbon-per-point-line-width"),
       renderResult.imageData,
-      { threshold: 0.2, tolerance: 2.5 }
+      { threshold: 0.2, tolerance: 2.5 },
     );
 
     expect(result.matches).toBe(true);
   });
 
-  it('renders gradient ribbon with per-point line style override', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders gradient ribbon with per-point line style override", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateGradientRibbonData(30, 100).map((point, i) => ({
         ...point,
         ...(i >= 10 && i <= 15
@@ -382,26 +403,34 @@ describe('GradientRibbon Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('gradient-ribbon-per-point-line-styles'),
+      sanitizeTestName("gradient-ribbon-per-point-line-styles"),
       renderResult.imageData,
-      { threshold: 0.2, tolerance: 2.5 }
+      { threshold: 0.2, tolerance: 2.5 },
     );
 
     expect(result.matches).toBe(true);
   });
 
-  it('renders gradient ribbon with complete per-point styling', async () => {
-    renderResult = await renderChart(chart => {
+  it("renders gradient ribbon with complete per-point styling", async () => {
+    renderResult = await renderChart((chart) => {
       const data = generateGradientRibbonData(30, 100).map((point, i) => ({
         ...point,
         ...(i === 15
           ? {
               styles: {
-                upperLine: { color: '#FF00FF', width: 5, style: LineStyle.Dashed },
-                lowerLine: { color: '#FFFF00', width: 5, style: LineStyle.Dotted },
+                upperLine: {
+                  color: "#FF00FF",
+                  width: 5,
+                  style: LineStyle.Dashed,
+                },
+                lowerLine: {
+                  color: "#FFFF00",
+                  width: 5,
+                  style: LineStyle.Dotted,
+                },
                 gradient: {
-                  startColor: '#FF00FF',
-                  endColor: '#FFFF00',
+                  startColor: "#FF00FF",
+                  endColor: "#FFFF00",
                 },
               },
             }
@@ -417,9 +446,9 @@ describe('GradientRibbon Series Per-Point Styling', () => {
     });
 
     const result = assertMatchesSnapshot(
-      sanitizeTestName('gradient-ribbon-per-point-complete'),
+      sanitizeTestName("gradient-ribbon-per-point-complete"),
       renderResult.imageData,
-      { threshold: 0.2, tolerance: 2.5 }
+      { threshold: 0.2, tolerance: 2.5 },
     );
 
     expect(result.matches).toBe(true);

@@ -5,14 +5,14 @@
  * used across the test suite, ensuring consistency and maintainability.
  */
 
-import { vi, type MockedFunction } from 'vitest';
+import { vi, type MockedFunction } from "vitest";
 import {
   IChartApi,
   ISeriesApi,
   ChartOptions,
   SeriesType,
   SeriesOptionsMap,
-} from 'lightweight-charts';
+} from "lightweight-charts";
 
 // Base mock configuration interface
 export interface MockConfig {
@@ -61,12 +61,14 @@ export class MockFactory {
   /**
    * Create a mock series API with configurable behavior
    */
-  static createSeries(config: MockConfig = {}): ISeriesApi<keyof SeriesOptionsMap> {
+  static createSeries(
+    config: MockConfig = {},
+  ): ISeriesApi<keyof SeriesOptionsMap> {
     const finalConfig = { ...this.defaultConfig, ...config };
 
     const series = {
       // Data management
-      setData: vi.fn().mockImplementation(data => {
+      setData: vi.fn().mockImplementation((data) => {
         if (finalConfig.withPerformanceDelay) {
           const start = performance.now();
           while (performance.now() - start < 1) {
@@ -74,11 +76,11 @@ export class MockFactory {
           }
         }
         if (finalConfig.shouldThrowErrors && Math.random() < 0.1) {
-          throw new Error('Mock series setData error');
+          throw new Error("Mock series setData error");
         }
       }),
 
-      update: vi.fn().mockImplementation(data => {
+      update: vi.fn().mockImplementation((data) => {
         if (finalConfig.withPerformanceDelay) {
           const start = performance.now();
           while (performance.now() - start < 0.5) {
@@ -127,31 +129,35 @@ export class MockFactory {
 
     const chart = {
       // Series management
-      addSeries: vi.fn().mockImplementation((seriesType: SeriesType, options = {}) => {
-        if (finalConfig.withPerformanceDelay) {
-          const start = performance.now();
-          while (performance.now() - start < 2) {
-            /* simulate series creation */
+      addSeries: vi
+        .fn()
+        .mockImplementation((seriesType: SeriesType, options = {}) => {
+          if (finalConfig.withPerformanceDelay) {
+            const start = performance.now();
+            while (performance.now() - start < 2) {
+              /* simulate series creation */
+            }
           }
-        }
 
-        if (finalConfig.shouldThrowErrors && seriesCounter > 10) {
-          throw new Error('Too many series');
-        }
+          if (finalConfig.shouldThrowErrors && seriesCounter > 10) {
+            throw new Error("Too many series");
+          }
 
-        const series = this.createSeries(finalConfig);
-        chartSeries.push(series);
-        seriesCounter++;
-        return series;
-      }),
+          const series = this.createSeries(finalConfig);
+          chartSeries.push(series);
+          seriesCounter++;
+          return series;
+        }),
 
-      removeSeries: vi.fn().mockImplementation((series: ISeriesApi<keyof SeriesOptionsMap>) => {
-        const index = chartSeries.indexOf(series);
-        if (index > -1) {
-          chartSeries.splice(index, 1);
-          seriesCounter--;
-        }
-      }),
+      removeSeries: vi
+        .fn()
+        .mockImplementation((series: ISeriesApi<keyof SeriesOptionsMap>) => {
+          const index = chartSeries.indexOf(series);
+          if (index > -1) {
+            chartSeries.splice(index, 1);
+            seriesCounter--;
+          }
+        }),
 
       // Chart lifecycle
       remove: vi.fn().mockImplementation(() => {
@@ -174,7 +180,7 @@ export class MockFactory {
           }
         }
         if (finalConfig.shouldThrowErrors && (width < 0 || height < 0)) {
-          throw new Error('Invalid dimensions');
+          throw new Error("Invalid dimensions");
         }
       }),
 
@@ -190,7 +196,9 @@ export class MockFactory {
         setVisibleRange: vi.fn(),
         getVisibleLogicalRange: vi.fn(() => ({ from: 0, to: 100 })),
         setVisibleLogicalRange: vi.fn(),
-        coordinateToTime: vi.fn((coordinate: number) => Date.now() + coordinate * 1000),
+        coordinateToTime: vi.fn(
+          (coordinate: number) => Date.now() + coordinate * 1000,
+        ),
         timeToCoordinate: vi.fn((time: number) => (time - Date.now()) / 1000),
         width: vi.fn(() => 800),
         height: vi.fn(() => 600),
@@ -202,7 +210,7 @@ export class MockFactory {
         unsubscribeSizeChange: vi.fn(),
       })),
 
-      priceScale: vi.fn((priceScaleId = 'right') => ({
+      priceScale: vi.fn((priceScaleId = "right") => ({
         applyOptions: vi.fn(),
         options: vi.fn(() => ({ visible: true })),
         width: vi.fn(() => 60),
@@ -233,8 +241,8 @@ export class MockFactory {
     } as unknown as IChartApi;
 
     // Link series back to chart
-    chartSeries.forEach(series => {
-      if ('chart' in series && typeof series.chart === 'function') {
+    chartSeries.forEach((series) => {
+      if ("chart" in series && typeof series.chart === "function") {
         (series.chart as MockedFunction<any>).mockImplementation(() => chart);
       }
     });
@@ -249,12 +257,14 @@ export class MockFactory {
     const finalConfig = { ...this.defaultConfig, ...config };
 
     return {
-      createChart: vi.fn().mockImplementation((container: HTMLElement, options: ChartOptions) => {
-        if (finalConfig.shouldThrowErrors && !container) {
-          throw new Error('Container is required');
-        }
-        return this.createChart(finalConfig);
-      }),
+      createChart: vi
+        .fn()
+        .mockImplementation((container: HTMLElement, options: ChartOptions) => {
+          if (finalConfig.shouldThrowErrors && !container) {
+            throw new Error("Container is required");
+          }
+          return this.createChart(finalConfig);
+        }),
 
       // Enums and constants
       LineStyle: {
@@ -290,12 +300,12 @@ export class MockFactory {
 
       // Color utilities
       ColorType: {
-        Solid: 'solid',
-        VerticalGradient: 'gradient',
+        Solid: "solid",
+        VerticalGradient: "gradient",
       },
 
       // Version info
-      version: vi.fn(() => '4.1.0'),
+      version: vi.fn(() => "4.1.0"),
     };
   }
 
@@ -320,7 +330,7 @@ export class MockFactory {
 
       observe = vi.fn().mockImplementation((element: Element) => {
         if (finalConfig.shouldThrowErrors && !element) {
-          throw new Error('Element is required');
+          throw new Error("Element is required");
         }
         this.observedElements.add(element);
 
@@ -379,8 +389,8 @@ export class MockFactory {
       // Static utilities
       static getActiveInstances = () => instances.length;
       static triggerAllResizes = () => {
-        instances.forEach(instance => {
-          instance.observedElements.forEach(element => {
+        instances.forEach((instance) => {
+          instance.observedElements.forEach((element) => {
             instance.triggerResize(element);
           });
         });
@@ -396,7 +406,10 @@ export class MockFactory {
   /**
    * Create DOM element mocks
    */
-  static createDOMElement(tagName: string, config: MockConfig = {}): HTMLElement {
+  static createDOMElement(
+    tagName: string,
+    config: MockConfig = {},
+  ): HTMLElement {
     const finalConfig = { ...this.defaultConfig, ...config };
 
     const element = {
@@ -452,7 +465,7 @@ export class MockFactory {
       getElementsByTagName: vi.fn(() => []),
 
       // Canvas specific (if canvas)
-      ...(tagName === 'canvas' && {
+      ...(tagName === "canvas" && {
         getContext: vi.fn(() => ({
           clearRect: vi.fn(),
           fillRect: vi.fn(),
@@ -480,7 +493,9 @@ export class MockFactory {
       }),
     } as unknown as HTMLElement;
 
-    return finalConfig.enableMemoryTracking ? trackMockObject(element) : element;
+    return finalConfig.enableMemoryTracking
+      ? trackMockObject(element)
+      : element;
   }
 
   /**
@@ -492,19 +507,21 @@ export class MockFactory {
 
     return {
       now: vi.fn(() => {
-        currentTime += finalConfig.withPerformanceDelay ? Math.random() * 16 : 0.1;
+        currentTime += finalConfig.withPerformanceDelay
+          ? Math.random() * 16
+          : 0.1;
         return currentTime;
       }),
 
       mark: vi.fn((name: string) => {
         if (finalConfig.shouldThrowErrors && !name) {
-          throw new Error('Mark name is required');
+          throw new Error("Mark name is required");
         }
       }),
 
       measure: vi.fn((name: string, startMark?: string, endMark?: string) => {
         if (finalConfig.shouldThrowErrors && !name) {
-          throw new Error('Measure name is required');
+          throw new Error("Measure name is required");
         }
       }),
 
@@ -581,13 +598,13 @@ export function setupGlobalMocks(config: MockConfig = MockPresets.unit()) {
   MockFactory.configure(config);
 
   // Setup global mocks
-  vi.stubGlobal('ResizeObserver', MockFactory.createResizeObserver(config));
-  vi.stubGlobal('performance', MockFactory.createPerformanceAPI(config));
+  vi.stubGlobal("ResizeObserver", MockFactory.createResizeObserver(config));
+  vi.stubGlobal("performance", MockFactory.createPerformanceAPI(config));
 
   // Setup DOM mocks
   const originalCreateElement = document.createElement;
   document.createElement = vi.fn((tagName: string) => {
-    if (['canvas', 'div', 'span'].includes(tagName.toLowerCase())) {
+    if (tagName.toLowerCase() === "canvas") {
       return MockFactory.createDOMElement(tagName, config);
     }
     return originalCreateElement.call(document, tagName);

@@ -7,6 +7,7 @@ allowing chart state to be maintained across Streamlit reruns.
 from typing import Any
 
 import streamlit as st
+
 from lightweight_charts_pro.logging_config import get_logger
 
 # Initialize logger
@@ -67,7 +68,7 @@ class SessionStateManager:
 
         Args:
             key: Component key used to namespace the stored configs.
-            series_index: Index of the series (default: 0).
+            series_index: Per-pane series index, starting at 0 (default: 0).
             pane_id: Pane ID for the series (default: 0).
 
         Returns:
@@ -98,10 +99,14 @@ class SessionStateManager:
         if self.configs_applied:
             return
 
-        for i, series in enumerate(series_list):
-            # Generate the expected series ID
-            pane_id = getattr(series, "pane_id", 0) or 0
-            series_id = f"pane-{pane_id}-series-{i}"
+        # Index is per pane, matching pane-{paneId}-series-{perPaneIndex}.
+        pane_counts: dict[int, int] = {}
+        for series in series_list:
+            raw_pane_id = getattr(series, "pane_id", 0)
+            pane_id = 0 if raw_pane_id is None else int(raw_pane_id)
+            per_pane_index = pane_counts.get(pane_id, 0)
+            pane_counts[pane_id] = per_pane_index + 1
+            series_id = f"pane-{pane_id}-series-{per_pane_index}"
 
             if series_id in stored_configs:
                 config = stored_configs[series_id]

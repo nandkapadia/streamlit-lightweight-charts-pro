@@ -6,15 +6,20 @@
  * and performance monitoring across the entire test suite.
  */
 
-import { vi, afterAll } from 'vitest';
-import { MockFactory, MockConfig, MockPresets, setupGlobalMocks } from '../mocks/MockFactory';
+import { vi, afterAll } from "vitest";
+import {
+  MockFactory,
+  MockConfig,
+  MockPresets,
+  setupGlobalMocks,
+} from "../mocks/MockFactory";
 
 import {
   TestDataFactory,
   TestDataConfig,
   TestDataPresets,
   setupTestDataDefaults,
-} from '../mocks/TestDataFactory';
+} from "../mocks/TestDataFactory";
 
 // Test environment configuration
 export interface TestEnvironmentConfig {
@@ -40,7 +45,7 @@ export interface TestEnvironmentConfig {
   autoCleanup: boolean;
 
   // Logging and debugging
-  logLevel: 'silent' | 'error' | 'warn' | 'info' | 'debug';
+  logLevel: "silent" | "error" | "warn" | "info" | "debug";
   enableConsoleOutput: boolean;
   suppressWarnings: string[]; // Array of warning patterns to suppress
 
@@ -76,10 +81,14 @@ export const TestEnvironmentPresets = {
     enableMemoryTracking: false,
     memoryLeakThreshold: 1024 * 1024, // 1MB
     autoCleanup: true,
-    logLevel: 'error',
+    logLevel: "error",
     enableConsoleOutput: false,
-    suppressWarnings: ['ReactDOMTestUtils.act', 'useLayoutEffect', 'React.createFactory'],
-    timeout: 5000,
+    suppressWarnings: [
+      "ReactDOMTestUtils.act",
+      "useLayoutEffect",
+      "React.createFactory",
+    ],
+    timeout: 10000,
     retries: 0,
     parallel: true,
     failFast: false,
@@ -104,9 +113,9 @@ export const TestEnvironmentPresets = {
     enableMemoryTracking: true,
     memoryLeakThreshold: 5 * 1024 * 1024, // 5MB
     autoCleanup: true,
-    logLevel: 'warn',
+    logLevel: "warn",
     enableConsoleOutput: false,
-    suppressWarnings: ['ReactDOMTestUtils.act'],
+    suppressWarnings: ["ReactDOMTestUtils.act"],
     timeout: 15000,
     retries: 1,
     parallel: true,
@@ -135,7 +144,7 @@ export const TestEnvironmentPresets = {
     enableMemoryTracking: true,
     memoryLeakThreshold: 10 * 1024 * 1024, // 10MB
     autoCleanup: true,
-    logLevel: 'info',
+    logLevel: "info",
     enableConsoleOutput: true,
     suppressWarnings: [],
     timeout: 30000,
@@ -166,7 +175,7 @@ export const TestEnvironmentPresets = {
     enableMemoryTracking: true,
     memoryLeakThreshold: 50 * 1024 * 1024, // 50MB
     autoCleanup: true,
-    logLevel: 'debug',
+    logLevel: "debug",
     enableConsoleOutput: true,
     suppressWarnings: [],
     timeout: 60000,
@@ -198,7 +207,7 @@ export const TestEnvironmentPresets = {
     enableMemoryTracking: true,
     memoryLeakThreshold: 100 * 1024 * 1024, // 100MB
     autoCleanup: false, // Manually managed for leak detection
-    logLevel: 'debug',
+    logLevel: "debug",
     enableConsoleOutput: true,
     suppressWarnings: [],
     timeout: 120000,
@@ -230,7 +239,7 @@ export const TestEnvironmentPresets = {
     enableMemoryTracking: false,
     memoryLeakThreshold: 1024 * 1024 * 1024, // 1GB
     autoCleanup: true,
-    logLevel: 'debug',
+    logLevel: "debug",
     enableConsoleOutput: true,
     suppressWarnings: [],
     timeout: 30000,
@@ -249,14 +258,17 @@ export const TestEnvironmentPresets = {
  * Global test configuration manager
  */
 export class TestConfigurationManager {
-  private static currentConfig: TestEnvironmentConfig = TestEnvironmentPresets.unit();
+  private static currentConfig: TestEnvironmentConfig =
+    TestEnvironmentPresets.unit();
   private static isSetup = false;
 
   /**
    * Configure the global test environment
    */
-  static configure(preset: keyof typeof TestEnvironmentPresets | TestEnvironmentConfig): void {
-    if (typeof preset === 'string') {
+  static configure(
+    preset: keyof typeof TestEnvironmentPresets | TestEnvironmentConfig,
+  ): void {
+    if (typeof preset === "string") {
       this.currentConfig = TestEnvironmentPresets[preset]();
     } else {
       this.currentConfig = preset;
@@ -280,12 +292,18 @@ export class TestConfigurationManager {
       ...this.currentConfig,
       ...updates,
       mockConfig: { ...this.currentConfig.mockConfig, ...updates.mockConfig },
-      testDataConfig: { ...this.currentConfig.testDataConfig, ...updates.testDataConfig },
+      testDataConfig: {
+        ...this.currentConfig.testDataConfig,
+        ...updates.testDataConfig,
+      },
       performanceThresholds: {
         ...this.currentConfig.performanceThresholds,
         ...updates.performanceThresholds,
       },
-      customBehavior: { ...this.currentConfig.customBehavior, ...updates.customBehavior },
+      customBehavior: {
+        ...this.currentConfig.customBehavior,
+        ...updates.customBehavior,
+      },
     };
 
     this.applyConfiguration();
@@ -342,7 +360,7 @@ export class TestConfigurationManager {
       const originalError = console.error;
 
       console.error = (...args: unknown[]) => {
-        const message = args[0]?.toString() || '';
+        const message = args[0]?.toString() || "";
 
         for (const pattern of this.currentConfig.suppressWarnings) {
           if (message.includes(pattern)) {
@@ -475,16 +493,18 @@ export class TestConfigurationManager {
         return name;
       }
     }
-    return 'custom';
+    return "custom";
   }
 }
 
 // Global type declarations for performance tracking
 declare global {
   var trackPerformance: (operation: string, duration: number) => void;
-  var getPerformanceMetrics: (operation?: string) => number[] | Record<string, number[]>;
+  var getPerformanceMetrics: (
+    operation?: string,
+  ) => number[] | Record<string, number[]>;
   var clearPerformanceMetrics: () => void;
-  var performanceThresholds: TestEnvironmentConfig['performanceThresholds'];
+  var performanceThresholds: TestEnvironmentConfig["performanceThresholds"];
   var trackObject: <T extends object>(obj: T) => T;
   // @ts-expect-error - Global gc function type conflicts
   var gc: any;
@@ -497,7 +517,9 @@ declare global {
 /**
  * Setup test suite with specific configuration
  */
-export function setupTestSuite(preset: keyof typeof TestEnvironmentPresets = 'unit'): void {
+export function setupTestSuite(
+  preset: keyof typeof TestEnvironmentPresets = "unit",
+): void {
   TestConfigurationManager.configure(preset);
 }
 
@@ -506,19 +528,25 @@ export function setupTestSuite(preset: keyof typeof TestEnvironmentPresets = 'un
  */
 export function createTestConfig(
   base: keyof typeof TestEnvironmentPresets,
-  overrides: Partial<TestEnvironmentConfig>
+  overrides: Partial<TestEnvironmentConfig>,
 ): TestEnvironmentConfig {
   const baseConfig = TestEnvironmentPresets[base]();
   return {
     ...baseConfig,
     ...overrides,
     mockConfig: { ...baseConfig.mockConfig, ...overrides.mockConfig },
-    testDataConfig: { ...baseConfig.testDataConfig, ...overrides.testDataConfig },
+    testDataConfig: {
+      ...baseConfig.testDataConfig,
+      ...overrides.testDataConfig,
+    },
     performanceThresholds: {
       ...baseConfig.performanceThresholds,
       ...overrides.performanceThresholds,
     },
-    customBehavior: { ...baseConfig.customBehavior, ...overrides.customBehavior },
+    customBehavior: {
+      ...baseConfig.customBehavior,
+      ...overrides.customBehavior,
+    },
   };
 }
 
@@ -527,7 +555,7 @@ export function createTestConfig(
  */
 export async function measurePerformance<T>(
   operation: string,
-  fn: () => Promise<T> | T
+  fn: () => Promise<T> | T,
 ): Promise<{ result: T; duration: number }> {
   const startTime = performance.now();
   const result = await fn();

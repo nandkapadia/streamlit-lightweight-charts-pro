@@ -130,6 +130,9 @@ ignore = [
     "B027",  # Empty method in abstract class
 ]
 
+[tool.ruff.lint.isort]
+known-first-party = ["streamlit_lightweight_charts_pro", "lightweight_charts_pro"]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101", "PLR2004", "D"]
 "examples/**/*.py" = ["D", "T201"]

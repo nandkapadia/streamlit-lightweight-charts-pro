@@ -32,26 +32,26 @@
  * ```
  */
 
-import '@testing-library/jest-dom';
-import { configure, cleanup } from '@testing-library/react';
-import { vi } from 'vitest';
+import "@testing-library/jest-dom";
+import { configure, cleanup } from "@testing-library/react";
+import { vi } from "vitest";
 
 // Import global mock setup - this configures all shared mocks
-import './__tests__/setup/globalMockSetup';
+import "./__tests__/setup/globalMockSetup";
 
 // Add polyfills for Node.js environment
-if (typeof TextEncoder === 'undefined') {
+if (typeof TextEncoder === "undefined") {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  global.TextEncoder = require('util').TextEncoder;
+  global.TextEncoder = require("util").TextEncoder;
 }
-if (typeof TextDecoder === 'undefined') {
+if (typeof TextDecoder === "undefined") {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  global.TextDecoder = require('util').TextDecoder;
+  global.TextDecoder = require("util").TextDecoder;
 }
 
 // Configure React Testing Library for compatibility with React 18
 configure({
-  testIdAttribute: 'data-testid',
+  testIdAttribute: "data-testid",
   asyncUtilTimeout: 10000,
 });
 
@@ -59,13 +59,13 @@ configure({
 (global as any).IS_REACT_ACT_ENVIRONMENT = true;
 
 // Set up React 18 test environment
-Object.defineProperty(global, 'document', {
+Object.defineProperty(global, "document", {
   value: document,
   writable: true,
 });
 
 // Ensure React 18 createRoot has access to proper DOM
-if (typeof global.document === 'undefined') {
+if (typeof global.document === "undefined") {
   global.document = document;
 }
 
@@ -75,7 +75,7 @@ afterEach(() => {
   cleanup();
 
   if (document.body) {
-    document.body.innerHTML = '';
+    document.body.innerHTML = "";
   }
 
   // Force garbage collection if available
@@ -91,7 +91,7 @@ afterEach(() => {
 });
 
 // Mock performance API globally
-Object.defineProperty(window, 'performance', {
+Object.defineProperty(window, "performance", {
   value: {
     now: vi.fn(() => Date.now()),
     mark: vi.fn(),
@@ -116,7 +116,7 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 }));
 
 // Mock requestAnimationFrame and cancelAnimationFrame
-global.requestAnimationFrame = vi.fn(callback => {
+global.requestAnimationFrame = vi.fn((callback) => {
   setTimeout(callback, 0);
   return 1;
 });
@@ -124,25 +124,57 @@ global.requestAnimationFrame = vi.fn(callback => {
 global.cancelAnimationFrame = vi.fn();
 
 // Mock DOM methods with proper color defaults for lightweight-charts
-Object.defineProperty(window, 'getComputedStyle', {
-  value: (_element: Element) => ({
-    getPropertyValue: (prop: string) => {
+const originalGetComputedStyle = window.getComputedStyle.bind(window);
+Object.defineProperty(window, "getComputedStyle", {
+  value: (element: Element, pseudoElt?: string | null) => {
+    const realStyle = originalGetComputedStyle(element, pseudoElt);
+    const fallback = (prop: string): string => {
+      // JSDOM getComputedStyle omits the 'border' shorthand; synthesize it when equal on all sides
+      if (prop === "border") {
+        const bt = realStyle.getPropertyValue("border-top");
+        const br = realStyle.getPropertyValue("border-right");
+        const bb = realStyle.getPropertyValue("border-bottom");
+        const bl = realStyle.getPropertyValue("border-left");
+        if (bt && bt === br && bt === bb && bt === bl) {
+          return bt;
+        }
+        return (element as HTMLElement).style?.getPropertyValue("border") || "";
+      }
       // Return default values for common CSS properties used by lightweight-charts
-      if (prop === 'background-color' || prop === 'backgroundColor') {
-        return 'rgba(255, 255, 255, 1)';
+      if (prop === "background-color" || prop === "backgroundColor") {
+        return "rgba(255, 255, 255, 1)";
       }
-      if (prop === 'color' || prop === 'textColor') {
-        return 'rgba(0, 0, 0, 1)';
+      if (prop === "color" || prop === "textColor") {
+        return "rgba(0, 0, 0, 1)";
       }
-      if (prop === 'font-family' || prop === 'fontFamily') {
-        return 'Arial, sans-serif';
+      if (prop === "font-family" || prop === "fontFamily") {
+        return "Arial, sans-serif";
       }
-      if (prop === 'font-size' || prop === 'fontSize') {
-        return '12px';
+      if (prop === "font-size" || prop === "fontSize") {
+        return "12px";
       }
-      return '';
-    },
-  }),
+      return "";
+    };
+    return new Proxy(realStyle, {
+      get(target, prop, receiver) {
+        if (prop === "getPropertyValue") {
+          return (cssProp: string) => {
+            const realVal = target.getPropertyValue(cssProp);
+            return realVal || fallback(cssProp);
+          };
+        }
+        const val = Reflect.get(target, prop, receiver);
+        if (typeof val === "function") {
+          return val.bind(target);
+        }
+        if (typeof prop === "string" && (val === "" || val === undefined)) {
+          const fb = fallback(prop);
+          if (fb) return fb;
+        }
+        return val;
+      },
+    });
+  },
   configurable: true,
   writable: true,
 });
@@ -158,20 +190,20 @@ Element.prototype.getBoundingClientRect = vi.fn(
     x: 0,
     y: 0,
     toJSON: () => ({}),
-  })
+  }),
 );
 
-Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
+Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
   configurable: true,
   value: 600,
 });
 
-Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
   configurable: true,
   value: 600,
 });
 
-Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
+Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
   configurable: true,
   value: 800,
 });
@@ -222,7 +254,7 @@ const mockCanvas = {
 // Enhanced DOM element creation
 const originalCreateElement = document.createElement;
 document.createElement = vi.fn((tagName: string) => {
-  if (tagName === 'canvas') {
+  if (tagName === "canvas") {
     return mockCanvas as any;
   }
 
@@ -230,7 +262,7 @@ document.createElement = vi.fn((tagName: string) => {
   const element = originalCreateElement.call(document, tagName);
 
   // Enhance common methods for testing
-  if (!element.getBoundingClientRect.toString().includes('native code')) {
+  if (!element.getBoundingClientRect.toString().includes("native code")) {
     element.getBoundingClientRect = vi.fn(() => ({
       width: 800,
       height: 600,
@@ -248,11 +280,15 @@ document.createElement = vi.fn((tagName: string) => {
   const originalAppendChild = element.appendChild;
   element.appendChild = vi.fn((child: any) => {
     try {
-      if (child && typeof child === 'object' && (child.nodeType || child instanceof Node)) {
+      if (
+        child &&
+        typeof child === "object" &&
+        (child.nodeType || child instanceof Node)
+      ) {
         return originalAppendChild.call(element, child);
       }
       // Create a proper node if the child is not a valid node
-      if (typeof child === 'string') {
+      if (typeof child === "string") {
         const textNode = document.createTextNode(child);
         return originalAppendChild.call(element, textNode);
       }
@@ -271,34 +307,34 @@ document.createElement = vi.fn((tagName: string) => {
 beforeEach(() => {
   // Ensure document.body exists and is connected to the document
   if (!document.body) {
-    document.body = originalCreateElement.call(document, 'body');
+    document.body = originalCreateElement.call(document, "body");
     document.documentElement.appendChild(document.body);
   }
 
   // Reset document.body to ensure clean state
-  document.body.innerHTML = '';
+  document.body.innerHTML = "";
 
   // Create a container div for React Testing Library - check if createElement works
-  if (typeof document.createElement === 'function') {
+  if (typeof document.createElement === "function") {
     try {
-      const container = document.createElement('div');
-      if (container && typeof container.setAttribute === 'function') {
-        container.setAttribute('id', 'react-test-container');
+      const container = document.createElement("div");
+      if (container && typeof container.setAttribute === "function") {
+        container.setAttribute("id", "react-test-container");
         document.body.appendChild(container);
       }
     } catch {
       // Fallback: don't create container if createElement fails
-      console.warn('A warning occurred');
+      console.warn("A warning occurred");
     }
   }
 
   // Ensure document.body has proper dimensions for layout calculations
-  Object.defineProperty(document.body, 'offsetHeight', {
+  Object.defineProperty(document.body, "offsetHeight", {
     configurable: true,
     value: 600,
   });
 
-  Object.defineProperty(document.body, 'offsetWidth', {
+  Object.defineProperty(document.body, "offsetWidth", {
     configurable: true,
     value: 800,
   });
@@ -310,16 +346,16 @@ beforeEach(() => {
 
   // Make sure document and documentElement are properly defined
   if (!document.documentElement) {
-    const html = document.createElement('html');
+    const html = document.createElement("html");
     document.appendChild(html);
     html.appendChild(document.body);
   }
 });
 
 // Mock additional DOM properties and methods
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -332,19 +368,19 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock window.URL.createObjectURL
-Object.defineProperty(window.URL, 'createObjectURL', {
+Object.defineProperty(window.URL, "createObjectURL", {
   writable: true,
-  value: vi.fn(() => 'mocked-object-url'),
+  value: vi.fn(() => "mocked-object-url"),
 });
 
 // Mock window.URL.revokeObjectURL
-Object.defineProperty(window.URL, 'revokeObjectURL', {
+Object.defineProperty(window.URL, "revokeObjectURL", {
   writable: true,
   value: vi.fn(),
 });
 
 // Mock CSS.supports
-Object.defineProperty(window, 'CSS', {
+Object.defineProperty(window, "CSS", {
   value: {
     supports: vi.fn(() => true),
   },
@@ -352,7 +388,7 @@ Object.defineProperty(window, 'CSS', {
 
 // Mock document.execCommand
 if (!document.execCommand) {
-  Object.defineProperty(document, 'execCommand', {
+  Object.defineProperty(document, "execCommand", {
     value: vi.fn(() => true),
   });
 }
@@ -361,20 +397,24 @@ if (!document.execCommand) {
 const originalAppendChild = Element.prototype.appendChild;
 Element.prototype.appendChild = function <T extends Node>(child: T): T {
   try {
-    if (child && typeof child === 'object' && (child.nodeType || child instanceof Node)) {
+    if (
+      child &&
+      typeof child === "object" &&
+      (child.nodeType || child instanceof Node)
+    ) {
       return originalAppendChild.call(this, child) as T;
     }
     // Create a proper node if the child is not a valid node
-    if (typeof child === 'string') {
+    if (typeof child === "string") {
       const textNode = document.createTextNode(child);
       return originalAppendChild.call(this, textNode) as T;
     }
     // For invalid parameters, create a mock element and return it
-    const mockElement = document.createElement('div');
+    const mockElement = document.createElement("div");
     return originalAppendChild.call(this, mockElement) as T;
   } catch {
     // If all else fails, create and return a mock element
-    const mockElement = document.createElement('div');
+    const mockElement = document.createElement("div");
     try {
       return originalAppendChild.call(this, mockElement) as T;
     } catch {
@@ -387,7 +427,10 @@ Element.prototype.appendChild = function <T extends Node>(child: T): T {
 const originalError = console.error;
 beforeAll(() => {
   console.error = (...args: any[]) => {
-    if (typeof args[0] === 'string' && args[0].includes('Warning: ReactDOMTestUtils.act')) {
+    if (
+      typeof args[0] === "string" &&
+      args[0].includes("Warning: ReactDOMTestUtils.act")
+    ) {
       return;
     }
     originalError.call(console, ...args);

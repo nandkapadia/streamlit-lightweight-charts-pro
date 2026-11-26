@@ -14,7 +14,7 @@
  * - Annotation layers
  */
 
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from "vitest";
 import {
   renderChart,
   cleanupChartRender,
@@ -22,12 +22,12 @@ import {
   sanitizeTestName,
   LineSeries,
   type ChartRenderResult,
-} from '../utils';
-import { createSeriesMarkers } from 'lightweight-charts';
-import { createAnnotationVisualElements } from '../../../services/annotationSystem';
-import { Annotation } from '../../../types';
+} from "../utils";
+import { createSeriesMarkers } from "lightweight-charts";
+import { createAnnotationVisualElements } from "@nandkapadia/lightweight-charts-pro-core";
+import { Annotation } from "../../../types";
 
-describe('Annotation Visual Tests', () => {
+describe("Annotation Visual Tests", () => {
   let renderResult: ChartRenderResult | null = null;
 
   afterEach(() => {
@@ -40,11 +40,11 @@ describe('Annotation Visual Tests', () => {
   // Helper to create base price data
   const createBasePriceData = (count: number = 30) => {
     const data = [];
-    const startDate = new Date('2024-01-01');
+    const startDate = new Date("2024-01-01");
     for (let i = 0; i < count; i++) {
       const date = new Date(startDate);
       date.setDate(date.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = date.toISOString().split("T")[0];
       data.push({
         time: dateStr as any,
         value: 100 + i * 0.5 + Math.sin(i / 5) * 10,
@@ -53,22 +53,25 @@ describe('Annotation Visual Tests', () => {
     return data;
   };
 
-  describe('Text Annotations', () => {
-    it('renders text annotation above bar', async () => {
-      renderResult = await renderChart(chart => {
+  describe("Text Annotations", () => {
+    it("renders text annotation above bar", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [
           {
-            time: '2024-01-15',
+            time: "2024-01-15",
             price: 110,
-            text: 'Important Level',
-            type: 'text',
-            position: 'above',
-            backgroundColor: 'rgba(255, 235, 59, 0.9)',
-            textColor: '#000000',
+            text: "Important Level",
+            type: "text",
+            position: "above",
+            backgroundColor: "rgba(255, 235, 59, 0.9)",
+            textColor: "#000000",
             fontSize: 12,
           },
         ];
@@ -79,29 +82,32 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-text-above'),
+        sanitizeTestName("annotation-text-above"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
 
-    it('renders text annotation below bar', async () => {
-      renderResult = await renderChart(chart => {
+    it("renders text annotation below bar", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [
           {
-            time: '2024-01-15',
+            time: "2024-01-15",
             price: 105,
-            text: 'Support Zone',
-            type: 'text',
-            position: 'below',
-            backgroundColor: 'rgba(76, 175, 80, 0.9)',
-            textColor: '#FFFFFF',
+            text: "Support Zone",
+            type: "text",
+            position: "below",
+            backgroundColor: "rgba(76, 175, 80, 0.9)",
+            textColor: "#FFFFFF",
             fontSize: 12,
           },
         ];
@@ -111,49 +117,52 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-text-below'),
+        sanitizeTestName("annotation-text-below"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
 
-    it('renders multiple text annotations', async () => {
-      renderResult = await renderChart(chart => {
+    it("renders multiple text annotations", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [
           {
-            time: '2024-01-08',
+            time: "2024-01-08",
             price: 108,
-            text: 'Resistance',
-            type: 'text',
-            position: 'above',
-            backgroundColor: 'rgba(244, 67, 54, 0.9)',
-            textColor: '#FFFFFF',
+            text: "Resistance",
+            type: "text",
+            position: "above",
+            backgroundColor: "rgba(244, 67, 54, 0.9)",
+            textColor: "#FFFFFF",
             fontSize: 10,
           },
           {
-            time: '2024-01-15',
+            time: "2024-01-15",
             price: 110,
-            text: 'Breakout',
-            type: 'text',
-            position: 'above',
-            backgroundColor: 'rgba(255, 235, 59, 0.9)',
-            textColor: '#000000',
+            text: "Breakout",
+            type: "text",
+            position: "above",
+            backgroundColor: "rgba(255, 235, 59, 0.9)",
+            textColor: "#000000",
             fontSize: 12,
           },
           {
-            time: '2024-01-22',
+            time: "2024-01-22",
             price: 102,
-            text: 'Support',
-            type: 'text',
-            position: 'below',
-            backgroundColor: 'rgba(76, 175, 80, 0.9)',
-            textColor: '#FFFFFF',
+            text: "Support",
+            type: "text",
+            position: "below",
+            backgroundColor: "rgba(76, 175, 80, 0.9)",
+            textColor: "#FFFFFF",
             fontSize: 10,
           },
         ];
@@ -163,30 +172,33 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-text-multiple'),
+        sanitizeTestName("annotation-text-multiple"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
   });
 
-  describe('Arrow Annotations', () => {
-    it('renders arrow annotation pointing up', async () => {
-      renderResult = await renderChart(chart => {
+  describe("Arrow Annotations", () => {
+    it("renders arrow annotation pointing up", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [
           {
-            time: '2024-01-15',
+            time: "2024-01-15",
             price: 110,
-            text: 'Buy Signal',
-            type: 'arrow',
-            position: 'below',
-            color: '#4CAF50',
+            text: "Buy Signal",
+            type: "arrow",
+            position: "below",
+            color: "#4CAF50",
             fontSize: 2,
           },
         ];
@@ -197,46 +209,49 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-arrow-up'),
+        sanitizeTestName("annotation-arrow-up"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
 
-    it('renders multiple arrow annotations', async () => {
-      renderResult = await renderChart(chart => {
+    it("renders multiple arrow annotations", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [
           {
-            time: '2024-01-08',
+            time: "2024-01-08",
             price: 105,
-            text: 'Buy',
-            type: 'arrow',
-            position: 'below',
-            color: '#4CAF50',
+            text: "Buy",
+            type: "arrow",
+            position: "below",
+            color: "#4CAF50",
             fontSize: 2,
           },
           {
-            time: '2024-01-15',
+            time: "2024-01-15",
             price: 112,
-            text: 'Sell',
-            type: 'arrow',
-            position: 'above',
-            color: '#F44336',
+            text: "Sell",
+            type: "arrow",
+            position: "above",
+            color: "#F44336",
             fontSize: 2,
           },
           {
-            time: '2024-01-22',
+            time: "2024-01-22",
             price: 104,
-            text: 'Buy',
-            type: 'arrow',
-            position: 'below',
-            color: '#4CAF50',
+            text: "Buy",
+            type: "arrow",
+            position: "below",
+            color: "#4CAF50",
             fontSize: 2,
           },
         ];
@@ -247,30 +262,33 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-arrow-multiple'),
+        sanitizeTestName("annotation-arrow-multiple"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
   });
 
-  describe('Shape Annotations', () => {
-    it('renders circle annotation', async () => {
-      renderResult = await renderChart(chart => {
+  describe("Shape Annotations", () => {
+    it("renders circle annotation", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [
           {
-            time: '2024-01-15',
+            time: "2024-01-15",
             price: 110,
-            text: 'Peak',
-            type: 'circle',
-            position: 'above',
-            color: '#9C27B0',
+            text: "Peak",
+            type: "circle",
+            position: "above",
+            color: "#9C27B0",
             fontSize: 2,
           },
         ];
@@ -281,46 +299,49 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-circle'),
+        sanitizeTestName("annotation-circle"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
 
-    it('renders multiple shape annotations', async () => {
-      renderResult = await renderChart(chart => {
+    it("renders multiple shape annotations", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [
           {
-            time: '2024-01-08',
+            time: "2024-01-08",
             price: 108,
-            text: 'High',
-            type: 'circle',
-            position: 'above',
-            color: '#FF9800',
+            text: "High",
+            type: "circle",
+            position: "above",
+            color: "#FF9800",
             fontSize: 1.5,
           },
           {
-            time: '2024-01-15',
+            time: "2024-01-15",
             price: 112,
-            text: 'Peak',
-            type: 'circle',
-            position: 'above',
-            color: '#F44336',
+            text: "Peak",
+            type: "circle",
+            position: "above",
+            color: "#F44336",
             fontSize: 2,
           },
           {
-            time: '2024-01-22',
+            time: "2024-01-22",
             price: 103,
-            text: 'Low',
-            type: 'circle',
-            position: 'below',
-            color: '#4CAF50',
+            text: "Low",
+            type: "circle",
+            position: "below",
+            color: "#4CAF50",
             fontSize: 1.5,
           },
         ];
@@ -331,49 +352,52 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-shape-multiple'),
+        sanitizeTestName("annotation-shape-multiple"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
   });
 
-  describe('Mixed Annotations', () => {
-    it('renders mixed annotation types', async () => {
-      renderResult = await renderChart(chart => {
+  describe("Mixed Annotations", () => {
+    it("renders mixed annotation types", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [
           {
-            time: '2024-01-08',
+            time: "2024-01-08",
             price: 105,
-            text: 'Buy',
-            type: 'arrow',
-            position: 'below',
-            color: '#4CAF50',
+            text: "Buy",
+            type: "arrow",
+            position: "below",
+            color: "#4CAF50",
             fontSize: 2,
           },
           {
-            time: '2024-01-15',
+            time: "2024-01-15",
             price: 112,
-            text: 'Resistance Break',
-            type: 'text',
-            position: 'above',
-            backgroundColor: 'rgba(255, 235, 59, 0.9)',
-            textColor: '#000000',
+            text: "Resistance Break",
+            type: "text",
+            position: "above",
+            backgroundColor: "rgba(255, 235, 59, 0.9)",
+            textColor: "#000000",
             fontSize: 11,
           },
           {
-            time: '2024-01-22',
+            time: "2024-01-22",
             price: 104,
-            text: 'Key Level',
-            type: 'circle',
-            position: 'below',
-            color: '#9C27B0',
+            text: "Key Level",
+            type: "circle",
+            position: "below",
+            color: "#9C27B0",
             fontSize: 1.5,
           },
         ];
@@ -384,57 +408,60 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-mixed-types'),
+        sanitizeTestName("annotation-mixed-types"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
 
-    it('renders annotations with various styles', async () => {
-      renderResult = await renderChart(chart => {
+    it("renders annotations with various styles", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [
           {
-            time: '2024-01-05',
+            time: "2024-01-05",
             price: 104,
-            text: 'Entry',
-            type: 'arrow',
-            position: 'below',
-            color: '#00BCD4',
+            text: "Entry",
+            type: "arrow",
+            position: "below",
+            color: "#00BCD4",
             fontSize: 1.5,
           },
           {
-            time: '2024-01-12',
+            time: "2024-01-12",
             price: 110,
-            text: 'Target 1',
-            type: 'text',
-            position: 'above',
-            backgroundColor: 'rgba(76, 175, 80, 0.9)',
-            textColor: '#FFFFFF',
+            text: "Target 1",
+            type: "text",
+            position: "above",
+            backgroundColor: "rgba(76, 175, 80, 0.9)",
+            textColor: "#FFFFFF",
             fontSize: 10,
           },
           {
-            time: '2024-01-20',
+            time: "2024-01-20",
             price: 113,
-            text: 'Target 2',
-            type: 'text',
-            position: 'above',
-            backgroundColor: 'rgba(255, 152, 0, 0.9)',
-            textColor: '#FFFFFF',
+            text: "Target 2",
+            type: "text",
+            position: "above",
+            backgroundColor: "rgba(255, 152, 0, 0.9)",
+            textColor: "#FFFFFF",
             fontSize: 10,
           },
           {
-            time: '2024-01-27',
+            time: "2024-01-27",
             price: 106,
-            text: 'Stop',
-            type: 'circle',
-            position: 'below',
-            color: '#F44336',
+            text: "Stop",
+            type: "circle",
+            position: "below",
+            color: "#F44336",
             fontSize: 2,
           },
         ];
@@ -445,41 +472,44 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-various-styles'),
+        sanitizeTestName("annotation-various-styles"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
   });
 
-  describe('Annotation Edge Cases', () => {
-    it('renders annotations at chart boundaries', async () => {
-      renderResult = await renderChart(chart => {
+  describe("Annotation Edge Cases", () => {
+    it("renders annotations at chart boundaries", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [
           {
-            time: '2024-01-01', // First data point
+            time: "2024-01-01", // First data point
             price: 100,
-            text: 'Start',
-            type: 'text',
-            position: 'below',
-            backgroundColor: 'rgba(33, 150, 243, 0.9)',
-            textColor: '#FFFFFF',
+            text: "Start",
+            type: "text",
+            position: "below",
+            backgroundColor: "rgba(33, 150, 243, 0.9)",
+            textColor: "#FFFFFF",
             fontSize: 10,
           },
           {
-            time: '2024-01-30', // Last data point
+            time: "2024-01-30", // Last data point
             price: 115,
-            text: 'End',
-            type: 'text',
-            position: 'above',
-            backgroundColor: 'rgba(233, 30, 99, 0.9)',
-            textColor: '#FFFFFF',
+            text: "End",
+            type: "text",
+            position: "above",
+            backgroundColor: "rgba(233, 30, 99, 0.9)",
+            textColor: "#FFFFFF",
             fontSize: 10,
           },
         ];
@@ -490,18 +520,21 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-boundaries'),
+        sanitizeTestName("annotation-boundaries"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
 
-    it('handles empty annotations array', async () => {
-      renderResult = await renderChart(chart => {
+    it("handles empty annotations array", async () => {
+      renderResult = await renderChart((chart) => {
         const data = createBasePriceData();
-        const series = chart.addSeries(LineSeries, { color: '#2196F3', lineWidth: 2 });
+        const series = chart.addSeries(LineSeries, {
+          color: "#2196F3",
+          lineWidth: 2,
+        });
         series.setData(data);
 
         const annotations: Annotation[] = [];
@@ -512,80 +545,80 @@ describe('Annotation Visual Tests', () => {
       });
 
       const result = assertMatchesSnapshot(
-        sanitizeTestName('annotation-empty-array'),
+        sanitizeTestName("annotation-empty-array"),
         renderResult.imageData,
-        { threshold: 0.1, tolerance: 1.0 }
+        { threshold: 0.1, tolerance: 1.0 },
       );
 
       expect(result.matches).toBe(true);
     });
   });
 
-  describe('Annotation Data Validation', () => {
-    it('validates annotation time format', () => {
+  describe("Annotation Data Validation", () => {
+    it("validates annotation time format", () => {
       const annotations: Annotation[] = [
         {
-          time: '2024-01-15',
+          time: "2024-01-15",
           price: 110,
-          text: 'Valid Time',
-          type: 'text',
-          position: 'above',
+          text: "Valid Time",
+          type: "text",
+          position: "above",
         },
       ];
 
       const { texts } = createAnnotationVisualElements(annotations);
       expect(texts).toHaveLength(1);
-      expect(texts[0].text).toBe('Valid Time');
+      expect(texts[0].text).toBe("Valid Time");
     });
 
-    it('validates annotation position values', () => {
+    it("validates annotation position values", () => {
       const annotations: Annotation[] = [
         {
-          time: '2024-01-15',
+          time: "2024-01-15",
           price: 110,
-          text: 'Above',
-          type: 'text',
-          position: 'above',
+          text: "Above",
+          type: "text",
+          position: "above",
         },
         {
-          time: '2024-01-20',
+          time: "2024-01-20",
           price: 105,
-          text: 'Below',
-          type: 'text',
-          position: 'below',
+          text: "Below",
+          type: "text",
+          position: "below",
         },
       ];
 
       const { texts } = createAnnotationVisualElements(annotations);
       expect(texts).toHaveLength(2);
-      expect(texts[0].position).toBe('aboveBar');
-      expect(texts[1].position).toBe('belowBar');
+      expect(texts[0].position).toBe("aboveBar");
+      expect(texts[1].position).toBe("belowBar");
     });
 
-    it('validates annotation type conversion', () => {
+    it("validates annotation type conversion", () => {
       const annotations: Annotation[] = [
         {
-          time: '2024-01-15',
+          time: "2024-01-15",
           price: 110,
-          text: 'Arrow',
-          type: 'arrow',
-          position: 'below',
-          color: '#4CAF50',
+          text: "Arrow",
+          type: "arrow",
+          position: "below",
+          color: "#4CAF50",
         },
         {
-          time: '2024-01-20',
+          time: "2024-01-20",
           price: 112,
-          text: 'Circle',
-          type: 'circle',
-          position: 'above',
-          color: '#9C27B0',
+          text: "Circle",
+          type: "circle",
+          position: "above",
+          color: "#9C27B0",
         },
       ];
 
       const { markers } = createAnnotationVisualElements(annotations);
       expect(markers).toHaveLength(2);
-      expect(markers[0].shape).toBe('arrowUp');
-      expect(markers[1].shape).toBe('circle');
+      expect(markers[0].shape).toBe("arrowUp");
+      expect(markers[1].shape).toBe("circle");
     });
   });
 });

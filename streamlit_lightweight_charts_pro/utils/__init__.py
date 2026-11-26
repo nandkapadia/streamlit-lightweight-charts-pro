@@ -34,10 +34,6 @@ Available Utilities:
     Time Utilities:
         - normalize_time: Normalize various time formats
 
-    Performance Profiling:
-        - Profiler: Performance profiling class
-        - profile_method: Decorator for method profiling
-
 Example:
     Using color utilities::
 
@@ -55,16 +51,6 @@ Example:
 
         # Convert API field names
         camel_name = snake_to_camel("price_scale_id")  # Returns "priceScaleId"
-
-    Using profiling::
-
-        from streamlit_lightweight_charts_pro.utils import profile_method
-
-        class MyChart:
-            @profile_method
-            def render(self):
-                # Method execution time will be logged
-                pass
 
 Note:
     All utilities in this module are imported from the lightweight_charts_pro
@@ -99,13 +85,6 @@ from lightweight_charts_pro.utils import (
     validated_field,  # Decorator to add validation to field setters
 )
 
-# Import profiling utilities for performance monitoring and optimization
-# These are particularly useful during development and debugging
-from lightweight_charts_pro.utils.profiler import (
-    Profiler,  # Class for profiling code execution time
-    profile_method,  # Decorator for automatically profiling method execution
-)
-
 # Local Imports
 # (None - this module only re-exports utilities from core)
 
@@ -133,7 +112,4 @@ __all__ = [
     "validated_field",
     # Time utilities
     "normalize_time",
-    # Profiling
-    "Profiler",
-    "profile_method",
 ]

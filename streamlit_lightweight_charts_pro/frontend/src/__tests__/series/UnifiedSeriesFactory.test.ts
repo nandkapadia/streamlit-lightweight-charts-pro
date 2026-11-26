@@ -11,20 +11,21 @@ import {
 } from "../../series/UnifiedSeriesFactory";
 import { IChartApi, createSeriesMarkers } from "lightweight-charts";
 
-// Mock the logger
-vi.mock("../../utils/logger", () => ({
-  logger: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
-// Mock cleanLineStyleOptions
-vi.mock("../../utils/lineStyle", () => ({
-  cleanLineStyleOptions: (options: any) => options,
-}));
+vi.mock("@nandkapadia/lightweight-charts-pro-core", async () => {
+  const actual = await vi.importActual<
+    typeof import("@nandkapadia/lightweight-charts-pro-core")
+  >("@nandkapadia/lightweight-charts-pro-core");
+  return {
+    ...actual,
+    logger: {
+      error: vi.fn(),
+      warn: vi.fn(),
+      info: vi.fn(),
+      debug: vi.fn(),
+    },
+    cleanLineStyleOptions: (options: unknown) => options,
+  };
+});
 
 // Mock createSeriesMarkers
 vi.mock("lightweight-charts", async () => {
@@ -34,14 +35,6 @@ vi.mock("lightweight-charts", async () => {
     createSeriesMarkers: vi.fn(),
   };
 });
-
-// Mock trade visualization
-vi.mock("../../services/tradeVisualization", () => ({
-  createTradeVisualElements: vi.fn(() => ({
-    markers: [],
-    rectangles: [],
-  })),
-}));
 
 describe("UnifiedSeriesFactory - Title Handling", () => {
   let mockChart: IChartApi;

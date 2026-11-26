@@ -528,11 +528,14 @@ export function createSeriesWithConfig(
       legend,
       seriesId,
       chartId,
+      title,
     } = config;
 
     // Backend now sends all series configuration properties in the options object.
     // Framework metadata (type, data, paneId) and post-creation objects (priceScale,
     // priceLines, markers, legend) remain at top-level for proper handling.
+    // A top-level title (Python series.title) overrides options.title.
+    const mergedOptions = title !== undefined ? { ...options, title } : options;
 
     // Step 1: Create the series using basic createSeries
     // Note: createSeries already handles data sorting and setting via descriptors
@@ -540,7 +543,7 @@ export function createSeriesWithConfig(
       chart,
       type,
       data,
-      options,
+      mergedOptions,
       paneId,
     ) as ExtendedSeriesApi;
 
@@ -607,7 +610,7 @@ export function createSeriesWithConfig(
     //                  Filtered out before passing to API (see createSeries function)
     //   - title: Official Lightweight Charts API property
     //            Already passed in options to addSeries(), stored here for quick access
-    const optionsAny = options as any;
+    const optionsAny = mergedOptions as any;
     if (optionsAny.displayName) {
       series.displayName = optionsAny.displayName;
     }
@@ -675,7 +678,9 @@ export function createSeriesWithConfig(
       }
     }
 
-    const seriesMarkers = userMarkers.concat(tradeMarkers);
+    const seriesMarkers = userMarkers
+      .concat(tradeMarkers)
+      .sort((a, b) => toMarkerTimestamp(a.time) - toMarkerTimestamp(b.time));
     if (seriesMarkers.length > 0) {
       try {
         createSeriesMarkers(series, seriesMarkers);
@@ -693,6 +698,32 @@ export function createSeriesWithConfig(
     );
     return null;
   }
+}
+
+/**
+ * Normalize any Time value to a numeric Unix timestamp in seconds for ordering
+ */
+function toMarkerTimestamp(time: Time): number {
+  if (typeof time === "number") {
+    return time > 1e11 ? Math.floor(time / 1000) : time;
+  }
+  if (typeof time === "string") {
+    const num = Number(time);
+    if (!Number.isNaN(num)) {
+      return num > 1e11 ? Math.floor(num / 1000) : num;
+    }
+    return Math.floor(new Date(time).getTime() / 1000);
+  }
+  if (
+    typeof time === "object" &&
+    time !== null &&
+    "year" in time &&
+    "month" in time &&
+    "day" in time
+  ) {
+    return Math.floor(Date.UTC(time.year, time.month - 1, time.day) / 1000);
+  }
+  return 0;
 }
 
 /**

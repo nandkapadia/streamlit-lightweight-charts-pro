@@ -7,12 +7,13 @@ BaseChartManager with Streamlit-specific rendering capabilities.
 import hashlib
 import json
 from collections.abc import Sequence
-from typing import Any, Optional, Union
+from typing import Any
 
 import pandas as pd
 import streamlit as st
 
 from lightweight_charts_pro.charts import BaseChartManager
+from lightweight_charts_pro.charts.options.sync_options import SyncOptions  # noqa: F401
 from lightweight_charts_pro.data import OhlcvData
 from lightweight_charts_pro.exceptions import DuplicateError, NotFoundError, TypeValidationError
 from streamlit_lightweight_charts_pro.charts.chart import Chart
@@ -46,7 +47,7 @@ class ChartManager(BaseChartManager):
     # Use Streamlit Chart class for factory methods
     chart_class = Chart
 
-    def add_chart(self, chart: Chart, chart_id: Optional[str] = None) -> "ChartManager":
+    def add_chart(self, chart: Chart, chart_id: str | None = None) -> "ChartManager":
         """Add a chart to the manager.
 
         Extends the base implementation to set up Streamlit-specific references
@@ -77,7 +78,7 @@ class ChartManager(BaseChartManager):
         self.charts[chart_id] = chart
         return self
 
-    def render_chart(self, chart_id: str, key: Optional[str] = None) -> Any:
+    def render_chart(self, chart_id: str, key: str | None = None) -> Any:
         """Render a specific chart from the manager.
 
         Args:
@@ -98,8 +99,8 @@ class ChartManager(BaseChartManager):
 
     def from_price_volume_dataframe(
         self,
-        data: Union[Sequence[OhlcvData], pd.DataFrame],
-        column_mapping: Optional[dict] = None,
+        data: Sequence[OhlcvData] | pd.DataFrame,
+        column_mapping: dict | None = None,
         price_type: str = "candlestick",
         chart_id: str = "main_chart",
         price_kwargs=None,
@@ -122,7 +123,7 @@ class ChartManager(BaseChartManager):
         """
         if data is None:
             raise TypeValidationError("data", "list or DataFrame")
-        if not isinstance(data, (list, pd.DataFrame)):
+        if not isinstance(data, list | pd.DataFrame):
             raise TypeValidationError("data", "list or DataFrame")
 
         chart = Chart()
@@ -204,9 +205,9 @@ class ChartManager(BaseChartManager):
 
     def render(
         self,
-        key: Optional[str] = None,
-        symbol: Optional[str] = None,
-        interval: Optional[str] = None,
+        key: str | None = None,
+        symbol: str | None = None,
+        interval: str | None = None,
     ) -> Any:
         """Render the chart manager with automatic change detection.
 
@@ -239,10 +240,11 @@ class ChartManager(BaseChartManager):
         self._auto_detect_changes(key)
 
         # Load and apply stored configs for each chart
-        for chart in self.charts.values():
+        for chart_id, chart in self.charts.items():
+            chart_key = f"{key}_{chart_id}"
             chart._session_state_manager.reset_config_applied_flag()  # pylint: disable=protected-access
             stored_configs = chart._session_state_manager.load_series_configs(
-                key
+                chart_key
             )  # pylint: disable=protected-access
             if stored_configs:
                 chart._session_state_manager.apply_stored_configs_to_series(  # pylint: disable=protected-access
@@ -259,13 +261,29 @@ class ChartManager(BaseChartManager):
             config, key, None
         )  # pylint: disable=protected-access
 
-        # Handle response for each chart
+        # Handle response for the component
         if result:
-            for chart in self.charts.values():
-                chart._chart_renderer.handle_response(  # pylint: disable=protected-access
-                    result,
-                    key,
-                    chart._session_state_manager,  # pylint: disable=protected-access
-                )
+            first_chart._chart_renderer.handle_response(  # pylint: disable=protected-access
+                result,
+                key,
+                first_chart._session_state_manager,  # pylint: disable=protected-access
+            )
+            # Route per-chart series config changes to each chart's session state
+            if isinstance(result, dict) and result.get("type") == "series_config_changes":
+                changes = result.get("changes", [])
+                for chart_id, chart in self.charts.items():
+                    chart_changes = [
+                        c for c in changes if c.get("chartId") == chart_id or len(self.charts) == 1
+                    ]
+                    if chart_changes:
+                        chart_configs = {
+                            c.get("seriesId"): c.get("config")
+                            for c in chart_changes
+                            if c.get("seriesId") and c.get("config")
+                        }
+                        if chart_configs:
+                            chart._session_state_manager.save_series_configs(
+                                f"{key}_{chart_id}", chart_configs
+                            )
 
         return result

@@ -104,6 +104,7 @@ import {
 // Streamlit-specific services
 import { ChartPrimitiveManager } from "./services/ChartPrimitiveManager";
 import { createSeriesWithConfig } from "./series/UnifiedSeriesFactory";
+import { normalizedPaneId, paneSeriesId } from "./utils/seriesIds";
 import {
   applyChartOptionDefaults,
   pinnedContainerSize,
@@ -173,51 +174,47 @@ const attachTradeRectangles = (
 // Global Window interface declarations moved to types/ChartInterfaces.ts to avoid conflicts
 
 /**
- * Retries an async operation with exponential backoff.
- *
- * Implements exponential backoff with jitter to avoid thundering herd problems.
- * Used for primitive attachment and other operations that may fail transiently.
- *
- * @param operation - Async operation to retry
- * @param maxRetries - Maximum number of retry attempts (default: 5)
- * @param baseDelay - Base delay in milliseconds (default: 100ms)
- * @returns Result of successful operation
- * @throws Last error if all retries fail
- *
- * @example
- * ```typescript
- * const result = await retryWithBackoff(
- *   () => attachPrimitive(chart, primitive),
- *   5,
- *   100
- * );
- * ```
+ * Plugins for one chart are always stored as an array.
+ * Older builds stored a single TooltipPlugin object; wrap that too.
  */
-const retryWithBackoff = async (
-  operation: () => Promise<unknown>,
-  maxRetries: number = 5,
-  baseDelay: number = 100,
-): Promise<unknown> => {
-  let lastError: Error | undefined;
-
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      lastError = error as Error;
-
-      if (attempt === maxRetries - 1) {
-        throw lastError || new Error("Unknown error occurred");
-      }
-
-      // Exponential backoff with jitter
-      const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 100;
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
+function chartPluginList(stored: unknown): Destroyable[] {
+  if (Array.isArray(stored)) {
+    return stored as Destroyable[];
   }
+  if (
+    stored &&
+    typeof stored === "object" &&
+    typeof (stored as Destroyable).destroy === "function"
+  ) {
+    return [stored as Destroyable];
+  }
+  return [];
+}
 
-  throw lastError || new Error("Unknown error occurred");
-};
+function rememberChartPlugin(chartId: string, plugin: Destroyable): void {
+  if (!window.chartPlugins) {
+    window.chartPlugins = new Map();
+  }
+  const plugins = chartPluginList(window.chartPlugins.get(chartId));
+  plugins.push(plugin);
+  window.chartPlugins.set(chartId, plugins);
+}
+
+function destroyChartPlugins(chartId: string): void {
+  if (!window.chartPlugins) {
+    return;
+  }
+  chartPluginList(window.chartPlugins.get(chartId)).forEach((plugin) => {
+    try {
+      if (plugin && typeof plugin.destroy === "function") {
+        plugin.destroy();
+      }
+    } catch (error) {
+      logger.warn("Plugin already destroyed", "Cleanup", error);
+    }
+  });
+  window.chartPlugins.delete(chartId);
+}
 
 /**
  * Props for LightweightCharts component.
@@ -888,59 +885,54 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
 
       // Legend cleanup is now handled automatically by pane primitives
 
+      // Only touch charts this component owns. window.* maps are shared by
+      // every chart in the iframe, so a single cleanup must not clear them.
+      const ownedChartIds = new Set<string>([
+        ...Object.keys(chartRefs.current),
+        ...Object.keys(chartConfigs.current),
+      ]);
+
       // Clean up pane button panel widgets (new widget-based approach)
       if (window.paneButtonPanelWidgets) {
-        Object.entries(window.paneButtonPanelWidgets).forEach(
-          ([, widgets]: [string, unknown]) => {
-            if (Array.isArray(widgets)) {
-              widgets.forEach((widget: Destroyable) => {
-                try {
-                  if (widget && typeof widget.destroy === "function") {
-                    widget.destroy();
-                  }
-                } catch (error) {
-                  logger.warn(
-                    "Error destroying button panel widget",
-                    "Cleanup",
-                    error,
-                  );
+        ownedChartIds.forEach((ownedChartId) => {
+          const widgets = window.paneButtonPanelWidgets?.[ownedChartId];
+          if (Array.isArray(widgets)) {
+            widgets.forEach((widget) => {
+              const destroyable = widget as Destroyable;
+              try {
+                if (destroyable && typeof destroyable.destroy === "function") {
+                  destroyable.destroy();
                 }
-              });
-            }
-          },
-        );
-        window.paneButtonPanelWidgets = {};
-      }
-
-      // Clean up chart plugins (including RangeSwitcher)
-      if (window.chartPlugins) {
-        window.chartPlugins.forEach((plugins) => {
-          try {
-            if (Array.isArray(plugins)) {
-              plugins.forEach((plugin: Destroyable) => {
-                try {
-                  if (plugin && typeof plugin.destroy === "function") {
-                    plugin.destroy();
-                  }
-                } catch (error) {
-                  logger.warn("Plugin already destroyed", "Cleanup", error);
-                }
-              });
-            }
-          } catch (error) {
-            logger.warn("Plugins already cleaned up", "Cleanup", error);
+              } catch (error) {
+                logger.warn(
+                  "Error destroying button panel widget",
+                  "Cleanup",
+                  error,
+                );
+              }
+            });
+          }
+          if (window.paneButtonPanelWidgets) {
+            delete window.paneButtonPanelWidgets[ownedChartId];
           }
         });
-        window.chartPlugins.clear();
       }
+
+      // Destroy TooltipPlugin and other plugins for these charts only.
+      ownedChartIds.forEach((ownedChartId) => {
+        destroyChartPlugins(ownedChartId);
+      });
 
       // Clean up widget managers
       if (window.chartApiMap) {
-        Object.keys(window.chartApiMap).forEach((chartId) => {
+        ownedChartIds.forEach((ownedChartId) => {
           try {
-            ChartPrimitiveManager.cleanup(chartId);
+            ChartPrimitiveManager.cleanup(ownedChartId);
           } catch (error) {
             logger.warn("Widget manager already cleaned up", "Cleanup", error);
+          }
+          if (window.chartApiMap) {
+            delete window.chartApiMap[ownedChartId];
           }
         });
       }
@@ -1211,19 +1203,12 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         try {
           // Create tooltip renderer (just the DOM renderer)
           // Primitives and plugins will use TooltipManager to request tooltips
-          const tooltipPlugin = new TooltipPlugin(
-            container,
-            chartConfig.chartId || `chart-${Date.now()}`,
-          );
+          const chartId = chartConfig.chartId || `chart-${Date.now()}`;
+          const tooltipPlugin = new TooltipPlugin(container, chartId);
 
-          // Store plugin reference for cleanup
-          if (!window.chartPlugins) {
-            window.chartPlugins = new Map();
-          }
-          window.chartPlugins.set(
-            chartConfig.chartId || `chart-${Date.now()}`,
-            tooltipPlugin,
-          );
+          // Always store an array so cleanup can destroy TooltipPlugin
+          // alongside range switchers and other plugins.
+          rememberChartPlugin(chartId, tooltipPlugin);
 
           logger.info("TooltipPlugin initialized", "LightweightCharts");
         } catch (error) {
@@ -1253,19 +1238,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
           const rangeSwitcherWidget =
             primitiveManager.addRangeSwitcher(rangeConfig);
 
-          // Register cleanup for this plugin
-          if (!window.chartPlugins) {
-            window.chartPlugins = new Map();
-          }
-
-          // Ensure we always get an array, even if the stored value is corrupted
-          const storedPlugins = window.chartPlugins.get(chartId);
-          const existingPlugins: Destroyable[] = Array.isArray(storedPlugins)
-            ? (storedPlugins as Destroyable[])
-            : [];
-
-          existingPlugins.push(rangeSwitcherWidget as Destroyable);
-          window.chartPlugins.set(chartId, existingPlugins);
+          rememberChartPlugin(chartId, rangeSwitcherWidget as Destroyable);
         } catch (error) {
           logger.error(
             "Failed to store chart instance",
@@ -1319,19 +1292,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
       [],
     );
 
-    const legendSeriesDataRef = useRef<
-      Map<
-        string,
-        {
-          series: ExtendedSeriesApi;
-          legendConfig: LegendConfig;
-          paneId: number;
-          seriesName: string;
-          seriesIndex: number;
-        }[]
-      >
-    >(new Map());
-
     const addLegend = useCallback(
       async (
         chart: IChartApi,
@@ -1366,274 +1326,6 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         } catch (error) {
           logger.error("Trade visualization error", "LightweightCharts", error);
         }
-
-        // OLD SYSTEM BELOW - keeping as fallback but should not be reached
-
-        // Check if component is being disposed
-        if (isDisposingRef.current) {
-          return;
-        }
-
-        // Check if chart is valid and legends config exists
-        if (
-          !chart ||
-          !legendsConfig ||
-          Object.keys(legendsConfig).length === 0 ||
-          seriesList.length === 0
-        ) {
-          return;
-        }
-
-        try {
-          // Quick check if chart is still valid
-          chart.chartElement();
-        } catch {
-          return;
-        }
-
-        // Additional safety check for chart validity
-        try {
-          chart.timeScale();
-        } catch {
-          return;
-        }
-
-        // Additional check to prevent disposal during async operations
-        if (isDisposingRef.current) {
-          return;
-        }
-
-        // ✅ CRITICAL: Wait for chart API to be ready and get pane information
-
-        try {
-          await retryWithBackoff(
-            async () => {
-              // Check if component is being disposed
-              if (isDisposingRef.current) {
-                throw new Error("Component disposed during retry");
-              }
-
-              // Check if chart has panes available via API
-              try {
-                let panes: IPaneApi<Time>[] = [];
-                if (chart && typeof chart.panes === "function") {
-                  try {
-                    panes = chart.panes();
-                  } catch {
-                    // chart.panes() failed, use empty array
-                    panes = [];
-                  }
-                }
-
-                // Verify we have enough panes for the legend config
-                const maxPaneId = Math.max(
-                  ...Object.keys(legendsConfig).map((id) => parseInt(id)),
-                );
-                if (panes.length <= maxPaneId) {
-                  throw new Error(
-                    `Not enough panes in chart API. Found: ${panes.length}, Need: ${maxPaneId + 1}`,
-                  );
-                }
-
-                return panes;
-              } catch (error) {
-                throw new Error(`Chart panes not ready: ${error}`);
-              }
-            },
-            10,
-            200,
-          ); // 10 retries with 200ms base delay (exponential backoff)
-        } catch (error) {
-          if (
-            error instanceof Error &&
-            error.message === "Component disposed during retry"
-          ) {
-            // Component disposed during retry
-          } else {
-            // Other error types handled by outer catch
-          }
-          return;
-        }
-
-        // Get chart ID for storing legend references
-        const chartId = chart.chartElement().id || "default";
-        const legendSeriesData: {
-          series: ExtendedSeriesApi;
-          legendConfig: LegendConfig;
-          paneId: number;
-          seriesName: string;
-          seriesIndex: number;
-        }[] = [];
-
-        // Debug: Check for existing legend elements that might be from legacy systems
-        const chartElement = chart.chartElement();
-
-        // Check for any elements that might be legends
-        const allElements = chartElement.querySelectorAll("*");
-        const potentialLegends = Array.from(allElements).filter((el) => {
-          const text = el.textContent || "";
-          return (
-            text.includes("Know Sure Thing") ||
-            text.includes("KST") ||
-            text.includes("Legend") ||
-            el.className.includes("legend") ||
-            el.id.includes("legend")
-          );
-        });
-
-        if (potentialLegends.length > 0) {
-          // If we find "Know Sure Thing" legend, REMOVE IT from pane 0 and recreate it properly on pane 1
-          const kstLegend = potentialLegends.find((el) =>
-            el.textContent?.includes("Know Sure Thing"),
-          );
-          if (kstLegend) {
-            try {
-              // Remove the incorrectly positioned legend
-              kstLegend.remove();
-            } catch {
-              logger.error("An error occurred", "LightweightCharts");
-            }
-          }
-        }
-
-        // Group series by pane
-        const seriesByPane = new Map<number, ExtendedSeriesApi[]>();
-        seriesList.forEach((series) => {
-          // Try to get paneId from series options or fallback to index-based assignment
-          let paneId = 0;
-
-          // Safely get series options
-          let seriesOptions: Record<string, unknown> = {};
-          try {
-            if (typeof series.options === "function") {
-              seriesOptions = series.options() as unknown as Record<
-                string,
-                unknown
-              >;
-            } else if (series.options) {
-              seriesOptions = series.options as unknown as Record<
-                string,
-                unknown
-              >;
-            }
-          } catch {
-            logger.error("An error occurred", "LightweightCharts");
-          }
-
-          // Get the paneId from the series configuration (backend sets this)
-          let seriesPaneId: number | undefined = undefined;
-
-          // First check if paneId is at the top level of the series (camelCase from backend)
-          const extendedSeries = series as ExtendedSeriesApi;
-          if (extendedSeries.paneId !== undefined) {
-            seriesPaneId = extendedSeries.paneId;
-          }
-          // Then check if paneId is in the options
-          else if (
-            seriesOptions &&
-            (seriesOptions as unknown as SeriesConfig & { paneId?: number })
-              .paneId !== undefined
-          ) {
-            seriesPaneId = (
-              seriesOptions as unknown as SeriesConfig & { paneId?: number }
-            ).paneId;
-          }
-
-          if (seriesPaneId !== undefined) {
-            // Use the backend-assigned paneId
-            paneId = seriesPaneId;
-          } else {
-            // If no paneId from backend, use default pane 0
-            paneId = 0;
-          }
-
-          // No special handling - respect backend pane assignments only
-
-          // Store the actual assigned pane ID on the series for later use (e.g., legend assignment)
-          (series as ExtendedSeriesApi).assignedPaneId = paneId;
-
-          if (!seriesByPane.has(paneId)) {
-            seriesByPane.set(paneId, []);
-          }
-          const paneSeriesList = seriesByPane.get(paneId);
-          if (paneSeriesList) {
-            paneSeriesList.push(series);
-          }
-        });
-
-        // Create legends only for panes that have explicit legend configurations
-        Object.keys(legendsConfig).forEach((legendKey) => {
-          const legendData = legendsConfig[legendKey];
-          const { paneId, config: legendConfig } = legendData;
-
-          // Skip if no legend config exists
-          if (!legendConfig) {
-            return;
-          }
-
-          // Only create legend if config is visible
-          if (!legendConfig.visible) {
-            return;
-          }
-
-          // Check if this pane has series (optional validation)
-          const paneSeries = seriesByPane.get(paneId) || [];
-
-          // ✅ CORRECT: Use Lightweight Charts Drawing Primitives plugin for proper pane-scoped legends
-          // Get pane API to verify it exists
-          let paneApi;
-          try {
-            if (chart && typeof chart.panes === "function") {
-              try {
-                const allPanes = chart.panes();
-                paneApi = allPanes[paneId];
-              } catch {
-                // chart.panes() failed, use null
-                paneApi = null;
-              }
-            } else {
-              paneApi = null;
-            }
-
-            if (!paneApi) {
-              return;
-            }
-          } catch {
-            return;
-          }
-
-          // Legend items are now handled by the Drawing Primitives plugin
-          // Store series data for crosshair updates
-          paneSeries.forEach((series, index) => {
-            // Find the actual seriesIndex in the original seriesList
-            const actualSeriesIndex = seriesList.findIndex((s) => s === series);
-            legendSeriesData.push({
-              series,
-              legendConfig,
-              paneId,
-              seriesName: `Pane ${paneId}`,
-              seriesIndex: actualSeriesIndex >= 0 ? actualSeriesIndex : index,
-            });
-          });
-
-          // Legend items are now handled by the Drawing Primitives plugin
-          // No need for manual DOM manipulation
-
-          // Legend items are now handled by the Drawing Primitives plugin
-          // No need for manual DOM manipulation
-        });
-
-        // Store legend series data for updates
-        legendSeriesDataRef.current.set(chartId, legendSeriesData);
-
-        // Setup crosshair event handling for legend updates
-        // Debug: Log the legendsConfig to see what we're working with
-
-        // Check if any legend has crosshair updates enabled OR contains $$value$$ placeholders
-        // This check is now handled in the ChartPrimitiveManager
-
-        // Legend crosshair updates are now handled in the main chart setup
-        // to avoid chicken-and-egg problem with subscription setup
       },
       [],
     );
@@ -1995,6 +1687,7 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
             const seriesList: ExtendedSeriesApi[] = [];
 
             if (chartConfig.series && Array.isArray(chartConfig.series)) {
+              const paneSeriesCounts = new Map<number, number>();
               chartConfig.series.forEach(
                 (seriesConfig: SeriesConfig, seriesIndex: number) => {
                   try {
@@ -2005,6 +1698,10 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                       );
                       return;
                     }
+                    const seriesPaneId = seriesConfig.paneId ?? 0;
+                    const perPaneIndex =
+                      paneSeriesCounts.get(seriesPaneId) ?? 0;
+                    paneSeriesCounts.set(seriesPaneId, perPaneIndex + 1);
 
                     // Pass trade data to the first series (candlestick series) for marker creation
                     if (
@@ -2022,7 +1719,8 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
                     const series = createSeriesWithConfig(chart, {
                       ...seriesConfig,
                       chartId,
-                      seriesId: `${chartId || "default"}-series-${seriesIndex}`,
+                      paneId: seriesPaneId,
+                      seriesId: paneSeriesId(seriesPaneId, perPaneIndex),
                     });
                     if (series) {
                       seriesList.push(series);
@@ -2604,15 +2302,22 @@ const LightweightCharts: React.FC<LightweightChartsProps> = React.memo(
         if (!chart) return;
 
         try {
-          // Get chart series and find the matching one
+          // Y in pane-X-series-Y is the index within that pane.
           const chartSeries = seriesRefs.current[chartId] || [];
+          const paneCounters = new Map<string, number>();
+          const targetPane = normalizedPaneId(paneId);
 
-          chartSeries.forEach((series, index) => {
-            // Check if this is the target series
-            // The seriesId format is typically "pane-X-series-Y"
-            const expectedSeriesId = `pane-${paneId}-series-${index}`;
+          chartSeries.forEach((series) => {
+            const tagged = series as ExtendedSeriesApi;
+            const seriesPane = normalizedPaneId(tagged.paneId);
+            if (seriesPane !== targetPane) {
+              return;
+            }
+            const perPaneIndex = paneCounters.get(seriesPane) ?? 0;
+            paneCounters.set(seriesPane, perPaneIndex + 1);
+            const expectedSeriesId = paneSeriesId(seriesPane, perPaneIndex);
 
-            if (seriesId === expectedSeriesId) {
+            if (seriesId === expectedSeriesId || tagged.seriesId === seriesId) {
               // Apply the configuration changes to the series
               // Get series type from configPatch (added by plugin)
               const seriesType = (configPatch as any)._seriesType || "line";

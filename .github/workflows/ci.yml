@@ -2,9 +2,9 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
   release:
     types: [ created ]
 
@@ -40,10 +40,15 @@ jobs:
         npm install
         npm run build
 
+    # The repository does not currently contain a tests/ directory.
+    # Skip pytest until that suite is added, instead of failing the job.
     - name: Run Python tests
       run: |
-        pytest tests/ -v --tb=short
-      continue-on-error: true
+        if [ -d tests ]; then
+          pytest tests/ -v --tb=short
+        else
+          echo "tests/ directory is not present; skipping pytest."
+        fi
 
   publish:
     needs: test

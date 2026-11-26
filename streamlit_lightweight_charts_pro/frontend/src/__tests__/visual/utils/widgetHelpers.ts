@@ -7,20 +7,28 @@
  * @module visual/utils/widgetHelpers
  */
 
-import { IChartApi, ISeriesApi } from 'lightweight-charts';
-import { LegendPrimitive, LegendPrimitiveConfig } from '../../../primitives/LegendPrimitive';
+import { IChartApi, ISeriesApi } from "lightweight-charts";
 import {
+  LegendPrimitive,
+  PrimitivePriority,
   RangeSwitcherPrimitive,
-  RangeSwitcherPrimitiveConfig,
   TimeRange,
-  RangeConfig,
-} from '../../../primitives/RangeSwitcherPrimitive';
-import { PrimitivePriority } from '../../../primitives/BasePanePrimitive';
+  type RangeConfig,
+} from "@nandkapadia/lightweight-charts-pro-core";
+
+type LegendPrimitiveConfig = ConstructorParameters<typeof LegendPrimitive>[1];
+type RangeSwitcherPrimitiveConfig = ConstructorParameters<
+  typeof RangeSwitcherPrimitive
+>[1];
 
 /**
  * Corner position type for widget placement
  */
-export type CornerPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+export type CornerPosition =
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
 
 /**
  * Configuration for creating a Legend primitive
@@ -45,7 +53,7 @@ export interface CreateLegendConfig {
   /**
    * Custom styling for the legend
    */
-  styling?: Partial<LegendPrimitiveConfig['style']>;
+  styling?: Partial<LegendPrimitiveConfig["style"]>;
 
   /**
    * Whether this is a pane-specific primitive (vs chart-level)
@@ -95,7 +103,7 @@ export interface CreateRangeSwitcherConfig {
   /**
    * Custom styling for the range switcher
    */
-  styling?: Partial<RangeSwitcherPrimitiveConfig['style']>;
+  styling?: Partial<RangeSwitcherPrimitiveConfig["style"]>;
 
   /**
    * Whether this is a pane-specific primitive (vs chart-level)
@@ -127,49 +135,49 @@ export const PredefinedRanges = {
    * Standard trading ranges (1D, 1W, 1M, 3M, 6M, 1Y, All)
    */
   TRADING: [
-    { text: '1D', range: TimeRange.ONE_DAY },
-    { text: '1W', range: TimeRange.ONE_WEEK },
-    { text: '1M', range: TimeRange.ONE_MONTH },
-    { text: '3M', range: TimeRange.THREE_MONTHS },
-    { text: '6M', range: TimeRange.SIX_MONTHS },
-    { text: '1Y', range: TimeRange.ONE_YEAR },
-    { text: 'All', range: TimeRange.ALL },
+    { text: "1D", range: TimeRange.ONE_DAY },
+    { text: "1W", range: TimeRange.ONE_WEEK },
+    { text: "1M", range: TimeRange.ONE_MONTH },
+    { text: "3M", range: TimeRange.THREE_MONTHS },
+    { text: "6M", range: TimeRange.SIX_MONTHS },
+    { text: "1Y", range: TimeRange.ONE_YEAR },
+    { text: "All", range: TimeRange.ALL },
   ] as RangeConfig[],
 
   /**
    * Crypto/intraday ranges (5m, 15m, 1H, 4H, 1D, 1W, All)
    */
   CRYPTO: [
-    { text: '5m', range: TimeRange.FIVE_MINUTES },
-    { text: '15m', range: TimeRange.FIFTEEN_MINUTES },
-    { text: '1H', range: TimeRange.ONE_HOUR },
-    { text: '4H', range: TimeRange.FOUR_HOURS },
-    { text: '1D', range: TimeRange.ONE_DAY },
-    { text: '1W', range: TimeRange.ONE_WEEK },
-    { text: 'All', range: TimeRange.ALL },
+    { text: "5m", range: TimeRange.FIVE_MINUTES },
+    { text: "15m", range: TimeRange.FIFTEEN_MINUTES },
+    { text: "1H", range: TimeRange.ONE_HOUR },
+    { text: "4H", range: TimeRange.FOUR_HOURS },
+    { text: "1D", range: TimeRange.ONE_DAY },
+    { text: "1W", range: TimeRange.ONE_WEEK },
+    { text: "All", range: TimeRange.ALL },
   ] as RangeConfig[],
 
   /**
    * Long-term investment ranges (1M, 3M, 6M, 1Y, 2Y, 5Y, All)
    */
   LONGTERM: [
-    { text: '1M', range: TimeRange.ONE_MONTH },
-    { text: '3M', range: TimeRange.THREE_MONTHS },
-    { text: '6M', range: TimeRange.SIX_MONTHS },
-    { text: '1Y', range: TimeRange.ONE_YEAR },
-    { text: '2Y', range: TimeRange.TWO_YEARS },
-    { text: '5Y', range: TimeRange.FIVE_YEARS },
-    { text: 'All', range: TimeRange.ALL },
+    { text: "1M", range: TimeRange.ONE_MONTH },
+    { text: "3M", range: TimeRange.THREE_MONTHS },
+    { text: "6M", range: TimeRange.SIX_MONTHS },
+    { text: "1Y", range: TimeRange.ONE_YEAR },
+    { text: "2Y", range: TimeRange.TWO_YEARS },
+    { text: "5Y", range: TimeRange.FIVE_YEARS },
+    { text: "All", range: TimeRange.ALL },
   ] as RangeConfig[],
 
   /**
    * Simple 4-range configuration (1D, 1W, 1M, All)
    */
   SIMPLE: [
-    { text: '1D', range: TimeRange.ONE_DAY },
-    { text: '1W', range: TimeRange.ONE_WEEK },
-    { text: '1M', range: TimeRange.ONE_MONTH },
-    { text: 'All', range: TimeRange.ALL },
+    { text: "1D", range: TimeRange.ONE_DAY },
+    { text: "1W", range: TimeRange.ONE_WEEK },
+    { text: "1M", range: TimeRange.ONE_MONTH },
+    { text: "All", range: TimeRange.ALL },
   ] as RangeConfig[],
 };
 
@@ -177,37 +185,37 @@ export const PredefinedRanges = {
  * Parse a range string or RangeConfig to a RangeConfig object
  */
 function parseRange(range: string | RangeConfig): RangeConfig {
-  if (typeof range === 'object') {
+  if (typeof range === "object") {
     return range;
   }
 
   // Map common string formats to TimeRange enums
   const rangeMap: Record<string, TimeRange> = {
-    '5m': TimeRange.FIVE_MINUTES,
-    '15m': TimeRange.FIFTEEN_MINUTES,
-    '30m': TimeRange.THIRTY_MINUTES,
-    '1h': TimeRange.ONE_HOUR,
-    '1H': TimeRange.ONE_HOUR,
-    '4h': TimeRange.FOUR_HOURS,
-    '4H': TimeRange.FOUR_HOURS,
-    '1d': TimeRange.ONE_DAY,
-    '1D': TimeRange.ONE_DAY,
-    '1w': TimeRange.ONE_WEEK,
-    '1W': TimeRange.ONE_WEEK,
-    '2w': TimeRange.TWO_WEEKS,
-    '2W': TimeRange.TWO_WEEKS,
-    '1m': TimeRange.ONE_MONTH,
-    '1M': TimeRange.ONE_MONTH,
-    '3m': TimeRange.THREE_MONTHS,
-    '3M': TimeRange.THREE_MONTHS,
-    '6m': TimeRange.SIX_MONTHS,
-    '6M': TimeRange.SIX_MONTHS,
-    '1y': TimeRange.ONE_YEAR,
-    '1Y': TimeRange.ONE_YEAR,
-    '2y': TimeRange.TWO_YEARS,
-    '2Y': TimeRange.TWO_YEARS,
-    '5y': TimeRange.FIVE_YEARS,
-    '5Y': TimeRange.FIVE_YEARS,
+    "5m": TimeRange.FIVE_MINUTES,
+    "15m": TimeRange.FIFTEEN_MINUTES,
+    "30m": TimeRange.THIRTY_MINUTES,
+    "1h": TimeRange.ONE_HOUR,
+    "1H": TimeRange.ONE_HOUR,
+    "4h": TimeRange.FOUR_HOURS,
+    "4H": TimeRange.FOUR_HOURS,
+    "1d": TimeRange.ONE_DAY,
+    "1D": TimeRange.ONE_DAY,
+    "1w": TimeRange.ONE_WEEK,
+    "1W": TimeRange.ONE_WEEK,
+    "2w": TimeRange.TWO_WEEKS,
+    "2W": TimeRange.TWO_WEEKS,
+    "1m": TimeRange.ONE_MONTH,
+    "1M": TimeRange.ONE_MONTH,
+    "3m": TimeRange.THREE_MONTHS,
+    "3M": TimeRange.THREE_MONTHS,
+    "6m": TimeRange.SIX_MONTHS,
+    "6M": TimeRange.SIX_MONTHS,
+    "1y": TimeRange.ONE_YEAR,
+    "1Y": TimeRange.ONE_YEAR,
+    "2y": TimeRange.TWO_YEARS,
+    "2Y": TimeRange.TWO_YEARS,
+    "5y": TimeRange.FIVE_YEARS,
+    "5Y": TimeRange.FIVE_YEARS,
     all: TimeRange.ALL,
     All: TimeRange.ALL,
     ALL: TimeRange.ALL,
@@ -240,7 +248,10 @@ function parseRange(range: string | RangeConfig): RangeConfig {
  * });
  * ```
  */
-export function createLegend(chart: IChartApi, config: CreateLegendConfig): LegendPrimitive {
+export function createLegend(
+  chart: IChartApi,
+  config: CreateLegendConfig,
+): LegendPrimitive {
   const legendId = `legend-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
   const legendConfig: LegendPrimitiveConfig = {
@@ -275,7 +286,7 @@ export function createLegend(chart: IChartApi, config: CreateLegendConfig): Lege
  */
 export function createRangeSwitcher(
   chart: IChartApi,
-  config: CreateRangeSwitcherConfig
+  config: CreateRangeSwitcherConfig,
 ): RangeSwitcherPrimitive {
   const switcherId = `switcher-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
@@ -308,7 +319,10 @@ export function createRangeSwitcher(
  * attachLegendToSeries(legend, series);
  * ```
  */
-export function attachLegendToSeries(legend: LegendPrimitive, series: ISeriesApi<any>): void {
+export function attachLegendToSeries(
+  legend: LegendPrimitive,
+  series: ISeriesApi<any>,
+): void {
   series.attachPrimitive(legend);
 }
 
@@ -329,7 +343,7 @@ export function attachLegendToSeries(legend: LegendPrimitive, series: ISeriesApi
  */
 export function attachRangeSwitcherToSeries(
   switcher: RangeSwitcherPrimitive,
-  series: ISeriesApi<any>
+  series: ISeriesApi<any>,
 ): void {
   series.attachPrimitive(switcher);
 }
